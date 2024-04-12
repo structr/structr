@@ -43,6 +43,7 @@ public class TestHelper {
 
 	public static void testViews(final App app, final InputStream specificationSource, final Map<String, List<String>> additionalRequiredAttributes) {
 
+		final Set<String> useLowercaseNameForTypes           = Set.of("SchemaMethod");
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
@@ -147,7 +148,8 @@ public class TestHelper {
 				// only test node types for now..
 				if (!Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
 
-					final String body = createPostBody(requiredAttributes.get(typeName));
+					final String namePrefix = useLowercaseNameForTypes.contains(typeName) ? "test" : "Test";
+					final String body       = createPostBody(requiredAttributes.get(typeName), namePrefix);
 
 					// create entity
 					final String uuid = StringUtils.substringAfterLast(RestAssured
@@ -219,11 +221,12 @@ public class TestHelper {
 
 	static int count = 0;
 
-	private static String createPostBody(final List<String> required) {
+	private static String createPostBody(final List<String> required, final String namePrefix) {
 
 		final StringBuilder body = new StringBuilder("{ name: ");
 
-		body.append("'test");
+		body.append("'");
+		body.append(namePrefix);
 		body.append(++count);
 		body.append("'");
 

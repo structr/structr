@@ -26,6 +26,8 @@ public class InstantiationErrorToken extends SemanticErrorToken {
 
 	public InstantiationErrorToken(final String type, final Throwable t) {
 
-		super(type, null, "instantiation_error", t.getMessage());
+		super(type, null, "instantiation_error");
+
+		withDetail(t.getMessage());
 	}
 }

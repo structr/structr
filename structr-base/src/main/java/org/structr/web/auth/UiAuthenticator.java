@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -47,7 +46,6 @@ import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
-import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.io.IOException;
@@ -58,6 +56,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.structr.common.helper.PathHelper;
+import org.structr.web.resource.RegistrationResourceHandler;
 
 /**
  *
@@ -200,12 +200,32 @@ public class UiAuthenticator implements Authenticator {
 		final String requestedMethod  = request.getHeader("Access-Control-Request-Method");
 		final String requestUri       = request.getRequestURI();
 
-		String acceptedOriginsString  = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAcceptedOrigins.getKey(),  CorsSetting.acceptedOrigins);
-		final Integer maxAge          = (Integer) getEffectiveCorsSettingValue(request, Settings.AccessControlMaxAge.getKey(),           CorsSetting.maxAge);
-		final String allowMethods     = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowMethods.getKey(),     CorsSetting.allowMethods);
-		final String allowHeaders     = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowHeaders.getKey(),     CorsSetting.allowHeaders);
-		final String allowCredentials = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowCredentials.getKey(), CorsSetting.allowCredentials);
-		final String exposeHeaders    = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlExposeHeaders.getKey(),    CorsSetting.exposeHeaders);
+		String acceptedOriginsString  = Settings.AccessControlAcceptedOrigins.getValue();
+		Integer maxAge                = Settings.AccessControlMaxAge.getValue();
+		String allowMethods           = Settings.AccessControlAllowMethods.getValue();
+		String allowHeaders           = Settings.AccessControlAllowHeaders.getValue();
+		String allowCredentials       = Settings.AccessControlAllowCredentials.getValue();
+		String exposeHeaders          = Settings.AccessControlExposeHeaders.getValue();
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
+			if (corsSettingObjectFromDatabase != null) {
+
+				acceptedOriginsString = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.acceptedOrigins,  acceptedOriginsString);
+				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.maxAge,           maxAge);
+				allowMethods          = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowMethods,     allowMethods);
+				allowHeaders          = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowHeaders,     allowHeaders);
+				allowCredentials      = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowCredentials, allowCredentials);
+				exposeHeaders         = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.exposeHeaders,    exposeHeaders);
+			}
+
+			tx.success();
+
+		}  catch (FrameworkException t) {
+
+			logger.error("Exception while processing request", t);
+		}
 
 		final List<String> acceptedOrigins = Arrays.stream(acceptedOriginsString.split(",")).map(String::trim).collect(Collectors.toList());
 		final boolean wildcardAllowed = acceptedOrigins.contains("*");
@@ -448,7 +468,7 @@ public class UiAuthenticator implements Authenticator {
 			final Principal user = getUser(request, false);
 			if (user != null) {
 
-				Services.getInstance().broadcastLogout(user);
+				Services.getInstance().broadcastLogout(user.getNode().getId().getId());
 
 				AuthHelper.doLogout(request, user);
 			}
@@ -501,38 +521,19 @@ public class UiAuthenticator implements Authenticator {
 	/**
 	 * Get effective CORS setting
 	 */
-	private <T> Object getEffectiveCorsSettingValue(final HttpServletRequest request, final String corsAttributeKey, final PropertyKey<T> corsSettingPropertyKey) throws FrameworkException {
+	private <T> Object getEffectiveCorsSettingValue(final CorsSetting corsSettingObjectFromDatabase, final PropertyKey<T> corsSettingPropertyKey, final T defaultValue) throws FrameworkException {
 
-		// Default is value from Settings
-		Object effectiveCorsSettingValue = Settings.getSetting(corsAttributeKey).getValue();
+		if (corsSettingObjectFromDatabase != null) {
 
-		logger.debug("Settings value for {} from config: {}", corsAttributeKey, effectiveCorsSettingValue);
+			final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
+			if (corsSettingValueFromDatabase != null) {
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final String requestUri       = request.getRequestURI();
-			CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
-
-			if (corsSettingObjectFromDatabase != null) {
-
-				final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
-
-				if (corsSettingValueFromDatabase != null) {
-					// Overwrite config setting
-					effectiveCorsSettingValue = corsSettingValueFromDatabase;
-				}
-				logger.debug("Settings value for {} from database: {}", corsAttributeKey, effectiveCorsSettingValue);
+				// Overwrite config setting
+				return corsSettingValueFromDatabase;
 			}
-
-			tx.success();
-			return effectiveCorsSettingValue;
-
-		}  catch (FrameworkException t) {
-
-			logger.error("Exception while processing request", t);
 		}
 
-		return null;
+		return defaultValue;
 	}
 
 	/**
@@ -655,7 +656,7 @@ public class UiAuthenticator implements Authenticator {
 
 							logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
 
-							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+							user = RegistrationResourceHandler.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
 							// let oauth implementation augment user info
 							oAuth2Client.initializeAutoCreatedUser(user);

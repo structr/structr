@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
-import org.structr.rest.DefaultResourceProvider;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -61,7 +60,6 @@ public abstract class IndexingTest extends StructrRestTestBase {
 
 		Settings.Servlets.setValue("JsonRestServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 

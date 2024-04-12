@@ -34,7 +34,6 @@ import org.structr.api.util.CountResult;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -42,7 +41,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.NodeService;
@@ -66,6 +64,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.structr.common.helper.VersionHelper;
 
 public class Services implements StructrServices, BroadcastReceiver {
 
@@ -160,7 +159,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		try {
 
-			final T command          = commandType.newInstance();
+			final T command          = commandType.getDeclaredConstructor().newInstance();
 			final Class serviceClass = command.getServiceClass();
 
 			// inject security context first
@@ -725,7 +724,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			// initializers.
 			try {
 
-				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
+				configuration = (ConfigurationProvider)Class.forName(configurationClass).getDeclaredConstructor().newInstance();
 				configuration.initialize(licenseManager);
 
 			} catch (Throwable t) {
@@ -805,7 +804,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
-			final Service service = (Service) serviceClass.newInstance();
+			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
 
 			if (licenseManager != null && !licenseManager.isValid(service)) {
 
@@ -1391,17 +1390,17 @@ public class Services implements StructrServices, BroadcastReceiver {
 		Services.getInstance().broadcastMessageToCluster("data-changed", ids);
 	}
 
-	public void broadcastLogin(final Principal user) {
+	public void broadcastLogin(final long userId) {
 		try {
-			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
 
-	public void broadcastLogout(final Principal user) {
+	public void broadcastLogout(final long userId) {
 		try {
-			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -1438,10 +1437,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 				break;
 
 			case "data-changed":
-
-				if (this.isClusterStarted) {
-					this.removeFromCache(message.getPayloadAsList());
-				}
 				break;
 
 			case "startup-complete":
@@ -1458,18 +1453,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				break;
 		}
-	}
-
-	public void removeFromCache(final List<Long> ids) {
-
-		final DatabaseService db = getDatabaseService();
-
-		// db.identity() converts a long ID into an Identity object
-		ids.stream().map(db::identify).forEach(id -> {
-			db.removeNodeFromCache(id);
-			db.removeRelationshipFromCache(id);
-		});
-
 	}
 
 	@Override

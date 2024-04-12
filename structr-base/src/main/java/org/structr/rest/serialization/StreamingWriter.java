@@ -32,7 +32,6 @@ import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -72,7 +71,7 @@ public abstract class StreamingWriter {
 	private boolean renderSerializationTime               = true;
 	private boolean reduceRedundancy                      = false;
 	private int outputNestingDepth                        = 3;
-	private Value<String> propertyView                    = null;
+	private String view                                   = null;
 	protected boolean indent                              = true;
 	protected boolean wrapSingleResultInArray             = false;
 	private int skippedDeletedObjects                     = 0;
@@ -83,14 +82,14 @@ public abstract class StreamingWriter {
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
-	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+	public StreamingWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 
-		this.wrapSingleResultInArray   = wrapSingleResultInArray;
-		this.serializeNulls            = serializeNulls;
-		this.reduceRedundancy          = Settings.JsonRedundancyReduction.getValue(true);
-		this.outputNestingDepth        = outputNestingDepth;
-		this.propertyView              = propertyView;
-		this.indent                    = indent;
+		this.wrapSingleResultInArray = wrapSingleResultInArray;
+		this.serializeNulls          = serializeNulls;
+		this.reduceRedundancy        = Settings.JsonRedundancyReduction.getValue(true);
+		this.outputNestingDepth      = outputNestingDepth;
+		this.view                    = propertyView;
+		this.indent                  = indent;
 
 		serializers.put(GraphObject.class.getName(), root);
 		serializers.put(PropertyMap.class.getName(), new PropertyMapSerializer());
@@ -113,7 +112,6 @@ public abstract class StreamingWriter {
 
 		final Set<Integer> visitedObjects = new LinkedHashSet<>();
 		final RestWriter writer           = getRestWriter(securityContext, output);
-		final String view                 = propertyView.get(securityContext);
 
 		configureWriter(writer);
 
@@ -150,14 +148,14 @@ public abstract class StreamingWriter {
 		rootWriter.setPageSize(pageSize);
 		rootWriter.setPage(page);
 
-		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
+		rootWriter.beginDocument(baseUrl, view);
 		rootWriter.beginObject();
 
 		if (result != null) {
 
 			rootWriter.name(resultKeyName);
 
-			actualResultCount = root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
+			actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
 			rootWriter.flush();
 		}

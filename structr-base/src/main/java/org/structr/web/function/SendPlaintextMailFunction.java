@@ -19,10 +19,10 @@
 package org.structr.web.function;
 
 import org.apache.commons.mail.EmailException;
-import org.structr.common.MailHelper;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.MailHelper;
 import org.structr.schema.action.ActionContext;
 
 public class SendPlaintextMailFunction extends UiAdvancedFunction {

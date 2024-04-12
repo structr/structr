@@ -92,7 +92,7 @@ public class VirtualFileChannel extends FileChannel {
     @Override
     public void force(boolean metaData) throws IOException {
         // can't force seekablebytechannel
-        throw new IOException("Operation not supported");
+        //throw new IOException("Operation not supported");
     }
 
     @Override

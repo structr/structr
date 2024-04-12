@@ -18,10 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
-import java.util.Date;
-
 /**
  * Indicates that a given date property has the wrong format.
  *
@@ -29,7 +25,8 @@ import java.util.Date;
  */
 public class DateFormatToken extends SemanticErrorToken {
 
-	public DateFormatToken(final String type, PropertyKey<Date> propertyKey) {
+	public DateFormatToken(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "invalid_date_format");
 	}
 }

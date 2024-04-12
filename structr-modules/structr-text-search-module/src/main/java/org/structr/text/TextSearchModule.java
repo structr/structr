@@ -46,7 +46,11 @@ import org.structr.text.model.StructuredDocument;
 import org.structr.text.model.StructuredTextNode;
 
 import java.io.InputStream;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -211,7 +215,9 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 	// ----- interface ContentAnalyzer -----
 	@Override
-	public void analyzeContent(final Indexable indexable) throws FrameworkException {
+	public Map<String, Object> analyzeContent(final Indexable indexable) throws FrameworkException {
+
+		final Map<String, Object> data = new LinkedHashMap<>();
 
 		try (final InputStream is = indexable.getInputStream()) {
 
@@ -228,19 +234,31 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 			parser.parse(is, handler, metadata, context);
 
+			data.put("parsed", true);
+
 			// try to obtain structure information
 			handler.analyze();
 
+			data.put("analyzed", true);
+
 			final StructuredDocument document = app.create(StructuredDocument.class, indexable.getName());
+			final List<String> metadataNodes  = new LinkedList<>();
+			final List<String> pageNodes      = new LinkedList<>();
+
+			data.put("documentNode",  document.getUuid());
+			data.put("metadataNodes", metadataNodes);
+			data.put("pageNodes",     pageNodes);
 
 			// store document metadata separately
 			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
 
-				app.create(MetadataNode.class,
+				final MetadataNode m = app.create(MetadataNode.class,
 					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "name"),     meta.getKey()),
 					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "content"),  meta.getValue()),
 					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "document"), document)
 				);
+
+				metadataNodes.add(m.getUuid());
 			}
 
 			int pageNumber = 1;
@@ -251,6 +269,8 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     "Page " + pageNumber++),
 					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page")
 				);
+
+				pageNodes.add(page.getUuid());
 
 				document.treeAppendChild(page);
 
@@ -268,10 +288,17 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 				}
 			}
 
+			data.put("success", true);
+
 		} catch (Throwable t) {
+
+			data.put("success", false);
+			data.put("errorMessage", t.getMessage());
 
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
+
+		return data;
 	}
 
 	@Override

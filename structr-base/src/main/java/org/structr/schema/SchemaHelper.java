@@ -20,7 +20,6 @@ package org.structr.schema;
 
 import graphql.Scalars;
 import graphql.schema.*;
-import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,11 +49,12 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaMethod.source;
 import static org.structr.core.entity.SchemaNode.defaultSortKey;
 import static org.structr.core.entity.SchemaNode.defaultSortOrder;
@@ -227,8 +227,6 @@ public class SchemaHelper {
 
 		}
 
-		lastWord = PlingStemmer.stem(lastWord);
-
 		return begin.concat(WORD_SEPARATOR).concat(lastWord);
 
 	}
@@ -298,281 +296,7 @@ public class SchemaHelper {
 	}
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload, final boolean notifyCluster) {
-
-		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
-
-		if (!errorBuffer.hasError()) {
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				final App app = StructrApp.getInstance();
-
-				final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
-
-				// initialize cache
-				app.nodeQuery(ResourceAccess.class).getAsList();
-
-				cleanUnusedDynamicGrants(existingSchemaNodes);
-
-				for (final SchemaNode schemaNode : existingSchemaNodes) {
-
-					createDynamicGrants(schemaNode.getResourceSignature());
-				}
-
-				for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
-
-					createDynamicGrants(schemaRelationship.getResourceSignature());
-					createDynamicGrants(schemaRelationship.getInverseResourceSignature());
-				}
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				logger.warn("", t);
-			}
-		}
-
-		return res;
-	}
-
-	public static void cleanUnusedDynamicGrants(final List<SchemaNode> existingSchemaNodes) {
-
-		try {
-
-			final Set<String> existingSchemaNodeNames                    = new HashSet<>();
-			final Set<String> existingSchemaRelationshipNodeNames        = new HashSet<>();
-			final Set<String> existingGlobalSchemaMethodNames            = new HashSet<>();
-			final Map<String, Set<String>> existingTypeSchemaMethodNames = new HashMap<>();
-
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-
-			// get a list of all schema node types and relationship types
-			existingSchemaNodeNames.addAll(config.getNodeEntities().keySet());
-			existingSchemaRelationshipNodeNames.addAll(config.getRelationshipEntities().keySet());
-
-			for (final SchemaNode schemaNode : existingSchemaNodes) {
-
-				existingSchemaNodeNames.add(schemaNode.getResourceSignature());
-			}
-
-			final List<SchemaRelationshipNode> existingRelationshipTypes = StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList();
-			for (final SchemaRelationshipNode relType : existingRelationshipTypes) {
-
-				existingSchemaRelationshipNodeNames.add(relType.getName());
-			}
-
-			// get a list of all entity methods and global schema methods
-			final List<SchemaMethod> existingSchemaMethods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).getAsList();
-
-			for (final SchemaMethod schemaMethod : existingSchemaMethods) {
-
-				final String normalizedSchemaMethodName = SchemaHelper.normalizeEntityName(schemaMethod.getName());
-				final AbstractSchemaNode schemaNode     = schemaMethod.getProperty(SchemaMethod.schemaNode);
-
-				if (schemaNode == null) {
-
-					existingGlobalSchemaMethodNames.add(normalizedSchemaMethodName);
-
-				} else {
-
-					final String schemaNodeName = schemaNode.getName();
-
-					if (!existingTypeSchemaMethodNames.containsKey(schemaNodeName)) {
-						existingTypeSchemaMethodNames.put(schemaNodeName, new HashSet());
-					}
-
-					existingTypeSchemaMethodNames.get(schemaNodeName).add(normalizedSchemaMethodName);
-				}
-			}
-
-			final List<ResourceAccess> existingGrants = StructrApp.getInstance().nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList();
-
-			for (final ResourceAccess grant : existingGrants) {
-
-				boolean foundAllParts = true;
-
-				if (!TransactionCommand.isDeleted(grant.getNode())) {
-
-					final String sig = grant.getResourceSignature();
-
-					if (sig != null) {
-
-						// Try to find schema nodes for all parts of the grant signature
-						final List<String> parts = new LinkedList(List.of(StringUtils.split(sig, "/")));
-
-						if (parts.size() == 1) {
-
-							// only one part. can be view, node type, relationship type or global schema method
-
-							final String onlyPart = parts.get(0);
-
-							foundAllParts = onlyPart.startsWith("_") || existingSchemaNodeNames.contains(onlyPart) || existingSchemaRelationshipNodeNames.contains(onlyPart) || existingGlobalSchemaMethodNames.contains(onlyPart);
-
-						} else if (parts.size() > 1) {
-
-							String lastPart = parts.remove(parts.size() - 1);
-
-							if (lastPart.startsWith("_") && parts.size() > 1) {
-								// strip view to support views on methods
-								lastPart = parts.remove(parts.size() - 1);
-							}
-
-							// the first (n - 1) must be underscore-prefixed or types
-							for (final String sigPart : parts) {
-
-								if (sigPart.startsWith("_") || existingSchemaNodeNames.contains(sigPart)) {
-									continue;
-								}
-
-								foundAllParts = false;
-							}
-
-							// only the last part can be a view or a type or a schema method (also check methods on all superclasses)
-							if (foundAllParts && !lastPart.startsWith("_") && !existingSchemaNodeNames.contains(lastPart)) {
-
-								final String previousPart = parts.get(parts.size() - 1);
-
-								Class type = SchemaHelper.getEntityClassForRawType(previousPart);
-
-								boolean methodFound = false;
-
-								while (type != null && !type.equals(Object.class) && !methodFound) {
-
-									final String simpleTypeName = type.getSimpleName();
-
-									if (existingTypeSchemaMethodNames.containsKey(simpleTypeName) && existingTypeSchemaMethodNames.get(simpleTypeName).contains(lastPart)) {
-
-										methodFound = true;
-
-									} else {
-
-										// try reflection
-										for (final Method m : type.getMethods()) {
-											final String stemmedName = PlingStemmer.stem(StringUtils.capitalize(m.getName()));
-											if (lastPart.equals(stemmedName)) {
-												methodFound = true;
-											}
-										}
-									}
-
-									type = type.getSuperclass();
-								}
-
-								if (!methodFound) {
-									foundAllParts = false;
-								}
-							}
-						}
-					}
-
-					if (!foundAllParts) {
-
-						removeDynamicGrants(sig);
-					}
-				}
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
-		}
-	}
-
-	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {
-
-		final List<DynamicResourceAccess> grants = new LinkedList<>();
-		final long initialFlagsValue = 0;
-
-		final App app = StructrApp.getInstance();
-		try {
-
-			final ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-
-			if (grant == null) {
-
-				// create new grant
-				grants.add(app.create(DynamicResourceAccess.class,
-					new NodeAttribute(DynamicResourceAccess.signature, signature),
-					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
-				));
-
-				logger.debug("New signature created: {}", new Object[]{ (signature) });
-			}
-
-			final String schemaSig           = schemaResourceSignature(signature);
-			final ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSig).getFirst();
-
-			if (schemaGrant == null) {
-				// create additional grant for the _schema resource
-				grants.add(app.create(DynamicResourceAccess.class,
-					new NodeAttribute(DynamicResourceAccess.signature, schemaSig),
-					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
-				));
-
-				logger.debug("New signature created: {}", new Object[]{ schemaSig });
-			}
-
-			final String uiSig               = uiViewResourceSignature(signature);
-			final ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, uiSig).getFirst();
-
-			if (uiViewGrant == null) {
-
-				// create additional grant for the Ui view
-				grants.add(app.create(DynamicResourceAccess.class,
-					new NodeAttribute(DynamicResourceAccess.signature, uiSig),
-					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
-				));
-
-				logger.debug("New signature created: {}", new Object[]{ uiSig });
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
-		}
-
-		return grants;
-	}
-
-	public static void removeDynamicGrants(final String signature) {
-
-		final App app = StructrApp.getInstance();
-		try {
-
-			// delete grant
-			final ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-
-			if (grant != null) {
-
-				logger.info("Did not find all parts of signature, will be removed: {} (Flags: {}) ", signature, grant.getFlags());
-				app.delete(grant);
-			}
-
-			// delete _schema grant
-			final String schemaSignature = "_schema/" + signature;
-			final ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSignature).getFirst();
-
-			if (schemaGrant != null) {
-
-				logger.info("Did not find all parts of signature, will be removed: {} (Flags: {}) ", schemaSignature, schemaGrant.getFlags());
-				app.delete(schemaGrant);
-			}
-
-			// delete ui view grant
-			final String viewSignature = signature + "/_Ui";
-			final ResourceAccess viewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, viewSignature).getFirst();
-
-			if (viewGrant != null) {
-
-				logger.info("Did not find all parts of signature, will be removed: {} (Flags: {}) ", viewSignature, viewGrant.getFlags());
-				app.delete(viewGrant);
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
-		}
+		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
 	}
 
 	public static void getSource(final SourceFile sourceFile, final AbstractSchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
@@ -922,7 +646,7 @@ public class SchemaHelper {
 					final AbstractSchemaNode schemaNode   = (AbstractSchemaNode)entity;
 					final App app                         = StructrApp.getInstance();
 
-					if (app.nodeQuery(SchemaView.class).and(SchemaView.schemaNode, schemaNode).and(AbstractNode.name, viewName).getFirst() == null) {
+					if (schemaNode.getSchemaView(viewName) == null) {
 
 						// add parts to view, overrides defaults (because of clear() above)
 						for (int i = 0; i < parts.length; i++) {
@@ -939,7 +663,7 @@ public class SchemaHelper {
 								propertyName = propertyName.substring(0, propertyName.length() - "Property".length());
 							}
 
-							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+							final SchemaProperty propertyNode = schemaNode.getSchemaProperty(propertyName);
 							if (propertyNode != null) {
 
 								properties.add(propertyNode);
@@ -1054,6 +778,8 @@ public class SchemaHelper {
 		final App app                             = StructrApp.getInstance();
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
+		// FIXME: this block creates SchemaMethod objects from ___-prefixed properties! This is very old and should probably be removed!
+		// FIXME: there are still some test methods that use this feature!
 		for (final String rawActionName : getActions(propertyContainer)) {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
@@ -1065,7 +791,7 @@ public class SchemaHelper {
 					final AbstractSchemaNode schemaNode = (AbstractSchemaNode)entity;
 					final String methodName             = rawActionName.substring(3);
 
-					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
+					if (schemaNode.getSchemaMethod(methodName) == null) {
 
 						app.create(SchemaMethod.class,
 							new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
@@ -1460,7 +1186,7 @@ public class SchemaHelper {
 
 			if (Actions.Type.Custom.equals(action.getType())) {
 
-				formatActiveAction(src, codeSource, action);
+				formatScriptMethod(src, codeSource, action);
 
 			} else {
 
@@ -1541,17 +1267,25 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void formatActiveAction(final SourceFile src, final CodeSource codeSource, final ActionEntry action) {
-		src.line(codeSource, "@Export");
+	public static void formatScriptMethod(final SourceFile src, final CodeSource codeSource, final ActionEntry action) {
+
+		src.line(codeSource, "@Export(schemaMethodId = \"" + action.getCodeSource().getUuid() + "\")");
+		//src.line(codeSource, "@Export");
+
 		final SourceLine line = src.begin(codeSource, "public ");
+
 		if (action.isStatic()) {
 			line.append("static ");
 		}
+
 		line.append("java.lang.Object ");
 		line.append(action.getName());
 		line.append("(final SecurityContext arg0, final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
+
 		src.line(codeSource, "return");
+
 		action.getSource(src, action.isStatic() ? "null" :"this", true, false);
+
 		src.end();
 	}
 
@@ -2137,7 +1871,7 @@ public class SchemaHelper {
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
-		throw new FrameworkException(422, "Invalid property definition for property " + propertyDefinition.getPropertyName(), errorBuffer);
+		throw new FrameworkException(422, "Invalid property definition for property ‛" + propertyDefinition.getPropertyName() + "‛", errorBuffer);
 	}
 
 	private static boolean hasRestClasses() {
@@ -2188,26 +1922,26 @@ public class SchemaHelper {
 
 	private static boolean hasRelationshipNode(final SchemaNode schemaNode, final String propertyName) throws FrameworkException {
 
-		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
-			.and(SchemaRelationshipNode.sourceNode, schemaNode)
-			.and()
-				.or(SchemaRelationshipNode.targetJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
+		for (final SchemaRelationshipNode out : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-			.getFirst() != null) {
+			if (propertyName.equals(out.getProperty(SchemaRelationshipNode.targetJsonName))) {
+				return true;
+			}
 
-			return true;
+			if (propertyName.equals(out.getProperty(SchemaRelationshipNode.previousTargetJsonName))) {
+				return true;
+			}
 		}
 
-		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
-			.and(SchemaRelationshipNode.targetNode, schemaNode)
-			.and()
-				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
+		for (final SchemaRelationshipNode in : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
-			.getFirst() != null) {
+			if (propertyName.equals(in.getProperty(SchemaRelationshipNode.sourceJsonName))) {
+				return true;
+			}
 
-			return true;
+			if (propertyName.equals(in.getProperty(SchemaRelationshipNode.previousSourceJsonName))) {
+				return true;
+			}
 		}
 
 		return false;
@@ -2217,7 +1951,6 @@ public class SchemaHelper {
 
 		final Set<String> visited = new LinkedHashSet<>();
 		final Queue<String> types = new LinkedList<>();
-		final App app             = StructrApp.getInstance();
 
 		types.add(typeName);
 
@@ -2232,7 +1965,7 @@ public class SchemaHelper {
 				final SchemaNode schemaNode = schemaNodes.get(type);
 				if (schemaNode != null) {
 
-					final SchemaProperty schemaProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+					final SchemaProperty schemaProperty = schemaNode.getSchemaProperty(propertyName);
 					if (schemaProperty != null || hasRelationshipNode(schemaNode, propertyName)) {
 
 						return true;

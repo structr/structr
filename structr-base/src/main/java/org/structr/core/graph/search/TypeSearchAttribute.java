@@ -31,6 +31,7 @@ import java.util.Set;
 /**
  *
  *
+ * @param <S>
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> implements TypeQuery {
 
@@ -47,7 +48,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 			try {
 
-				final Relation rel = (Relation)type.newInstance();
+				final Relation rel = (Relation)type.getDeclaredConstructor().newInstance();
 				setValue(rel.name());
 
 				this.sourceType = rel.getSourceType();

@@ -34,7 +34,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
+import org.structr.schema.openapi.operation.OpenAPIUserDefinedFunctionOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -46,6 +46,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
 /**
  *
@@ -65,7 +66,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
 	private boolean isStatic                                  = false;
+	private boolean isPrivate                                 = false;
 	private JsonType parent                                   = null;
+	private String httpVerb                                   = "POST";
 	private String returnType                                 = null;
 	private String openAPIReturnType                          = null;
 	private String codeType                                   = null;
@@ -233,6 +236,28 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
+	@Override
+	public JsonMethod setIsPrivate(final boolean isPrivate) {
+		this.isPrivate = isPrivate;
+		return this;
+	}
+
+	@Override
+	public JsonMethod setHttpVerb(final String httpVerb) {
+		this.httpVerb = httpVerb;
+		return this;
+	}
+
+	@Override
+	public String getHttpVerb() {
+		return httpVerb;
+	}
+
+	@Override
 	public boolean overridesExisting() {
 		return overridesExisting;
 	}
@@ -315,22 +340,31 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
-		int index                               = 0;
+		final PropertyMap updateProperties = new PropertyMap();
+		SchemaMethod method                = null;
+		int index                          = 0;
 
-		getOrCreateProperties.put(SchemaMethod.name,                  getName());
-		getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
-		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
-		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
-		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
-		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
-		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
-		getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
-		getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
+		for (final SchemaMethod m : schemaNode.getSchemaMethodsByName(getName())) {
 
-		SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(getOrCreateProperties).getFirst();
+			if (getSignature().equals(m.getProperty(SchemaMethod.signature))) {
+
+				method = m;
+				break;
+			}
+		}
+
 		if (method == null) {
+
+			final PropertyMap getOrCreateProperties = new PropertyMap();
+			getOrCreateProperties.put(SchemaMethod.name,                  getName());
+			getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
+			getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
+			getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
+			getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
+			getOrCreateProperties.put(SchemaMethod.exceptions,            listToArray(getExceptions()));
+			getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
+			getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
+			getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
 
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
@@ -340,6 +374,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.isStatic,              isStatic());
+		updateProperties.put(SchemaMethod.isPrivate,             isPrivate());
+		updateProperties.put(SchemaMethod.httpVerb,              SchemaMethod.HttpVerb.valueOf(getHttpVerb()));
 		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
 		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 
@@ -350,7 +386,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			mergedTags.addAll(Arrays.asList(existingTagsArray));
 		}
-		updateProperties.put(SchemaMethod.tags, mergedTags.toArray(new String[0]));
+
+		if (!mergedTags.isEmpty()) {
+			updateProperties.put(SchemaMethod.tags, listToArray(mergedTags));
+		}
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
@@ -427,6 +466,18 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.isStatic = (Boolean)_isStatic;
 		}
 
+		final Object _isPrivate = source.get(JsonSchema.KEY_IS_PRIVATE);
+		if (_isPrivate != null && _isPrivate instanceof Boolean) {
+
+			this.isPrivate = (Boolean)_isPrivate;
+		}
+
+		final Object _httpVerb = source.get(JsonSchema.KEY_HTTP_VERB);
+		if (_httpVerb != null && _httpVerb instanceof String) {
+
+			this.httpVerb = (String)_httpVerb;
+		}
+
 		final Object _overridesExisting = source.get(JsonSchema.KEY_OVERRIDES_EXISTING);
 		if (_overridesExisting != null && _overridesExisting instanceof Boolean) {
 
@@ -493,6 +544,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setReturnType(method.getProperty(SchemaMethod.returnType));
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
 		setIsStatic(method.getProperty(SchemaMethod.isStatic));
+		setIsPrivate(method.getProperty(SchemaMethod.isPrivate));
+		setHttpVerb(method.getProperty(SchemaMethod.httpVerb).name());
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
 		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
@@ -539,6 +592,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
+		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
+		map.put(JsonSchema.KEY_HTTP_VERB, httpVerb);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 		map.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
@@ -588,25 +643,58 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		if (!OpenAPIMethodNameBlacklist.contains(getName())) {
 
+			final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+
 			if (isStatic) {
 
-				operations.put("/" + getParent().getName() + "/" + getName() + "/{view}", Map.of("post", new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+				operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
 
 
 			} else {
 
 				if (parent != null) {
 
-					operations.put("/" + getParent().getName() + "/{uuid}/" + getName() + "/{view}", Map.of("post", new OpenAPIMethodOperation(this, parentType, viewNames)));
+					operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
 
 				} else {
 
-					operations.put("/maintenance/globalSchemaMethods/" + getName(), Map.of("post", new OpenAPIGlobalSchemaMethodOperation(this)));
+					final String path = "/" + getName();
+
+					operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
 				}
 			}
 		}
 
 		return operations;
+	}
+
+	public String createPath(final String verb, final boolean isStatic) {
+
+		final StringBuilder pathBuilder = new StringBuilder("/");
+
+		pathBuilder.append(getParent().getName());
+
+		if (!isStatic) {
+			pathBuilder.append("/{uuid}");
+		}
+
+		pathBuilder.append("/");
+		pathBuilder.append(getName());
+
+		// GET calls take their arguments from the URL
+		if ("get".equals(verb)) {
+
+			for (final JsonParameter param : this.getParameters()) {
+
+				pathBuilder.append("/{");
+				pathBuilder.append(param.getName());
+				pathBuilder.append("}");
+			}
+		}
+
+		pathBuilder.append("/{view}");
+
+		return pathBuilder.toString();
 	}
 
 	public boolean isSelected(final String tag) {
@@ -696,9 +784,31 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return schema;
 	}
 
+	public List<Map<String, Object>> getOpenAPIRequestParameters(final Set<String> viewNames) {
+
+		final String verb                    = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+		final List<Map<String, Object>> list = new LinkedList<>();
+
+		list.add(new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true));
+
+		if ("get".equals(verb)) {
+
+			for (final JsonParameter param : this.getParameters()) {
+
+				list.add(new OpenAPIPathParameter(param.getName(), param.getDescription(), Map.of("type", param.getType()), true));
+			}
+		}
+
+		list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false));
+
+		return list;
+	}
+
 	public Map<String, Object> getOpenAPIRequestBody() {
 
-		if (!getParameters().isEmpty()) {
+		final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+
+		if (!"get".equals(verb) && !getParameters().isEmpty()) {
 			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null, false);
 		}
 

@@ -44,8 +44,8 @@ import java.util.regex.Pattern;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
-	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
-	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.*) TO (.*)\\]");
+	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
+	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
 
 	protected List<String> transformators                  = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
@@ -620,7 +620,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
 			// check for existence of range query string
-			Matcher matcher = rangeQueryPattern.matcher(requestParameter);
+			Matcher matcher = RANGE_QUERY_PATTERN.matcher(requestParameter);
 			if (matcher.matches()) {
 
 				if (matcher.groupCount() == 2) {

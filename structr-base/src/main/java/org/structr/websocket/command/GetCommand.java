@@ -21,10 +21,17 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.schema.Schema;
+import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
+import java.util.Set;
+
+import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to retrieve a single graph object by id.
@@ -55,11 +62,16 @@ public class GetCommand extends AbstractCommand {
 		}
 
 		final GraphObject graphObject = getGraphObject(webSocketData.getId(), nodeId);
-
-
 		if (graphObject != null) {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
+
+			if (graphObject instanceof SchemaReloadingNode) {
+				SchemaService.prefetchSchemaNodes(TransactionCommand.getCurrentTransaction());
+			}
+
+			// prefetching test
+			//SearchCommand.prefetch(graphObject.getClass(), webSocketData.getId());
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

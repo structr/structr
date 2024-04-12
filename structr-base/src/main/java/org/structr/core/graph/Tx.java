@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import org.structr.api.Prefetcher;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -27,13 +28,14 @@ import org.structr.core.StructrTransactionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  *
  */
-public class Tx implements AutoCloseable {
+public class Tx implements AutoCloseable, Prefetcher {
 
 	private final AtomicBoolean guard       = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
@@ -69,6 +71,20 @@ public class Tx implements AutoCloseable {
 
 		TransactionCommand.commitTx(securityContext, doValidation);
 		success = true;
+	}
+
+	@Override
+	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(type1, type2, keys);
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
+	}
+
+	public void setIsPing(final boolean isPing) {
+		TransactionCommand.getCurrentTransaction().setIsPing(isPing);
 	}
 
 	@Override

@@ -77,7 +77,7 @@ public interface Widget extends NodeInterface {
 
 		if (_source == null) {
 
-			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), StructrApp.key(Widget.class, "source")));
+			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), "source"));
 
 		} else {
 

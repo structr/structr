@@ -19,6 +19,11 @@
 package org.structr.core.graph;
 
 import org.structr.api.Transaction;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+
+import java.util.Set;
 
 /**
  *
@@ -89,5 +94,30 @@ public class TransactionReference implements Transaction {
 				tx.close();
 			}
 		}
+	}
+
+	@Override
+	public Node getNode(final Identity id) {
+		return tx.getNode(id);
+	}
+
+	@Override
+	public Relationship getRelationship(final Identity id) {
+		return tx.getRelationship(id);
+	}
+
+	@Override
+	public void prefetch(final String type1, String type2, final Set<String> keys) {
+		tx.prefetch(type1, type2, keys);
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> keys) {
+		tx.prefetch(query, keys);
+	}
+
+	@Override
+	public void setIsPing(boolean isPing) {
+		tx.setIsPing(isPing);
 	}
 }

@@ -20,6 +20,8 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +57,9 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
+import org.structr.web.entity.File;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 public class AdvancedSchemaTest extends FrontendTest {
@@ -1233,5 +1237,94 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testOnDownloadMethod() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create admin user
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("File");
+
+			type.addMethod("onDownload", "{ $.log('DOWNLOAD!'); $.this.onDownloadCalled = true; }");
+			type.addBooleanProperty("onDownloadCalled");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final File newFile = app.create(File.class, "test.txt");
+
+			try (final PrintWriter writer = new PrintWriter(newFile.getOutputStream())) {
+
+				writer.print("test!");
+			}
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/";
+		RestAssured
+			.given()
+				.header("X-User",     "admin")
+				.header("X-Password", "admin")
+			.expect()
+				.statusCode(200)
+				.body(equalTo("test!"))
+			.when()
+				.get("/test.txt");
+
+
+		// we need to wait for some time before the lifecycle method is called
+		try { Thread.sleep(2000); } catch (Throwable t) {}
+
+		String fileTypeId = null;
+
+		// check downloaded flag
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<Boolean> key = StructrApp.key(File.class, "onDownloadCalled");
+			final File file                = app.nodeQuery(File.class).getFirst();
+
+			// store UUID of SchemaNode with name "File" for later use
+			final SchemaNode fileTypeNode  = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+			fileTypeId = fileTypeNode.getUuid();
+
+			assertTrue("Lifecycle method onDownload was not called!", file.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		// test getGeneratedSourceCode method
+		RestAssured.basePath = "/structr/rest";
+		RestAssured
+			.given()
+				.header("X-User",     "admin")
+				.header("X-Password", "admin")
+			.expect()
+				.statusCode(200)
+				.body("result", startsWith("package org.structr.dynamic;"))
+			.when()
+				.post("/SchemaNode/" + fileTypeId + "/getGeneratedSourceCode");
 	}
 }

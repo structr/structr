@@ -18,21 +18,21 @@
  */
 package org.structr.core.graph;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Relation;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.LinkedList;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Relation;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
@@ -46,7 +46,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
 	public void execute(final NodeInterface node) throws FrameworkException {
-
 
 		if (securityContext.doCascadingDelete()) {
 
@@ -86,20 +85,29 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			}
 
 		} catch (java.lang.IllegalStateException ise) {
+
 			logger.warn("Trying to delete a node which is already deleted", ise.getMessage());
 			return;
+
 		} catch (org.structr.api.NotFoundException nfex) {
-			// exception can be ignored, node is already deleted
+			nfex.printStackTrace();
 		}
 
 		deletedNodes.add(node);
 
-		final App app  = StructrApp.getInstance(securityContext);
+		App app = StructrApp.getInstance(securityContext);
+
+		node.getNode().invalidate();
+
 		final List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
+		final List<AbstractRelationship> allRelationships   = Iterables.toList(node.getRelationships());
+		final List<AbstractRelationship> outgoingOnly       = Iterables.toList(node.getOutgoingRelationships());
+		final List<AbstractRelationship> incomingOnly       = Iterables.toList(node.getIncomingRelationships());
+
 
 		// Delete all end nodes of outgoing relationships which are connected
 		// by relationships which are marked with DELETE_OUTGOING
-		for (AbstractRelationship rel : node.getOutgoingRelationships()) {
+		for (AbstractRelationship rel : outgoingOnly) {
 
 			// deleted rels can be null..
 			if (rel != null) {
@@ -122,24 +130,19 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		// Delete all start nodes of incoming relationships which are connected
 		// by relationships which are marked with DELETE_INCOMING
-		for (AbstractRelationship rel : node.getIncomingRelationships()) {
+		for (AbstractRelationship rel : incomingOnly) {
 
-			// deleted rels can be null
-			if (rel != null) {
+			final int cascadeDelete       = rel.getCascadingDeleteFlag();
+			final NodeInterface startNode = rel.getSourceNode();
 
-				final int cascadeDelete       = rel.getCascadingDeleteFlag();
-				final NodeInterface startNode = rel.getSourceNode();
+			if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
 
-				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+				nodesToCheckAfterDeletion.add(startNode);
+			}
 
-					nodesToCheckAfterDeletion.add(startNode);
-				}
+			if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
 
-				if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
-
-					// remove start node from index
-					doDeleteNode(startNode);
-				}
+				doDeleteNode(startNode);
 			}
 		}
 
@@ -147,12 +150,12 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		node.onNodeDeletion(securityContext);
 
 		// Delete any relationship (this is PASSIVE DELETION)
-		final List<AbstractRelationship> list = Iterables.toList(node.getRelationships());
-		for (AbstractRelationship r : list) {
+		if (!allRelationships.isEmpty()) {
 
-			if (r != null) {
+			final DeleteRelationshipCommand cmd = app.command(DeleteRelationshipCommand.class);
+			for (AbstractRelationship r : allRelationships) {
 
-				app.delete(r);
+				cmd.execute(r);
 			}
 		}
 
@@ -165,7 +168,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 			if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
 
-				// remove end node from index
 				doDeleteNode(nodeToCheck);
 			}
 		}

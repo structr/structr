@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -33,8 +34,10 @@ public class DummyContentAnalyzer implements ContentAnalyzer {
 	private static final Logger logger = LoggerFactory.getLogger(DummyContentAnalyzer.class.getName());
 
 	@Override
-	public void analyzeContent(final Indexable indexable) throws FrameworkException {
+	public Map<String, Object> analyzeContent(final Indexable indexable) throws FrameworkException {
+		
 		logger.warn("No content analyzer installed, this is a dummy implementation that does nothing.");
+		return Map.of();
 	}
 
 	@Override

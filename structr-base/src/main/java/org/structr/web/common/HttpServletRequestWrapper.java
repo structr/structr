@@ -182,7 +182,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String getRealPath(String s) {
-		return request.getRealPath(s);
+		return request.getServletContext().getRealPath(s);
 	}
 
 	@Override

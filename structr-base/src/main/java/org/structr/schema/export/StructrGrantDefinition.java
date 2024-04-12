@@ -37,6 +37,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.web.maintenance.DeployCommand;
 
 /**
  *
@@ -154,6 +155,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 			// log error
 			logger.warn("No node of type Principal found for schema grant '{}', ignoring.", principalName);
+			DeployCommand.addMissingPrincipal(principalName);
 			return null;
 		}
 
@@ -161,6 +163,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 			// log error
 			logger.warn("Found {} candidates for type Principal in schema grant {}, ignoring.", principals.size(), principalName);
+			DeployCommand.addMissingPrincipal(principalName);
 			return null;
 		}
 

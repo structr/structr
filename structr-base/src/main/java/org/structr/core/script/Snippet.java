@@ -24,26 +24,26 @@ package org.structr.core.script;
  */
 public class Snippet {
 
-	private String codeSource = null;
-	private String name       = null;
-	private String source     = null;
+	private String codeSource        = null;
+	private String name              = null;
+	private String source            = null;
 	private String transcribedSource = null;
-	private String mimeType   = "application/javascript";
-	private boolean embed     = true;
-	private int startRow      = 0;
+	private String mimeType          = "application/javascript";
+	private boolean embed            = true;
+	private int startRow             = 0;
 
 	public Snippet(final String name, final String source) {
 
 		this.source = source;
 		this.name   = name;
-		this.embed = true;
+		this.embed  = true;
 	}
 
 	public Snippet(final String name, final String source, final boolean embed) {
 
 		this.source = source;
-		this.name = name;
-		this.embed = embed;
+		this.name   = name;
+		this.embed  = embed;
 	}
 
 	public String getName() {
@@ -74,9 +74,13 @@ public class Snippet {
 		return codeSource;
 	}
 
-	public String getMimeType() { return mimeType; }
+	public String getMimeType() {
+		return mimeType;
+	}
 
-	public void setMimeType(final String mimeType) { this.mimeType = mimeType; }
+	public void setMimeType(final String mimeType) {
+		this.mimeType = mimeType;
+	}
 
 	public String getTranscribedSource() {
 		return this.transcribedSource;

@@ -30,10 +30,8 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -45,7 +43,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
@@ -74,6 +71,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import org.structr.common.helper.VersionHelper;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -135,7 +134,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("deploy", DeployCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("deploy", DeployCommand.class);
 	}
 
 	@Override
@@ -201,7 +200,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public StreamingJsonWriter getJsonWriter() {
-		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false, true);
+		return new StreamingJsonWriter(PropertyView.All, true, 1, false, true);
 	}
 
 	public Gson getGson() {
@@ -1096,14 +1095,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
 
-				// move global schema methods to files
-				final List<Map<String, Object>> globalSchemaMethods = schema.getGlobalMethods();
+				// move user-defined functions to files
+				final List<Map<String, Object>> userDefinedFunctions = schema.getUserDefinedFunctions();
 
-				if (!globalSchemaMethods.isEmpty()) {
+				if (!userDefinedFunctions.isEmpty()) {
 
 					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER));
 
-					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
+					for (Map<String, Object> schemaMethod : userDefinedFunctions) {
 
 						final String methodName            = (String) schemaMethod.get("name");
 
@@ -2376,7 +2375,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 							if (Files.exists(globalMethodsFolder)) {
 
-								for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
+								for (Map<String, Object> schemaMethod : schema.getUserDefinedFunctions()) {
 
 									final String methodName = (String) schemaMethod.get("name");
 
@@ -2703,7 +2702,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
 
-		if (deferredPageLinks.containsKey(initialUUID)) {
+		if (deferredPageLinks.containsKey(initialUUID) && !initialUUID.equals(correctUUID)) {
 			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
 			deferredPageLinks.remove(initialUUID);
 		}

@@ -18,7 +18,6 @@
  */
 package org.structr.mail.function;
 
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
@@ -26,6 +25,7 @@ import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
 import java.util.List;
+import org.structr.common.helper.AdvancedMailContainer;
 
 public class MailBeginFunction extends AdvancedMailModuleFunction {
 

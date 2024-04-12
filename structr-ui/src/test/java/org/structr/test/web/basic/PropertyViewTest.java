@@ -59,7 +59,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.statusCode(201)
 
 			.when()
-				.post("/users");
+				.post("/User");
 
 		// create resource access objects
 		/*
@@ -75,12 +75,12 @@ public class PropertyViewTest extends StructrUiTest {
 
 
 			caution: we're only testing resource ACCESS here, so the
-			expected response code of 400 for PUT is correct because
+			expected response code of 405 for PUT is correct because
 			we don't supply a correct resource URL, this test is only
-			about having sufficient permissions to cause a 400 error.
+			about having sufficient permissions to cause a 405 error.
 		*/
 
-		String resource = "/test_ones";
+		String resource = "/TestOne";
 
 		// first: test failures without resource access object
 		testGet(   resource,                                        401);
@@ -129,7 +129,7 @@ public class PropertyViewTest extends StructrUiTest {
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
-		testPut(   resource, username, password, "{'name':'test'}", 400);
+		testPut(   resource, username, password, "{'name':'test'}", 405);
 		testPost(  resource, "", "", "{'name':'test'}",             401);
 		testPost(  resource, username, password, "{'name':'test'}", 401);
 		testDelete(resource, "", "",                                401);
@@ -183,7 +183,7 @@ public class PropertyViewTest extends StructrUiTest {
 		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
-		testPut(   resource,         "{'name':'test'}",             400);
+		testPut(   resource,         "{'name':'test'}",             405);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
 		testPut(   resource, username, password, "{'name':'test'}", 401);
 		testPost(  resource, "", "", "{'name':'test'}",             401);
@@ -248,7 +248,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.statusCode(201)
 
 			.when()
-				.post("/users").header("Location"));
+				.post("/User").header("Location"));
 
 		// create resource access objects
 		/*
@@ -264,7 +264,7 @@ public class PropertyViewTest extends StructrUiTest {
 
 		*/
 
-		String resource = "/test_ones";
+		String resource = "/TestOne";
 
 		// grant GET and POST for authenticated users
 		grant("TestOne", 5, true);

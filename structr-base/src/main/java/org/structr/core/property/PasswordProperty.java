@@ -81,11 +81,11 @@ public class PasswordProperty extends StringProperty {
 
 				if (minLength > 0 && clearTextPassword.length() < minLength) {
 
-					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey, minLength));
+					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey.jsonName(), minLength));
 				}
 			}
-			
-					
+
+
 			if (obj instanceof CreationContainer) {
 
 				wrappedObject = ((CreationContainer)obj).getWrappedObject();
@@ -109,7 +109,7 @@ public class PasswordProperty extends StringProperty {
 			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
-			
+
 			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
 				wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
 			}
@@ -118,7 +118,7 @@ public class PasswordProperty extends StringProperty {
 
 			returnValue = super.setProperty(securityContext, obj, null);
 		}
-		
+
 		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
 			wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
 		}
@@ -134,7 +134,6 @@ public class PasswordProperty extends StringProperty {
 
 		final String passwordToCheck  = clearTextPassword == null ? "" : clearTextPassword;
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
-		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
 
 		final int passwordMinLength             = Settings.PasswordComplexityMinLength.getValue();
 		final boolean enforceMinUpperCase       = Settings.PasswordComplexityRequireUpperCase.getValue();
@@ -153,23 +152,22 @@ public class PasswordProperty extends StringProperty {
 		final int otherCharactersInPassword     = (passwordLength - upperCaseCharactersInPassword - lowerCaseCharactersInPassword - digitsInPassword);
 
 		if (passwordLength < passwordMinLength) {
-			errorBuffer.add(new TooShortToken("User", passwordKey, passwordMinLength));
+			errorBuffer.add(new TooShortToken("User", "password", passwordMinLength));
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_lowercase"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_lowercase"));
 		}
 
 		if (enforceMinDigits && digitsInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_digits"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_digits"));
 		}
 
 		if (enforceMinNonAlphaNumeric && otherCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_non_alpha_numeric"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_non_alpha_numeric"));
 		}
 
 		if (errorBuffer.hasError()) {

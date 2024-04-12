@@ -20,12 +20,13 @@ package org.structr.core.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalSchemaGrantRelationship;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
@@ -132,7 +133,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 		}
 
 		// delete this node if principal or schema node are missing
-		if (!TransactionCommand.isDeleted(dbNode) && getProperty(schemaNode) == null) {
+		if (!TransactionCommand.isDeleted(getNode()) && getProperty(schemaNode) == null) {
 			logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
 			StructrApp.getInstance().delete(this);
 		}
@@ -143,6 +144,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
+		final Node dbNode = getNode();
 		final Principal p = getProperty(principal);
 		if (p == null) {
 

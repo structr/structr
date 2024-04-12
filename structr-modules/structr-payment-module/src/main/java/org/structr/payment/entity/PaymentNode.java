@@ -267,7 +267,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 
 		for (final APIError error : response.getErrors()) {
 
-			errorBuffer.add(new PayPalErrorToken(PaymentNode.class.getSimpleName(), AbstractNode.base, error.getErrorCode(), error.getLongMessage()));
+			errorBuffer.add(new PayPalErrorToken(PaymentNode.class.getSimpleName(), AbstractNode.base.jsonName(), error.getErrorCode(), error.getLongMessage()));
 		}
 
 		throw new FrameworkException(422, cause, errorBuffer);

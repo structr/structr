@@ -26,11 +26,10 @@ import java.lang.annotation.Target;
 /**
  * Marker to indicate that the method annotated
  * with this class is callable directly via REST.
- * 
- *
  */
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Export {
+	public String schemaMethodId() default "";
 }

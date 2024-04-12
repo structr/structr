@@ -65,6 +65,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 		Principal admin       = null;
+		String uuid           = null;
 
 		try {
 
@@ -115,6 +116,8 @@ public class ConsoleTest extends StructrUiTest {
 
 				admin = app.nodeQuery(User.class).andName("admin").getFirst();
 
+				uuid = admin.getUuid();
+
 				assertNotNull("Invalid console execution result", admin);
 				assertEquals("Invalid console execution result", "admin",           admin.getProperty(User.name));
 				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
@@ -126,7 +129,7 @@ public class ConsoleTest extends StructrUiTest {
 				tx.success();
 			}
 
-			final String idHash = admin.getUuid().substring(7, 11);
+			final String idHash = uuid.substring(7, 11);
 
 			// delete user without confirmation
 			assertEquals("Invalid console execution result", "User 'admin' has owned nodes, please confirm deletion with 'user delete admin " + idHash + "'.\r\n", console.runForTest("user delete admin"));
@@ -148,14 +151,14 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
-		final int nodeCount      = 2440;
-		final int relCount       = 2852;
-		final int typedNodeCount = 612;
+		final int nodeCount           = 1853;
+		final int relCount            = 2895;
+		final int resourceAccessCount = 0;
+		final int typedNodeCount      = 669;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
-			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
@@ -169,7 +172,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
-			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
@@ -184,9 +186,8 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String typedNodeIndexRebuildOutput =
 			"Starting (re-)indexing all nodes of type ResourceAccess\r\n" +
-			"RebuildNodeIndex: " + typedNodeCount + " objects processed\r\n" +
-			"RebuildNodeIndex: " + typedNodeCount + " objects processed\r\n" +
-			"Done with (re-)indexing " + typedNodeCount + " nodes\r\n";
+			"RebuildNodeIndex: " + resourceAccessCount + " objects processed\r\n" +
+			"Done with (re-)indexing " + resourceAccessCount + " nodes\r\n";
 
 		final String typedRelationshipIndexRebuildOutput =
 			"Starting (re-)indexing all relationships of type ResourceAccess\r\n" +
@@ -196,7 +197,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
 			"SetNodeUuid: 1000 objects processed\r\n" +
-			"SetNodeUuid: 2000 objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";

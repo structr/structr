@@ -19,7 +19,6 @@
 package org.structr.bolt;
 
 import org.neo4j.driver.Record;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
 
 import java.util.Iterator;
 
@@ -39,8 +38,9 @@ public class QueryIterable implements Iterable<Record> {
 	public Iterator<Record> iterator() {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
-		final Flux<Record> flux     = (Flux<Record>)tx.collectRecords(query.getStatement(true), query.getParameters(), null);
 
-		return flux.toIterable().iterator();
+		tx.setIsPing(query.getQueryContext().isPing());
+
+		return tx.collectRecords(query.getStatement(true), query.getParameters(), null).iterator();
 	}
 }

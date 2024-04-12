@@ -27,8 +27,6 @@ import org.jsoup.nodes.*;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.CaseHelper;
-import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -69,6 +67,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.PathHelper;
 
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.

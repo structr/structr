@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
  */
 public class Settings {
 
+	private static String uuidOnlyRegex;
+	private static String uuidPartRegex;
 	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
 
 	private static String uuidRegex;
@@ -81,6 +83,8 @@ public class Settings {
 	public static final Setting<String> ApplicationTitle            = new StringSetting(generalGroup,          "Application", "application.title",                            "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
 	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> InstanceStage               = new StringSetting(generalGroup,          "Application", "application.instance.stage",                   "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
+	public static final Setting<String> MenuEntries                 = new StringSetting(generalGroup,          "Application", "application.menu.main",                        "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
+	public static final Setting<String> AvailableMenuItems          = new StringSetting(generalGroup,          "hidden",      "application.menu.items",                       "Dashboard,Graph,Contents,Pages,Files,Security,Schema,Code,Flows,Data,Importer,Localization,Virtual Types,Mail Templates,Login", "Comma-separated list of available menu items in structr-ui. Only items from this list will be available in the menu.");
 	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
 	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      false, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
@@ -973,6 +977,7 @@ public class Settings {
 	public static String getFullSettingPath(Setting<String> pathSetting) {
 
 		return getBasePath() + checkPath(pathSetting.getValue());
+
 	}
 
 	private static String checkPath(final String path) {
@@ -1062,33 +1067,48 @@ public class Settings {
 
 	public static String getValidUUIDRegexString() {
 
-		return Settings.uuidRegex;
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
+
+		return Settings.uuidOnlyRegex;
+	}
+
+	public static String getValidUUIDRegexStringForURLParts() {
+
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
+
+		return Settings.uuidPartRegex;
 	}
 
 	private static void initializeValidUUIDPatternOnce() {
 
-		if (Settings.uuidPattern != null && Settings.uuidRegex != null) {
+		if (Settings.uuidPattern != null && Settings.uuidOnlyRegex != null) {
 			// prevent update
 			return;
 		}
 
-		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
+		switch (Settings.UUIDv4AllowedFormats.getValue()) {
+			case "with_dashes":
+				Settings.uuidOnlyRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				Settings.uuidPartRegex = "[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}";
+				break;
 
-		if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString())) {
+			case "both":
+				Settings.uuidOnlyRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				Settings.uuidPartRegex = "[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}";
+				break;
 
-			Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-
-		} else if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.both.toString())) {
-
-			Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-
-		} else {
-
-			// default to "without_dashes":
-			Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
+			default:
+			case "without_dashes":
+				Settings.uuidOnlyRegex = "^[a-fA-F0-9]{32}$";
+				Settings.uuidPartRegex = "[a-fA-F0-9]{32}";
+				break;
 		}
 
-		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());
+		Settings.uuidPattern = Pattern.compile(Settings.uuidOnlyRegex);
 	}
 
 	public static boolean isValidUuid(final String id) {

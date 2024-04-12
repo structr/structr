@@ -22,8 +22,6 @@ import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.DynamicMailAttachment;
-import org.structr.common.MailHelper;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -33,6 +31,8 @@ import org.structr.web.entity.File;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.common.helper.MailHelper;
 
 public class SendHtmlMailFunction extends UiAdvancedFunction {
 

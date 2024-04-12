@@ -143,7 +143,7 @@ public class CSVFileImportJob extends FileImportJob {
 					targetEntityType  = StructrApp.getConfiguration().getRelationshipEntityClass(targetType);
 					currentImportType = IMPORT_TYPE.REL;
 
-					final Relation template = (Relation)targetEntityType.newInstance();
+					final Relation template = (Relation)targetEntityType.getDeclaredConstructor().newInstance();
 					relSourceType = template.getSourceType();
 					relTargetType = template.getTargetType();
 
@@ -244,7 +244,9 @@ public class CSVFileImportJob extends FileImportJob {
 			} finally {
 
 				try {
+
 					builder.removeMapping(app, targetType, importTypeName);
+
 				} catch (FrameworkException ex) {
 					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
 				}

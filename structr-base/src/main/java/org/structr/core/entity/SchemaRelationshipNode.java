@@ -34,7 +34,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Ownership;
@@ -53,6 +52,9 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
@@ -1202,7 +1204,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			}
 
 			if (!allow) {
-				errorBuffer.add(new SemanticErrorToken(this.getType(), relationshipType, "duplicate_relationship_definition", "Schema Relationship with same name between source and target node already exists. This is not allowed."));
+
+				errorBuffer.add(new SemanticErrorToken(this.getType(), relationshipType.jsonName(), "duplicate_relationship_definition")
+					.withDetail("Schema Relationship with same name between source and target node already exists. This is not allowed.")
+				);
 			}
 
 		} catch (FrameworkException fex) {

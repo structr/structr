@@ -18,16 +18,12 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
- * Indicates that a property is internal, system-only
- *
- *
+ * Indicates that a property is internal, system-only.
  */
 public class InternalSystemPropertyToken extends SemanticErrorToken {
 
-	public InternalSystemPropertyToken(final String type, final PropertyKey propertyKey) {
+	public InternalSystemPropertyToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "is_system_property");
 	}
 }

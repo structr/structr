@@ -20,6 +20,7 @@ package org.structr.test.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.AccessMode;
@@ -300,24 +301,33 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		testGranted(projectType, new boolean[] { false, false, false, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          PropagationMode.Add);
-		testGranted(projectType, new boolean[] { true, false, false, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         PropagationMode.Add);
-		testGranted(projectType, new boolean[] { true, true, false, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        PropagationMode.Add);
-		testGranted(projectType, new boolean[] { true, true, true, false });
-		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Add);
-		testGranted(projectType, new boolean[] { true, true, true, true });
+		try {
+			System.out.println("######################################################################################################################## START");
 
-		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation,          PropagationMode.Remove);
-		testGranted(projectType, new boolean[] { false, true, true, true });
-		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation,         PropagationMode.Remove);
-		testGranted(projectType, new boolean[] { false, false, true, true });
-		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation,        PropagationMode.Remove);
-		testGranted(projectType, new boolean[] { false, false, false, true });
-		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Remove);
-		testGranted(projectType, new boolean[] { false, false, false, false });
+			testGranted(projectType, new boolean[]{false, false, false, false});
+			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Add);
+			testGranted(projectType, new boolean[]{true, false, false, false});
+			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Add);
+			testGranted(projectType, new boolean[]{true, true, false, false});
+			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Add);
+			testGranted(projectType, new boolean[]{true, true, true, false});
+			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Add);
+			testGranted(projectType, new boolean[]{true, true, true, true});
+
+			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Remove);
+			testGranted(projectType, new boolean[]{false, true, true, true});
+			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Remove);
+			testGranted(projectType, new boolean[]{false, false, true, true});
+			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Remove);
+			testGranted(projectType, new boolean[]{false, false, false, true});
+			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Remove);
+			testGranted(projectType, new boolean[]{false, false, false, false});
+
+		} finally {
+
+			System.out.println("######################################################################################################################## END");
+		}
+
 	}
 
 	@Test
@@ -585,6 +595,8 @@ public class PermissionResolutionTest extends StructrTest {
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.delete,        userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.accessControl, userContext));
 
+			System.out.println("#################################################### TEST");
+
 			assertEquals("Invalid permission resolution result",  expected[0], result.get(1).isGranted(Permission.read,          userContext));
 			assertEquals("Invalid permission resolution result",  expected[1], result.get(1).isGranted(Permission.write,         userContext));
 			assertEquals("Invalid permission resolution result",  expected[2], result.get(1).isGranted(Permission.delete,        userContext));
@@ -602,8 +614,8 @@ public class PermissionResolutionTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
-			t.printStackTrace();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

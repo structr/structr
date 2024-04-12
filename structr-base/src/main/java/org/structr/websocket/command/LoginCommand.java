@@ -67,6 +67,7 @@ public class LoginCommand extends AbstractCommand {
 
 		boolean sendSuccess = false;
 		Principal user      = null;
+		long userId         = -1L;
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
@@ -149,6 +150,8 @@ public class LoginCommand extends AbstractCommand {
 						}
 					}
 
+					userId = user.getNode().getId().getId();
+
 				} else {
 
 					getWebSocket().send(MessageBuilder.status().code(401).build(), true);
@@ -204,7 +207,7 @@ public class LoginCommand extends AbstractCommand {
 		if (sendSuccess) {
 
 			// send broadcast to cluster members to refresh user from db
-			Services.getInstance().broadcastLogin(user);
+			Services.getInstance().broadcastLogin(userId);
 
 			getWebSocket().send(webSocketData, false);
 		}

@@ -35,8 +35,8 @@ public class SchemaResourceViewTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema0() {
 
-		String id = createEntity("/schema_node", "{ \"name\": \"TestType0\", \"_a\": \"String\",  \"_b\": \"String\",  \"_c\": \"String\",  \"_d\": \"String\" }");
-		createEntity("/schema_view", "{ \"name\": \"view1\", \"nonGraphProperties\": \"b,d,c,a\", \"schemaNode\": \"" + id + "\" }");
+		String id = createEntity("/SchemaNode", "{ \"name\": \"TestType0\", \"_a\": \"String\",  \"_b\": \"String\",  \"_c\": \"String\",  \"_d\": \"String\" }");
+		createEntity("/SchemaView", "{ \"name\": \"view1\", \"nonGraphProperties\": \"b,d,c,a\", \"schemaNode\": \"" + id + "\" }");
 
 		RestAssured
 

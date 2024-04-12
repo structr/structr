@@ -29,8 +29,6 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.StringSetting;
 import org.structr.api.service.*;
-import org.structr.common.AdvancedMailContainer;
-import org.structr.common.DynamicMailAttachment;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.mail.MailServiceInterface;
@@ -60,6 +58,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -188,7 +188,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	}
 
 	@Override
-	public ServiceResult initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return new ServiceResult(true);
 	}
 

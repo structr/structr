@@ -33,11 +33,12 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
+	//public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
+	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
 
-		if (hasOptionalParts) {
+		if (query.getHasOptionalParts()) {
 
 			buf.append("OPTIONAL ");
 		}
@@ -45,7 +46,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		buf.append("MATCH (n");
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
-		if (hasPredicates) {
+		if (query.hasPredicates()) {
 			buf.append(":NodeInterface");
 		}
 
@@ -63,6 +64,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 			buf.append(typeLabel);
 		}
 
+
 		buf.append(")");
 
 		return buf.toString();
@@ -73,7 +75,14 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append(" RETURN DISTINCT n");
+		if (query.hasRelationshipPredicates()) {
+
+			buf.append(" RETURN DISTINCT n");
+
+		}  else {
+
+			buf.append(" WITH n OPTIONAL MATCH (n)-[r]-(m) RETURN DISTINCT n, collect(distinct r) AS rels, collect(distinct m) AS nodes");
+		}
 
 		final SortOrder sortOrder = query.getSortOrder();
 		if (sortOrder != null) {
@@ -100,6 +109,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+		//return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
 	}
 }

@@ -240,7 +240,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			ownsProperties.put(AbstractRelationship.relType.dbName(),            "OWNS");
 			ownsProperties.put(AbstractRelationship.sourceId.dbName(),           userId);
 			ownsProperties.put(AbstractRelationship.targetId.dbName(),           newUuid);
-			ownsProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp());
+			ownsProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp(0, 0));
 
 			// configure SECURITY relationship creation statement for maximum performance
 			securityProperties.put(GraphObject.id.dbName(),                          getNextUuid());
@@ -250,7 +250,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			securityProperties.put(AbstractRelationship.relType.dbName(),            "SECURITY");
 			securityProperties.put(AbstractRelationship.sourceId.dbName(),           userId);
 			securityProperties.put(AbstractRelationship.targetId.dbName(),           newUuid);
-			securityProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp());
+			securityProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp(0, 1));
 			securityProperties.put(Security.allowed.dbName(),                        new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
 			securityProperties.put(Security.principalId.dbName(),                    userId);
 			securityProperties.put(Security.accessControllableId.dbName(),           newUuid);

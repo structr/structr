@@ -181,10 +181,14 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				final boolean isPing = "PING".equals(command);
+
+				tx.setIsPing(isPing);
+
 				if (sessionIdFromMessage != null) {
 
 					// try to authenticated this connection by sessionId
-					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), command.equals("PING"));
+					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), isPing);
 				}
 
 				// we only permit LOGIN commands if authentication based on sessionId was not successful
@@ -214,7 +218,7 @@ public class StructrWebSocket implements WebSocketListener {
 			try {
 
 
-				AbstractCommand abstractCommand = (AbstractCommand) type.newInstance();
+				AbstractCommand abstractCommand = (AbstractCommand) type.getDeclaredConstructor().newInstance();
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
@@ -249,6 +253,10 @@ public class StructrWebSocket implements WebSocketListener {
 
 					try (final Tx tx = app.tx(true, true, true)) {
 
+						if (abstractCommand instanceof PingCommand) {
+							tx.setIsPing(true);
+						}
+
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
@@ -276,7 +284,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 				}
 
-			} catch (FrameworkException | InstantiationException | IllegalAccessException t) {
+			} catch (Throwable t) {
+
+				t.printStackTrace();
 
 				try (final Tx tx = app.tx(true, true, true)) {
 
@@ -299,9 +309,6 @@ public class StructrWebSocket implements WebSocketListener {
 				} catch (FrameworkException fex) {
 					logger.warn("Unable to send websocket result: {}", fex.getMessage());
 				}
-
-				return;
-
 			}
 
 		} else {
@@ -310,9 +317,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 			// send 400 Bad Request
 			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
-
-			return;
-
 		}
 	}
 
@@ -498,7 +502,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			final AbstractCommand msg = (AbstractCommand) command.newInstance();
+			final AbstractCommand msg = (AbstractCommand) command.getDeclaredConstructor().newInstance();
 
 			commandSet.put(msg.getCommand(), command);
 

@@ -18,78 +18,70 @@
  */
 package org.structr.rest.resource;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.StructrEnvFunction;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
-import org.structr.rest.exception.IllegalPathException;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class EnvResource extends Resource {
+public class EnvResource extends ExactMatchEndpoint {
 
 	public enum UriPart {
 		_env
 	}
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-
-		this.securityContext = securityContext;
-
-		return (UriPart._env.name().equals(part));
+	public EnvResource() {
+		super(RESTParameter.forStaticString(UriPart._env.name()));
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-
-		final List<GraphObjectMap> resultList             = new LinkedList<>();
-
-		resultList.add(StructrEnvFunction.getStructrEnv());
-
-		return new PagingIterable("/" + getUriPart(), resultList);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new EnvResourceHandler(call);
 	}
 
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
-	}
+	private class EnvResourceHandler extends RESTCallHandler {
 
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		throw new IllegalPathException(getResourceSignature() + " has no subresources");
-	}
+		public EnvResourceHandler(final RESTCall call) {
+			super(call);
+		}
 
-	@Override
-	public String getUriPart() {
-		return getResourceSignature();
-	}
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
+			final List<GraphObjectMap> resultList = new LinkedList<>();
 
-	@Override
-	public String getResourceSignature() {
-		return UriPart._env.name();
-	}
+			resultList.add(StructrEnvFunction.getStructrEnv());
 
-	@Override
-	public boolean isCollectionResource() throws FrameworkException {
-		return false;
-	}
+			return new PagingIterable(getURL(), resultList);
+		}
 
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS");
+		}
+	}
 }

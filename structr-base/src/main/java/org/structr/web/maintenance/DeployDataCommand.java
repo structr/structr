@@ -35,7 +35,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -55,6 +54,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployDataCommand extends DeployCommand {
 
@@ -92,7 +92,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("deployData", DeployDataCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("deployData", DeployDataCommand.class);
 	}
 
 	@Override

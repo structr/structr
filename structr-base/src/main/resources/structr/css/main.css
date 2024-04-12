@@ -1390,12 +1390,12 @@ button.action.disabled:hover {
 }
 
 .schema-props tbody tr:nth-child(odd),
-.schema-props .fake-tbody .fake-tr:nth-child(odd) {
+.schema-props .schema-grid-body .schema-grid-row:nth-child(odd) > div {
 	background-color: var(--light-gray-bg-f7);
 }
 
 .schema-props tbody tr:nth-child(even),
-.schema-props .fake-tbody .fake-tr:nth-child(even) {
+.schema-props .schema-grid-body .schema-grid-row:nth-child(even) > div {
 	background-color: var(--solid-white);
 }
 
@@ -1408,19 +1408,21 @@ button.action.disabled:hover {
 	vertical-align: initial;
 }
 
-.schema-props .to-delete {
+.schema-props .to-delete,
+.schema-props .to-delete > div {
 	background-image: var(--striped-background);
 	background-size: 20px 20px;
+	background-attachment: fixed;
 }
 
 /* attribute with changes and to-delete flag */
-.actions.schema-props .fake-tr.editing.to-delete {
+.actions.schema-props .schema-grid-row.editing.to-delete > div {
 	background-image: linear-gradient(135deg, var(--very-light-structr-green) 25%, var(--light-gray-delete-b3) 25%, var(--light-gray-delete-b3) 50%, var(--very-light-structr-green) 50%, var(--very-light-structr-green) 75%, var(--light-gray-delete-b3) 75%, var(--light-gray-delete-b3) 100%);
 	background-size: 20px 20px;
+	background-attachment: fixed;
 }
 
-.schema-props .to-delete td:not(.actions-col),
-.schema-props .to-delete .fake-td:not(.actions-col) {
+.schema-props .to-delete > div {
 	opacity: 0.5;
 }
 
@@ -1430,13 +1432,13 @@ button.action.disabled:hover {
 
 .schema-props tr.to-delete .discard-changes,
 .schema-props tr.has-changes .discard-changes,
-.schema-props .fake-tr.has-changes .discard-changes
-{
+.schema-props .schema-grid-row.to-delete .discard-changes,
+.schema-props .schema-grid-row.has-changes .discard-changes {
 	display: inline-block;
 }
 
 .schema-props tr.to-delete .remove-action,
-.schema-props .fake-tr.to-delete .remove-action {
+.schema-props .schema-grid-row.to-delete .remove-action {
 	display: none;
 }
 
@@ -1850,18 +1852,23 @@ button.disabled, i.disabled {
 }
 
 
-.property-name,
-.property-dbname,
-.property-format,
-.property-code,
-.property-comment,
-.property-attrs,
-.property-default,
 .localization-locale,
 .localization-name {
 	width: calc(100% - 1rem);
 	border: none;
 	background: transparent;
+}
+
+.property-name,
+.property-dbname,
+.property-format,
+.property-code,
+.property-attrs,
+.property-default {
+	width: 100%;
+	border: none;
+	background: transparent;
+	box-sizing: border-box;
 }
 
 .select2-container.select2-container--default .select2-selection--multiple,
@@ -2472,7 +2479,8 @@ input.tree-search-input {
 	color: var(--gray-aaa);
 }
 
-.tree-contents-container button, #crud-buttons button {
+.tree-contents-container button:not(.save-all),
+#crud-buttons button {
 	margin-right: .5rem ! important;
 }
 
@@ -2517,69 +2525,6 @@ input.tree-search-input {
 	width: 100%;
 }
 
-/* BEGIN: Fake table styles for schema METHODS editor (used in schema and code) */
-.fake-th {
-	text-align: center;
-	font-weight: 700;
-}
-
-.global .fake-th, .global .fake-td {
-	display: inline-block;
-	padding: 4px 4px;
-	width: calc(100% - 96px);
-}
-
-.entity .fake-th, .entity .fake-td {
-	display: inline-block;
-	padding: 4px 4px;
-	width: calc(100% - 154px);
-}
-
-.global .fake-th.isstatic-col, .global .fake-td.isstatic-col {
-	display: none;
-}
-
-.entity .fake-th.isstatic-col, .entity .fake-td.isstatic-col {
-	width: 45px;
-	text-align: center;
-}
-
-.fake-th.actions-col, .fake-td.actions-col {
-	width: 76px;
-	text-align: right;
-}
-
-.fake-tfoot .fake-td.actions-col {
-	display: flex;
-	padding-top: .5rem;
-	padding-bottom: 1rem;
-	width: calc(100% - 8px);
-}
-
-.fake-td.actions-col i {
-	vertical-align: middle;
-}
-
-#methods-table-container {
-	height: 100%;
-}
-
-.fake-table.actions.schema-props {
-	background: none;
-	height: 100%;
-	border: none;
-}
-
-.fake-thead, .fake-tfoot {
-	background: var(--solid-white);
-}
-
-.fake-tbody {
-	max-height: calc(100% - 120px);
-	overflow-y: auto;
-}
-/* END: Fake table styles for schema methods editor */
-
 /* BEGIN: styles to maximize methods editors in bulk save dialog for CODE area */
 #code-methods-container {
 	height: calc(100% - 40px);
@@ -2610,6 +2555,11 @@ input.tree-search-input {
 	height: 100%;
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
+
+#methods-container.global .isstatic-col,
+#dialogBox.dialog.schema-edit-dialog .global .isstatic-col {
+	display: none;
+}
 
 /* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname */
 .show-dialog-title .dialogTitle,
@@ -3504,6 +3454,19 @@ button.icon-button i {
 	margin: 0;
 }
 
+/* routing dialog */
+.routing-container select,
+.routing-container input[type="text"],
+.routing-container input[type="password"],
+.routing-container input[type="number"],
+.routing-container textarea {
+	width: 100%;
+	box-sizing: border-box;
+	/*margin-top: .25rem;*/
+	/*height: 2.5rem;*/
+}
+
+
 /* mount dialog */
 #mount-dialog input[type="text"] {
 	width: calc(100% - 10px);
@@ -3803,6 +3766,9 @@ ul.combined-input-select-field li:hover {
 }
 .inline-flex {
 	display: inline-flex;
+}
+.contents {
+	display: contents;
 }
 .grid {
 	display: grid;
@@ -4215,6 +4181,10 @@ ul.combined-input-select-field li:hover {
 .pt-5 {
 	padding-top: 1.25rem;
 }
+.px-1 {
+	padding-left: .25rem;
+	padding-right: .25rem;
+}
 .px-2 {
 	padding-left: .5rem;
 	padding-right: .5rem;
@@ -4346,6 +4316,9 @@ ul.combined-input-select-field li:hover {
 .grid-cols-6 {
 	grid-template-columns: repeat(6, minmax(0, 1fr));
 }
+.grid-cols-7 {
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
 .overflow-hidden {
 	overflow: hidden;
 }
@@ -4462,6 +4435,9 @@ ul.combined-input-select-field li:hover {
 }
 .bg-white {
 	background-color: var(--solid-white);
+}
+.bg-gray {
+	background-color: var(--light-gray-bg-f7);
 }
 .odd\:bg-white:nth-child(even) {
 	background-color: var(--solid-white);

@@ -25,6 +25,7 @@ import org.structr.api.Predicate;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.LinkedList;
 
 public class Iterables {
 
@@ -168,12 +169,12 @@ public class Iterables {
 			return (List<T>)iterable;
 		}
 
-		return addAll(new ArrayList<>(), iterable);
+		return addAll(new LinkedList<>(), iterable);
 	}
 
 	public static <T> List<T> toList(Iterator<T> iterator) {
 
-		final List<T> list = new ArrayList<>();
+		final List<T> list = new LinkedList<>();
 		while (iterator.hasNext()) {
 
 			final T value = iterator.next();

@@ -311,7 +311,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		return new ServiceResult(true);
 	}

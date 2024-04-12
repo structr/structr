@@ -18,8 +18,8 @@
  */
 package org.structr.test.core.entity;
 
-import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.entity.AbstractNode;
 
 /**

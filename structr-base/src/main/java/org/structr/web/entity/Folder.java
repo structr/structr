@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
@@ -126,6 +127,8 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 	}
 
 	static void onModification(final Folder thisFolder, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		SearchCommand.prefetch(Folder.class, thisFolder.getUuid());
 
 		Folder.setHasParent(thisFolder);
 

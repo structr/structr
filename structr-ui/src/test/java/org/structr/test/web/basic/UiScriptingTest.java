@@ -298,7 +298,7 @@ public class UiScriptingTest extends StructrUiTest {
 			div.appendChild(p);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/divs");
+			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/Div");
 			changedProperties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
@@ -494,7 +494,7 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should no be returned because it is run by admin
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should not be returned because it is run by admin
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -1121,42 +1121,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 			fail("Unexpected exception");
 			fex.printStackTrace();
-		}
-	}
-
-	@Test
-	public void testSchemaMethodsWithNullSource() {
-		// Tests a scenario that can occur when creating methods through the code area in which the created SchemaMethod has a null source value
-
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
-
-			type.addMethod("test", null);
-
-			StructrSchema.replaceDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			ex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			Class clazz = StructrApp.getConfiguration().getNodeEntityClass("Test");
-
-			NodeInterface testNode = StructrApp.getInstance().create(clazz);
-
-			Actions.execute(securityContext, null, SchemaMethod.getCachedSourceCode(testNode.getUuid()), "test");
-
-		} catch (FrameworkException ex) {
-
-			ex.printStackTrace();
-			fail("Unexpected exception");
 		}
 	}
 
@@ -1890,8 +1854,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
-			project1.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
+			final AbstractNode project1 = (AbstractNode)app.nodeQuery(projectType).andName("Project 1").getFirst();
+			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
 
@@ -1901,8 +1865,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
-			project2.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
+			final AbstractNode project2 = (AbstractNode)app.nodeQuery(projectType).andName("Project 2").getFirst();
+			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
 

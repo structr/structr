@@ -45,9 +45,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(400)
+				.statusCode(404)
 			.when()
-				.post(concat("/maintenance/globalSchemaMethods/nonexistingTestMethod"));
+				.post("/nonexistingTestMethod");
 
 		RestAssured
 			.given()
@@ -55,7 +55,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(400)
+				.statusCode(404)
 			.when()
 				.post(concat("/maintenance/globalSchemaMethods"));
 
@@ -86,7 +86,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result", equalTo("hello world!"))
 			.when()
-				.post(concat("/maintenance/globalSchemaMethods/myTestMethod01"));
+				.post("/myTestMethod01");
 
 	}
 
@@ -116,7 +116,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 				.body("result.name",  equalTo("test"))
 				.body("result.count", equalTo(1))
 			.when()
-				.post(concat("/maintenance/globalSchemaMethods/myTestMethod02"));
+				.post("/myTestMethod02");
 
 	}
 
@@ -146,6 +146,6 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 				.body("result[1][0].name", equalTo("b"))
 				.body("result[2][0].name", equalTo("c"))
 			.when()
-				.post(concat("/maintenance/globalSchemaMethods/myTestMethod03"));
+				.post(concat("/myTestMethod03"));
 	}
 }

@@ -47,10 +47,10 @@ import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Security;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
@@ -70,6 +70,7 @@ import org.w3c.dom.*;
 
 import java.net.URI;
 import java.util.*;
+import org.structr.common.helper.CaseHelper;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
@@ -1793,6 +1794,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
+				fex.printStackTrace();
+
 				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}
@@ -2067,12 +2070,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (_name.contains("/")) {
 
-				errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+				errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name.jsonName(), "may_not_contain_slashes").withDetail(_name));
 
 			} else if (thisNode instanceof Page) {
 
 				if (!_name.equals(_name.replaceAll("[#?\\%;/]", ""))) {
-					errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "contains_illegal_characters", _name));
+					errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name.jsonName(), "contains_illegal_characters").withDetail(_name));
 				}
 			}
 		}
@@ -2137,6 +2140,34 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return "tree-item-" + target + "-is-open";
 	}
 
+	public static void prefetchDOMNodes() {
+
+		TransactionCommand.getCurrentTransaction().prefetch("DOMNode", null, Set.of(
+
+			"all/INCOMING/SYNC",
+			"all/INCOMING/LINK",
+			"all/INCOMING/OWNS",
+			"all/INCOMING/CONTAINS",
+			"all/INCOMING/CONTAINS_NEXT_SIBLING",
+			"all/INCOMING/FAVORITE",
+			"all/INCOMING/INPUT_ELEMENT",
+			"all/INCOMING/SUCCESS_TARGET",
+			"all/INCOMING/FAILURE_TARGET",
+			"all/INCOMING/RELOADS",
+			"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+			"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+			"all/INCOMING/TRIGGERED_BY",
+
+			"all/OUTGOING/OWNS",
+			"all/OUTGOING/CONTAINS",
+			"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+			"all/OUTGOING/FLOW",
+			"all/OUTGOING/FAVORITE",
+			"all/OUTGOING/PARAMETER",
+			"all/OUTGOING/RELOADS",
+			"all/OUTGOING/SYNC"
+		));
+	}
 
 	// ----- nested classes -----
 	static class TextCollector implements Predicate<Node> {
