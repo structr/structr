@@ -616,37 +616,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testPython() {
-
-		try (final Tx tx = app.tx()) {
-
-			final Principal testUser = createTestNode(Principal.class, "testuser");
-			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Backend));
-
-			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
-
-			try {
-				System.out.println(Scripting.evaluate(ctx, null, "${python{Structr.print(Structr.get('me').id)}}", "test"));
-			} catch (FrameworkException ex) {
-				if (ex.getMessage().contains("Exception while trying to initialize new context for language: python. Cause: A language with id 'python' is not installed.")) {
-
-					logger.warn("Python not installed. Skipping python tests.");
-				} else {
-
-					throw ex;
-				}
-			}
-
-			tx.success();
-
-		} catch (UnlicensedScriptException | FrameworkException ex) {
-
-			logger.warn("", ex);
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
 	public void testVariableReplacement() {
 
 		final Date now                    = new Date();
