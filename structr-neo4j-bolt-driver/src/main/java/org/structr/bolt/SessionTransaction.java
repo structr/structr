@@ -51,6 +51,7 @@ import org.structr.api.graph.Identity;
 abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final Logger logger                  = LoggerFactory.getLogger(SessionTransaction.class);
+	private final Set<String> prefetched                = new LinkedHashSet<>();
 	protected static final AtomicLong ID_SOURCE         = new AtomicLong();
 	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
@@ -256,6 +257,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	@Override
 	public void prefetch(final String query, final Set<String> keys) {
+
+		if (prefetched.containsAll(keys)) {
+			return;
+		}
+
+		prefetched.addAll(keys);
 
 		final long t0             = System.currentTimeMillis();
 		final StringBuilder buf   = new StringBuilder();
