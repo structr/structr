@@ -26,7 +26,7 @@ public class UserDefinedFunctionHint extends MethodHint {
 
     @Override
     public String getReplacement() {
-        return "$." + getDisplayName();
+        return getDisplayName();
     }
 
     @Override
