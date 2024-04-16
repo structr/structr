@@ -2469,15 +2469,10 @@ let _Code = {
 			}
 		});
 	},
-	getUrlForSchemaMethod: (schemaMethod) => {
-		return Structr.rootUrl +
-			((schemaMethod.schemaNode === null) ? '' : schemaMethod.schemaNode.name + '/' ) +
-			schemaMethod.name;
-	},
 	runSchemaMethod: (schemaMethod) => {
 
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
-		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
+		let url  = Structr.rootUrl + ((schemaMethod.schemaNode === null) ? '' : schemaMethod.schemaNode.name + '/' ) + schemaMethod.name;
 
 		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
@@ -2548,12 +2543,21 @@ let _Code = {
 				}
 			}
 
-			let response = await fetch(url, {
-				method: 'POST',
-				body: JSON.stringify(params)
-			});
+			let methodCallUrl = url;
+			let fetchConfig = { method: schemaMethod.httpVerb };
 
-			let text = await response.text();
+			if (schemaMethod.httpVerb === 'GET') {
+
+				methodCallUrl += '?' + new URLSearchParams(params).toString();
+
+			} else {
+
+				fetchConfig.body = JSON.stringify(params);
+			}
+
+			let response = await fetch(methodCallUrl, fetchConfig);
+			let text     = await response.text();
+
 			logOutput.textContent = text + 'Done.';
 		});
 
