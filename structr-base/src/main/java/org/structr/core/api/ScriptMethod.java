@@ -32,37 +32,56 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class ScriptMethod extends AbstractMethod {
 
-	private Parameters parameters  = null;
-	private SchemaMethod method    = null;
-	private String source          = null;
+	private Parameters parameters   = null;
+	private String source           = null;
+	private String uuid             = null;
+	private String name             = null;
+	private String fullName         = null;
+	private boolean isPrivateMethod = false;
+	private boolean isStaticMethod  = false;
+	private HttpVerb httpVerb       = null;
 
 	public ScriptMethod(final SchemaMethod method) {
 
 		super(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description));
 
-		this.parameters = Parameters.fromSchemaMethod(method);
-		this.source     = method.getProperty(SchemaMethod.source);
-		this.method     = method;
+		this.parameters      = Parameters.fromSchemaMethod(method);
+		this.source          = method.getProperty(SchemaMethod.source);
+		this.uuid            = method.getUuid();
+		this.name            = method.getName();
+		this.isPrivateMethod = method.isPrivateMethod();
+		this.isStaticMethod  = method.isStaticMethod();
+		this.httpVerb        = method.getHttpVerb();
+
+		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
+		if (declaringClass == null) {
+
+			fullName = "user-defined function ‛" + name + "‛";
+
+		} else {
+
+			fullName = "method ‛" + declaringClass.getName() + "." + name + "‛";
+		}
 	}
 
 	@Override
 	public String toString() {
-		return method.getName() + "(" + parameters.toString() + ")";
+		return name + "(" + parameters.toString() + ")";
 	}
 
 	@Override
 	public boolean isPrivate() {
-		return method.isPrivateMethod();
+		return isPrivateMethod;
 	}
 
 	@Override
 	public boolean isStatic() {
-		return method.isStaticMethod();
+		return isStaticMethod;
 	}
 
 	@Override
 	public HttpVerb getHttpVerb() {
-		return method.getHttpVerb();
+		return httpVerb;
 	}
 
 	@Override
@@ -72,16 +91,7 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public String getFullMethodName() {
-
-		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
-		if (declaringClass == null) {
-
-			return "user-defined function ‛" + method.getName() + "‛";
-
-		} else {
-
-			return "method ‛" + declaringClass.getName() + "." + method.getName() + "‛";
-		}
+		return fullName;
 	}
 
 	@Override
@@ -91,8 +101,7 @@ public class ScriptMethod extends AbstractMethod {
 
 		try {
 
-			// the next statement calls Arguments#toMap() which should
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, method.getUuid());
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());

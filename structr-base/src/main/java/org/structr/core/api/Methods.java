@@ -37,6 +37,8 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class Methods {
 
+	private static final Map<String, AbstractMethod> methodCache = new LinkedHashMap<>();
+
 	public static Map<String, AbstractMethod> getAllMethods(final Class type) {
 
 		final Map<String, AbstractMethod> allMethods = new LinkedHashMap<>();
@@ -133,6 +135,10 @@ public class Methods {
 		};
 	}
 
+	public static void clearMethodCache() {
+		methodCache.clear();
+	}
+
 
 	// ----- private static methods -----
 	private static AbstractMethod createMethod(final Method method) throws FrameworkException {
@@ -142,11 +148,18 @@ public class Methods {
 
 		if (StringUtils.isNotBlank(id)) {
 
-			final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
-			if (schemaMethod != null) {
+			AbstractMethod result = methodCache.get(id);
+			if (result == null) {
 
-				return new ScriptMethod(schemaMethod);
+				final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
+				if (schemaMethod != null) {
+
+					result = new ScriptMethod(schemaMethod);
+					methodCache.put(id, result);
+				}
 			}
+
+			return result;
 		}
 
 		return new ReflectiveMethod(method);

@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import com.oracle.svm.core.annotate.Delete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;

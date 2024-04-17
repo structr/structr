@@ -37,6 +37,12 @@
 			<artifactId>neo4j-java-driver</artifactId>
 			<version>4.4.11</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client</artifactId>
+            <version>3.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 </project>

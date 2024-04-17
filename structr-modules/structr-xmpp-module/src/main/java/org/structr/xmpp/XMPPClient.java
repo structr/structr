@@ -61,7 +61,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/XMPPClient"));
 
-		type.addFunctionProperty("xmppHandle", PropertyView.Public, PropertyView.Ui).setTypeHint("String").setFormat("concat(this.xmppUsername, '@', this.xmppHost)").setIndexed(true);
+		type.addFunctionProperty("xmppHandle", PropertyView.Public, PropertyView.Ui).setReadFunction("concat(this.xmppUsername, '@', this.xmppHost)").setTypeHint("String").setIndexed(true);
 		type.addStringProperty("xmppUsername", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("xmppPassword", PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("xmppService",  PropertyView.Public, PropertyView.Ui);

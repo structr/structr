@@ -317,9 +317,9 @@ public class PerformanceTest extends IndexingTest {
 	@Test
 	public void testPerformanceOfNodeDeletion() {
 
-		final App app                 = StructrApp.getInstance(setupSecurityContext());
-		final List<GraphObject> nodes = new LinkedList<>();
-		final int number              = 1000;
+		final App app                   = StructrApp.getInstance(setupSecurityContext());
+		final List<NodeInterface> nodes = new LinkedList<>();
+		final int number                = 1000;
 
 		try {
 
@@ -339,13 +339,18 @@ public class PerformanceTest extends IndexingTest {
 		// start measuring
 		final long t0 = System.currentTimeMillis();
 
-		try {
+		Settings.CypherDebugLogging.setValue(true);
 
-			final BulkDeleteCommand cmd = app.command(BulkDeleteCommand.class);
+		try {
 
 			try (final Tx tx = app.tx()) {
 
-				cmd.bulkDelete(nodes);
+				final DeleteNodeCommand command = app.command(DeleteNodeCommand.class);
+
+				for (final NodeInterface node : nodes) {
+
+					command.execute(node);
+				}
 
 				tx.success();
 			}

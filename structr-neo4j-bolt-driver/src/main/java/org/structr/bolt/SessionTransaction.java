@@ -21,6 +21,7 @@ package org.structr.bolt;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
@@ -35,6 +36,7 @@ import org.structr.api.UnknownDatabaseException;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +46,7 @@ import org.neo4j.driver.types.Path.Segment;
 import org.neo4j.driver.types.Relationship;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
+import org.structr.api.util.Iterables;
 
 /**
  *
@@ -141,6 +144,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		return relationshipWrapper;
 	}
 
+	/*
 	public NodeWrapper getNodeWrapper(final long id) {
 
 		NodeWrapper node = nodes.get(id);
@@ -161,6 +165,45 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			return node;
 		}
+
+		throw new NotFoundException("Node with ID " + id + " not found.");
+	}
+	*/
+
+	public NodeWrapper getNodeWrapper(final long id) {
+
+		NodeWrapper node = nodes.get(id);
+		if (node != null) {
+
+			return node;
+		}
+
+		final String rawTenantIdentifier             = db.getTenantIdentifier();
+		final String tenantIdentifier                = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
+		final Iterable<Record> records               = collectRecords("MATCH (n" + tenantIdentifier + ") WHERE ID(n) = $id WITH n OPTIONAL MATCH (n)-[r]-(m" + tenantIdentifier + ") RETURN DISTINCT n, collect(distinct r) AS rels, collect(distinct m) AS nodes", Map.of("id", id), null);
+		final List<org.structr.api.graph.Node> nodes = Iterables.toList(Iterables.map(new PrefetchNodeMapper(db), records));
+
+		if (!nodes.isEmpty()) {
+
+			return (NodeWrapper)nodes.get(0);
+		}
+
+
+		/*
+
+			final Node entity = r.get("n").asNode();
+			if (entity != null) {
+
+				node = new NodeWrapper(db, entity);
+
+				nodes.put(id, node);
+
+				// prefetching
+
+				return node;
+			}
+		}
+		*/
 
 		throw new NotFoundException("Node with ID " + id + " not found.");
 	}

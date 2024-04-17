@@ -56,7 +56,7 @@ class PrefetchNodeMapper implements Function<org.neo4j.driver.Record, Node> {
 
 			relsValue.asList(r -> r.asRelationship()).stream().forEach(r -> {
 
-				wrapper.storeRelationship(tx.getRelationshipWrapper(r), false);
+				wrapper.storeRelationship(tx.getRelationshipWrapper(r), true);
 			});
 		}
 

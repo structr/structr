@@ -52,6 +52,8 @@ public abstract class NodeServiceCommand extends Command {
 	protected SecurityContext securityContext         = null;
 	private Writable logWritable                      = null;
 
+	protected NodeServiceCommand() { }
+
 	public Map<String, String> getCustomHeaders () {
 		return customHeaders;
 	}

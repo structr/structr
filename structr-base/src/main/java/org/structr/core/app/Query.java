@@ -114,6 +114,7 @@ public interface Query<T extends GraphObject> {
 	public SearchAttributeGroup getRootAttributeGroup();
 
 	void overrideFetchSize(final int fetchSizeForThisRequest);
+	Query<T> disablePrefetching();
 
 	public Occurrence getCurrentOccurrence();
 }

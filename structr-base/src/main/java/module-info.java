@@ -104,8 +104,9 @@ module structr.base {
     requires xml.apis.ext;
     requires zero.allocation.hashing;
     requires zip4j;
+	requires org.graalvm.nativeimage;
 
-    exports org.structr;
+	exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;

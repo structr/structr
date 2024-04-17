@@ -117,53 +117,51 @@ public class StructrBinding implements ProxyObject {
 
 			default:
 
-				// 1: look for user-defined function with the given name
-				final AbstractMethod method = Methods.resolveMethod(null, name);
-				if (method != null) {
-
-					return Methods.getProxyExecutable(actionContext, null, method);
-				}
-
-				// 2: look for built-in function with the given name
+				// look for built-in function with the given name
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 
 					return new FunctionWrapper(actionContext, entity, func);
 				}
 
-				// 3: check if a named constant exists
+				// check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
 				}
 
-				// 4: check request store
+				// check request store
 				if (actionContext.getRequestStore().containsKey(name)) {
 					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
-				// 5: StructrScript result (what is this?)
-				{
-					final EvaluationHints hints = new EvaluationHints();
-					Object structrScriptResult  = null;
+				// StructrScript result (what is this?)
+				final EvaluationHints hints = new EvaluationHints();
+				Object structrScriptResult  = null;
 
-					try {
+				try {
 
-						structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
+					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
 
-					} catch (FrameworkException ex) {
+				} catch (FrameworkException ex) {
 
-						logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
+					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
+				}
+
+				if (structrScriptResult != null) {
+
+					if (structrScriptResult instanceof Class clazz) {
+
+						return new StaticTypeWrapper(actionContext, clazz);
 					}
 
-					if (structrScriptResult != null) {
+					return structrScriptResult;
+				}
 
-						if (structrScriptResult instanceof Class clazz) {
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
 
-							return new StaticTypeWrapper(actionContext, clazz);
-						}
-
-						return structrScriptResult;
-					}
+					return Methods.getProxyExecutable(actionContext, null, method);
 				}
 
 				return null;

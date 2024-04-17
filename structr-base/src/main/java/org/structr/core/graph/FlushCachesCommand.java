@@ -22,10 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.function.LocalizeFunction;
+import org.structr.core.property.FunctionProperty;
 import org.structr.schema.action.Actions;
 
 import java.util.Map;
@@ -47,7 +49,9 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	public static void flushAll() {
 
 		ResourceAccess.clearCache();
+		Methods.clearMethodCache();
 		Actions.clearCache();
+		FunctionProperty.clearCache();
 		AccessPathCache.invalidate();
 		LocalizeFunction.invalidateCache();
 		AbstractSchemaNode.clearCachedSchemaMethods();

@@ -569,25 +569,6 @@ public class SchemaHelper {
 
 				if (!schemaProperty.getProperty(SchemaProperty.isBuiltinProperty)) {
 
-					// migrate property source
-					if (Type.Function.equals(schemaProperty.getPropertyType())) {
-
-						// Note: This is a temporary migration from the old format to the new readFunction property
-						final String format = schemaProperty.getFormat();
-						if (format != null) {
-
-							try {
-								schemaProperty.setProperty(SchemaProperty.readFunction, format);
-								schemaProperty.setProperty(SchemaProperty.format, null);
-
-							} catch (FrameworkException ex) {
-
-								logger.warn("", ex);
-							}
-						}
-
-					}
-
 					final PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), schemaProperty);
 					if (parser != null) {
 

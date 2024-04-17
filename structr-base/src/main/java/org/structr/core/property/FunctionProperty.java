@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -45,12 +47,13 @@ import java.util.Map;
  */
 public class FunctionProperty<T> extends Property<T> {
 
-	private static final Logger logger            = LoggerFactory.getLogger(FunctionProperty.class.getName());
-	private static final BooleanProperty pBoolean = new BooleanProperty("pBoolean");
-	private static final IntProperty pInt         = new IntProperty("pInt");
-	private static final LongProperty pLong       = new LongProperty("pLong");
-	private static final DoubleProperty pDouble   = new DoubleProperty("pDouble");
-	private static final DateProperty pDate       = new DateProperty("pDate");
+	private static final Logger logger             = LoggerFactory.getLogger(FunctionProperty.class.getName());
+	private static final Map<String, String> cache = new ConcurrentHashMap<>();
+	private static final BooleanProperty pBoolean  = new BooleanProperty("pBoolean");
+	private static final IntProperty pInt          = new IntProperty("pInt");
+	private static final LongProperty pLong        = new LongProperty("pLong");
+	private static final DoubleProperty pDouble    = new DoubleProperty("pDouble");
+	private static final DateProperty pDate        = new DateProperty("pDate");
 
 	public FunctionProperty(final String name) {
 		super(name);
@@ -216,6 +219,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 
 	private PropertyConverter getDatabaseConverter(final SecurityContext securityContext) {
+
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
@@ -231,6 +235,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 			return converter;
 		}
+
 		return null;
 	}
 
@@ -335,17 +340,33 @@ public class FunctionProperty<T> extends Property<T> {
 
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
 
-		final SchemaProperty property = getCodeSource();
-		if (property != null) {
+		final String cacheKey = sourceUuid + "." + key.jsonName();
+		final String src      = cache.get(cacheKey);
 
-			final String value = property.getProperty(key);
-			if (value != null) {
+		if (src == null) {
 
-				return value;
+			final SchemaProperty property = getCodeSource();
+			if (property != null) {
+
+				final String value = property.getProperty(key);
+				if (value != null) {
+
+					cache.put(cacheKey, value);
+
+					return value;
+				}
 			}
+
+		} else {
+
+			return src;
 		}
 
 		return defaultValue;
+	}
+
+	public static void clearCache() {
+		cache.clear();
 	}
 
 	public SchemaProperty getCodeSource() throws FrameworkException {

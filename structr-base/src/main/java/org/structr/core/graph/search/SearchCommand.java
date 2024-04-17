@@ -79,6 +79,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private Comparator comparator                = null;
 	private boolean publicOnly                   = false;
 	private boolean includeHidden                = true;
+	private boolean prefetchingEnabled           = true;
 	private boolean doNotSort                    = false;
 	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
@@ -96,7 +97,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// automatic prefetching
-		if (type != null) {
+		if (prefetchingEnabled && type != null) {
 
 			final Set<Class> schemaTypes = Set.of(SchemaNode.class, SchemaMethod.class, SchemaProperty.class, SchemaView.class);
 			if (schemaTypes.contains(type)) {
@@ -783,6 +784,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public void overrideFetchSize(final int fetchSizeForThisRequest) {
 		queryContext.overrideFetchSize(fetchSizeForThisRequest);
+	}
+
+	public org.structr.core.app.Query<T> disablePrefetching() {
+		prefetchingEnabled = false;
+		return this;
 	}
 
 	// ----- static methods -----
