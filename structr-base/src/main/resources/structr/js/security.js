@@ -364,7 +364,7 @@ let _UsersAndGroups = {
 				let userModelObj = StructrModel.create(user);
 				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 			}
-		}, null, 'id,isUser,name,type,isAdmin', true);
+		}, null, 'id,isUser,name,eMail,type,isAdmin', true);
 
 		userPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
