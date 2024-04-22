@@ -292,14 +292,6 @@ public class ModificationQueue {
 		getState(node).modifySecurity();
 	}
 
-	public void modifyLocation(NodeInterface node) {
-
-		this.ids.add(node.getNode().getId().getId());
-		this.hasChanges = true;
-
-		getState(node).modifyLocation();
-	}
-
 	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		this.ids.add(node.getNode().getId().getId());
