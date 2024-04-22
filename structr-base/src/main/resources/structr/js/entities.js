@@ -1533,7 +1533,7 @@ let _Entities = {
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
-			fetch(`${Structr.rootUrl}${entity.id}/in`).then(async response => {
+			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/in`).then(async response => {
 
 				let data = await response.json();
 
