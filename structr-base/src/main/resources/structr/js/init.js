@@ -1586,7 +1586,7 @@ let Structr = {
 
 					} else {
 
-						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid }] }) }, 'Dismiss');
+						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
 						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
 					}
 
