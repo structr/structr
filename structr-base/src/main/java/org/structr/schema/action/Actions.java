@@ -34,6 +34,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -202,6 +203,7 @@ public class Actions {
 	}
 
 	public static void clearCache() {
+		Methods.clearMethodCache();
 		methodCache.clear();
 	}
 
