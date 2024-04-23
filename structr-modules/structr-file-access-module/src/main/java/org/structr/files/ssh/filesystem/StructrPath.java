@@ -140,7 +140,11 @@ public abstract class StructrPath implements Path {
 	public Path getRoot() {
 
 		if (isAbsolute()) {
-			return parent.getRoot();
+
+			if (parent != null) {
+
+				return parent.getRoot();
+			}
 		}
 
 		return null;
