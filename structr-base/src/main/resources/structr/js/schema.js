@@ -2233,6 +2233,14 @@ let _Schema = {
 			$('.property-default', gridRow).val(property.defaultValue);
 			$('.caching-enabled', gridRow).prop('checked', property.isCachingEnabled);
 			$('.type-hint', gridRow).val(property.typeHint || "null");
+
+			// remove unused/unwanted property types
+			let unwantedPropertyTypes = ['Count', 'Notion', 'Join', 'IdNotion', 'Custom', 'Password'];
+			if (false === unwantedPropertyTypes.includes(property.propertyType)) {
+				for (let unwantedPropertyType of unwantedPropertyTypes) {
+					gridRow[0].querySelector(`[value=${unwantedPropertyType}]`).remove();
+				}
+			}
 		},
 		checkProperty: (gridRow) => {
 
@@ -2636,40 +2644,41 @@ let _Schema = {
 					<optgroup label="Type Hint">
 						<option value="null">-</option>
 						<option value="boolean">Boolean</option>
-						<option value="string">String</option>
+						<option value="date">Date</option>
+						<option value="double">Double</option>
 						<option value="int">Int</option>
 						<option value="long">Long</option>
-						<option value="double">Double</option>
-						<option value="date">Date</option>
+						<option value="string">String</option>
 					</optgroup>
 				</select>
 			`,
 			typeOptions: config => `
 				<select class="property-type pr-6 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					<option value="">--Select--</option>
-					<option value="String">String</option>
+					<option value="Boolean">Boolean</option>
+					<option value="BooleanArray">Boolean[]</option>
+					<option value="ByteArray">Byte[]</option>
+					<option value="Cypher" data-indexed="false">Cypher</option>
+					<option value="Date">Date</option>
+					<option value="DateArray">Date[]</option>
+					<option value="Double">Double</option>
+					<option value="DoubleArray">Double[]</option>
 					<option value="Encrypted">Encrypted</option>
-					<option value="StringArray">String[]</option>
+					<option value="Enum">Enum</option>
+					<option value="EnumArray">Enum[]</option>
+					<option value="Function" data-indexed="false">Function</option>
 					<option value="Integer">Integer</option>
 					<option value="IntegerArray">Integer[]</option>
 					<option value="Long">Long</option>
 					<option value="LongArray">Long[]</option>
-					<option value="Double">Double</option>
-					<option value="DoubleArray">Double[]</option>
-					<option value="Boolean">Boolean</option>
-					<option value="BooleanArray">Boolean[]</option>
-					<option value="ByteArray">Byte[]</option>
-					<option value="Enum">Enum</option>
-					<option value="EnumArray">Enum[]</option>
-					<option value="Date">Date</option>
-					<option value="DateArray">Date[]</option>
+					<option value="String">String</option>
+					<option value="StringArray">String[]</option>
+					<option value="Thumbnail">Thumbnail</option>
 					<option value="ZonedDateTime">ZonedDateTime</option>
+					
 					<option value="Count">Count</option>
-					<option value="Function" data-indexed="false">Function</option>
 					<option value="Notion">Notion</option>
 					<option value="Join">Join</option>
-					<option value="Cypher" data-indexed="false">Cypher</option>
-					<option value="Thumbnail">Thumbnail</option>
 					<option value="IdNotion" data-protected="true" disabled>IdNotion</option>
 					<option value="Custom" data-protected="true" disabled>Custom</option>
 					<option value="Password" data-protected="true" disabled>Password</option>
