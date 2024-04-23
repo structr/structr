@@ -1942,6 +1942,8 @@ let _Schema = {
 				_Schema.properties.setAttributesInRow(prop, gridRow);
 				_Schema.properties.bindRowEvents(prop, gridRow, overrides);
 
+				_Schema.properties.removeUnwantedPropertyTypes(prop, gridRow[0]);
+
 				_Schema.properties.checkProperty(gridRow[0]);
 
 				_Schema.bulkDialogsGeneral.gridChanged(grid);
@@ -1961,15 +1963,17 @@ let _Schema = {
 
 			container.querySelector('button.add-button').addEventListener('click', () => {
 
-				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.properties.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass }));
-				gridBody.appendChild(tr);
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.properties.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass }));
+				gridBody.appendChild(gridRow);
 
-				let propertyTypeSelect = tr.querySelector('.property-type');
+				_Schema.properties.removeUnwantedPropertyTypes({}, gridRow);
+
+				let propertyTypeSelect = gridRow.querySelector('.property-type');
 
 				propertyTypeSelect.addEventListener('change', () => {
 
 					let selectedOption = propertyTypeSelect.querySelector('option:checked');
-					let indexedCb      = tr.querySelector('.indexed');
+					let indexedCb      = gridRow.querySelector('.indexed');
 					let shouldIndex    = selectedOption.dataset['indexed'];
 					shouldIndex = (shouldIndex === undefined) || (shouldIndex !== 'false');
 
@@ -1982,8 +1986,8 @@ let _Schema = {
 					}
 				});
 
-				tr.querySelector('.discard-changes').addEventListener('click', () => {
-					_Helpers.fastRemoveElement(tr);
+				gridRow.querySelector('.discard-changes').addEventListener('click', () => {
+					_Helpers.fastRemoveElement(gridRow);
 					_Schema.bulkDialogsGeneral.gridChanged(grid);
 				});
 
@@ -2233,12 +2237,14 @@ let _Schema = {
 			$('.property-default', gridRow).val(property.defaultValue);
 			$('.caching-enabled', gridRow).prop('checked', property.isCachingEnabled);
 			$('.type-hint', gridRow).val(property.typeHint || "null");
+		},
+		removeUnwantedPropertyTypes: (property, gridRow) => {
 
 			// remove unused/unwanted property types
 			let unwantedPropertyTypes = ['Count', 'Notion', 'Join', 'IdNotion', 'Custom', 'Password'];
 			if (false === unwantedPropertyTypes.includes(property.propertyType)) {
 				for (let unwantedPropertyType of unwantedPropertyTypes) {
-					gridRow[0].querySelector(`[value=${unwantedPropertyType}]`).remove();
+					gridRow.querySelector(`[value=${unwantedPropertyType}]`).remove();
 				}
 			}
 		},
