@@ -435,7 +435,23 @@ let _Crud = {
 
 			_Helpers.fastRemoveAllChildren(crudRight);
 
-			_Helpers.setContainerHTML(Structr.functionBar.querySelector('#crud-buttons'), _Crud.templates.typeButtons({ type: type }));
+			let crudButtons = Structr.functionBar.querySelector('#crud-buttons');
+			_Helpers.setContainerHTML(crudButtons, _Crud.templates.typeButtons({ type: type }));
+
+			let exactTypeLabel = crudButtons.querySelector('.exact-type-checkbox-label');
+
+			_Helpers.appendInfoTextToElement({
+				element: exactTypeLabel,
+				text: 'This flag affects the list shown below and the delete function.<br><br>If active only nodes of the selected type ("' + type + '") are shown in the list and types inheriting from this type are excluded. If it is not active, nodes for the current type and nodes of all its subtypes are shown.<br><br>The same is true for the delete function. If active, only nodes with that exact type are deleted and nodes of inheriting types are not deleted. If it is not active, nodes for the active type and nodes of all its subtypes are deleted.',
+				insertAfter: true,
+				css: {
+					marginLeft: '4px',
+				},
+				helpElementCss: {
+					fontSize: '12px',
+					lineHeight: '1.1em'
+				}
+			});
 
 			_Crud.determinePagerData(type);
 
@@ -3118,7 +3134,9 @@ type: ${node.type}`;
 				<button id="delete${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete <b>all</b> objects of this type</span>
 				</button>
-				<label for="exact_type_${config.type}" class="exact-type-checkbox-label"><input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude subtypes</label>
+				<label for="exact_type_${config.type}" class="exact-type-checkbox-label flex items-center">
+					<input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude inheriting types
+				</label>
 			</div>
 		`,
 		configureColumns: config => `
