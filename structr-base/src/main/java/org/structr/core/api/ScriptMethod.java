@@ -100,8 +100,16 @@ public class ScriptMethod extends AbstractMethod {
 		final Arguments converted = checkAndConvertArguments(securityContext, arguments, false);
 
 		try {
+			
+			final Object value = Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
+			if (value != null) {
+				System.out.println("ScriptMethod.execute(): " + value + " (" + value.getClass().getName() + ")");
+			} else {
+				System.out.println("ScriptMethod.execute(): null");
+			}
+
+			return value;
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());

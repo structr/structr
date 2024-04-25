@@ -117,6 +117,13 @@ public class StructrBinding implements ProxyObject {
 
 			default:
 
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return Methods.getProxyExecutable(actionContext, null, method);
+				}
+
 				// look for built-in function with the given name
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
@@ -155,13 +162,6 @@ public class StructrBinding implements ProxyObject {
 					}
 
 					return structrScriptResult;
-				}
-
-				// look for user-defined function with the given name
-				final AbstractMethod method = Methods.resolveMethod(null, name);
-				if (method != null) {
-
-					return Methods.getProxyExecutable(actionContext, null, method);
 				}
 
 				return null;

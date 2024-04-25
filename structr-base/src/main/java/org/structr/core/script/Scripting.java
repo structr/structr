@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 public class Scripting {
 
 	private static final Pattern importPattern                      = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
-	private static final FixedSizeCache<String, Source> sourceCache = new FixedSizeCache<>("Source Cache", 10000);
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
@@ -268,18 +267,9 @@ public class Scripting {
 
 			try {
 
-				Source source = sourceCache.get(snippet.getSource());
-				if (source == null) {
-
-					final String code = embedInFunction(snippet);
-
-					source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
-
-					// store in cache
-					sourceCache.put(snippet.getSource(), source);
-				}
-
-				final Value value = context.eval(source);
+				final String code   = embedInFunction(snippet);
+				final Source source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
+				final Value value   = context.eval(source);
 
 				result = PolyglotWrapper.unwrap(actionContext, value);
 
@@ -368,17 +358,8 @@ public class Scripting {
 
 			try {
 
-				Source source = sourceCache.get(snippet.getSource());
-
-				if (source == null) {
-
-					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
-
-					// store in cache
-					sourceCache.put(snippet.getSource(), source);
-				}
-
-				final Value value = context.eval(source);
+				final Source source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
+				final Value value   = context.eval(source);
 
 				result = PolyglotWrapper.unwrap(actionContext, value);
 

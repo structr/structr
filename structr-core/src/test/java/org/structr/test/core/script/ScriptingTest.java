@@ -6156,6 +6156,50 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testCallsBetweenMethods() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("createMap1", "{ return { param1: 'Test', param2: 123 }; }").setIsStatic(true);
+			type.addMethod("createMap2", "{ return new Map(); }").setIsStatic(true);
+			type.addMethod("createDate", "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("test1",      "{ let map = $.Test.createMap1(); map.set('param3', 'value3'); return map; }").setIsStatic(true);
+			type.addMethod("test2",      "{ let map = $.Test.createMap2(); map.set('param3', 'value3'); return map; }").setIsStatic(true);
+			type.addMethod("test3",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Object value1 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test1(); }}", "test1");
+			final Object value2 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test2(); }}", "test2");
+			final Object value3 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test3(); }}", "test3");
+
+			System.out.println(value1);
+			System.out.println(value2);
+			System.out.println(value3);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

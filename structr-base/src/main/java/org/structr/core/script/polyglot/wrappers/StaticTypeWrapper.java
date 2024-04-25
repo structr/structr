@@ -55,8 +55,11 @@ public class StaticTypeWrapper implements ProxyObject {
 				try {
 
 					final Arguments unwrapped = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
+					final Object value        = method.execute(actionContext.getSecurityContext(), null, unwrapped, new EvaluationHints());
 
-					return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), null, unwrapped, new EvaluationHints()));
+					System.out.println("StaticTypeWrapper.getMember()#ProxyExecutable(" + method.getName() + ": " + value + " (" + value.getClass().getName() + ")");
+
+					return PolyglotWrapper.unwrap(actionContext, value);
 
 				} catch (FrameworkException ex) {
 					throw new RuntimeException(ex);

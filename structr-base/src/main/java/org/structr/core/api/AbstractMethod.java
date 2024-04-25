@@ -121,7 +121,7 @@ public abstract class AbstractMethod {
 
 			int pos = 0;
 
-			// go over all parameters and ensure that there is a value for each parameters
+			// go over all parameters and ensure that there is a value for each parameter
 			for (final Entry<String, String> entry : parameters.entrySet()) {
 
 				final String parameterName = entry.getKey();
