@@ -6342,6 +6342,52 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testThatMethodParametersStillExistAfterMethodCalls() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("method1", "{ $.log($.methodParameters); $.userMethod(); return $.methodParameters; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(AbstractNode.name, "userMethod"),
+				new NodeAttribute<>(SchemaMethod.source, "{ $.log('test'); }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create(testClass, "Test");
+
+			final Map<String, Object> value = (Map)Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
+			assertEquals("value1", value.get("key1"));
+			assertEquals(123,      value.get("key2"));
+
+			System.out.println(value);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

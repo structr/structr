@@ -98,6 +98,7 @@ public abstract class AbstractMethod {
 					final StructrBinding binding          = bindings.asProxyObject();
 					final GraphObject previousEntity      = binding.getEntity();
 					final ActionContext previousContext   = binding.getActionContext();
+					final Map<String, Object> tmp         = securityContext.getContextStore().getTemporaryParameters();
 
 					try {
 
@@ -116,8 +117,10 @@ public abstract class AbstractMethod {
 
 					} finally {
 
+						// restore state before this method call
 						binding.setEntity(previousEntity);
 						binding.setActionContext(previousContext);
+						securityContext.getContextStore().setTemporaryParameters(tmp);
 
 					}
 				}

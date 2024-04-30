@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
@@ -81,7 +82,7 @@ public class StructrBinding implements ProxyObject {
 				return wrap(actionContext, entity);
 
 			case "me":
-				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
+				return wrap(actionContext, actionContext.getSecurityContext().getUser(false));
 
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
@@ -133,14 +134,7 @@ public class StructrBinding implements ProxyObject {
 
 			default:
 
-				// look for user-defined function with the given name
-				final AbstractMethod method = Methods.resolveMethod(null, name);
-				if (method != null) {
-
-					return method.getProxyExecutable(actionContext, null);
-				}
-
-				// look for built-in function with the given name
+				// look for built-in function with the given name first (because it' fast)
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 
@@ -149,7 +143,7 @@ public class StructrBinding implements ProxyObject {
 
 				// check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
-					return wrap(actionContext,actionContext.getConstant(name));
+					return wrap(actionContext, actionContext.getConstant(name));
 				}
 
 				// check request store
@@ -157,31 +151,31 @@ public class StructrBinding implements ProxyObject {
 					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
-				// StructrScript result (what is this?)
-				final EvaluationHints hints = new EvaluationHints();
-				Object structrScriptResult  = null;
+				// static type?
+				final Class nodeType = StructrApp.getConfiguration().getNodeEntityClass(name);
+				if (nodeType != null) {
+
+					return new StaticTypeWrapper(actionContext, nodeType);
+				}
+
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return method.getProxyExecutable(actionContext, null);
+				}
 
 				try {
 
-					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, new EvaluationHints(), 1, 1));
 
 				} catch (FrameworkException ex) {
 
 					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
 				}
-
-				if (structrScriptResult != null) {
-
-					if (structrScriptResult instanceof Class clazz) {
-
-						return new StaticTypeWrapper(actionContext, clazz);
-					}
-
-					return structrScriptResult;
-				}
-
-				return null;
 		}
+
+		return null;
 	}
 
 	@Override
