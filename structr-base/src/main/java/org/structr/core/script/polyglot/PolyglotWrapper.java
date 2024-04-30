@@ -273,6 +273,11 @@ public abstract class PolyglotWrapper {
 					return convertValueToMap(actionContext, value);
 				}
 
+				if (value.hasIterator() && value.getMetaObject().getMetaSimpleName().toLowerCase().equals("set")) {
+
+					return convertValueToSet(actionContext, value);
+				}
+
 				if (value.isNull()) {
 
 					return null;
@@ -372,6 +377,22 @@ public abstract class PolyglotWrapper {
 		}
 
 		return resultList;
+	}
+
+	protected static Set<Object> convertValueToSet(final ActionContext actionContext, final Value value) {
+
+		final Set<Object> resultSet = new HashSet<>();
+
+		if (value.hasIterator()) {
+
+			final Value it = value.getIterator();
+
+			while (it.hasIteratorNextElement()) {
+				resultSet.add(unwrap(actionContext, it.getIteratorNextElement()));
+			}
+		}
+
+		return resultSet;
 	}
 
 	protected static Map<String, Object> convertValueToMap(final ActionContext actionContext, final Value value) {

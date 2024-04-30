@@ -6170,6 +6170,7 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("createObject", "{ return { key1: 'value1' }; }").setIsStatic(true);
 			type.addMethod("createDate",   "{ return new Date(); }").setIsStatic(true);
 			type.addMethod("createMap",    "{ return new Map(); }").setIsStatic(true);
+			type.addMethod("createSet",    "{ let mySet = new Set(); mySet.add('initialValue'); return mySet; }").setIsStatic(true);
 
 			// native object created inline
 			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; return map; }").setIsStatic(true); // success
@@ -6192,6 +6193,10 @@ public class ScriptingTest extends StructrTest {
 
 			// date created in method
 			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+
+			// set created in method
+			type.addMethod("test10",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet.add('initialValue'); mySet.add('value1'); mySet.add('value2'); return mySet; }").setIsStatic(true);
+			type.addMethod("test11",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet[0] = 'ignore'; mySet.add('value1'); return mySet; }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6258,8 +6263,6 @@ public class ScriptingTest extends StructrTest {
 
 
 
-
-
 			// create a native date, get the month value, add one and convert it to a string => success
 			final Object value8 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test8(); }}", "test8");
 			System.out.println(value8);
@@ -6270,6 +6273,18 @@ public class ScriptingTest extends StructrTest {
 			System.out.println(value9);
 
 
+
+			// - crate a native set in a method, and add values via add() => success
+			// - also test for Set functionality where duplicates are not added
+			// - also ignore direct property access (at least in size calculation)
+			final Set<Object> value10 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test10(); }}", "test10");
+			assertEquals(3, value10.size());
+
+			// - create a native set in a method, add values via add() => success
+			// - ignore setting of a value via array-index lookup
+			// - also ignore direct property access (at least in size calculation)
+			final Set<Object> value11 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test11(); }}", "test11");
+			assertEquals(2, value11.size());
 
 			tx.success();
 
