@@ -18,16 +18,20 @@
  */
 package org.structr.core.api;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -117,22 +121,6 @@ public class Methods {
 		}
 
 		return null;
-	}
-
-	public static ProxyExecutable getProxyExecutable(final ActionContext actionContext, final GraphObject entity, final AbstractMethod method) {
-
-		return (arguments) -> {
-
-			try {
-
-				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
-
-				return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), entity, converted, new EvaluationHints()));
-
-			} catch (FrameworkException ex) {
-				throw new RuntimeException(ex);
-			}
-		};
 	}
 
 	public static void clearMethodCache() {

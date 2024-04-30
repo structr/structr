@@ -36,6 +36,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
+import java.util.Set;
+
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
@@ -103,7 +105,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return null;
 				}
 
-				return Methods.getProxyExecutable(actionContext, node, method);
+				return method.getProxyExecutable(actionContext, node);
 
 			} else if (key.equals("grant")) {
 
@@ -157,10 +159,15 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			return ((GraphObjectMap) node).toMap().keySet().toArray();
 
-		} else if (node != null){
+		} else if (node != null) {
 
-			return node.getPropertyKeys("all").stream().map(PropertyKey::dbName).toArray();
+			final Set<PropertyKey> keys = node.getPropertyKeys("all");
+			if (keys != null) {
+
+				return keys.stream().map(PropertyKey::dbName).toArray();
+			}
 		}
+
 		return null;
 	}
 

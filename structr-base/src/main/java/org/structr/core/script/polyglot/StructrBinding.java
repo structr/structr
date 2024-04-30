@@ -43,14 +43,30 @@ import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
 
-	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
-	private final GraphObject entity;
-	private final ActionContext actionContext;
+	private final static Logger logger   = LoggerFactory.getLogger(StructrBinding.class);
+	private  ActionContext actionContext = null;
+	private GraphObject entity           = null;
 
 	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity        = entity;
+	}
+
+	public ActionContext getActionContext() {
+		return actionContext;
+	}
+
+	public void setActionContext(final ActionContext actionContext) {
+		this.actionContext = actionContext;
+	}
+
+	public GraphObject getEntity() {
+		return entity;
+	}
+
+	public void setEntity(final GraphObject entity) {
+		this.entity = entity;
 	}
 
 	@Override
@@ -121,7 +137,7 @@ public class StructrBinding implements ProxyObject {
 				final AbstractMethod method = Methods.resolveMethod(null, name);
 				if (method != null) {
 
-					return Methods.getProxyExecutable(actionContext, null, method);
+					return method.getProxyExecutable(actionContext, null);
 				}
 
 				// look for built-in function with the given name
@@ -211,7 +227,10 @@ public class StructrBinding implements ProxyObject {
 						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
-					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1));
+					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1);
+
+					return PolyglotWrapper.wrap(actionContext, value);
+
 				} else if (args.length > 1) {
 
 					final Function<Object, Object> function = Functions.get("get");

@@ -19,18 +19,12 @@
 package org.structr.core.script.polyglot.wrappers;
 
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.schema.action.ActionContext;
-
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
-import org.structr.core.api.Arguments;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 
 public class StaticTypeWrapper implements ProxyObject {
 
@@ -50,23 +44,7 @@ public class StaticTypeWrapper implements ProxyObject {
 		final AbstractMethod method = Methods.resolveMethod(referencedClass, key);
 		if (method != null && method.isStatic()) {
 
-			final ProxyExecutable executable = arguments -> {
-
-				try {
-
-					final Arguments unwrapped = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
-					final Object value        = method.execute(actionContext.getSecurityContext(), null, unwrapped, new EvaluationHints());
-
-					System.out.println("StaticTypeWrapper.getMember()#ProxyExecutable(" + method.getName() + ": " + value + " (" + value.getClass().getName() + ")");
-
-					return PolyglotWrapper.unwrap(actionContext, value);
-
-				} catch (FrameworkException ex) {
-					throw new RuntimeException(ex);
-				}
-			};
-
-			return executable;
+			return method.getProxyExecutable(actionContext, null);
 		}
 
 		return null;

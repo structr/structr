@@ -28,6 +28,7 @@ import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.EvaluationHints;
 
 /**
@@ -60,6 +61,11 @@ public class ReflectiveMethod extends AbstractMethod {
 	@Override
 	public boolean isStatic() {
 		return Modifier.isStatic(method.getModifiers());
+	}
+
+	@Override
+	public Snippet getSnippet() {
+		return null;
 	}
 
 	@Override

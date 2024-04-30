@@ -117,12 +117,16 @@ public abstract class ContextFactory {
 	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
 
 		switch (language) {
+
 			case "js":
 				return getAndUpdateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
+
 			case "python":
 				return getAndUpdateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity));
+
 			case "R":
 				return getAndUpdateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
+
 			default:
 				throw new FrameworkException(500, "Could not initialize context for language: " + language);
 		}

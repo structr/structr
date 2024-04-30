@@ -18,9 +18,19 @@
  */
 package org.structr.core.api;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumericalMethodInputParsingException;
@@ -28,6 +38,12 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments.Argument;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.StructrBinding;
+import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -49,6 +65,7 @@ public abstract class AbstractMethod {
 
 	public abstract boolean isStatic();
 	public abstract boolean isPrivate();
+	public abstract Snippet getSnippet();
 	public abstract HttpVerb getHttpVerb();
 	public abstract Parameters getParameters();
 	public abstract String getFullMethodName();
@@ -64,6 +81,55 @@ public abstract class AbstractMethod {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public ProxyExecutable getProxyExecutable(final ActionContext actionContext, final GraphObject entity) {
+
+		return (arguments) -> {
+
+			try {
+
+				final Snippet snippet = getSnippet();
+				if (snippet != null) {
+
+					final SecurityContext securityContext = actionContext.getSecurityContext();
+					final Context context                 = Context.getCurrent();
+					final Value bindings                  = context.getBindings("js").getMember("$");
+					final StructrBinding binding          = bindings.asProxyObject();
+					final GraphObject previousEntity      = binding.getEntity();
+					final ActionContext previousContext   = binding.getActionContext();
+
+					try {
+
+						final Arguments args      = Arguments.fromValues(actionContext, arguments);
+						final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+						final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+
+						binding.setEntity(entity);
+						binding.setActionContext(inner);
+
+						return Scripting.evaluatePolyglot(inner, context, entity, snippet);
+
+					} catch (IllegalArgumentTypeException iaex) {
+
+						throwIllegalArgumentExceptionForMapBasedArguments();
+
+					} finally {
+
+						binding.setEntity(previousEntity);
+						binding.setActionContext(previousContext);
+
+					}
+				}
+
+				// fallback => normal scripting
+				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments);
+				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext.getSecurityContext(), entity, converted, new EvaluationHints()));
+
+			} catch (IOException | FrameworkException ex) {
+				throw new RuntimeException(ex);
+			}
+		};
 	}
 
 	// ----- protected methods -----

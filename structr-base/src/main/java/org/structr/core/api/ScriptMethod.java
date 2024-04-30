@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
@@ -80,6 +81,18 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
+	public Snippet getSnippet() {
+
+		if (source.startsWith("{")) {
+
+			// only return valid Snippet if the method is Javascript
+			return new Snippet(name, source);
+		}
+
+		return null;
+	}
+
+	@Override
 	public HttpVerb getHttpVerb() {
 		return httpVerb;
 	}
@@ -101,15 +114,7 @@ public class ScriptMethod extends AbstractMethod {
 
 		try {
 			
-			final Object value = Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
-
-			if (value != null) {
-				System.out.println("ScriptMethod.execute(): " + value + " (" + value.getClass().getName() + ")");
-			} else {
-				System.out.println("ScriptMethod.execute(): null");
-			}
-
-			return value;
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());

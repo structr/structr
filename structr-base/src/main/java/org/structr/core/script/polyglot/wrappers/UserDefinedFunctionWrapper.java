@@ -78,7 +78,7 @@ public class UserDefinedFunctionWrapper implements ProxyObject {
 		final AbstractMethod method = methods.get(methodName);
 		if (method != null) {
 
-			return List.of(Methods.getProxyExecutable(actionContext, null, method));
+			return List.of(method.getProxyExecutable(actionContext, null));
 		}
 
 		return new ArrayList<>();

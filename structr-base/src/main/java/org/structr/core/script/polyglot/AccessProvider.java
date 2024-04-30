@@ -30,7 +30,8 @@ public abstract class AccessProvider {
 		final HostAccess.Builder builder  = HostAccess.newBuilder()
 				.allowPublicAccess(true)
 				.allowArrayAccess(true)
-				.allowListAccess(true);
+				.allowListAccess(true)
+				.allowMapAccess(true);
 
 		return builder.build();
 	}

@@ -67,6 +67,8 @@ public class ActionContext {
 	private boolean disableVerboseExceptionLogging       = false;
 	private boolean javaScriptContext                    = false;
 
+	public int level = 0;
+
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
 	}

@@ -45,6 +45,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -267,13 +268,13 @@ public class Scripting {
 
 			try {
 
-				final String code   = embedInFunction(snippet);
-				final Source source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
-				final Value value   = context.eval(source);
+				final Value value = evaluatePolyglot(actionContext, context, entity, snippet);
 
 				result = PolyglotWrapper.unwrap(actionContext, value);
 
 			} catch (PolyglotException ex) {
+
+				ex.printStackTrace();
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
@@ -333,6 +334,68 @@ public class Scripting {
 		} finally {
 
 			context.leave();
+		}
+	}
+
+	public static Value evaluatePolyglot(final ActionContext actionContext, final Context context, final GraphObject entity, final Snippet snippet) throws IOException, FrameworkException {
+
+		try {
+
+			final String code   = Scripting.embedInFunction(snippet);
+			final Source source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
+
+			try {
+
+				return context.eval(source);
+
+			} catch (PolyglotException ex) {
+
+				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+
+					// Only report error, if exception is not an already logged AssertException
+					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					}
+
+					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
+					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+						throw new AlreadyLoggedAssertException(ae);
+					}
+
+					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+					if (ex.asHostException().getCause() instanceof FrameworkException) {
+						throw ex.asHostException().getCause();
+					} else {
+						throw ex.asHostException();
+					}
+				}
+
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				throw new FrameworkException(422, "Server-side scripting error", ex);
+			}
+
+		} catch (RuntimeException ex) {
+
+			if (ex.getCause() instanceof FrameworkException) {
+
+				throw (FrameworkException) ex.getCause();
+			} else if (ex instanceof AssertException) {
+
+				throw ex;
+			} else {
+
+				throw ex;
+			}
+
+		} catch (FrameworkException ex) {
+
+			throw ex;
+
+		} catch (Throwable ex) {
+
+			throw new FrameworkException(422, "Server-side scripting error", ex);
 		}
 	}
 
@@ -429,7 +492,7 @@ public class Scripting {
 		}
 	}
 
-	private static String embedInFunction(final Snippet snippet) {
+	public static String embedInFunction(final Snippet snippet) {
 
 		if (snippet.embed()) {
 

@@ -462,7 +462,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}", "test"));
 
-			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}", "test"));
+			assertEquals("Invalid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}", "test"));
 
 			tx.success();
 
@@ -5789,6 +5789,8 @@ public class ScriptingTest extends StructrTest {
 			p1.setTypeHint("int");
 			p2.setTypeHint("int");
 
+			// explanation: $.get('value') return the Map that is given as a parameter to the node creation below, so doTest is called with a map
+			// (and it should be called with two different maps, that contain key1 OR key2, but not both)
 			p1.setWriteFunction("{$.this.doTest($.get('value'));}");
 			p2.setWriteFunction("{$.this.doTest($.get('value'));}");
 
@@ -6157,7 +6159,7 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testCallsBetweenMethods() {
+	public void testStaticCallsBetweenMethods() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -6165,12 +6167,31 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createMap1", "{ return { param1: 'Test', param2: 123 }; }").setIsStatic(true);
-			type.addMethod("createMap2", "{ return new Map(); }").setIsStatic(true);
-			type.addMethod("createDate", "{ return new Date(); }").setIsStatic(true);
-			type.addMethod("test1",      "{ let map = $.Test.createMap1(); map.set('param3', 'value3'); return map; }").setIsStatic(true);
-			type.addMethod("test2",      "{ let map = $.Test.createMap2(); map.set('param3', 'value3'); return map; }").setIsStatic(true);
-			type.addMethod("test3",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+			type.addMethod("createObject", "{ return { key1: 'value1' }; }").setIsStatic(true);
+			type.addMethod("createDate",   "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("createMap",    "{ return new Map(); }").setIsStatic(true);
+
+			// native object created inline
+			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; return map; }").setIsStatic(true); // success
+			type.addMethod("test1",      "{ let map = { key1: 'value1' }; map.set('key2', 123); return map; }").setIsStatic(true); // failure
+
+			// native object created in method
+			type.addMethod("test2",      "{ let map = $.Test.createObject(); map.key2 = 123; return map; }").setIsStatic(true); // success
+			type.addMethod("test3",      "{ let map = $.Test.createObject(); map.set('key2', 123); return map; }").setIsStatic(true); // failure
+
+			// map created inline
+			type.addMethod("test4",      "{ let map = new Map(); map.test = 'ignore'; map.set('key1', 'value1'); return map; }").setIsStatic(true); // success
+			type.addMethod("test5",      "{ let map = new Map(); map.test = 'ignore'; map.key1 = 'value1'; return map; }").setIsStatic(true); // no error but empty map
+
+			// map created in method
+			type.addMethod("test6",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.set('key1', 'value1'); map.set('key2', 123); return map; }").setIsStatic(true);  // success
+			type.addMethod("test7",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.key1 = 'value1'; map.key2 = 123; return map; }").setIsStatic(true); // failure
+
+			// date created inline
+			type.addMethod("test8",      "{ let date = new Date(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+
+			// date created in method
+			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6184,13 +6205,119 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Object value1 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test1(); }}", "test1");
-			final Object value2 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test2(); }}", "test2");
-			final Object value3 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test3(); }}", "test3");
+			// create a native object inline and set some properties => success
+			final Map<String, Object> value0 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test0(); }}", "test0");
+			assertEquals("value1",  value0.get("key1"));
+			assertEquals(123,       value0.get("key2"));
 
-			System.out.println(value1);
-			System.out.println(value2);
-			System.out.println(value3);
+			try {
+
+				// create a native object inline and use obj.set() => failure
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test1(); }}", "test1");
+				//fail("Object access via set() should not work");
+
+			} catch (FrameworkException fex) {
+				assertEquals("Server-side scripting error", fex.getMessage());
+			}
+
+
+
+			// create a native object in a method, return it, and set a property => success
+			final Map<String, Object> value2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test2(); }}", "test0");
+			assertEquals("value1",  value2.get("key1"));
+			assertEquals(123,       value2.get("key2"));
+
+			try {
+				// create a native object in a method, return it, and use obj.set() => failure
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test3(); }}", "test1");
+				//fail("Object access via set() should not work");
+
+			} catch (FrameworkException fex) {
+				assertEquals("Server-side scripting error", fex.getMessage());
+			}
+
+
+
+			// create a native Map inline and set a property via set() => success
+			final Map<String, Object> value4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test4(); }}", "test0");
+			assertEquals("value1",  value4.get("key1"));
+
+			// create a native Map inline and set a property directly => empty map but no error
+			final Map<String, Object> value5 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test5(); }}", "test5");
+			assertEquals(0, value5.size());
+
+
+
+			// create a native Map in a method and set a property via set() => success
+			final Map<String, Object> value6 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test6(); }}", "test6");
+			assertEquals("value1",  value6.get("key1"));
+
+			// create a native Map in a method and set a property directly => empty map but no error
+			final Map<String, Object> value7 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test7(); }}", "test7");
+			assertEquals(0, value7.size());
+
+
+
+
+
+			// create a native date, get the month value, add one and convert it to a string => success
+			final Object value8 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test8(); }}", "test8");
+			System.out.println(value8);
+
+
+			// create a native date in a method, get the month value, add one and convert it to a string => success
+			final Object value9 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test9(); }}", "test9");
+			System.out.println(value9);
+
+
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testThisInMethodCalls() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("getName", "{ return $.this.name; }");
+
+			// native object created inline
+			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } return names.join(''); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> list = new LinkedList<>();
+
+			for (int i=0; i<3; i++) {
+
+				list.add(app.create(testClass, "Test" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
+			}
+
+			// create a native object inline and set some properties => success
+			final String value = (String)Scripting.evaluate(new ActionContext(securityContext), list.get(0), "${{ return $.this.test(); }}", "test");
+
+			assertEquals("Test00Test01Test02", value);
 
 			tx.success();
 

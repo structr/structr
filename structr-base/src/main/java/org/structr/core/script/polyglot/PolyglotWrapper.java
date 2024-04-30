@@ -18,271 +18,294 @@
  */
 package org.structr.core.script.polyglot;
 
-import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 
+import javax.swing.*;
 import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 
 public abstract class PolyglotWrapper {
 
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(final ActionContext actionContext, final Object obj) {
 
-		if (obj == null) {
 
-			return null;
-		}
+		try {
 
-		if (obj instanceof Value) {
-			return obj;
-		}
+			actionContext.level++;
 
-		if (obj instanceof NonWrappableObject) {
+			if (obj == null) {
 
-			return ((NonWrappableObject)obj).unwrap();
-		}
-
-		if (obj instanceof GraphObject) {
-
-			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
-		}
-
-		if (obj instanceof List) {
-
-			return new PolyglotProxyArray(actionContext, (List)obj);
-		}
-
-		if (obj instanceof Iterable) {
-
-			return new PolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
-		}
-
-		if (obj instanceof Map) {
-
-			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
-		}
-
-		if (obj instanceof Enumeration) {
-
-			final Enumeration enumeration = (Enumeration)obj;
-			final List<Object> enumList = new ArrayList<>();
-
-			while (enumeration.hasMoreElements()) {
-
-				enumList.add(enumeration.nextElement());
+				return null;
 			}
 
-			return new PolyglotProxyArray(actionContext, enumList.toArray());
+			if (obj instanceof Value) {
+				return obj;
+			}
+
+			if (obj instanceof NonWrappableObject) {
+
+				return ((NonWrappableObject) obj).unwrap();
+			}
+
+			if (obj instanceof Class) {
+
+				return new StaticTypeWrapper(actionContext, (Class) obj);
+			}
+
+			if (obj instanceof GraphObject) {
+
+				return new GraphObjectWrapper(actionContext, (GraphObject) obj);
+			}
+
+			if (obj instanceof List) {
+
+				return new PolyglotProxyArray(actionContext, (List) obj);
+			}
+
+			if (obj instanceof Iterable) {
+
+				return new PolyglotProxyArray(actionContext, (List) StreamSupport.stream(((Iterable) obj).spliterator(), false).collect(Collectors.toList()));
+			}
+
+			if (obj instanceof Map) {
+
+
+				return new PolyglotProxyMap(actionContext, (Map<String, Object>) obj);
+			}
+
+			if (obj instanceof Enumeration) {
+
+				final Enumeration enumeration = (Enumeration) obj;
+				final List<Object> enumList = new ArrayList<>();
+
+				while (enumeration.hasMoreElements()) {
+
+					enumList.add(enumeration.nextElement());
+				}
+
+				return new PolyglotProxyArray(actionContext, enumList.toArray());
+			}
+
+			if (obj instanceof Date date) {
+
+				return new DateWrapper(date);
+			}
+
+			if (obj instanceof LocalDate lDate) {
+
+				return ProxyDate.from(lDate);
+			}
+
+			if (obj instanceof LocalTime lTime) {
+
+				return ProxyTime.from(lTime);
+			}
+
+			if (obj instanceof ZoneId zid) {
+
+				return ProxyTimeZone.from(zid);
+			}
+
+			if (obj instanceof Instant inst) {
+
+				return ProxyInstant.from(inst);
+			}
+
+			if (obj instanceof Duration dur) {
+
+				return ProxyDuration.from(dur);
+			}
+
+			if (obj.getClass().isArray() && !(obj instanceof byte[])) {
+
+				return new PolyglotProxyArray(actionContext, (Object[]) obj);
+			}
+
+			if (obj != null) {
+			}
+
+			return obj;
+
+		} finally {
+
+			actionContext.level--;
 		}
-
-		if (obj instanceof Date date) {
-
-			return new DateWrapper(date);
-		}
-
-		if (obj instanceof LocalDate lDate) {
-
-			return ProxyDate.from(lDate);
-		}
-
-		if (obj instanceof LocalTime lTime) {
-
-			return ProxyTime.from(lTime);
-		}
-
-		if (obj instanceof ZoneId zid) {
-
-			return ProxyTimeZone.from(zid);
-		}
-
-		if (obj instanceof Instant inst) {
-
-			return ProxyInstant.from(inst);
-		}
-
-		if (obj instanceof Duration dur) {
-
-			return ProxyDuration.from(dur);
-		}
-
-		if (obj.getClass().isArray() && !(obj instanceof byte[]) ) {
-
-			return new PolyglotProxyArray(actionContext, (Object[]) obj);
-		}
-
-		if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
-
-			// Try to rewrap objects from foreign contexts
-			return wrap(actionContext, unwrap(actionContext, obj));
-		}
-
-		return obj;
 	}
 
 	// Unwraps values coming out of the scripting engine. Maps/Lists will be unwrapped recursively to ensure all values will be in their native state.
 	public static Object unwrap(final ActionContext actionContext, final Object obj) {
 
-		if (obj instanceof Value) {
+		try {
 
-			Value value = (Value) obj;
+			if (obj instanceof Value) {
 
-			// Deal with wrapped primitives
-			if (value.isString()) {
+				Value value = (Value) obj;
 
-				return value.asString();
-			}
+				// Deal with wrapped primitives
+				if (value.isString()) {
 
-			if (value.isBoolean()) {
-
-				return value.asBoolean();
-			}
-
-			if (value.isNumber()) {
-
-				if (value.fitsInInt()) {
-
-					return value.asInt();
+					return value.asString();
 				}
 
-				if (value.fitsInLong()) {
+				if (value.isBoolean()) {
 
-					return value.asLong();
+					return value.asBoolean();
 				}
 
-				if (value.fitsInFloat()) {
+				if (value.isNumber()) {
 
-					Float f = value.asFloat();
-					if (!Float.isNaN(f)) {
+					if (value.fitsInInt()) {
 
-						return f;
+						return value.asInt();
 					}
+
+					if (value.fitsInLong()) {
+
+						return value.asLong();
+					}
+
+					if (value.fitsInFloat()) {
+
+						Float f = value.asFloat();
+						if (!Float.isNaN(f)) {
+
+							return f;
+						}
+
+						return null;
+					}
+
+					if (value.fitsInDouble()) {
+
+						Double d = value.asDouble();
+						if (!Double.isNaN(d)) {
+
+							return d;
+						}
+
+						return null;
+					}
+				}
+
+				// Deal with more complex values
+				if (value.canExecute()) {
+
+					return new FunctionWrapper(actionContext, value);
+				}
+
+				if (value.isHostObject()) {
+					return unwrap(actionContext, value.asHostObject());
+				}
+
+				if (value.isProxyObject() && value.asProxyObject() instanceof DateWrapper dw) {
+					return dw.getWrappedDate();
+				}
+
+				if (value.isDate() && value.isTime() && value.isTimeZone()) {
+					return ZonedDateTime.of(LocalDateTime.of(value.asDate(), value.asTime()), value.asTimeZone());
+				}
+
+				if (value.isDate() && value.isTime()) {
+					return LocalDateTime.of(value.asDate(), value.asTime());
+				}
+
+				if (value.isDate()) {
+					return value.asDate();
+				}
+
+				if (value.isTime()) {
+					return value.asTime();
+				}
+
+				if (value.isInstant()) {
+					return value.asInstant();
+				}
+
+				if (value.isDuration()) {
+					return value.asDuration();
+				}
+
+				if (value.isTimeZone()) {
+					return value.asTimeZone();
+				}
+
+				if (value.isProxyObject() && value.hasMembers()) {
+
+					ProxyObject proxy = value.asProxyObject();
+
+					if (proxy instanceof GraphObjectWrapper) {
+
+						return ((GraphObjectWrapper) proxy).getOriginalObject();
+					}
+
+					if (proxy instanceof PolyglotProxyMap) {
+
+						return ((PolyglotProxyMap) proxy).getOriginalObject();
+					}
+
+					return proxy;
+				}
+
+				if (value.hasArrayElements()) {
+
+					return convertValueToList(actionContext, value);
+				}
+
+				if (value.hasHashEntries()) {
+
+					return convertHashEntriestToMap(actionContext, value);
+				}
+
+				if (value.hasMembers() && Set.of("map", "object").contains(value.getMetaObject().getMetaSimpleName().toLowerCase())) {
+
+					return convertValueToMap(actionContext, value);
+				}
+
+				if (value.isNull()) {
 
 					return null;
 				}
 
-				if (value.fitsInDouble()) {
-
-					Double d = value.asDouble();
-					if (!Double.isNaN(d)) {
-
-						return d;
-					}
-
-					return null;
-				}
+				return value;
 			}
 
-			// Deal with more complex values
-			if (value.canExecute()) {
+			if (obj instanceof GraphObjectWrapper) {
 
-				return new FunctionWrapper(actionContext, value);
+				return ((GraphObjectWrapper) obj).getOriginalObject();
+
 			}
 
-			if (value.isHostObject()) {
-				return unwrap(actionContext, value.asHostObject());
+			if (obj instanceof Iterable) {
+
+				return unwrapIterable(actionContext, (Iterable) obj);
 			}
 
-			if (value.isProxyObject() && value.asProxyObject() instanceof DateWrapper dw) {
-				return dw.getWrappedDate();
+			if (obj instanceof Map) {
+
+				return unwrapMap(actionContext, (Map<String, Object>) obj);
 			}
 
-			if (value.isDate() && value.isTime() && value.isTimeZone()) {
-				return ZonedDateTime.of(LocalDateTime.of(value.asDate(), value.asTime()), value.asTimeZone());
+			if (obj != null) {
 			}
 
-			if (value.isDate() && value.isTime()) {
-				return LocalDateTime.of(value.asDate(), value.asTime());
-			}
+			return obj;
 
-			if (value.isDate()) {
-				return value.asDate();
-			}
+		} finally {
 
-			if (value.isTime()) {
-				return value.asTime();
-			}
-
-			if (value.isInstant()) {
-				return value.asInstant();
-			}
-
-			if (value.isDuration()) {
-				return value.asDuration();
-			}
-
-			if (value.isTimeZone()) {
-				return value.asTimeZone();
-			}
-
-			if (value.isProxyObject() && value.hasMembers()) {
-
-				ProxyObject proxy = value.asProxyObject();
-
-				if (proxy instanceof GraphObjectWrapper) {
-
-					return ((GraphObjectWrapper)proxy).getOriginalObject();
-				}
-
-				if (proxy instanceof PolyglotProxyMap) {
-
-					return ((PolyglotProxyMap)proxy).getOriginalObject();
-				}
-
-				return proxy;
-			}
-
-			if (value.hasArrayElements()) {
-
-				return convertValueToList(actionContext, value);
-			}
-
-			if (value.hasMembers() && value.getMetaObject().getMetaSimpleName().toLowerCase().equals("object")) {
-
-				return convertValueToMap(actionContext, value);
-			}
-
-			if (value.hasHashEntries()) {
-
-				return convertHashEntriestToMap(actionContext, value);
-			}
-
-			if (value.isNull()) {
-
-				return null;
-			}
-
-			return value;
+			actionContext.level --;
 		}
-
-		if (obj instanceof GraphObjectWrapper) {
-
-			return ((GraphObjectWrapper)obj).getOriginalObject();
-
-		}
-
-		if (obj instanceof Iterable) {
-
-			return unwrapIterable(actionContext, (Iterable) obj);
-		}
-
-		if(obj instanceof Map) {
-
-			return unwrapMap(actionContext, (Map<String, Object>) obj);
-		}
-
-		return obj;
 	}
 
 	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {
