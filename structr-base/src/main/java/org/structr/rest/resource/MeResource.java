@@ -45,7 +45,7 @@ import org.structr.web.entity.User;
 public class MeResource extends ExactMatchEndpoint {
 
 	public MeResource() {
-		super(RESTParameter.forStaticString("me"));
+		super(RESTParameter.forStaticString("me", true, "User"));
 	}
 
 	@Override

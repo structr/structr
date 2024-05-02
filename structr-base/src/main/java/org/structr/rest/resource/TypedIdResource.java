@@ -60,8 +60,8 @@ public class TypedIdResource extends ExactMatchEndpoint {
 	public TypedIdResource() {
 
 		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
-			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts())
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false)
 		);
 	}
 

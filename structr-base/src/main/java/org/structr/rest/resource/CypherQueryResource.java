@@ -45,7 +45,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class CypherQueryResource extends ExactMatchEndpoint {
 
 	public CypherQueryResource() {
-		super(RESTParameter.forStaticString("cypher"));
+		super(RESTParameter.forStaticString("cypher", true));
 	}
 
 	@Override

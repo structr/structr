@@ -210,11 +210,6 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public String getResourceSignature() {
-		return "_resetPassword";
-	}
-
-	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
 		return Set.of("OPTIONS", "POST");
 	}

@@ -49,8 +49,8 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 	public StaticMethodResource() {
 
 		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
 		);
 	}
 

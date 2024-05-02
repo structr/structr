@@ -31,7 +31,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class LogoutResource extends ExactMatchEndpoint {
 
 	public LogoutResource() {
-		super(RESTParameter.forStaticString("logout"));
+		super(RESTParameter.forStaticString("logout", true, "_logout"));
 	}
 
 	@Override

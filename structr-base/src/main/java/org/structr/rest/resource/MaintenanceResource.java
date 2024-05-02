@@ -113,8 +113,8 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 	public MaintenanceResource() {
 
 		super(
-			RESTParameter.forStaticString("maintenance"),
-			RESTParameter.forPattern("name", "[a-zA-Z_]+")
+			RESTParameter.forStaticString("maintenance", true),
+			RESTParameter.forPattern("name", "[a-zA-Z_]+", true)
 		);
 	}
 

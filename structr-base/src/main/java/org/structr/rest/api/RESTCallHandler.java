@@ -93,7 +93,7 @@ public abstract class RESTCallHandler {
 
 	public String getResourceSignature() {
 
-		String signature = getURL();
+		String signature = call.getResourceSignature();
 
 		// remove leading slash from resource access grant
 		if (signature.startsWith("/")) {

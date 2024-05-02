@@ -31,7 +31,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class RegistrationResource extends ExactMatchEndpoint {
 
 	public RegistrationResource() {
-		super(RESTParameter.forStaticString("registration"));
+		super(RESTParameter.forStaticString("registration", true, "_registration"));
 	}
 
 	@Override

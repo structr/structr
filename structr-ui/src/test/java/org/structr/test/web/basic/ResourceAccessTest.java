@@ -21,20 +21,30 @@ package org.structr.test.web.basic;
 import io.restassured.RestAssured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
+import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
@@ -382,6 +392,87 @@ public class ResourceAccessTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void test05ResourceAccessWithUUIDs() {
+
+		// clear resource access objects that are created by the dynamic schema
+		clearResourceAccess();
+
+		createEntityAsSuperUser("/User", "{ name: tester, password: test }");
+
+		String uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("getName", "{ return $.this.name; }");
+			type.addMethod("getName2", "{ return $.this.name + $.methodParameters.param1; }").setHttpVerb("GET").addParameter("param1", "string");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		NodeInterface test = null;
+
+		final Class<NodeInterface> testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(testClass, new NodeAttribute<>(AbstractNode.name, "test123"));
+			uuid = test.getUuid();
+
+			// set owner
+			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			test.setProperty(AbstractNode.owner, tester);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			logger.error(fex.toString());
+			fail("Unexpected exception");
+		}
+
+		// test, expect 401
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Test/" + uuid + "/getName");
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Test/" + uuid + "/getName2/param1/param2/123");
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/" + uuid);
+
+		try (final Tx tx = app.tx()) {
+
+			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			logger.error(fex.toString());
+			fail("Unexpected exception");
+		}
+
+		// test, expect 200
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result", equalTo("test123"))
+			.when().post("/Test/" + uuid + "/getName");
+
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result", equalTo("test123undefined"))
+			.when().get("/Test/" + uuid + "/getName2");
+
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result", equalTo("test123value1"))
+			.when().get("/Test/" + uuid + "/getName2/value1/value2/123");
+	}
 	/**
 	 * Creates a new ResourceAccess entity with the given signature and
 	 * flags in the database.

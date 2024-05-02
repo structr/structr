@@ -90,6 +90,20 @@ public abstract class RESTEndpoint {
 			final String value = matcher.group(group++);
 
 			call.put(part.key(), value);
+
+			if (part.includeInSignature()) {
+
+				// allow REST parameter to override resource access signature
+				final String signatureOverride = part.staticResourceSignaturePart();
+				if (signatureOverride != null) {
+
+					call.addSignaturePart(signatureOverride);
+
+				} else {
+
+					call.addSignaturePart(value);
+				}
+			}
 		}
 
 		if (isWildcardMatch() && matcher.groupCount() >= group) {
@@ -109,24 +123,25 @@ public abstract class RESTEndpoint {
 	// ----- private methods -----
 	private void initialize(final RESTParameter... parameters) {
 
-		final StringBuilder buf = new StringBuilder();
+		final StringBuilder signatureBuffer = new StringBuilder();
+		final StringBuilder pathBuffer      = new StringBuilder();
 
 		for (final RESTParameter parameter : parameters) {
 
 			parts.put(parameter.key(), parameter);
 
-			buf.append(pathSeparator);
-			buf.append("(");
-			buf.append(parameter.urlPattern());
-			buf.append(")");
+			pathBuffer.append(pathSeparator);
+			pathBuffer.append("(");
+			pathBuffer.append(parameter.urlPattern());
+			pathBuffer.append(")");
 		}
 
 		if (isWildcardMatch()) {
 
-			buf.append("(/.*)?");
+			pathBuffer.append("(/.*)?");
 		}
 
-		this.uniquePath = buf.toString();
-		this.pattern    = Pattern.compile(uniquePath);
+		this.uniquePath        = pathBuffer.toString();
+		this.pattern          = Pattern.compile(uniquePath);
 	}
 }

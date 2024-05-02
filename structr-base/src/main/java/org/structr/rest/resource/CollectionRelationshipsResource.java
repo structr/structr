@@ -48,8 +48,8 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 	public CollectionRelationshipsResource() {
 
 		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
-			RESTParameter.forPattern("rel",  "in|out")
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
+			RESTParameter.forPattern("rel",  "in|out", true)
 		);
 	}
 

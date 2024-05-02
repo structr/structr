@@ -87,7 +87,7 @@ public class LogResource extends ExactMatchEndpoint {
 	public static final String LOG_RESOURCE_URI                 = "log";
 
 	public LogResource() {
-		super(RESTParameter.forStaticString("log"));
+		super(RESTParameter.forStaticString("log", true));
 	}
 
 	@Override

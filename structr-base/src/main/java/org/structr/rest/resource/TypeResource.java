@@ -35,7 +35,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class TypeResource extends ExactMatchEndpoint {
 
 	public TypeResource() {
-		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern));
+		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true));
 	}
 
 	@Override

@@ -33,8 +33,8 @@ public class MeMethodResource extends WildcardMatchEndpoint {
 
 	public MeMethodResource() {
 		super(
-			RESTParameter.forStaticString("me"),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
+			RESTParameter.forStaticString("me", true, "User"),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
 		);
 	}
 

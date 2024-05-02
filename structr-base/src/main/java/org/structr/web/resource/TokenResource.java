@@ -41,7 +41,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {
-		super(RESTParameter.forStaticString("token"));
+		super(RESTParameter.forStaticString("token", true, "_token"));
 	}
 
 	@Override
@@ -179,11 +179,6 @@ public class TokenResource extends ExactMatchEndpoint {
 			}
 
 			return returnedMethodResult;
-		}
-
-		@Override
-		public String getResourceSignature() {
-			return "_token";
 		}
 	}
 }

@@ -45,8 +45,8 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 	public SchemaTypeResource() {
 		super(
-			RESTParameter.forStaticString(UriPart._schema.name()),
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern)
+			RESTParameter.forStaticString(UriPart._schema.name(), true),
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true)
 		);
 	}
 

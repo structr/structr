@@ -71,11 +71,6 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public String getResourceSignature() {
-		return "_logout";
-	}
-
-	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
 		return Set.of("OPTIONS", "POST");
 	}

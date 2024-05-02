@@ -23,13 +23,15 @@ package org.structr.rest.api.parameter;
  */
 public class PatternParameter implements RESTParameter {
 
-	private String key     = null;
-	private String pattern = null;
+	private boolean includeInSignature = false;
+	private String key                 = null;
+	private String pattern             = null;
 
-	public PatternParameter(final String key, final String pattern) {
+	public PatternParameter(final String key, final String pattern, final boolean includeInSignature) {
 
-		this.key     = key;
-		this.pattern = pattern;
+		this.key                = key;
+		this.pattern            = pattern;
+		this.includeInSignature = includeInSignature;
 	}
 
 	@Override
@@ -40,5 +42,15 @@ public class PatternParameter implements RESTParameter {
 	@Override
 	public String urlPattern() {
 		return pattern;
+	}
+
+	@Override
+	public boolean includeInSignature() {
+		return includeInSignature;
+	}
+
+	@Override
+	public String staticResourceSignaturePart() {
+		return null;
 	}
 }

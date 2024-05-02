@@ -41,7 +41,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class EntityResolverResource extends ExactMatchEndpoint {
 
 	public EntityResolverResource() {
-		super(RESTParameter.forStaticString("resolver"));
+		super(RESTParameter.forStaticString("resolver", true));
 	}
 
 	@Override

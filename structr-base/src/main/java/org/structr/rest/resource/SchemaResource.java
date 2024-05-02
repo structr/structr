@@ -74,7 +74,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 	}
 
 	public SchemaResource() {
-		super(RESTParameter.forStaticString(UriPart._schema.name()));
+		super(RESTParameter.forStaticString(UriPart._schema.name(), true));
 	}
 
 	@Override

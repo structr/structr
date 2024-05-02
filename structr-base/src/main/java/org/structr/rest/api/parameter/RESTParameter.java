@@ -24,12 +24,18 @@ public interface RESTParameter {
 
 	String key();
 	String urlPattern();
+	boolean includeInSignature();
+	String staticResourceSignaturePart();
 
-	public static RESTParameter forPattern(final String key, final String pattern) {
-		return new PatternParameter(key, pattern);
+	public static RESTParameter forPattern(final String key, final String pattern, final boolean includeInSignature) {
+		return new PatternParameter(key, pattern, includeInSignature);
 	}
 
-	public static RESTParameter forStaticString(final String part) {
-		return new StaticParameter(part);
+	public static RESTParameter forStaticString(final String part, final boolean includeInSignature) {
+		return new StaticParameter(part, includeInSignature, part);
+	}
+
+	public static RESTParameter forStaticString(final String part, final boolean includeInSignature, final String staticSignaturePart) {
+		return new StaticParameter(part, includeInSignature, staticSignaturePart);
 	}
 }

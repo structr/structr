@@ -35,9 +35,9 @@ public abstract class AbstractTypeIdLowercaseNameResource extends WildcardMatchE
 	public AbstractTypeIdLowercaseNameResource() {
 
 		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
-			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts()),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
 		);
 	}
 

@@ -24,10 +24,15 @@ package org.structr.rest.api.parameter;
  */
 public class StaticParameter implements RESTParameter {
 
-	private String part = null;
+	private boolean includeInSignature = false;
+	private String staticSignaturePart = null;
+	private String part                = null;
 
-	public StaticParameter(final String part) {
-		this.part = part;
+	public StaticParameter(final String part, final boolean includeInSignature, final String staticSignaturePart) {
+
+		this.includeInSignature  = includeInSignature;
+		this.staticSignaturePart = staticSignaturePart;
+		this.part                = part;
 	}
 
 	@Override
@@ -38,5 +43,15 @@ public class StaticParameter implements RESTParameter {
 	@Override
 	public String urlPattern() {
 		return part;
+	}
+
+	@Override
+	public boolean includeInSignature() {
+		return includeInSignature;
+	}
+
+	@Override
+	public String staticResourceSignaturePart() {
+		return staticSignaturePart;
 	}
 }

@@ -51,9 +51,9 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 	public InstanceRelationshipsResource() {
 
 		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
-			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts()),
-			RESTParameter.forPattern("rel",  "in|out")
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false),
+			RESTParameter.forPattern("rel",  "in|out", true)
 		);
 	}
 

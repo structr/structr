@@ -30,7 +30,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class ResetPasswordResource extends ExactMatchEndpoint {
 
 	public ResetPasswordResource() {
-		super(RESTParameter.forStaticString("reset-password"));
+		super(RESTParameter.forStaticString("reset-password", true, "_resetPassword"));
 	}
 
 	@Override

@@ -163,11 +163,6 @@ public class LoginResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public String getResourceSignature() {
-		return "_login";
-	}
-
-	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
 		return Set.of("OPTIONS", "POST");
 	}

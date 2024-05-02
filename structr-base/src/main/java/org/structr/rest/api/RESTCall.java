@@ -18,6 +18,8 @@
  */
 package org.structr.rest.api;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -30,6 +32,7 @@ import java.util.List;
 public class RESTCall extends LinkedHashMap<String, String> {
 
 	private final List<String> pathParameters = new LinkedList<>();
+	private final List<String> signatureParts = new LinkedList<>();
 	private Class userType                    = null;
 	private String viewName                   = null;
 	private String url                        = null;
@@ -37,10 +40,14 @@ public class RESTCall extends LinkedHashMap<String, String> {
 
 	public RESTCall(final String url, final String viewName, final boolean isDefaultView, final Class userType) {
 
-		this.isDefaultView = isDefaultView;
-		this.viewName      = viewName;
-		this.userType      = userType;
-		this.url           = url;
+		this.isDefaultView     = isDefaultView;
+		this.viewName          = viewName;
+		this.userType          = userType;
+		this.url               = url;
+	}
+
+	public String getResourceSignature() {
+		return StringUtils.join(signatureParts, "/");
 	}
 
 	public String getURL() {
@@ -65,5 +72,9 @@ public class RESTCall extends LinkedHashMap<String, String> {
 
 	public Class getUserType() {
 		return userType;
+	}
+
+	public void addSignaturePart(final String value) {
+		signatureParts.add(value);
 	}
 }

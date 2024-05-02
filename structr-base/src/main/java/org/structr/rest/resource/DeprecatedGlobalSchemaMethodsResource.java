@@ -51,9 +51,9 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 	public DeprecatedGlobalSchemaMethodsResource() {
 
 		super(
-			RESTParameter.forStaticString("maintenance"),
-			RESTParameter.forStaticString("globalSchemaMethods"),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
+			RESTParameter.forStaticString("maintenance", true),
+			RESTParameter.forStaticString("globalSchemaMethods", true),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
 		);
 	}
 

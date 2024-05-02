@@ -52,7 +52,7 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 	}
 
 	public RuntimeEventLogResource() {
-		super(RESTParameter.forStaticString(UriPart._runtimeEventLog.name()));
+		super(RESTParameter.forStaticString(UriPart._runtimeEventLog.name(), true));
 	}
 
 	@Override

@@ -45,7 +45,7 @@ public class EnvResource extends ExactMatchEndpoint {
 	}
 
 	public EnvResource() {
-		super(RESTParameter.forStaticString(UriPart._env.name()));
+		super(RESTParameter.forStaticString(UriPart._env.name(), true));
 	}
 
 	@Override

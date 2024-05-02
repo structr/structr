@@ -35,7 +35,7 @@ public class LoginResource extends ExactMatchEndpoint {
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
 
 	public LoginResource() {
-		super(RESTParameter.forStaticString("login"));
+		super(RESTParameter.forStaticString("login", true, "_login"));
 	}
 
 	@Override

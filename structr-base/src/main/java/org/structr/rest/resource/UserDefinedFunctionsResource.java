@@ -53,7 +53,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 			// 12/2023: we decided to rename global schema methods to user-defined functions
 			// and make them available in the global scope just like built-in functions, hence
 			// the path
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
 		);
 	}
 
