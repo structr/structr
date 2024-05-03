@@ -47,6 +47,7 @@ public class StructrBinding implements ProxyObject {
 	private final static Logger logger   = LoggerFactory.getLogger(StructrBinding.class);
 	private  ActionContext actionContext = null;
 	private GraphObject entity           = null;
+	private Value methodParameters       = null;
 
 	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
@@ -126,6 +127,9 @@ public class StructrBinding implements ProxyObject {
 			case "methodParameters":
 			case "arguments":
 			case "args":
+				if (methodParameters != null) {
+					return methodParameters;
+				}
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 
 			case "globalSchemaMethods":
@@ -203,7 +207,10 @@ public class StructrBinding implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
+	}
 
+	public void setMethodParameters(final Value methodParameters) {
+		this.methodParameters = methodParameters;
 	}
 
 	private ProxyExecutable getGetFunctionWrapper() {

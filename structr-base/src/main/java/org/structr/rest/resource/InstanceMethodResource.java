@@ -48,6 +48,15 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 
 					return new InstanceMethodResourceHandler(call, entityClass, typeName, uuid, method);
 				}
+
+			} else {
+
+				// entity does not exist, so we cannot know the runtime type
+				final AbstractMethod method = Methods.resolveMethod(entityClass, name);
+				if (method != null && !method.isPrivate()) {
+
+					return new Error404DummyInstanceMethodResourceHandler(call, entityClass, typeName, uuid, method);
+				}
 			}
 		}
 

@@ -6388,6 +6388,43 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testMapWrapping() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("method1", "{ let map = new Map(); map.set('key1', 'value1'); return $.this.method2({ test: map }); }");
+			type.addMethod("method2", "{ let map = $.methodParameters.test; return map.get('key1'); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create(testClass, "Test");
+
+			Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

@@ -88,7 +88,6 @@ public abstract class AbstractMethod {
 		return (arguments) -> {
 
 			try {
-
 				final Snippet snippet = getSnippet();
 				if (snippet != null) {
 
@@ -102,16 +101,21 @@ public abstract class AbstractMethod {
 
 					try {
 
+
 						final Arguments args      = Arguments.fromValues(actionContext, arguments);
 						final Arguments converted = checkAndConvertArguments(securityContext, args, true);
 						final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+
+						if (arguments.length == 1) {
+							binding.setMethodParameters(arguments[0]);
+						}
 
 						binding.setEntity(entity);
 						binding.setActionContext(inner);
 
 						return Scripting.evaluatePolyglot(inner, context, entity, snippet);
 
-					} catch (IllegalArgumentTypeException iaex) {
+					} catch (IOException | IllegalArgumentTypeException iaex) {
 
 						throwIllegalArgumentExceptionForMapBasedArguments();
 
@@ -120,6 +124,7 @@ public abstract class AbstractMethod {
 						// restore state before this method call
 						binding.setEntity(previousEntity);
 						binding.setActionContext(previousContext);
+						binding.setMethodParameters(null);
 						securityContext.getContextStore().setTemporaryParameters(tmp);
 
 					}
@@ -129,7 +134,7 @@ public abstract class AbstractMethod {
 				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments);
 				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext.getSecurityContext(), entity, converted, new EvaluationHints()));
 
-			} catch (IOException | FrameworkException ex) {
+			} catch (FrameworkException ex) {
 				throw new RuntimeException(ex);
 			}
 		};

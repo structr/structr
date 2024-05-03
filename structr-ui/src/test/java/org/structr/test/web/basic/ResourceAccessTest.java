@@ -473,6 +473,34 @@ public class ResourceAccessTest extends StructrUiTest {
 			.body("result", equalTo("test123value1"))
 			.when().get("/Test/" + uuid + "/getName2/value1/value2/123");
 	}
+
+	@Test
+	/**
+	 * We need to make sure to not leak information, i.e. the 401 error must come before any 404 error for a non-existing object.
+	 */
+	public void test06OrderOfErrorCodes() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("myMethod", "{ return 'test!'; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// this should return 401 and NOT 404
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("Test/00000000000000000000000000000000/myMethod");
+	}
 	/**
 	 * Creates a new ResourceAccess entity with the given signature and
 	 * flags in the database.
