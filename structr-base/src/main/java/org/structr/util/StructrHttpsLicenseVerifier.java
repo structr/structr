@@ -264,39 +264,44 @@ public class StructrHttpsLicenseVerifier {
 
 					logger.info("Loading license configuration from {}..", configName);
 
-					// load config file or create new one
-					Map<String, Object> config = readConfig(configName);
-					if (config == null) {
+					// reading and wrinting the configuration must be synchronized
+					// so the file is protected from accidental overwrititing
+					synchronized (this) {
 
-						config = new HashMap<>();
+						// load config file or create new one
+						Map<String, Object> config = readConfig(configName);
+						if (config == null) {
+
+							config = new HashMap<>();
+						}
+
+						// load count
+						final Map<String, Object> hostIdMapping = getMapValue(config, StructrLicenseManager.HostIdMappingKey);
+						final int limit = getIntValue(config, StructrLicenseManager.LimitKey, -1);
+						final int hostIdCount = getIntValue(hostIdMapping, hostId, 0);
+						final int count = hostIdMapping.size();
+
+						if (limit == -1) {
+
+							// no numerical limit found in config, check for "*" value
+							valid = "*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null));
+
+							logger.info("count: {}, unlimited license", count);
+
+						} else {
+
+							valid = count <= limit;
+
+							logger.info("count: {}, limit: {}", count, limit);
+						}
+
+
+						// update host ID count
+						hostIdMapping.put(hostId, hostIdCount + 1);
+
+						// store config
+						writeConfig(configName, config);
 					}
-
-					// load count
-					final Map<String, Object> hostIdMapping = getMapValue(config, StructrLicenseManager.HostIdMappingKey);
-					final int limit                         = getIntValue(config, StructrLicenseManager.LimitKey, -1);
-					final int hostIdCount                   = getIntValue(hostIdMapping, hostId, 0);
-					final int count                         = hostIdMapping.size();
-
-					if (limit == -1) {
-
-						// no numerical limit found in config, check for "*" value
-						valid = "*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null));
-
-						logger.info("count: {}, unlimited license", count);
-
-					} else {
-
-						valid = count <= limit;
-
-						logger.info("count: {}, limit: {}", count, limit);
-					}
-
-
-					// update host ID count
-					hostIdMapping.put(hostId, hostIdCount + 1);
-
-					// store config
-					writeConfig(configName, config);
 
 				} else {
 
