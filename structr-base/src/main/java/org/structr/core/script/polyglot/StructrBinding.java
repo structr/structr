@@ -34,7 +34,9 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.api.AbstractMethod;
@@ -84,6 +86,9 @@ public class StructrBinding implements ProxyObject {
 
 			case "me":
 				return wrap(actionContext, actionContext.getSecurityContext().getUser(false));
+
+			case "now":
+				return ZonedDateTime.now();
 
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);

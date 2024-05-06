@@ -36,8 +36,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.schema.Schema;
 
 import java.io.IOException;
@@ -46,6 +48,8 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,6 +80,7 @@ public abstract class StreamingWriter {
 	protected boolean wrapSingleResultInArray             = false;
 	private int skippedDeletedObjects                     = 0;
 	private Integer overriddenResultCount                 = null;
+	private DateTimeFormatter dateTimeFormatter           = null;
 
 	private boolean reduceNestedObjectsForRestrictedViews = true;
 	private int reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
@@ -84,6 +89,7 @@ public abstract class StreamingWriter {
 
 	public StreamingWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 
+		this.dateTimeFormatter       = DateTimeFormatter.ofPattern(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
 		this.wrapSingleResultInArray = wrapSingleResultInArray;
 		this.serializeNulls          = serializeNulls;
 		this.reduceRedundancy        = Settings.JsonRedundancyReduction.getValue(true);
@@ -307,13 +313,17 @@ public abstract class StreamingWriter {
 
 		if (value != null) {
 
-			if (value instanceof Number) {
+			if (value instanceof Number n) {
 
-				writer.value((Number)value);
+				writer.value(n);
 
-			} else if (value instanceof Boolean) {
+			} else if (value instanceof Boolean b) {
 
-				writer.value((Boolean)value);
+				writer.value(b);
+
+			} else if (value instanceof ZonedDateTime zdt) {
+
+				writer.value(zdt.format(dateTimeFormatter));
 
 			} else {
 

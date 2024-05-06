@@ -45,6 +45,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -450,7 +451,7 @@ public class ActionContext {
 
 						case "now":
 							hints.reportExistingKey(key);
-							return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
+							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyParser.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
 							hints.reportExistingKey(key);

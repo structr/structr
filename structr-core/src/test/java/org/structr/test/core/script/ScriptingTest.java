@@ -45,6 +45,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.ScriptTestHelper;
@@ -64,6 +65,8 @@ import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -6425,6 +6428,128 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
+
+	@Test
+	public void testDateWrappingAndFormats() {
+
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("getDate",             "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
+			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
+
+			type.addMethod("test1", "{ return { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
+			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
+			type.addMethod("test4", "{ return { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Map<String, Object> result1 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test1(); }}", "test");
+			final Map<String, Object> result2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test2(); }}", "test");
+			final Map<String, Object> result3 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test3(); }}", "test");
+
+			// check values (only need to check first result because we're checking for equality below)
+			final Object value1 = result1.get("test1");
+			final Object value2 = result1.get("test2");
+			final Object value3 = result1.get("test3");
+			final Object value4 = result1.get("test4");
+			final Object value5 = result1.get("test5");
+
+			assertEquals(ZonedDateTime.class, value1.getClass());
+			assertEquals(ZonedDateTime.class, value2.getClass());
+			assertEquals(ZonedDateTime.class, value3.getClass());
+			assertEquals(ZonedDateTime.class, value4.getClass());
+			assertEquals(String.class,        value5.getClass());
+
+			final String zonedDateTimePattern = "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}\\+[0-9]{4}";
+			final String pattern              = ISO8601DateProperty.getDefaultFormat();
+			final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+
+			System.out.println("FORMAT: " + pattern);
+
+			final String formatted1 = formatter.format((ZonedDateTime)value1);
+			final String formatted2 = formatter.format((ZonedDateTime)value2);
+			final String formatted3 = formatter.format((ZonedDateTime)value3);
+			final String formatted4 = formatter.format((ZonedDateTime)value4);
+
+
+			System.out.println(formatted1);
+			System.out.println(formatted2);
+			System.out.println(formatted3);
+			System.out.println(formatted4);
+
+			assertTrue(formatted1.matches(zonedDateTimePattern));
+			assertTrue(formatted2.matches(zonedDateTimePattern));
+			assertTrue(formatted3.matches(zonedDateTimePattern));
+			assertTrue(formatted4.matches(zonedDateTimePattern));
+			assertTrue(value5.toString().matches(zonedDateTimePattern));
+
+			// assert type (!) equality of all result entries (=> there should be no difference in the types dependinPg on their level in the object structure)
+			assertEquals(result1.get("test1").getClass(), result2.get("test1").getClass());
+			assertEquals(result1.get("test2").getClass(), result2.get("test2").getClass());
+			assertEquals(result1.get("test3").getClass(), result2.get("test3").getClass());
+			assertEquals(result1.get("test4").getClass(), result2.get("test4").getClass());
+			assertEquals(result1.get("test5").getClass(), result2.get("test5").getClass());
+			assertEquals(result2.get("test1").getClass(), result3.get("test1").getClass());
+			assertEquals(result2.get("test2").getClass(), result3.get("test2").getClass());
+			assertEquals(result2.get("test3").getClass(), result3.get("test3").getClass());
+			assertEquals(result2.get("test4").getClass(), result3.get("test4").getClass());
+			assertEquals(result2.get("test5").getClass(), result3.get("test5").getClass());
+
+			// test Javascript typeof result
+			final Map<String, Object> result4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test4(); }}", "test");
+
+			assertEquals("object", result4.get("test1"));
+			assertEquals("object", result4.get("test2"));
+			assertEquals("object", result4.get("test3"));
+			assertEquals("object", result4.get("test4"));
+			assertEquals("string", result4.get("test5"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testDateFormatWithZonedDateTime() {
+
+		try (final Tx tx = app.tx()) {
+
+			final String result1 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.dateFormat(new Date(), 'yyyy-MM-dd'); }}", "test1");
+			final String result2 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.dateFormat($.now, 'yyyy-MM-dd'); }}", "test2");
+
+			final String expected = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
+			assertEquals(expected, result1);
+			assertEquals(expected, result2);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
