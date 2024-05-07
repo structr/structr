@@ -394,7 +394,7 @@ let _Icons = {
 	getIconForSchemaNodeType: (entity) => {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
-		let additionalClasses = [];
+		let additionalClasses = ['flex-shrink-0'];
 
 		switch (entity.type) {
 
