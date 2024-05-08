@@ -23,7 +23,6 @@ import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
@@ -149,33 +148,19 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-
 		final String expression = StringUtils.strip(input);
-		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
-		final int prefixOffset  = isJavascript ? 1 : 0;
-		String source           = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
+		String source           = expression.substring(2, expression.length() - 1);
 
-		if (source.length() <= 0) {
+		if (source.isEmpty()) {
 			return null;
 		}
 
-		boolean isScriptEngine = false;
-		String engine = "";
+		String[] splitSnippet = splitSnippetIntoEngineAndScript(source);
+		final String engine = splitSnippet[0];
+		source = splitSnippet[1];
 
-		if (!isJavascript) {
-
-			final Matcher matcher = ScriptEngineExpression.matcher(expression);
-			if (matcher.matches()) {
-
-				engine = matcher.group(1);
-				source = matcher.group(2);
-
-				logger.debug("Scripting engine {} requested.", engine);
-
-				isJavascript = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
-				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
-			}
-		}
+		final boolean isJavascript = StringUtils.isBlank(engine) || "js".equals(engine);
+		final boolean isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 
 		actionContext.setJavaScriptContext(isJavascript);
 
@@ -191,7 +176,7 @@ public class Scripting {
 			securityContext.setDoTransactionNotifications(false);
 		}
 
-		final Snippet snippet = new Snippet(methodName, source);
+		final Snippet snippet = new Snippet(methodName, source, !isScriptEngine);
 		snippet.setCodeSource(codeSource);
 		snippet.setStartRow(startRow);
 
@@ -248,7 +233,10 @@ public class Scripting {
 	}
 
 	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
+		return evaluateScript(actionContext, entity, "js", snippet);
+	}
 
+	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
 		// Clear output buffer
 		actionContext.clear();
 
@@ -258,95 +246,49 @@ public class Scripting {
 			actionContext.getErrorBuffer().setStatus(0);
 		}
 
-		final Context context = ContextFactory.getContext("js", actionContext, entity);
+		final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 
 		context.enter();
 
-		try {
+		Object result = null;
 
-			Object result = null;
+		final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
+		result = PolyglotWrapper.unwrap(actionContext, value);
 
-			try {
+		context.leave();
 
-				final Value value = evaluatePolyglot(actionContext, context, entity, snippet);
+		// Prefer explicitly printed output over actual result
+		final String outputBuffer = actionContext.getOutput();
+		if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
-				result = PolyglotWrapper.unwrap(actionContext, value);
-
-			} catch (PolyglotException ex) {
-
-				ex.printStackTrace();
-
-				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
-
-					// Only report error, if exception is not an already logged AssertException
-					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
-						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-					}
-
-					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
-					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
-						throw new AlreadyLoggedAssertException(ae);
-					}
-
-					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-					if (ex.asHostException().getCause() instanceof FrameworkException) {
-						throw ex.asHostException().getCause();
-					} else {
-						throw ex.asHostException();
-					}
-				}
-
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-				throw new FrameworkException(422, "Server-side scripting error", ex);
-			}
-
-			// Prefer explicitly printed output over actual result
-			final String outputBuffer = actionContext.getOutput();
-			if (outputBuffer != null && !outputBuffer.isEmpty()) {
-
-				return outputBuffer;
-			}
-
-			return result != null ? result : "";
-
-		} catch (RuntimeException ex) {
-
-			if (ex.getCause() instanceof FrameworkException) {
-
-				throw (FrameworkException) ex.getCause();
-
-			} else if (ex instanceof AssertException) {
-
-				throw ex;
-			} else {
-
-				throw ex;
-			}
-
-		} catch (FrameworkException ex) {
-
-			throw ex;
-
-		} catch (Throwable ex) {
-
-			throw new FrameworkException(422, "Server-side scripting error", ex);
-
-		} finally {
-
-			context.leave();
+			return outputBuffer;
 		}
+
+		return result != null ? result : "";
 	}
 
-	public static Value evaluatePolyglot(final ActionContext actionContext, final Context context, final GraphObject entity, final Snippet snippet) throws IOException, FrameworkException {
+	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
 		try {
 
-			final String code   = Scripting.embedInFunction(snippet);
-			final Source source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
+			Source source = null;
+
+			switch (engineName) {
+				case "js" -> {
+					final String code   = Scripting.embedInFunction(snippet);
+					source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
+				}
+				default -> {
+					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
+				}
+			}
 
 			try {
-
-				return context.eval(source);
+				if (source != null) {
+					return context.eval(source);
+				} else {
+					return null;
+				}
 
 			} catch (PolyglotException ex) {
 
@@ -397,101 +339,33 @@ public class Scripting {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
 		}
+	}
+
+	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
+		boolean isJavascript    = snippet.startsWith("{") && snippet.endsWith("}");
+
+		String engine = "";
+		String script = "";
+
+		if (isJavascript) {
+
+			engine = "js";
+			script = snippet.substring(1, snippet.length() - 1);
+		} else {
+
+			final Matcher matcher = ScriptEngineExpression.matcher(snippet);
+			if (matcher.matches()) {
+
+				engine = matcher.group(1);
+				script = matcher.group(2);
+			}
+		}
+
+		logger.debug("Scripting engine {} requested.", engine);
+		return new String[] { engine, script };
 	}
 
 	// ----- private methods -----
-	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
-
-		try {
-
-			final Context context = ContextFactory.getContext(engineName, actionContext, entity);
-
-			context.enter();
-
-			// Clear output buffer
-			actionContext.clear();
-
-			if (actionContext.hasError()) {
-				// Reset error buffer
-				actionContext.getErrorBuffer().getErrorTokens().clear();
-				actionContext.getErrorBuffer().setStatus(0);
-			}
-
-			Object result = null;
-
-			try {
-
-				final Source source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
-				final Value value   = context.eval(source);
-
-				result = PolyglotWrapper.unwrap(actionContext, value);
-
-			} catch (PolyglotException ex) {
-
-				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
-
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-
-					// Only report error, if exception is not an already logged AssertException
-					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
-						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-					}
-
-					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
-					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
-						throw new AlreadyLoggedAssertException(ae);
-					}
-
-					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-					if (ex.asHostException().getCause() instanceof FrameworkException) {
-						throw ex.asHostException().getCause();
-					} else {
-						throw ex.asHostException();
-					}
-				}
-
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-				throw new FrameworkException(422, "Server-side scripting error", ex);
-			}
-
-			context.leave();
-
-			// Prefer explicitly printed output over actual result
-			final String outputBuffer = actionContext.getOutput();
-			if (outputBuffer != null && !outputBuffer.isEmpty()) {
-
-				return outputBuffer;
-			}
-
-			return result != null ? result : "";
-
-		} catch (RuntimeException ex) {
-
-			if (ex.getCause() instanceof FrameworkException) {
-
-				throw (FrameworkException) ex.getCause();
-			} else if (ex instanceof AssertException) {
-
-				throw ex;
-			} else {
-
-				throw ex;
-			}
-
-		} catch (FrameworkException ex) {
-
-			throw ex;
-
-		} catch (Throwable ex) {
-
-			throw new FrameworkException(422, "Server-side scripting error", ex);
-
-		} finally {
-
-			//actionContext.putScriptingContext(engineName, null);
-		}
-	}
-
 	public static String embedInFunction(final Snippet snippet) {
 
 		if (snippet.embed()) {

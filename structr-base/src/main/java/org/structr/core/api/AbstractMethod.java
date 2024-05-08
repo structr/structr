@@ -89,18 +89,20 @@ public abstract class AbstractMethod {
 
 			try {
 				final Snippet snippet = getSnippet();
+
 				if (snippet != null) {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final Context context                 = Context.getCurrent();
-					final Value bindings                  = context.getBindings("js").getMember("$");
+					final String[] splitSnippet           = Scripting.splitSnippetIntoEngineAndScript(snippet.getSource());
+					final String engineName               = splitSnippet[0];
+					final Value bindings                  = context.getBindings(engineName).getMember("Structr");
 					final StructrBinding binding          = bindings.asProxyObject();
 					final GraphObject previousEntity      = binding.getEntity();
 					final ActionContext previousContext   = binding.getActionContext();
 					final Map<String, Object> tmp         = securityContext.getContextStore().getTemporaryParameters();
 
 					try {
-
 
 						final Arguments args      = Arguments.fromValues(actionContext, arguments);
 						final Arguments converted = checkAndConvertArguments(securityContext, args, true);
@@ -113,9 +115,9 @@ public abstract class AbstractMethod {
 						binding.setEntity(entity);
 						binding.setActionContext(inner);
 
-						return Scripting.evaluatePolyglot(inner, context, entity, snippet);
+						return Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
 
-					} catch (IOException | IllegalArgumentTypeException iaex) {
+					} catch (IllegalArgumentTypeException iaex) {
 
 						throwIllegalArgumentExceptionForMapBasedArguments();
 

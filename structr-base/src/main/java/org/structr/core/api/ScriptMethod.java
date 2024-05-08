@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
+import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -83,12 +84,18 @@ public class ScriptMethod extends AbstractMethod {
 	@Override
 	public Snippet getSnippet() {
 
-		if (source.startsWith("{")) {
+		if (source != null) {
 
-			// only return valid Snippet if the method is Javascript
-			return new Snippet(name, source);
+			final String[] splitSource = Scripting.splitSnippetIntoEngineAndScript(source);
+
+			if ("js".equals(splitSource[0])) {
+
+				return new Snippet(name, source);
+			} else {
+
+				return new Snippet(name, source, false);
+			}
 		}
-
 		return null;
 	}
 
