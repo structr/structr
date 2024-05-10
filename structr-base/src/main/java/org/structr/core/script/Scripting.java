@@ -149,16 +149,21 @@ public class Scripting {
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 		final String expression = StringUtils.strip(input);
-		String source           = expression.substring(2, expression.length() - 1);
 
-		if (source.isEmpty()) {
+		if (expression.isEmpty()) {
 			return null;
 		}
 
-		String[] splitSnippet = splitSnippetIntoEngineAndScript(source);
-		final String engine = splitSnippet[0];
+		String source;
+		String[] splitSnippet = splitSnippetIntoEngineAndScript(expression);
+		final String engine   = splitSnippet[0];
+
 		if (!engine.isEmpty()) {
+
 			source = splitSnippet[1];
+		} else {
+
+			source = expression.substring(2, expression.length() - 1);
 		}
 
 		final boolean isJavascript = "js".equals(engine);
@@ -340,7 +345,7 @@ public class Scripting {
 	}
 
 	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
-		boolean isJavascript = snippet.startsWith("{") && snippet.endsWith("}");
+		boolean isJavascript = snippet.startsWith("${{") && snippet.endsWith("}}");
 
 		String engine = "";
 		String script = "";
@@ -348,7 +353,7 @@ public class Scripting {
 		if (isJavascript) {
 
 			engine = "js";
-			script = snippet.substring(1, snippet.length() - 1);
+			script = snippet.substring(3, snippet.length() - 2);
 		} else {
 
 			final Matcher matcher = ScriptEngineExpression.matcher(snippet);
