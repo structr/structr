@@ -395,7 +395,7 @@ let _Entities = {
 
 		_Editors.resizeVisibleEditors();
 	},
-	getSchemaProperties: (type, view, callback) => {
+	getSchemaProperties: (type, view, callback, allowFallback = true) => {
 
 		let url = `${Structr.rootUrl}_schema/${type}/${view}`;
 
@@ -416,12 +416,22 @@ let _Entities = {
 
 				callback?.(properties);
 
-			} else {
+			} else if (allowFallback === false) {
+
 				Structr.errorFromResponse(data, url);
-				console.log(`ERROR: loading Schema ${type}`);
+				console.log(`ERROR: loading Schema ${type} with view ${view}`);
+
+			} else {
+
+				throw new Error(response.status + ': ' + response.statusText);
+			}
+
+		}).catch(e => {
+
+			if (allowFallback === true) {
+				_Entities.getSchemaProperties(type, 'ui', callback, false);
 			}
 		});
-
 	},
 	showProperties: (obj, activeViewOverride) => {
 

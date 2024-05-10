@@ -183,10 +183,10 @@ public abstract class Setting<T> {
 		final Tag label = group.block("label");
 
 		if (getComment() != null) {
-			label.attr(new Attr("class", "bold basis-full sm:basis-auto sm:min-w-128 has-comment"));
+			label.attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128 has-comment"));
 			label.attr(new Attr("data-comment", getComment()));
 		} else {
-			label.attr(new Attr("class", "bold basis-full sm:basis-auto sm:min-w-128"));
+			label.attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128"));
 		}
 
 		label.text(getKey());

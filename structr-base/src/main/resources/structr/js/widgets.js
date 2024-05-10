@@ -974,10 +974,10 @@ let _Widgets = {
 
 				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
 
-					<div class="bold">Name</div>
+					<div class="font-bold">Name</div>
 					<div><input id="new-widget-server-name"></div>
 
-					<div class="bold">
+					<div class="font-bold">
 						<label data-comment="The server should respond with JSON-formatted widgets as every structr instance would.<br><br>Because the widgets are fetched via a HTTP GET request, the usual rights management applies. Widgets need to be visible to public users to show up in the resulting list.">URL</label>
 					</div>
 					<div>
@@ -1003,9 +1003,9 @@ let _Widgets = {
 		serversTable: config => `
 			<div class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 20fr 70fr 10fr;">
 
-				<div class="bold">Name</div>
-				<div class="bold">URL</div>
-				<div class="bold text-center">Actions</div>
+				<div class="font-bold">Name</div>
+				<div class="font-bold">URL</div>
+				<div class="font-bold text-center">Actions</div>
 
 				${config.servers.map((s) => {
 					return `

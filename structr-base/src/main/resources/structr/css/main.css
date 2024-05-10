@@ -2379,10 +2379,6 @@ td#cascading-options, td#propagation-options {
 	margin-right: .5rem;
 }
 
-.bold {
-	font-weight: bold;
-}
-
 .tree-main b.name_, .tree-main input.new-name {
 	font-weight: normal;
 }
@@ -4445,4 +4441,11 @@ ul.combined-input-select-field li:hover {
 
 .even\:bg-gray-75:nth-child(odd) {
 	background-color: var(--light-gray-bg-f7);
+}
+
+.group:hover .group-hover\:underline {
+	text-decoration: underline;
+}
+.group:hover .group-hover\:font-bold {
+	font-weight: 700;
 }
