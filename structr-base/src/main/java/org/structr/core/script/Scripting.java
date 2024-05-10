@@ -157,9 +157,11 @@ public class Scripting {
 
 		String[] splitSnippet = splitSnippetIntoEngineAndScript(source);
 		final String engine = splitSnippet[0];
-		source = splitSnippet[1];
+		if (!engine.isEmpty()) {
+			source = splitSnippet[1];
+		}
 
-		final boolean isJavascript = StringUtils.isBlank(engine) || "js".equals(engine);
+		final boolean isJavascript = "js".equals(engine);
 		final boolean isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 
 		actionContext.setJavaScriptContext(isJavascript);
@@ -186,7 +188,7 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			final Object result = evaluateJavascript(actionContext, entity, snippet);
+			final Object result = evaluateScript(actionContext, entity, "js", snippet);
 
 			if (enableTransactionNotifications && securityContext != null) {
 				securityContext.setDoTransactionNotifications(true);
@@ -230,10 +232,6 @@ public class Scripting {
 
 			return null;
 		}
-	}
-
-	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
-		return evaluateScript(actionContext, entity, "js", snippet);
 	}
 
 	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
@@ -342,7 +340,7 @@ public class Scripting {
 	}
 
 	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
-		boolean isJavascript    = snippet.startsWith("{") && snippet.endsWith("}");
+		boolean isJavascript = snippet.startsWith("{") && snippet.endsWith("}");
 
 		String engine = "";
 		String script = "";

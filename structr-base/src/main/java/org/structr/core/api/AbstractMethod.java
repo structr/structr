@@ -90,45 +90,47 @@ public abstract class AbstractMethod {
 			try {
 				final Snippet snippet = getSnippet();
 
-				if (snippet != null) {
+				if (snippet != null && !snippet.getSource().isEmpty()) {
+					final String[] splitSnippet = Scripting.splitSnippetIntoEngineAndScript(snippet.getSource());
+					final String engineName = splitSnippet[0];
 
-					final SecurityContext securityContext = actionContext.getSecurityContext();
-					final Context context                 = Context.getCurrent();
-					final String[] splitSnippet           = Scripting.splitSnippetIntoEngineAndScript(snippet.getSource());
-					final String engineName               = splitSnippet[0];
-					final Value bindings                  = context.getBindings(engineName).getMember("Structr");
-					final StructrBinding binding          = bindings.asProxyObject();
-					final GraphObject previousEntity      = binding.getEntity();
-					final ActionContext previousContext   = binding.getActionContext();
-					final Map<String, Object> tmp         = securityContext.getContextStore().getTemporaryParameters();
+					if (!engineName.isEmpty()) {
+						final SecurityContext securityContext = actionContext.getSecurityContext();
+						final Context context = Context.getCurrent();
+						final Value bindings = context.getBindings(engineName).getMember("Structr");
+						final StructrBinding binding = bindings.asProxyObject();
+						final GraphObject previousEntity = binding.getEntity();
+						final ActionContext previousContext = binding.getActionContext();
+						final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
 
-					try {
+						try {
 
-						final Arguments args      = Arguments.fromValues(actionContext, arguments);
-						final Arguments converted = checkAndConvertArguments(securityContext, args, true);
-						final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+							final Arguments args = Arguments.fromValues(actionContext, arguments);
+							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+							final ActionContext inner = new ActionContext(securityContext, converted.toMap());
 
-						if (arguments.length == 1) {
-							binding.setMethodParameters(arguments[0]);
+							if (arguments.length == 1) {
+								binding.setMethodParameters(arguments[0]);
+							}
+
+							binding.setEntity(entity);
+							binding.setActionContext(inner);
+
+							return Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+
+						} catch (IllegalArgumentTypeException iaex) {
+
+							throwIllegalArgumentExceptionForMapBasedArguments();
+
+						} finally {
+
+							// restore state before this method call
+							binding.setEntity(previousEntity);
+							binding.setActionContext(previousContext);
+							binding.setMethodParameters(null);
+							securityContext.getContextStore().setTemporaryParameters(tmp);
+
 						}
-
-						binding.setEntity(entity);
-						binding.setActionContext(inner);
-
-						return Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
-
-					} catch (IllegalArgumentTypeException iaex) {
-
-						throwIllegalArgumentExceptionForMapBasedArguments();
-
-					} finally {
-
-						// restore state before this method call
-						binding.setEntity(previousEntity);
-						binding.setActionContext(previousContext);
-						binding.setMethodParameters(null);
-						securityContext.getContextStore().setTemporaryParameters(tmp);
-
 					}
 				}
 

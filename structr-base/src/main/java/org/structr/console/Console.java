@@ -291,7 +291,7 @@ public class Console {
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
 			Snippet script = new Snippet("interactive script, line ", line, false);
-			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, script);
+			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script);
 
 			if (!extractedValue.toString().isEmpty()) {
 
