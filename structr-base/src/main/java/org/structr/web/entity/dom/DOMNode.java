@@ -286,9 +286,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}}
 
-	static final String PAGE_CATEGORY              = "Page Structure";
-	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
-	static final String QUERY_CATEGORY             = "Query and Data Binding";
+	static final String PAGE_CATEGORY                 = "Page Structure";
+	static final String EDIT_MODE_BINDING_CATEGORY    = "Edit Mode Binding";
+	static final String EVENT_ACTION_MAPPING_CATEGORY = "Event Action Mapping";
+	static final String QUERY_CATEGORY                = "Query and Data Binding";
 
 	// ----- error messages for DOMExceptions -----
 	public static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
