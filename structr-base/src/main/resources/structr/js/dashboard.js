@@ -81,6 +81,8 @@ let _Dashboard = {
 			Structr.setMainContainerHTML(_Dashboard.templates.main(dashboardUiConfig));
 			Structr.setFunctionBarHTML(_Dashboard.templates.functions());
 
+			UISettings.showSettingsForCurrentModule();
+
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
 			// Update GraalVM Scripting Debugger Info
@@ -316,17 +318,18 @@ let _Dashboard = {
 			},
 
 		},
-		'deployment': {
-			deploymentHistoryKey:            'deploymentHistory_' + location.port,
-
+		deployment: {
+			deploymentHistoryKey: 'deploymentHistory_' + location.port,
 			onShow: async () => {},
 			onHide: async () => {},
 			init: () => {
 
+				_Dashboard.tabs.deployment.wizard.init();
+
 				// App Import
-				let deploymentFileInput                = document.getElementById('deployment-file-input');
-				let deploymentUrlInput                 = document.getElementById('deployment-url-input');
-				let deploymentZipConentPathInput       = document.getElementById('deployment-zip-content');
+				let deploymentFileInput          = document.getElementById('deployment-file-input');
+				let deploymentUrlInput           = document.getElementById('deployment-url-input');
+				let deploymentZipConentPathInput = document.getElementById('deployment-zip-content');
 
 				deploymentFileInput.addEventListener('input', () => {
 					deploymentUrlInput.value = '';
@@ -339,7 +342,7 @@ let _Dashboard = {
 				_Dashboard.tabs.deployment.history.refreshAll();
 
 				document.getElementById('do-app-import').addEventListener('click', () => {
-					_Dashboard.tabs['deployment'].deploy('import', document.getElementById('deployment-source-input').value);
+					_Dashboard.tabs.deployment.actions.deploy('import', document.getElementById('deployment-source-input').value);
 				});
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
@@ -348,7 +351,7 @@ let _Dashboard = {
 
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 
-						_Dashboard.tabs['deployment'].deployFromZIPFileUpload(deploymentFileInput, zipContentPath);
+						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('app', deploymentFileInput, zipContentPath);
 
 					} else {
 
@@ -357,18 +360,18 @@ let _Dashboard = {
 						if (!(downloadUrl && downloadUrl.length)) {
 							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
 						} else {
-							_Dashboard.tabs['deployment'].deployFromZIPURL(downloadUrl, zipContentPath);
+							_Dashboard.tabs.deployment.actions.importFromZIPURL('app', downloadUrl, zipContentPath);
 						}
 					}
 				});
 
 				// App Export
 				document.getElementById('do-app-export').addEventListener('click', () => {
-					_Dashboard.tabs['deployment'].deploy('export', document.getElementById('app-export-target-input').value);
+					_Dashboard.tabs.deployment.actions.deploy('export', document.getElementById('app-export-target-input').value);
 				});
 
 				document.getElementById('do-app-export-to-zip').addEventListener('click', () => {
-					_Dashboard.tabs['deployment'].exportAsZip();
+					_Dashboard.tabs.deployment.actions.exportAsZip();
 				});
 
 				// Data Import
@@ -384,14 +387,14 @@ let _Dashboard = {
 				});
 
 				document.getElementById('do-data-import').addEventListener('click', () => {
-					_Dashboard.tabs['deployment'].deployData('import', document.getElementById('data-import-source-input').value);
+					_Dashboard.tabs.deployment.actions.deployData('import', document.getElementById('data-import-source-input').value);
 				});
 
 				document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
 
 					if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
 
-						_Dashboard.tabs['deployment'].deployDataFromZIPFileUpload(dataDeploymentFileInput);
+						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput);
 
 					} else {
 
@@ -403,20 +406,19 @@ let _Dashboard = {
 
 						} else {
 
-							_Dashboard.tabs['deployment'].deployDataFromZIPURL(downloadUrl);
+							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl);
 						}
 					}
 				});
 
 				// Data Export
 				document.getElementById('do-data-export').addEventListener('click', () => {
-					_Dashboard.tabs['deployment'].deployData('export', document.querySelector('#data-export-target-input').value, $('#data-export-types-input').val());
+					_Dashboard.tabs.deployment.actions.deployData('export', document.querySelector('#data-export-target-input').value, $('#data-export-types-input').val());
 				});
 
 				document.getElementById('do-data-export-to-zip').addEventListener('click', () => {
-					_Dashboard.tabs['deployment'].exportDataAsZip();
+					_Dashboard.tabs.deployment.actions.exportDataAsZip();
 				});
-
 
 				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', (nodes) => {
 
@@ -449,222 +451,205 @@ let _Dashboard = {
 					}
 				});
 			},
-			getDeploymentServletMessage: (message) => {
-				return `<span class="deployment-warning" data-comment="The DeplyomentServlet can be activated via the config servlet or via structr.conf." data-comment-config='{"insertAfter":true}'>${message}</span>`;
-			},
-			cleanFileNamePrefix: (prefix) => {
-				let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
-				if (cleaned !== prefix) {
-					new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().allowConfirmAll().show();
-				}
-				return cleaned;
-			},
-			appendTimeStampToPrefix: (prefix) => {
+			actions: {
+				deploy: async (mode, location) => {
 
-				let zeroPad = (v) => (((v < 10) ? '0' : '') + v);
-				let date    = new Date();
-
-				return `${prefix}_${date.getFullYear()}${zeroPad(date.getMonth() + 1)}${zeroPad(date.getDate())}_${zeroPad(date.getHours())}${zeroPad(date.getMinutes())}${zeroPad(date.getSeconds())}`;
-			},
-			deploy: async (mode, location) => {
-
-				if (!(location && location.length)) {
-					new WarningMessage().title('Unable to start application ' + mode).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().allowConfirmAll().show();
-					return;
-				}
-
-				let data = {
-					mode: mode
-				};
-
-				if (mode === 'import') {
-					data['source'] = location;
-				} else if (mode === 'export') {
-					data['target'] = location;
-				}
-
-				_Dashboard.tabs.deployment.history.addEntry(data);
-
-				// do not listen for errors - they are sent by the backend via WS
-				await fetch(Structr.rootUrl + 'maintenance/deploy', {
-					method: 'POST',
-					body: JSON.stringify(data)
-				});
-			},
-			deployData: async (mode, location, types) => {
-
-				if (!(location && location.length)) {
-					new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().allowConfirmAll().show();
-					return;
-				}
-
-				let data = {
-					mode: mode
-				};
-
-				if (mode === 'import') {
-
-					data['source'] = location;
-
-				} else if (mode === 'export') {
-
-					data['target'] = location;
-
-					if (types && types.length) {
-						data['types'] = types.join(',');
-					} else {
-						new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+					if (!(location && location.length)) {
+						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().allowConfirmAll().show();
 						return;
 					}
-				}
 
-				// do not listen for errors - they are sent by the backend via WS
-				await fetch(Structr.rootUrl + 'maintenance/deployData', {
-					method: 'POST',
-					body: JSON.stringify(data)
-				});
+					let data = {
+						mode: mode,
+						[mode === 'import' ? 'source' : 'target']: location
+					};
 
-				// update data to distinguish it in our history
-				data.mode += 'Data';
-				data.types = types;
-				_Dashboard.tabs.deployment.history.addEntry(data);
+					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an application ${mode}?<br>This will overwrite application data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
+					if (confirm) {
+
+						_Dashboard.tabs.deployment.history.addEntry(data);
+
+						// do not listen for errors - they are sent by the backend via WS
+						await fetch(`${Structr.rootUrl}maintenance/deploy`, {
+							method: 'POST',
+							body: JSON.stringify(data)
+						});
+					}
+				},
+				deployData: async (mode, location, types) => {
+
+					if (!(location && location.length)) {
+						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						return;
+					}
+
+					let data = {
+						mode: mode,
+						[mode === 'import' ? 'source' : 'target']: location
+					};
+
+					if (mode === 'export') {
+
+						if (types && types.length) {
+							data['types'] = types.join(',');
+						} else {
+							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+							return;
+						}
+					}
+
+					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
+					if (confirm) {
+
+						// do not listen for errors - they are sent by the backend via WS
+						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
+							method: 'POST',
+							body: JSON.stringify(data)
+						});
+
+						// update data to distinguish it in our history
+						data.mode += 'Data';
+						data.types = types;
+						_Dashboard.tabs.deployment.history.addEntry(data);
+					}
+				},
+				exportAsZip: () => {
+
+					let prefix          = _Dashboard.tabs.deployment.helpers.cleanFileNamePrefix(document.getElementById('zip-export-prefix').value);
+					let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
+
+					let historyData = {
+						mode: 'exportAsZip',
+						prefix: prefix,
+						ts: appendTimestamp
+					};
+
+					if (appendTimestamp) {
+						prefix = _Dashboard.tabs.deployment.helpers.appendTimeStampToPrefix(prefix);
+					}
+
+					if (prefix === '') {
+
+						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+
+					} else {
+
+						_Dashboard.tabs.deployment.history.addEntry(historyData);
+						window.location = Structr.deployRoot + '?name=' + prefix;
+					}
+				},
+				exportDataAsZip: () => {
+
+					let prefix                   = _Dashboard.tabs.deployment.helpers.cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
+					let appendTimestamp          = document.getElementById('zip-data-export-append-timestamp').checked;
+					let zipDataExportTypesSelect = document.getElementById('zip-data-export-types-input');
+					let types                    = Array.from(zipDataExportTypesSelect.selectedOptions).map(o => o.value);
+
+					let historyData = {
+						mode: 'exportDataAsZip',
+						prefix: prefix,
+						ts: appendTimestamp,
+						types: types
+					};
+
+					if (appendTimestamp) {
+						prefix = _Dashboard.tabs.deployment.helpers.appendTimeStampToPrefix(prefix);
+					}
+
+					if (types.length === 0) {
+
+						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+
+					} else if (prefix === '') {
+
+						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+
+					} else {
+
+						_Dashboard.tabs.deployment.history.addEntry(historyData);
+						window.location = `${Structr.deployRoot}?mode=data&name=${prefix}&types=${types.join(',')}`;
+					}
+				},
+				importFromZIPURL: async (deploymentType, downloadUrl, zipContentPath) => {
+
+					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP URL?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
+					if (confirm) {
+
+						let formData = new FormData();
+						formData.append('redirectUrl', window.location.pathname);
+						formData.append('zipContentPath', zipContentPath);
+						formData.append('downloadUrl', downloadUrl);
+						formData.append('mode', deploymentType);
+
+						let response = await fetch(Structr.deployRoot, {
+							method: 'POST',
+							body: formData
+						});
+
+						if (!response.ok && response.status === 400) {
+
+							let responseText = await response.text();
+							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+
+						} else {
+
+							_Dashboard.tabs.deployment.history.addEntry({
+								mode: (deploymentType === 'app' ? 'deployFromZIPURL' : 'deployDataFromZIPURL'),
+								zipContentPath: zipContentPath,
+								downloadUrl: downloadUrl
+							});
+						}
+					}
+				},
+				importFromZIPFileUpload: async (deploymentType, filesSelectField, zipContentPath) => {
+
+					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP file?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
+					if (confirm) {
+
+						let formData = new FormData();
+						formData.append('redirectUrl', window.location.pathname);
+						formData.append('zipContentPath', zipContentPath);
+						formData.append('mode', deploymentType);
+						formData.append('file', filesSelectField.files[0]);
+
+						let response = await fetch(Structr.deployRoot, {
+							method: 'POST',
+							body: formData
+						});
+
+						if (!response.ok && response.status === 400) {
+
+							let responseText = await response.text();
+							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+
+						} else {
+
+							// this can not be restored via deployment history
+						}
+					}
+				},
 			},
-			exportAsZip: () => {
+			helpers: {
+				cleanFileNamePrefix: (prefix) => {
+					let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
+					if (cleaned !== prefix) {
+						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().allowConfirmAll().show();
+					}
+					return cleaned;
+				},
+				appendTimeStampToPrefix: (prefix) => {
 
-				let prefix          = _Dashboard.tabs['deployment'].cleanFileNamePrefix(document.getElementById('zip-export-prefix').value);
-				let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
+					let date    = new Date();
+					let year    = date.getFullYear();
+					let month   = String(date.getMonth() + 1).padStart(2, '0');
+					let day     = String(date.getDate()).padStart(2, '0');
+					let hours   = String(date.getHours()).padStart(2, '0');
+					let minutes = String(date.getMinutes()).padStart(2, '0');
+					let seconds = String(date.getSeconds()).padStart(2, '0');
 
-				let historyData = {
-					mode: 'exportAsZip',
-					prefix: prefix,
-					ts: appendTimestamp
-				};
-
-				if (appendTimestamp) {
-					prefix = _Dashboard.tabs['deployment'].appendTimeStampToPrefix(prefix);
-				}
-
-				if (prefix === '') {
-					new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
-				} else {
-					_Dashboard.tabs.deployment.history.addEntry(historyData);
-					window.location = Structr.deployRoot + '?name=' + prefix;
-				}
-			},
-			exportDataAsZip: () => {
-
-				let prefix                   = _Dashboard.tabs['deployment'].cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
-				let appendTimestamp          = document.getElementById('zip-data-export-append-timestamp').checked;
-				let zipDataExportTypesSelect = document.getElementById('zip-data-export-types-input');
-				let types                    = Array.from(zipDataExportTypesSelect.selectedOptions).map(o => o.value);
-
-				let historyData = {
-					mode: 'exportDataAsZip',
-					prefix: prefix,
-					ts: appendTimestamp,
-					types: types
-				};
-
-				if (appendTimestamp) {
-					prefix = _Dashboard.tabs['deployment'].appendTimeStampToPrefix(prefix);
-				}
-
-				if (types.length === 0) {
-					new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
-				} else if (prefix === '') {
-					new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
-				} else {
-					_Dashboard.tabs.deployment.history.addEntry(historyData);
-					window.location = `${Structr.deployRoot}?mode=data&name=${prefix}&types=${types.join(',')}`;
-				}
-			},
-			deployFromZIPURL: async (downloadUrl, zipContentPath) => {
-
-				let formData = new FormData();
-				formData.append('redirectUrl', window.location.pathname);
-				formData.append('zipContentPath', zipContentPath);
-				formData.append('downloadUrl', downloadUrl);
-				formData.append('mode', 'app');
-
-				let response = await fetch(Structr.deployRoot, {
-					method: 'POST',
-					body: formData
-				});
-
-				if (!response.ok && response.status === 400) {
-					let responseText = await response.text();
-					new WarningMessage().title('Unable to import app from URL').text(responseText).requiresConfirmation().allowConfirmAll().show();
-				} else {
-					_Dashboard.tabs.deployment.history.addEntry({
-						mode: 'deployFromZIPURL',
-						zipContentPath: zipContentPath,
-						downloadUrl: downloadUrl
-					});
-				}
-			},
-			deployDataFromZIPURL: async (downloadUrl, zipContentPath) => {
-
-				let formData = new FormData();
-				formData.append('redirectUrl', window.location.pathname);
-				formData.append('downloadUrl', downloadUrl);
-				formData.append('zipContentPath', zipContentPath);
-				formData.append('mode', 'data');
-
-				let response = await fetch(Structr.deployRoot, {
-					method: 'POST',
-					body: formData
-				});
-
-				if (!response.ok && response.status === 400) {
-					let responseText = await response.text();
-					new WarningMessage().title('Unable to import app from ZIP URL').text(responseText).requiresConfirmation().allowConfirmAll().show();
-				} else {
-					_Dashboard.tabs.deployment.history.addEntry({
-						mode: 'deployDataFromZIPURL',
-						zipContentPath: zipContentPath,
-						downloadUrl: downloadUrl
-					});
-				}
-			},
-			deployFromZIPFileUpload: async (filesSelectField, zipContentPath) => {
-
-				let formData = new FormData();
-				formData.append('redirectUrl', window.location.pathname);
-				formData.append('zipContentPath', zipContentPath);
-				formData.append('mode', 'app');
-				formData.append('file', filesSelectField.files[0]);
-
-				let response = await fetch(Structr.deployRoot, {
-					method: 'POST',
-					body: formData
-				});
-
-				if (!response.ok && response.status === 400) {
-					let responseText = await response.text();
-					new WarningMessage().title('Unable to import app from uploaded ZIP').text(responseText).requiresConfirmation().allowConfirmAll().show();
-				} else {
-					// this can not be restored via deployment history
-				}
-			},
-			deployDataFromZIPFileUpload: async (filesSelectField, zipContentPath) => {
-
-				let formData = new FormData();
-				formData.append('file', filesSelectField.files[0]);
-				formData.append('zipContentPath', zipContentPath);
-				formData.append('redirectUrl', window.location.pathname);
-				formData.append('mode', 'data');
-
-				let response = await fetch(Structr.deployRoot, {
-					method: 'POST',
-					body: formData
-				});
-
-				if (!response.ok && response.status === 400) {
-					let responseText = await response.text();
-					new WarningMessage().title('Unable to import app from uploaded ZIP').text(responseText).requiresConfirmation().allowConfirmAll().show();
-				} else {
-					// this can not be restored via deployment history
-				}
+					return `${prefix}_${year}${month}${day}_${hours}${minutes}${seconds}`;
+				},
+				getMessageMarkupIfDeploymentServletInactive: (config, message) => (config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.templates.servletMessage({ message }))
 			},
 			history: {
 				get: () => LSWrapper.getItem(_Dashboard.tabs.deployment.deploymentHistoryKey, []).reverse(),
@@ -672,14 +657,14 @@ let _Dashboard = {
 				modes: {
 					import: {
 						containerId: '#dropdown-deployment-import',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.source }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Path': entry.source }),
 						apply: entry => {
 							document.querySelector('#deployment-source-input').value = entry.source;
 						}
 					},
 					deployFromZIPURL: {
 						containerId: '#dropdown-deployment-import-url',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'URL': entry.downloadUrl, 'Path': entry.zipContentPath }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl, 'Path': entry.zipContentPath }),
 						apply: entry => {
 							document.querySelector('#deployment-url-input').value   = entry.downloadUrl;
 							document.querySelector('#deployment-zip-content').value = entry.zipContentPath;
@@ -687,28 +672,28 @@ let _Dashboard = {
 					},
 					importData: {
 						containerId: '#dropdown-deployment-import-data',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.source }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Path': entry.source }),
 						apply: entry => {
 							document.querySelector('#data-import-source-input').value = entry.source;
 						}
 					},
 					deployDataFromZIPURL: {
 						containerId: '#dropdown-deployment-import-data-url',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'URL': entry.downloadUrl }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl }),
 						apply: entry => {
 							document.querySelector('#data-deployment-url-input').value = entry.downloadUrl;
 						}
 					},
 					export: {
 						containerId: '#dropdown-deployment-export',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.target }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Path': entry.target }),
 						apply: entry => {
 							document.querySelector('#app-export-target-input').value = entry.target;
 						}
 					},
 					exportAsZip: {
 						containerId: '#dropdown-deployment-export-zip',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no') }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no') }),
 						apply: entry => {
 							document.querySelector('#zip-export-prefix').value             = entry.prefix;
 							document.querySelector('#zip-export-append-timestamp').checked = entry.ts;
@@ -716,7 +701,7 @@ let _Dashboard = {
 					},
 					exportData: {
 						containerId: '#dropdown-deployment-export-data',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.target, '# of types': entry.types.length }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Path': entry.target, '# of types': entry.types.length }),
 						apply: entry => {
 							document.querySelector('#data-export-target-input').value = entry.target;
 
@@ -727,7 +712,7 @@ let _Dashboard = {
 					},
 					exportDataAsZip: {
 						containerId: '#dropdown-deployment-export-data-zip',
-						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no'), '# of types': entry.types.length }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no'), '# of types': entry.types.length }),
 						apply: entry => {
 							document.querySelector('#zip-data-export-prefix').value             = entry.prefix;
 							document.querySelector('#zip-data-export-append-timestamp').checked = entry.ts;
@@ -760,7 +745,7 @@ let _Dashboard = {
 
 						for (let entry of historyEntries) {
 
-							let html    = _Dashboard.templates.tabContentDeploymentHistoryRow({ rowHTML: modeDetail.rowTpl(entry) });
+							let html    = _Dashboard.tabs.deployment.history.templates.row({ rowHTML: modeDetail.rowTpl(entry) });
 							let element = _Helpers.createSingleDOMElementFromHTML(html);
 
 							element.querySelector('.remove-action').addEventListener('click', (e) => {
@@ -795,7 +780,341 @@ let _Dashboard = {
 					}
 
 					return entries;
+				},
+				templates: {
+					dropdown: config => `
+						<div class="dropdown-menu dropdown-menu-large ml-2">
+							<button class="mr-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
+								${_Icons.getSvgIcon(_Icons.iconHistory)}
+							</button>
+
+							<div class="dropdown-menu-container" id="${config.id}"></div>
+						</div>
+					`,
+					row: config => `
+						<div class="flex items-center hover:bg-gray-100">
+							<div class="flex-grow cursor-pointer p-3">
+								${config.rowHTML}
+							</div>
+							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'mr-3']), 'Remove from history')}
+						</div>
+					`,
+					rowData: config => `
+						<div class="flex flex-col gap-1 max-w-120 min-w-80">
+							${Object.entries(config).map(([key, value]) => `
+								<div class="flex gap-1">
+									<div class="font-bold">${key}:</div>
+									<div class="truncate">${value}</div>
+								</div>
+							`).join('')}
+						</div>
+					`,
 				}
+			},
+			wizard: {
+				stateKey: 'deploymentWizardState_' + location.port,
+				init: () => {
+
+					let allRadios = document.querySelectorAll('input[data-is-deployment-radio]');
+
+					let radioButtonChanged = () => {
+
+						let state = Object.fromEntries([...allRadios].filter(r => r.checked).map(r => [r.name, r.value]));
+
+						_Dashboard.tabs.deployment.wizard.saveState(state);
+
+						_Dashboard.tabs.deployment.wizard.updateUi(Object.values(state));
+					};
+
+					for (let radio of allRadios) {
+						radio.addEventListener('change', radioButtonChanged);
+					}
+
+					_Dashboard.tabs.deployment.wizard.updateWizardVisibility();
+
+					_Dashboard.tabs.deployment.wizard.restoreState(allRadios);
+				},
+				updateUi: (values) => {
+
+					let wizardEnabled = UISettings.getValueForSetting(UISettings.settingGroups.dashboard.settings.useDeploymentWizard);
+
+					if (wizardEnabled && values.length === 3) {
+
+						_Helpers.addClasses(document.querySelectorAll('[data-is-deployment-container]'), ['hidden']);
+
+						let selectedDataAttributes = values.map(value => `[data-is-deployment-${value}]`).join('');
+
+						document.querySelector(selectedDataAttributes)?.classList.remove('hidden');
+					}
+				},
+				saveState: (state) => {
+					LSWrapper.setItem(_Dashboard.tabs.deployment.wizard.stateKey, state);
+				},
+				restoreState: (allRadios) => {
+
+					let state = LSWrapper.getItem(_Dashboard.tabs.deployment.wizard.stateKey, {});
+
+					for (let radio of allRadios) {
+
+						let savedValue = state[radio.name];
+
+						if (radio.value === savedValue) {
+							radio.checked = true;
+						}
+					}
+
+					_Dashboard.tabs.deployment.wizard.updateUi(Object.values(state));
+				},
+				updateWizardVisibility: () => {
+
+					let wizardEnabled = UISettings.getValueForSetting(UISettings.settingGroups.dashboard.settings.useDeploymentWizard);
+
+					let deploymentWizardNodes = document.querySelectorAll('[data-is-deployment-wizard]');
+					let deploymentDesignNodes = document.querySelectorAll('[data-is-deployment-design]');
+					let deploymentActionNodes = document.querySelectorAll('[data-is-deployment-container]');
+
+					if (wizardEnabled) {
+
+						_Helpers.removeClasses(deploymentWizardNodes, ['hidden']);
+						_Helpers.addClasses(deploymentDesignNodes, ['hidden']);
+						_Helpers.addClasses(deploymentActionNodes, ['hidden']);
+
+						// change direction of history dropdowns (some dropdowns are left-oriented because they are close to the right border
+						let leftyDropdowns = document.querySelectorAll('#dashboard-deployment [data-preferred-position-x=left]');
+						for (let lefty of leftyDropdowns) {
+							lefty.dataset['preferredPositionX'] = null;
+							lefty.dataset['preferredPositionXBak'] = 'left';
+						}
+
+					} else {
+
+						_Helpers.addClasses(deploymentWizardNodes, ['hidden']);
+						_Helpers.removeClasses(deploymentDesignNodes, ['hidden']);
+						_Helpers.removeClasses(deploymentActionNodes, ['hidden']);
+
+						// change direction of history dropdowns (some dropdowns are left-oriented because they are close to the right border
+						let leftyDropdowns = document.querySelectorAll('#dashboard-deployment [data-preferred-position-x-bak=left]');
+						for (let lefty of leftyDropdowns) {
+							lefty.dataset['preferredPositionXBak'] = null;
+							lefty.dataset['preferredPositionX'] = 'left';
+						}
+					}
+
+					let allRadios = document.querySelectorAll('input[data-is-deployment-radio]');
+
+					_Dashboard.tabs.deployment.wizard.updateHistoryDropdownPositions(allRadios);
+
+					_Dashboard.tabs.deployment.wizard.restoreState(allRadios);
+				},
+				updateHistoryDropdownPositions: () => {
+
+					let wizardEnabled = UISettings.getValueForSetting(UISettings.settingGroups.dashboard.settings.useDeploymentWizard);
+
+					if (wizardEnabled) {
+
+						// change direction of history dropdowns (some dropdowns are left-oriented because they are close to the right border
+						let leftyDropdowns = document.querySelectorAll('#dashboard-deployment [data-preferred-position-x=left]');
+						for (let lefty of leftyDropdowns) {
+							lefty.dataset['preferredPositionX'] = null;
+							lefty.dataset['preferredPositionXBak'] = 'left';
+						}
+
+					} else {
+
+						// change direction of history dropdowns (some dropdowns are left-oriented because they are close to the right border
+						let leftyDropdowns = document.querySelectorAll('#dashboard-deployment [data-preferred-position-x-bak=left]');
+						for (let lefty of leftyDropdowns) {
+							lefty.dataset['preferredPositionXBak'] = null;
+							lefty.dataset['preferredPositionX'] = 'left';
+						}
+					}
+				},
+				templates: {
+					ui: (config) => `
+						<div class="hidden mb-8" data-is-deployment-wizard>
+
+							<div class="flex gap-4">
+								<fieldset>
+									<legend>What to deploy:</legend>
+
+									<label class="flex gap-1 items-center">
+										<input type="radio" value="app" name="deploy-what-radio" data-is-deployment-radio>
+										<span>Application</span>
+									</label>
+
+									<label class="flex gap-1 items-center">
+										<input type="radio" value="data" name="deploy-what-radio" data-is-deployment-radio>
+										<span>Data</span>
+									</label>
+								</fieldset>
+
+								<fieldset>
+									<legend>Deployment Action:</legend>
+
+									<label class="flex gap-1 items-center">
+										<input type="radio" value="export" name="deploy-action-radio" data-is-deployment-radio>
+										<span>Export</span>
+									</label>
+
+									<label class="flex gap-1 items-center">
+										<input type="radio" value="import" name="deploy-action-radio" data-is-deployment-radio>
+										<span>Import</span>
+									</label>
+								</fieldset>
+
+								<fieldset>
+									<legend>How to deploy:</legend>
+
+									<label class="flex gap-1 items-center">
+										<input type="radio" value="local" name="deploy-how-radio" data-is-deployment-radio>
+										<span>Server Directory</span>
+									</label>
+
+									<label class="flex gap-1 items-center">
+										<input type="radio" value="zip" name="deploy-how-radio" data-is-deployment-radio>
+										<span>ZIP</span>
+									</label>
+								</fieldset>
+							</div>
+
+						</div>
+					`
+				}
+			},
+			templates: {
+				tabContent: config => `
+					<div class="tab-content" id="dashboard-deployment">
+
+						${_Dashboard.tabs.deployment.wizard.templates.ui()}
+
+						<div class="dashboard-grid-wrapper mt-2" data-is-deployment-wrapper>
+
+							<div class="dashboard-grid-row" data-is-deployment-design>
+								<h2 class="m-0">Application Import and Export</h2>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-app data-is-deployment-import data-is-deployment-local>
+								<div class="font-bold my-4">Application <span class="group-hover:underline">import</span> from server directory</div>
+								<div>
+									<div class="flex">
+										<input class="mb-4 flex-grow" type="text" id="deployment-source-input" placeholder="Server directory path for app import">
+									</div>
+									<button class="action" id="do-app-import">Import app from server directory</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-import' })}
+								</div>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-app data-is-deployment-export data-is-deployment-local>
+								<div class="font-bold my-4">Application <span class="group-hover:underline">export</span> to server directory</div>
+								<div>
+									<div class="flex">
+										<input class="mb-4 flex-grow" type="text" id="app-export-target-input" placeholder="Server directory path for app export">
+									</div>
+									<button class="action" id="do-app-export">Export app to server directory</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-export', position: 'left' })}
+								</div>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-app data-is-deployment-import data-is-deployment-zip>
+								<div class="font-bold my-4"><span class="group-hover:underline">Import</span> application from URL or upload a ZIP file</div>
+								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
+								<div>
+									<div class="flex flex-col">
+										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									</div>
+									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-import-url' })}
+								</div>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-app data-is-deployment-export data-is-deployment-zip>
+								<div class="font-bold my-4"><span class="group-hover:underline">Export</span> application and download as ZIP file</div>
+								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Export and download as ZIP file is not possible because <code>DeploymentServlet</code> is not active.')}
+								<div>
+									<div class="flex flex-col">
+										<input class="mb-4 flex-grow" type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="webapp">
+										<label class="checkbox-label">
+											<input type="checkbox" id="zip-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} checked> Append timestamp
+										</label>
+									</div>
+									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-export-zip', position: 'left' })}
+								</div>
+							</div>
+
+							<div class="dashboard-grid-row" data-is-deployment-design>
+								<hr class="my-4">
+							</div>
+
+							<div class="dashboard-grid-row" data-is-deployment-design>
+								<h2 class="m-0">Data Import and Export</h2>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-data data-is-deployment-import data-is-deployment-local>
+								<div class="font-bold my-4">Data <span class="group-hover:underline">import</span> from server directory</div>
+								<div>
+									<div class="flex">
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-import-source-input" placeholder="Local directory path for data import">
+									</div>
+									<button class="action" id="do-data-import">Import data from server directory</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-import-data' })}
+								</div>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-data data-is-deployment-export data-is-deployment-local>
+								<div class="font-bold my-4">Data <span class="group-hover:underline">export</span> to server directory</div>
+								<div>
+									<div class="flex flex-col">
+										<input class="mt-1 mb-4" type="text" id="data-export-target-input" placeholder="Server directory path for data export">
+										<select id="data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
+											<optgroup label="Custom Types" class="custom-types"></optgroup>
+											<optgroup label="Builtin Types" class="builtin-types"></optgroup>
+										</select>
+									</div>
+									<button class="action" id="do-data-export">Export data to server directory</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-export-data', position: 'left' })}
+								</div>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-data data-is-deployment-import data-is-deployment-zip>
+								<div class="font-bold my-4"><span class="group-hover:underline">Import</span> data from URL or upload a ZIP file</div>
+								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
+								<div>
+									<div class="flex flex-col">
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									</div>
+									<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-import-data-url' })}
+								</div>
+							</div>
+
+							<div class="group" data-is-deployment-container data-is-deployment-data data-is-deployment-export data-is-deployment-zip>
+								<div class="font-bold my-4"><span class="group-hover:underline">Export</span> data and download as ZIP file</div>
+								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.')}
+								<div>
+									<div class="flex flex-col">
+										<input class="mt-1 mb-4 flex-grow" type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="data">
+										<select id="zip-data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
+											<optgroup label="Custom Types" class="custom-types"></optgroup>
+											<optgroup label="Builtin Types" class="builtin-types"></optgroup>
+										</select>
+										<label class="checkbox-label">
+											<input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} checked> Append timestamp
+										</label>
+									</div>
+									<button id="do-data-export-to-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
+									${_Dashboard.tabs.deployment.history.templates.dropdown({ id: 'dropdown-deployment-export-data-zip', position: 'left' })}
+								</div>
+							</div>
+						</div>
+					</div>
+				`,
+				servletMessage: config => `
+					<span class="deployment-warning" data-comment="The DeplyomentServlet can be activated via the config servlet or via structr.conf." data-comment-config='{"insertAfter":true}'>${config.message}</span>
+				`
 			}
 		},
 		'global-schema-methods': {
@@ -1199,7 +1518,6 @@ let _Dashboard = {
 			}
 		},
 	},
-
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/dashboard.css">
@@ -1210,7 +1528,7 @@ let _Dashboard = {
 
 					${_Dashboard.templates.tabContentAboutMe(config)}
 					${_Dashboard.templates.tabContentAboutStructr(config)}
-					${_Dashboard.templates.tabContentDeployment(config)}
+					${_Dashboard.tabs.deployment.templates.tabContent(config)}
 					${_Dashboard.templates.tabContentGlobalSchemaMethods(config)}
 					${_Dashboard.templates.tabContentServerLog(config)}
 					${_Dashboard.templates.tabContentEventLog(config)}
@@ -1253,12 +1571,24 @@ let _Dashboard = {
 			<div class="tab-content active" id="dashboard-about-me">
 
 				<table class="props">
-					<tr><td class="key">User Name</td><td>${config.meObj.name}</td></tr>
-					<tr><td class="key">ID</td><td>${config.meObj.id}</td></tr>
-					<tr><td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td></tr>
-					<tr><td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td></tr>
-					<tr><td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td></tr>
-					<tr><td class="key">Groups</td><td>${config.meObj.groups.map(g => g.name).join(', ')}</td></tr>
+					<tr>
+						<td class="key">User Name</td><td>${config.meObj.name}</td>
+					</tr>
+					<tr>
+						<td class="key">ID</td><td>${config.meObj.id}</td>
+					</tr>
+					<tr>
+						<td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td>
+					</tr>
+					<tr>
+						<td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td>
+					</tr>
+					<tr>
+						<td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td>
+					</tr>
+					<tr>
+						<td class="key">Groups</td><td>${config.meObj.groups.map(g => g.name).join(', ')}</td>
+					</tr>
 				</table>
 
 			</div>
@@ -1312,163 +1642,6 @@ let _Dashboard = {
 						<td id="security-warnings"></td>
 					</tr>
 				</table>
-			</div>
-		`,
-		tabContentDeployment: config => `
-			<div class="tab-content" id="dashboard-deployment">
-
-				<div class="dashboard-grid-wrapper mt-2">
-
-					<div class="dashboard-grid-row">
-						<h2 class="m-0">Application Import and Export</h2>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Application import from server directory</h3>
-						<div>
-							<div class="flex">
-								<input class="mb-4 flex-grow" type="text" id="deployment-source-input" placeholder="Server directory path for app import">
-							</div>
-							<button class="action" id="do-app-import">Import app from server directory</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import' })}
-						</div>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Application export to server directory</h3>
-						<div>
-							<div class="flex">
-								<input class="mb-4 flex-grow" type="text" id="app-export-target-input" placeholder="Server directory path for app export">
-							</div>
-							<button class="action" id="do-app-export">Export app to server directory</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export', position: 'left' })}
-						</div>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Import application from URL or upload a ZIP file</h3>
-						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.'))}
-						<div>
-							<div class="flex flex-col">
-								<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-								<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-								<input class="mt-1 mb-4 flex-grow" type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-							</div>
-							<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-url' })}
-						</div>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Export application and download as ZIP file</h3>
-
-						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
-
-						<div>
-							<div class="flex flex-col">
-								<input class="mb-4 flex-grow" type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="webapp">
-								<label class="checkbox-label">
-									<input type="checkbox" id="zip-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} checked> Append timestamp
-								</label>
-							</div>
-							<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-zip', position: 'left' })}
-						</div>
-					</div>
-
-					<div class="dashboard-grid-row">
-						<hr class="my-4">
-					</div>
-
-					<div class="dashboard-grid-row">
-						<h2 class="m-0">Data Import and Export</h2>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Data import from server directory</h3>
-						<div>
-							<div class="flex">
-								<input class="mt-1 mb-4 flex-grow" type="text" id="data-import-source-input" placeholder="Local directory path for data import">
-							</div>
-							<button class="action" id="do-data-import">Import data from server directory</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-data' })}
-						</div>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Data export to server directory</h3>
-						<div>
-							<div class="flex flex-col">
-								<input class="mt-1 mb-4" type="text" id="data-export-target-input" placeholder="Server directory path for data export">
-								<select id="data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
-									<optgroup label="Custom Types" class="custom-types"></optgroup>
-									<optgroup label="Builtin Types" class="builtin-types"></optgroup>
-								</select>
-							</div>
-							<button class="action" id="do-data-export">Export data to server directory</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data', position: 'left' })}
-						</div>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Import data from URL or upload a ZIP file</h3>
-						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.'))}
-						<div>
-							<div class="flex flex-col">
-								<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-								<input class="mt-1 mb-4 flex-grow" type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-							</div>
-							<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-data-url' })}
-						</div>
-					</div>
-
-					<div data-is-deployment-container>
-						<h3>Export data and download as ZIP file</h3>
-						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
-						<div>
-							<div class="flex flex-col">
-								<input class="mt-1 mb-4 flex-grow" type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="data">
-								<select id="zip-data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
-									<optgroup label="Custom Types" class="custom-types"></optgroup>
-									<optgroup label="Builtin Types" class="builtin-types"></optgroup>
-								</select>
-								<label class="checkbox-label">
-									<input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} checked> Append timestamp
-								</label>
-							</div>
-							<button id="do-data-export-to-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data-zip', position: 'left' })}
-						</div>
-					</div>
-				</div>
-			</div>
-		`,
-		tabContentDeploymentHistoryDropdown: config => `
-			<div class="dropdown-menu dropdown-menu-large ml-2">
-				<button class="mr-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
-					${_Icons.getSvgIcon(_Icons.iconHistory)}
-				</button>
-
-				<div class="dropdown-menu-container" id="${config.id}"></div>
-			</div>
-		`,
-		tabContentDeploymentHistoryRow: config => `
-			<div class="flex items-center hover:bg-gray-100">
-				<div class="flex-grow cursor-pointer p-3">
-					${config.rowHTML}
-				</div>
-				${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'mr-3']), 'Remove from history')}
-			</div>
-		`,
-		tabContentDeploymentHistoryRowData: config => `
-			<div class="flex flex-col gap-1 max-w-120 min-w-80">
-				${Object.entries(config).map(([key, value]) => `
-					<div class="flex gap-1">
-						<div class="bold">${key}:</div>
-						<div class="truncate">${value}</div>
-					</div>
-				`).join('')}
 			</div>
 		`,
 		tabContentGlobalSchemaMethods: config => `
@@ -1525,11 +1698,6 @@ let _Dashboard = {
 						<textarea readonly="readonly" class="h-full w-full"></textarea>
 					</div>
 				</div>
-			</div>
-		`,
-		tabContentSysinfo: config => `
-			<div class="tab-content" id="dashboard-sysinfo">
-
 			</div>
 		`,
 		tabContentUIConfig: config => `

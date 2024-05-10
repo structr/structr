@@ -543,6 +543,16 @@ let _Helpers = {
 
 		return dummy.children;
 	},
+	addClasses: (nodeList, classList) => {
+		for (let node of nodeList) {
+			node.classList.add(classList);
+		}
+	},
+	removeClasses: (nodeList, classList) => {
+		for (let node of nodeList) {
+			node.classList.remove(classList);
+		}
+	},
 
 	disableElement: (btn) => {
 		btn.classList.add('disabled');

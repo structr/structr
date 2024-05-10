@@ -1867,12 +1867,22 @@ let Structr = {
 
 					// position dropdown left of button
 					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+
+				} else {
+
+					// allow positioning to change between openings
+					container.style.right = null;
 				}
 
 				if (btn.dataset['preferredPositionY'] === 'top') {
 
 					// position dropdown over activator button
 					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+
+				} else {
+
+					// allow positioning to change between openings
+					container.style.bottom = null;
 				}
 			}
 		}
@@ -2608,6 +2618,22 @@ let UISettings = {
 					defaultValue: true,
 					type: 'checkbox'
 				},
+			}
+		},
+		dashboard: {
+			title: 'Dashboard',
+			settings: {
+				useDeploymentWizard: {
+					text: 'Use deployment wizard to de-clutter the deployment UI',
+					storageKey: 'dashboardUseDeploymentWizard_' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Dashboard)) {
+							_Dashboard.tabs.deployment.wizard.updateWizardVisibility();
+						}
+					}
+				}
 			}
 		},
 		pages: {
