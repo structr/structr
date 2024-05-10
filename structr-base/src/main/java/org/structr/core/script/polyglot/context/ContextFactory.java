@@ -54,7 +54,8 @@ public abstract class ContextFactory {
 			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
 			.allowIO(AccessProvider.getIOAccessConfig())
-			.allowHostAccess(AccessProvider.getHostAccessConfig());
+			.allowHostAccess(AccessProvider.getHostAccessConfig())
+			.option("python.Executable", "/python");
 
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
@@ -165,7 +166,7 @@ public abstract class ContextFactory {
 
 	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
 		Context ctx = pythonBuilder.build();
-		//ctx.eval("python", "import site");
+		ctx.eval("python", "import site");
 
 		return updateBindings(ctx, "python", actionContext, entity);
 	}

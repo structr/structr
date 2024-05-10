@@ -51,7 +51,7 @@ public interface StorageProvider extends DataSource {
 	OutputStream getOutputStream(final boolean append);
 
 	default SeekableByteChannel getSeekableByteChannel() {
-		return getSeekableByteChannel(new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC)));
+		return getSeekableByteChannel(new java.util.HashSet<OpenOption>(Set.of(CREATE, READ, WRITE, SYNC)));
 	}
 
 	SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options);
