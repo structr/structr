@@ -345,7 +345,8 @@ public class Scripting {
 	}
 
 	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
-		boolean isJavascript = snippet.startsWith("${{") && snippet.endsWith("}}");
+		final boolean isAutoScriptingEnv = !(snippet.startsWith("${") && snippet.endsWith("}"));
+		final boolean isJavascript = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
 
 		String engine = "";
 		String script = "";
@@ -353,10 +354,10 @@ public class Scripting {
 		if (isJavascript) {
 
 			engine = "js";
-			script = snippet.substring(3, snippet.length() - 2);
+			script = snippet.substring(isAutoScriptingEnv ? 1 : 3, snippet.length() - (isAutoScriptingEnv ? 1 : 2));
 		} else {
 
-			final Matcher matcher = ScriptEngineExpression.matcher(snippet);
+			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s!}", snippet) : snippet);
 			if (matcher.matches()) {
 
 				engine = matcher.group(1);
