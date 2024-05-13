@@ -243,20 +243,25 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// Note: some resources need the type of the current user to resolve the correct handler, so this might return wrong
 			// results, especially in the /me resource where the result might depend on the actual user type that makes the call
-			final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
-			if (handler != null) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				RuntimeEventLog.rest("Options", handler.getResourceSignature(), null);
+				final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
+				if (handler != null) {
 
-				final Set<String> allowedVerbs = handler.getAllowedHttpMethodsForOptionsCall();
-				if (allowedVerbs != null) {
+					RuntimeEventLog.rest("Options", handler.getResourceSignature(), null);
 
-					response.setHeader("Allow", StringUtils.join(allowedVerbs, ","));
+					final Set<String> allowedVerbs = handler.getAllowedHttpMethodsForOptionsCall();
+					if (allowedVerbs != null) {
+
+						response.setHeader("Allow", StringUtils.join(allowedVerbs, ","));
+					}
+
+				} else {
+
+					RuntimeEventLog.rest("Options", request.getPathInfo(), null);
 				}
 
-			} else {
-
-				RuntimeEventLog.rest("Options", request.getPathInfo(), null);
+				tx.success();
 			}
 
 			response.setStatus(HttpServletResponse.SC_OK);
@@ -269,20 +274,19 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			logger.warn("OPTIONS: Invalid JSON syntax", jsex.getMessage());
 
-			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in PUT: " + jsex.getMessage());
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in OPTIONS: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("OPTIONS: Unable to parse JSON string", jpex.getMessage());
 
-			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PUT: " + jpex.getMessage());
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in OPTIONS: " + jpex.getMessage());
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception in OPTIONS", t);
-			logger.warn(" => Error thrown: ", t);
+			logger.warn("Exception in OPTIONS => Error thrown: ", t);
 
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PUT: " + t.getMessage());
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage());
 
 		} finally {
 
