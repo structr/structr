@@ -906,23 +906,8 @@ StructrElement.prototype.exists = function() {
 StructrElement.prototype.isActiveNode = function() {
 	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.xpathQuery || this.functionQuery
 		//String attributes
-		|| this["data-structr-action"]
-		|| this["data-structr-attr"]
-		|| this["data-structr-attributes"]
-		|| this["data-structr-custom-options-query"]
-		|| this["data-structr-edit-class"]
-		|| this["data-structr-hide"]
 		|| this["data-structr-id"]
-		|| this["data-structr-name"]
-		|| this["data-structr-options-key"]
-		|| this["data-structr-raw-value"]
-		|| this["data-structr-return"]
-		|| this["data-structr-type"]
 		|| this["eventMapping"]
-		//Boolean attributes
-		|| this["data-structr-append-id"] === true
-		|| this["data-structr-confirm"] === true
-		|| this["data-structr-reload"] === true
 		//Collection attributes
 		|| (this["triggeredActions"] ?? []).length
 		;

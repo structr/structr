@@ -47,7 +47,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
@@ -92,30 +91,28 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
 	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
-	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
 	static final String lowercaseBodyName        = "body";
 
-	static final String DATA_BINDING_PARAMETER_STRUCTRID                                   = "structrId";
-	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION                         = "structrIdExpression";
-	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET                               = "structrTarget";
-	static final String DATA_BINDING_PARAMETER_STRUCTR_RELOAD_TARGET                       = "structrReloadTarget";
-	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD                               = "structrMethod";
-	static final String DATA_BINDING_PARAMETER_STRUCTRACTION                               = "structrAction";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENT                                = "structrEvent";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENTS                               = "structrEvents";
-	static final String DATA_BINDING_PARAMETER_HTMLEVENT                                   = "htmlEvent";
-	static final String DATA_BINDING_PARAMETER_CHILDID                                     = "childId";
-	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT                                = "sourceObject";
-	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY                              = "sourceProperty";
-	static final String DATA_BINDING_PARAMETER_REPEATER_DATA_OBJECT_ID                     = "repeaterDataObjectId";
-	static final String DATA_BINDING_PARAMETER_DATA_TYPE                                   = "structrDataType";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS                       = "structrSuccessNotifications";
-	static final String DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS                       = "structrFailureNotifications";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_TARGET                              = "structrSuccessTarget";
-	static final String DATA_BINDING_PARAMETER_FAILURE_TARGET                              = "structrFailureTarget";
-	static final String DATA_BINDING_PARAMETER_FLOW_RESULT                                 = "flowResult";
-	static final String DATA_BINDING_PARAMETER_METHOD_RESULT                               = "methodResult";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT = "structrSuccessNotificationsCustomDialogElement";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID                                   = "structrId";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT                                   = "htmlEvent";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION                         = "structrIdExpression";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET                               = "structrTarget";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTR_RELOAD_TARGET                       = "structrReloadTarget";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD                               = "structrMethod";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION                               = "structrAction";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT                                = "structrEvent";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS                               = "structrEvents";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_CHILDID                                     = "childId";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT                                = "sourceObject";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY                              = "sourceProperty";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_REPEATER_DATA_OBJECT_ID                     = "repeaterDataObjectId";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS                       = "structrSuccessNotifications";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_FAILURE_NOTIFICATIONS                       = "structrFailureNotifications";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_TARGET                              = "structrSuccessTarget";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_FAILURE_TARGET                              = "structrFailureTarget";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_FLOW_RESULT                                 = "flowResult";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_METHOD_RESULT                               = "methodResult";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT = "structrSuccessNotificationsCustomDialogElement";
 
 
 	static final int HtmlPrefixLength            = PropertyView.Html.length();
@@ -191,38 +188,20 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_onwaiting", PropertyView.Html);
 		type.addStringProperty("_html_data", PropertyView.Html);
 
-		// TODO: Check the following attributes for removal (here an in associated JS and Java)
-		// TODO: Only attributes used in the new Event Action Mapping should stay (and use that category)
-		{
-			// data-structr-* attributes
-			type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successful action.");
-			type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, a user has to confirm the action.");
-			type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("On create, append ID of first created object to the return URI.");
-			type.addStringProperty("data-structr-action",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | registration | login | logout)");
-			type.addStringProperty("data-structr-attributes",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The names of the properties that should be included in the request. (for create, edit/save, login or registration actions)");
-			type.addStringProperty("data-structr-attr",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If this is set, the input field is rendered in auto-edit mode");
-			type.addStringProperty("data-structr-name",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The name of the property (for create/save actions with custom form)");
-			type.addStringProperty("data-structr-hide",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Which mode (if any) the element should be hidden from the user (eg. edit | non-edit | edit,non-edit)");
-			type.addStringProperty("data-structr-raw-value",            PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The unformatted value of the element. Provide this if the value of the element is printed with a format applied (useful for Date or Number fields)");
-			type.addStringProperty("data-structr-placeholder",          PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("used to display option labels (default: name)");
-			type.addStringProperty("data-structr-type",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Type hint for the attribute (e.g. Date, Boolean; default: String)");
-			type.addStringProperty("data-structr-custom-options-query", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom REST query for value options (for collection properties)");
-			type.addStringProperty("data-structr-options-key",          PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Key used to display option labels for collection properties (default: name)");
-			type.addStringProperty("data-structr-edit-class",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom CSS class in edit mode");
-			type.addStringProperty("data-structr-return",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Return URI after successful action");
-			type.addStringProperty("data-structr-format",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom format for Date or Enum properties. (Example: Date: dd.MM.yyyy - Enum: Value1,Value2,Value3");
-			type.addBooleanProperty("data-structr-insert",              PropertyView.Ui);
-			type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
+		// probably useless ATM because EAM does not support trees yet
+		type.addStringProperty("data-structr-tree-children",         PropertyView.Ui).setCategory(EVENT_ACTION_MAPPING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
 
-			// simple interactive elements
-			type.addStringProperty("data-structr-target",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
-			type.addStringProperty("data-structr-options",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
-			type.addStringProperty("data-structr-reload-target",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
-			type.addStringProperty("data-structr-tree-children",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-			type.addBooleanProperty("data-structr-manual-reload-target", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
-		}
+		// functionality unclear, only useful in isTargetElement - leaving it in until research complete
+		type.addBooleanProperty("data-structr-manual-reload-target", PropertyView.Ui).setCategory(EVENT_ACTION_MAPPING_CATEGORY).setHint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
+
+		// shapes-specific
+		type.addBooleanProperty("data-structr-insert",              PropertyView.Ui);
+		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
+
+		type.addStringProperty("data-structr-reload-target",         PropertyView.Ui).setCategory(EVENT_ACTION_MAPPING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
 
 		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EVENT_ACTION_MAPPING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
 
@@ -232,7 +211,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		//type.addViewProperty(PropertyView.Ui, "inputs");
 
 		// new event action mapping, moved to ActionMapping node
-		type.addViewProperty(PropertyView.Ui, "triggeredActions");
+		type.addViewProperty(PropertyView.Ui, "triggeredActions").setCategory(EVENT_ACTION_MAPPING_CATEGORY);
 
 		// attributes for lazy rendering
 		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EVENT_ACTION_MAPPING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
@@ -390,7 +369,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final EventContext  eventContext  = new EventContext();
-		final String        event         = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
+		final String        event         = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 		final String        action;
 
 		if (event == null) {
@@ -451,11 +430,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			case "replace-html":
 				return handleReplaceHtmlAction(actionContext, parameters, eventContext);
 
-			case "open-tree-item":
-			case "close-tree-item":
-			case "toggle-tree-item":
-				handleTreeAction(actionContext, parameters, eventContext, event);
-				break;
+//			case "open-tree-item":
+//			case "close-tree-item":
+//			case "toggle-tree-item":
+//				handleTreeAction(actionContext, parameters, eventContext, event);
+//				break;
 
 			case "sign-in":
 				return handleSignInAction(actionContext, parameters, eventContext);
@@ -472,7 +451,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			case "method":
 			default:
 				// execute custom method (and return the result directly)
-				final String method = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
+				final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
 				return handleCustomAction(actionContext, parameters, eventContext, method);
 		}
 
@@ -557,50 +536,50 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return resetPasswordResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
-	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
-
-		final SecurityContext securityContext = actionContext.getSecurityContext();
-
-		if (parameters.containsKey(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET)) {
-
-			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET));
-
-			switch (action) {
-
-				case "open-tree-item":
-					setSessionAttribute(securityContext, key, true);
-					break;
-
-				case "close-tree-item":
-					removeSessionAttribute(securityContext, key);
-					break;
-
-				case "toggle-tree-item":
-
-					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
-
-						removeSessionAttribute(securityContext, key);
-
-					} else {
-
-						setSessionAttribute(securityContext, key, true);
-					}
-					break;
-			}
-
-
-		} else {
-
-			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
-		}
-	}
+//	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+//
+//		final SecurityContext securityContext = actionContext.getSecurityContext();
+//
+//		if (parameters.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET)) {
+//
+//			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET));
+//
+//			switch (action) {
+//
+//				case "open-tree-item":
+//					setSessionAttribute(securityContext, key, true);
+//					break;
+//
+//				case "close-tree-item":
+//					removeSessionAttribute(securityContext, key);
+//					break;
+//
+//				case "toggle-tree-item":
+//
+//					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
+//
+//						removeSessionAttribute(securityContext, key);
+//
+//					} else {
+//
+//						setSessionAttribute(securityContext, key, true);
+//					}
+//					break;
+//			}
+//
+//
+//		} else {
+//
+//			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+//		}
+//	}
 
 	private GraphObject handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
 		// create new object of type?
-		final String targetType = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String targetType = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (targetType == null) {
 
 			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
@@ -630,7 +609,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -654,7 +633,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -677,8 +656,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
 
 		// Support old and new parameters
-		final String idExpression  = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
-		final String structrTarget = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String idExpression  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
+		final String structrTarget = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		final String dataTarget    = structrTarget != null ? structrTarget : idExpression;
 
 		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
@@ -738,7 +717,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleAppendChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -746,7 +725,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
@@ -781,7 +760,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleRemoveChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -789,7 +768,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
@@ -824,19 +803,19 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleInsertHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without target UUID (data-structr-target attribute).");
 		}
 
-		final String sourceObjectId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
+		final String sourceObjectId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
 		}
 
-		final String sourceProperty = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+		final String sourceProperty = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
 		if (sourceProperty == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
@@ -876,14 +855,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleReplaceHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
 		}
 
 		// fetch child ID
-		final String childId = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child UUID (data-child-id attribute).");
@@ -896,13 +875,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
 		}
 
-		final String sourceObjectId = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
+		final String sourceObjectId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
 		}
 
-		final String sourceProperty = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+		final String sourceProperty = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
 		if (sourceProperty == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
@@ -952,27 +931,28 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	private void removeInternalDataBindingKeys(final java.util.Map<String, java.lang.Object> parameters) {
 
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRID);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTR_RELOAD_TARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRACTION);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENTS);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_REPEATER_DATA_OBJECT_ID);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_DATA_TYPE);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_TARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FLOW_RESULT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_METHOD_RESULT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTR_RELOAD_TARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_REPEATER_DATA_OBJECT_ID);
+//		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_DATA_TYPE);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_FAILURE_NOTIFICATIONS);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_TARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_FAILURE_TARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_FLOW_RESULT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_METHOD_RESULT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT);
+
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 	}
 
 
