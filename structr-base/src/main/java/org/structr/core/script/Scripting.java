@@ -357,7 +357,7 @@ public class Scripting {
 			script = snippet.substring(isAutoScriptingEnv ? 1 : 3, snippet.length() - (isAutoScriptingEnv ? 1 : 2));
 		} else {
 
-			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s!}", snippet) : snippet);
+			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s}", snippet) : snippet);
 			if (matcher.matches()) {
 
 				engine = matcher.group(1);

@@ -91,8 +91,7 @@ public abstract class AbstractMethod {
 				final Snippet snippet = getSnippet();
 
 				if (snippet != null && !snippet.getSource().isEmpty()) {
-					final String[] splitSnippet = Scripting.splitSnippetIntoEngineAndScript(snippet.getSource());
-					final String engineName = splitSnippet[0];
+					final String engineName = snippet.getEngineName();
 
 					if (!engineName.isEmpty()) {
 						final SecurityContext securityContext = actionContext.getSecurityContext();

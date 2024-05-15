@@ -84,19 +84,24 @@ public class ScriptMethod extends AbstractMethod {
 	@Override
 	public Snippet getSnippet() {
 
+		Snippet snippet = null;
+
 		if (source != null) {
 
 			final String[] splitSource = Scripting.splitSnippetIntoEngineAndScript(source);
 
 			if ("js".equals(splitSource[0])) {
 
-				return new Snippet(name, source);
+				snippet = new Snippet(name, splitSource[1]);
 			} else {
 
-				return new Snippet(name, source, false);
+				snippet = new Snippet(name, splitSource[1], false);
 			}
-		}
-		return null;
+
+            snippet.setEngineName(splitSource[0]);
+        }
+
+		return snippet;
 	}
 
 	@Override
