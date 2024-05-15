@@ -20,6 +20,7 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -120,41 +121,41 @@ public abstract class ContextFactory {
 		switch (language) {
 
 			case "js":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
 
 			case "python":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity));
 
 			case "R":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
 
 			default:
 				throw new FrameworkException(500, "Could not initialize context for language: " + language);
 		}
 	}
 
-	private static Context getAndUpdateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc) throws FrameworkException {
+	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc) throws FrameworkException {
 
 		Context storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
 
-		if (actionContext != null && storedContext != null) {
-
-			storedContext = updateBindings(storedContext, language, actionContext, entity);
-			actionContext.putScriptingContext(language, storedContext);
-
-		} else {
+		if (actionContext != null && storedContext == null) {
 
 			try {
 
 				storedContext = contextCreationFunc.call();
+				updateBindings(storedContext, language, actionContext, entity);
 				actionContext.putScriptingContext(language, storedContext);
 
 			} catch (Exception ex) {
 
-				ex.printStackTrace();
-
+				LoggerFactory.getLogger(ContextFactory.class).error("Unexpected exception while initializing language context for language \"{}\".", language, ex);
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
+		} else if (actionContext != null) {
+
+			// If binding exists in context, ensure entity is up to date
+			final StructrBinding structrBinding = storedContext.getBindings(language).getMember("Structr").asProxyObject();
+			structrBinding.setEntity(entity);
 		}
 
 		return  storedContext;

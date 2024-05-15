@@ -96,7 +96,7 @@ public abstract class AbstractMethod {
 
 					if (!engineName.isEmpty()) {
 						final SecurityContext securityContext = actionContext.getSecurityContext();
-						final Context context = Context.getCurrent();
+						final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 						final Value bindings = context.getBindings(engineName).getMember("Structr");
 						final StructrBinding binding = bindings.asProxyObject();
 						final GraphObject previousEntity = binding.getEntity();
@@ -108,6 +108,7 @@ public abstract class AbstractMethod {
 							final Arguments args = Arguments.fromValues(actionContext, arguments);
 							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
 							final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+							inner.setScriptingContexts(actionContext.getScriptingContexts());
 
 							if (arguments.length == 1) {
 								binding.setMethodParameters(arguments[0]);
