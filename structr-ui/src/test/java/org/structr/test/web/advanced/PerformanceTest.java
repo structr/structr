@@ -18,6 +18,7 @@
  */
 package org.structr.test.web.advanced;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -30,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.test.web.IndexingTest;
 import org.structr.test.web.entity.TestFive;
@@ -279,6 +281,11 @@ public class PerformanceTest extends IndexingTest {
 
 				try (final Tx tx = app.tx()) {
 
+					tx.prefetch("(n:TestTwo)-[r]->(m:TestFive)", Set.of(
+						"all/INCOMING/TEST",
+						"all/OUTGOING/TEST"
+					));
+
 					for (final TestTwo t : app.nodeQuery(TestTwo.class).getAsList()) {
 
 						t.getName();
@@ -339,8 +346,6 @@ public class PerformanceTest extends IndexingTest {
 		// start measuring
 		final long t0 = System.currentTimeMillis();
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		try {
 
 			try (final Tx tx = app.tx()) {
@@ -369,6 +374,112 @@ public class PerformanceTest extends IndexingTest {
 
 		logger.info("Deleted {} nodes in {} seconds ({} per s)", number, decimalFormat.format(time), decimalFormat.format(rate) );
 		assertTrue("Deletion rate of nodes too low, expected > 40, was " + rate, rate > 40);
+	}
+
+	@Test
+	public void testPerformanceOfUserSupernodes() {
+
+		final App app                   = StructrApp.getInstance(setupSecurityContext());
+		final Random randm              = new Random();
+		final int number                = 3000;
+		final int loops                 = 10;
+		int count                       = 0;
+
+		try {
+
+			for (int i=0; i<10; i++) {
+
+				logger.info("Creating {} nodes for user admin, count is {}", number, count);
+				try (final Tx tx = app.tx()) {
+
+					for (final NodeInterface n : createNodes(app, TestOne.class, number)){
+
+						n.setProperty(AbstractNode.name, "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
+
+					}
+
+					tx.success();
+				}
+			}
+
+			logger.info("Done, count is {}", count);
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+		long averageNodeFetchTime = 0L;
+		long averageUserFetchTime = 0L;
+
+		try {
+
+			for (int i=0; i<loops; i++) {
+
+				logger.info("Fetching some nodes..");
+				try (final Tx tx = app.tx()) {
+
+					final long t0 = System.currentTimeMillis();
+
+					final int r               = randm.nextInt(10000);
+					final List<TestOne> nodes = app.nodeQuery(TestOne.class).andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
+
+					assertEquals(1, nodes.size());
+
+					averageNodeFetchTime += System.currentTimeMillis() - t0;
+
+					tx.success();
+				}
+			}
+
+			averageNodeFetchTime /= loops;
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+		logger.info("Average node fetch time: {} ms", averageNodeFetchTime);
+
+		// fetching a single TestOne node from 30000 should not take more than 100ms on average
+		assertTrue(averageNodeFetchTime < 100);
+
+		try {
+
+			for (int i=0; i<loops; i++) {
+
+				logger.info("Fetching user node..");
+				try (final Tx tx = app.tx()) {
+
+					final long t0 = System.currentTimeMillis();
+
+					final Principal user = app.nodeQuery(Principal.class).getFirst();
+
+					assertNotNull(user);
+
+					averageUserFetchTime += System.currentTimeMillis() - t0;
+
+					tx.success();
+				}
+			}
+
+			averageUserFetchTime /= loops;
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+		logger.info("Average user fetch time: {} ms", averageUserFetchTime);
+
+		// fetching a single user node should not take more than 10ms on average
+		assertTrue(averageUserFetchTime < 10);
 	}
 
 	// ----- private methods -----

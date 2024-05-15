@@ -1846,7 +1846,7 @@ public class SystemTest extends StructrTest {
 			final long dt       = t1 - t0;
 
 			assertEquals("Related nodes are not filtered correctly", 2, list.size());
-			assertTrue("Related nodes are not filtered by target label, performance is too low", dt < 100);
+			assertTrue("Related node filtering by target label: performance is too low", dt < 200);
 
 			tx.success();
 

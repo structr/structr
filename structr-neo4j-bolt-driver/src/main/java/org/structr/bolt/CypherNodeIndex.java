@@ -75,14 +75,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		final StringBuilder buf = new StringBuilder();
 
-		if (query.hasRelationshipPredicates()) {
-
-			buf.append(" RETURN DISTINCT n");
-
-		}  else {
-
-			buf.append(" WITH n OPTIONAL MATCH (n)-[r]-(m) RETURN DISTINCT n, collect(distinct r) AS rels, collect(distinct m) AS nodes");
-		}
+		buf.append(" RETURN DISTINCT n");
 
 		final SortOrder sortOrder = query.getSortOrder();
 		if (sortOrder != null) {

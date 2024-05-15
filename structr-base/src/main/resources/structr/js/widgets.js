@@ -62,6 +62,7 @@ let _Widgets = {
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (entity.isLocalWidget === true) {
+
 			elements.push({
 				name: 'Properties',
 				clickHandler: () => {
@@ -70,16 +71,26 @@ let _Widgets = {
 			});
 
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
-		}
 
-		elements.push({
-			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
-			classes: ['menu-bolder', 'danger'],
-			name: 'Delete Widget',
-			clickHandler: () => {
-				_Entities.deleteNode(entity);
-			}
-		});
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
+				classes: ['menu-bolder', 'danger'],
+				name: 'Delete Widget',
+				clickHandler: () => {
+					_Entities.deleteNode(entity);
+				}
+			});
+
+		} else {
+
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
+				name: 'Copy to Local Widgets',
+				clickHandler: () => {
+					_Widgets.copyRemoteWidgetToLocalWidget(entity);
+				}
+			});
+		}
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
@@ -126,17 +137,8 @@ let _Widgets = {
 					// drop widget from remote widgets
 
 					if (sourceWidget.treePath) {
-						let copiedRemoteWidget = {
-							type: 'Widget',
-							name: `${sourceWidget.name} (copied)`,
-							source: sourceWidget.source,
-							description: sourceWidget.description,
-							configuration: sourceWidget.configuration,
-							svgIconPath: sourceWidget.svgIconPath,
-							// treePath: sourceWidget.treePath
-						};
 
-						Command.create(copiedRemoteWidget, (entity) => {
+						_Widgets.copyRemoteWidgetToLocalWidget(sourceWidget, (entity) => {
 							_Elements.dropBlocked = false;
 						});
 					}
@@ -190,6 +192,20 @@ let _Widgets = {
 		_Widgets.updateWidgetServerSelector(() => {
 			_Widgets.refreshRemoteWidgets();
 		});
+	},
+	copyRemoteWidgetToLocalWidget: (sourceWidget, callback) => {
+
+		let copiedRemoteWidget = {
+			type: 'Widget',
+			name: `${sourceWidget.name} (copied)`,
+			source: sourceWidget.source,
+			description: sourceWidget.description,
+			configuration: sourceWidget.configuration,
+			svgIconPath: sourceWidget.svgIconPath,
+			// treePath: sourceWidget.treePath
+		};
+
+		Command.create(copiedRemoteWidget, callback);
 	},
 	getWidgetServerUrl: () => {
 

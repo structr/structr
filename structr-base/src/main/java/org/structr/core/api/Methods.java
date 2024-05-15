@@ -41,7 +41,7 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class Methods {
 
-	private static final Map<String, AbstractMethod> methodCache = new LinkedHashMap<>();
+	private static final Map<String, CacheEntry> methodCache              = new LinkedHashMap<>();
 
 	public static Map<String, AbstractMethod> getAllMethods(final Class type) {
 
@@ -91,20 +91,28 @@ public class Methods {
 		// no type => global schema method!
 		if (type == null) {
 
-			try {
+			CacheEntry cacheEntry = methodCache.get(methodName);
+			if (cacheEntry == null) {
 
-				final SchemaMethod method = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(methodName).and(SchemaMethod.schemaNode, null).getFirst();
-				if (method != null) {
+				cacheEntry = new CacheEntry();
+				methodCache.put(methodName, cacheEntry);
 
-					return new ScriptMethod(method);
+				try {
+
+					final SchemaMethod method = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(methodName).and(SchemaMethod.schemaNode, null).getFirst();
+					if (method != null) {
+
+						cacheEntry.method = new ScriptMethod(method);
+					}
+
+				} catch (FrameworkException fex) {
+					throw new RuntimeException(fex);
 				}
-
-			} catch (FrameworkException fex) {
-				throw new RuntimeException(fex);
 			}
-		}
 
-		if (type != null) {
+			return cacheEntry.method;
+
+		} else {
 
 			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
 			final Method method               = methods.get(methodName);
@@ -136,18 +144,20 @@ public class Methods {
 
 		if (StringUtils.isNotBlank(id)) {
 
-			AbstractMethod result = methodCache.get(id);
-			if (result == null) {
+			CacheEntry cacheEntry = methodCache.get(id);
+			if (cacheEntry == null) {
+
+				cacheEntry = new CacheEntry();
+				methodCache.put(id, cacheEntry);
 
 				final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
 				if (schemaMethod != null) {
 
-					result = new ScriptMethod(schemaMethod);
-					methodCache.put(id, result);
+					cacheEntry.method = new ScriptMethod(schemaMethod);
 				}
 			}
 
-			return result;
+			return cacheEntry.method;
 		}
 
 		return new ReflectiveMethod(method);
@@ -317,4 +327,8 @@ public class Methods {
 		return convertedObject;
 	}
 	*/
+
+	private static class CacheEntry {
+		public AbstractMethod method = null;
+	}
 }

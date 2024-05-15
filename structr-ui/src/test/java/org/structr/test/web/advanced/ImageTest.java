@@ -28,6 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -142,28 +143,31 @@ public class ImageTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		try (final Tx tx = app.tx()) {
+		// Wait for asynchronous thumbnail generation
+		tryWithTimeout(() -> {
 
-			// Wait for asynchronous thumbnail generation
-			tryWithTimeout(() -> {
+			boolean allThumbnailsAvailable = true;
+			try (final Tx tx = app.tx()) {
 
-				boolean allThumbnailsAvailable = true;
-				try {
+				final List<Image> images = app.nodeQuery(Image.class).and("isThumbnail", false).getAsList();
+				for (Image img : images) {
 
-					List<Image> images = app.nodeQuery(Image.class).and("isThumbnail", false).getAsList();
-					for (Image img : images) {
-
-						allThumbnailsAvailable &= img.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
-					}
-				} catch (FrameworkException ex) {
-
-					ex.printStackTrace();
-					fail("Unexpected exception");
+					allThumbnailsAvailable &= img.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
 				}
 
-				return allThumbnailsAvailable;
-			}, () -> fail("Exceeded timeout while waiting for thumbnails to be available."), 30000, 1000);
+				tx.success();
 
+			} catch (FrameworkException ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			return allThumbnailsAvailable;
+
+		}, () -> fail("Exceeded timeout while waiting for thumbnails to be available."), 30000, 1000);
+
+		try (final Tx tx = app.tx()) {
 
 			System.out.println("############# Folders:");
 
