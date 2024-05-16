@@ -117,24 +117,28 @@ public abstract class ContextFactory {
 	}
 
 	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
+		return getContext(language, actionContext, entity, true);
+	}
+
+	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity, final boolean allowEntityOverride) throws FrameworkException {
 
 		switch (language) {
 
 			case "js":
-				return getOrCreateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity), allowEntityOverride);
 
 			case "python":
-				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity), allowEntityOverride);
 
 			case "R":
-				return getOrCreateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity), allowEntityOverride);
 
 			default:
 				throw new FrameworkException(500, "Could not initialize context for language: " + language);
 		}
 	}
 
-	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc) throws FrameworkException {
+	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
 
 		Context storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
 
@@ -151,7 +155,7 @@ public abstract class ContextFactory {
 				LoggerFactory.getLogger(ContextFactory.class).error("Unexpected exception while initializing language context for language \"{}\".", language, ex);
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
-		} else if (actionContext != null) {
+		} else if (actionContext != null && allowEntityOverride) {
 
 			// If binding exists in context, ensure entity is up to date
 			final StructrBinding structrBinding = storedContext.getBindings(language).getMember("Structr").asProxyObject();

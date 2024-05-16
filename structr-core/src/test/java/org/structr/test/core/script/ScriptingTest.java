@@ -6550,6 +6550,45 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testEntityBindingAcrossMultipleMethodCalls() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("onCreate", "{ $.userMethod(); $.log($.this.id); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(AbstractNode.name, "userMethod"),
+					new NodeAttribute<>(SchemaMethod.source, "{ $.log('test'); }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(testClass, "Test");
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception. It is likely that entity in binding has been set incorrectly throughout the call chain.");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
