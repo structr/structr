@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
@@ -37,6 +38,7 @@ import org.structr.schema.action.Function;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.api.AbstractMethod;
@@ -161,7 +163,9 @@ public class StructrBinding implements ProxyObject {
 				}
 
 				// static type?
-				final Class nodeType = StructrApp.getConfiguration().getNodeEntityClass(name);
+				final Map<String, Class<? extends NodeInterface>> entityClasses = StructrApp.getConfiguration().getNodeEntities();
+				final Class nodeType                                            = entityClasses.get(name);
+
 				if (nodeType != null) {
 
 					return new StaticTypeWrapper(actionContext, nodeType);
