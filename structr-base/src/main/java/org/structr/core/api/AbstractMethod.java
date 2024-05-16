@@ -94,8 +94,9 @@ public abstract class AbstractMethod {
 					final String engineName = snippet.getEngineName();
 
 					if (!engineName.isEmpty()) {
+						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
+						final Context context = ContextFactory.getContext(engineName, actionContext, entity, false);
 						final SecurityContext securityContext = actionContext.getSecurityContext();
-						final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 						final Value bindings = context.getBindings(engineName).getMember("Structr");
 						final StructrBinding binding = bindings.asProxyObject();
 						final GraphObject previousEntity = binding.getEntity();
@@ -128,7 +129,7 @@ public abstract class AbstractMethod {
 							binding.setEntity(previousEntity);
 							binding.setActionContext(previousContext);
 							binding.setMethodParameters(null);
-							securityContext.getContextStore().setTemporaryParameters(tmp);
+								securityContext.getContextStore().setTemporaryParameters(tmp);
 
 						}
 					}
