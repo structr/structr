@@ -77,7 +77,7 @@ public class JWTHelper {
 
 			case "jwks":
 
-				final String provider = Settings.JWTSProvider.getValue();
+				final String provider = Settings.JWKSProvider.getValue();
 				final String issuer = Settings.JWTIssuer.getValue();
 
 				if (provider != null) {
@@ -258,13 +258,41 @@ public class JWTHelper {
 
 		} else {
 
-			// create a virtual user with a temporary group association via appid
-			if (claims.containsKey("oid") && claims.containsKey("appid")) {
+			final String groupReferenceKey = Settings.JWKSGroupClaimKey.getValue("");
+			final String objectNameKey     = Settings.JWKSObjectNameClaimKey.getValue("");
+			final String objectIdKey       = Settings.JWKSObjectIdClaimKey.getValue("");
 
-				final String oid   = claims.get("oid").asString();
-				final String appId = claims.get("appid").asString();
+			if (StringUtils.isEmpty(objectIdKey)) {
 
-				user = new ServicePrincipal(oid, oid, appId);
+				logger.warn("Invalid JWKS configuration: missing value for {} which is used to identify the temporary principal for m2m requests authenticated with JWKS.", Settings.JWKSObjectIdClaimKey);
+
+			} else {
+
+				// create a virtual user with an optional temporary group association via groupReferenceKey
+				if (claims.containsKey(objectIdKey)) {
+
+					final String id = claims.get(objectIdKey).asString();
+					String referenceId = null;
+					String name = id;
+
+					// group reference is optional
+					if (claims.containsKey(groupReferenceKey)) {
+
+						referenceId = claims.get(groupReferenceKey).asString();
+					}
+
+					// name is optional
+					if (claims.containsKey(objectNameKey)) {
+
+						name = claims.get(objectNameKey).asString();
+					}
+
+					user = new ServicePrincipal(id, name, referenceId);
+
+				} else {
+
+					logger.warn("Invalid JWKS configuration: JWKS claims response contains no value for {} which is needed to identify the principal. Please set the correct key in {}.", objectIdKey, Settings.JWKSObjectIdClaimKey);
+				}
 			}
 		}
 
