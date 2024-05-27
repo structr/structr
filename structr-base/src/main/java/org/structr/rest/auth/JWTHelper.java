@@ -271,14 +271,26 @@ public class JWTHelper {
 				// create a virtual user with an optional temporary group association via groupReferenceKey
 				if (claims.containsKey(objectIdKey)) {
 
-					final String id = claims.get(objectIdKey).asString();
-					String referenceId = null;
+					final String id                 = claims.get(objectIdKey).asString();
+					final List<String> referenceIds = new LinkedList<>();
 					String name = id;
 
 					// group reference is optional
 					if (claims.containsKey(groupReferenceKey)) {
 
-						referenceId = claims.get(groupReferenceKey).asString();
+						final Claim claim               = claims.get(groupReferenceKey);
+						final List<String> values       = claim.asList(String.class);
+
+						if (values != null) {
+
+							// if values is non-null, the claim contained a list of strings
+							referenceIds.addAll(values);
+
+						} else {
+
+							// otherwise it was a single string
+							referenceIds.add(claim.asString());
+						}
 					}
 
 					// name is optional
@@ -287,7 +299,7 @@ public class JWTHelper {
 						name = claims.get(objectNameKey).asString();
 					}
 
-					user = new ServicePrincipal(id, name, referenceId);
+					user = new ServicePrincipal(id, name, referenceIds);
 
 				} else {
 

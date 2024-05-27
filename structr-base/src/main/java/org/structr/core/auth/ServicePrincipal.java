@@ -46,15 +46,15 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
 	private SecurityContext securityContext = null;
-	private String jwksReferenceId          = null;
+	private List<String> jwksReferenceIds   = null;
 	private List<Group> groups              = null;
 
-	public ServicePrincipal(final String id, final String name, final String jwksReferenceId) {
+	public ServicePrincipal(final String id, final String name, final List<String> jwksReferenceIds) {
 
 		data.put("id",   id);
 		data.put("name", name);
 
-		this.jwksReferenceId = jwksReferenceId;
+		this.jwksReferenceIds = jwksReferenceIds;
 	}
 
 	@Override
@@ -89,13 +89,19 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	@Override
 	public Iterable<Principal> getParentsPrivileged() {
 
-		if (jwksReferenceId != null) {
+		// if the list of reference IDs is set, we search for groups with the given IDs and associate this principal with them
+		if (jwksReferenceIds != null) {
 
 			if (groups == null) {
 
+				groups = new LinkedList<>();
+
 				try {
 
-					groups = StructrApp.getInstance().nodeQuery(Group.class).and(StructrApp.key(Group.class, "jwksReferenceId"), jwksReferenceId).getAsList();
+					for (final String id : jwksReferenceIds) {
+
+						groups.addAll(StructrApp.getInstance().nodeQuery(Group.class).and(StructrApp.key(Group.class, "jwksReferenceId"), id).getAsList());
+					}
 
 				} catch (FrameworkException fex) {
 					fex.printStackTrace();
