@@ -29,11 +29,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -526,6 +528,93 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
+	}
+
+	/* disabled for now..
+	@Test
+	public void testAdminGroupsWithDatabaseUser() {
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group1 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group1"));
+			final Group group2 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group2"));
+			final Group group3 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group3"));
+
+			// Group1 is the admin group
+			group1.setIsAdmin(true);
+
+			// group hierarchy: Group1 -> Group2 -> Group3
+			group1.addMember(ctx, group2);
+			group2.addMember(ctx, group3);
+
+			final Principal tester = app.create(Principal.class, "tester");
+
+			group3.addMember(ctx, tester);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal user = app.nodeQuery(Principal.class).andName("tester").getFirst();
+
+			assertTrue("Database user doesn't inherit isAdmin flag correctly.", user.isAdmin());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+	*/
+
+	@Test
+	public void testAdminGroupsWithServicePrincipal() {
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group1 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group1"));
+			final Group group2 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group2"));
+			final Group group3 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group3"));
+
+			// Group1 is the admin group
+			group1.setIsAdmin(true);
+
+			// group hierarchy: Group1 -> Group2 -> Group3
+			group1.addMember(ctx, group2);
+			group2.addMember(ctx, group3);
+
+			// Group3 has jwksReferenceId for ServicePrincipal
+			group3.setProperty(StructrApp.key(Group.class, "jwksReferenceId"), "admin_group");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", List.of("admin_group"));
+
+			assertTrue("ServicePrincipal doesn't inherit isAdmin flag correctly.", principal.isAdmin());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	public static void clearResourceAccess() {

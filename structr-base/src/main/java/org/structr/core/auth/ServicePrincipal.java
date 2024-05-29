@@ -157,7 +157,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public boolean isAdmin() {
-		return false;
+		return recursivelyCheckForAdminPermissions(getParentsPrivileged());
 	}
 
 	@Override
@@ -560,5 +560,25 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	@Override
 	public String getUuid() {
 		return (String)data.get("id");
+	}
+
+	// ----- private methods -----
+	private boolean recursivelyCheckForAdminPermissions(final Iterable<Principal> parents) {
+
+		for (final Principal parent : parents) {
+
+			if (parent.isAdmin()) {
+				return true;
+			}
+
+			// recurse
+			final boolean isAdmin = recursivelyCheckForAdminPermissions(parent.getParentsPrivileged());
+			if (isAdmin) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
