@@ -367,6 +367,10 @@
 		<path d="M16.221 16.22L23.25 23.25"></path>
 	</symbol>
 
+	<symbol id="filter-funnel" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10">
+		<path d="M14.8846 17.625V12l7.7885 -7.78846c0.4327 -0.43269 0.5769 -0.86539 0.5769 -1.44231C23.25 1.61538 22.3846 0.75 21.2308 0.75H2.76924C1.6154 0.75 0.75 1.61538 0.75 2.76923c0 0.57692 0.144244 1.00962 0.57694 1.44231L9.11539 12v11.25l5.76921 -5.625Z"></path>
+	</symbol>
+
 	<symbol id="image-crop" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M21.75 19.125L23.25 19.125"></path>
 		<path d="M5.25 1.875L5.25 19.125 18.75 19.125"></path>

@@ -1511,11 +1511,8 @@ let _Pages = {
 
 				for (let child of dataTypeSelectUl.children) {
 
-					if (child.dataset.value && child.dataset.value.match(el.value)) {
-						child.classList.remove('hidden');
-					} else {
-						child.classList.add('hidden');
-					}
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
 				}
 
 				showDataTypeList();
@@ -3397,18 +3394,19 @@ let _Pages = {
 
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', (result) => {
 
-					let count = result.length;
-					if (count > 0) {
+					let hasEntries = (result.length > 0);
 
-						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${count})`;
-						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
+					deleteUnattachedNodesButton.classList.toggle('hover:bg-gray-100', hasEntries);
+
+					if (hasEntries) {
+
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${result.length})`;
 
 						_Helpers.disableElements(false, deleteUnattachedNodesButton);
 
 					} else {
 
 						deleteUnattachedNodesButton.textContent = 'No unused elements';
-						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}
 
 					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);

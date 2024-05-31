@@ -1230,11 +1230,10 @@ let _Dashboard = {
 					let currentScroll = (event.target.scrollTop + event.target.offsetHeight);
 
 					_Dashboard.tabs['server-log'].scrollEnabled = (currentScroll >= maxScroll);
-					if (true === _Dashboard.tabs['server-log'].scrollEnabled) {
-						_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.remove('textarea-is-scrolled');
-					} else {
-						_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.add('textarea-is-scrolled');
-					}
+
+					let isScrolled = (false === _Dashboard.tabs['server-log'].scrollEnabled);
+
+					_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.toggle('textarea-is-scrolled', isScrolled);
 				});
 			},
 			updateLog: () => {
@@ -1264,15 +1263,12 @@ let _Dashboard = {
 
 				let timeInMs            = _Dashboard.tabs['server-log'].getTimeIntervalSelect().value;
 				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
+				let hasInterval         = (timeInMs > 0);
 
-				if (timeInMs > 0) {
+				manualRefreshButton.classList.toggle('hidden', hasInterval);
 
-					manualRefreshButton.classList.add('hidden');
+				if (hasInterval) {
 					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, timeInMs);
-
-				} else {
-
-					manualRefreshButton.classList.remove('hidden');
 				}
 			},
 			start: () => {

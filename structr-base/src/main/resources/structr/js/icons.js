@@ -136,6 +136,7 @@ let _Icons = {
 	iconOpenInNewPage:       'link_external',
 	iconListWithCog:         'list-cog',
 	iconSearch:              'magnifying-glass',
+	iconFilterFunnel:        'filter-funnel',
 	iconMicrophone:          'microphone-icon',
 	iconNetwork:             'network-icon',
 	iconRefreshArrows:       'refresh-arrows',
