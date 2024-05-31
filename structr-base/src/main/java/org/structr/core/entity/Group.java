@@ -47,7 +47,7 @@ public interface Group extends Principal {
 		group.setExtends(URI.create("#/definitions/Principal"));
 		group.setCategory("core");
 
-		group.addStringProperty("appId", PropertyView.Ui)
+		group.addStringProperty("jwksReferenceId", PropertyView.Ui)
 			.setIndexed(true)
 			.setUnique(true);
 
