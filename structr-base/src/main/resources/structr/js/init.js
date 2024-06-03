@@ -715,18 +715,16 @@ let Structr = {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
+			document.querySelector('.column-resizer-left')?.classList.toggle('hidden', selectedSlideoutWasOpen);
+
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeLeftSlideOuts(otherSlideouts, closeCallback);
 				Structr.slideouts.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
 
-				document.querySelector('.column-resizer-left')?.classList.remove('hidden');
-
 			} else {
 
 				Structr.slideouts.closeLeftSlideOuts([slideoutElement], closeCallback);
-
-				document.querySelector('.column-resizer-left')?.classList.add('hidden');
 			}
 		},
 		openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
@@ -766,18 +764,16 @@ let Structr = {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
+			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
+
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeRightSlideOuts(otherSlideouts, closeCallback);
 				Structr.slideouts.openRightSlideOut(triggerEl, slideoutElement, openCallback);
 
-				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
-
 			} else {
 
 				Structr.slideouts.closeRightSlideOuts([slideoutElement], closeCallback);
-
-				document.querySelector('.column-resizer-right')?.classList.add('hidden');
 			}
 		},
 		openRightSlideOut: (triggerEl, slideoutElement, callback) => {

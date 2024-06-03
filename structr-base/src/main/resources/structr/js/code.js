@@ -2630,11 +2630,8 @@ let _Code = {
 
 			let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
 
-			if (text.length >= _Code.search.searchThreshold) {
-				clearSearchIcon.classList.add('block');
-			} else {
-				clearSearchIcon.classList.remove('block');
-			}
+			let shouldBeBlock = (text.length >= _Code.search.searchThreshold);
+			clearSearchIcon.classList.toggle('block', shouldBeBlock);
 
 			if (text.length >= _Code.search.searchThreshold || (_Code.search.searchTextLength >= _Code.search.searchThreshold && text.length <= _Code.search.searchTextLength)) {
 				tree.refresh();
@@ -2793,13 +2790,10 @@ let _Code = {
 		updateVisibility: () => {
 
 			let codeContext  = document.querySelector('#code-context');
-			if (_Code.recentElements.isVisible()) {
-				codeContext.classList.remove('hidden');
-				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
-			} else {
-				codeContext.classList.add('hidden');
-				document.querySelector('.column-resizer-right')?.classList.add('hidden');
-			}
+			let isHidden     = !_Code.recentElements.isVisible();
+
+			codeContext.classList.toggle('hidden', isHidden);
+			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', isHidden);
 
 			Structr.resize();
 		}
@@ -2875,22 +2869,15 @@ let _Code = {
 			let backDisabled    = stackSize <= 1 || _Code.pathLocations.currentIndex <= 0;
 
 			let forwardButton = _Code.pathLocations.getForwardButton();
+			let backButton    = _Code.pathLocations.getBackwardButton();
+
 			forwardButton.disabled = forwardDisabled;
+			backButton.disabled    = backDisabled;
 
-			if (forwardDisabled) {
-				forwardButton.classList.add('icon-lightgrey');
-			} else {
-				forwardButton.classList.remove('icon-lightgrey');
-			}
-
-			let backButton = _Code.pathLocations.getBackwardButton();
-			backButton.disabled = backDisabled;
-
-			if (backDisabled) {
-				backButton.classList.add('icon-lightgrey');
-			} else {
-				backButton.classList.remove('icon-lightgrey');
-			}
+			forwardButton.classList.toggle('icon-lightgrey', forwardDisabled);
+			forwardButton.classList.toggle('cursor-not-allowed', forwardDisabled);
+			backButton.classList.toggle('icon-lightgrey', backDisabled);
+			backButton.classList.toggle('cursor-not-allowed', backDisabled);
 		},
 	},
 	templates: {
