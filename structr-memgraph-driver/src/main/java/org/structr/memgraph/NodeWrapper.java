@@ -69,13 +69,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 	}
 
 	@Override
-	public void onRemoveFromCache() {
-
-		relationshipCache.clear();
-		this.stale = true;
-	}
-
-	@Override
 	public void clearCaches() {
 
 		relationshipCache.clear();

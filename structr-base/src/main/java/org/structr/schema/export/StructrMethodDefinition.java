@@ -34,9 +34,10 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.operation.OpenAPIUserDefinedFunctionOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
+import org.structr.schema.openapi.operation.OpenAPIUserDefinedFunctionOperation;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -46,7 +47,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
 /**
  *
@@ -67,6 +67,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean callSuper                                 = false;
 	private boolean isStatic                                  = false;
 	private boolean isPrivate                                 = false;
+	private boolean returnRawResult                           = false;
 	private JsonType parent                                   = null;
 	private String httpVerb                                   = "POST";
 	private String returnType                                 = null;
@@ -247,6 +248,17 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean returnRawResult() {
+		return returnRawResult;
+	}
+
+	@Override
+	public JsonMethod setReturnRawResult(final boolean returnRawResult) {
+		this.returnRawResult = returnRawResult;
+		return this;
+	}
+
+	@Override
 	public JsonMethod setHttpVerb(final String httpVerb) {
 		this.httpVerb = httpVerb;
 		return this;
@@ -375,6 +387,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.isStatic,              isStatic());
 		updateProperties.put(SchemaMethod.isPrivate,             isPrivate());
+		updateProperties.put(SchemaMethod.returnRawResult,       returnRawResult());
 		updateProperties.put(SchemaMethod.httpVerb,              SchemaMethod.HttpVerb.valueOf(getHttpVerb()));
 		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
 		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
@@ -472,6 +485,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.isPrivate = (Boolean)_isPrivate;
 		}
 
+		final Object _returnRawResult = source.get(JsonSchema.KEY_RETURN_RAW_RESULT);
+		if (_returnRawResult != null && _returnRawResult instanceof Boolean) {
+
+			this.returnRawResult = (Boolean)_returnRawResult;
+		}
+
 		final Object _httpVerb = source.get(JsonSchema.KEY_HTTP_VERB);
 		if (_httpVerb != null && _httpVerb instanceof String) {
 
@@ -545,6 +564,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
 		setIsStatic(method.getProperty(SchemaMethod.isStatic));
 		setIsPrivate(method.getProperty(SchemaMethod.isPrivate));
+		setReturnRawResult(method.getProperty(SchemaMethod.returnRawResult));
 		setHttpVerb(method.getProperty(SchemaMethod.httpVerb).name());
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
@@ -593,6 +613,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
 		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
+		map.put(JsonSchema.KEY_RETURN_RAW_RESULT, returnRawResult);
 		map.put(JsonSchema.KEY_HTTP_VERB, httpVerb);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);

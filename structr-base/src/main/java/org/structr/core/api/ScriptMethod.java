@@ -40,6 +40,7 @@ public class ScriptMethod extends AbstractMethod {
 	private String fullName         = null;
 	private boolean isPrivateMethod = false;
 	private boolean isStaticMethod  = false;
+	private boolean returnRawResult = false;
 	private HttpVerb httpVerb       = null;
 
 	public ScriptMethod(final SchemaMethod method) {
@@ -52,6 +53,7 @@ public class ScriptMethod extends AbstractMethod {
 		this.name            = method.getName();
 		this.isPrivateMethod = method.isPrivateMethod();
 		this.isStaticMethod  = method.isStaticMethod();
+		this.returnRawResult = method.returnRawResult();
 		this.httpVerb        = method.getHttpVerb();
 
 		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
@@ -113,6 +115,11 @@ public class ScriptMethod extends AbstractMethod {
 		final Arguments converted = checkAndConvertArguments(securityContext, arguments, false);
 
 		try {
+
+			if (returnRawResult) {
+
+				securityContext.enableReturnRawResult();
+			}
 			
 			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
 

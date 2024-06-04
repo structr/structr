@@ -1386,7 +1386,7 @@ let _Code = {
 	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
@@ -3049,6 +3049,11 @@ let _Code = {
 						<div class="checkbox hidden entity-method">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
 								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> NOT callable via REST
+							</label>
+						</div>
+						<div class="checkbox hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the value returned by this method will NOT be wrapped in a result object.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
 							</label>
 						</div>
 					</div>

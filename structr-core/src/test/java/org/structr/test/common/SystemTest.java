@@ -42,6 +42,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.entity.TestFive;
@@ -1856,6 +1857,40 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testRollbackFunction() {
+
+		// test setup, create some nodes and expect rollback even with tx.success()!
+		try (final Tx tx = app.tx()) {
+
+			app.create(Group.class, "group1");
+			app.create(Group.class, "group2");
+			app.create(Group.class, "group3");
+
+			Actions.execute(securityContext, null, "${rollback_transaction()}", "testRollbackFunction");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// assert that no groups exist!
+		try (final Tx tx = app.tx()) {
+
+			final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+
+			assertTrue(groups.isEmpty());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
 
 	// ----- nested classes -----
 	private static class TestRunner implements Runnable {

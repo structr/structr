@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
@@ -49,7 +50,6 @@ import java.io.IOException;
 import java.lang.Object;
 import java.util.HashMap;
 import java.util.Map;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 
 import static org.testng.AssertJUnit.*;
 
@@ -151,6 +151,7 @@ public class Deployment3Test extends DeploymentTestBase {
 				new NodeAttribute<>(SchemaMethod.description,                 "description"),
 				new NodeAttribute<>(SchemaMethod.isStatic,                    true),
 				new NodeAttribute<>(SchemaMethod.isPrivate,                   true),
+				new NodeAttribute<>(SchemaMethod.returnRawResult,             true),
 				new NodeAttribute<>(SchemaMethod.httpVerb,                    HttpVerb.GET)
 			);
 
@@ -189,6 +190,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertEquals("Invalid SchemaMethod deployment result", "description",                   method1.getProperty(SchemaMethod.description));
 			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isStatic));
 			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isPrivate));
+			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.returnRawResult));
 			assertEquals("Invalid SchemaMethod deployment result", HttpVerb.GET,                    method1.getProperty(SchemaMethod.httpVerb));
 
 

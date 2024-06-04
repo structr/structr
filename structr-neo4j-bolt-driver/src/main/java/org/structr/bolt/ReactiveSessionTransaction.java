@@ -18,11 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.LinkedList;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
@@ -41,6 +36,8 @@ import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
 
+import java.util.*;
+
 /**
  *
  */
@@ -50,6 +47,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	private RxSession session      = null;
 	private RxTransaction tx       = null;
 	private boolean closed         = false;
+	private boolean forcedFailure  = false;
 
 	public ReactiveSessionTransaction(final BoltDatabaseService db, final RxSession session) {
 
@@ -75,6 +73,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 	@Override
 	public void failure() {
+		forcedFailure = true;
 	}
 
 	@Override
@@ -89,7 +88,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		clearChangeset();
 
-		if (!success) {
+		if (forcedFailure || !success) {
 
 			try {
 

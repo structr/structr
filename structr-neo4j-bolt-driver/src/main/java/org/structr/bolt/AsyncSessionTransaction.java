@@ -18,10 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
@@ -38,8 +34,9 @@ import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
+
+import java.util.*;
 import java.util.concurrent.CompletionStage;
-import java.util.LinkedList;
 
 /**
  *
@@ -49,6 +46,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 	private AsyncSession session       = null;
 	private AsyncTransaction tx        = null;
 	private boolean closed             = false;
+	private boolean forcedFailure      = false;
 
 	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session) {
 
@@ -73,6 +71,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 	@Override
 	public void failure() {
+		forcedFailure = true;
 	}
 
 	@Override
@@ -87,7 +86,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		clearChangeset();
 
-		if (!success) {
+		if (forcedFailure || !success) {
 
 			try {
 				resolveImmediately(tx.rollbackAsync());
