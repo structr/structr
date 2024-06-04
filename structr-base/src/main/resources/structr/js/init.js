@@ -1820,6 +1820,7 @@ let Structr = {
 			}
 		});
 	},
+	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
 
 		let menu = e.target.closest('.dropdown-menu');
@@ -1880,6 +1881,10 @@ let Structr = {
 					// allow positioning to change between openings
 					container.style.bottom = null;
 				}
+
+				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
+					bubbles: true
+				}));
 			}
 		}
 	},
