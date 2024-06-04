@@ -4285,6 +4285,10 @@ let _Schema = {
 
 			createSnapshotFromSelectedButton.classList.toggle('disabled', !hasSelectedNodes)
 			createSnapshotFromSelectedButton.disabled = !hasSelectedNodes;
+
+			let text = (hasSelectedNodes ? _Schema.ui.selectedNodes.length : 'from');
+
+			createSnapshotFromSelectedButton.querySelector('.context').textContent = text;
 		};
 
 		dropdownContainer.addEventListener(Structr.dropdownOpenEventName, () => {
@@ -5594,7 +5598,7 @@ let _Schema = {
 							<div class="row">
 								<input id="snapshot-suffix" class="mr-2" type="text" name="suffix" placeholder="Enter a suffix" length="20">
 								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-2">Create snapshot</button>
-								<button id="create-snapshot-selected-nodes" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">Create snapshot from selected nodes</button>
+								<button id="create-snapshot-selected-nodes" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">Create snapshot (<span class="context">from</span> selected nodes)</button>
 							</div>
 
 							<div class="heading-row">
