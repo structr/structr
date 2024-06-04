@@ -525,7 +525,7 @@ public abstract class StructrOAuthClient {
 
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(User.class, "onOAuthLogin");
+		final AbstractMethod method = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), "onOAuthLogin");
 		if (method != null) {
 
 			final Arguments arguments = new Arguments();

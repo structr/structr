@@ -1499,7 +1499,7 @@ let _Code = {
 						$('input[data-parameter-property=index]', clone).val(maxCnt);
 					}
 
-					$('input[data-parameter-property]', clone).on('keyup', () => {
+					$('input[data-parameter-property]', clone).on('input', () => {
 						_Code.updateDirtyFlag(result);
 					});
 

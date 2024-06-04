@@ -35,6 +35,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
@@ -1917,6 +1919,45 @@ public class UiScriptingTest extends StructrUiTest {
 
 			logger.warn("", ex);
 			fail("Unexpected exception.");
+		}
+	}
+
+
+	@Test
+	public void testMethodLookup() {
+
+		final String methodName = "onOAuthLogin";
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			schema.getType("User").addMethod(methodName, "{ $.log('onOAuthLogin'); return true; }");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		/**
+		 * We currently have a discrepancy in looking up methods. This test should reflect this (or should be updated after that discrepancy is resolved)
+		 */
+		try (final Tx tx = app.tx()) {
+
+			final AbstractMethod shouldBeNull  = Methods.resolveMethod(User.class, methodName);
+			assertEquals(true, shouldBeNull == null);
+
+			final AbstractMethod shouldBeFound = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), methodName);
+			assertEquals(true, shouldBeFound != null);
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

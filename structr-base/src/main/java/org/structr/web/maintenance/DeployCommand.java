@@ -85,6 +85,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
+	protected static final Set<String> ambiguousPrincipals     = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
 
@@ -261,6 +262,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try {
 
 			missingPrincipals.clear();
+			ambiguousPrincipals.clear();
 			missingSchemaFile.clear();
 			deferredLogTexts.clear();
 
@@ -410,6 +412,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
 						+ "\t" + String.join("\n\t",  missingPrincipals)
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
+						+ "###############################################################################"
+				);
+				publishWarningMessage(title, text);
+			}
+
+			if (!ambiguousPrincipals.isEmpty()) {
+
+				final String title = "Ambiguous Principal(s)";
+				final String text = "For the following names, there are multiple candidates (User/Group) for grants or node ownership during <b>deployment</b>.<br>"
+						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>!"
+						+ "<ul><li>" + String.join("</li><li>",  ambiguousPrincipals) + "</li></ul>"
+						+ "Consider clearing up such ambiguities in the database.";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ "\tFor the following names, there are multiple candidates (User/Group) for grants or node ownership during deployment.\n"
+						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported!\n\n"
+						+ "\t" + String.join("\n\t",  ambiguousPrincipals)
+						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 						+ "###############################################################################"
 				);
 				publishWarningMessage(title, text);
@@ -1356,12 +1377,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
-				final String ownerName = (String) ((Map)entry.get("owner")).get("name");
-				final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
+				final String ownerName           = (String) ((Map)entry.get("owner")).get("name");
+				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getAsList();
 
-				if (owner == null) {
-					logger.warn("Unknown owner {}, ignoring.", ownerName);
+				if (principals.isEmpty()) {
+
+					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", ownerName);
 					DeployCommand.addMissingPrincipal(ownerName);
+
+					entry.remove("owner");
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
+					DeployCommand.addAmbiguousPrincipal(ownerName);
 
 					entry.remove("owner");
 				}
@@ -1378,13 +1407,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Map<String, Object> grantee : grantees) {
 
-				final String granteeName = (String) grantee.get("name");
-				final Principal owner    = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getFirst();
+				final String granteeName         = (String) grantee.get("name");
+				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getAsList();
 
-				if (owner == null) {
+				if (principals.isEmpty()) {
 
-					logger.warn("Unknown grantee {}, ignoring.", granteeName);
+					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", granteeName);
 					DeployCommand.addMissingPrincipal(granteeName);
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), granteeName);
+					DeployCommand.addAmbiguousPrincipal(granteeName);
 
 				} else {
 
@@ -2710,6 +2744,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingPrincipal (final String principalName) {
 		missingPrincipals.add(principalName);
+	}
+
+	public static void addAmbiguousPrincipal (final String principalName) {
+		ambiguousPrincipals.add(principalName);
 	}
 
 	public static void addMissingSchemaFile (final String fileName) {
