@@ -154,7 +154,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (principals.isEmpty()) {
 
 			// log error
-			logger.warn("No node of type Principal found for schema grant '{}', ignoring.", principalName);
+			logger.warn("No node of type Principal with name '{}' found for schema grant, ignoring.", principalName);
 			DeployCommand.addMissingPrincipal(principalName);
 			return null;
 		}
@@ -162,8 +162,8 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (principals.size() > 1) {
 
 			// log error
-			logger.warn("Found {} candidates for type Principal in schema grant {}, ignoring.", principals.size(), principalName);
-			DeployCommand.addMissingPrincipal(principalName);
+			logger.warn("Found {} nodes of type Principal named '{}' for schema grant, ignoring.", principals.size(), principalName);
+			DeployCommand.addAmbiguousPrincipal(principalName);
 			return null;
 		}
 

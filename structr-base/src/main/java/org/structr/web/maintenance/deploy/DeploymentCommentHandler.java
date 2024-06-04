@@ -129,15 +129,21 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
 
-			final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(parameters).getFirst();
-			if (owner != null) { // && !owner.equals(page.getOwnerNode())) {
+			final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(parameters).getAsList();
 
-				node.setProperty(AbstractNode.owner, owner);
+			if (principals.isEmpty()) {
+
+				logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", parameters);
+				DeployCommand.addMissingPrincipal(parameters);
+
+			} else if (principals.size() > 1) {
+
+				logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), parameters);
+				DeployCommand.addAmbiguousPrincipal(parameters);
 
 			} else {
 
-				logger.warn("Unknown owner {}, ignoring.", parameters);
-				DeployCommand.addMissingPrincipal(parameters);
+				node.setProperty(AbstractNode.owner, principals.get(0));
 			}
 		});
 
@@ -146,8 +152,21 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final Principal grantee = StructrApp.getInstance().nodeQuery(Principal.class).andName(parts[0]).getFirst();
-				if (grantee != null) {
+				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(parts[0]).getAsList();
+
+				if (principals.isEmpty()) {
+
+					logger.warn("Unknown grantee! Found no node of type Principal named '{}', ignoring.", parts[0]);
+					DeployCommand.addMissingPrincipal(parts[0]);
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), parts[0]);
+					DeployCommand.addAmbiguousPrincipal(parts[0]);
+
+				} else {
+
+					final Principal grantee = principals.get(0);
 
 					for (final char c : parts[1].toCharArray()) {
 
@@ -173,11 +192,6 @@ public class DeploymentCommentHandler implements CommentHandler {
 								logger.warn("Invalid @grant permission {}, must be one of [a, r, w, d].", c);
 						}
 					}
-
-				} else {
-
-					logger.warn("Unknown grantee {}, ignoring.", parts[0]);
-					DeployCommand.addMissingPrincipal(parts[0]);
 				}
 
 			} else {

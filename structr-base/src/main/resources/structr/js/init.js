@@ -2620,7 +2620,7 @@ let UISettings = {
 			title: 'Dashboard',
 			settings: {
 				useDeploymentWizard: {
-					text: 'Use deployment wizard to de-clutter the deployment UI',
+					text: 'Use compact deployment UI',
 					storageKey: 'dashboardUseDeploymentWizard_' + location.port,
 					defaultValue: true,
 					type: 'checkbox',
