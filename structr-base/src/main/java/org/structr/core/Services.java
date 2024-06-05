@@ -82,7 +82,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
 	private final Map<String, Object> cachedValues              = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -312,9 +311,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// start registered services
 		startServices();
 
-		// initialize permissions for ownerless nodes
-		initializePermissionsForOwnerlessNodes();
-
 		// register shutdown hook
 		registerShutdownHook();
 
@@ -528,36 +524,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 				shutdown();
 			}
 		});
-	}
-
-	private void initializePermissionsForOwnerlessNodes() {
-
-		// read permissions for ownerless nodes
-		final String configForOwnerlessNodes = Settings.OwnerlessNodes.getValue();
-		if (StringUtils.isNotBlank(configForOwnerlessNodes)) {
-
-			for (final String permission : configForOwnerlessNodes.split("[, ]+")) {
-
-				final String trimmed = permission.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					final Permission val = Permissions.valueOf(trimmed);
-					if (val != null) {
-
-						permissionsForOwnerlessNodes.add(val);
-
-					} else {
-
-						logger.warn("Invalid permisson {}, ignoring.", trimmed);
-					}
-				}
-			}
-
-		} else {
-
-			// default
-			permissionsForOwnerlessNodes.add(Permission.read);
-		}
 	}
 
 	public boolean isShutdownDone() {
@@ -1185,10 +1151,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public static int getGlobalSessionTimeout() {
 
 		return Settings.SessionTimeout.getValue();
-	}
-
-	public static Set<Permission> getPermissionsForOwnerlessNodes() {
-		return getInstance().permissionsForOwnerlessNodes;
 	}
 
 	public String getEdition() {
