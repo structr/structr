@@ -1550,7 +1550,7 @@ let _Code = {
 
 				let openAPIReturnTypeMonacoConfig = {
 					language: 'json',
-					lint: true,
+					lint: false,
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 						_Code.updateDirtyFlag(entity);
