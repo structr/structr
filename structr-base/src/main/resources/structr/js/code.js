@@ -1654,17 +1654,7 @@ let _Code = {
 	},
 	shouldHideOpenAPITabForMethod: (entity) => {
 
-		// do all lifecycle methods not have openAPI tab?
-		// could unify code (or at least list of lifecycle methods) with icons code for lifecycle methods
-		// and button generation for lifecycle methods
-		let methodPrefixesWithoutOpenAPITab = [
-			'onCreate',
-			'onSave',
-			'onDelete',
-			'afterCreate'
-		];
-
-		return entity.codeType === 'java' || methodPrefixesWithoutOpenAPITab.some(prefix => entity.name.startsWith(prefix));
+		return entity.codeType === 'java' || LifecycleMethods.isLifecycleMethod(entity);
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 

@@ -3400,6 +3400,8 @@ let _Schema = {
 
 			_Schema.methods.methodsData = {};
 
+			let availableLifecycleMethods = LifecycleMethods.getAvailableLifecycleMethods(entity);
+
 			let methodsGridConfig = {
 				class: 'actions schema-props grid',
 				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((entity) ? '[ isstatic ] 2rem ' : '') + '[ actions ] 6rem',
@@ -3408,7 +3410,7 @@ let _Schema = {
 					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
 					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				],
-				buttons: ((entity) ? _Schema.methods.templates.addMethodsDropdown() : _Schema.methods.templates.addMethodDropdown()) + '<div class="flex-grow flex"></div>'
+				buttons: _Schema.methods.templates.addMethodsDropdown({entity, availableLifecycleMethods}) + '<div class="flex-grow flex"></div>'
 			};
 
 			if (!entity) {
@@ -3638,11 +3640,13 @@ let _Schema = {
 
 				addMethodButton.addEventListener('click', () => {
 
-					let prefix           = addMethodButton.dataset['prefix'] || '';
+					let name             = addMethodButton.dataset['name'] ?? ''
+					let isPrefix         = addMethodButton.dataset['isPrefix'] === 'true';
 					let baseMethodConfig = {
-						name: _Schema.methods.getFirstFreeMethodName(prefix),
+						name: isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name,
 						id: 'new' + (addedMethodsCounter++)
 					};
+					console.log(name, isPrefix, baseMethodConfig)
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
 				});
@@ -3911,33 +3915,16 @@ let _Schema = {
 							<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
 							</a>
-							<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onCreate
-							</a>
-							<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterCreate
-							</a>
-							<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onSave
-							</a>
-							<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
-							</a>
-							<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
-							</a>
-							<a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
-							</a>
+							${config.availableLifecycleMethods.map(m => _Schema.methods.templates.methodsDropdownButton(m)).join('')}
 						</div>
 					</div>
 				</div>
 			`,
-			addMethodDropdown: config => `
-				<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
-				</button>
-			`,
+			methodsDropdownButton: (config) => `
+				<a data-name="${config.name}" data-is-prefix="${config.isPrefix}" class="add-method-button inline-flex items-center justify-between hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="${_Helpers.escapeForHtmlAttributes(config.comment)}">
+					<span class="inline-flex items-center">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add ${config.name}</span>
+				</a>
+			`
 		}
 	},
 	schemaGrants: {
