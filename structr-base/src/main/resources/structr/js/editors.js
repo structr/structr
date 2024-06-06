@@ -257,7 +257,7 @@ let _Editors = {
 					let id      = runtimeEvent.data.id;
 
 					if (
-						(!id || (entity.id && id === entity.id)) &&
+						(id === entity.id) &&
 						(!type || type === schemaType) &&
 						name === errorAttributeName
 					) {
@@ -526,11 +526,11 @@ let _Editors = {
 		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
 		if (customConfig.lint === true) {
 
-			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
 
 			// onFocus handler
 			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
 			}));
 		}
 

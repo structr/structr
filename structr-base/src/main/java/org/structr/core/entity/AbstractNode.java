@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -246,16 +247,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (!isGranted(Permission.write, securityContext)) {
 
-			final Principal currentUser = securityContext.getUser(false);
-			String user = null;
-
-			if (currentUser == null) {
-				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-			} else {
-				user = currentUser.getProperty(AbstractNode.id);
-			}
-
-			throw new FrameworkException(403, "Modification of node ‛" + this.getProperty(AbstractNode.id) + "‛ with type ‛" + this.getProperty(AbstractNode.type) + "‛ by user ‛" + user + "‛ not permitted");
+			throw new FrameworkException(403, getModificationNotPermittedExceptionString(this, securityContext));
 		}
 
 		if (getNode() != null) {
@@ -1370,16 +1362,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
 
-				final Principal currentUser = securityContext.getUser(false);
-				String user = null;
-
-				if (currentUser == null) {
-					user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-				} else {
-					user = currentUser.getProperty(AbstractNode.id);
-				}
-
-				throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
+				throw new FrameworkException(403, getModificationNotPermittedExceptionString(this, securityContext));
 			}
 		}
 
@@ -1411,21 +1394,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
+		final Principal currentUser = securityContext.getUser(false);
+
 		if (!isGranted(Permission.write, securityContext, isCreation)) {
 
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-			final Principal currentUser = securityContext.getUser(false);
-			String user = null;
-
-			if (currentUser == null) {
-				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-			} else {
-				user = currentUser.getProperty(AbstractNode.id);
-			}
-
-			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
+			throw new FrameworkException(403, getModificationNotPermittedExceptionString(this, securityContext));
 		}
 
 		for (final PropertyKey key : properties.keySet()) {
@@ -1627,7 +1603,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public final void grant(final Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
-			throw new FrameworkException(403, "Access control not permitted");
+			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("grant", permissions, principal, ctx));
 		}
 
 		clearCaches();
@@ -1682,7 +1658,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
-			throw new FrameworkException(403, "Access control not permitted");
+			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("revoke", permissions, principal, ctx));
 		}
 
 		clearCaches();
@@ -1704,7 +1680,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
-			throw new FrameworkException(403, "Access control not permitted");
+			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("set", permissions, principal, ctx));
 		}
 
 		clearCaches();
@@ -1723,7 +1699,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				try {
 
-					// ensureCardinality is not neccessary here
+					// ensureCardinality is not necessary here
 					final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 					final PropertyMap properties           = new PropertyMap();
 					superUserContext.disablePreventDuplicateRelationships();
@@ -1752,17 +1728,36 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		this.rawPathSegmentId = rawPathSegmentId;
 	}
 
-	public final void revokeAll() throws FrameworkException {
+	private static String getCurrentUserString (final SecurityContext ctx) {
 
-		if (!isGranted(Permission.accessControl, securityContext)) {
-			throw new FrameworkException(403, "Access control not permitted");
+		final Principal currentUser = ctx.getUser(false);
+		String userString = "";
+
+		if (currentUser == null) {
+			userString = (ctx.isSuperUser() ? "superuser" : "anonymous");
+		} else {
+			userString = currentUser.getProperty(AbstractNode.type) + "(" + currentUser.getProperty(AbstractNode.id) + ")";
 		}
 
-		final App app = StructrApp.getInstance();
+		return userString;
+	}
 
-		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
-			app.delete(security);
-		}
+	private String getAccessControlNotPermittedExceptionString(final String action, final Set<Permission> permissions, Principal principal, final SecurityContext ctx) {
+
+		final String userString       = getCurrentUserString(ctx);
+		final String thisNodeString   = this.getProperty(AbstractNode.type)      + "(" + this.getProperty(AbstractNode.id)      + ")";
+		final String principalString  = principal.getProperty(AbstractNode.type) + "(" + principal.getProperty(AbstractNode.id) + ")";
+		final String permissionString = permissions.stream().map(p -> p.name()).collect(Collectors.joining(", "));
+
+		return "Access control not permitted! " + userString + " can not " + action + " rights (" + permissionString + ") for " + principalString + " to node " + thisNodeString;
+	}
+
+	public static String getModificationNotPermittedExceptionString(final GraphObject obj, final SecurityContext ctx) {
+
+		final String userString     = getCurrentUserString(ctx);
+		final String thisNodeString = obj.getProperty(AbstractNode.type) + "(" + obj.getProperty(AbstractNode.id)      + ")";
+
+		return "Modification of node " + thisNodeString + " by " + userString + "not permitted.";
 	}
 
 	@Override

@@ -468,16 +468,7 @@ public abstract class RESTCallHandler {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					final Principal currentUser = securityContext.getUser(false);
-					String user;
-
-					if (currentUser == null) {
-						user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-					} else {
-						user = currentUser.getProperty(AbstractNode.id);
-					}
-
-					throw new FrameworkException(403, "Modification of node " + obj.getProperty(GraphObject.id) + " with type " + obj.getProperty(GraphObject.type) + " by user " + user + " not permitted.");
+					throw new FrameworkException(403, AbstractNode.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);
