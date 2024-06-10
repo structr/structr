@@ -84,6 +84,11 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
+	public boolean isSuccessful() {
+		return success && !forcedFailure;
+	}
+
+	@Override
 	public void close() {
 
 		clearChangeset();

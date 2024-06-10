@@ -80,7 +80,8 @@ public class Neo5IndexUpdater {
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			t.printStackTrace();
+			//logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -154,7 +155,8 @@ public class Neo5IndexUpdater {
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							logger.error(ExceptionUtils.getStackTrace(t));
+							t.printStackTrace();
+							//logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -214,7 +216,8 @@ public class Neo5IndexUpdater {
 
 							} catch (Throwable t) {
 
-								logger.warn("Unable to update index configuration: {}", t.getMessage());
+								t.printStackTrace();
+								//logger.warn("Unable to update index configuration: {}", t.getMessage());
 							}
 
 						}).get(timeoutSeconds, TimeUnit.SECONDS);
@@ -292,7 +295,9 @@ public class Neo5IndexUpdater {
 
 									}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-								} catch (Throwable t) {}
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
 							}
 						}
 					}

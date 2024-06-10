@@ -219,6 +219,9 @@ public class TransactionCommand {
 					cmd.postProcessQueue.applyProcessQueue();
 				}
 
+				// copy transaction success status to modification queue
+				modificationQueue.setTransactionWasSuccessful(cmd.transaction.isSuccessful());
+
 			} else {
 
 				cmd.transaction.end();
