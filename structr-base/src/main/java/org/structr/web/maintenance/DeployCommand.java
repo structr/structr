@@ -487,10 +487,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			setCommandStatusCode(422);
 			setCustomCommandResult(ipfe.getTitle() + ": " + ipfe.getMessage());
 
+		} catch (FrameworkException fex) {
+
+			final String title          = "Fatal Error";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex.toString();
+
+			publishWarningMessage(title, warningMessage);
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(title + ": " + warningMessage);
+
+			throw fex;
+
 		} catch (Throwable t) {
 
 			final String title          = "Fatal Error";
-			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.";
 
 			publishWarningMessage(title, warningMessage);
 
@@ -501,7 +513,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} finally {
 
-			// log collected warnings at the end so they dont get lost
+			// log collected warnings at the end, so they do not get lost
 			for (final String logText : deferredLogTexts) {
 				logger.info(logText);
 			}
@@ -2516,6 +2528,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (ImportFailureException fex) {
 
 				logger.warn("Unable to import schema: {}", fex.getMessage());
+				if (fex.getCause() instanceof FrameworkException) {
+					logger.warn("Caused by: {}", fex.getCause().toString());
+				}
 				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
 			} catch (Throwable t) {
