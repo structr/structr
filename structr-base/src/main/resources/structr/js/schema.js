@@ -3646,7 +3646,6 @@ let _Schema = {
 						name: isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name,
 						id: 'new' + (addedMethodsCounter++)
 					};
-					console.log(name, isPrefix, baseMethodConfig)
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
 				});
@@ -3699,7 +3698,7 @@ let _Schema = {
 				}
 				_Helpers.fastRemoveElement(gridRow);
 
-				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'));
+				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
 
 				_Editors.nukeEditorsById(method.id);
 			});
