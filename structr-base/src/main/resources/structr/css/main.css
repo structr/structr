@@ -4249,6 +4249,9 @@ ul.combined-input-select-field li:hover {
 .cursor-not-allowed {
 	cursor: not-allowed;
 }
+.cursor-text {
+	cursor: text;
+}
 .gap-y-2 {
 	row-gap: .5rem;
 }
