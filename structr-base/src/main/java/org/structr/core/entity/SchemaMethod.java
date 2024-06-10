@@ -24,7 +24,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.event.RuntimeEventLog;
@@ -191,9 +190,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		try {
 
-			final List<SchemaMethod> userDefinedFunctions = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.name, thisMethodName).and(SchemaMethod.schemaNode, parentOrNull).getAsList();
+			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.name, thisMethodName).and(SchemaMethod.schemaNode, parentOrNull).getAsList();
 
-			for (final SchemaMethod schemaMethod : userDefinedFunctions) {
+			for (final SchemaMethod schemaMethod : methodsOnCurrentLevel) {
 
 				if (thisMethodName.equalsIgnoreCase(schemaMethod.getName()) && !this.getUuid().equals(schemaMethod.getUuid())) {
 
