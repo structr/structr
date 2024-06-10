@@ -1419,17 +1419,15 @@ let _Code = {
 				methodNameInputElement.addEventListener('keyup', (e) => {
 
 					if (e.key === 'Escape') {
+						methodNameInputElement.value = currentMethodName;
 						setMethodNameInUI(currentMethodName);
 					} else if (e.key === 'Enter') {
 						setMethodNameInUI(methodNameInputElement.value);
 					}
-
-					_Code.updateDirtyFlag(result);
 				});
 
 				methodNameInputElement.addEventListener('blur', (e) => {
-					methodNameInputElement.value = currentMethodName;
-					setMethodNameInUI(currentMethodName);
+					setMethodNameInUI(methodNameInputElement.value);
 				});
 
 				methodNameContainerElement.addEventListener('click', (e) => {
@@ -1610,11 +1608,11 @@ let _Code = {
 			// run button and global schema method flags
 			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
 
-				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
+				$('.method-config-element.global-method.hidden', buttons).removeClass('hidden');
 
 			} else if (result.schemaNode) {
 
-				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
+				$('.method-config-element.entity-method.hidden', buttons).removeClass('hidden');
 			}
 
 			_Helpers.activateCommentsInElement(buttons[0]);
@@ -1654,17 +1652,7 @@ let _Code = {
 	},
 	shouldHideOpenAPITabForMethod: (entity) => {
 
-		// do all lifecycle methods not have openAPI tab?
-		// could unify code (or at least list of lifecycle methods) with icons code for lifecycle methods
-		// and button generation for lifecycle methods
-		let methodPrefixesWithoutOpenAPITab = [
-			'onCreate',
-			'onSave',
-			'onDelete',
-			'afterCreate'
-		];
-
-		return entity.codeType === 'java' || methodPrefixesWithoutOpenAPITab.some(prefix => entity.name.startsWith(prefix));
+		return entity.codeType === 'java' || LifecycleMethods.isLifecycleMethod(entity);
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 
@@ -3031,7 +3019,7 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
-			<h2>
+			<h2 class="cursor-text">
 				<span id="method-name-container">
 					<span>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '')}</span><span id="method-name-output">${config.method.name}</span><span>()</span>
 				</span>
@@ -3041,25 +3029,25 @@ let _Code = {
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
 					<div>
-						<div class="checkbox hidden entity-method">
+						<div class="method-config-element hidden entity-method">
 							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
 							</label>
 						</div>
-						<div class="checkbox hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
-								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> NOT callable via REST
-							</label>
-						</div>
-						<div class="checkbox hidden entity-method">
+						<div class="method-config-element hidden entity-method">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, the value returned by this method will NOT be wrapped in a result object.">
 								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
 							</label>
 						</div>
 					</div>
 					<div>
-						<div class="checkbox hidden entity-method">
-							<select id="http-verb-input" data-property="httpVerb">
+						<div class="method-config-element hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via REST
+							</label>
+						</div>
+						<div class="method-config-element hidden entity-method">
+							<select data-property="httpVerb">
 								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
 								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
 								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>

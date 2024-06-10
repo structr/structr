@@ -179,11 +179,33 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
 
 		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
-		final String methodname         = getProperty(AbstractNode.name);
+		final String thisMethodName     = getProperty(AbstractNode.name);
 
-		if (methodname != null && propertyViews.contains(methodname)) {
-			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(methodname).withDetail("A method cannot have the same name as a view"));
+		if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
+			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
 		}
+
+//		// check case-insensitive name uniqueness on current level (type or user-defined functions)
+//		final AbstractSchemaNode parentOrNull = this.getProperty(SchemaMethod.schemaNode);
+//
+//		try {
+//
+//			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.name, thisMethodName).and(SchemaMethod.schemaNode, parentOrNull).getAsList();
+//
+//			for (final SchemaMethod schemaMethod : methodsOnCurrentLevel) {
+//
+//				if (thisMethodName.equalsIgnoreCase(schemaMethod.getName()) && !this.getUuid().equals(schemaMethod.getUuid())) {
+//
+//					errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
+//					valid = false;
+//				}
+//			}
+//
+//		} catch (FrameworkException fex) {
+//
+//			errorBuffer.add(new SemanticErrorToken(this.getType(),"none", "exception_occurred").withValue(thisMethodName).withDetail("Exception occurred while checking uniqueness of method name - please retry. Cause: " + fex.getMessage()));
+//			valid = false;
+//		}
 
 		return valid;
 	}

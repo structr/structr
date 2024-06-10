@@ -376,22 +376,6 @@ let _Icons = {
 			}
 		}
 	},
-	isSchemaMethodALifecycleMethod: (method) => {
-
-		let lifecycleMethodPrefixes = [
-			'onCreate',
-			'afterCreate',
-			'onSave',
-			'afterSave',
-			'onDelete',
-			//'afterDelete',  // this is actually "onDelete" currently, thus no access to $.this in that method
-			'onStructrLogin',
-			'onStructrLogout',
-			'onUpload'
-		];
-
-		return lifecycleMethodPrefixes.some(prefix => method.name.startsWith(prefix));
-	},
 	getIconForSchemaNodeType: (entity) => {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
@@ -412,9 +396,12 @@ let _Icons = {
 						additionalClasses.push('icon-blue');
 
 						if (entity.isStatic) {
+
 							icon = _Icons.iconSchemaNodeStaticMethod;
+
 						} else {
-							let isLifeCycleMethod = _Icons.isSchemaMethodALifecycleMethod(entity);
+
+							let isLifeCycleMethod = LifecycleMethods.isLifecycleMethod(entity);
 							if (isLifeCycleMethod) {
 								icon = _Icons.iconSchemaNodeLifecycleMethod;
 							} else {
