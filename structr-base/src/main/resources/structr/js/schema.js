@@ -1996,12 +1996,12 @@ let _Schema = {
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.properties.getDataFromTable(gridBody, entity, doValidate);
+					return _Schema.properties.getDataFromGrid(gridBody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (gridBody, entity, doValidate = true) => {
+		getDataFromGrid: (gridBody, entity, doValidate = true) => {
 
 			let name = 'Properties';
 			let data = {
@@ -2052,7 +2052,7 @@ let _Schema = {
 		},
 		bulkSave: (container, tbody, entity, overrides, optionalAfterSaveCallback) => {
 
-			let { allow, counts, data } = _Schema.properties.getDataFromTable(tbody, entity);
+			let { allow, counts, data } = _Schema.properties.getDataFromGrid(tbody, entity);
 
 			if (allow) {
 
@@ -3086,7 +3086,7 @@ let _Schema = {
 		},
 		bulkSave: (el, tbody, entity, optionalAfterSaveCallback) => {
 
-			let { data, allow, counts } = _Schema.views.getDataFromTable(tbody, entity);
+			let { data, allow, counts } = _Schema.views.getDataFromGrid(tbody, entity);
 
 			if (allow) {
 
@@ -3346,7 +3346,6 @@ let _Schema = {
 			}
 
 			let viewPropertiesSelect = gridRow.querySelector('.view.property-attrs');
-			console.log(viewPropertiesSelect.selectedOptions);
 			if ($(viewPropertiesSelect).sortedValues().length === 0) {
 
 				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
