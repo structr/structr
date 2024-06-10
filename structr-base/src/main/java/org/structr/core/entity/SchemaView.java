@@ -80,7 +80,10 @@ public class SchemaView extends SchemaReloadingNode {
 
 			for (final SchemaView schemaView : viewsOnParent) {
 
-				if (thisViewName.equalsIgnoreCase(schemaView.getName()) && !this.getUuid().equals(schemaView.getUuid())) {
+				final boolean isSameNode             = this.getUuid().equals(schemaView.getUuid());
+				final boolean isSameNameIgnoringCase = thisViewName.equalsIgnoreCase(schemaView.getName());
+
+				if (!isSameNode && isSameNameIgnoringCase) {
 
 					errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisViewName).withDetail("Multiple views with identical names (case-insensitive) are not supported on the same level"));
 					valid = false;
