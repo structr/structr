@@ -605,7 +605,26 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", List.of("admin_group"));
+			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", List.of("admin_group"), false);
+
+			assertTrue("ServicePrincipal doesn't inherit isAdmin flag correctly.", principal.isAdmin());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testAdminFlagWithServicePrincipal() {
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", null, true);
 
 			assertTrue("ServicePrincipal doesn't inherit isAdmin flag correctly.", principal.isAdmin());
 

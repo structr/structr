@@ -1522,6 +1522,10 @@ let Structr = {
 				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "INFO":
+				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				break;
+
 			case "SCRIPT_JOB_EXCEPTION":
 				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
