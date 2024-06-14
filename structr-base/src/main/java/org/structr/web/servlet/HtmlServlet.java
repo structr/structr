@@ -187,8 +187,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			try (final Tx tx = app.tx()) {
 
-				DOMNode.prefetchDOMNodes();
-
 				// Ensure access mode is frontend
 				securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -857,7 +855,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				try (final Tx tx = app.tx()) {
 
-					DOMNode.prefetchDOMNodes();
+					DOMNode.prefetchDOMNodes(rootNode.getUuid());
 
 					// render
 					rootNode.render(renderContext, 0);

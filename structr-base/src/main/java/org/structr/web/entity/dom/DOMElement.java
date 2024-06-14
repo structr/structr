@@ -221,11 +221,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
 
-		// old relationships between action element (typically Button) and inputs (typically Input or Select elements)
-		//type.relate(type, "INPUTS",   Cardinality.OneToMany,   "actionElement",     "inputs");
-		//type.addViewProperty(PropertyView.Ui, "actionElement");
-		//type.addViewProperty(PropertyView.Ui, "inputs");
-
 		// new event action mapping, moved to ActionMapping node
 		type.addViewProperty(PropertyView.Ui, "triggeredActions");
 
@@ -1055,6 +1050,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final AsyncBuffer out                 = renderContext.getBuffer();
 		final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
+		final DOMElement synced               = (DOMElement)thisElement.getSharedComponent();
 		final boolean isVoid                  = thisElement.isVoidElement();
 		final String _tag                     = thisElement.getTag();
 
@@ -1095,8 +1091,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					renderContext.setInBody(true);
 				}
 
-				boolean lazyRendering = false;
 				final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
+				boolean lazyRendering      = false;
 
 				// lazy rendering can only work if this node is not requested as a partial
 				if (renderContext.getPage() != null && renderingMode != null) {
@@ -1109,17 +1105,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				}
 
 				// only render children if we are not in a shared component scenario, not in deployment mode and it's not rendered lazily
-				if (!lazyRendering && (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode))) {
+				if (!lazyRendering && (synced == null || !EditMode.DEPLOYMENT.equals(editMode))) {
 
 					// fetch children
 					final List<RelationshipInterface> rels = thisElement.getChildRelationships();
 					if (rels.isEmpty()) {
 
 						// No child relationships, maybe this node is in sync with another node
-						final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
-						if (_syncedNode != null) {
+						if (synced != null) {
 
-							rels.addAll(_syncedNode.getChildRelationships());
+							rels.addAll(synced.getChildRelationships());
 						}
 					}
 
@@ -1153,18 +1148,17 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			}
 
 			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(_tag) && (!isVoid) || (isVoid && thisElement.getSharedComponent() != null && EditMode.DEPLOYMENT.equals(editMode))) {
+			if (StringUtils.isNotBlank(_tag) && (!isVoid) || (isVoid && synced != null && EditMode.DEPLOYMENT.equals(editMode))) {
 
 				// only insert a newline + indentation before the closing tag if any child-element used a newline
-				final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
-				final boolean isTemplate     = _syncedNode != null && EditMode.DEPLOYMENT.equals(editMode);
+				final boolean isTemplate     = synced != null && EditMode.DEPLOYMENT.equals(editMode);
 
 				if (anyChildNodeCreatesNewLine || isTemplate) {
 
 					out.append(DOMNode.indent(depth, renderContext));
 				}
 
-				if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
+				if (synced != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
 					out.append("</structr:component>");
 
@@ -1339,11 +1333,33 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case NONE:
 
-					// Get actions in superuser context
-					final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>)	StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
-					if (triggeredActions != null && !triggeredActions.isEmpty()) {
+					/*
+					//TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + uuid + "\" })<-[r]-(m)", Set.of(
 
-						final ActionMapping triggeredAction = triggeredActions.get(0);
+					TransactionCommand.getCurrentTransaction().prefetch("(n:DOMNode)<-[r]-(m) WHERE id(n) = " + thisElement.getNode().getId().getId(), Set.of(
+
+						"all/INCOMING/CONTAINS",
+						"all/INCOMING/INPUT_ELEMENT",
+						"all/INCOMING/SUCCESS_TARGET",
+						"all/INCOMING/FAILURE_TARGET",
+						"all/INCOMING/RELOADS",
+						"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+						"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+						"all/INCOMING/TRIGGERED_BY"
+
+					), false);
+
+					 */
+
+					// Get actions in superuser context
+					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
+					final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getProperty(StructrApp.key(DOMElement.class, "triggeredActions"));
+					final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
+
+					if (!list.isEmpty()) {
+
+						// why only the first one?!
+						final ActionMapping triggeredAction = list.get(0);
 
 						// Support for legacy action mapping (simple interactive elements)
 						// ensure backwards compatibility with frontend.js before switch to new persistence model
@@ -1616,7 +1632,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
 
 					if (isTargetElement(thisElementWithSuperuserContext)) {
 

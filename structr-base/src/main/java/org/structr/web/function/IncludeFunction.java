@@ -107,12 +107,8 @@ public class IncludeFunction extends UiCommunityFunction {
 			 */
 			for (final DOMNode n : nodeList) {
 
-				if (n.inTrash()) {
-					continue;
-				}
-
 				// IGNORE everything that REFERENCES a shared component!
-				if (n.getProperty(sharedCompKey) == null) {
+				if (n.getProperty(sharedCompKey) == null && !n.inTrash()) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
 					if (node == null) {

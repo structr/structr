@@ -54,8 +54,6 @@ public class ChildrenCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		TransactionCommand.getCurrentTransaction().prefetch("DOMElement", null, Set.of());
-
 		final RelationshipFactory factory = new RelationshipFactory(getWebSocket().getSecurityContext());
 		final AbstractNode node           = getNode(webSocketData.getId());
 
