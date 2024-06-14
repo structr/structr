@@ -167,7 +167,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
-		return false;
+		return true;
 	}
 
 	@Override
