@@ -933,47 +933,61 @@ let _Dashboard = {
 					ui: (config) => `
 						<div class="hidden mb-8" data-is-deployment-wizard>
 
-							<div class="flex gap-4">
-								<fieldset>
-									<legend>What to deploy:</legend>
+							<div class="inline-info">
+								<div class="inline-info-icon">
+									${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+								</div>
+								<div class="inline-info-text">
+									A Structr application consists of functional components and user or domain data that can be exported and imported separately.
+									<br><br>
+									The process can be configured using the following three selection options <b>Action/Mode</b>, <b>Type</b> and <b>Target/Source</b>.
+									<br><br>
+									To avoid misunderstandings, errors and unintentionally overwriting data, please be sure to read the help texts carefully before starting the export or import.
+									<br><br>
+									If in doubt, contact <a href="https://support.structr.com">Structr Support</a>.
+								</div>
+							</div>								
 
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="app" name="deploy-what-radio" data-is-deployment-radio>
-										<span>Application</span>
-									</label>
+							<div class="flex gap-8">
 
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="data" name="deploy-what-radio" data-is-deployment-radio>
-										<span>Data</span>
-									</label>
+								<fieldset class="border-0 p-0">
+									<h3>Action / Mode<span data-comment="If <b>Export</b> is selected, no data is changed in this instance, but an older export data record may be overwritten.<br><br>If <b>Import</b> is selected, data in this Structr instance will be overwritten."></span></h3>
+									<div class="w-1/3 mb-4">
+										<p>Specify if data is to be exported from or imported into Structr.</p>
+										
+									</div>
+									<div class="options-switch">
+										<input type="radio" id="deploy-action-export" name="deploy-action-radio" value="export" data-is-deployment-radio>
+										<label for="deploy-action-export">Export</label>
+										<input type="radio" id="deploy-action-import" name="deploy-action-radio" value="import" data-is-deployment-radio>
+										<label for="deploy-action-import">Import</label>
+									</div>
 								</fieldset>
 
-								<fieldset>
-									<legend>Deployment Action:</legend>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="export" name="deploy-action-radio" data-is-deployment-radio>
-										<span>Export</span>
-									</label>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="import" name="deploy-action-radio" data-is-deployment-radio>
-										<span>Import</span>
-									</label>
+								<fieldset class="border-0 p-0">
+									<h3>Type<span data-comment="<b>Application</b> is equivalent to the source code of an application in a classic development environment.<br><br>Select <b>Data</b> for handling user-created and domain-specific data of a Structr instance."></span></h3>
+									<div class="w-1/3 mb-4">
+										<p>Choose the type of data to be exported or imported.</p>
+									</div>
+									<div class="options-switch">
+										<input type="radio" id="deploy-type-application" name="deploy-what-radio" value="app" data-is-deployment-radio>
+										<label for="deploy-type-application">Application</label>
+										<input type="radio" id="deploy-type-data" name="deploy-what-radio" value="data" data-is-deployment-radio>
+										<label for="deploy-type-data">Data</label>
+									</div>
 								</fieldset>
 
-								<fieldset>
-									<legend>How to deploy:</legend>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="local" name="deploy-how-radio" data-is-deployment-radio>
-										<span>Server Directory</span>
-									</label>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="zip" name="deploy-how-radio" data-is-deployment-radio>
-										<span>ZIP</span>
-									</label>
+								<fieldset class="border-0 p-0">
+									<h3>Target / Source<span data-comment="<b>Server directory</b> means a local directory on the server on which Structr is running.<br><br><b>ZIP</b> means downloading the export as a ZIP file or upload a ZIP file to import app or user data."></span></h3>
+									<div class="w-1/3 mb-4">
+										<p>Select where to/from it should be written/read.</p>
+									</div>
+									<div class="options-switch">
+										<input type="radio" id="deploy-target-local" name="deploy-how-radio" value="local" data-is-deployment-radio>
+										<label for="deploy-target-local">Server Directory</label>
+										<input type="radio" id="deploy-target-zip" name="deploy-how-radio" value="zip" data-is-deployment-radio>
+										<label for="deploy-target-zip">ZIP</label>
+									</div>
 								</fieldset>
 							</div>
 
