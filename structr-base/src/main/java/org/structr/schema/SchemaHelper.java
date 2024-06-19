@@ -1309,10 +1309,10 @@ public class SchemaHelper {
 					}
 				}
 
-				src.line(schemaNode, "private static final Set<String> readGrants          = new HashSet<>(",          formatJoined(read), ");");
-				src.line(schemaNode, "private static final Set<String> writeGrants         = new HashSet<>(",         formatJoined(write), ");");
-				src.line(schemaNode, "private static final Set<String> deleteGrants        = new HashSet<>(",        formatJoined(delete), ");");
-				src.line(schemaNode, "private static final Set<String> accessControlGrants = new HashSet<>(", formatJoined(accessControl), ");");
+				src.line(schemaNode, "private static final Set<String> readPermissions          = new HashSet<>(",          formatJoined(read), ");");
+				src.line(schemaNode, "private static final Set<String> writePermissions         = new HashSet<>(",         formatJoined(write), ");");
+				src.line(schemaNode, "private static final Set<String> deletePermissions        = new HashSet<>(",        formatJoined(delete), ");");
+				src.line(schemaNode, "private static final Set<String> accessControlPermissions = new HashSet<>(", formatJoined(accessControl), ");");
 
 				src.line(schemaNode, "@Override");
 				src.begin(schemaNode, "protected boolean allowedBySchema(final org.structr.core.entity.Principal principal, final org.structr.common.Permission permission) {");
@@ -1320,10 +1320,10 @@ public class SchemaHelper {
 				src.line(schemaNode, "final String id = principal.getUuid();");
 
 				src.begin(schemaNode, "switch (permission.name()) {");
-				src.line(schemaNode, "case \"read\":          return readGrants.contains(id);");
-				src.line(schemaNode, "case \"write\":         return writeGrants.contains(id);");
-				src.line(schemaNode, "case \"delete\":        return deleteGrants.contains(id);");
-				src.line(schemaNode, "case \"accessControl\": return accessControlGrants.contains(id);");
+				src.line(schemaNode, "case \"read\":          return readPermissions.contains(id);");
+				src.line(schemaNode, "case \"write\":         return writePermissions.contains(id);");
+				src.line(schemaNode, "case \"delete\":        return deletePermissions.contains(id);");
+				src.line(schemaNode, "case \"accessControl\": return accessControlPermissions.contains(id);");
 				src.end();
 
 				src.line(schemaNode, "return super.allowedBySchema(principal, permission);");

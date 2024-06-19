@@ -722,7 +722,7 @@ StructrResourceAccess.prototype.setProperty = function(key, value, recursive, ca
 
 StructrResourceAccess.prototype.append = function() {
 	if (Structr.isModuleActive(_Security)) {
-		_ResourceAccessGrants.appendResourceAccessElement(this);
+		_ResourceAccessPermissions.appendResourceAccessElement(this);
 	}
 };
 

@@ -281,35 +281,35 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		// only necessary for non-admin users!
-		final List<ResourceAccess> grants = ResourceAccess.findGrants(securityContext, rawResourceSignature);
-		final Method method               = methods.get(request.getMethod());
+		final List<ResourceAccess> permissions = ResourceAccess.findPermissions(securityContext, rawResourceSignature);
+		final Method method                    = methods.get(request.getMethod());
 
-		// flatten grants
-		long combinedFlags = 0;
-		int grantsFound    = 0;
+		// flatten permissons
+		long combinedFlags   = 0;
+		int permissionsFound = 0;
 
-		if (grants != null) {
+		if (permissions != null) {
 
-			// combine allowed flags for grants user is allowed to see
-			for (final ResourceAccess grant : grants) {
+			// combine allowed flags for permissions user is allowed to see
+			for (final ResourceAccess permission : permissions) {
 
-				if (securityContext.isReadable(grant, false, false)) {
+				if (securityContext.isReadable(permission, false, false)) {
 
-					grantsFound++;
-					combinedFlags = combinedFlags | grant.getFlags();
+					permissionsFound++;
+					combinedFlags = combinedFlags | permission.getFlags();
 				}
 			}
 		}
 
-		// no grants => no access rights
-		if (grantsFound == 0) {
+		// no permissions => no access rights
+		if (permissionsFound == 0) {
 
 			final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
-			final String errorMessage = "Found no resource access grant for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
+			final String errorMessage = "Found no resource access permission for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
 			final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
 
 			logger.info(errorMessage);
-			RuntimeEventLog.resourceAccess("No grant", eventLogMap);
+			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 				"type", "RESOURCE_ACCESS",
@@ -420,7 +420,7 @@ public class UiAuthenticator implements Authenticator {
 
 		final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
 		final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
-		final String errorMessage = "Found " + grantsFound + " resource access grant" + (grantsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
+		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
 
 		logger.info(errorMessage);
 

@@ -1685,7 +1685,7 @@ let _Entities = {
 				}
 
 			} else if (Structr.isModuleActive(_Security)) {
-				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
+				_ResourceAccessPermissions.updateResourcesAccessRow(id, false);
 			}
 		});
 

@@ -384,15 +384,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (!missingPrincipals.isEmpty()) {
 
 				final String title = "Missing Principal(s)";
-				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>deployment</b>.<br>"
-						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
+				final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>deployment</b>.<br>"
+						+ "Because of these missing permissions/ownerships, <b>the functionality is not identical to the export you just imported</b>."
 						+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
 						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
-						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
-						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
+						+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
+						+ "\tBecause of these missing permissions/ownerships, the functionality is not identical to the export you just imported.\n\n"
 						+ "\t" + String.join("\n\t",  missingPrincipals)
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 						+ "###############################################################################"
@@ -403,15 +403,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (!ambiguousPrincipals.isEmpty()) {
 
 				final String title = "Ambiguous Principal(s)";
-				final String text = "For the following names, there are multiple candidates (User/Group) for grants or node ownership during <b>deployment</b>.<br>"
-						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>!"
+				final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>deployment</b>.<br>"
+						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
 						+ "<ul><li>" + String.join("</li><li>",  ambiguousPrincipals) + "</li></ul>"
 						+ "Consider clearing up such ambiguities in the database.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
-						+ "\tFor the following names, there are multiple candidates (User/Group) for grants or node ownership during deployment.\n"
-						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported!\n\n"
+						+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during deployment.\n"
+						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
 						+ "\t" + String.join("\n\t",  ambiguousPrincipals)
 						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 						+ "###############################################################################"
@@ -423,14 +423,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final String title = "Missing Schema file(s)";
 				final String text = "The following schema methods/functions require file(s) to be present in the tree-based schema export.<br>"
-						+ "Because those files are missing, the functionality will not be available after importing!<br>"
+						+ "Because those files are missing, the functionality will not be available after importing.<br>"
 						+ "The most common cause is that someone forgot to add these files to the repository."
 						+ "<ul><li>" + String.join("</li><li>",  missingSchemaFile) + "</li></ul>";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following schema methods/functions require file(s) to be present in the tree-based schema export.\n"
-						+ "\tBecause those files are missing, the functionality will not be available after importing!\n"
+						+ "\tBecause those files are missing, the functionality will not be available after importing.\n"
 						+ "\tThe most common cause is that someone forgot to add these files to the repository.\n\n"
 						+ "\t" + String.join("\n\t",  missingSchemaFile)
 						+ "\n###############################################################################"
@@ -602,7 +602,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
 
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Permissions");
 			exportResourceAccessGrants(grantsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting CORS Settings");
@@ -642,7 +642,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				setFileGroupRecursively(groupName, target);
 			}
 
-			// config import order is "users, grants, pages, components, templates"
+			// config import order is "users, permissions, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
 
 			logger.info("Export finished.");
@@ -1019,7 +1019,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
-		logger.info("Exporting resource access grants");
+		logger.info("Exporting resource access permissions");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
@@ -1053,11 +1053,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!unreachableGrants.isEmpty()) {
 
-			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility.\n\n  The following grants are inaccessible for any non-admin users:\n\n"
+			final String text = "Found configured but unreachable permission(s). The ability to use group/user rights to resource access permissions has been added to improve flexibility.\n\n  The following permissions are inaccessible for any non-admin users:\n\n"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
 					+ "\n  You can edit the visibility in the 'Security' area.\n";
 
-			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility. The following grants are inaccessible for any non-admin users:<br><br>"
+			final String htmlText = "The ability to use group/user rights to resource access permission has been added to improve flexibility. The following permissions are inaccessible for any non-admin users:<br><br>"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
 					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
 
@@ -1832,7 +1832,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(grantsMetadataFile)) {
 
 			logger.info("Reading {}", grantsMetadataFile);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access permissions");
 
 			importResourceAccessGrants(readConfigList(grantsMetadataFile));
 		}
@@ -1894,8 +1894,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						}
 
 						if (hasAnyNonAuthFlags && hasAnyAuthFlags) {
-							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two grants</u></b>.<br>");
-							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two permissions</u></b>.<br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two permissions**.\n");
 						}
 
 						entry.put("visibleToAuthenticatedUsers", hasAnyAuthFlags);
@@ -1915,7 +1915,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import resource access permission, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 
@@ -1925,14 +1925,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
 						+ "    Configuration was auto-updated using this simple heuristic:\n"
-						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
-						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+						+ "     * Permissions with public access were set to **visibleToPublicUsers: true**\n"
+						+ "     * Permissions with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to resource access permissions has been added to improve flexibility.";
 
 				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
-						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
-						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+						+ "&nbsp;- Permissions with public access were set to <code>visibleToPublicUsers: true</code><br>"
+						+ "&nbsp;- Permissions with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to resource access permissions has been added to improve flexibility.";
 
 				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
 				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
@@ -1972,7 +1972,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					try {
 						mailTpl.put("text", (Files.exists(tplFile)) ? new String(Files.readAllBytes(tplFile)) : null);
 					} catch (IOException ioe) {
-						logger.warn("Failed reading mail-tempalte file '{}'", filename);
+						logger.warn("Failed reading mail-template file '{}'", filename);
 					}
 				}
 			}

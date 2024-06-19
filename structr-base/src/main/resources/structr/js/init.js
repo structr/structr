@@ -1539,9 +1539,9 @@ let Structr = {
 					let createGrant = (grantData) => {
 
 						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
-						let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+						let flags     = _ResourceAccessPermissions.mask[maskIndex] || 0;
 
-						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, grantData);
+						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, grantData);
 
 						let resourceAccessKey = 'resource-access';
 
@@ -2820,18 +2820,18 @@ let UISettings = {
 						}
 					}
 				},
-				showVisibilityFlagsInGrantsTableKey: {
+				showVisibilityFlagsInPermissionsTableKey: {
 					text: 'Show visibility flags in Resource Access Grants table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {
 						if (Structr.isModuleActive(_Security)) {
-							_ResourceAccessGrants.refreshResourceAccesses();
+							_ResourceAccessPermissions.refreshResourceAccesses();
 						}
 					}
 				},
-				showBitmaskColumnInGrantsTableKey: {
+				showBitmaskColumnInPermissionsTableKey: {
 					text: 'Show bitmask column in Resource Access Grants table',
 					infoText: 'This is an advanced editing feature to quickly set the grant configuration',
 					storageKey: 'showBitmaskColumnInResourceAccessGrantsTable' + location.port,
@@ -2839,7 +2839,7 @@ let UISettings = {
 					type: 'checkbox',
 					onUpdate: () => {
 						if (Structr.isModuleActive(_Security)) {
-							_ResourceAccessGrants.refreshResourceAccesses();
+							_ResourceAccessPermissions.refreshResourceAccesses();
 						}
 					}
 				}

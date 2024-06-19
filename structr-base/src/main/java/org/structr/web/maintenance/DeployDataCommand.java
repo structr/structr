@@ -425,15 +425,15 @@ public class DeployDataCommand extends DeployCommand {
 		if (!missingPrincipals.isEmpty()) {
 
 			final String title = "Missing Principal(s)";
-			final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>data deployment</b>.<br>"
-					+ "Because of these missing grants/ownerships, <b>node access rights are not identical to the export you just imported</b>!"
+			final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>data deployment</b>.<br>"
+					+ "Because of these missing permissions/ownerships, <b>node access rights are not identical to the export you just imported</b>."
 					+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
 					+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-data-deploy.conf</a> and re-importing.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
-					+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
-					+ "\tBecause of these missing grants/ownerships, node access rights are not identical to the export you just imported!\n\n"
+					+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
+					+ "\tBecause of these missing permissions/ownerships, node access rights are not identical to the export you just imported.\n\n"
 					+ "\t" + String.join(", ",  missingPrincipals)
 					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 					+ "###############################################################################"
@@ -445,15 +445,15 @@ public class DeployDataCommand extends DeployCommand {
 		if (!ambiguousPrincipals.isEmpty()) {
 
 			final String title = "Ambiguous Principal(s)";
-			final String text = "For the following names, there are multiple candidates (User/Group) for grants or node ownership during <b>data deployment</b>.<br>"
-					+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>!"
+			final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>data deployment</b>.<br>"
+					+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
 					+ "<ul><li>" + String.join("</li><li>",  ambiguousPrincipals) + "</li></ul>"
 					+ "Consider clearing up such ambiguities in the database.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
-					+ "\tFor the following names, there are multiple candidates (User/Group) for grants or node ownership during data deployment.\n"
-					+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported!\n\n"
+					+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during data deployment.\n"
+					+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
 					+ "\t" + String.join("\n\t",  ambiguousPrincipals)
 					+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 					+ "###############################################################################"
@@ -493,7 +493,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			final String title = "Failed Relationship(s) for Type(s)";
 			final String text = "The following list shows the number of failed relationship imports per type.<br>"
-					+ "Make sure you are importing the data to the correct schema and that the <strong>source node</strong> and <strong>target node</strong> of the relationship(s) are in the database/export! (See the log for more details)<br>"
+					+ "Make sure you are importing the data to the correct schema and that the <strong>source node</strong> and <strong>target node</strong> of the relationship(s) are in the database/export. (See the log for more details)<br>"
 					+ infos;
 
 			publishWarningMessage(title, text);
@@ -566,8 +566,8 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (User.class.isAssignableFrom(type)) {
 
-				logger.warn("User type in export set! Type '{}' is a User type.\n\tIf, on import, the user who is running the import is present in the import data, this can lead to problems!", type.getSimpleName());
-				publishWarningMessage("User type in export set", "Type '" + type.getSimpleName() + "' is a User type.<br>If, on import, the user who is running the import is present in the import data, this can lead to problems!");
+				logger.warn("User type in export set! Type '{}' is a User type.\n\tIf, on import, the user who is running the import is present in the import data, this can lead to problems.", type.getSimpleName());
+				publishWarningMessage("User type in export set", "Type '" + type.getSimpleName() + "' is a User type.<br>If, on import, the user who is running the import is present in the import data, this can lead to problems.");
 			}
 
 			publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, "Exporting nodes for type " + type.getSimpleName());

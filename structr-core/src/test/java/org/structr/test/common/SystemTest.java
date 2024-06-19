@@ -1459,7 +1459,7 @@ public class SystemTest extends StructrTest {
 		// verify that no groups and no schema grants exist
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Schema grants should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
 
 			tx.success();
 
@@ -1504,7 +1504,7 @@ public class SystemTest extends StructrTest {
 		// verify that no groups and no schema grants exist
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Schema grants should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
 
 			tx.success();
 
