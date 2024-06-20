@@ -364,7 +364,7 @@ let _UsersAndGroups = {
 				let userModelObj = StructrModel.create(user);
 				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 			}
-		}, null, 'id,isUser,name,eMail,type,isAdmin', true);
+		}, null, 'id,isUser,name,eMail,type,isAdmin,blocked', true);
 
 		userPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
@@ -551,11 +551,12 @@ let _UsersAndGroups = {
 		});
 
 		let groupPager = _Pager.addPager(_Security.groupsPagerId, groupControls, true, 'Group', 'public', (groups) => {
+			console.log(groups);
 			for (let group of groups) {
 				let groupModelObj = StructrModel.create(group);
 				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
 			}
-		}, undefined, undefined, true);
+		}, undefined, 'id,isGroup,name,type,members,blocked,isAdmin', true);
 
 		groupPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());

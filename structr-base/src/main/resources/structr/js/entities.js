@@ -1490,7 +1490,7 @@ let _Entities = {
 	accessControlDialog: (entity, container, typeInfo) => {
 
 		let id = entity.id;
-		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin';
+		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin,blocked';
 
 		let handleGraphObject = (entity) => {
 
