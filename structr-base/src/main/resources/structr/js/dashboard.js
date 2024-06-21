@@ -1131,13 +1131,13 @@ let _Dashboard = {
 				`
 			}
 		},
-		'global-schema-methods': {
+		'user-defined-methods': {
 			init: () => {
-				_Dashboard.tabs['global-schema-methods'].appendGlobalSchemaMethods();
+				_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethods();
 			},
-			appendGlobalSchemaMethods: async () => {
+			appendUserDefinedMethods: async () => {
 
-				let container = document.querySelector('#dashboard-global-schema-methods');
+				let container = document.querySelector('#dashboard-user-defined-methods');
 				_Helpers.fastRemoveAllChildren(container);
 				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&${Structr.getRequestParameterName('sort')}=name`);
 
@@ -1154,9 +1154,9 @@ let _Dashboard = {
 						let maintenanceList = _Helpers.createSingleDOMElementFromHTML(`
 							<table class="props">
 								${data.result.map(method => `
-									<tr class="global-method">
+									<tr class="user-defined-method">
 										<td><span class="method-name">${method.name}</span></td>
-										<td><button id="run-${method.id}" class="action button">Run now</button></td>
+										<td><button id="run-${method.id}" class="action button">Open run dialog</button></td>
 									</tr>
 								`).join('')}
 							</table>
@@ -1539,7 +1539,7 @@ let _Dashboard = {
 					${_Dashboard.templates.tabContentAboutMe(config)}
 					${_Dashboard.templates.tabContentAboutStructr(config)}
 					${_Dashboard.tabs.deployment.templates.tabContent(config)}
-					${_Dashboard.templates.tabContentGlobalSchemaMethods(config)}
+					${_Dashboard.templates.tabContentUserDefinedMethods(config)}
 					${_Dashboard.templates.tabContentServerLog(config)}
 					${_Dashboard.templates.tabContentEventLog(config)}
 					${_Dashboard.templates.tabContentThreads(config)}
@@ -1561,7 +1561,7 @@ let _Dashboard = {
 					<a href="#dashboard:deployment">Deployment</a>
 				</li>
 				<li>
-					<a href="#dashboard:global-schema-methods">User-defined functions</a>
+					<a href="#dashboard:user-defined-methods">User-defined functions</a>
 				</li>
 				<li>
 					<a href="#dashboard:server-log">Server Log</a>
@@ -1644,6 +1644,21 @@ let _Dashboard = {
 						<td><div class="db-driver flex items-center">${config.databaseDriver}</div></td>
 					</tr>
 					<tr>
+						<td class="key">Runtime Info</td>
+						<td id="runtime-info">
+							<div class="grid gap-x-8" style="grid-template-columns: max-content max-content">
+								<div>Available Processors</div>
+								<div>${config.envInfo.dashboardInfo.runtimeInfo.availableProcessors}</div>
+								<div>Free Memory</div>
+								<div>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.freeMemory)}</div>
+								<div>Total Memory</div>
+								<div>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.totalMemory)}</div>
+								<div>Max Memory</div>
+								<div ${(config.envInfo.dashboardInfo.runtimeInfo.maxMemory < (8 * 1024*1024*1024)) ? 'data-comment="Maximum heap size is smaller than recommended, this can lead to problems with large databases! Please configure AT LEAST 8 GBs of heap memory using -Xmx8g." data-comment-config=\'{"customToggleIcon":"' + _Icons.iconWarningYellowFilled + '"}\'' : ''}>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.maxMemory)}</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
 						<td class="key">Scripting Debugger</td>
 						<td id="graal-vm-chrome-scripting-debugger"></td>
 					</tr>
@@ -1654,8 +1669,8 @@ let _Dashboard = {
 				</table>
 			</div>
 		`,
-		tabContentGlobalSchemaMethods: config => `
-			<div class="tab-content" id="dashboard-global-schema-methods">
+		tabContentUserDefinedMethods: config => `
+			<div class="tab-content" id="dashboard-user-defined-methods">
 
 			</div>
 		`,

@@ -2506,7 +2506,7 @@ let _Code = {
 					<input class="param-name" placeholder="Parameter name">
 					<span class="px-2">=</span>
 					<input class="param-value" placeholder="Parameter value">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
 				</div>
 			`);
 
