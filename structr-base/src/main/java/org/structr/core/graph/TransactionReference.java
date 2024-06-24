@@ -33,7 +33,6 @@ public class TransactionReference implements Transaction {
 
 	private Transaction tx     = null;
 	private int referenceCount = 0;
-	private boolean successful = false;
 
 	public TransactionReference(final Transaction tx) {
 		this.tx          = tx;
@@ -44,7 +43,7 @@ public class TransactionReference implements Transaction {
 	}
 
 	public boolean isSuccessful() {
-		return successful;
+		return tx.isSuccessful();
 	}
 
 	public void begin() {
@@ -58,19 +57,12 @@ public class TransactionReference implements Transaction {
 	// ----- interface Transaction -----
 	@Override
 	public void failure() {
-
-		if (tx != null) {
-			tx.failure();
-			successful = false;
-		}
+		tx.failure();
 	}
 
 	@Override
 	public void success() {
-		if (tx != null) {
-			tx.success();
-			successful = true;
-		}
+		tx.success();
 	}
 
 	@Override
@@ -83,16 +75,7 @@ public class TransactionReference implements Transaction {
 
 		// only finish transaction if we are at root level
 		if (--referenceCount == 0) {
-
-			if (tx != null) {
-
-				// fail transaction if no success() call was made
-				if (!successful) {
-					tx.failure();
-				}
-
-				tx.close();
-			}
+			tx.close();
 		}
 	}
 

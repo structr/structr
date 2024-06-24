@@ -59,6 +59,7 @@ public class ModificationQueue {
 	private final Set<Long> ids                                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
 	private boolean doUpateChangelogIfEnabled                                               = true;
+	private boolean transactionWasSuccessful                                                = false;
 	private CallbackCounter counter                                                         = null;
 	private boolean hasChanges                                                              = false;
 	private long changelogUpdateTime                                                        = 0L;
@@ -231,6 +232,7 @@ public class ModificationQueue {
 
 	public void clear() {
 
+		setTransactionWasSuccessful(false);
 		hasChanges = false;
 
 		// clear collections afterwards
@@ -642,5 +644,13 @@ public class ModificationQueue {
 		});
 
 		return state;
+	}
+
+	public boolean transactionWasSuccessful() {
+		return transactionWasSuccessful;
+	}
+
+	public void setTransactionWasSuccessful(final boolean transactionWasSuccessful) {
+		this.transactionWasSuccessful = transactionWasSuccessful;
 	}
 }

@@ -56,6 +56,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
+	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
+
 	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<Iterable<SchemaView>> schemaViews         = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<Iterable<SchemaView>> excludedViews       = new StartNodes<>("excludedViews", SchemaExcludedViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
@@ -230,7 +232,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		if (_isCachingEnabled != null && _isCachingEnabled) {
 
 			return true;
-
 		}
 
 		return false;
@@ -266,26 +267,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		boolean valid = super.isValid(errorBuffer);
 
-		// do not take into account for property validity - this will only be enforced in future versions
-		final String futureSchemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
-		final boolean futurePropertyNameValidity     = ValidationHelper.isValidStringMatchingRegex(getProperty(name), futureSchemaPropertyNamePattern);
-
-		if (!futurePropertyNameValidity) {
-
-			final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-			final String typeName           = (parent != null) ? parent.getName() : "[Unknown type]";
-			final String warningMessage     = "Property name \"" + typeName + "." + getProperty(name) + "\" doesn't match strict pattern " + futureSchemaPropertyNamePattern + " that will be enforced in future versions.";
-
-			logger.warn(warningMessage);
-
-			TransactionCommand.simpleBroadcastGenericMessage(
-					Map.of(
-							"type", "WARNING",
-							"title", "Warning",
-							"message", warningMessage
-					)
-			);
-		}
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaPropertyNamePattern, errorBuffer);
 
 		return valid;
 	}
@@ -299,7 +281,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
 		if (parent != null) {
 
-			// register property (so we have a chance to backup an existing builtin property)
+			// register property (so we have a chance to back up an existing builtin property)
 			final ConfigurationProvider conf = StructrApp.getConfiguration();
 			final Class type = conf.getNodeEntityClass(parent.getName());
 

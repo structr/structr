@@ -331,7 +331,7 @@ let _Helpers = {
 		}
 		return result;
 	},
-	formatBytes: (a, b= 2) => {
+	formatBytes: (a, b = 2) => {
 
 		const sizes = ["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"];
 

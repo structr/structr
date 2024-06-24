@@ -282,6 +282,9 @@
 	<symbol id="user-normal" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M6.750 6.000 A5.250 5.250 0 1 0 17.250 6.000 A5.250 5.250 0 1 0 6.750 6.000 Z"></path><path d="M2.25,23.25a9.75,9.75,0,0,1,19.5,0"></path>
 	</symbol>
+	<symbol id="user-blocked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M0.75 17.251a6.753 6.753 0 0 1 9.4 -6.208"></path><path d="M3.375 4.876a4.125 4.125 0 1 0 8.25 0 4.125 4.125 0 1 0 -8.25 0"></path><path d="M11.25 17.249a6 6 0 1 0 12 0 6 6 0 1 0 -12 0"></path><path d="m13.008 21.49 8.484 -8.484"></path>
+	</symbol>
 	<symbol id="user-group" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M3.375 7.875 A4.125 4.125 0 1 0 11.625 7.875 A4.125 4.125 0 1 0 3.375 7.875 Z"></path>
 		<path d="M.75,20.25a6.75,6.75,0,0,1,13.5,0"></path>

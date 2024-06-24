@@ -36,10 +36,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.schema.Schema;
 
 import java.io.IOException;
@@ -155,91 +153,100 @@ public abstract class StreamingWriter {
 		rootWriter.setPage(page);
 
 		rootWriter.beginDocument(baseUrl, view);
-		rootWriter.beginObject();
 
-		if (result != null) {
+		if (securityContext.returnRawResult()) {
 
-			rootWriter.name(resultKeyName);
+			root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
-			actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
+		} else {
 
-			rootWriter.flush();
-		}
+			rootWriter.beginObject();
 
-		if (includeMetadata) {
+			if (result != null) {
 
-			long t1         = System.nanoTime(); // time delta for serialization
-			int resultCount = -1;
-			int pageCount   = -1;
+				rootWriter.name(resultKeyName);
 
-			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+				actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
-				if (page != null) {
+				rootWriter.flush();
+			}
 
-					rootWriter.name("page").value(page);
+			if (includeMetadata) {
+
+				long t1 = System.nanoTime(); // time delta for serialization
+				int resultCount = -1;
+				int pageCount = -1;
+
+				if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+
+					if (page != null) {
+
+						rootWriter.name("page").value(page);
+					}
+
+					rootWriter.name("page_size").value(pageSize);
 				}
 
-				rootWriter.name("page_size").value(pageSize);
-			}
+				if (queryTime != null) {
+					rootWriter.name("query_time").value(queryTime);
+				}
 
-			if (queryTime != null) {
-				rootWriter.name("query_time").value(queryTime);
-			}
+				if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
 
-			if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
-
-				rootWriter.name("info").beginObject();
-				rootWriter.name("message").value("Result size limited");
-				rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
-				rootWriter.name("result_size").value(actualResultCount);
-				rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
-				rootWriter.endObject();
-			}
-
-			// in the future more conditions could be added to show different warnings
-			final boolean hasWarnings = (skippedDeletedObjects > 0);
-
-			if (hasWarnings) {
-
-				rootWriter.name("warnings").beginArray();
-
-				if (skippedDeletedObjects > 0) {
-					rootWriter.beginObject();
-					rootWriter.name("token").value("SKIPPED_OBJECTS");
-					rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
-					rootWriter.name("skipped").value(skippedDeletedObjects);
+					rootWriter.name("info").beginObject();
+					rootWriter.name("message").value("Result size limited");
+					rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
+					rootWriter.name("result_size").value(actualResultCount);
+					rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
 					rootWriter.endObject();
 				}
 
-				rootWriter.endArray();
+				// in the future more conditions could be added to show different warnings
+				final boolean hasWarnings = (skippedDeletedObjects > 0);
+
+				if (hasWarnings) {
+
+					rootWriter.name("warnings").beginArray();
+
+					if (skippedDeletedObjects > 0) {
+						rootWriter.beginObject();
+						rootWriter.name("token").value("SKIPPED_OBJECTS");
+						rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
+						rootWriter.name("skipped").value(skippedDeletedObjects);
+						rootWriter.endObject();
+					}
+
+					rootWriter.endArray();
+				}
+
+				// make output available immediately
+				rootWriter.flush();
+
+				try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
+
+					final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
+
+					resultCount = result.calculateTotalResultCount(watcher, countLimit);
+					pageCount = result.calculatePageCount(watcher, countLimit);
+				}
+
+				if (resultCount >= 0 && pageCount >= 0) {
+
+					rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
+					rootWriter.name("page_count").value(pageCount);
+					rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+
+				}
+
+				if (renderSerializationTime) {
+					rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+				}
 			}
 
-			// make output available immediately
-			rootWriter.flush();
-
-			try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
-
-				final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
-
-				resultCount = result.calculateTotalResultCount(watcher, countLimit);
-				pageCount   = result.calculatePageCount(watcher, countLimit);
-			}
-
-			if (resultCount >= 0 && pageCount >= 0) {
-
-				rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
-				rootWriter.name("page_count").value(pageCount);
-				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
-
-			}
-
-			if (renderSerializationTime) {
-				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
-			}
+			// finished
+			rootWriter.endObject();
 		}
 
-		// finished
-		rootWriter.endObject();
 		rootWriter.endDocument();
 
 		threadPool.shutdown();

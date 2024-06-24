@@ -44,6 +44,7 @@ public interface MaintenanceCommand {
 	final static String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
 	final static String COMMAND_SUBTYPE_END      = "END";
 	final static String COMMAND_SUBTYPE_WARNING  = "WARNING";
+	final static String COMMAND_SUBTYPE_INFO     = "INFO";
 
 	public void execute(Map<String, Object> attributes) throws FrameworkException;
 	public boolean requiresEnclosingTransaction();
@@ -98,6 +99,16 @@ public interface MaintenanceCommand {
 
 		final Map<String, Object> warningMsgData = new HashMap();
 		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_WARNING);
+		warningMsgData.put(COMMAND_TITLE_KEY,   title);
+		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
+
+		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData, Predicate.all());
+	}
+
+	default void publishInfoMessage (final String title, final String text) {
+
+		final Map<String, Object> warningMsgData = new HashMap();
+		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_INFO);
 		warningMsgData.put(COMMAND_TITLE_KEY,   title);
 		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
 

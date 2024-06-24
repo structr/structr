@@ -53,18 +53,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void clearCaches() {
-	}
-
-	@Override
-	public void removeNodeFromCache(final Identity id) {
-	}
-
-	@Override
-	public void removeRelationshipFromCache(final Identity id) {
-	}
-
-	@Override
 	public void cleanDatabase() {
 
 		nodes.clear();

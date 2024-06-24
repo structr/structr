@@ -128,28 +128,33 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		try {
 
+			boolean hasUser;
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				securityContext = auth.initializeAndExamineRequest(request, response);
+				hasUser         = securityContext.getUser(false) != null;
 				tx.success();
 			}
 
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
-			if (Settings.ProxyServletMode.getValue().equals("protected") && securityContext.getUser(false) == null) {
+			if (Settings.ProxyServletMode.getValue().equals("protected") && !hasUser) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				logger.error("Authorization required in 'protected' mode");
 				return;
 			}
 
 			final String address = request.getParameter("url");
-
 			if (StringUtils.isBlank(address)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.error("Empty request parameter 'url'");
-                return;
-            }
+
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				logger.error("Empty request parameter 'url'");
+
+				return;
+			}
 
 			final URI url  = URI.create(address);
 

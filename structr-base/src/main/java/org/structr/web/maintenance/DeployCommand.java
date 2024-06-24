@@ -94,7 +94,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE = "parent";
 	private final static String DEPLOYMENT_VERSION_KEY                                  = "structr-version";
-	private final static String DEPLOYMENT_DATE_KEY                                     = "deployment-date";
+	private final static String DEPLOYMENT_UUID_FORMAT_KEY                              = "uuid-format";
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -348,25 +348,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Map<String, String> deploymentConf = readDeploymentConfigurationFile(deploymentConfFile);
 			final boolean relativeVisibility         = isDOMNodeVisibilityRelativeToParent(deploymentConf);
 
-			// version check (don't import deployment exports from newer versions!)
-			if (!acceptDeploymentExportVersion(deploymentConf)) {
-
-				final String currentVersion = VersionHelper.getFullVersionInfo();
-				final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
-
-				final String title = "Incompatible Deployment Import";
-				final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
-						+ "which is not supported because of incompatible changes in the deployment format.\n"
-						+ "Current version: " + currentVersion + "\n"
-						+ "Export version:  " + exportVersion;
-				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
-						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
-						+ "<tr><td class=\"bold pr-2\">Current version:</td><td>" + currentVersion + "</td></tr>"
-						+ "<tr><td class=\"bold pr-2\">Export version:</td><td>" + exportVersion + "</td></tr>"
-						+ "</table>";
-
-				throw new ImportPreconditionFailedException(title, text, htmlText);
-			}
+			checkDeploymentExportVersionIsCompatible(deploymentConf);
+			checkDeploymentExportUUIDFormatIsCompatible(deploymentConf);
 
 			final String message = "Read deployment config file '" + deploymentConfFile + "': " + deploymentConf.size() + " entries.";
 			logger.info(message);
@@ -488,10 +471,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			setCommandStatusCode(422);
 			setCustomCommandResult(ipfe.getTitle() + ": " + ipfe.getMessage());
 
+		} catch (FrameworkException fex) {
+
+			final String title          = "Fatal Error";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex.toString();
+
+			publishWarningMessage(title, warningMessage);
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(title + ": " + warningMessage);
+
+			throw fex;
+
 		} catch (Throwable t) {
 
 			final String title          = "Fatal Error";
-			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.";
 
 			publishWarningMessage(title, warningMessage);
 
@@ -502,7 +497,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} finally {
 
-			// log collected warnings at the end so they dont get lost
+			// log collected warnings at the end, so they do not get lost
 			for (final String logText : deferredLogTexts) {
 				logger.info(logText);
 			}
@@ -2517,6 +2512,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (ImportFailureException fex) {
 
 				logger.warn("Unable to import schema: {}", fex.getMessage());
+				if (fex.getCause() instanceof FrameworkException) {
+					logger.warn("Caused by: {}", fex.getCause().toString());
+				}
 				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
 			} catch (Throwable t) {
@@ -2570,8 +2568,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final PropertiesConfiguration config = new PropertiesConfiguration();
 
 			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
-			config.setProperty(DEPLOYMENT_DATE_KEY,                            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
+			config.setProperty(DEPLOYMENT_UUID_FORMAT_KEY,                     Settings.UUIDv4AllowedFormats.getValue());
 
 			config.save(confFile.toFile());
 
@@ -2678,12 +2676,86 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
-	private boolean acceptDeploymentExportVersion(final Map<String, String> deploymentConfig) {
+	private void checkDeploymentExportVersionIsCompatible(final Map<String, String> deploymentConf) throws ImportPreconditionFailedException {
+
+		// version check (don't import deployment exports from newer versions!)
+		if (!acceptDeploymentExportVersion(deploymentConf)) {
+
+			final String currentVersion = VersionHelper.getFullVersionInfo();
+			final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
+
+			final String title = "Incompatible Deployment Import";
+			final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
+					+ "which is not supported because of incompatible changes in the deployment format.\n"
+					+ "Current version: " + currentVersion + "\n"
+					+ "Export version:  " + exportVersion;
+
+			final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
+					+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
+					+ "<tr><td class=\"font-bold pr-2\">Current version:</td><td>" + currentVersion + "</td></tr>"
+					+ "<tr><td class=\"font-bold pr-2\">Export version:</td><td>" + exportVersion + "</td></tr>"
+					+ "</table>";
+
+			throw new ImportPreconditionFailedException(title, text, htmlText);
+		}
+	}
+
+	private boolean acceptDeploymentExportVersion(final Map<String, String> deploymentConf) {
 
 		final int currentVersion = parseVersionString(VersionHelper.getFullVersionInfo());
-		final int exportVersion  = parseVersionString(deploymentConfig.get(DEPLOYMENT_VERSION_KEY));
+		final int exportVersion  = parseVersionString(deploymentConf.get(DEPLOYMENT_VERSION_KEY));
 
 		return currentVersion >= exportVersion;
+	}
+
+	private void checkDeploymentExportUUIDFormatIsCompatible(final Map<String, String> deploymentConfig) throws ImportPreconditionFailedException {
+
+		final String uuidFormatInDeployment = deploymentConfig.get(DEPLOYMENT_UUID_FORMAT_KEY);
+		final String ourUUIDFormat          = Settings.UUIDv4AllowedFormats.getValue();
+
+		// allow importing older exports without the entry
+		if (uuidFormatInDeployment == null) {
+
+			final String message     = "Deployment configuration does not contain information about the UUIDv4 format. If you know the deployment data to be originating from an identically configured instance you can safely ignore this message. With the next export, this setting will be written to the export folder. " +
+					"Otherwise, make sure that your current configuration '" + Settings.UUIDv4AllowedFormats.getKey() + "=" + ourUUIDFormat + "' is compatible with the UUIDv4 format of the export data! " +
+					"Continuing with import - if there are any problems, check the UUIDv4 format setting against the data in the export and configure this instance accordingly. If the formats differ, it might be advisable to start with a fresh database.";
+			final String htmlMessage = "Deployment configuration does not contain information about the UUIDv4 format. If you know the deployment data to be originating from an identically configured instance you can safely ignore this message. With the next export, this setting will be written to the export folder.<br><br>" +
+					"Otherwise, make sure that your current configuration '<b>" + Settings.UUIDv4AllowedFormats.getKey() + "=" + ourUUIDFormat + "</b>' is compatible with the UUIDv4 format of the export data!<br><br>" +
+					"Continuing with import - if there are any problems, check the UUIDv4 format setting against the data in the export and configure this instance accordingly. If the formats differ, it might be advisable to start with a fresh database.";
+
+			logger.info(message);
+
+			publishInfoMessage("UUIDv4 format of export unknown", htmlMessage);
+
+		} else if (!ourUUIDFormat.equals(uuidFormatInDeployment)) {
+
+			if (Settings.POSSIBLE_UUID_V4_FORMATS.both.toString().equals(ourUUIDFormat)) {
+
+				final String message     = "The export data is configured as having UUIDv4 format '" + uuidFormatInDeployment + "'. This instance is configured to accept both supported kinds of UUIDv4 formats. This should only ever be a temporary state to consolidate nodes to a single UUIDv4 format. Keeping this configuration permanently is neither encouraged nor supported.";
+				final String htmlMessage = "The export data is configured as having UUIDv4 format '<b>" + uuidFormatInDeployment + "</b>'. This instance is configured to accept <b>both</b> supported kinds of UUIDv4 formats.<br><br>This should only ever be a temporary state to consolidate nodes to a single UUIDv4 format. Keeping this configuration permanently is neither encouraged nor supported.";
+
+				// the current instance can handle both - allow import but complain
+				logger.warn(message);
+
+				publishWarningMessage("UUIDv4 format setting '" + ourUUIDFormat + "' active", htmlMessage);
+
+			} else {
+
+				final String title = "Incompatible Deployment Import";
+				final String text = "The deployment export data currently being imported uses a different UUIDv4 format than this instance has configured. This makes the data incompatible. Please re-configure the instance to allow for the UUIDv4 format in the export.\n"
+						+ "If there is already data in this instance, the UUIDv4 format of those nodes should be updated to reflect the export data (or vice versa)."
+						+ "Export UUIDv4 format:  " + uuidFormatInDeployment + "\n"
+						+ "Configured UUIDv4 format: " + ourUUIDFormat;
+
+				final String htmlText = "The deployment export data currently being imported uses a different UUIDv4 format than this instance has configured. This makes the data incompatible. Please re-configure the instance to allow for the UUIDv4 format in the export.<br><br>"
+						+ "If there is already data in this instance, the UUIDv4 format of those nodes should be updated to reflect the export data (or vice versa).<br><br><table>"
+						+ "<tr><td class=\"font-bold pr-2\">Export UUIDv4 format:</td><td>" + uuidFormatInDeployment + "</td></tr>"
+						+ "<tr><td class=\"font-bold pr-2\">Configured UUIDv4 format:</td><td>" + ourUUIDFormat + "</td></tr>"
+						+ "</table>";
+
+				throw new ImportPreconditionFailedException(title, text, htmlText);
+			}
+		}
 	}
 
 	private int parseVersionString(final String source) {

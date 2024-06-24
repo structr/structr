@@ -65,6 +65,9 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	boolean isPrivate();
 	JsonMethod setIsPrivate(final boolean isPrivate);
 
+	boolean returnRawResult();
+	JsonMethod setReturnRawResult(final boolean returnRawResult);
+
 	List<String> getExceptions();
 	JsonMethod addException(final String exception);
 

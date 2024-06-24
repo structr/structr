@@ -20,35 +20,17 @@ package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.common.AccessMode;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.attribute.Name;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
-import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
-
 import static org.hamcrest.Matchers.*;
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -144,4 +126,56 @@ public class RestScriptingTest extends StructrRestTestBase {
 
 	}
 
+	@Test
+	public void testRollbackFunctionWithCustomErrorResult() {
+
+		// test setup, create a supernode with 10000 relationships
+		try (final Tx tx = app.tx()) {
+
+			// create test group
+			JsonSchema schema       = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("API");
+			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); return { errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } } }");
+
+			method.setIsStatic(true);
+			method.setReturnRawResult(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check that the method call has NOT created any groups
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.body("result", hasSize(0))
+			.body("result_count", equalTo(0))
+			.body("page_count", equalTo(0))
+			.statusCode(200)
+			.when()
+			.get("/Group");
+
+		// check returned object (no "result" container)
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.body("errorCode", equalTo(42))
+			.body("obj1.key1", equalTo("value1"))
+			.body("obj1.key2", equalTo(22))
+			.body("obj1.list[0]", equalTo(1))
+			.body("obj1.list[1]", equalTo(2))
+			.body("obj1.list[2]", equalTo(3))
+			.statusCode(200)
+			.when()
+			.post("/API/doTest");
+	}
 }

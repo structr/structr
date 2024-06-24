@@ -19,6 +19,7 @@
 package org.structr.memory;
 
 import org.structr.api.NotInTransactionException;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -72,6 +73,16 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	@Override
 	public RelationshipType getType() {
 		return relType;
+	}
+
+	@Override
+	public Direction getDirectionForNode(final Node node) {
+
+		if (sourceNode.getId() == node.getId().getId()) {
+			return Direction.OUTGOING;
+		}
+
+		return Direction.INCOMING;
 	}
 
 	public MemoryIdentity getSourceNodeIdentity() {

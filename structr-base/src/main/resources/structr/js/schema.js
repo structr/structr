@@ -1996,12 +1996,12 @@ let _Schema = {
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.properties.getDataFromTable(gridBody, entity, doValidate);
+					return _Schema.properties.getDataFromGrid(gridBody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (gridBody, entity, doValidate = true) => {
+		getDataFromGrid: (gridBody, entity, doValidate = true) => {
 
 			let name = 'Properties';
 			let data = {
@@ -2052,7 +2052,7 @@ let _Schema = {
 		},
 		bulkSave: (container, tbody, entity, overrides, optionalAfterSaveCallback) => {
 
-			let { allow, counts, data } = _Schema.properties.getDataFromTable(tbody, entity);
+			let { allow, counts, data } = _Schema.properties.getDataFromGrid(tbody, entity);
 
 			if (allow) {
 
@@ -3086,7 +3086,7 @@ let _Schema = {
 		},
 		bulkSave: (el, tbody, entity, optionalAfterSaveCallback) => {
 
-			let { data, allow, counts } = _Schema.views.getDataFromTable(tbody, entity);
+			let { data, allow, counts } = _Schema.views.getDataFromGrid(tbody, entity);
 
 			if (allow) {
 
@@ -3346,7 +3346,6 @@ let _Schema = {
 			}
 
 			let viewPropertiesSelect = gridRow.querySelector('.view.property-attrs');
-			console.log(viewPropertiesSelect.selectedOptions);
 			if ($(viewPropertiesSelect).sortedValues().length === 0) {
 
 				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
@@ -3400,6 +3399,8 @@ let _Schema = {
 
 			_Schema.methods.methodsData = {};
 
+			let availableLifecycleMethods = LifecycleMethods.getAvailableLifecycleMethods(entity);
+
 			let methodsGridConfig = {
 				class: 'actions schema-props grid',
 				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((entity) ? '[ isstatic ] 2rem ' : '') + '[ actions ] 6rem',
@@ -3408,7 +3409,7 @@ let _Schema = {
 					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
 					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				],
-				buttons: ((entity) ? _Schema.methods.templates.addMethodsDropdown() : _Schema.methods.templates.addMethodDropdown()) + '<div class="flex-grow flex"></div>'
+				buttons: _Schema.methods.templates.addMethodsDropdown({entity, availableLifecycleMethods}) + '<div class="flex-grow flex"></div>'
 			};
 
 			if (!entity) {
@@ -3638,9 +3639,10 @@ let _Schema = {
 
 				addMethodButton.addEventListener('click', () => {
 
-					let prefix           = addMethodButton.dataset['prefix'] || '';
+					let name             = addMethodButton.dataset['name'] ?? ''
+					let isPrefix         = addMethodButton.dataset['isPrefix'] === 'true';
 					let baseMethodConfig = {
-						name: _Schema.methods.getFirstFreeMethodName(prefix),
+						name: isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name,
 						id: 'new' + (addedMethodsCounter++)
 					};
 
@@ -3695,7 +3697,7 @@ let _Schema = {
 				}
 				_Helpers.fastRemoveElement(gridRow);
 
-				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'));
+				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
 
 				_Editors.nukeEditorsById(method.id);
 			});
@@ -3911,33 +3913,16 @@ let _Schema = {
 							<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
 							</a>
-							<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onCreate
-							</a>
-							<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterCreate
-							</a>
-							<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onSave
-							</a>
-							<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
-							</a>
-							<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
-							</a>
-							<a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
-							</a>
+							${config.availableLifecycleMethods.map(m => _Schema.methods.templates.methodsDropdownButton(m)).join('')}
 						</div>
 					</div>
 				</div>
 			`,
-			addMethodDropdown: config => `
-				<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
-				</button>
-			`,
+			methodsDropdownButton: (config) => `
+				<a data-name="${config.name}" data-is-prefix="${config.isPrefix}" class="add-method-button inline-flex items-center justify-between hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="${_Helpers.escapeForHtmlAttributes(config.comment)}">
+					<span class="inline-flex items-center">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add ${config.name}</span>
+				</a>
+			`
 		}
 	},
 	schemaGrants: {
@@ -4228,8 +4213,12 @@ let _Schema = {
 	activateSnapshotsDialog: () => {
 
 		let snapshotsContainer = document.querySelector('#snapshots');
+		let dropdownContainer  = snapshotsContainer.closest('.dropdown-menu-container');
 
-		let refresh = () => {
+		let createSnapshotButton             = dropdownContainer.querySelector('#create-snapshot');
+		let createSnapshotFromSelectedButton = dropdownContainer.querySelector('#create-snapshot-selected-nodes');
+
+		let refreshAvailableSnapshots = () => {
 
 			_Helpers.fastRemoveAllChildren(snapshotsContainer);
 
@@ -4239,16 +4228,7 @@ let _Schema = {
 
 					for (let snapshotName of data.snapshots) {
 
-						let tr = _Helpers.createSingleDOMElementFromHTML(`
-							<div class="flex items-center justify-between p-2">
-								<div class="snapshot-link name"><a href="#">${snapshotName}</a></div>
-								<div>
-									<button class="restore-snapshot hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
-									<button class="add-snapshot     hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
-									<button class="delete-snapshot  hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
-								</div>
-							</div>
-						`);
+						let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.snapshotEntry({ snapshotName }));
 
 						snapshotsContainer.appendChild(tr);
 
@@ -4277,33 +4257,64 @@ let _Schema = {
 							_Schema.performSnapshotAction('add', snapshotName);
 						});
 						tr.querySelector('.delete-snapshot').addEventListener('click', () => {
-							Command.snapshots('delete', snapshotName, null, refresh);
+							Command.snapshots('delete', snapshotName, null, refreshAvailableSnapshots);
 						});
 					}
 				}
 			});
 		};
 
-		document.querySelector('#create-snapshot').addEventListener('click', () => {
+		let refreshUi = () => {
+
+			let hasSelectedNodes = (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length);
+
+			createSnapshotFromSelectedButton.classList.toggle('disabled', !hasSelectedNodes)
+			createSnapshotFromSelectedButton.disabled = !hasSelectedNodes;
+
+			let text = (hasSelectedNodes ? _Schema.ui.selectedNodes.length : 'from');
+
+			createSnapshotFromSelectedButton.querySelector('.context').textContent = text;
+		};
+
+		dropdownContainer.addEventListener(Structr.dropdownOpenEventName, () => {
+			refreshAvailableSnapshots();
+
+			refreshUi();
+		});
+
+		createSnapshotButton.addEventListener('click', () => {
 
 			let suffix = document.querySelector('#snapshot-suffix').value;
 			let types  = [];
 
-			if (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length) {
+			Command.snapshots('export', suffix, types, (data) => {
 
-				for (let selectedNode of _Schema.ui.selectedNodes) {
-					types.push(selectedNode.name);
+				let status = data[0].status;
+				if (status !== 'success') {
+					new ErrorMessage().text('Snapshot creation failed').show();
 				}
 
-				for (let el of _Schema.ui.canvas[0].querySelectorAll('.label.rel-type')) {
+				refreshAvailableSnapshots();
+			});
+		});
 
-					let sourceType = el.children[0].dataset['sourceType'];
-					let targetType = el.children[0].dataset['targetType'];
+		createSnapshotFromSelectedButton.addEventListener('click', () => {
 
-					// include schema relationship if both source and target type are selected
-					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
-						types.push(el.children[0].dataset['name']);
-					}
+			let suffix = document.querySelector('#snapshot-suffix').value;
+			let types  = [];
+
+			for (let selectedNode of _Schema.ui.selectedNodes) {
+				types.push(selectedNode.name);
+			}
+
+			for (let el of _Schema.ui.canvas[0].querySelectorAll('.label.rel-type')) {
+
+				let sourceType = el.children[0].dataset['sourceType'];
+				let targetType = el.children[0].dataset['targetType'];
+
+				// include schema relationship if both source and target type are selected
+				if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
+					types.push(el.children[0].dataset['name']);
 				}
 			}
 
@@ -4314,12 +4325,12 @@ let _Schema = {
 					new ErrorMessage().text('Snapshot creation failed').show();
 				}
 
-				refresh();
+				refreshAvailableSnapshots();
 			});
 		});
 
-		document.querySelector('#refresh-snapshots').addEventListener('click', refresh);
-		refresh();
+		document.querySelector('#refresh-snapshots').addEventListener('click', refreshAvailableSnapshots);
+		refreshAvailableSnapshots();
 	},
 	performSnapshotAction: (action, snapshot) => {
 
@@ -5570,8 +5581,9 @@ let _Schema = {
 							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
 
 							<div class="row">
-								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
-								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
+								<input id="snapshot-suffix" class="mr-2" type="text" name="suffix" placeholder="Enter a suffix" length="20">
+								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-2">Create snapshot</button>
+								<button id="create-snapshot-selected-nodes" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">Create snapshot (<span class="context">from</span> selected nodes)</button>
 							</div>
 
 							<div class="heading-row">
@@ -5647,6 +5659,18 @@ let _Schema = {
 			</div>
 
 			<div id="zoom-slider" class="mr-8"></div>
+		`,
+		snapshotEntry: config => `
+			<div class="flex items-center justify-between p-2">
+				<div class="snapshot-link name">
+					<a href="#">${config.snapshotName}</a>
+				</div>
+				<div>
+					<button class="restore-snapshot hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
+					<button class="add-snapshot     hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
+					<button class="delete-snapshot  hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
+				</div>
+			</div>
 		`,
 		typeBasicTab: config => `
 			<div class="schema-details pl-2">

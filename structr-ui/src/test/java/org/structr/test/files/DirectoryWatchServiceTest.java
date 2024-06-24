@@ -626,6 +626,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			.when()
 				.post("/Image");
 
+		try { Thread.sleep(5000); } catch (Throwable t) {}
 
 		try (final Tx tx = app.tx()) {
 

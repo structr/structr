@@ -258,13 +258,15 @@ public class JWTHelper {
 
 		} else {
 
+			final String adminClaimKey     = Settings.JWKSAdminClaimKey.getValue("");
+			final String adminClaimValue   = Settings.JWKSAdminClaimValue.getValue("");
 			final String groupReferenceKey = Settings.JWKSGroupClaimKey.getValue("");
 			final String objectNameKey     = Settings.JWKSObjectNameClaimKey.getValue("");
 			final String objectIdKey       = Settings.JWKSObjectIdClaimKey.getValue("");
 
 			if (StringUtils.isEmpty(objectIdKey)) {
 
-				logger.warn("Invalid JWKS configuration: missing value for {} which is used to identify the temporary principal for m2m requests authenticated with JWKS.", Settings.JWKSObjectIdClaimKey);
+				logger.warn("Invalid JWKS configuration: missing value for {} which is used to identify the temporary principal for m2m requests authenticated with JWKS.", Settings.JWKSObjectIdClaimKey.getKey());
 
 			} else {
 
@@ -273,7 +275,8 @@ public class JWTHelper {
 
 					final String id                 = claims.get(objectIdKey).asString();
 					final List<String> referenceIds = new LinkedList<>();
-					String name = id;
+					boolean isAdmin                 = false;
+					String name                     = id;
 
 					// group reference is optional
 					if (claims.containsKey(groupReferenceKey)) {
@@ -293,17 +296,52 @@ public class JWTHelper {
 						}
 					}
 
+					// explicit admin setting?
+					if (claims.containsKey(adminClaimKey)) {
+
+						if (StringUtils.isBlank(adminClaimValue)) {
+
+							logger.warn("Invalid JWKS configuration: missing configuration value for {} while {} is configured.", Settings.JWKSAdminClaimValue.getKey(), Settings.JWKSAdminClaimKey.getKey());
+
+						} else {
+
+							final Set<String> adminClaims = new LinkedHashSet<>();
+							final Claim claim             = claims.get(adminClaimKey);
+							final List<String> values     = claim.asList(String.class);
+
+							if (values != null) {
+
+								// if values is non-null, the claim contained a list of strings
+								adminClaims.addAll(values);
+
+							} else {
+
+								// otherwise it was a single string
+								adminClaims.add(claim.asString());
+							}
+
+							if (adminClaims.contains(adminClaimValue)) {
+
+								isAdmin = true;
+							}
+						}
+
+					} else {
+
+						logger.warn("Invalid JWKS configuration: JWKS claims response contains no value for {}, configured in {}, which is needed to set admin privileges." , adminClaimKey, Settings.JWKSAdminClaimKey.getKey());
+					}
+
 					// name is optional
 					if (claims.containsKey(objectNameKey)) {
 
 						name = claims.get(objectNameKey).asString();
 					}
 
-					user = new ServicePrincipal(id, name, referenceIds);
+					user = new ServicePrincipal(id, name, referenceIds, isAdmin);
 
 				} else {
 
-					logger.warn("Invalid JWKS configuration: JWKS claims response contains no value for {} which is needed to identify the principal. Please set the correct key in {}.", objectIdKey, Settings.JWKSObjectIdClaimKey);
+					logger.warn("Invalid JWKS configuration: JWKS claims response contains no value for {} which is needed to identify the principal. Please set the correct key in {}.", objectIdKey, Settings.JWKSObjectIdClaimKey.getKey());
 				}
 			}
 		}

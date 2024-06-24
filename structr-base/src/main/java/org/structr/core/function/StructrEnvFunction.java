@@ -29,6 +29,8 @@ import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
@@ -117,6 +119,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 		final GraphObjectMap dashboardInfo  = new GraphObjectMap();
 		final GraphObjectMap configFileInfo = new GraphObjectMap();
+		final GraphObjectMap runtimeInfo    = new GraphObjectMap();
 
 		final PropertiesConfiguration conf = Settings.getDefaultPropertiesConfiguration();
 		configFileInfo.setProperty(new StringProperty("actualPermissions"),    Settings.getActualConfigurationFilePermissionsAsString(conf));
@@ -124,6 +127,15 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		configFileInfo.setProperty(new BooleanProperty("permissionsOk"), Settings.checkConfigurationFilePermissions(conf, false));
 
 		dashboardInfo.setProperty(new GenericProperty("configFileInfo"), configFileInfo);
+
+		final Runtime runtime = Runtime.getRuntime();
+
+		runtimeInfo.setProperty(new LongProperty("maxMemory"), runtime.maxMemory());
+		runtimeInfo.setProperty(new LongProperty("freeMemory"), runtime.freeMemory());
+		runtimeInfo.setProperty(new LongProperty("totalMemory"), runtime.totalMemory());
+		runtimeInfo.setProperty(new IntProperty("availableProcessors"), runtime.availableProcessors());
+
+		dashboardInfo.setProperty(new GenericProperty("runtimeInfo"), runtimeInfo);
 
 		return dashboardInfo;
 	}

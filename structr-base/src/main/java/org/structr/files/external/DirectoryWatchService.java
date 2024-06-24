@@ -573,7 +573,9 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					tx.success();
 
-				} catch (FrameworkException fex) {}
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
 
 				// wait for the transaction in a different thread to finish
 				try { Thread.sleep(1000); } catch (InterruptedException ex) {}
@@ -607,12 +609,15 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 									tx.success();
 
-								} catch (FrameworkException fex) {}
+								} catch (FrameworkException fex) {
+									fex.printStackTrace();
+								}
 
 							}
 
 						} catch (IOException ex) {
 
+							ex.printStackTrace();
 							logger.warn("Unable to mount {}: {}", path, ex.getMessage());
 						}
 

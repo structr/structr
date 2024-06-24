@@ -39,6 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 
@@ -203,6 +204,7 @@ public class Actions {
 	}
 
 	public static void clearCache() {
+		FunctionProperty.clearCache();
 		Methods.clearMethodCache();
 		methodCache.clear();
 	}

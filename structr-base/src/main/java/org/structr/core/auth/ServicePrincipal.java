@@ -48,13 +48,15 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	private SecurityContext securityContext = null;
 	private List<String> jwksReferenceIds   = null;
 	private List<Group> groups              = null;
+	private boolean isAdmin                 = false;
 
-	public ServicePrincipal(final String id, final String name, final List<String> jwksReferenceIds) {
+	public ServicePrincipal(final String id, final String name, final List<String> jwksReferenceIds, final boolean isAdmin) {
 
 		data.put("id",   id);
 		data.put("name", name);
 
 		this.jwksReferenceIds = jwksReferenceIds;
+		this.isAdmin          = isAdmin;
 	}
 
 	@Override
@@ -157,7 +159,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public boolean isAdmin() {
-		return recursivelyCheckForAdminPermissions(getParentsPrivileged());
+		return isAdmin || recursivelyCheckForAdminPermissions(getParentsPrivileged());
 	}
 
 	@Override
@@ -167,7 +169,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
-		return false;
+		return true;
 	}
 
 	@Override

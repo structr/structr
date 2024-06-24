@@ -51,13 +51,15 @@ let _Icons = {
 	iconDOMCommentElement:    'dom-comment',
 	iconDOMTreeActiveElement: 'dom-active-element',
 
-	iconSecurityRegularUser: 'user-normal',
-	iconSecurityAdminUser:   'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
-	iconSecurityLDAPUser:    'user-ldap',
-	iconSecurityGroup:       'user-group',
-	iconSecurityLDAPGroup:   'user-group-ldap',
-	iconGroupAdd:            'group-add',
-	iconUserAdd:             'user-add',
+	iconSecurityRegularUser:        'user-normal',
+	iconSecurityBlockedRegularUser: 'user-blocked',
+	iconSecurityAdminUser:          'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
+	iconSecurityBlockedAdminUser:   'user-blocked',	// possibly 'user-admin-blocked' but color-change to red is preferred at the moment
+	iconSecurityLDAPUser:           'user-ldap',
+	iconSecurityGroup:              'user-group',
+	iconSecurityLDAPGroup:          'user-group-ldap',
+	iconGroupAdd:                   'group-add',
+	iconUserAdd:                    'user-add',
 
 	iconFilesStack:           'file-stack',
 	iconCreateFile:           'file_add',
@@ -357,9 +359,13 @@ let _Icons = {
 	},
 	getIconForPrincipal: (principal) => {
 
+		// admin group
+
 		if (principal.isGroup) {
 
-			if (principal.type === 'LDAPGroup') {
+			if (principal.isAdmin) {
+				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+			} else if (principal.type === 'LDAPGroup') {
 				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPGroup, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
 			} else {
 				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'mr-2']);
@@ -368,29 +374,26 @@ let _Icons = {
 		} else {
 
 			if (principal.isAdmin) {
-				return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+
+				if (principal.blocked) {
+					return _Icons.getSvgIcon(_Icons.iconSecurityBlockedAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+				} else {
+					return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+				}
+
 			} else if (principal.type === 'LDAPUser') {
+
 				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPUser, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
+
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+
+				if (principal.blocked) {
+					return _Icons.getSvgIcon(_Icons.iconSecurityBlockedRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+				} else {
+					return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+				}
 			}
 		}
-	},
-	isSchemaMethodALifecycleMethod: (method) => {
-
-		let lifecycleMethodPrefixes = [
-			'onCreate',
-			'afterCreate',
-			'onSave',
-			'afterSave',
-			'onDelete',
-			//'afterDelete',  // this is actually "onDelete" currently, thus no access to $.this in that method
-			'onStructrLogin',
-			'onStructrLogout',
-			'onUpload'
-		];
-
-		return lifecycleMethodPrefixes.some(prefix => method.name.startsWith(prefix));
 	},
 	getIconForSchemaNodeType: (entity) => {
 
@@ -412,9 +415,12 @@ let _Icons = {
 						additionalClasses.push('icon-blue');
 
 						if (entity.isStatic) {
+
 							icon = _Icons.iconSchemaNodeStaticMethod;
+
 						} else {
-							let isLifeCycleMethod = _Icons.isSchemaMethodALifecycleMethod(entity);
+
+							let isLifeCycleMethod = LifecycleMethods.isLifecycleMethod(entity);
 							if (isLifeCycleMethod) {
 								icon = _Icons.iconSchemaNodeLifecycleMethod;
 							} else {

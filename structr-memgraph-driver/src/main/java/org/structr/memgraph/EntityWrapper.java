@@ -26,7 +26,6 @@ import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.util.Cachable;
 import org.structr.api.util.ChangeAwareMap;
 
 import java.lang.reflect.Array;
@@ -34,7 +33,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 
-abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
+abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
@@ -240,11 +239,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		return deleted;
 	}
 
-	@Override
-	public boolean isStale() {
-		return this.stale;
-	}
-
 	public void stale() {
 		this.stale = true;
 	}
@@ -296,9 +290,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	protected synchronized void assertNotStale() {
 
 		if (stale) {
-
-			// invalidate caches
-			onRemoveFromCache();
 
 			// if a node/rel was deleted in a previous transaction but the caller keeps a
 			// reference to this entity, we need to make sure that the reference is fresh.
