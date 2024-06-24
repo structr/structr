@@ -55,7 +55,16 @@ public abstract class ContextFactory {
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
 			.allowIO(AccessProvider.getIOAccessConfig())
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
-			.option("python.Executable", "/python");
+			.allowExperimentalOptions(true)
+			.option("python.CoreHome", "/.python/core")
+			.option("python.PythonHome", "/.python/.venv")
+			.option("python.StdLibHome", "/.python/lib/std")
+			.option("python.CAPI", "/.python/lib/c")
+			.option("python.JNIHome", "/.python/lib/jni")
+			.option("python.ForceImportSite", "true")
+			.option("python.Executable", "/.python/.venv/bin/python")
+			.option("python.PosixModuleBackend", "java")
+			.option("python.NoUserSiteFlag", "true");
 
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
@@ -170,8 +179,6 @@ public abstract class ContextFactory {
 
 	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
 		Context ctx = pythonBuilder.build();
-		ctx.eval("python", "import site");
-
 		return updateBindings(ctx, "python", actionContext, entity);
 	}
 

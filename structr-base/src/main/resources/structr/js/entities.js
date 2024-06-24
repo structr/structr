@@ -222,19 +222,14 @@ let _Entities = {
 				}
 				e.target.classList.add('active');
 
-				let queryType = e.target.dataset['queryType'];
+				let queryType   = e.target.dataset['queryType'];
+				let isFlowQuery = (queryType === 'flow');
 
-				if (queryType === 'flow') {
+				saveQueryButton.classList.toggle('hidden', isFlowQuery);
+				queryTextElement.classList.toggle('hidden', isFlowQuery);
+				flowSelector.classList.toggle('hidden', !isFlowQuery);
 
-					saveQueryButton.classList.add('hidden');
-					queryTextElement.classList.add('hidden');
-					flowSelector.classList.remove('hidden');
-
-				} else {
-
-					saveQueryButton.classList.remove('hidden');
-					queryTextElement.classList.remove('hidden');
-					flowSelector.classList.add('hidden');
+				if (!isFlowQuery) {
 					activateEditor(queryType);
 				}
 			};
@@ -1838,11 +1833,7 @@ let _Entities = {
 
 			if (svgKeyIcon.dataset['onlyShowWhenProtected'] === 'true') {
 
-				if (isProtected) {
-					svgKeyIcon.classList.remove('node-action-icon');
-				} else {
-					svgKeyIcon.classList.add('node-action-icon');
-				}
+				svgKeyIcon.classList.toggle('node-action-icon', !isProtected);
 			}
 		}
 	},

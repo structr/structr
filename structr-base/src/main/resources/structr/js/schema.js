@@ -5444,14 +5444,7 @@ let _Schema = {
 	},
 	markElementAsChanged: (element, hasClass) => {
 
-		if (hasClass === true) {
-
-			element.classList.add('has-changes');
-
-		} else {
-
-			element.classList.remove('has-changes');
-		}
+		element.classList.toggle('has-changes', hasClass);
 	},
 
 	templates: {
