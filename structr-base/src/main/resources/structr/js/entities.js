@@ -1790,7 +1790,7 @@ let _Entities = {
 		let keyIcon = $('.svg_key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
-			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_key_icon']);
+			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_key_icon'], 16, 16, [], 'Access Control');
 
 			if (onlyShowWhenProtected) {
 				if (entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) {
@@ -1843,7 +1843,7 @@ let _Entities = {
 		let icon                 = parent.querySelector('.' + contextMenuIconClass);
 
 		if (!icon) {
-			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon']), 'Context-Menu'));
 			parent.appendChild(icon);
 		}
 

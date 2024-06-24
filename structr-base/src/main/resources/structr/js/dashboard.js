@@ -812,7 +812,7 @@ let _Dashboard = {
 					dropdown: config => `
 						<div class="dropdown-menu dropdown-menu-large ml-2">
 							<button class="mr-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
-								${_Icons.getSvgIcon(_Icons.iconHistory)}
+								${_Icons.getSvgIcon(_Icons.iconHistory, 16, 16, '', 'History')}
 							</button>
 
 							<div class="dropdown-menu-container" id="${config.id}"></div>

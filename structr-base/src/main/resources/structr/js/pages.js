@@ -2379,7 +2379,7 @@ let _Pages = {
 					+ '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + (entity._html_id ? entity._html_id.length : 10)   + '" value="' + (entity._html_id || '') + '">'
 					+ '<span class="class-id-attrs _html_class">.' + (entity._html_class ? entity._html_class.split(' ').join('.') : '&lt;class>') + '</span>'
 					+ '<textarea style="width:calc(100% + 1.5rem)" rows="' + Math.ceil((entity._html_class ? entity._html_class.length/35 : 1)) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + (entity._html_class || '') + '</textarea>'
-					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon'])),
+					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon']), 'Context-Menu'),
 
 				clickHandler: (e) => {
 
