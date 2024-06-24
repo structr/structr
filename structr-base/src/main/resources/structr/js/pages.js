@@ -2773,7 +2773,7 @@ let _Pages = {
 		isPreviewActive: () => {
 
 			// only reload if the iframe is already present!
-			let iframe = _Pages.centerPane.querySelector('iframe');
+			let iframe = _Pages.centerPane?.querySelector('iframe');
 
 			if (iframe) {
 				return true;
