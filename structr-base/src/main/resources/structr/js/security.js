@@ -551,7 +551,6 @@ let _UsersAndGroups = {
 		});
 
 		let groupPager = _Pager.addPager(_Security.groupsPagerId, groupControls, true, 'Group', 'public', (groups) => {
-			console.log(groups);
 			for (let group of groups) {
 				let groupModelObj = StructrModel.create(group);
 				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);

@@ -137,6 +137,9 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 		dashboardInfo.setProperty(new GenericProperty("runtimeInfo"), runtimeInfo);
 
+		dashboardInfo.setProperty(new GenericProperty("allowedUUIDFormat"), Settings.UUIDv4AllowedFormats.getValue());
+		dashboardInfo.setProperty(new GenericProperty("createCompactUUIDs"), Settings.UUIDv4CreateCompact.getValue());
+
 		return dashboardInfo;
 	}
 }
