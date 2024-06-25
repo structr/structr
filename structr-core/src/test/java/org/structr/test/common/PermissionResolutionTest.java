@@ -303,33 +303,24 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		try {
-			System.out.println("######################################################################################################################## START");
+		testGranted(projectType, new boolean[]{false, false, false, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, false, false, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, true, false, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, true, true, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, true, true, true});
 
-			testGranted(projectType, new boolean[]{false, false, false, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, false, false, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, true, false, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, true, true, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, true, true, true});
-
-			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, true, true, true});
-			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, false, true, true});
-			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, false, false, true});
-			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, false, false, false});
-
-		} finally {
-
-			System.out.println("######################################################################################################################## END");
-		}
-
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, true, true, true});
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, false, true, true});
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, false, false, true});
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, false, false, false});
 	}
 
 	@Test
@@ -702,8 +693,6 @@ public class PermissionResolutionTest extends StructrTest {
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.write,         userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.delete,        userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.accessControl, userContext));
-
-			System.out.println("#################################################### TEST");
 
 			assertEquals("Invalid permission resolution result",  expected[0], result.get(1).isGranted(Permission.read,          userContext));
 			assertEquals("Invalid permission resolution result",  expected[1], result.get(1).isGranted(Permission.write,         userContext));

@@ -144,7 +144,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		return relationshipWrapper;
 	}
 
-	/*
 	public NodeWrapper getNodeWrapper(final long id) {
 
 		NodeWrapper node = nodes.get(id);
@@ -168,8 +167,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		throw new NotFoundException("Node with ID " + id + " not found.");
 	}
-	*/
 
+	/*
 	public NodeWrapper getNodeWrapper(final long id) {
 
 		NodeWrapper node = nodes.get(id);
@@ -190,6 +189,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		throw new NotFoundException("Node with ID " + id + " not found.");
 	}
+	*/
 
 	public RelationshipWrapper getRelationshipWrapper(final long id) {
 

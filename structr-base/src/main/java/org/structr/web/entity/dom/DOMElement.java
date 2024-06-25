@@ -1333,24 +1333,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case NONE:
 
-					/*
-					//TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + uuid + "\" })<-[r]-(m)", Set.of(
-
-					TransactionCommand.getCurrentTransaction().prefetch("(n:DOMNode)<-[r]-(m) WHERE id(n) = " + thisElement.getNode().getId().getId(), Set.of(
-
-						"all/INCOMING/CONTAINS",
-						"all/INCOMING/INPUT_ELEMENT",
-						"all/INCOMING/SUCCESS_TARGET",
-						"all/INCOMING/FAILURE_TARGET",
-						"all/INCOMING/RELOADS",
-						"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
-						"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
-						"all/INCOMING/TRIGGERED_BY"
-
-					), false);
-
-					 */
-
 					// Get actions in superuser context
 					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
 					final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getProperty(StructrApp.key(DOMElement.class, "triggeredActions"));

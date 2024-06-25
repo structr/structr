@@ -74,7 +74,7 @@ public class TreeCache<T extends Comparable> {
 
 	// ----- private methods -----
 	private String[] split(final String key) {
-		return key.split(keyPartSeparator);
+		return StringUtils.split(key, keyPartSeparator);
 	}
 
 	private String serialize() {

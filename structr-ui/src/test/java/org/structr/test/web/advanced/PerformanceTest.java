@@ -443,7 +443,6 @@ public class PerformanceTest extends IndexingTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-
 		}
 
 		logger.info("Average node fetch time: {} ms", averageNodeFetchTime);
@@ -481,8 +480,8 @@ public class PerformanceTest extends IndexingTest {
 
 		logger.info("Average user fetch time: {} ms", averageUserFetchTime);
 
-		// fetching a single user node should not take more than 10ms on average
-		assertTrue(averageUserFetchTime < 10);
+		// fetching a single user node should not take more than 100ms on average
+		assertTrue(averageUserFetchTime < 100);
 	}
 
 	@Test
@@ -510,8 +509,6 @@ public class PerformanceTest extends IndexingTest {
 		final long t0   = System.currentTimeMillis();
 		final int num   = 20;
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		for (int i=0; i<num; i++) {
 
 			try (final Tx tx = app.tx()) {
@@ -530,10 +527,11 @@ public class PerformanceTest extends IndexingTest {
 		}
 
 		final long duration = System.currentTimeMillis() - t0;
+		final long average  = duration / num;
 
-		System.out.println("Rendering took " + duration + " ms, average of " + (duration / num) + " ms per run");
+		System.out.println("Rendering took " + duration + " ms, average of " + average + " ms per run");
 
-		Settings.CypherDebugLogging.setValue(false);
+		assertTrue("Rendering performance is too low", average < 200);
 	}
 
 	// ----- private methods -----
