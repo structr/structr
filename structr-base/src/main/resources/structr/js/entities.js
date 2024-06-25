@@ -1790,7 +1790,7 @@ let _Entities = {
 		let keyIcon = $('.svg_key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
-			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_key_icon'], 16, 16, [], 'Access Control');
+			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_key_icon']);
 
 			if (onlyShowWhenProtected) {
 				if (entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) {
@@ -1798,7 +1798,7 @@ let _Entities = {
 				}
 			}
 
-			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses));
+			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses, 'Access Control'));
 			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
