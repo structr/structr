@@ -18,13 +18,18 @@
  */
 package org.structr.rest.resource;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
@@ -115,7 +120,36 @@ public class UuidResource extends ExactMatchEndpoint {
 
 		@Override
 		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
-			return genericDelete(securityContext);
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			try (final Tx tx = app.tx(true, true, false)) {
+
+				final GraphObject obj = getEntity(securityContext);
+
+				if (obj.isNode()) {
+
+					final NodeInterface node = (NodeInterface)obj;
+
+					if (!node.isGranted(Permission.delete, securityContext)) {
+
+						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
+					} else {
+
+						app.delete(node);
+
+					}
+
+				} else {
+
+					app.delete((RelationshipInterface) obj);
+				}
+
+				tx.success();
+			}
+
+			return new RestMethodResult(HttpServletResponse.SC_OK);
 		}
 
 		public GraphObject getEntity(final SecurityContext securityContext) throws FrameworkException {

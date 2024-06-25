@@ -20,6 +20,8 @@ package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -48,6 +50,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -531,7 +534,7 @@ public abstract class RESTCallHandler {
 
 				logger.info("DeleteObjects: {} objects processed", count);
 
-			} catch (NotFoundException nfex) {
+			} catch (FrameworkException nfex) {
 
 				// ignore NotFoundException
 
