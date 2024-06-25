@@ -520,7 +520,8 @@ public class SchemaService implements Service {
 			"all/OUTGOING/HAS_PARAMETER",
 			"all/OUTGOING/HAS_VIEW",
 			"all/OUTGOING/IS_RELATED_TO"
-		));
+
+		), true);
 	}
 
 	// ----- interface Feature -----

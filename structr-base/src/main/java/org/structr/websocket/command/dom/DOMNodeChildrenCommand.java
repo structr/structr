@@ -47,14 +47,14 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		DOMNode.prefetchDOMNodes();
-
 		final DOMNode node = getDOMNode(webSocketData.getId());
 
 		if (node == null) {
 
 			return;
 		}
+
+		DOMNode.prefetchDOMNodes(webSocketData.getId());
 
 		final List<GraphObject> result = new LinkedList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();

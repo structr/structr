@@ -195,14 +195,12 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 					}
 				}
 
-				if (value != null) {
-
-					cacheValue(cacheKey, value);
-
-				} else {
+				if (value == null) {
 
 					value = requestedKey;
 				}
+
+				cacheValue(cacheKey, value);
 			}
 		}
 

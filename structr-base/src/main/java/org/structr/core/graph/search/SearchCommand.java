@@ -936,7 +936,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			final List<String> list      = Iterables.toList(types1);
 			final String commonBaseClass = list.get(0);
 
-			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, null, keys);
+			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, null, keys, false);
 		}
 	}
 
