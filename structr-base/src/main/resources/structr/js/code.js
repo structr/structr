@@ -930,7 +930,7 @@ let _Code = {
 			{
 				id:       path + '/inheritedproperties',
 				text:     'Inherited Properties',
-				children: true,
+				children: false,
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'inheritedproperties' },
 				data:     {
