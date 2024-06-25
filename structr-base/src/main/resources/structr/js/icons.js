@@ -399,6 +399,7 @@ let _Icons = {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
 		let additionalClasses = ['flex-shrink-0'];
+		let title             = '';
 
 		switch (entity.type) {
 
@@ -409,6 +410,7 @@ let _Icons = {
 					case 'java':
 						icon = _Icons.iconSchemaNodeSchemaMethod;
 						additionalClasses.push('icon-red');
+						title = 'Java method';
 						break;
 
 					default:
@@ -417,14 +419,17 @@ let _Icons = {
 						if (entity.isStatic) {
 
 							icon = _Icons.iconSchemaNodeStaticMethod;
+							title = 'Static method';
 
 						} else {
 
 							let isLifeCycleMethod = LifecycleMethods.isLifecycleMethod(entity);
 							if (isLifeCycleMethod) {
 								icon = _Icons.iconSchemaNodeLifecycleMethod;
+								title = 'Lifecycle method';
 							} else {
 								icon = _Icons.iconSchemaNodeSchemaMethod;
+								title = 'Custom method';
 							}
 						}
 						break;
@@ -444,7 +449,7 @@ let _Icons = {
 				break;
 		}
 
-		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses);
+		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses, title);
 	},
 	getIconForSchemaPropertyType: (propertyType) => {
 
