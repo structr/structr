@@ -379,18 +379,6 @@ let _Crud = {
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('crud'));
 
-		if (!_Crud.type) {
-			_Crud.restoreType();
-		}
-
-		if (!_Crud.type) {
-			_Crud.type = _Helpers.urlParam('type');
-		}
-
-		if (!_Crud.type) {
-			_Crud.type = _Crud.defaultType;
-		}
-
 		_Crud.init();
 	},
 	messageTimeout: undefined,
@@ -421,6 +409,8 @@ let _Crud = {
 		_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
 	},
 	typeSelected: (type) => {
+
+		_Crud.storeType(type);
 
 		_Crud.updateRecentTypeList(type);
 		_Crud.highlightCurrentType(type);
@@ -556,9 +546,31 @@ let _Crud = {
 
 		typesList.innerHTML = (typesToShow.length > 0) ? typesToShow.map(typeName => `<div class="crud-type truncate" data-type="${typeName}">${typeName}</div>`).join('') : '<div class="px-3">No types available. Use the above configuration dropdown to adjust the filter settings.</div>';
 
+		_Crud.updateCurrentTypeIfNotYetSet();
+
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
 		Structr.resize();
+	},
+	updateCurrentTypeIfNotYetSet: () => {
+
+		if (!_Crud.type) {
+			_Crud.setCurrentTypeIfPossible(_Helpers.urlParam('type'));
+		}
+
+		if (!_Crud.type) {
+			_Crud.setCurrentTypeIfPossible(LSWrapper.getItem(_Crud.crudTypeKey));
+		}
+
+		if (!_Crud.type) {
+			_Crud.setCurrentTypeIfPossible(_Crud.defaultType);
+		}
+	},
+	setCurrentTypeIfPossible: (type) => {
+
+		if (_Crud.types[type]) {
+			_Crud.type = type;
+		}
 	},
 	getStoredTypeVisibilityConfig: (singleKey) => {
 
@@ -667,7 +679,7 @@ let _Crud = {
 
 		if (type) {
 			_Crud.type = type;
-			_Crud.storeType();
+			_Crud.storeType(type);
 			_Crud.storePagerData();
 			_Crud.updateResourceLink(type);
 		}
@@ -861,14 +873,8 @@ let _Crud = {
 		resourceLink.setAttribute('href', endpointURL);
 		resourceLink.textContent = endpointURL;
 	},
-	storeType: () => {
-		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
-	},
-	restoreType: () => {
-		let val = LSWrapper.getItem(_Crud.crudTypeKey);
-		if (val) {
-			_Crud.type = val;
-		}
+	storeType: (type) => {
+		LSWrapper.setItem(_Crud.crudTypeKey, type);
 	},
 	storePagerData: () => {
 		let type      = _Crud.type;
