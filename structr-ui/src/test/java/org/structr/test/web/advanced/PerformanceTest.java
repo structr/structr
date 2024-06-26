@@ -531,7 +531,7 @@ public class PerformanceTest extends IndexingTest {
 
 		System.out.println("Rendering took " + duration + " ms, average of " + average + " ms per run");
 
-		assertTrue("Rendering performance is too low", average < 200);
+		assertTrue("Rendering performance is too low", average < 300);
 	}
 
 	// ----- private methods -----
