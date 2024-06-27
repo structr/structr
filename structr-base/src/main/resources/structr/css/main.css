@@ -3372,19 +3372,6 @@ table#principals .typeIcon {
 	padding-top: 1rem;
 }
 
-#hide-conditions, #show-conditions {
-	flex-basis: 75%;
-	margin-right: -1px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
-}
-
-#show-conditions-templates, #hide-conditions-templates {
-	flex-basis: 25%;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-}
-
 .quick-access-options select,
 .quick-access-options input[type="text"],
 .quick-access-options input[type="password"],
@@ -4190,6 +4177,10 @@ ul.combined-input-select-field li:hover {
 	padding-left: .25rem;
 	padding-right: .25rem;
 }
+.px-1\.5 {
+	padding-left: .375rem;
+	padding-right: .375rem;
+}
 .px-2 {
 	padding-left: .5rem;
 	padding-right: .5rem;
@@ -4408,8 +4399,17 @@ ul.combined-input-select-field li:hover {
 .border-gray-ddd {
 	border-color: var(--gray-ddd);
 }
+.border-gray-input {
+	border-color: var(--input-field-border);
+}
+.border {
+	border-width: 1px;
+}
 .border-0 {
 	border-width: 0px;
+}
+.border-r {
+	border-right-width: 1px;
 }
 .border-r-0 {
 	border-right: 0px;
@@ -4417,23 +4417,48 @@ ul.combined-input-select-field li:hover {
 .border-l-0 {
 	border-left: 0px;
 }
+.border-l {
+	border-left-width: 1px;
+}
 .border-t {
 	border-top-width: 1px;
+}
+.border-x {
+	border-left-width: 1px;
+	border-right-width: 1px;
+}
+.border-y {
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+}
+.rounded-none {
+	border-radius: 0px;
+}
+.rounded-sm {
+	border-radius: 0.125rem;
+}
+.rounded {
+	border-radius: 0.25rem;
 }
 .rounded-md {
 	border-radius: 0.375rem;
 }
+.rounded-lg {
+	border-radius: 0.5rem;
+}
+.rounded-xl {
+	border-radius: 0.75rem;
+}
+.rounded-2xl {
+	border-radius: 1rem;
+}
 .rounded-l {
 	border-top-left-radius: .25rem;
 	border-bottom-left-radius: .25rem;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
 }
 .rounded-r {
 	border-top-right-radius: .25rem;
 	border-bottom-right-radius: .25rem;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
 }
 .inset-0 {
 	top: 0px;
@@ -4460,4 +4485,7 @@ ul.combined-input-select-field li:hover {
 }
 .group:hover .group-hover\:font-bold {
 	font-weight: 700;
+}
+.select-none {
+	user-select: none;
 }
