@@ -137,6 +137,7 @@ let _Icons = {
 	iconGlobe:               'globe-icon',
 	iconOpenInNewPage:       'link_external',
 	iconListWithCog:         'list-cog',
+	iconLightBulb:           'light-bulb',
 	iconSearch:              'magnifying-glass',
 	iconFilterFunnel:        'filter-funnel',
 	iconMicrophone:          'microphone-icon',
@@ -468,9 +469,12 @@ let _Icons = {
 			case "Long":
 				return _Icons.iconSchemaPropertyNumeric;
 
+			case 'Date':
+			case 'ZonedDateTime':
+				return _Icons.iconSchemaPropertyDate;
+
 			case 'Boolean':      return _Icons.iconSchemaPropertyBoolean;
 			case "Cypher":       return _Icons.iconSchemaPropertyCypher;
-			case 'Date':         return _Icons.iconSchemaPropertyDate;
 			case "Double":       return _Icons.iconSchemaPropertyDouble;
 			case "Enum":         return _Icons.iconSchemaPropertyEnum;
 			case "Function":     return _Icons.iconSchemaPropertyFunction;
