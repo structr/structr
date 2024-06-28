@@ -3338,26 +3338,26 @@ let _Schema = {
 		},
 		validateViewRow: (gridRow) => {
 
+			let valid = true;
+
 			let nameField = gridRow.querySelector('.property-name');
 			if (nameField.value.length === 0) {
-
-				_Helpers.blinkRed(nameField.closest('.schema-grid-row'));
-				return false;
+				_Helpers.blinkRed(nameField.closest('.name-col'));
+				valid = false;
 			}
 
 			let viewPropertiesSelect = gridRow.querySelector('.view.property-attrs');
 			if ($(viewPropertiesSelect).sortedValues().length === 0) {
-
-				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
-				return false;
+				_Helpers.blinkRed(viewPropertiesSelect.closest('.view-properties-select'));
+				valid = false;
 			}
 
-			return true;
+			return valid;
 		},
 		templates: {
 			view: config => `
 				<div data-view-id="${config.view.id}" class="schema-grid-row contents">
-					<div class="p-1 flex items-center">
+					<div class="p-1 flex items-center name-col">
 						<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}">
 					</div>
 					<div class="view-properties-select">
@@ -3375,7 +3375,7 @@ let _Schema = {
 			`,
 			viewNew: config => `
 				<div class="schema-grid-row contents has-changes">
-					<div class="p-1 flex items-center">
+					<div class="p-1 flex items-center name-col">
 						<input size="15" type="text" class="view property-name" placeholder="Enter view name">
 					</div>
 					<div class="view-properties-select">
@@ -3864,7 +3864,7 @@ let _Schema = {
 			let propertyNameInput = gridRow.querySelector('.property-name');
 			if (propertyNameInput.value.length === 0) {
 
-				_Helpers.blinkRed(propertyNameInput.closest('.schema-grid-row'));
+				_Helpers.blinkRed(propertyNameInput.closest('.name-col'));
 				return false;
 			}
 
