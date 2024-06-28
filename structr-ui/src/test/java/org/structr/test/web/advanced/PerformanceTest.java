@@ -21,6 +21,9 @@ package org.structr.test.web.advanced;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -33,6 +36,9 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.IndexingTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
@@ -43,6 +49,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -513,10 +520,10 @@ public class PerformanceTest extends IndexingTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Page page = app.nodeQuery(Page.class).getFirst();
-				System.out.println("Rendering page..");
-				System.out.println(page.getContent(RenderContext.EditMode.NONE));
-				System.out.println("########################################################################################################################################################");
+				final Page page      = app.nodeQuery(Page.class).getFirst();
+				final String content = page.getContent(RenderContext.EditMode.NONE);
+
+				System.out.println("Content length: " + content.length());
 
 				tx.success();
 
@@ -532,6 +539,57 @@ public class PerformanceTest extends IndexingTest {
 		System.out.println("Rendering took " + duration + " ms, average of " + average + " ms per run");
 
 		assertTrue("Rendering performance is too low", average < 300);
+	}
+
+	@Test
+	public void testRelationshipCreationAndRead() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema       = StructrSchema.createFromDatabase(app);
+			final JsonObjectType baseType = schema.addType("BaseType");
+			final JsonObjectType type1    = schema.addType("Type1");
+			final JsonObjectType type2    = schema.addType("Type2");
+			final JsonObjectType linked   = schema.addType("LinkedType");
+
+			type1.setExtends(baseType);
+			type2.setExtends(baseType);
+
+			baseType.relate(linked, "LINKED", Cardinality.ManyToOne, "baseTypes", "linked");
+
+			baseType.addMethod("onCreate","{ $.this.linked = $.requestStore.linked; $.log($.requestStore.linked.baseTypes); }");
+
+			// creation method
+			type1.addMethod("test", "{ $.requestStore.linked = $.create('LinkedType'); for (var i=0; i<100; i++) { $.create('Type1'); $.create('Type2'); } }").setIsStatic(true);
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Type1.test(); }}", "test", "test");
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.CypherDebugLogging.setValue(false);
+
+
 	}
 
 	// ----- private methods -----
