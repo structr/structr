@@ -287,7 +287,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 	/**
 	 * Ensures that the position attributes of the AbstractChildren of this
 	 * node are correct. Please note that this method needs to run in the
-	 * same transaction as any modifiying operation that changes the order
+	 * same transaction as any modifying operation that changes the order
 	 * of child nodes, and therefore this method does _not_ create its own
 	 * transaction. However, it will not raise a NotInTransactionException
 	 * when called outside of modifying operations, because each setProperty
