@@ -379,18 +379,6 @@ let _Crud = {
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('crud'));
 
-		if (!_Crud.type) {
-			_Crud.restoreType();
-		}
-
-		if (!_Crud.type) {
-			_Crud.type = _Helpers.urlParam('type');
-		}
-
-		if (!_Crud.type) {
-			_Crud.type = _Crud.defaultType;
-		}
-
 		_Crud.init();
 	},
 	messageTimeout: undefined,
@@ -421,6 +409,8 @@ let _Crud = {
 		_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
 	},
 	typeSelected: (type) => {
+
+		_Crud.storeType(type);
 
 		_Crud.updateRecentTypeList(type);
 		_Crud.highlightCurrentType(type);
@@ -556,9 +546,31 @@ let _Crud = {
 
 		typesList.innerHTML = (typesToShow.length > 0) ? typesToShow.map(typeName => `<div class="crud-type truncate" data-type="${typeName}">${typeName}</div>`).join('') : '<div class="px-3">No types available. Use the above configuration dropdown to adjust the filter settings.</div>';
 
+		_Crud.updateCurrentTypeIfNotYetSet();
+
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
 		Structr.resize();
+	},
+	updateCurrentTypeIfNotYetSet: () => {
+
+		if (!_Crud.type) {
+			_Crud.setCurrentTypeIfPossible(_Helpers.urlParam('type'));
+		}
+
+		if (!_Crud.type) {
+			_Crud.setCurrentTypeIfPossible(LSWrapper.getItem(_Crud.crudTypeKey));
+		}
+
+		if (!_Crud.type) {
+			_Crud.setCurrentTypeIfPossible(_Crud.defaultType);
+		}
+	},
+	setCurrentTypeIfPossible: (type) => {
+
+		if (_Crud.types[type]) {
+			_Crud.type = type;
+		}
 	},
 	getStoredTypeVisibilityConfig: (singleKey) => {
 
@@ -615,11 +627,9 @@ let _Crud = {
 
 		for (let el of document.querySelectorAll('#crud-types-list .crud-type')) {
 
-			if (el.dataset['type'].toLowerCase().indexOf(filterVal) === -1) {
-				el.classList.add('hidden');
-			} else {
-				el.classList.remove('hidden');
-			}
+			let shouldBeHidden = (el.dataset['type'].toLowerCase().indexOf(filterVal) === -1);
+
+			el.classList.toggle('hidden', shouldBeHidden);
 		}
 	},
 	updateRecentTypeList: (selectedType) => {
@@ -669,7 +679,7 @@ let _Crud = {
 
 		if (type) {
 			_Crud.type = type;
-			_Crud.storeType();
+			_Crud.storeType(type);
 			_Crud.storePagerData();
 			_Crud.updateResourceLink(type);
 		}
@@ -863,14 +873,8 @@ let _Crud = {
 		resourceLink.setAttribute('href', endpointURL);
 		resourceLink.textContent = endpointURL;
 	},
-	storeType: () => {
-		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
-	},
-	restoreType: () => {
-		let val = LSWrapper.getItem(_Crud.crudTypeKey);
-		if (val) {
-			_Crud.type = val;
-		}
+	storeType: (type) => {
+		LSWrapper.setItem(_Crud.crudTypeKey, type);
 	},
 	storePagerData: () => {
 		let type      = _Crud.type;
@@ -3057,7 +3061,7 @@ type: ${node.type}`;
 							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									${_Icons.getSvgIcon(_Icons.iconSettingsWrench, 16, 16, ['mr-2'])}
+									${_Icons.getSvgIcon(_Icons.iconFilterFunnel, 16, 16, ['mr-2'])}
 								</button>
 
 								<div class="dropdown-menu-container" style="width: 17rem;">

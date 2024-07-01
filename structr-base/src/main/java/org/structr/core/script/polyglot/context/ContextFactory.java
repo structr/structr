@@ -40,8 +40,7 @@ public abstract class ContextFactory {
 				.engine(engine)
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				// TODO: Add config switch to toggle Host Class Lookup
-				//.allowHostClassLookup(new StructrClassPredicate())
+				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s))
 				.allowIO(AccessProvider.getIOAccessConfig())
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
@@ -62,8 +61,8 @@ public abstract class ContextFactory {
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.allowIO(AccessProvider.getIOAccessConfig())
-				.allowHostAccess(AccessProvider.getHostAccessConfig());
-				//.allowHostClassLookup(new StructrClassPredicate());
+				.allowHostAccess(AccessProvider.getHostAccessConfig())
+				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s));
 
 	public static String getDebuggerPath() {
 

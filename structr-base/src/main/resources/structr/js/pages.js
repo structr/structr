@@ -1511,11 +1511,8 @@ let _Pages = {
 
 				for (let child of dataTypeSelectUl.children) {
 
-					if (child.dataset.value && child.dataset.value.match(el.value)) {
-						child.classList.remove('hidden');
-					} else {
-						child.classList.add('hidden');
-					}
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
 				}
 
 				showDataTypeList();
@@ -2382,7 +2379,7 @@ let _Pages = {
 					+ '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + (entity._html_id ? entity._html_id.length : 10)   + '" value="' + (entity._html_id || '') + '">'
 					+ '<span class="class-id-attrs _html_class">.' + (entity._html_class ? entity._html_class.split(' ').join('.') : '&lt;class>') + '</span>'
 					+ '<textarea style="width:calc(100% + 1.5rem)" rows="' + Math.ceil((entity._html_class ? entity._html_class.length/35 : 1)) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + (entity._html_class || '') + '</textarea>'
-					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon'])),
+					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon']), 'Context-Menu'),
 
 				clickHandler: (e) => {
 
@@ -2776,7 +2773,7 @@ let _Pages = {
 		isPreviewActive: () => {
 
 			// only reload if the iframe is already present!
-			let iframe = _Pages.centerPane.querySelector('iframe');
+			let iframe = _Pages.centerPane?.querySelector('iframe');
 
 			if (iframe) {
 				return true;
@@ -3397,18 +3394,19 @@ let _Pages = {
 
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', (result) => {
 
-					let count = result.length;
-					if (count > 0) {
+					let hasEntries = (result.length > 0);
 
-						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${count})`;
-						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
+					deleteUnattachedNodesButton.classList.toggle('hover:bg-gray-100', hasEntries);
+
+					if (hasEntries) {
+
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${result.length})`;
 
 						_Helpers.disableElements(false, deleteUnattachedNodesButton);
 
 					} else {
 
 						deleteUnattachedNodesButton.textContent = 'No unused elements';
-						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}
 
 					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);

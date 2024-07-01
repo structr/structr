@@ -257,7 +257,7 @@ let _Editors = {
 					let id      = runtimeEvent.data.id;
 
 					if (
-						(!id || (entity.id && id === entity.id)) &&
+						(id === entity.id) &&
 						(!type || type === schemaType) &&
 						name === errorAttributeName
 					) {
@@ -526,11 +526,11 @@ let _Editors = {
 		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
 		if (customConfig.lint === true) {
 
-			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
 
 			// onFocus handler
 			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
 			}));
 		}
 
@@ -567,7 +567,34 @@ let _Editors = {
 			}));
 		}
 
+		storageContainer.instanceDisposables.push(monacoInstance.addAction({
+			id: `editor-toggle-fullscreen-action-${entity.id}-${propertyName}`,
+			label: 'Toggle Maximized',
+			keybindings: [
+				monaco.KeyMod.Shift | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF
+			],
+			precondition: null,
+			keybindingContext: null,
+			// uncomment the following lines to add to context menu
+			// contextMenuGroupId: '1_modification',
+			// contextMenuOrder: 1.5,
+			run: (editor) => {
+
+				_Editors.toggleFullscreen(editor);
+			}
+		}));
+
 		return monacoInstance;
+	},
+	toggleFullscreen: (editor) => {
+
+		let fullscreenClass = 'monaco-editor-maximized';
+		let containerNode   = editor.getContainerDomNode();
+		let toggle          = containerNode.classList.contains(fullscreenClass);
+
+		containerNode.classList.toggle(fullscreenClass, !toggle);
+
+		_Editors.resizeEditor(editor);
 	},
 	isAutoFocusAllowed: () => {
 

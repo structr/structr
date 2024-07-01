@@ -20,6 +20,8 @@ package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -48,6 +50,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -468,16 +471,7 @@ public abstract class RESTCallHandler {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					final Principal currentUser = securityContext.getUser(false);
-					String user;
-
-					if (currentUser == null) {
-						user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-					} else {
-						user = currentUser.getProperty(AbstractNode.id);
-					}
-
-					throw new FrameworkException(403, "Modification of node " + obj.getProperty(GraphObject.id) + " with type " + obj.getProperty(GraphObject.type) + " by user " + user + " not permitted.");
+					throw new FrameworkException(403, AbstractNode.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);
@@ -540,7 +534,7 @@ public abstract class RESTCallHandler {
 
 				logger.info("DeleteObjects: {} objects processed", count);
 
-			} catch (NotFoundException nfex) {
+			} catch (FrameworkException nfex) {
 
 				// ignore NotFoundException
 

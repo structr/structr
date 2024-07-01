@@ -715,18 +715,16 @@ let Structr = {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
+			document.querySelector('.column-resizer-left')?.classList.toggle('hidden', selectedSlideoutWasOpen);
+
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeLeftSlideOuts(otherSlideouts, closeCallback);
 				Structr.slideouts.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
 
-				document.querySelector('.column-resizer-left')?.classList.remove('hidden');
-
 			} else {
 
 				Structr.slideouts.closeLeftSlideOuts([slideoutElement], closeCallback);
-
-				document.querySelector('.column-resizer-left')?.classList.add('hidden');
 			}
 		},
 		openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
@@ -766,18 +764,16 @@ let Structr = {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
+			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
+
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeRightSlideOuts(otherSlideouts, closeCallback);
 				Structr.slideouts.openRightSlideOut(triggerEl, slideoutElement, openCallback);
 
-				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
-
 			} else {
 
 				Structr.slideouts.closeRightSlideOuts([slideoutElement], closeCallback);
-
-				document.querySelector('.column-resizer-right')?.classList.add('hidden');
 			}
 		},
 		openRightSlideOut: (triggerEl, slideoutElement, callback) => {
@@ -1526,6 +1522,10 @@ let Structr = {
 				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "INFO":
+				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				break;
+
 			case "SCRIPT_JOB_EXCEPTION":
 				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
@@ -1586,7 +1586,10 @@ let Structr = {
 
 					} else {
 
-						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+						if (data.isServicePrincipal === false) {
+							builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+						}
+
 						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
 					}
 
@@ -1824,6 +1827,7 @@ let Structr = {
 			}
 		});
 	},
+	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
 
 		let menu = e.target.closest('.dropdown-menu');
@@ -1866,7 +1870,8 @@ let Structr = {
 				if (btn.dataset['preferredPositionX'] === 'left') {
 
 					// position dropdown left of button
-					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
 
 				} else {
 
@@ -1884,6 +1889,10 @@ let Structr = {
 					// allow positioning to change between openings
 					container.style.bottom = null;
 				}
+
+				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
+					bubbles: true
+				}));
 			}
 		}
 	},
@@ -2227,6 +2236,141 @@ let _TreeHelper = {
 		}
 	}
 };
+
+class LifecycleMethods {
+
+	static onlyAvailableInSchemaNodeContext(schemaNode)      { return (schemaNode ?? null) !== null; }
+	static onlyAvailableWithoutSchemaNodeContext(schemaNode) { return (schemaNode ?? null) === null; }
+
+	// TODO: these functions must be able to detect schemaNodes that inherit from User/File (or any other possible way these lifecycle methods should be available there)
+	static onlyAvailableWithUserNodeContext(schemaNode)      { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'User'); }
+	static onlyAvailableWithFileNodeContext(schemaNode)      { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'File'); }
+
+	static methods = [
+		/** Global */
+		{
+			name: 'onStructrLogin',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `Is called when a (any) user logs in<br><br><strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>user</code></div><div>The user logging in</div>
+				</div>`,
+			isPrefix: false
+		},
+		{
+			name: 'onStructrLogout',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `Is called when a (any) user logs out<br><br><strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>user</code></div><div>The user logging out</div>
+				</div>`,
+			isPrefix: false
+		},
+		{
+			name: 'onAcmeChallenge',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `This method is called when an ACME challenge of type <strong>dns</strong> is triggered, typically by using the maintenance method letsencrypt. The primary use case of this method is creating a DNS TXT record via an external API call to a DNS provider.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>type</code></div><div> The type of the ACME authorisation challenge</div>
+					<div><code>domain</code></div><div> The domain the ACME challenge is created for</div>
+					<div><code>record</code></div><div> The name of the DNS record including prefix <code>_acme-challenge.</code> and suffix <code>.</code> </div>
+					<div><code>digest</code> </div><div> The token string that is probed by the ACME server to validate the challenge </div>
+				</div>`,
+			isPrefix: false
+		},
+		/** AbstractNode */
+		{
+			name: 'onCreate',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: `
+				The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed.
+				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.
+			`,
+			isPrefix: true
+		},
+		{
+			name: 'afterCreate',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling \'send_html_mail()\' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.',
+			isPrefix: true
+		},
+		{
+			name: 'onSave',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.',
+			isPrefix: true
+		},
+		{
+			name: 'afterSave',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling \'send_html_mail()\' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.',
+			isPrefix: true
+		},
+		{
+			name: 'onDelete',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.',
+			isPrefix: true
+		},
+		{
+			name: 'afterDelete',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.',
+			isPrefix: true
+		},
+		/** FILE */
+		{
+			name: 'onUpload',
+			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
+			comment: `Is called after a file has been uploaded. This method is being called without parameters.`,
+			isPrefix: false
+		}, {
+			name: 'onDownload',
+			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
+			comment: `Is called after a file has been requested for download. This function can not prevent the download of a file. This method is being called without parameters.`,
+			isPrefix: false
+		},
+		/** USER */
+		{
+			name: 'onOAuthLogin',
+			available: LifecycleMethods.onlyAvailableWithUserNodeContext,
+			comment: `Is called after a user successfully logs into the system via a configured OAuth provider. This function can not prevent the login of a user. The function is called with two parameters:
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>provider</code></div><div>OAuth provider name</div>
+					<div><code>userinfo</code></div><div>information pulled from the userinfo endpoint of the OAuth provider</div>
+				</div>`,
+			isPrefix: false
+		},
+	];
+
+	static getAvailableLifecycleMethods(schemaNode) {
+
+		return LifecycleMethods.methods.filter(m => m.available(schemaNode)).map((method) => {
+			let { name, comment, isPrefix } = method;
+			return { name, comment, isPrefix };
+		});
+	}
+
+	static isLifecycleMethod (method) {
+
+		let isJava = (method.codeType === 'java');
+
+		return !isJava && LifecycleMethods.methods.some(m => {
+
+			let nameMatches = m.isPrefix ? method.name.startsWith(m.name) : (method.name === m.name);
+
+			return nameMatches && m.available(method.schemaNode);
+		})
+	}
+}
 
 class MessageBuilder {
 
@@ -2624,7 +2768,7 @@ let UISettings = {
 			title: 'Dashboard',
 			settings: {
 				useDeploymentWizard: {
-					text: 'Use deployment wizard to de-clutter the deployment UI',
+					text: 'Use compact deployment UI',
 					storageKey: 'dashboardUseDeploymentWizard_' + location.port,
 					defaultValue: true,
 					type: 'checkbox',

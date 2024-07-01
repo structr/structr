@@ -25,7 +25,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
@@ -39,9 +42,6 @@ import org.structr.schema.action.ActionEntry;
 
 import java.lang.reflect.*;
 import java.util.*;
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Services;
 
 /**
  *
@@ -74,6 +74,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             description             = new StringProperty("description");
 	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
 	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate");
+	public static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult");
 	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST);
 	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
@@ -81,23 +82,23 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, httpVerb
+		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, httpVerb
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public Iterable<SchemaMethodParameter> getParameters() {
@@ -158,6 +159,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return getProperty(isPrivate);
 	}
 
+	public boolean returnRawResult() {
+		return getProperty(returnRawResult);
+	}
+
 	public HttpVerb getHttpVerb() {
 		return getProperty(httpVerb);
 	}
@@ -174,10 +179,41 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
 
 		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
-		final String methodname         = getProperty(AbstractNode.name);
+		final String thisMethodName     = getProperty(AbstractNode.name);
 
-		if (methodname != null && propertyViews.contains(methodname)) {
-			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(methodname).withDetail("A method cannot have the same name as a view"));
+		if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
+			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
+		}
+
+		// check case-insensitive name uniqueness on current level (type or user-defined functions)
+		final AbstractSchemaNode parentOrNull = this.getProperty(SchemaMethod.schemaNode);
+
+		try {
+
+			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.name, thisMethodName).and(SchemaMethod.schemaNode, parentOrNull).not().and(SchemaMethod.id, this.getUuid()).getAsList();
+			final Integer paramCount = Iterables.count(this.getProperty(SchemaMethod.parameters));
+
+			for (final SchemaMethod schemaMethod : methodsOnCurrentLevel) {
+
+				final boolean isSameNode = this.getUuid().equals(schemaMethod.getUuid());
+
+				if (!isSameNode) {
+
+					final boolean isSameNameIgnoringCase = thisMethodName.equalsIgnoreCase(schemaMethod.getName());
+					final boolean hasSameParameterCount  = (paramCount == Iterables.count(schemaMethod.getProperty(SchemaMethod.parameters)));
+
+					if (isSameNameIgnoringCase && !hasSameParameterCount) {
+
+						errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
+						valid = false;
+					}
+				}
+			}
+
+		} catch (FrameworkException fex) {
+
+			errorBuffer.add(new SemanticErrorToken(this.getType(),"none", "exception_occurred").withValue(thisMethodName).withDetail("Exception occurred while checking uniqueness of method name - please retry. Cause: " + fex.getMessage()));
+			valid = false;
 		}
 
 		return valid;

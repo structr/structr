@@ -38,6 +38,7 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
+		Functions.put(licenseManager, new RollbackTransactionFunction());
 		Functions.put(licenseManager, new RemoteCypherFunction());
 		Functions.put(licenseManager, new CypherFunction());
 		Functions.put(licenseManager, new MD5Function());

@@ -341,6 +341,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	static String getContent(final Page page, final RenderContext.EditMode editMode) throws FrameworkException {
 
+		DOMNode.prefetchDOMNodes(page.getUuid());
+
 		final RenderContext ctx = new RenderContext(page.getSecurityContext(), null, null, editMode);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
 		ctx.setBuffer(buffer);

@@ -78,6 +78,7 @@ public class SecurityContext {
 	private boolean doInnerCallbacks                      = true;
 	private boolean isReadOnlyTransaction                 = false;
 	private boolean doMultiThreadedJsonOutput             = false;
+	private boolean returnRawResult                       = false;
 	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                        = -1;
 
@@ -584,17 +585,6 @@ public class SecurityContext {
 		// Fetch already logged-in user, if present (don't try to login)
 		final Principal user = getUser(false);
 
-		if (user != null) {
-
-			final Principal owner = node.getOwnerNode();
-
-			// owner is always allowed to do anything with its nodes
-			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
-
-				return true;
-			}
-		}
-
 		// Public nodes are visible to non-auth users only
 		if (node.isVisibleToPublicUsers() && user == null) {
 
@@ -605,6 +595,17 @@ public class SecurityContext {
 		if (node.isVisibleToAuthenticatedUsers()) {
 
 			if (user != null) {
+
+				return true;
+			}
+		}
+
+		if (user != null) {
+
+			final Principal owner = node.getOwnerNode();
+
+			// owner is always allowed to do anything with its nodes
+			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
 
 				return true;
 			}
@@ -1009,6 +1010,14 @@ public class SecurityContext {
 
 			return cachedSource;
 		}
+	}
+
+	public boolean returnRawResult() {
+		return returnRawResult;
+	}
+
+	public void enableReturnRawResult() {
+		this.returnRawResult = true;
 	}
 
 	// ----- static methods -----

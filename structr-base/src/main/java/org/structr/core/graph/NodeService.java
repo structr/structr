@@ -214,18 +214,18 @@ public class NodeService implements SingletonService {
 
 	public void createAdminUser() {
 
-		if (Boolean.TRUE.equals(Settings.InitialAdminUserCreate.getValue())) {
+		if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
 
-			if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
+			// do two very quick count queries to determine the number of Structr nodes in the database
+			final CountResult count           = getInitialCounts();
+			final long nodeCount              = count.getNodeCount();
+			final boolean hasApplicationNodes = nodeCount > 0;
 
-				// do two very quick count queries to determine the number of Structr nodes in the database
-				final CountResult count           = getInitialCounts();
-				final long nodeCount              = count.getNodeCount();
-				final boolean hasApplicationNodes = nodeCount > 0;
+			if (!hasApplicationNodes) {
 
-				if (!hasApplicationNodes) {
+				if (Boolean.TRUE.equals(Settings.InitialAdminUserCreate.getValue())) {
 
-					logger.info("Creating initial user..");
+					logger.info("Creating initial user...");
 
 					final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
 					if (userType != null) {
@@ -235,9 +235,9 @@ public class NodeService implements SingletonService {
 						try (final Tx tx = app.tx()) {
 
 							app.create(userType,
-								new NodeAttribute<>(StructrApp.key(userType, "name"),     Settings.InitialAdminUserName.getValue()),
-								new NodeAttribute<>(StructrApp.key(userType, "password"), Settings.InitialAdminUserPassword.getValue()),
-								new NodeAttribute<>(StructrApp.key(userType, "isAdmin"),  true)
+									new NodeAttribute<>(StructrApp.key(userType, "name"),     Settings.InitialAdminUserName.getValue()),
+									new NodeAttribute<>(StructrApp.key(userType, "password"), Settings.InitialAdminUserPassword.getValue()),
+									new NodeAttribute<>(StructrApp.key(userType, "isAdmin"),  true)
 							);
 
 							tx.success();
@@ -247,12 +247,12 @@ public class NodeService implements SingletonService {
 							logger.warn("Unable to create initial user: {}", t.getMessage());
 						}
 					}
+
+				} else {
+
+					logger.info("Not creating initial user, as per configuration");
 				}
 			}
-
-		} else {
-
-			logger.info("Not creating initial user, as per configuration");
 		}
 	}
 

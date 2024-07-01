@@ -63,6 +63,16 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 	}
 
 	@Override
+	public Direction getDirectionForNode(final Node node) {
+
+		if (sourceNodeId == node.getId().getId()) {
+			return Direction.OUTGOING;
+		}
+
+		return Direction.INCOMING;
+	}
+
+	@Override
 	protected String getQueryPrefix() {
 
 		final String tenantIdentifier = db.getTenantIdentifier();
@@ -72,11 +82,6 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 		}
 
 		return "MATCH (s)-[n]->(t)";
-	}
-
-	@Override
-	public void onRemoveFromCache() {
-		stale = true;
 	}
 
 	public static void expunge(final Set<Long> toRemove) {

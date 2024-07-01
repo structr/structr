@@ -19,6 +19,9 @@
 package org.structr.memory;
 
 import org.structr.api.Transaction;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
 
@@ -62,6 +65,15 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
+	public boolean isSuccessful() {
+		return success;
+	}
+
+	@Override
+	public void setIsPing(final boolean isPing) {
+	}
+
+	@Override
 	public void close() {
 
 		if (success) {
@@ -85,6 +97,16 @@ public class MemoryTransaction implements Transaction {
 
 		createdNodes.getMasterData().values().stream().forEach(n -> n.unlock());
 		createdRelationships.getMasterData().values().stream().forEach(r -> r.unlock());
+	}
+
+	@Override
+	public Node getNode(final Identity id) {
+		return getNodeById((MemoryIdentity) id);
+	}
+
+	@Override
+	public Relationship getRelationship(final Identity id) {
+		return getRelationshipById((MemoryIdentity)id);
 	}
 
 	public void create(final MemoryNode newNode) {
@@ -199,5 +221,15 @@ public class MemoryTransaction implements Transaction {
 		}
 
 		return createdRelationships.contains(id) || db.exists(id);
+	}
+
+	@Override
+	public void prefetch(String type1, String type2, Set<String> keys, final boolean complete) {
+
+	}
+
+	@Override
+	public void prefetch(String query, Set<String> keys, final boolean complete) {
+
 	}
 }

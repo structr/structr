@@ -243,7 +243,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
-	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+	public void prefetch(final String type1, final String type2, final Set<String> keys, final boolean complete) {
 
 		final StringBuilder buf  = new StringBuilder();
 		final String tenantId    = db.getTenantIdentifier();
@@ -278,13 +278,14 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		buf.append(")");
 
-		prefetch(buf.toString(), keys);
+		prefetch(buf.toString(), keys, complete);
 	}
 
 	@Override
-	public void prefetch(final String query, final Set<String> keys) {
+	public void prefetch(final String query, final Set<String> keys, final boolean complete) {
 
-		if (prefetched.containsAll(keys)) {
+		// avoid prefetching the same set again if we know that it's complete
+		if (complete && prefetched.containsAll(keys)) {
 			return;
 		}
 
@@ -297,7 +298,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		buf.append("MATCH p = ");
 		buf.append(query);
-		buf.append(" RETURN DISTINCT p");
+		buf.append(" RETURN p");
 
 		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
 
@@ -307,7 +308,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
-				final boolean alreadySeen                              = relsSeen.contains(relationship.id());
+				final long relId                                       = relationship.id();
+				final boolean alreadySeen                              = relsSeen.contains(relId);
 				RelationshipWrapper rel                                = null;
 
 				if (current == null) {
@@ -319,7 +321,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				if (!alreadySeen) {
 
-					relsSeen.add(relationship.id());
+					relsSeen.add(relId);
 
 					rel = getRelationshipWrapper(relationship);
 

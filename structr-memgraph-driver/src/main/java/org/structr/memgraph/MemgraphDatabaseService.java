@@ -135,8 +135,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public void shutdown() {
-
-		clearCaches();
 		driver.close();
 	}
 
@@ -655,22 +653,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService {
 		return createQuery((String)query, resultType);
 	}
 
-	@Override
-	public void clearCaches() {
-
-		NodeWrapper.clearCache();
-		RelationshipWrapper.clearCache();
-	}
-
-	@Override
-	public void removeNodeFromCache(final Identity id) {
-		NodeWrapper.expunge(unwrap(id));
-	}
-
-	@Override
-	public void removeRelationshipFromCache(final Identity id) {
-		RelationshipWrapper.expunge(unwrap(id));
-	}
 	@Override
 	public void cleanDatabase() {
 

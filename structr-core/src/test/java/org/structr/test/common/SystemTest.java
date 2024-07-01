@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.Node;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -42,6 +43,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.entity.TestFive;
@@ -1199,10 +1201,11 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface node              = app.nodeQuery(type1).getFirst();
 			final List<AbstractRelationship> rels = Iterables.toList(node.getRelationships());
+			final Node n                          = node.getNode();
 
 			app.delete(node);
 
-			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(node.getNode()));
+			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(n));
 
 			for (final RelationshipInterface rel : rels) {
 				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(rel.getRelationship()));
@@ -1856,6 +1859,40 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testRollbackFunction() {
+
+		// test setup, create some nodes and expect rollback even with tx.success()!
+		try (final Tx tx = app.tx()) {
+
+			app.create(Group.class, "group1");
+			app.create(Group.class, "group2");
+			app.create(Group.class, "group3");
+
+			Actions.execute(securityContext, null, "${rollback_transaction()}", "testRollbackFunction");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// assert that no groups exist!
+		try (final Tx tx = app.tx()) {
+
+			final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+
+			assertTrue(groups.isEmpty());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
 
 	// ----- nested classes -----
 	private static class TestRunner implements Runnable {

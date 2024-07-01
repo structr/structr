@@ -87,6 +87,11 @@ class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
+	public boolean isSuccessful() {
+		return success;
+	}
+
+	@Override
 	public void close() {
 
 		if (!success) {

@@ -29,11 +29,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -301,33 +303,24 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		try {
-			System.out.println("######################################################################################################################## START");
+		testGranted(projectType, new boolean[]{false, false, false, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, false, false, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, true, false, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, true, true, false});
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Add);
+		testGranted(projectType, new boolean[]{true, true, true, true});
 
-			testGranted(projectType, new boolean[]{false, false, false, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, false, false, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, true, false, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, true, true, false});
-			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Add);
-			testGranted(projectType, new boolean[]{true, true, true, true});
-
-			setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, true, true, true});
-			setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, false, true, true});
-			setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, false, false, true});
-			setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Remove);
-			testGranted(projectType, new boolean[]{false, false, false, false});
-
-		} finally {
-
-			System.out.println("######################################################################################################################## END");
-		}
-
+		setPermissionResolution(uuid, SchemaRelationshipNode.readPropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, true, true, true});
+		setPermissionResolution(uuid, SchemaRelationshipNode.writePropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, false, true, true});
+		setPermissionResolution(uuid, SchemaRelationshipNode.deletePropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, false, false, true});
+		setPermissionResolution(uuid, SchemaRelationshipNode.accessControlPropagation, PropagationMode.Remove);
+		testGranted(projectType, new boolean[]{false, false, false, false});
 	}
 
 	@Test
@@ -528,6 +521,112 @@ public class PermissionResolutionTest extends StructrTest {
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 
+	/* disabled for now..
+	@Test
+	public void testAdminGroupsWithDatabaseUser() {
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group1 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group1"));
+			final Group group2 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group2"));
+			final Group group3 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group3"));
+
+			// Group1 is the admin group
+			group1.setIsAdmin(true);
+
+			// group hierarchy: Group1 -> Group2 -> Group3
+			group1.addMember(ctx, group2);
+			group2.addMember(ctx, group3);
+
+			final Principal tester = app.create(Principal.class, "tester");
+
+			group3.addMember(ctx, tester);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal user = app.nodeQuery(Principal.class).andName("tester").getFirst();
+
+			assertTrue("Database user doesn't inherit isAdmin flag correctly.", user.isAdmin());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+	*/
+
+	@Test
+	public void testAdminGroupsWithServicePrincipal() {
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group1 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group1"));
+			final Group group2 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group2"));
+			final Group group3 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group3"));
+
+			// Group1 is the admin group
+			group1.setIsAdmin(true);
+
+			// group hierarchy: Group1 -> Group2 -> Group3
+			group1.addMember(ctx, group2);
+			group2.addMember(ctx, group3);
+
+			// Group3 has jwksReferenceId for ServicePrincipal
+			group3.setProperty(StructrApp.key(Group.class, "jwksReferenceId"), "admin_group");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", List.of("admin_group"), false);
+
+			assertTrue("ServicePrincipal doesn't inherit isAdmin flag correctly.", principal.isAdmin());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testAdminFlagWithServicePrincipal() {
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", null, true);
+
+			assertTrue("ServicePrincipal doesn't inherit isAdmin flag correctly.", principal.isAdmin());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	public static void clearResourceAccess() {
 
 		final App app = StructrApp.getInstance();
@@ -594,8 +693,6 @@ public class PermissionResolutionTest extends StructrTest {
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.write,         userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.delete,        userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.accessControl, userContext));
-
-			System.out.println("#################################################### TEST");
 
 			assertEquals("Invalid permission resolution result",  expected[0], result.get(1).isGranted(Permission.read,          userContext));
 			assertEquals("Invalid permission resolution result",  expected[1], result.get(1).isGranted(Permission.write,         userContext));

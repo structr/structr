@@ -121,6 +121,33 @@ let _Dashboard = {
 				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
 			}
 
+			let formats = {
+				with_dashes:    'UUIDv4 with dashes',
+				without_dashes: 'UUIDv4 without dashes',
+				both:           'UUIDv4 with or without dashes'
+			};
+
+			let allowedUUIDFormatElement = document.querySelector('.allowed-uuid-format');
+			allowedUUIDFormatElement.textContent = formats[dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat];
+
+			if (dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat === 'both') {
+
+				let compact = dashboardUiConfig.envInfo.dashboardInfo.createCompactUUIDs === true;
+				allowedUUIDFormatElement.textContent += ' (created UUIDs will ' + (compact ? 'not' : '')  + ' contain dashes)';
+
+				_Helpers.appendInfoTextToElement({
+					element: allowedUUIDFormatElement,
+					customToggleIcon: _Icons.iconWarningYellowFilled,
+					text: 'Warning! This mode is not supported and is only meant to be used to consolidate databases where both UUID formats are used. Using this setting is strongly discouraged and should only be temporary!',
+					width: 16,
+					height: 16,
+					noSpan: true,
+					css: {
+						marginLeft: '6px'
+					}
+				});
+			}
+
 			_Dashboard.initializeTabsAndTabMenu(dashboardUiConfig);
 
 			Structr.mainMenu.unblock(100);
@@ -785,7 +812,7 @@ let _Dashboard = {
 					dropdown: config => `
 						<div class="dropdown-menu dropdown-menu-large ml-2">
 							<button class="mr-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
-								${_Icons.getSvgIcon(_Icons.iconHistory)}
+								${_Icons.getSvgIcon(_Icons.iconHistory, 16, 16, '', 'History')}
 							</button>
 
 							<div class="dropdown-menu-container" id="${config.id}"></div>
@@ -933,47 +960,61 @@ let _Dashboard = {
 					ui: (config) => `
 						<div class="hidden mb-8" data-is-deployment-wizard>
 
-							<div class="flex gap-4">
-								<fieldset>
-									<legend>What to deploy:</legend>
+							<div class="inline-info">
+								<div class="inline-info-icon">
+									${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+								</div>
+								<div class="inline-info-text">
+									A Structr application consists of functional components and user or domain data that can be exported and imported separately.
+									<br><br>
+									The process can be configured using the following three selection options <b>Action/Mode</b>, <b>Type</b> and <b>Target/Source</b>.
+									<br><br>
+									To avoid misunderstandings, errors and unintentionally overwriting data, please be sure to read the help texts carefully before starting the export or import.
+									<br><br>
+									If in doubt, contact <a href="https://support.structr.com">Structr Support</a>.
+								</div>
+							</div>								
 
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="app" name="deploy-what-radio" data-is-deployment-radio>
-										<span>Application</span>
-									</label>
+							<div class="flex gap-8">
 
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="data" name="deploy-what-radio" data-is-deployment-radio>
-										<span>Data</span>
-									</label>
+								<fieldset class="border-0 p-0">
+									<h3>Action / Mode<span data-comment="If <b>Export</b> is selected, no data is changed in this instance, but an older export data record may be overwritten.<br><br>If <b>Import</b> is selected, data in this Structr instance will be overwritten."></span></h3>
+									<div class="w-1/3 mb-4">
+										<p>Specify if data is to be exported from or imported into Structr.</p>
+										
+									</div>
+									<div class="options-switch">
+										<input type="radio" id="deploy-action-export" name="deploy-action-radio" value="export" data-is-deployment-radio>
+										<label for="deploy-action-export">Export</label>
+										<input type="radio" id="deploy-action-import" name="deploy-action-radio" value="import" data-is-deployment-radio>
+										<label for="deploy-action-import">Import</label>
+									</div>
 								</fieldset>
 
-								<fieldset>
-									<legend>Deployment Action:</legend>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="export" name="deploy-action-radio" data-is-deployment-radio>
-										<span>Export</span>
-									</label>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="import" name="deploy-action-radio" data-is-deployment-radio>
-										<span>Import</span>
-									</label>
+								<fieldset class="border-0 p-0">
+									<h3>Type<span data-comment="<b>Application</b> is equivalent to the source code of an application in a classic development environment.<br><br>Select <b>Data</b> for handling user-created and domain-specific data of a Structr instance."></span></h3>
+									<div class="w-1/3 mb-4">
+										<p>Choose the type of data to be exported or imported.</p>
+									</div>
+									<div class="options-switch">
+										<input type="radio" id="deploy-type-application" name="deploy-what-radio" value="app" data-is-deployment-radio>
+										<label for="deploy-type-application">Application</label>
+										<input type="radio" id="deploy-type-data" name="deploy-what-radio" value="data" data-is-deployment-radio>
+										<label for="deploy-type-data">Data</label>
+									</div>
 								</fieldset>
 
-								<fieldset>
-									<legend>How to deploy:</legend>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="local" name="deploy-how-radio" data-is-deployment-radio>
-										<span>Server Directory</span>
-									</label>
-
-									<label class="flex gap-1 items-center">
-										<input type="radio" value="zip" name="deploy-how-radio" data-is-deployment-radio>
-										<span>ZIP</span>
-									</label>
+								<fieldset class="border-0 p-0">
+									<h3>Target / Source<span data-comment="<b>Server directory</b> means a local directory on the server on which Structr is running.<br><br><b>ZIP</b> means downloading the export as a ZIP file or upload a ZIP file to import app or user data."></span></h3>
+									<div class="w-1/3 mb-4">
+										<p>Select where to/from it should be written/read.</p>
+									</div>
+									<div class="options-switch">
+										<input type="radio" id="deploy-target-local" name="deploy-how-radio" value="local" data-is-deployment-radio>
+										<label for="deploy-target-local">Server Directory</label>
+										<input type="radio" id="deploy-target-zip" name="deploy-how-radio" value="zip" data-is-deployment-radio>
+										<label for="deploy-target-zip">ZIP</label>
+									</div>
 								</fieldset>
 							</div>
 
@@ -1117,13 +1158,13 @@ let _Dashboard = {
 				`
 			}
 		},
-		'global-schema-methods': {
+		'user-defined-methods': {
 			init: () => {
-				_Dashboard.tabs['global-schema-methods'].appendGlobalSchemaMethods();
+				_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethods();
 			},
-			appendGlobalSchemaMethods: async () => {
+			appendUserDefinedMethods: async () => {
 
-				let container = document.querySelector('#dashboard-global-schema-methods');
+				let container = document.querySelector('#dashboard-user-defined-methods');
 				_Helpers.fastRemoveAllChildren(container);
 				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&${Structr.getRequestParameterName('sort')}=name`);
 
@@ -1140,9 +1181,9 @@ let _Dashboard = {
 						let maintenanceList = _Helpers.createSingleDOMElementFromHTML(`
 							<table class="props">
 								${data.result.map(method => `
-									<tr class="global-method">
+									<tr class="user-defined-method">
 										<td><span class="method-name">${method.name}</span></td>
-										<td><button id="run-${method.id}" class="action button">Run now</button></td>
+										<td><button id="run-${method.id}" class="action button">Open run dialog</button></td>
 									</tr>
 								`).join('')}
 							</table>
@@ -1230,11 +1271,10 @@ let _Dashboard = {
 					let currentScroll = (event.target.scrollTop + event.target.offsetHeight);
 
 					_Dashboard.tabs['server-log'].scrollEnabled = (currentScroll >= maxScroll);
-					if (true === _Dashboard.tabs['server-log'].scrollEnabled) {
-						_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.remove('textarea-is-scrolled');
-					} else {
-						_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.add('textarea-is-scrolled');
-					}
+
+					let isScrolled = (false === _Dashboard.tabs['server-log'].scrollEnabled);
+
+					_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.toggle('textarea-is-scrolled', isScrolled);
 				});
 			},
 			updateLog: () => {
@@ -1264,15 +1304,12 @@ let _Dashboard = {
 
 				let timeInMs            = _Dashboard.tabs['server-log'].getTimeIntervalSelect().value;
 				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
+				let hasInterval         = (timeInMs > 0);
 
-				if (timeInMs > 0) {
+				manualRefreshButton.classList.toggle('hidden', hasInterval);
 
-					manualRefreshButton.classList.add('hidden');
+				if (hasInterval) {
 					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, timeInMs);
-
-				} else {
-
-					manualRefreshButton.classList.remove('hidden');
 				}
 			},
 			start: () => {
@@ -1529,7 +1566,7 @@ let _Dashboard = {
 					${_Dashboard.templates.tabContentAboutMe(config)}
 					${_Dashboard.templates.tabContentAboutStructr(config)}
 					${_Dashboard.tabs.deployment.templates.tabContent(config)}
-					${_Dashboard.templates.tabContentGlobalSchemaMethods(config)}
+					${_Dashboard.templates.tabContentUserDefinedMethods(config)}
 					${_Dashboard.templates.tabContentServerLog(config)}
 					${_Dashboard.templates.tabContentEventLog(config)}
 					${_Dashboard.templates.tabContentThreads(config)}
@@ -1551,7 +1588,7 @@ let _Dashboard = {
 					<a href="#dashboard:deployment">Deployment</a>
 				</li>
 				<li>
-					<a href="#dashboard:global-schema-methods">User-defined functions</a>
+					<a href="#dashboard:user-defined-methods">User-defined functions</a>
 				</li>
 				<li>
 					<a href="#dashboard:server-log">Server Log</a>
@@ -1634,6 +1671,25 @@ let _Dashboard = {
 						<td><div class="db-driver flex items-center">${config.databaseDriver}</div></td>
 					</tr>
 					<tr>
+						<td class="key">UUID Format</td>
+						<td><div class="allowed-uuid-format flex items-center"></div></td>
+					</tr>
+					<tr>
+						<td class="key">Runtime Info</td>
+						<td id="runtime-info">
+							<div class="grid gap-x-8" style="grid-template-columns: max-content max-content">
+								<div>Available Processors</div>
+								<div>${config.envInfo.dashboardInfo.runtimeInfo.availableProcessors}</div>
+								<div>Free Memory</div>
+								<div>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.freeMemory)}</div>
+								<div>Total Memory</div>
+								<div>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.totalMemory)}</div>
+								<div>Max Memory</div>
+								<div ${(config.envInfo.dashboardInfo.runtimeInfo.maxMemory < (8 * 1024*1024*1024)) ? 'data-comment="Maximum heap size is smaller than recommended, this can lead to problems with large databases! Please configure AT LEAST 8 GBs of heap memory using -Xmx8g." data-comment-config=\'{"customToggleIcon":"' + _Icons.iconWarningYellowFilled + '"}\'' : ''}>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.maxMemory)}</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
 						<td class="key">Scripting Debugger</td>
 						<td id="graal-vm-chrome-scripting-debugger"></td>
 					</tr>
@@ -1644,8 +1700,8 @@ let _Dashboard = {
 				</table>
 			</div>
 		`,
-		tabContentGlobalSchemaMethods: config => `
-			<div class="tab-content" id="dashboard-global-schema-methods">
+		tabContentUserDefinedMethods: config => `
+			<div class="tab-content" id="dashboard-user-defined-methods">
 
 			</div>
 		`,

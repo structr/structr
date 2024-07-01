@@ -930,7 +930,7 @@ let _Code = {
 			{
 				id:       path + '/inheritedproperties',
 				text:     'Inherited Properties',
-				children: true,
+				children: false,
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'inheritedproperties' },
 				data:     {
@@ -1386,7 +1386,7 @@ let _Code = {
 	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
@@ -1419,17 +1419,15 @@ let _Code = {
 				methodNameInputElement.addEventListener('keyup', (e) => {
 
 					if (e.key === 'Escape') {
+						methodNameInputElement.value = currentMethodName;
 						setMethodNameInUI(currentMethodName);
 					} else if (e.key === 'Enter') {
 						setMethodNameInUI(methodNameInputElement.value);
 					}
-
-					_Code.updateDirtyFlag(result);
 				});
 
 				methodNameInputElement.addEventListener('blur', (e) => {
-					methodNameInputElement.value = currentMethodName;
-					setMethodNameInUI(currentMethodName);
+					setMethodNameInUI(methodNameInputElement.value);
 				});
 
 				methodNameContainerElement.addEventListener('click', (e) => {
@@ -1499,7 +1497,7 @@ let _Code = {
 						$('input[data-parameter-property=index]', clone).val(maxCnt);
 					}
 
-					$('input[data-parameter-property]', clone).on('keyup', () => {
+					$('input[data-parameter-property]', clone).on('input', () => {
 						_Code.updateDirtyFlag(result);
 					});
 
@@ -1550,7 +1548,7 @@ let _Code = {
 
 				let openAPIReturnTypeMonacoConfig = {
 					language: 'json',
-					lint: true,
+					lint: false,
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 						_Code.updateDirtyFlag(entity);
@@ -1610,11 +1608,11 @@ let _Code = {
 			// run button and global schema method flags
 			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
 
-				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
+				$('.method-config-element.global-method.hidden', buttons).removeClass('hidden');
 
 			} else if (result.schemaNode) {
 
-				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
+				$('.method-config-element.entity-method.hidden', buttons).removeClass('hidden');
 			}
 
 			_Helpers.activateCommentsInElement(buttons[0]);
@@ -1654,17 +1652,7 @@ let _Code = {
 	},
 	shouldHideOpenAPITabForMethod: (entity) => {
 
-		// do all lifecycle methods not have openAPI tab?
-		// could unify code (or at least list of lifecycle methods) with icons code for lifecycle methods
-		// and button generation for lifecycle methods
-		let methodPrefixesWithoutOpenAPITab = [
-			'onCreate',
-			'onSave',
-			'onDelete',
-			'afterCreate'
-		];
-
-		return entity.codeType === 'java' || methodPrefixesWithoutOpenAPITab.some(prefix => entity.name.startsWith(prefix));
+		return entity.codeType === 'java' || LifecycleMethods.isLifecycleMethod(entity);
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 
@@ -2518,7 +2506,7 @@ let _Code = {
 					<input class="param-name" placeholder="Parameter name">
 					<span class="px-2">=</span>
 					<input class="param-value" placeholder="Parameter value">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
 				</div>
 			`);
 
@@ -2630,11 +2618,8 @@ let _Code = {
 
 			let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
 
-			if (text.length >= _Code.search.searchThreshold) {
-				clearSearchIcon.classList.add('block');
-			} else {
-				clearSearchIcon.classList.remove('block');
-			}
+			let shouldBeBlock = (text.length >= _Code.search.searchThreshold);
+			clearSearchIcon.classList.toggle('block', shouldBeBlock);
 
 			if (text.length >= _Code.search.searchThreshold || (_Code.search.searchTextLength >= _Code.search.searchThreshold && text.length <= _Code.search.searchTextLength)) {
 				tree.refresh();
@@ -2793,13 +2778,10 @@ let _Code = {
 		updateVisibility: () => {
 
 			let codeContext  = document.querySelector('#code-context');
-			if (_Code.recentElements.isVisible()) {
-				codeContext.classList.remove('hidden');
-				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
-			} else {
-				codeContext.classList.add('hidden');
-				document.querySelector('.column-resizer-right')?.classList.add('hidden');
-			}
+			let isHidden     = !_Code.recentElements.isVisible();
+
+			codeContext.classList.toggle('hidden', isHidden);
+			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', isHidden);
 
 			Structr.resize();
 		}
@@ -2875,22 +2857,15 @@ let _Code = {
 			let backDisabled    = stackSize <= 1 || _Code.pathLocations.currentIndex <= 0;
 
 			let forwardButton = _Code.pathLocations.getForwardButton();
+			let backButton    = _Code.pathLocations.getBackwardButton();
+
 			forwardButton.disabled = forwardDisabled;
+			backButton.disabled    = backDisabled;
 
-			if (forwardDisabled) {
-				forwardButton.classList.add('icon-lightgrey');
-			} else {
-				forwardButton.classList.remove('icon-lightgrey');
-			}
-
-			let backButton = _Code.pathLocations.getBackwardButton();
-			backButton.disabled = backDisabled;
-
-			if (backDisabled) {
-				backButton.classList.add('icon-lightgrey');
-			} else {
-				backButton.classList.remove('icon-lightgrey');
-			}
+			forwardButton.classList.toggle('icon-lightgrey', forwardDisabled);
+			forwardButton.classList.toggle('cursor-not-allowed', forwardDisabled);
+			backButton.classList.toggle('icon-lightgrey', backDisabled);
+			backButton.classList.toggle('cursor-not-allowed', backDisabled);
 		},
 	},
 	templates: {
@@ -3044,7 +3019,7 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
-			<h2>
+			<h2 class="cursor-text">
 				<span id="method-name-container">
 					<span>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '')}</span><span id="method-name-output">${config.method.name}</span><span>()</span>
 				</span>
@@ -3054,20 +3029,25 @@ let _Code = {
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
 					<div>
-						<div class="checkbox hidden entity-method">
+						<div class="method-config-element hidden entity-method">
 							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
 							</label>
 						</div>
-						<div class="checkbox hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
-								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> NOT callable via REST
+						<div class="method-config-element hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the value returned by this method will NOT be wrapped in a result object.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
 							</label>
 						</div>
 					</div>
 					<div>
-						<div class="checkbox hidden entity-method">
-							<select id="http-verb-input" data-property="httpVerb">
+						<div class="method-config-element hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via REST
+							</label>
+						</div>
+						<div class="method-config-element hidden entity-method">
+							<select data-property="httpVerb">
 								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
 								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
 								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>

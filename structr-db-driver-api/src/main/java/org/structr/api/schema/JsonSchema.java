@@ -86,6 +86,7 @@ public interface JsonSchema {
 	public static final String KEY_CALL_SUPER               = "callSuper";
 	public static final String KEY_IS_STATIC                = "isStatic";
 	public static final String KEY_IS_PRIVATE               = "isPrivate";
+	public static final String KEY_RETURN_RAW_RESULT        = "returnRawResult";
 	public static final String KEY_HTTP_VERB                = "httpVerb";
 	public static final String KEY_DO_EXPORT                = "doExport";
 	public static final String KEY_PARAMETERS               = "parameters";

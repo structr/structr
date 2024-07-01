@@ -32,6 +32,7 @@ public interface Transaction extends AutoCloseable, Prefetcher {
 	void failure();
 	void success();
 	long getTransactionId();
+	boolean isSuccessful();
 
 	@Override
 	void close();

@@ -108,11 +108,6 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType) {
-		return db.getRelationships(this, direction, relationshipType);
-	}
-
-	@Override
 	public void delete(boolean deleteRelationships) throws NotInTransactionException {
 		lock();
 		db.delete(this);

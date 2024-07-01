@@ -39,7 +39,6 @@ public class Tx implements AutoCloseable, Prefetcher {
 
 	private final AtomicBoolean guard       = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
-	private boolean success                 = false;
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
 	private boolean doNotifications         = true;
@@ -68,19 +67,17 @@ public class Tx implements AutoCloseable, Prefetcher {
 	}
 
 	public void success() throws FrameworkException {
-
 		TransactionCommand.commitTx(securityContext, doValidation);
-		success = true;
 	}
 
 	@Override
-	public void prefetch(final String type1, final String type2, final Set<String> keys) {
-		TransactionCommand.getCurrentTransaction().prefetch(type1, type2, keys);
+	public void prefetch(final String type1, final String type2, final Set<String> keys, final boolean complete) {
+		TransactionCommand.getCurrentTransaction().prefetch(type1, type2, keys, complete);
 	}
 
 	@Override
-	public void prefetch(final String query, final Set<String> keys) {
-		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
+	public void prefetch(final String query, final Set<String> keys, final boolean complete) {
+		TransactionCommand.getCurrentTransaction().prefetch(query, keys, complete);
 	}
 
 	public void setIsPing(final boolean isPing) {
@@ -92,7 +89,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 
 		final ModificationQueue modificationQueue = TransactionCommand.finishTx();
 
-		if (success && guard.compareAndSet(false, true)) {
+		if (guard.compareAndSet(false, true) && (modificationQueue == null || modificationQueue.transactionWasSuccessful())) {
 
 			final List<Long> ids = new ArrayList<>();
 			boolean hasChanges   = false;
