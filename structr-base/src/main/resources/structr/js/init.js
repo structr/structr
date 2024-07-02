@@ -1870,7 +1870,8 @@ let Structr = {
 				if (btn.dataset['preferredPositionX'] === 'left') {
 
 					// position dropdown left of button
-					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
 
 				} else {
 

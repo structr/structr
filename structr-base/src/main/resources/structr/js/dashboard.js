@@ -121,6 +121,33 @@ let _Dashboard = {
 				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
 			}
 
+			let formats = {
+				with_dashes:    'UUIDv4 with dashes',
+				without_dashes: 'UUIDv4 without dashes',
+				both:           'UUIDv4 with or without dashes'
+			};
+
+			let allowedUUIDFormatElement = document.querySelector('.allowed-uuid-format');
+			allowedUUIDFormatElement.textContent = formats[dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat];
+
+			if (dashboardUiConfig.envInfo.dashboardInfo.allowedUUIDFormat === 'both') {
+
+				let compact = dashboardUiConfig.envInfo.dashboardInfo.createCompactUUIDs === true;
+				allowedUUIDFormatElement.textContent += ' (created UUIDs will ' + (compact ? 'not' : '')  + ' contain dashes)';
+
+				_Helpers.appendInfoTextToElement({
+					element: allowedUUIDFormatElement,
+					customToggleIcon: _Icons.iconWarningYellowFilled,
+					text: 'Warning! This mode is not supported and is only meant to be used to consolidate databases where both UUID formats are used. Using this setting is strongly discouraged and should only be temporary!',
+					width: 16,
+					height: 16,
+					noSpan: true,
+					css: {
+						marginLeft: '6px'
+					}
+				});
+			}
+
 			_Dashboard.initializeTabsAndTabMenu(dashboardUiConfig);
 
 			Structr.mainMenu.unblock(100);
@@ -785,7 +812,7 @@ let _Dashboard = {
 					dropdown: config => `
 						<div class="dropdown-menu dropdown-menu-large ml-2">
 							<button class="mr-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
-								${_Icons.getSvgIcon(_Icons.iconHistory)}
+								${_Icons.getSvgIcon(_Icons.iconHistory, 16, 16, '', 'History')}
 							</button>
 
 							<div class="dropdown-menu-container" id="${config.id}"></div>
@@ -1642,6 +1669,10 @@ let _Dashboard = {
 					<tr>
 						<td class="key">Database Driver</td>
 						<td><div class="db-driver flex items-center">${config.databaseDriver}</div></td>
+					</tr>
+					<tr>
+						<td class="key">UUID Format</td>
+						<td><div class="allowed-uuid-format flex items-center"></div></td>
 					</tr>
 					<tr>
 						<td class="key">Runtime Info</td>

@@ -693,8 +693,8 @@ let _Schema = {
 								<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
 									<b>${entity.name}</b>
 									<div class="icons-container flex items-center">
-										${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
-										${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
+										${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']), 'Edit type')}
+										${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon']), 'Delete type'))}
 									</div>
 								</div>
 							`);
@@ -1348,8 +1348,8 @@ let _Schema = {
 								cssClass: "label rel-type",
 								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.nodeData[res.sourceId].name}" data-target-type="${_Schema.nodeData[res.targetId].name}">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
-											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']))}
-											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon'])))}
+											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
+											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
 										</div>`,
 								location: .5,
 								id: "label"
@@ -2608,8 +2608,8 @@ let _Schema = {
 					</div>
 					<div class="p-1"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
-						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
+						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete')}
 					</div>
 				</div>
 			`,
@@ -2641,7 +2641,7 @@ let _Schema = {
 						<input class="property-default" size="10" type="text" placeholder="Default Value">
 					</div>
 					<div class="actions-col flex items-center justify-center">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Remove')}
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard')}
 					</div>
 				</div>
 			`,
@@ -2945,7 +2945,7 @@ let _Schema = {
 						</span>
 					</div>
 					<div class="flex items-center justify-center gap-1 px-2">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Undo changes')}
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'reset-action']), 'Reset to default')}
 					</div>
 				</div>
@@ -3338,34 +3338,34 @@ let _Schema = {
 		},
 		validateViewRow: (gridRow) => {
 
+			let valid = true;
+
 			let nameField = gridRow.querySelector('.property-name');
 			if (nameField.value.length === 0) {
-
-				_Helpers.blinkRed(nameField.closest('.schema-grid-row'));
-				return false;
+				_Helpers.blinkRed(nameField.closest('.name-col'));
+				valid = false;
 			}
 
 			let viewPropertiesSelect = gridRow.querySelector('.view.property-attrs');
 			if ($(viewPropertiesSelect).sortedValues().length === 0) {
-
-				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
-				return false;
+				_Helpers.blinkRed(viewPropertiesSelect.closest('.view-properties-select'));
+				valid = false;
 			}
 
-			return true;
+			return valid;
 		},
 		templates: {
 			view: config => `
 				<div data-view-id="${config.view.id}" class="schema-grid-row contents">
-					<div class="p-1 flex items-center">
+					<div class="p-1 flex items-center name-col">
 						<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}">
 					</div>
 					<div class="view-properties-select">
 						<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 					</div>
 					<div class="actions-col gap-1 flex items-center justify-center">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-						${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
+						${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete') : ''}
 	
 						<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
 							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview in new tab (with pageSize=1)')}
@@ -3375,7 +3375,7 @@ let _Schema = {
 			`,
 			viewNew: config => `
 				<div class="schema-grid-row contents has-changes">
-					<div class="p-1 flex items-center">
+					<div class="p-1 flex items-center name-col">
 						<input size="15" type="text" class="view property-name" placeholder="Enter view name">
 					</div>
 					<div class="view-properties-select">
@@ -3864,7 +3864,7 @@ let _Schema = {
 			let propertyNameInput = gridRow.querySelector('.property-name');
 			if (propertyNameInput.value.length === 0) {
 
-				_Helpers.blinkRed(propertyNameInput.closest('.schema-grid-row'));
+				_Helpers.blinkRed(propertyNameInput.closest('.name-col'));
 				return false;
 			}
 
@@ -3896,10 +3896,10 @@ let _Schema = {
 						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" value="${config.method.isStatic}">
 					</div>
 					<div class="flex items-center justify-center gap-1">
-						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
-						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']))}
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
+						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
+						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Discard')}
 					</div>
 				</div>
 			`,
@@ -4103,7 +4103,7 @@ let _Schema = {
 						<input type="checkbox" data-property="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 					</div>
 				</div>
 			`,
@@ -4937,8 +4937,8 @@ let _Schema = {
 
 					let icons = `
 						<div class="flex items-center icons-container absolute right-0 top-1">
-							${(idForClassname ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon'])) : '')}
-							${(idForClassname && isCustomType ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon'])) : '')}
+							${(idForClassname ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon']), 'Edit') : '')}
+							${(idForClassname && isCustomType ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon']), 'Delete') : '')}
 						</div>
 					`;
 

@@ -343,15 +343,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private void checkForSettingsConflicts() {
 
-		if (Settings.UUIDv4AllowedFormats.getValue().equals("with_dashes") && true == Settings.UUIDv4CreateCompact.getValue()) {
-			logger.error("Unable to start because created UUIDs would contain dashes but this would not be accepted. Please fix the following settings: {} and/or {}", Settings.UUIDv4AllowedFormats.getKey(), Settings.UUIDv4CreateCompact.getKey());
-			System.exit(1);
-		}
+		// possibly check settings for configuration problems
 
-		if (Settings.UUIDv4AllowedFormats.getValue().equals("without_dashes") && false == Settings.UUIDv4CreateCompact.getValue()) {
-			logger.error("Unable to start because created UUIDs would not contain dashes but this would not be accepted. Please fix the following settings: {} and/or {}", Settings.UUIDv4AllowedFormats.getKey(), Settings.UUIDv4CreateCompact.getKey());
-			System.exit(1);
-		}
 	}
 
 	private void registerSettingsChangeHandlers() {
@@ -360,7 +353,15 @@ public class Services implements StructrServices, BroadcastReceiver {
 		Settings.fallbackLocale.setChangeHandler((setting, oldValue, newValue) -> FlushCachesCommand.flushLocalizationCache());
 
 		Settings.UUIDv4AllowedFormats.setChangeHandler((setting, oldValue, newValue) -> RestartRequiredChangeHandler.logRestartRequiredMessage(setting, "Be aware that changing this setting, with existing data, could lead to data being inaccessible or being unable to start. This setting should only be changed with an empty database or in development."));
-		Settings.UUIDv4CreateCompact.setChangeHandler((setting, oldValue, newValue) -> RestartRequiredChangeHandler.logRestartRequiredMessage(setting, "Be aware that changing this setting could lead to not being able to start. This setting should only be changed with an empty database or in development."));
+
+		Settings.UUIDv4CreateCompact.setChangeHandler((setting, oldValue, newValue) -> {
+
+			// changing this setting only has an effect if we accept both UUIDv4 formats
+			if (Settings.UUIDv4AllowedFormats.getValue().equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
+
+				RestartRequiredChangeHandler.logRestartRequiredMessage(setting);
+			}
+		});
 	}
 
 	private void startServices() {

@@ -1201,6 +1201,8 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test06DuplicateRelationshipsOneToOne() {
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		// Creating duplicate one-to-one relationships
 		// is silently ignored, the relationship will
 		// be replaced.
@@ -1217,6 +1219,8 @@ public class BasicTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
 
 			fail("Creating duplicate relationships via app.create() should NOT throw an exception.");
 		}

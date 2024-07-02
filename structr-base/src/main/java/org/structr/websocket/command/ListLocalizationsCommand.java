@@ -45,7 +45,7 @@ import java.util.Map;
  */
 public class ListLocalizationsCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(ListActiveElementsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListLocalizationsCommand.class.getName());
 
 	static {
 

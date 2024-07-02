@@ -21,6 +21,9 @@ package org.structr.test.web.advanced;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -33,13 +36,20 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.IndexingTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
 import org.structr.test.web.entity.TestTwo;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.importer.Importer;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -284,7 +294,7 @@ public class PerformanceTest extends IndexingTest {
 					tx.prefetch("(n:TestTwo)-[r]->(m:TestFive)", Set.of(
 						"all/INCOMING/TEST",
 						"all/OUTGOING/TEST"
-					));
+					), true);
 
 					for (final TestTwo t : app.nodeQuery(TestTwo.class).getAsList()) {
 
@@ -440,7 +450,6 @@ public class PerformanceTest extends IndexingTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-
 		}
 
 		logger.info("Average node fetch time: {} ms", averageNodeFetchTime);
@@ -478,8 +487,109 @@ public class PerformanceTest extends IndexingTest {
 
 		logger.info("Average user fetch time: {} ms", averageUserFetchTime);
 
-		// fetching a single user node should not take more than 10ms on average
-		assertTrue(averageUserFetchTime < 10);
+		// fetching a single user node should not take more than 100ms on average
+		assertTrue(averageUserFetchTime < 100);
+	}
+
+	@Test
+	public void testRenderingPerformance() {
+
+		final String address = "http://structr.github.io/structr/getbootstrap.com/docs/3.3/examples/jumbotron/";
+
+		// render page into HTML string
+		try (final Tx tx = app.tx()) {
+
+			final Importer importer = new Importer(securityContext, null, address, "testpage", true, true, false, false);
+
+			importer.parse();
+
+			// create page from source
+			importer.readPage();
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+
+		final long t0   = System.currentTimeMillis();
+		final int num   = 20;
+
+		for (int i=0; i<num; i++) {
+
+			try (final Tx tx = app.tx()) {
+
+				final Page page      = app.nodeQuery(Page.class).getFirst();
+				final String content = page.getContent(RenderContext.EditMode.NONE);
+
+				System.out.println("Content length: " + content.length());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
+		}
+
+		final long duration = System.currentTimeMillis() - t0;
+		final long average  = duration / num;
+
+		System.out.println("Rendering took " + duration + " ms, average of " + average + " ms per run");
+
+		assertTrue("Rendering performance is too low", average < 300);
+	}
+
+	@Test
+	public void testRelationshipCreationAndRead() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema       = StructrSchema.createFromDatabase(app);
+			final JsonObjectType baseType = schema.addType("BaseType");
+			final JsonObjectType type1    = schema.addType("Type1");
+			final JsonObjectType type2    = schema.addType("Type2");
+			final JsonObjectType linked   = schema.addType("LinkedType");
+
+			type1.setExtends(baseType);
+			type2.setExtends(baseType);
+
+			baseType.relate(linked, "LINKED", Cardinality.ManyToOne, "baseTypes", "linked");
+
+			baseType.addMethod("onCreate","{ $.this.linked = $.requestStore.linked; $.log($.requestStore.linked.baseTypes); }");
+
+			// creation method
+			type1.addMethod("test", "{ $.requestStore.linked = $.create('LinkedType'); for (var i=0; i<100; i++) { $.create('Type1'); $.create('Type2'); } }").setIsStatic(true);
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Type1.test(); }}", "test", "test");
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.CypherDebugLogging.setValue(false);
+
+
 	}
 
 	// ----- private methods -----

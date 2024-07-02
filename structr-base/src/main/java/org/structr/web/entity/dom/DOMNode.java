@@ -286,9 +286,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}}
 
-	static final String PAGE_CATEGORY              = "Page Structure";
-	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
-	static final String QUERY_CATEGORY             = "Query and Data Binding";
+	static final String PAGE_CATEGORY                 = "Page Structure";
+	static final String EDIT_MODE_BINDING_CATEGORY    = "Edit Mode Binding";
+	static final String EVENT_ACTION_MAPPING_CATEGORY = "Event Action Mapping";
+	static final String QUERY_CATEGORY                = "Query and Data Binding";
 
 	// ----- error messages for DOMExceptions -----
 	public static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
@@ -1529,20 +1530,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
 				}
 
-				final Object actionElement = thisNode.getProperty(StructrApp.key(DOMElement.class, "actionElement", false));
-				if (actionElement != null) {
-					out.append(" data-structr-meta-action-element=\"").append(((DOMElement) actionElement).getUuid()).append("\"");
-				}
-
-//				final PropertyKey<Iterable<DOMElement>> inputsKey = StructrApp.key(DOMElement.class, "inputs", false);
-//				final List<DOMElement> inputs                     = Iterables.toList(thisNode.getProperty(inputsKey));
-//
-//				final Object flow = thisNode.getProperty(StructrApp.key(DOMNode.class, "flow", false));
-//
-//				if (flow != null || actionElement != null || inputs.size() > 0) {
-
-					out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");
-//				}
+				out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");
 			}
 
 			for (final String p : rawProps) {
@@ -1794,10 +1782,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
-
-				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
-				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
+				LoggerFactory.getLogger(DOMNode.class).warn("Could not retrieve data from graph data source {} in {} {}: {}", source.getClass().getSimpleName(), thisNode.getType(), thisNode.getUuid(), fex.getMessage());
 			}
 		}
 
@@ -2140,33 +2125,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return "tree-item-" + target + "-is-open";
 	}
 
-	public static void prefetchDOMNodes() {
+	public static void prefetchDOMNodes(final String id) {
 
-		TransactionCommand.getCurrentTransaction().prefetch("DOMNode", null, Set.of(
+		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + id + "\" })-[:CONTAINS*]-(m)", Set.of(
 
-			"all/INCOMING/SYNC",
-			"all/INCOMING/LINK",
-			"all/INCOMING/OWNS",
 			"all/INCOMING/CONTAINS",
-			"all/INCOMING/CONTAINS_NEXT_SIBLING",
-			"all/INCOMING/FAVORITE",
-			"all/INCOMING/INPUT_ELEMENT",
-			"all/INCOMING/SUCCESS_TARGET",
-			"all/INCOMING/FAILURE_TARGET",
-			"all/INCOMING/RELOADS",
-			"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
-			"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
-			"all/INCOMING/TRIGGERED_BY",
+			"all/OUTGOING/CONTAINS"
 
-			"all/OUTGOING/OWNS",
-			"all/OUTGOING/CONTAINS",
-			"all/OUTGOING/CONTAINS_NEXT_SIBLING",
-			"all/OUTGOING/FLOW",
-			"all/OUTGOING/FAVORITE",
-			"all/OUTGOING/PARAMETER",
-			"all/OUTGOING/RELOADS",
-			"all/OUTGOING/SYNC"
-		));
+		), false);
 	}
 
 	// ----- nested classes -----

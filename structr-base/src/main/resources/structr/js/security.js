@@ -551,7 +551,6 @@ let _UsersAndGroups = {
 		});
 
 		let groupPager = _Pager.addPager(_Security.groupsPagerId, groupControls, true, 'Group', 'public', (groups) => {
-			console.log(groups);
 			for (let group of groups) {
 				let groupModelObj = StructrModel.create(group);
 				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
@@ -947,7 +946,7 @@ let _ResourceAccessGrants = {
 		_ResourceAccessGrants.appendPrincipalIconOrMargin(actionsCol, resourceAccess);
 		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
 
-		actionsCol.append(_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
+		actionsCol.append(_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access']), 'Delete'));
 
 		$('.delete-resource-access', tr).on('click', (e) => {
 			e.stopPropagation();
@@ -1112,7 +1111,7 @@ let _CorsSettings = {
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${corsSetting.id}" class="cors-setting">
 				<td class="title-cell"><b>${corsSetting.requestUri}</b></td>
-				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']))}</td>
+				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']), 'Delete')}</td>
 				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
 				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
 				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods || ''}"></td>
