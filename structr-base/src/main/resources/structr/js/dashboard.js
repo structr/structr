@@ -525,7 +525,7 @@ let _Dashboard = {
 						}
 					}
 
-					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
+					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start a data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
 					if (confirm) {
 
 						// do not listen for errors - they are sent by the backend via WS
