@@ -63,6 +63,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean dynamic                              = false;
 	protected boolean isPartOfBuiltInSchema                = false;
 	protected boolean cachingEnabled                       = false;
+	protected boolean nodeOnly                             = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -179,6 +180,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed() {
 
 		this.indexed = true;
+
+		return this;
+	}
+
+	@Override
+	public Property<T> nodeIndexOnly() {
+
+		this.nodeOnly = true;
 
 		return this;
 	}
@@ -447,6 +456,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isIndexed() {
 		return indexed;
+	}
+
+	@Override
+	public boolean isNodeIndexOnly() {
+		return nodeOnly;
 	}
 
 	@Override

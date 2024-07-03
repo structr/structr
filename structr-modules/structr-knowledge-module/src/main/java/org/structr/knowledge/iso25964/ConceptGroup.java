@@ -44,7 +44,7 @@ public interface ConceptGroup extends NodeInterface {
 
 		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("conceptGroupType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui);
 
 		type.relate(type, "hasSubGroup", Cardinality.ManyToMany, "superGroups", "subGroups");
 		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "conceptGroups", "thesaurusConcepts");

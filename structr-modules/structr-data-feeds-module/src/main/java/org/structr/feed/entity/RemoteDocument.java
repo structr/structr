@@ -48,7 +48,7 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 		type.addStringProperty("url",              PropertyView.Ui, PropertyView.Public);
 		type.addLongProperty("checksum",           PropertyView.Ui).setReadOnly(true);
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
-		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true).setReadOnly(true);
+		type.addIntegerProperty("version",         PropertyView.Ui).setReadOnly(true);
 
 		type.addPropertyGetter("url",              String.class);
 		type.addPropertyGetter("contentType",      String.class);

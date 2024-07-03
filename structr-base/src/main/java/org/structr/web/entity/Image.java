@@ -68,9 +68,9 @@ public interface Image extends File {
 		image.setExtends(URI.create("#/definitions/File"));
 		image.setCategory("ui");
 
-		image.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		image.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		image.addIntegerProperty("orientation",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui);
+		image.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui);
+		image.addIntegerProperty("orientation",     PropertyView.Public, PropertyView.Ui);
 		image.addStringProperty("exifIFD0Data",     PropertyView.Public, PropertyView.Ui);
 		image.addStringProperty("exifSubIFDData",   PropertyView.Public, PropertyView.Ui);
 		image.addStringProperty("gpsData",          PropertyView.Public, PropertyView.Ui);

@@ -592,7 +592,11 @@ public class SchemaService implements Service {
 
 								if (isRelationship) {
 
-									typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
+									// prevent creation of node property indexes on relationships
+									if (!key.isNodeIndexOnly()) {
+
+										typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
+									}
 
 								} else {
 

@@ -83,6 +83,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	Property<T> indexed();
 
 	/**
+	 * Use this method to mark an indexed property to be created
+	 * for nodes only.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> nodeIndexOnly();
+
+	/**
 	 * Use this method to indicate that a property key can change its value
 	 * without setProperty() being called directly on it. This method causes
 	 * the given property to be indexed at the end of a transaction instead
@@ -232,6 +240,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return isIndexed
 	 */
 	boolean isIndexed();
+
+	/**
+	 * Indicates whether this property is indexed on nodes only.
+	 *
+	 * @return isIndexed
+	 */
+	boolean isNodeIndexOnly();
 
 	/**
 	 * Indicates whether this property is indexed. The difference to the
