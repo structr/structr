@@ -6588,6 +6588,42 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testInterScriptCallWithMap() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			type.addMethod("t1", "{let context = {map: new Map()}; context.map.set('a', 123); $.Test.t2({context});}").setIsStatic(true);
+			type.addMethod("t2", "{const migrationContext = $.methodParameters.context.map; migrationContext.set('b', 456); migrationContext.forEach((e) => {$.log(e);});}").setIsStatic(true);
+			type.addMethod("onCreate", "{ $.Test.t1(); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(testClass, "Test");
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception. Map binding was not currently passed to second context. This could be due to incorrect engine parsing for the source.");
+		}
+	}
+
+	@Test
 	public void testDateConversions() {
 
 		final String src = IOUtils.readFull(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));

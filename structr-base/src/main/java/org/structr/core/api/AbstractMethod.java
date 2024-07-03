@@ -129,7 +129,7 @@ public abstract class AbstractMethod {
 							binding.setEntity(previousEntity);
 							binding.setActionContext(previousContext);
 							binding.setMethodParameters(null);
-								securityContext.getContextStore().setTemporaryParameters(tmp);
+							securityContext.getContextStore().setTemporaryParameters(tmp);
 
 						}
 					}

@@ -90,7 +90,7 @@ public class ScriptMethod extends AbstractMethod {
 
 		if (source != null) {
 
-			final String[] splitSource = Scripting.splitSnippetIntoEngineAndScript(source);
+			final String[] splitSource = Scripting.splitSnippetIntoEngineAndScript(source.trim());
 
 			if ("js".equals(splitSource[0])) {
 
