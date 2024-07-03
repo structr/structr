@@ -32,6 +32,7 @@ import org.neo4j.driver.types.Relationship;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
+import org.structr.api.graph.Identity;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 

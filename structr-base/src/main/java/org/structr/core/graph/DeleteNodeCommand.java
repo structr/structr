@@ -27,10 +27,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
@@ -81,11 +78,15 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		// delete all nodes
 		for (final NodeInterface deleteMe : nodesToDelete) {
 
-			// mark node as deleted in transaction
-			TransactionCommand.nodeDeleted(user, deleteMe);
+			// node can already be deleted by a previous run
+			if (!deleteMe.isDeleted()) {
 
-			// delete node in database
-			deleteMe.getNode().delete(true);
+				// mark node as deleted in transaction
+				TransactionCommand.nodeDeleted(user, deleteMe);
+
+				// delete node in database
+				deleteMe.getNode().delete(true);
+			}
 		}
 
 		final Set<NodeInterface> invalidNodes = new HashSet<>();
@@ -110,7 +111,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private void collectNodesForCascadingDelete(final Set<NodeInterface> nodesToDelete, final Set<RelationshipInterface> relsToDelete, final Set<NodeInterface> nodesToCheck, final NodeInterface node) {
 
-		final Queue<NodeInterface> queue = new LinkedList<>();
+		final Queue<NodeInterface> queue = new ArrayDeque<>();
 
 		// initial object
 		queue.add(node);
@@ -119,54 +120,56 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 			final NodeInterface current = queue.remove();
 
-			if (current != null && !nodesToDelete.contains(current)) {
+			if (current != null && !nodesToDelete.contains(current) && !current.isDeleted()) {
 
 				nodesToDelete.add(current);
 
-				for (AbstractRelationship rel : current.getOutgoingRelationships()) {
+				for (AbstractRelationship rel : current.getRelationships()) {
 
 					// deleted rels can be null..
 					if (rel != null) {
 
-						int cascadeDelete = rel.getCascadingDeleteFlag();
-						NodeInterface endNode = rel.getTargetNode();
+						final int cascadeDelete       = rel.getCascadingDeleteFlag();
+						final NodeInterface startNode = rel.getSourceNode();
+						final NodeInterface endNode   = rel.getTargetNode();
 
-						if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+						if (startNode != null && endNode != null) {
 
-							nodesToCheck.add(endNode);
-						}
+							// outgoing?
+							if (current.getNode().getId().equals(startNode.getNode().getId())) {
 
-						if ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET) {
+								if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
 
-							if (endNode != null && !queue.contains(endNode)) {
+									nodesToCheck.add(endNode);
+								}
 
-								queue.add(endNode);
+								if ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET) {
+
+									if (!nodesToDelete.contains(endNode)) {
+
+										queue.add(endNode);
+									}
+								}
+
+							} else {
+
+								if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+									nodesToCheck.add(startNode);
+								}
+
+								if ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE) {
+
+									if (!nodesToDelete.contains(startNode)) {
+
+										queue.add(startNode);
+									}
+								}
 							}
 						}
 
 						relsToDelete.add(rel);
 					}
-				}
-
-				for (AbstractRelationship rel : current.getIncomingRelationships()) {
-
-					final int cascadeDelete = rel.getCascadingDeleteFlag();
-					final NodeInterface startNode = rel.getSourceNode();
-
-					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
-
-						nodesToCheck.add(startNode);
-					}
-
-					if ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE) {
-
-						if (startNode != null && !queue.contains(startNode)) {
-
-							queue.add(startNode);
-						}
-					}
-
-					relsToDelete.add(rel);
 				}
 			}
 		}

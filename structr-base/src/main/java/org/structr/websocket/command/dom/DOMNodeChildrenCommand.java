@@ -54,7 +54,12 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		DOMNode.prefetchDOMNodes(webSocketData.getId());
+		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + webSocketData.getId() + "\" })-[:CONTAINS|CONTAINS_NEXT_SIBLING]->(m)", Set.of(
+
+			"all/INCOMING/CONTAINS",
+			"all/OUTGOING/CONTAINS"
+
+		), true);
 
 		final List<GraphObject> result = new LinkedList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();

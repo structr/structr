@@ -20,16 +20,14 @@ package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.asciidoctor.internal.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
-import org.structr.common.AccessControllable;
-import org.structr.common.AccessMode;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
@@ -6557,7 +6555,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.addType("Test");
+			final JsonType type = schema.addType("Test");
 
 			type.addMethod("onCreate", "{ $.userMethod(); $.log($.this.id); }");
 
@@ -6587,6 +6585,26 @@ public class ScriptingTest extends StructrTest {
 			ex.printStackTrace();
 			fail("Unexpected exception. It is likely that entity in binding has been set incorrectly throughout the call chain.");
 		}
+	}
+
+	@Test
+	public void testDateConversions() {
+
+		final String src = IOUtils.readFull(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			final Object result1 = Scripting.evaluate(ctx, null, src, "test1");
+
+			final ContextStore store = ctx.getContextStore();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
 	}
 
 	// ----- private methods ----

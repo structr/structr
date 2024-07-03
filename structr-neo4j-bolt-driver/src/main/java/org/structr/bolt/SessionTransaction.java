@@ -243,6 +243,16 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
+	public boolean isNodeDeleted(final long id) {
+		return deletedNodes.contains(id);
+	}
+
+	@Override
+	public boolean isRelationshipDeleted(final long id) {
+		return deletedRels.contains(id);
+	}
+
+	@Override
 	public void prefetch(final String type1, final String type2, final Set<String> keys, final boolean complete) {
 
 		final StringBuilder buf  = new StringBuilder();

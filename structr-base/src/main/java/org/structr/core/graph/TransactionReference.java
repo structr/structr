@@ -46,6 +46,16 @@ public class TransactionReference implements Transaction {
 		return tx.isSuccessful();
 	}
 
+	@Override
+	public boolean isNodeDeleted(final long id) {
+		return tx.isNodeDeleted(id);
+	}
+
+	@Override
+	public boolean isRelationshipDeleted(final long id) {
+		return tx.isRelationshipDeleted(id);
+	}
+
 	public void begin() {
 		referenceCount++;
 	}
