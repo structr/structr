@@ -6597,7 +6597,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonType type = schema.addType("Test");
 
 			type.addMethod("t1", "{let context = {map: new Map()}; context.map.set('a', 123); $.Test.t2({context});}").setIsStatic(true);
-			type.addMethod("t2", "{const migrationContext = $.methodParameters.context.map; migrationContext.set('b', 456); migrationContext.forEach((e) => {$.log(e);});}").setIsStatic(true);
+			// Explicitly add newline at the end of script to check trimming of source code when determining script language
+			type.addMethod("t2", "{const migrationContext = $.methodParameters.context.map; migrationContext.set('b', 456); migrationContext.forEach((e) => {$.log(e);});}\n").setIsStatic(true);
 			type.addMethod("onCreate", "{ $.Test.t1(); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
