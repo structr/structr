@@ -53,6 +53,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	Node getNode();
 
+	boolean isDeleted();
+
 	String getName();
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);

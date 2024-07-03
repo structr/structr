@@ -2132,7 +2132,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			"all/INCOMING/CONTAINS",
 			"all/OUTGOING/CONTAINS"
 
-		), false);
+		), true);
 	}
 
 	// ----- nested classes -----

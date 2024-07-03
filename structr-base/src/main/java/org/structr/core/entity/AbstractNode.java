@@ -501,6 +501,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
+	public boolean isDeleted() {
+		return TransactionCommand.getCurrentTransaction().isNodeDeleted(nodeId.getId());
+	}
+
+	@Override
 	public boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
 
 		if (getNode() != null && type != null && targetNode != null) {

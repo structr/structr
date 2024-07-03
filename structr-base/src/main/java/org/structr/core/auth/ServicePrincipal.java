@@ -221,6 +221,11 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
+	public boolean isDeleted() {
+		return false;
+	}
+
+	@Override
 	public String getName() {
 		return (String)data.get("name");
 	}

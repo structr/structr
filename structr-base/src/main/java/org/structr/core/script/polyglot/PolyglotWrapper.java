@@ -98,11 +98,6 @@ public abstract class PolyglotWrapper {
 				return new PolyglotProxyArray(actionContext, enumList.toArray());
 			}
 
-			if (obj instanceof Date date) {
-
-				return new DateWrapper(date);
-			}
-
 			if (obj instanceof LocalDate lDate) {
 
 				return ProxyDate.from(lDate);
@@ -131,9 +126,6 @@ public abstract class PolyglotWrapper {
 			if (obj.getClass().isArray() && !(obj instanceof byte[])) {
 
 				return new PolyglotProxyArray(actionContext, (Object[]) obj);
-			}
-
-			if (obj != null) {
 			}
 
 			return obj;
@@ -207,10 +199,6 @@ public abstract class PolyglotWrapper {
 
 				if (value.isHostObject()) {
 					return unwrap(actionContext, value.asHostObject());
-				}
-
-				if (value.isProxyObject() && value.asProxyObject() instanceof DateWrapper dw) {
-					return dw.getWrappedDate();
 				}
 
 				if (value.isDate() && value.isTime() && value.isTimeZone()) {

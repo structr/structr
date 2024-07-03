@@ -109,6 +109,16 @@ public class MemoryTransaction implements Transaction {
 		return getRelationshipById((MemoryIdentity)id);
 	}
 
+	@Override
+	public boolean isRelationshipDeleted(final long id) {
+		return deletedNodes.contains(id);
+	}
+
+	@Override
+	public boolean isNodeDeleted(final long id) {
+		return deletedRelationships.containsKey(id);
+	}
+
 	public void create(final MemoryNode newNode) {
 		createdNodes.add(newNode);
 	}
