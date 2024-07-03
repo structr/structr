@@ -427,14 +427,14 @@ public class DeployDataCommand extends DeployCommand {
 			final String title = "Missing Principal(s)";
 			final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>data deployment</b>.<br>"
 					+ "Because of these missing grants/ownerships, <b>node access rights are not identical to the export you just imported</b>!"
-					+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+					+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 					+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-data-deploy.conf</a> and re-importing.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 					+ "\tBecause of these missing grants/ownerships, node access rights are not identical to the export you just imported!\n\n"
-					+ "\t" + String.join(", ",  missingPrincipals)
+					+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 					+ "###############################################################################"
 			);
@@ -447,14 +447,14 @@ public class DeployDataCommand extends DeployCommand {
 			final String title = "Ambiguous Principal(s)";
 			final String text = "For the following names, there are multiple candidates (User/Group) for grants or node ownership during <b>data deployment</b>.<br>"
 					+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>!"
-					+ "<ul><li>" + String.join("</li><li>",  ambiguousPrincipals) + "</li></ul>"
+					+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 					+ "Consider clearing up such ambiguities in the database.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tFor the following names, there are multiple candidates (User/Group) for grants or node ownership during data deployment.\n"
 					+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported!\n\n"
-					+ "\t" + String.join("\n\t",  ambiguousPrincipals)
+					+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 					+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 					+ "###############################################################################"
 			);
@@ -888,8 +888,9 @@ public class DeployDataCommand extends DeployCommand {
 		int relCount          = 0;
 		final int maxSize     = data.size();
 
-		logger.info("Importing relationships for type {} ({})", typeName, maxSize);
-		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName + " (" + maxSize + ")");
+		final String baseMessage = "Importing relationships for type " + typeName;
+		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + maxSize + ")", Map.of("progressEntryClass", typeName));
+		logger.info("{} ({})", baseMessage, maxSize);
 
 		while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -946,7 +947,9 @@ public class DeployDataCommand extends DeployCommand {
 				tx.success();
 
 				relCount += sublist.size();
-				logger.info(" ... imported {} / {} relationships", relCount, maxSize);
+
+				publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + relCount + " / " + maxSize + ")", Map.of("progressEntryClass", typeName));
+				logger.info("{} ({} / {})", baseMessage, relCount, maxSize);
 
 			} catch (FrameworkException fex) {
 
@@ -1012,8 +1015,9 @@ public class DeployDataCommand extends DeployCommand {
 			int nodeCount       = 0;
 			final int maxSize   = data.size();
 
-			logger.info("Importing nodes for type {} ({})", defaultTypeName, maxSize);
-			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName + " (" + maxSize + ")");
+			final String baseMessage = "Importing nodes for type " + defaultTypeName;
+			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + maxSize + ")", Map.of("progressEntryClass", defaultTypeName));
+			logger.info("{} ({})", baseMessage, maxSize);
 
 			while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -1055,32 +1059,36 @@ public class DeployDataCommand extends DeployCommand {
 							logger.warn("Skipping node {}. Type cannot be found: {}!", id, typeName);
 
 							missingTypesForImport.add(typeName);
+
+						} else {
+
+							final Map<String, Object> basicPropertiesMap = new HashMap();
+							basicPropertiesMap.put("id", id);
+							basicPropertiesMap.put("type", typeName);
+							basicPropertiesMap.put("owner", entry.get("owner"));
+							basicPropertiesMap.put("grantees", entry.get("grantees"));
+
+							entry.remove("owner");
+							entry.remove("grantees");
+
+							final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
+
+							correctNumberFormats(context, entry, type);
+
+							final PropertyContainer pc = basicNode.getPropertyContainer();
+							pc.setProperties(entry);
+
+							// finally, add node to index
+							basicNode.addToIndex();
 						}
-
-						final Map<String, Object> basicPropertiesMap = new HashMap();
-						basicPropertiesMap.put("id", id);
-						basicPropertiesMap.put("type", typeName);
-						basicPropertiesMap.put("owner", entry.get("owner"));
-						basicPropertiesMap.put("grantees", entry.get("grantees"));
-
-						entry.remove("owner");
-						entry.remove("grantees");
-
-						final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
-
-						correctNumberFormats(context, entry, type);
-
-						final PropertyContainer pc = basicNode.getPropertyContainer();
-						pc.setProperties(entry);
-
-						// finally, add node to index
-						basicNode.addToIndex();
 					}
 
 					tx.success();
 
 					nodeCount += sublist.size();
-					logger.info(" ... imported {} / {} nodes", nodeCount, maxSize);
+
+					publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + nodeCount + " / " + maxSize + ")", Map.of("progressEntryClass", defaultTypeName));
+					logger.info("{} ({} / {})", baseMessage, nodeCount, maxSize);
 
 				} catch (FrameworkException fex) {
 
