@@ -23,6 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -81,6 +83,8 @@ import org.structr.util.StructrLicenseManager;
  *
  */
 public class MaintenanceResource extends ExactMatchEndpoint {
+
+	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class);
 
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 
@@ -216,6 +220,8 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 							// flush caches if required
 							if (cmd.requiresFlushingOfCaches()) {
+
+								logger.info("Flushing caches before maintenance command.");
 
 								app.command(FlushCachesCommand.class).execute(Collections.EMPTY_MAP);
 							}

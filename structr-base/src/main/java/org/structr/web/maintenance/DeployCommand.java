@@ -386,14 +386,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String title = "Missing Principal(s)";
 				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>deployment</b>.<br>"
 						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
-						+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+						+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
-						+ "\t" + String.join("\n\t",  missingPrincipals)
+						+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 						+ "###############################################################################"
 				);
@@ -405,14 +405,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String title = "Ambiguous Principal(s)";
 				final String text = "For the following names, there are multiple candidates (User/Group) for grants or node ownership during <b>deployment</b>.<br>"
 						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>!"
-						+ "<ul><li>" + String.join("</li><li>",  ambiguousPrincipals) + "</li></ul>"
+						+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 						+ "Consider clearing up such ambiguities in the database.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tFor the following names, there are multiple candidates (User/Group) for grants or node ownership during deployment.\n"
 						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported!\n\n"
-						+ "\t" + String.join("\n\t",  ambiguousPrincipals)
+						+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 						+ "###############################################################################"
 				);
@@ -425,14 +425,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String text = "The following schema methods/functions require file(s) to be present in the tree-based schema export.<br>"
 						+ "Because those files are missing, the functionality will not be available after importing!<br>"
 						+ "The most common cause is that someone forgot to add these files to the repository."
-						+ "<ul><li>" + String.join("</li><li>",  missingSchemaFile) + "</li></ul>";
+						+ "<ul><li>" + missingSchemaFile.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following schema methods/functions require file(s) to be present in the tree-based schema export.\n"
 						+ "\tBecause those files are missing, the functionality will not be available after importing!\n"
 						+ "\tThe most common cause is that someone forgot to add these files to the repository.\n\n"
-						+ "\t" + String.join("\n\t",  missingSchemaFile)
+						+ "\t" + missingSchemaFile.stream().sorted().collect(Collectors.joining("\n\t"))
 						+ "\n###############################################################################"
 				);
 				publishWarningMessage(title, text);
@@ -775,7 +775,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
-
 		final Map<String, Object> properties = new TreeMap<>();
 
 		Files.createDirectories(path);
@@ -791,6 +790,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Collections.sort(folders, AbstractNode.name.sorted(false));
 
 		for (final Folder child : folders) {
+
 			exportFilesAndFolders(path, child, config);
 		}
 
@@ -798,6 +798,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Collections.sort(files, AbstractNode.name.sorted(false));
 
 		for (final File file : files) {
+
 			exportFile(path, file, config);
 		}
 	}
@@ -823,7 +824,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				IOUtils.copy(file.getInputStream(), new FileOutputStream(targetPath.toFile()));
+
 			} catch (IOException ioex) {
+
 				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
 			}
 		}
@@ -831,6 +834,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
+
 			String filePath = file.getPath();
 			config.put(filePath, properties);
 		}
@@ -1734,6 +1738,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			return getGson().fromJson(reader, List.class);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 

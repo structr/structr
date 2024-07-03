@@ -109,6 +109,8 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 						// flush caches if required
 						if (cmd.requiresFlushingOfCaches()) {
 
+							logger.info("Flushing caches before maintenance function.");
+
 							try {
 
 								app.command(FlushCachesCommand.class).execute(Collections.EMPTY_MAP);
