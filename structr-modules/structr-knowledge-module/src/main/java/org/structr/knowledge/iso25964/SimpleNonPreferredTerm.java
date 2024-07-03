@@ -43,10 +43,10 @@ public interface SimpleNonPreferredTerm extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SimpleNonPreferredTerm"));
 		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
 
-		type.addBooleanProperty("hidden", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("hidden", PropertyView.All, PropertyView.Ui);
 
 		final JsonReferenceType equivalence = type.relate(prefTerm, "USE", Cardinality.ManyToOne, "preferredTerm", "simpleNonPreferredTerms");
-		equivalence.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		equivalence.addStringProperty("role", PropertyView.All, PropertyView.Ui);
 
 	}}
 }

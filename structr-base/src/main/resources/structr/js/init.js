@@ -1443,7 +1443,23 @@ let Structr = {
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					let shown = false;
+
+					if (data.progressEntryClass) {
+
+						let targetElement = document.querySelector(`.${messageCssClass} .${data.progressEntryClass}`);
+
+						if (targetElement) {
+
+							targetElement.textContent = data.message;
+							shown = true;
+						}
+					}
+
+					if (shown === false) {
+
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass ?? ''}">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					}
 
 				} else if (data.subtype === 'END') {
 
@@ -1586,7 +1602,10 @@ let Structr = {
 
 					} else {
 
-						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+						if (data.isServicePrincipal === false) {
+							builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+						}
+
 						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
 					}
 
@@ -1867,7 +1886,8 @@ let Structr = {
 				if (btn.dataset['preferredPositionX'] === 'left') {
 
 					// position dropdown left of button
-					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
 
 				} else {
 

@@ -107,18 +107,23 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	@Override
 	public void delete(final boolean deleteRelationships) {
 
-		getStartNode().invalidate();
-		getEndNode().invalidate();
+		if (!db.getCurrentTransaction().isNodeDeleted(sourceNodeId)) {
+			getStartNode().invalidate();
+		}
+
+		if (!db.getCurrentTransaction().isNodeDeleted(targetNodeId)) {
+			getEndNode().invalidate();
+		}
 
 		super.delete(deleteRelationships);
 
 		final SessionTransaction tx = db.getCurrentTransaction();
 
+		tx.delete(this);
+
 		// invalidate node caches
 		tx.nodes.remove(sourceNodeId);
 		tx.nodes.remove(targetNodeId);
-
-		tx.delete(this);
 	}
 
 	@Override
@@ -129,33 +134,6 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 		}
 
 		return Direction.INCOMING;
-	}
-
-	@Override
-	public void setProperty(final String key, final Object value) {
-
-		getStartNode().invalidate();
-		getEndNode().invalidate();
-
-		super.setProperty(key ,value);
-	}
-
-	@Override
-	public void setProperties(final Map<String, Object> values) {
-
-		getStartNode().invalidate();
-		getEndNode().invalidate();
-
-		super.setProperties(values);
-	}
-
-	@Override
-	public void removeProperty(String key) {
-
-		getStartNode().invalidate();
-		getEndNode().invalidate();
-
-		super.removeProperty(key);
 	}
 
 	// ----- protected methods -----

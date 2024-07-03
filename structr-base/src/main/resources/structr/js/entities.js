@@ -25,6 +25,14 @@ let _Entities = {
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', ' script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	null_prefix: 'null_attr_',
 	collectionPropertiesResultCount: {},
+	exampleShowHideConditions: [
+		{ value: '', text: '(none)' },
+		{ value: 'true' },
+		{ value: 'false' },
+		{ value: 'me.isAdmin' },
+		{ value: 'empty(current)' },
+		{ value: 'not(empty(current))' }
+	],
 	changeBooleanAttribute: (attrElement, value, activeLabel, inactiveLabel) => {
 
 		if (value === true) {
@@ -1490,7 +1498,7 @@ let _Entities = {
 	accessControlDialog: (entity, container, typeInfo) => {
 
 		let id = entity.id;
-		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin';
+		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin,blocked';
 
 		let handleGraphObject = (entity) => {
 
@@ -1798,7 +1806,7 @@ let _Entities = {
 				}
 			}
 
-			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses));
+			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses, 'Access Control'));
 			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
@@ -1843,7 +1851,7 @@ let _Entities = {
 		let icon                 = parent.querySelector('.' + contextMenuIconClass);
 
 		if (!icon) {
-			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon']), 'Context-Menu'));
 			parent.appendChild(icon);
 		}
 
@@ -2341,7 +2349,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2358,7 +2366,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2375,7 +2383,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2390,7 +2398,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 			},
 			div: async (el, entity) => {
 
@@ -2404,7 +2412,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 			},
 			file: async (el, entity) => {
@@ -2453,7 +2461,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 			},
 			ldapGroup: async (el, entity) => {
@@ -2516,7 +2524,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2612,22 +2620,15 @@ let _Entities = {
 				});
 			});
 		},
-		showShowHideConditionOptions: (el) => {
+		activateShowHideConditionOptions: (el) => {
 
-			let showConditionsInput  = $('input#show-conditions', el);
-			let showConditionsSelect = $('select#show-conditions-templates', el);
-			let hideConditionsInput  = $('input#hide-conditions', el);
-			let hideConditionsSelect = $('select#hide-conditions-templates', el);
-
-			showConditionsSelect.on('change', () => {
-				showConditionsInput.val(showConditionsSelect.val());
-				showConditionsInput[0].dispatchEvent(new Event('change'));
-			});
-
-			hideConditionsSelect.on('change', () => {
-				hideConditionsInput.val(hideConditionsSelect.val());
-				hideConditionsInput[0].dispatchEvent(new Event('change'));
-			});
+			for (let showConditionExample of el[0].querySelectorAll('.example-condition')) {
+				showConditionExample.onclick = function() {
+					let input   = this.closest('.conditions-container').querySelector('input');
+					input.value = this.dataset['value'];
+					input.dispatchEvent(new Event('change'));
+				}
+			}
 		},
 		showChildContentEditor:(el, entity) => {
 
@@ -3217,13 +3218,13 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="rendering-delay-or-interval">Delay or interval in milliseconds</label>
+							<label class="block mb-2" for="rendering-delay-or-interval" data-comment="Works in conjunction with Load/Update Mode and is required for delayed and periodic modes.">Delay or interval (ms)</label>
 							<input type="number" id="rendering-delay-or-interval" name="data-structr-delay-or-interval">
 						</div>
 					</div>
 				</div>
 			`,
-				repeaterPartial: config => `
+			repeaterPartial: config => `
 				<div>
 					<label class="block mb-2" for="function-query-input">Function Query</label>
 					<input type="text" id="function-query-input" name="functionQuery">
@@ -3287,34 +3288,51 @@ let _Entities = {
 
 				</div>
 			`,
-			showHideConditionTemplates: config => `
-				<option value="" disabled selected>Example ${config.type} conditions...</option>
-				<option value="">(none)</option>
-				<option>true</option>
-				<option>false</option>
-				<option>me.isAdmin</option>
-				<option>empty(current)</option>
-				<option>not(empty(current))</option>
-			`,
 			visibilityPartial: config => `
 				<div>
 					<label class="block mb-2" for="show-conditions">Show Conditions</label>
-					<div class="flex">
-						<input id="show-conditions" type="text" name="showConditions">
-						<select id="show-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Entities.basicTab.templates.showHideConditionTemplates({ type: 'show' })}
-						</select>
+					<div class="conditions-container flex">
+						<input id="show-conditions" type="text" name="showConditions" class="border border-r-0 rounded-none rounded-l">
+						<div class="dropdown-menu dropdown-menu-large">
+							<button class="mr-0 dropdown-select rounded-none rounded-r border">
+								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
+							</button>
+
+							<div class="dropdown-menu-container">
+								<div class="heading-row">
+									<h3>Example show conditions</h3>
+								</div>
+
+								${_Entities.exampleShowHideConditions.map(c => _Entities.basicTab.templates.showConditionEntry(c)).join('')}
+							</div>
+						</div>
 					</div>
+
 				</div>
 
 				<div>
 					<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
-					<div class="flex">
-						<input id="hide-conditions" type="text" name="hideConditions">
-						<select id="hide-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Entities.basicTab.templates.showHideConditionTemplates({ type: 'hide' })}
-						</select>
+					<div class="conditions-container flex">
+						<input id="hide-conditions" type="text" name="hideConditions" class="border border-r-0 rounded-none rounded-l">
+						<div class="dropdown-menu dropdown-menu-large">
+							<button class="mr-0 dropdown-select rounded-none rounded-r border" data-preferred-position-x="left">
+								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
+							</button>
+
+							<div class="dropdown-menu-container">
+								<div class="heading-row">
+									<h3>Example hide conditions</h3>
+								</div>
+
+								${_Entities.exampleShowHideConditions.map(c => _Entities.basicTab.templates.showConditionEntry(c)).join('')}
+							</div>
+						</div>
 					</div>
+				</div>
+			`,
+			showConditionEntry: config => `
+				<div class="row">
+					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
 			`
 		}

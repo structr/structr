@@ -272,6 +272,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public boolean isDeleted() {
+		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(relationshipId.getId());
+	}
+
+	@Override
 	public final T getTargetNode() {
 		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 		return nodeFactory.instantiate(getRelationship().getEndNode());

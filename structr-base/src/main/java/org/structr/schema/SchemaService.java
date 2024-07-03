@@ -520,7 +520,8 @@ public class SchemaService implements Service {
 			"all/OUTGOING/HAS_PARAMETER",
 			"all/OUTGOING/HAS_VIEW",
 			"all/OUTGOING/IS_RELATED_TO"
-		));
+
+		), true);
 	}
 
 	// ----- interface Feature -----
@@ -591,7 +592,11 @@ public class SchemaService implements Service {
 
 								if (isRelationship) {
 
-									typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
+									// prevent creation of node property indexes on relationships
+									if (!key.isNodeIndexOnly()) {
+
+										typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
+									}
 
 								} else {
 

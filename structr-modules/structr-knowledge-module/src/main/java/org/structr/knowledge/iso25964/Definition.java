@@ -38,6 +38,6 @@ public interface Definition extends Note {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Definition"));
 		type.setExtends(URI.create("#/definitions/Note"));
 
-		type.addStringProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("source", PropertyView.All, PropertyView.Ui);
 	}}
 }

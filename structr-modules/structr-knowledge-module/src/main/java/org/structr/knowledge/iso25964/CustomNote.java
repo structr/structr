@@ -38,6 +38,6 @@ public interface CustomNote extends Note {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CustomNote"));
 		type.setExtends(URI.create("#/definitions/Note"));
 
-		type.addStringProperty("noteType", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("noteType", PropertyView.All, PropertyView.Ui);
 	}}
 }

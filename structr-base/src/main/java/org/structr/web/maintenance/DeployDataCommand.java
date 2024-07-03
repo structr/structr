@@ -24,13 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -60,14 +58,13 @@ public class DeployDataCommand extends DeployCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeployDataCommand.class);
 
-	private Map<String, List<Map<String, Object>>> relationshipMap;
-	private Set<String> alreadyExportedRelationships;
-
 	private Set<Class> exportTypes;
 	private Set<Class> exportFileAndFolderTypes;
 	private Set<Class> missingTypesForExport;
 	private Set<String> missingTypeNamesForExport;
 	private Set<String> exportedFoldersAsParents;
+	private Set<String> seenRelTypes;
+	private Set<String> alreadyExportedRelationships;
 
 	private Set<String> missingTypesForImport;
 	private Map<String, Map<String, Integer>> failedRelationshipImports;
@@ -76,8 +73,8 @@ public class DeployDataCommand extends DeployCommand {
 	private final static String DEPLOYMENT_DATA_IMPORT_RELS_DIRECTORY  = "relationships";
 	private final static String DEPLOYMENT_DATA_IMPORT_FILES_DIRECTORY = "files";
 
-	private final static String DEPLOYMENT_DATA_IMPORT_STATUS   = "DEPLOYMENT_DATA_IMPORT_STATUS";
-	private final static String DEPLOYMENT_DATA_EXPORT_STATUS   = "DEPLOYMENT_DATA_EXPORT_STATUS";
+	private final static String DEPLOYMENT_DATA_IMPORT_STATUS      = "DEPLOYMENT_DATA_IMPORT_STATUS";
+	private final static String DEPLOYMENT_DATA_EXPORT_STATUS      = "DEPLOYMENT_DATA_EXPORT_STATUS";
 
 	public final static String DO_INNER_CALLBACKS_PARAMETER_NAME  = "doInnerCallbacks";
 	public final static String DO_OUTER_CALLBACKS_PARAMETER_NAME  = "doOuterCallbacks";
@@ -134,9 +131,12 @@ public class DeployDataCommand extends DeployCommand {
 			exportTypes                  = new HashSet();
 			missingTypeNamesForExport    = new HashSet();
 			missingTypesForExport        = new HashSet();
-			relationshipMap              = new TreeMap();
 			alreadyExportedRelationships = new HashSet();
 			exportedFoldersAsParents     = new HashSet();
+			seenRelTypes                 = new HashSet();
+
+			// first delete all contents of the directory
+			deleteDirectoryContentsRecursively(target);
 
 			Files.createDirectories(target);
 
@@ -183,23 +183,23 @@ public class DeployDataCommand extends DeployCommand {
 
 			final SecurityContext context = getRecommendedSecurityContext();
 
-			exportFileAndFolderTypes(context, filesConfig, filesDir);
-			exportNodeTypes(context, nodesDir);
-			exportRelationshipTypes(relsDir);
+			exportFileAndFolderTypes(context, filesConfig, filesDir, relsDir);
+			exportNodeTypes(context, nodesDir, relsDir);
+			finalizeRelationshipFiles(relsDir);
 
 			if (!missingTypeNamesForExport.isEmpty()) {
 
 				final String title = "Possibly missing type(s) in export";
 				final String text = "Relationships to/from the following type(s) were exported during <b>data deployment</b> but the type(s) (or supertype(s)) were not in the export set.<br>"
 						+ "The affected relationships will only be able to be imported if the target/source is already present in the target instance.<br><br>"
-						+ String.join(", ",  missingTypeNamesForExport)
+						+ missingTypeNamesForExport.stream().sorted().collect(Collectors.joining(", "))
 						+ "<br><br>You can safely ignore this if you are sure that the type is not required.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tRelationships to/from the following type(s) were exported during data deployment but the type(s) (or supertype(s)) were not in the export set.\n"
 						+ "\tThe affected relationships will only be able to be imported if the target/source is already present in the target instance.\n\n"
-						+ "\t" + String.join(", ",  missingTypeNamesForExport)
+						+ "\t" + missingTypeNamesForExport.stream().sorted().collect(Collectors.joining(", "))
 						+ "\n\n\tYou can safely ignore this if you are sure that the type is not required.\n"
 						+ "###############################################################################"
 				);
@@ -212,13 +212,13 @@ public class DeployDataCommand extends DeployCommand {
 				final String ftitle = "Folders exported to represent file structure";
 				final String ftext = "The following folders are not part of the export set, but were still created in the file repository to correctly represent the directory structure.<br>"
 						+ "These folders will not be imported, they simply exist to enable file lookup during import.<br><br>"
-						+ String.join("<br>", exportedFoldersAsParents);
+						+ exportedFoldersAsParents.stream().sorted().collect(Collectors.joining("<br>"));
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + ftitle + "!\n"
 						+ "\tThe following folders are not part of the export set, but were still created in the file repository to correctly represent the directory structure.\n"
 						+ "\tThese folders will not be imported, they simply exist to enable file lookup during import.\n\n"
-						+ String.join("\n", exportedFoldersAsParents)
+						+ "\t" + exportedFoldersAsParents.stream().sorted().collect(Collectors.joining("\n\t"))
 						+ "###############################################################################"
 				);
 
@@ -427,14 +427,14 @@ public class DeployDataCommand extends DeployCommand {
 			final String title = "Missing Principal(s)";
 			final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>data deployment</b>.<br>"
 					+ "Because of these missing permissions/ownerships, <b>node access rights are not identical to the export you just imported</b>."
-					+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+					+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 					+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-data-deploy.conf</a> and re-importing.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
 					+ "\tBecause of these missing permissions/ownerships, node access rights are not identical to the export you just imported.\n\n"
-					+ "\t" + String.join(", ",  missingPrincipals)
+					+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 					+ "###############################################################################"
 			);
@@ -447,14 +447,14 @@ public class DeployDataCommand extends DeployCommand {
 			final String title = "Ambiguous Principal(s)";
 			final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>data deployment</b>.<br>"
 					+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
-					+ "<ul><li>" + String.join("</li><li>",  ambiguousPrincipals) + "</li></ul>"
+					+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 					+ "Consider clearing up such ambiguities in the database.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during data deployment.\n"
 					+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
-					+ "\t" + String.join("\n\t",  ambiguousPrincipals)
+					+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 					+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 					+ "###############################################################################"
 			);
@@ -493,7 +493,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			final String title = "Failed Relationship(s) for Type(s)";
 			final String text = "The following list shows the number of failed relationship imports per type.<br>"
-					+ "Make sure you are importing the data to the correct schema and that the <strong>source node</strong> and <strong>target node</strong> of the relationship(s) are in the database/export. (See the log for more details)<br>"
+					+ "Make sure you are importing the data to the correct schema and that the <strong>source node</strong> and <strong>target node</strong> of the relationship(s) are in the database/export! (See the log for more details)<br>"
 					+ infos;
 
 			publishWarningMessage(title, text);
@@ -555,12 +555,12 @@ public class DeployDataCommand extends DeployCommand {
 				messages.add(childType + " inherits from " + removedTypes.get(childType));
 			}
 
-			logger.warn("The following types were removed from the export set because a parent type is also being exported:\n" + String.join("\n", messages));
-			publishWarningMessage("Type(s) removed from export set", "The following types were removed from the export set because a parent type is also being exported:<br>" + String.join("<br>", messages));
+			logger.warn("The following types were removed from the export set because a parent type is already being exported:\n" + String.join("\n", messages));
+			publishWarningMessage("Type(s) removed from export set", "The following types were removed from the export set because a <b>parent type is already being exported</b>:<br>" + String.join("<br>", messages));
 		}
 	}
 
-	private void exportNodeTypes(final SecurityContext context, final Path nodesDir) throws FrameworkException {
+	private void exportNodeTypes(final SecurityContext context, final Path nodesDir, final Path relsDir) throws FrameworkException {
 
 		for (final Class type : exportTypes) {
 
@@ -570,31 +570,13 @@ public class DeployDataCommand extends DeployCommand {
 				publishWarningMessage("User type in export set", "Type '" + type.getSimpleName() + "' is a User type.<br>If, on import, the user who is running the import is present in the import data, this can lead to problems.");
 			}
 
-			publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, "Exporting nodes for type " + type.getSimpleName());
-
 			final Path typeConf = nodesDir.resolve(type.getSimpleName() + ".json");
 
-			exportDataForType(context, type, typeConf);
+			exportDataForType(context, type, typeConf, relsDir);
 		}
 	}
 
-	private void exportRelationshipTypes(final Path relsDir) {
-
-		for (final String relType : relationshipMap.keySet()) {
-
-			publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, "Exporting relationships for type " + relType);
-
-			final List<Map<String, Object>> relsForType = relationshipMap.get(relType);
-
-			Collections.sort(relsForType, Comparator.comparing(o -> ((Long) o.get("createdDate"))));
-
-			final Path relsConf = relsDir.resolve(relType + ".json");
-
-			writeJsonToFile(relsConf, relsForType);
-		}
-	}
-
-	private void exportFileAndFolderTypes(final SecurityContext context, final Path filesConfig, final Path filesDir) throws FrameworkException, IOException {
+	private void exportFileAndFolderTypes(final SecurityContext context, final Path filesConfig, final Path filesDir, final Path relsDir) throws FrameworkException, IOException {
 
 		// we must run the cleanup process before exporting, because we are writing folders which are not necessarily in the export set
 		try {
@@ -612,19 +594,39 @@ public class DeployDataCommand extends DeployCommand {
 
 		publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, "Exporting file/folder types");
 
-		try (final Tx tx = app.tx()) {
 
-			for (final Class fileOrFolderClass : exportFileAndFolderTypes) {
+		for (final Class fileOrFolderClass : exportFileAndFolderTypes) {
 
-				try (final ResultStream<AbstractFile> resultStream = app.nodeQuery(fileOrFolderClass).sort(AbstractNode.createdDate).getResultStream()) {
+			final String simpleName  = fileOrFolderClass.getSimpleName();
+			final String baseMessage = "Exporting nodes for type " + simpleName;
 
-					for (final AbstractFile fileOrFolder : resultStream) {
+			publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, baseMessage, Map.of("progressEntryClass", simpleName));
+
+			boolean hasMore = true;
+			long nodeCount  = 0;
+			int pageSize    = 10;
+			int page        = 1;
+
+			while (hasMore) {
+
+				try (final Tx tx = app.tx()) {
+
+					final List<AbstractFile> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
+					hasMore = (files.size() == pageSize);
+					page++;
+
+					for (final AbstractFile fileOrFolder : files) {
 
 						exportFileOrFolder(fileOrFolder, filesAndFoldersMap, filesDir, true);
 
-						exportRelationshipsForNode(context, fileOrFolder);
+						exportRelationshipsForNode(context, fileOrFolder, relsDir);
+
+						nodeCount++;
 					}
 				}
+
+				publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, baseMessage + " (" + nodeCount + ")", Map.of("progressEntryClass", simpleName));
+				logger.info("{} ({})", baseMessage, nodeCount);
 			}
 		}
 
@@ -679,44 +681,62 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private <T extends NodeInterface> void exportDataForType(final SecurityContext context, final Class<T> nodeType, final Path targetConfFile) throws FrameworkException {
+	private <T extends NodeInterface> void exportDataForType(final SecurityContext context, final Class<T> nodeType, final Path targetConfFile, final Path relsDir) throws FrameworkException {
+
+		final String simpleName = nodeType.getSimpleName();
+		final String baseMessage = "Exporting nodes for type " + simpleName;
+
+		publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, baseMessage, Map.of("progressEntryClass", simpleName));
 
 		final App app = StructrApp.getInstance(context);
 
-		try (final Tx tx = app.tx()) {
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(targetConfFile.toFile()))) {
 
-			try (final Writer fos = new OutputStreamWriter(new FileOutputStream(targetConfFile.toFile()))) {
+			fos.write("[");
 
-				final Gson gson                = getGson();
-				final List<String> nodeStrings = new ArrayList<>();
+			final Gson gson = getGson();
+			long nodeCount  = 0;
+			boolean hasMore = true;
+			int pageSize    = 1000;
+			int page        = 1;
 
-				try (final ResultStream<T> resultStream = app.nodeQuery(nodeType).sort(AbstractNode.createdDate).getResultStream()) {
+			while (hasMore) {
 
-					for (final T node : resultStream) {
+				try (final Tx tx = app.tx()) {
 
-						final Map<String, Object> entry = getMapRepresentationForNode(context, node);
+					final List<T> list = app.nodeQuery(nodeType).pageSize(pageSize).page(page).getAsList();
+					hasMore = (list.size() == pageSize);
+					page++;
 
-						nodeStrings.add(gson.toJson(entry));
+					for (final T node : list) {
+
+						if (nodeCount > 0) {
+							fos.write(",");
+						}
+
+						fos.write("\n");
+						fos.write(gson.toJson(getMapRepresentationForNode(context, node)));
+
+						nodeCount++;
+
+						exportRelationshipsForNode(context, node, relsDir);
 					}
 				}
 
-				fos.write("[");
-
-				if (nodeStrings.size() > 0) {
-
-					fos.write("\n");
-					fos.write(String.join(",\n", nodeStrings));
-					fos.write("\n");
-				}
-
-				fos.write("]");
-
-			} catch (IOException ioex) {
-
-				logger.warn("", ioex);
+				publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, baseMessage + " (" + nodeCount + ")", Map.of("progressEntryClass", simpleName));
+				logger.info("{} ({})", baseMessage, nodeCount);
 			}
 
-			tx.success();
+			if (nodeCount > 0) {
+
+				fos.write("\n");
+			}
+
+			fos.write("]");
+
+		} catch (IOException ioex) {
+
+			logger.warn("", ioex);
 		}
 	}
 
@@ -731,16 +751,15 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		exportOwnershipAndSecurity(node, entry);
-		exportRelationshipsForNode(context, node);
 
 		return entry;
 	}
 
-	private void exportRelationshipsForNode(final SecurityContext context, final NodeInterface node) throws FrameworkException {
+	private void exportRelationshipsForNode(final SecurityContext context, final NodeInterface node, final Path relsDir) throws FrameworkException {
 
 		for (final RelationshipInterface rel : node.getRelationships()) {
 
-			exportRelationship(context, rel);
+			exportRelationship(context, rel, relsDir);
 		}
 	}
 
@@ -766,7 +785,7 @@ public class DeployDataCommand extends DeployCommand {
 		return false;
 	}
 
-	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel) throws FrameworkException {
+	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel, final Path relsDir) throws FrameworkException {
 
 		final String relTypeName = rel.getClass().getSimpleName();
 
@@ -774,11 +793,12 @@ public class DeployDataCommand extends DeployCommand {
 
 			final App app = StructrApp.getInstance(context);
 
-			try (final Tx tx = app.tx()) {
+			final String relUuid = rel.getUuid();
 
-				final String relUuid = rel.getUuid();
+			if (!alreadyExportedRelationships.contains(relUuid)) {
 
-				if (!alreadyExportedRelationships.contains(relUuid)) {
+
+				try (final Tx tx = app.tx()) {
 
 					final Map<String, Object> entry = new TreeMap<>();
 
@@ -806,7 +826,7 @@ public class DeployDataCommand extends DeployCommand {
 					entry.put("targetId", rel.getTargetNodeId());
 					entry.put("relType",  rel.getProperty("relType"));
 
-					addRelationshipToMap(rel.getClass().getSimpleName(), entry);
+					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
 
 					alreadyExportedRelationships.add(relUuid);
 				}
@@ -814,17 +834,49 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private void addRelationshipToMap(final String simpleRelType, Map<String, Object> relInfo) {
+	private void exportRelationshipDirectly(final String simpleRelType, final Map<String, Object> relInfo, final Path relsDir) {
 
-		List<Map<String, Object>> relsOfType = relationshipMap.get(simpleRelType);
+		final Path relConf = relsDir.resolve(simpleRelType + ".json");
 
-		if (relsOfType == null) {
+		final boolean relOfTypeAlreadyExported = seenRelTypes.contains(simpleRelType);
 
-			relsOfType = new LinkedList();
-			relationshipMap.put(simpleRelType, relsOfType);
+		if (relOfTypeAlreadyExported) {
+
+			// add separator
+			writeToFile(relConf, ",\n", true);
+
+		} else {
+
+			// add opening bracket
+			writeToFile(relConf, "[\n", false);
 		}
 
-		relsOfType.add(relInfo);
+		seenRelTypes.add(simpleRelType);
+
+		writeToFile(relConf, getGson().toJson(relInfo), true);
+	}
+
+	private void finalizeRelationshipFiles(final Path relsDir) {
+
+		for (final String relType : seenRelTypes) {
+
+			final Path p = relsDir.resolve(relType + ".json");
+
+			// we know there must be at least one relationship in that file => finish with "\n]"
+			writeToFile(p, "\n]", true);
+		}
+	}
+
+	protected void writeToFile(final Path path, final String text, final boolean append) {
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(path.toFile(), append))) {
+
+			fos.write(text);
+
+		} catch (IOException ioex) {
+
+			logger.warn("", ioex);
+		}
 	}
 
 	private <T extends NodeInterface> void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) {
@@ -836,8 +888,9 @@ public class DeployDataCommand extends DeployCommand {
 		int relCount          = 0;
 		final int maxSize     = data.size();
 
-		logger.info("Importing relationships for type {} ({})", typeName, maxSize);
-		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName + " (" + maxSize + ")");
+		final String baseMessage = "Importing relationships for type " + typeName;
+		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + maxSize + ")", Map.of("progressEntryClass", typeName));
+		logger.info("{} ({})", baseMessage, maxSize);
 
 		while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -894,7 +947,9 @@ public class DeployDataCommand extends DeployCommand {
 				tx.success();
 
 				relCount += sublist.size();
-				logger.info(" ... imported {} / {} relationships", relCount, maxSize);
+
+				publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + relCount + " / " + maxSize + ")", Map.of("progressEntryClass", typeName));
+				logger.info("{} ({} / {})", baseMessage, relCount, maxSize);
 
 			} catch (FrameworkException fex) {
 
@@ -960,8 +1015,9 @@ public class DeployDataCommand extends DeployCommand {
 			int nodeCount       = 0;
 			final int maxSize   = data.size();
 
-			logger.info("Importing nodes for type {} ({})", defaultTypeName, maxSize);
-			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName + " (" + maxSize + ")");
+			final String baseMessage = "Importing nodes for type " + defaultTypeName;
+			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + maxSize + ")", Map.of("progressEntryClass", defaultTypeName));
+			logger.info("{} ({})", baseMessage, maxSize);
 
 			while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -1003,32 +1059,36 @@ public class DeployDataCommand extends DeployCommand {
 							logger.warn("Skipping node {}. Type cannot be found: {}!", id, typeName);
 
 							missingTypesForImport.add(typeName);
+
+						} else {
+
+							final Map<String, Object> basicPropertiesMap = new HashMap();
+							basicPropertiesMap.put("id", id);
+							basicPropertiesMap.put("type", typeName);
+							basicPropertiesMap.put("owner", entry.get("owner"));
+							basicPropertiesMap.put("grantees", entry.get("grantees"));
+
+							entry.remove("owner");
+							entry.remove("grantees");
+
+							final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
+
+							correctNumberFormats(context, entry, type);
+
+							final PropertyContainer pc = basicNode.getPropertyContainer();
+							pc.setProperties(entry);
+
+							// finally, add node to index
+							basicNode.addToIndex();
 						}
-
-						final Map<String, Object> basicPropertiesMap = new HashMap();
-						basicPropertiesMap.put("id", id);
-						basicPropertiesMap.put("type", typeName);
-						basicPropertiesMap.put("owner", entry.get("owner"));
-						basicPropertiesMap.put("grantees", entry.get("grantees"));
-
-						entry.remove("owner");
-						entry.remove("grantees");
-
-						final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
-
-						correctNumberFormats(context, entry, type);
-
-						final PropertyContainer pc = basicNode.getPropertyContainer();
-						pc.setProperties(entry);
-
-						// finally, add node to index
-						basicNode.addToIndex();
 					}
 
 					tx.success();
 
 					nodeCount += sublist.size();
-					logger.info(" ... imported {} / {} nodes", nodeCount, maxSize);
+
+					publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage + " (" + nodeCount + " / " + maxSize + ")", Map.of("progressEntryClass", defaultTypeName));
+					logger.info("{} ({} / {})", baseMessage, nodeCount, maxSize);
 
 				} catch (FrameworkException fex) {
 

@@ -118,6 +118,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 		return true;
 	}
 
+	@Override
+	public boolean isDeleted() {
+		return false;
+	}
+
 	public String getRealName() {
 		return "Super User";
 	}

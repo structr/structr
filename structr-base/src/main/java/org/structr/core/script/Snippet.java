@@ -29,6 +29,7 @@ public class Snippet {
 	private String source            = null;
 	private String transcribedSource = null;
 	private String mimeType          = "application/javascript";
+	private String engineName        = null;
 	private boolean embed            = true;
 	private int startRow             = 0;
 
@@ -88,5 +89,13 @@ public class Snippet {
 
 	public void setTranscribedSource(final String transcribedSource) {
 		this.transcribedSource = transcribedSource;
+	}
+
+	public String getEngineName() {
+		return this.engineName;
+	}
+
+	public void setEngineName(final String engineName) {
+		this.engineName = engineName;
 	}
 }

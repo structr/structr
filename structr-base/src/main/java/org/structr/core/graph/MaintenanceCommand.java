@@ -74,10 +74,19 @@ public interface MaintenanceCommand {
 
 	default void publishProgressMessage (final String type, final String message) {
 
+		publishProgressMessage(type, message, null);
+	}
+
+	default void publishProgressMessage (final String type, final String message, final Map additionalInfo) {
+
 		final Map<String, Object> msgData = new HashMap();
 		msgData.put(COMMAND_TYPE_KEY,    type);
 		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_PROGRESS);
 		msgData.put(COMMAND_MESSAGE_KEY, message);
+
+		if (additionalInfo != null) {
+			msgData.putAll(additionalInfo);
+		}
 
 		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 	}

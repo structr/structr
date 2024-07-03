@@ -54,4 +54,5 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 	public int getCascadingDeleteFlag();
 
 	public boolean isInternal();
+	public boolean isDeleted();
 }

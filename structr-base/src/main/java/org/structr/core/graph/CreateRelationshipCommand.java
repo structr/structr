@@ -62,8 +62,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final PropertyMap toNotify           = new PropertyMap();
 		final CreationContainer tmp          = new CreationContainer(false);
 		final R template                     = (R)Relation.getInstance(relType);
-		final Node startNode                 = fromNode.getNode();
-		final Node endNode                   = toNode.getNode();
 		final Date now                       = new Date();
 		final Principal user                 = securityContext.getCachedUser();
 
@@ -104,6 +102,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		}
 
 		// create relationship including initial properties
+		final Node startNode   = fromNode.getNode();
+		final Node endNode     = toNode.getNode();
 		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
 		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
 

@@ -58,7 +58,7 @@ public class ActionContext {
 	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// Regular members
-	private final Map<String, Context> scriptingContexts = new HashMap<>();
+	private Map<String, Context> scriptingContexts = new HashMap<>();
 	private final ContextStore temporaryContextStore     = new ContextStore();
 	private final StringBuilder outputBuffer             = new StringBuilder();
 	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
@@ -641,6 +641,14 @@ public class ActionContext {
 
 	public void putScriptingContext(final String language, final Context context) {
 		scriptingContexts.put(language, context);
+	}
+
+	public void setScriptingContexts(final Map<String, Context> contexts) {
+		scriptingContexts = contexts;
+	}
+
+	public Map<String,Context> getScriptingContexts() {
+		return scriptingContexts;
 	}
 
 	public boolean isRenderContext() {

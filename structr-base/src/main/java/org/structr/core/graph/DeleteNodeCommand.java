@@ -18,22 +18,16 @@
  */
 package org.structr.core.graph;
 
-import com.oracle.svm.core.annotate.Delete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.LinkedList;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+
+import java.util.*;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
@@ -44,7 +38,158 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteNodeCommand.class.getName());
 
-	private final Set<NodeInterface> deletedNodes = new HashSet<>();
+	public void execute(final NodeInterface node) throws FrameworkException {
+
+		if (securityContext.doCascadingDelete()) {
+
+			cascadeDelete(node);
+
+		} else {
+
+			node.onNodeDeletion(securityContext);
+			node.getNode().delete(true);
+		}
+	}
+
+	private void cascadeDelete(final NodeInterface node) throws FrameworkException {
+
+		final DeleteRelationshipCommand drc           = StructrApp.getInstance().command(DeleteRelationshipCommand.class);
+		final Principal user                          = securityContext.getCachedUser();
+		final Set<RelationshipInterface> relsToDelete = new HashSet<>();
+		final Set<NodeInterface> nodesToDelete        = new HashSet<>();
+		final Set<NodeInterface> nodesToCheck         = new HashSet<>();
+
+		// collect nodes that are to be deleted
+		collectNodesForCascadingDelete(nodesToDelete, relsToDelete, nodesToCheck, node);
+
+		// remove all deleted nodes from nodes to check
+		nodesToCheck.removeAll(nodesToDelete);
+
+		// notify nodes of pending deletion
+		for (final NodeInterface deleteMe : nodesToDelete) {
+			deleteMe.onNodeDeletion(securityContext);
+		}
+
+		// delete all rels
+		for (final RelationshipInterface deleteMe : relsToDelete) {
+			drc.execute(deleteMe);
+		}
+
+		// delete all nodes
+		for (final NodeInterface deleteMe : nodesToDelete) {
+
+			// node can already be deleted by a previous run
+			if (!deleteMe.isDeleted()) {
+
+				// mark node as deleted in transaction
+				TransactionCommand.nodeDeleted(user, deleteMe);
+
+				// delete node in database
+				deleteMe.getNode().delete(true);
+			}
+		}
+
+		final Set<NodeInterface> invalidNodes = new HashSet<>();
+
+		// check remaining nodes and delete as well
+		for (final NodeInterface checkMe : nodesToCheck) {
+
+			ErrorBuffer errorBuffer = new ErrorBuffer();
+
+			if (!checkMe.isValid(errorBuffer)) {
+
+				invalidNodes.add(checkMe);
+			}
+		}
+
+		// recurse for constraint-based cascading delete
+		for (final NodeInterface invalidNode : invalidNodes) {
+
+			cascadeDelete(invalidNode);
+		}
+	}
+
+	private void collectNodesForCascadingDelete(final Set<NodeInterface> nodesToDelete, final Set<RelationshipInterface> relsToDelete, final Set<NodeInterface> nodesToCheck, final NodeInterface node) {
+
+		final Queue<NodeInterface> queue = new ArrayDeque<>();
+
+		// initial object
+		queue.add(node);
+
+		while (!queue.isEmpty()) {
+
+			final NodeInterface current = queue.remove();
+
+			if (current != null && !nodesToDelete.contains(current) && !current.isDeleted()) {
+
+				nodesToDelete.add(current);
+
+				for (AbstractRelationship rel : current.getRelationships()) {
+
+					// deleted rels can be null..
+					if (rel != null) {
+
+						final int cascadeDelete       = rel.getCascadingDeleteFlag();
+						final NodeInterface startNode = rel.getSourceNode();
+						final NodeInterface endNode   = rel.getTargetNode();
+
+						if (startNode != null && endNode != null) {
+
+							// outgoing?
+							if (current.getNode().getId().equals(startNode.getNode().getId())) {
+
+								if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+									nodesToCheck.add(endNode);
+								}
+
+								if ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET) {
+
+									if (!nodesToDelete.contains(endNode)) {
+
+										queue.add(endNode);
+									}
+								}
+
+							} else {
+
+								if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+									nodesToCheck.add(startNode);
+								}
+
+								if ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE) {
+
+									if (!nodesToDelete.contains(startNode)) {
+
+										queue.add(startNode);
+									}
+								}
+							}
+						}
+
+						relsToDelete.add(rel);
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+	/*
+
+
+	private final Set<NodeInterface> deletedNodes = new LinkedHashSet<>();
+
 
 	public void execute(final NodeInterface node) throws FrameworkException {
 
@@ -173,4 +318,5 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			}
 		}
 	}
+	*/
 }

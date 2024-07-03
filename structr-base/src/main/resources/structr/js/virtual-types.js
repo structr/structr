@@ -552,8 +552,8 @@ let _VirtualTypes = {
 		propertyRow: config => `
 			<tr class="virtual-property odd:bg-white even:bg-gray-75">
 				<td class="actions px-4">
-					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
-					${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
+					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']), 'Save')}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Delete')}
 				</td>
 				<td class="px-4">
 					<input class="property w-full box-border" data-property="position">

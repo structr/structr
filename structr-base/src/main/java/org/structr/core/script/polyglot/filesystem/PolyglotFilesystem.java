@@ -72,13 +72,37 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public void checkAccess(Path path, Set<? extends AccessMode> modes, LinkOption... linkOptions) throws IOException {
+		App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+			PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
+			AbstractFile abstractFile = app.nodeQuery(AbstractFile.class).and(pathKey, path.toString()).getFirst();
+
+			tx.success();
+			if (abstractFile == null) {
+				throw new NoSuchFileException("No file or folder found for path: " + path.toString());
+			}
+		} catch (FrameworkException ex) {
+
+			logger.error("Could not open directory stream for dir: {}.", path.toString(), ex);
+		}
 	}
 
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-        try {
+        App app = StructrApp.getInstance();
 
-            FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
+		try (final Tx tx = app.tx()) {
+
+			PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
+			Folder folder = app.nodeQuery(Folder.class).and(pathKey, dir.toString()).getFirst();
+
+			if (folder == null) {
+				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
+			}
+			tx.success();
+
+			throw new FileAlreadyExistsException("Folder already exists for path: " + dir.toString());
         } catch (FrameworkException ex) {
 
 			logger.error("Unexpected exception while trying to create folder", ex);
@@ -96,6 +120,9 @@ public class PolyglotFilesystem implements FileSystem {
 
 			if (file != null) {
 				app.delete(file);
+			} else {
+
+				throw new NoSuchFileException("Cannot delete file or folder. No entity found for path: " + path.toString());
 			}
 
 			tx.success();
@@ -128,7 +155,13 @@ public class PolyglotFilesystem implements FileSystem {
 			}
 
 			tx.success();
-			return StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel();
+
+			if (options.contains(StandardOpenOption.CREATE_NEW)) {
+
+				throw new FileAlreadyExistsException("Cannot open file with CREATE_NEW option. File already exists at path: " + path.toString());
+			}
+
+			return StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(options);
 		} catch (FrameworkException ex) {
 
 			logger.error("Unexpected exception while trying to open new bytechannel", ex);
@@ -138,7 +171,24 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-		return new VirtualDirectoryStream(dir, filter);
+		App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+			PropertyKey<String> path = StructrApp.key(AbstractFile.class, "path");
+			Folder folder = app.nodeQuery(Folder.class).and(path, dir.toString()).getFirst();
+
+			if (folder != null) {
+				return new VirtualDirectoryStream(dir, filter);
+			}
+
+			tx.success();
+			throw new NotDirectoryException("No directory found for path: " + dir.toString());
+		} catch (FrameworkException ex) {
+
+            logger.error("Could not open directory stream for dir: {}.", dir.toString(), ex);
+		}
+
+		throw new NotDirectoryException(dir.toString());
 	}
 
 	@Override
@@ -154,6 +204,10 @@ public class PolyglotFilesystem implements FileSystem {
 	@Override
 	public Map<String, Object> readAttributes(Path path, String rawattributes, LinkOption... options) throws IOException {
 		final AbstractFile file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path.toString());
+
+		if (file == null && rawattributes.equals("isDirectory")) {
+			return Map.of("isDirectory", false);
+		}
 
 		final int viewIndex = rawattributes.indexOf(':');
 		String view = "basic";
@@ -174,8 +228,9 @@ public class PolyglotFilesystem implements FileSystem {
 		}
 
 		if (file == null) {
-			throw new IOException("Requested file is null.");
+			throw new IOException("File or folder does not exist for requested path: " + path.toString());
 		}
+
 
 		for (String attr : attributes.split(",")) {
 			switch (attr) {

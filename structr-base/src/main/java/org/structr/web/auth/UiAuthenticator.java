@@ -22,6 +22,7 @@ import com.github.scribejava.core.model.OAuth2AccessToken;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.*;
@@ -272,8 +274,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
 
-		final Principal user    = securityContext.getUser(false);
-		final boolean validUser = (user != null);
+		final Principal user             = securityContext.getUser(false);
+		final boolean validUser          = (user != null);
 
 		// super user is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
@@ -304,22 +306,28 @@ public class UiAuthenticator implements Authenticator {
 		// no permissions => no access rights
 		if (permissionsFound == 0) {
 
-			final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
+			final boolean isServicePrincipal = validUser && (user instanceof ServicePrincipal);
+
+			final String userInfo     = (validUser ? (isServicePrincipal ? "service principal '" + user.getName() + "'" : "user '" + user.getName() + "'") : "anonymous users");
 			final String errorMessage = "Found no resource access permission for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
-			final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+			final Map eventLogMap     = new HashMap(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal));
+			if (validUser) {
+				eventLogMap.put("userName", user.getName());
+			}
 
 			logger.info(errorMessage);
 			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-				"type", "RESOURCE_ACCESS",
-				"message", errorMessage,
-				"uri", securityContext.getCompoundRequestURI(),
-				"signature", rawResourceSignature,
-				"method", method,
-				"validUser", validUser,
-				"userid",    (validUser ? user.getUuid() : ""),
-				"username",  (validUser ? user.getName() : "")
+				"type",           "RESOURCE_ACCESS",
+				"message",            errorMessage,
+				"uri",                securityContext.getCompoundRequestURI(),
+				"signature",          rawResourceSignature,
+				"method",             method,
+				"validUser",          validUser,
+				"isServicePrincipal", isServicePrincipal,
+				"userid",             (validUser ? user.getUuid() : ""),
+				"username",           (validUser ? user.getName() : "")
 			));
 
 			throw new UnauthorizedException("Access denied");

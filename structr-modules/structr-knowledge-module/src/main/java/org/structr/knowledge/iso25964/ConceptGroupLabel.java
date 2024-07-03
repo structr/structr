@@ -40,8 +40,8 @@ public interface ConceptGroupLabel extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroupLabel"));
 
 		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("created", PropertyView.All, PropertyView.Ui);
+		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 	}}
 }

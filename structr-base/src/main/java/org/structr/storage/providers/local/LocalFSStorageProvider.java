@@ -30,6 +30,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -101,6 +102,10 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
+			if (options.isEmpty()) {
+				return FileChannel.open(fsHelper.getFileOnDisk(getAbstractFile()).toPath(), new java.util.HashSet<OpenOption>(Set.of(CREATE, READ, WRITE, SYNC)));
+			}
+
 			return FileChannel.open(fsHelper.getFileOnDisk(getAbstractFile()).toPath(), options);
 		} catch (IOException ex) {
 

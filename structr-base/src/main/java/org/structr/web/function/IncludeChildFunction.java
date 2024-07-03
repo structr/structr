@@ -86,13 +86,9 @@ public class IncludeChildFunction extends IncludeFunction {
 
 				for (final DOMNode n : nodeList) {
 
-					// Filter out nodes in trash
-					if (n.inTrash()) {
-						continue;
-					}
-
 					final DOMNode parentNode = n.getParent();
-					if (parentNode != null && parentNode.equals(templateNode)) {
+
+					if (parentNode != null && parentNode.equals(templateNode) && !n.inTrash()) {
 						children.add(n);
 					}
 

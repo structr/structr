@@ -66,8 +66,8 @@ public interface DataFeed extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DataFeed"));
 
 		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("feedType",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("description",  PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("feedType",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("description",  PropertyView.Public, PropertyView.Ui);
 
 		type.addLongProperty("updateInterval", PropertyView.Ui);  // update interval in milliseconds
 		type.addDateProperty("lastUpdated",    PropertyView.Ui);  // last updated

@@ -18,14 +18,17 @@
  */
 package org.structr.test.web.entity.dom;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 import org.w3c.dom.*;
@@ -410,6 +413,8 @@ public class DOMNodeTest extends DOMTest {
 			Element div = document.createElement("div");
 			assertNotNull(div);
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			// add children
 			div.appendChild(test1);
 			div.appendChild(test2);
@@ -427,6 +432,8 @@ public class DOMNodeTest extends DOMTest {
 
 			// test replace child
 			div.replaceChild(test6, test3);
+
+			Settings.CypherDebugLogging.setValue(false);
 
 			// examine children
 			NodeList children2 = div.getChildNodes();

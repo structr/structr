@@ -89,44 +89,49 @@ public abstract class AbstractMethod {
 
 			try {
 				final Snippet snippet = getSnippet();
-				if (snippet != null) {
 
-					final SecurityContext securityContext = actionContext.getSecurityContext();
-					final Context context                 = Context.getCurrent();
-					final Value bindings                  = context.getBindings("js").getMember("$");
-					final StructrBinding binding          = bindings.asProxyObject();
-					final GraphObject previousEntity      = binding.getEntity();
-					final ActionContext previousContext   = binding.getActionContext();
-					final Map<String, Object> tmp         = securityContext.getContextStore().getTemporaryParameters();
+				if (snippet != null && !snippet.getSource().isEmpty()) {
+					final String engineName = snippet.getEngineName();
 
-					try {
+					if (!engineName.isEmpty()) {
+						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
+						final Context context = ContextFactory.getContext(engineName, actionContext, entity, false);
+						final SecurityContext securityContext = actionContext.getSecurityContext();
+						final Value bindings = context.getBindings(engineName).getMember("Structr");
+						final StructrBinding binding = bindings.asProxyObject();
+						final GraphObject previousEntity = binding.getEntity();
+						final ActionContext previousContext = binding.getActionContext();
+						final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
 
+						try {
 
-						final Arguments args      = Arguments.fromValues(actionContext, arguments);
-						final Arguments converted = checkAndConvertArguments(securityContext, args, true);
-						final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+							final Arguments args = Arguments.fromValues(actionContext, arguments);
+							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+							final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+							inner.setScriptingContexts(actionContext.getScriptingContexts());
 
-						if (arguments.length == 1) {
-							binding.setMethodParameters(arguments[0]);
+							if (arguments.length == 1) {
+								binding.setMethodParameters(arguments[0]);
+							}
+
+							binding.setEntity(entity);
+							binding.setActionContext(inner);
+
+							return Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+
+						} catch (IllegalArgumentTypeException iaex) {
+
+							throwIllegalArgumentExceptionForMapBasedArguments();
+
+						} finally {
+
+							// restore state before this method call
+							binding.setEntity(previousEntity);
+							binding.setActionContext(previousContext);
+							binding.setMethodParameters(null);
+							securityContext.getContextStore().setTemporaryParameters(tmp);
+
 						}
-
-						binding.setEntity(entity);
-						binding.setActionContext(inner);
-
-						return Scripting.evaluatePolyglot(inner, context, entity, snippet);
-
-					} catch (IOException | IllegalArgumentTypeException iaex) {
-
-						throwIllegalArgumentExceptionForMapBasedArguments();
-
-					} finally {
-
-						// restore state before this method call
-						binding.setEntity(previousEntity);
-						binding.setActionContext(previousContext);
-						binding.setMethodParameters(null);
-						securityContext.getContextStore().setTemporaryParameters(tmp);
-
 					}
 				}
 

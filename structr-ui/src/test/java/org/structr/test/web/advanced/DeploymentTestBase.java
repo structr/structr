@@ -276,15 +276,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "xpathQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
 
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-reload")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-confirm")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-action")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-attributes")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-attr")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-name")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-hide")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-raw-value")));
-
 		// Content
 		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "contentType")));
 		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "content")));

@@ -51,13 +51,15 @@ let _Icons = {
 	iconDOMCommentElement:    'dom-comment',
 	iconDOMTreeActiveElement: 'dom-active-element',
 
-	iconSecurityRegularUser: 'user-normal',
-	iconSecurityAdminUser:   'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
-	iconSecurityLDAPUser:    'user-ldap',
-	iconSecurityGroup:       'user-group',
-	iconSecurityLDAPGroup:   'user-group-ldap',
-	iconGroupAdd:            'group-add',
-	iconUserAdd:             'user-add',
+	iconSecurityRegularUser:        'user-normal',
+	iconSecurityBlockedRegularUser: 'user-blocked',
+	iconSecurityAdminUser:          'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
+	iconSecurityBlockedAdminUser:   'user-blocked',	// possibly 'user-admin-blocked' but color-change to red is preferred at the moment
+	iconSecurityLDAPUser:           'user-ldap',
+	iconSecurityGroup:              'user-group',
+	iconSecurityLDAPGroup:          'user-group-ldap',
+	iconGroupAdd:                   'group-add',
+	iconUserAdd:                    'user-add',
 
 	iconFilesStack:           'file-stack',
 	iconCreateFile:           'file_add',
@@ -135,6 +137,7 @@ let _Icons = {
 	iconGlobe:               'globe-icon',
 	iconOpenInNewPage:       'link_external',
 	iconListWithCog:         'list-cog',
+	iconLightBulb:           'light-bulb',
 	iconSearch:              'magnifying-glass',
 	iconFilterFunnel:        'filter-funnel',
 	iconMicrophone:          'microphone-icon',
@@ -357,9 +360,13 @@ let _Icons = {
 	},
 	getIconForPrincipal: (principal) => {
 
+		// admin group
+
 		if (principal.isGroup) {
 
-			if (principal.type === 'LDAPGroup') {
+			if (principal.isAdmin) {
+				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+			} else if (principal.type === 'LDAPGroup') {
 				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPGroup, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
 			} else {
 				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'mr-2']);
@@ -368,11 +375,24 @@ let _Icons = {
 		} else {
 
 			if (principal.isAdmin) {
-				return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+
+				if (principal.blocked) {
+					return _Icons.getSvgIcon(_Icons.iconSecurityBlockedAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+				} else {
+					return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+				}
+
 			} else if (principal.type === 'LDAPUser') {
+
 				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPUser, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
+
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+
+				if (principal.blocked) {
+					return _Icons.getSvgIcon(_Icons.iconSecurityBlockedRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+				} else {
+					return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+				}
 			}
 		}
 	},
@@ -380,6 +400,7 @@ let _Icons = {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
 		let additionalClasses = ['flex-shrink-0'];
+		let title             = '';
 
 		switch (entity.type) {
 
@@ -390,6 +411,7 @@ let _Icons = {
 					case 'java':
 						icon = _Icons.iconSchemaNodeSchemaMethod;
 						additionalClasses.push('icon-red');
+						title = 'Java method';
 						break;
 
 					default:
@@ -398,14 +420,17 @@ let _Icons = {
 						if (entity.isStatic) {
 
 							icon = _Icons.iconSchemaNodeStaticMethod;
+							title = 'Static method';
 
 						} else {
 
 							let isLifeCycleMethod = LifecycleMethods.isLifecycleMethod(entity);
 							if (isLifeCycleMethod) {
 								icon = _Icons.iconSchemaNodeLifecycleMethod;
+								title = 'Lifecycle method';
 							} else {
 								icon = _Icons.iconSchemaNodeSchemaMethod;
+								title = 'Custom method';
 							}
 						}
 						break;
@@ -425,7 +450,7 @@ let _Icons = {
 				break;
 		}
 
-		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses);
+		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses, title);
 	},
 	getIconForSchemaPropertyType: (propertyType) => {
 
@@ -444,9 +469,12 @@ let _Icons = {
 			case "Long":
 				return _Icons.iconSchemaPropertyNumeric;
 
+			case 'Date':
+			case 'ZonedDateTime':
+				return _Icons.iconSchemaPropertyDate;
+
 			case 'Boolean':      return _Icons.iconSchemaPropertyBoolean;
 			case "Cypher":       return _Icons.iconSchemaPropertyCypher;
-			case 'Date':         return _Icons.iconSchemaPropertyDate;
 			case "Double":       return _Icons.iconSchemaPropertyDouble;
 			case "Enum":         return _Icons.iconSchemaPropertyEnum;
 			case "Function":     return _Icons.iconSchemaPropertyFunction;

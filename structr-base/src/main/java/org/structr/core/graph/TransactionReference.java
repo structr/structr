@@ -46,6 +46,16 @@ public class TransactionReference implements Transaction {
 		return tx.isSuccessful();
 	}
 
+	@Override
+	public boolean isNodeDeleted(final long id) {
+		return tx.isNodeDeleted(id);
+	}
+
+	@Override
+	public boolean isRelationshipDeleted(final long id) {
+		return tx.isRelationshipDeleted(id);
+	}
+
 	public void begin() {
 		referenceCount++;
 	}
@@ -90,13 +100,13 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
-	public void prefetch(final String type1, String type2, final Set<String> keys) {
-		tx.prefetch(type1, type2, keys);
+	public void prefetch(final String type1, String type2, final Set<String> keys, final boolean complete) {
+		tx.prefetch(type1, type2, keys, complete);
 	}
 
 	@Override
-	public void prefetch(final String query, final Set<String> keys) {
-		tx.prefetch(query, keys);
+	public void prefetch(final String query, final Set<String> keys, final boolean complete) {
+		tx.prefetch(query, keys, complete);
 	}
 
 	@Override

@@ -50,11 +50,11 @@ public interface ThesaurusConcept extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusConcept"));
 
 		type.addStringProperty(     "identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty(       "created",    PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty(       "modified",   PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty(     "status",     PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("notation",   PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty(    "topConcept", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty(       "created",    PropertyView.All, PropertyView.Ui);
+		type.addDateProperty(       "modified",   PropertyView.All, PropertyView.Ui);
+		type.addStringProperty(     "status",     PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("notation",   PropertyView.All, PropertyView.Ui);
+		type.addBooleanProperty(    "topConcept", PropertyView.All, PropertyView.Ui);
 
 		type.relate(type,                   "hasTopConcept",             Cardinality.ManyToMany, "childConcepts",        "topmostConcept");
 		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",      "relatedConcepts");

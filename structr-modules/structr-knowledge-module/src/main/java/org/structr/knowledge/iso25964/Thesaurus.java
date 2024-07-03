@@ -46,22 +46,22 @@ public interface Thesaurus extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Thesaurus"));
 
 		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringArrayProperty("contributor", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("coverage", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("creator", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateArrayProperty("date", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("description", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("format", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("contributor", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("coverage", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("creator", PropertyView.All, PropertyView.Ui);
+		type.addDateArrayProperty("date", PropertyView.All, PropertyView.Ui);
+		type.addDateProperty("created", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("description", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("format", PropertyView.All, PropertyView.Ui);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages()).setRequired(true);
-		type.addStringArrayProperty("publisher", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("publisher", PropertyView.All, PropertyView.Ui);
 
-		type.addStringArrayProperty("relation", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("rights", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("subject", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("title", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("thesaurusType", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("relation", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("rights", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("source", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("subject", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("title", PropertyView.All, PropertyView.Ui);
+		type.addStringArrayProperty("thesaurusType", PropertyView.All, PropertyView.Ui);
 
 		type.relate(group,   "contains",   Cardinality.ManyToMany, "thesaurus", "conceptGroups");
 		type.relate(version, "hasVersion", Cardinality.OneToMany,  "thesaurus", "versions");

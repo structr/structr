@@ -20,6 +20,7 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -53,7 +54,17 @@ public abstract class ContextFactory {
 			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
 			.allowIO(AccessProvider.getIOAccessConfig())
-			.allowHostAccess(AccessProvider.getHostAccessConfig());
+			.allowHostAccess(AccessProvider.getHostAccessConfig())
+			.allowExperimentalOptions(true)
+			.option("python.CoreHome", "/.python/core")
+			.option("python.PythonHome", "/.python/.venv")
+			.option("python.StdLibHome", "/.python/lib/std")
+			.option("python.CAPI", "/.python/lib/c")
+			.option("python.JNIHome", "/.python/lib/jni")
+			.option("python.ForceImportSite", "true")
+			.option("python.Executable", "/.python/.venv/bin/python")
+			.option("python.PosixModuleBackend", "java")
+			.option("python.NoUserSiteFlag", "true");
 
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
@@ -114,45 +125,49 @@ public abstract class ContextFactory {
 	}
 
 	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
+		return getContext(language, actionContext, entity, true);
+	}
+
+	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity, final boolean allowEntityOverride) throws FrameworkException {
 
 		switch (language) {
 
 			case "js":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity), allowEntityOverride);
 
 			case "python":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity), allowEntityOverride);
 
 			case "R":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity), allowEntityOverride);
 
 			default:
 				throw new FrameworkException(500, "Could not initialize context for language: " + language);
 		}
 	}
 
-	private static Context getAndUpdateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc) throws FrameworkException {
+	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
 
 		Context storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
 
-		if (actionContext != null && storedContext != null) {
-
-			storedContext = updateBindings(storedContext, language, actionContext, entity);
-			actionContext.putScriptingContext(language, storedContext);
-
-		} else {
+		if (actionContext != null && storedContext == null) {
 
 			try {
 
 				storedContext = contextCreationFunc.call();
+				updateBindings(storedContext, language, actionContext, entity);
 				actionContext.putScriptingContext(language, storedContext);
 
 			} catch (Exception ex) {
 
-				ex.printStackTrace();
-
+				LoggerFactory.getLogger(ContextFactory.class).error("Unexpected exception while initializing language context for language \"{}\".", language, ex);
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
+		} else if (actionContext != null && allowEntityOverride) {
+
+			// If binding exists in context, ensure entity is up to date
+			final StructrBinding structrBinding = storedContext.getBindings(language).getMember("Structr").asProxyObject();
+			structrBinding.setEntity(entity);
 		}
 
 		return  storedContext;
@@ -164,8 +179,6 @@ public abstract class ContextFactory {
 
 	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
 		Context ctx = pythonBuilder.build();
-		//ctx.eval("python", "import site");
-
 		return updateBindings(ctx, "python", actionContext, entity);
 	}
 

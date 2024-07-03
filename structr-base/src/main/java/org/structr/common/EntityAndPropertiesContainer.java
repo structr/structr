@@ -101,6 +101,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public boolean isDeleted() {
+		return false;
+	}
+
+	@Override
 	public String getName() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

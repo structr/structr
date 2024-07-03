@@ -109,6 +109,16 @@ public class MemoryTransaction implements Transaction {
 		return getRelationshipById((MemoryIdentity)id);
 	}
 
+	@Override
+	public boolean isRelationshipDeleted(final long id) {
+		return deletedNodes.contains(id);
+	}
+
+	@Override
+	public boolean isNodeDeleted(final long id) {
+		return deletedRelationships.containsKey(id);
+	}
+
 	public void create(final MemoryNode newNode) {
 		createdNodes.add(newNode);
 	}
@@ -224,12 +234,12 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
-	public void prefetch(String type1, String type2, Set<String> keys) {
+	public void prefetch(String type1, String type2, Set<String> keys, final boolean complete) {
 
 	}
 
 	@Override
-	public void prefetch(String query, Set<String> keys) {
+	public void prefetch(String query, Set<String> keys, final boolean complete) {
 
 	}
 }

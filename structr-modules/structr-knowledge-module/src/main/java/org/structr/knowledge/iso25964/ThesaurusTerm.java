@@ -48,10 +48,10 @@ public interface ThesaurusTerm extends NodeInterface {
 
 		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("status", PropertyView.All, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("created", PropertyView.All, PropertyView.Ui);
+		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui);
+		type.addStringProperty("source", PropertyView.All, PropertyView.Ui);
+		type.addStringProperty("status", PropertyView.All, PropertyView.Ui);
 		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
 
 		type.relate(customTermAttribute, "hasCustomTermAttribute", Cardinality.OneToMany, "term", "customTermAttributes");
