@@ -39,14 +39,14 @@ import org.structr.common.helper.ValidationHelper;
  * Objects of this class act as a doorkeeper for REST resources
  * that match the signature string in the 'signature' field.
  * <p>
- * A ResourceAccess object defines access granted
+ * A ResourceAccess object defines access permissions granted
  * <ul>
  * <li>to everyone (public)
  * <li>to authenticated principals
- * <li>to invidual principals (when connected to a {link @Principal} node
+ * <li>to individual principals (when connected to a {link @Principal} node
  * </ul>
  *
- * <p>'flags' is a sum of any of the following values:
+ * <p>'flags' is a sum of any combination of the following values:
  *
  *  FORBIDDEN             = 0
  *  AUTH_USER_GET         = 1
@@ -65,7 +65,7 @@ import org.structr.common.helper.ValidationHelper;
  */
 public class ResourceAccess extends AbstractNode {
 
-	private static final Map<String, List<ResourceAccess>> grantCache = new ConcurrentHashMap<>();
+	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();
 	private static final Logger logger                                = LoggerFactory.getLogger(ResourceAccess.class.getName());
 
 	public static final Property<String>               signature          = new StringProperty("signature").indexed();
@@ -130,7 +130,7 @@ public class ResourceAccess extends AbstractNode {
 
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
-		grantCache.clear();
+		permissionsCache.clear();
 	}
 
 	@Override
@@ -146,31 +146,31 @@ public class ResourceAccess extends AbstractNode {
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
-		grantCache.clear();
+		permissionsCache.clear();
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) throws FrameworkException {
-		grantCache.clear();
+		permissionsCache.clear();
 	}
 
-	public static List<ResourceAccess> findGrants(final SecurityContext securityContext, final String signature) throws FrameworkException {
+	public static List<ResourceAccess> findPermissions(final SecurityContext securityContext, final String signature) throws FrameworkException {
 
-		List<ResourceAccess> grants = grantCache.get(signature);
-		if (grants == null) {
+		List<ResourceAccess> permissions = permissionsCache.get(signature);
+		if (permissions == null) {
 
-			// Ignore securityContext here (so we can cache all grants for a signature independent of a user)
-			grants = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getAsList();
-			if (!grants.isEmpty()) {
+			// Ignore securityContext here (so we can cache all permissions for a signature independent of a user)
+			permissions = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getAsList();
+			if (!permissions.isEmpty()) {
 
-				grantCache.put(signature, grants);
+				permissionsCache.put(signature, permissions);
 			}
 		}
 
-		return grants;
+		return permissions;
 	}
 
 	public static void clearCache() {
-		grantCache.clear();
+		permissionsCache.clear();
 	}
 }

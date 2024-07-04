@@ -807,7 +807,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		}
 
 		// allow REST access
-		grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other grants
+		grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other permissions
 		grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
 		grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
 

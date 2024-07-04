@@ -240,7 +240,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			buf.append(valueOrEmpty(owner, AbstractNode.name));
 		}
 
-		// include grants in content hash generation!
+		// include permissions in content hash generation!
 		for (final Security r : node.getSecurityRelationships()) {
 
 			if (r != null) {

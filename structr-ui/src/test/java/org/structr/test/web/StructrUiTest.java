@@ -346,7 +346,7 @@ public abstract class StructrUiTest {
 
 		if (reset) {
 
-			// delete existing grants
+			// delete existing permissions
 			RestAssured
 
 				.given()
