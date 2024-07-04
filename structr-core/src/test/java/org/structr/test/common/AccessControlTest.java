@@ -1698,7 +1698,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("Unable to clear resource access grants", t);
+			logger.warn("Unable to clear resource access permissions", t);
 		}
 	}
 }
