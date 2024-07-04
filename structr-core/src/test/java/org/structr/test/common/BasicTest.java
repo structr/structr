@@ -94,74 +94,68 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testQuerySoftLimit() {
 
-		try {
-			Settings.ResultCountSoftLimit.setValue(100);
-			Settings.FetchSize.setValue(100);
+		Settings.ResultCountSoftLimit.setValue(100);
+		Settings.FetchSize.setValue(100);
 
-			final int num = 3234;
-			int total     = 0;
+		final int num = 3234;
+		int total     = 0;
 
-			System.out.println("Creating " + num + " elements..");
+		System.out.println("Creating " + num + " elements..");
 
-			try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx()) {
 
-				for (int i=0; i<num; i++) {
-					app.create(TestSix.class);
-				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
+			for (int i=0; i<num; i++) {
+				app.create(TestSix.class);
 			}
 
-			System.out.println("Done.");
+			tx.success();
 
-			try (final Tx tx = app.tx()) {
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 
-				int count = 0;
+		System.out.println("Done.");
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+		try (final Tx tx = app.tx()) {
 
-					for (TestSix test : results) {
-						count++;
-					}
+			int count = 0;
 
-					total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+				for (TestSix test : results) {
+					count++;
 				}
 
-				System.out.println(count + " / " + total);
-
-				assertEquals("Invalid result count", num, count);
-				assertEquals("Invalid total count", num, total);
-
-				tx.success();
-
-			} catch (Exception fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
+				total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
 			}
 
-			try (final Tx tx = app.tx()) {
+			System.out.println(count + " / " + total);
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+			assertEquals("Invalid result count", num, count);
+			assertEquals("Invalid total count", num, total);
 
-					if (results.iterator().hasNext()) {
-						results.iterator().next();
-					}
+			tx.success();
+
+		} catch (Exception fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+				if (results.iterator().hasNext()) {
+					results.iterator().next();
 				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
 			}
 
-		} finally {
+			tx.success();
 
-			Settings.CypherDebugLogging.setValue(false);
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 
@@ -1201,8 +1195,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test06DuplicateRelationshipsOneToOne() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		// Creating duplicate one-to-one relationships
 		// is silently ignored, the relationship will
 		// be replaced.
@@ -1667,8 +1659,6 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final TestOne testOne    = createTestNode(TestOne.class);
 			final TestTwo testTwo1   = createTestNode(TestTwo.class, new NodeAttribute<>(TestTwo.testOne, testOne));
 			final OneTwoOneToOne rel = testOne.getOutgoingRelationship(OneTwoOneToOne.class);
@@ -1687,10 +1677,6 @@ public class BasicTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 		// fill cache with other nodes

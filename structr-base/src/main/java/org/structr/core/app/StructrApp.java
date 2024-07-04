@@ -239,10 +239,12 @@ public class StructrApp implements App {
 
 			// set type for faster query
 			if (type != null) {
+
 				query.andType(type);
+
 			} else {
 
-				logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time. Please examine the following stack trace and amend.");
+				logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				Thread.dumpStack();
 			}
 

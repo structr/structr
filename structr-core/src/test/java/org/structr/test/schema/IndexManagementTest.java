@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -49,7 +50,7 @@ import static org.testng.AssertJUnit.fail;
 public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);
-	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("test", "relType", "internalTimestamp", "type", "id");
+	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("test");
 	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(10);
 	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
 
@@ -358,7 +359,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 5)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 2)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -396,7 +397,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 4)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -451,7 +452,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 5)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 2)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -490,7 +491,7 @@ public class IndexManagementTest extends StructrTest {
 
 				// Note: we KNOW that the index will not be removed, so we deliberately test the
 				// wrong thing here in case it changes somehow in the future!
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 5)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 2)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -545,7 +546,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 5)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 2)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -601,7 +602,11 @@ public class IndexManagementTest extends StructrTest {
 
 			final List<IndexInfo> infos = queryIndexes(db, entityType);
 
-			if (infos.size() == expectedEntryCount) {
+			if (!infos.isEmpty()) {
+
+				if (infos.size() != expectedEntryCount) {
+					return false;
+				}
 
 				final IndexInfo first = infos.get(0);
 

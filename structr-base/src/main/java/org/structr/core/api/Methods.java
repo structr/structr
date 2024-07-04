@@ -139,16 +139,17 @@ public class Methods {
 	// ----- private static methods -----
 	private static AbstractMethod createMethod(final Method method) throws FrameworkException {
 
-		final Export exp = method.getAnnotation(Export.class);
-		final String id  = exp.schemaMethodId();
+		final Export exp     = method.getAnnotation(Export.class);
+		final String id      = exp.schemaMethodId();
 
 		if (StringUtils.isNotBlank(id)) {
 
-			CacheEntry cacheEntry = methodCache.get(id);
+			final String cacheId = id + "_structr_cache_entry";
+			CacheEntry cacheEntry = methodCache.get(cacheId);
 			if (cacheEntry == null) {
 
 				cacheEntry = new CacheEntry();
-				methodCache.put(id, cacheEntry);
+				methodCache.put(cacheId, cacheEntry);
 
 				final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
 				if (schemaMethod != null) {

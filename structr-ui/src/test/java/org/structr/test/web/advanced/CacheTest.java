@@ -147,8 +147,6 @@ public class CacheTest extends StructrUiTest {
 	@Test
 	public void testRollback() {
 
-		//Settings.CypherDebugLogging.setValue(true);
-
 		try {
 
 			try (final Tx tx = app.tx()) {
