@@ -6,7 +6,7 @@ RUN apk update && \
     unzip -q /root/structr-$STRUCTR_VERSION-dist.zip -d /root && \
     rm /root/structr-$STRUCTR_VERSION-dist.zip
 
-FROM ghcr.io/graalvm/jdk-community:21 as main
+FROM ghcr.io/graalvm/jdk-community:22 as main
 COPY --from=build /root/structr-* /var/lib/structr
 WORKDIR /var/lib/structr
 EXPOSE 8082
