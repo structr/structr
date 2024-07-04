@@ -1407,7 +1407,23 @@ let Structr = {
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					let shown = false;
+
+					if (data.progressEntryClass) {
+
+						let targetElement = document.querySelector(`.${messageCssClass} .${data.progressEntryClass}`);
+
+						if (targetElement) {
+
+							targetElement.textContent = data.message;
+							shown = true;
+						}
+					}
+
+					if (shown === false) {
+
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass ?? ''}">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					}
 
 				} else if (data.subtype === 'END') {
 
