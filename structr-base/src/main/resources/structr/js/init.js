@@ -1246,7 +1246,7 @@ let Structr = {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
-		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessGrantWarningPopupsKey);
+		let showResourceAccessPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
@@ -1548,23 +1548,23 @@ let Structr = {
 
 			case "RESOURCE_ACCESS":
 
-				if (showResourceAccessGrantPopups) {
+				if (showResourceAccessPopups) {
 
 					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
 
-					let createGrant = (grantData) => {
+					let createPermission = (permissionData) => {
 
 						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
 						let flags     = _ResourceAccessPermissions.mask[maskIndex] || 0;
 
-						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, grantData);
+						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, permissionData);
 
 						let resourceAccessKey = 'resource-access';
 
-						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
-						if (!grantPagerConfig) {
+						let permissionPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
+						if (!permissionPagerConfig) {
 
-							grantPagerConfig = {
+							permissionPagerConfig = {
 								id: resourceAccessKey,
 								type: resourceAccessKey,
 								page: 1,
@@ -1575,15 +1575,15 @@ let Structr = {
 
 						} else {
 
-							grantPagerConfig = JSON.parse(grantPagerConfig);
+							permissionPagerConfig = JSON.parse(permissionPagerConfig);
 						}
 
-						grantPagerConfig.filters = {
+						permissionPagerConfig.filters = {
 							flags: false,
 							signature: data.signature
 						};
 
-						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(permissionPagerConfig));
 
 						if (Structr.isModuleActive(_Security)) {
 
@@ -1598,15 +1598,15 @@ let Structr = {
 
 					if (data.validUser === false) {
 
-						builder.specialInteractionButton('Create and show grant for <b>public</b> users', () => { createGrant({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
 
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
 						}
 
-						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
 					}
 
 					builder.show();
@@ -2762,12 +2762,12 @@ let UISettings = {
 			settings: {
 				showScriptingErrorPopupsKey: {
 					text: 'Show popups for scripting errors',
-					storageKey: 'showScriptinErrorPopups' + location.port,
+					storageKey: 'showScriptingErrorPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
-				showResourceAccessGrantWarningPopupsKey: {
-					text: 'Show popups for resource access grant warnings',
+				showResourceAccessPermissionWarningPopupsKey: {
+					text: 'Show popups for resource access permission warnings',
 					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
@@ -2841,7 +2841,7 @@ let UISettings = {
 					}
 				},
 				showVisibilityFlagsInPermissionsTableKey: {
-					text: 'Show visibility flags in Resource Access Grants table',
+					text: 'Show visibility flags in Resource Access table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
@@ -2852,8 +2852,8 @@ let UISettings = {
 					}
 				},
 				showBitmaskColumnInPermissionsTableKey: {
-					text: 'Show bitmask column in Resource Access Grants table',
-					infoText: 'This is an advanced editing feature to quickly set the grant configuration',
+					text: 'Show bitmask column in Resource Access permissions table',
+					infoText: 'This is an advanced editing feature to quickly set the permission configuration',
 					storageKey: 'showBitmaskColumnInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
