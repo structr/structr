@@ -2064,6 +2064,20 @@ let Structr = {
 					</div>
 				</form>
 			</div>
+		`,
+		autoScriptInput: config => `
+			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
+				<input type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.inputClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.inputAttributeString ?? ''}>
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
+			</div>
+		`,
+		autoScriptTextArea: config => `
+			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
+				<textarea type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
+			</div>
 		`
 	}
 };
