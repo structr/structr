@@ -669,6 +669,8 @@ public class IndexManagementTest extends StructrTest {
 
 			logger.info("Index query result: {}, expected number of indexes was {}, returning {}", infos, expectedNumberOfIndexes, result );
 
+			return result;
+
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
@@ -677,7 +679,6 @@ public class IndexManagementTest extends StructrTest {
 
 		return false;
 	}
-
 
 	private List<IndexInfo> queryIndexes(final DatabaseService db, final String labelOrType) {
 
