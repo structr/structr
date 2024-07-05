@@ -19,6 +19,7 @@
 package org.structr.test.schema;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -602,31 +603,45 @@ public class IndexManagementTest extends StructrTest {
 
 			final List<IndexInfo> infos = queryIndexes(db, entityType);
 
+			logger.info("Index query result: {}", infos);
+
 			if (!infos.isEmpty()) {
 
 				if (infos.size() != expectedEntryCount) {
+					logger.info("Returning false because infos.size() was {} while expected count was {}", infos.size(), expectedEntryCount);
 					return false;
 				}
 
 				final IndexInfo first = infos.get(0);
 
 				if (isNode && !first.isNode()) {
+					logger.info("Returning false because first entry is not a node index and a node index was expected.");
 					return false;
 				}
 
 				if (isRelationship && !first.isRelationship()) {
+					logger.info("Returning false because first entry is not a relationship index and a relationship index was expected.");
 					return false;
 				}
 
 				if (!entityType.equals(first.getEntityType())) {
+					logger.info("Returning false because returned entity type was {} while expected type was {}", first.getEntityType(), entityType);
 					return false;
 				}
 
 				if (!propertyNames.containsAll(first.getProperties())) {
+					logger.info("Returning false because expected properties did not contain {}.", first.getProperties());
 					return false;
 				}
 
 				// important, this is the only place where the test passes
+				logger.info("Returning true, check successful.");
+				return true;
+
+			} else if (expectedEntryCount == 0) {
+
+				// expected count matches empty result
+				logger.info("Returning true, expected 0 entries and got 0 entries from index query.");
 				return true;
 			}
 
@@ -636,6 +651,7 @@ public class IndexManagementTest extends StructrTest {
 			fex.printStackTrace();
 		}
 
+		logger.info("Returning false at the end of the check method.");
 		return false;
 	}
 
@@ -649,11 +665,15 @@ public class IndexManagementTest extends StructrTest {
 
 			tx.success();
 
-			return infos.size() == expectedNumberOfIndexes;
+			final boolean result = infos.size() == expectedNumberOfIndexes;
+
+			logger.info("Index query result: {}, expected number of indexes was {}, returning {}", infos, expectedNumberOfIndexes, result );
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
+
+		logger.info("Returning false at the end of the check method.");
 
 		return false;
 	}
@@ -694,6 +714,11 @@ public class IndexManagementTest extends StructrTest {
 		protected String type        = null;
 		protected List<String> types = null;
 		protected List<String> props = null;
+
+		@Override
+		public String toString() {
+			return getClass().getSimpleName() + "(" + type + ", " + props + ")";
+		}
 
 		public boolean isNode() {
 			return "NODE".equals(this.type);
