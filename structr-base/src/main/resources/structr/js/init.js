@@ -1392,7 +1392,8 @@ let Structr = {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
 						Importing from: <span class="deployment-source">${data.source}</span><br><br>
-						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
+						<ol class="message-steps"></ol>
 					`;
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
@@ -1407,22 +1408,13 @@ let Structr = {
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					let shown = false;
-
 					if (data.progressEntryClass) {
 
-						let targetElement = document.querySelector(`.${messageCssClass} .${data.progressEntryClass}`);
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass}">${data.message}</li>`).requiresConfirmation().replacesElement(`.${data.progressEntryClass}`, '.message-steps').show();
 
-						if (targetElement) {
+					} else {
 
-							targetElement.textContent = data.message;
-							shown = true;
-						}
-					}
-
-					if (shown === false) {
-
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass ?? ''}">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 					}
 
 				} else if (data.subtype === 'END') {
@@ -1452,29 +1444,21 @@ let Structr = {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
 						Exporting to: <span class="deployment-target">${data.target}</span><br><br>
-						System performance may be affected during Export.<br><ol class="message-steps"></ol>
+						System performance may be affected during Export.<br>
+						<ol class="message-steps"></ol>
 					`;
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					let shown = false;
-
 					if (data.progressEntryClass) {
 
-						let targetElement = document.querySelector(`.${messageCssClass} .${data.progressEntryClass}`);
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass}">${data.message}</li>`).requiresConfirmation().replacesElement(`.${data.progressEntryClass}`, '.message-steps').show();
 
-						if (targetElement) {
+					} else {
 
-							targetElement.textContent = data.message;
-							shown = true;
-						}
-					}
-
-					if (shown === false) {
-
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass ?? ''}">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 					}
 
 				} else if (data.subtype === 'END') {
@@ -2448,6 +2432,9 @@ class MessageBuilder {
 			updatesButtons: false,
 			appendsText: false,
 			appendSelector: '',
+			replacesElement: false,
+			replacesSelector: '',
+			replaceInParentSelector: '',
 			incrementsUniqueCount: false,
 			specialInteractionButtons: []
 		};
@@ -2558,12 +2545,15 @@ class MessageBuilder {
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
 
+				let messageTextElement = existingMessage.querySelector('.message-text');
+
 				if (this.params.updatesText) {
 
 					if (titleElement) {
 						titleElement.innerHTML = this.params.title;
 					}
-					existingMessage.querySelector('.message-text').innerHTML = this.params.text;
+
+					messageTextElement.innerHTML = this.params.text;
 
 				} else if (this.params.appendsText) {
 
@@ -2571,8 +2561,27 @@ class MessageBuilder {
 						titleElement.innerHTML = this.params.title;
 					}
 
-					let selector = `.message-text ${((this.params.appendSelector !== '') ? this.params.appendSelector : '')}`;
-					existingMessage.querySelector(selector).insertAdjacentHTML('beforeend', this.params.text);
+					let appendTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.appendSelector) ?? messageTextElement);
+
+					appendTarget.insertAdjacentHTML('beforeend', this.params.text);
+
+				} else if (this.params.replacesElement) {
+
+					if (titleElement) {
+						titleElement.innerHTML = this.params.title;
+					}
+
+					let parentElement =  (this.params.replaceInParentSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.replaceInParentSelector) ?? messageTextElement);
+					let replaceElement = parentElement.querySelector(this.params.replacesSelector);
+
+					if (replaceElement) {
+
+						replaceElement.replaceWith(..._Helpers.createDOMElementsFromHTML(this.params.text));
+
+					} else {
+
+						parentElement.insertAdjacentHTML('beforeend', this.params.text);
+					}
 				}
 
 				if (this.params.updatesButtons) {
@@ -2661,6 +2670,17 @@ class MessageBuilder {
 		this.params.appendSelector = selector;
 		return this;
 	};
+
+	replacesElement(selector, parentSelector) {
+		if (!selector) {
+			throw new Error("Must provide selector to use replacesElement!");
+		}
+
+		this.params.replacesElement         = true;
+		this.params.replacesSelector        = selector;
+		this.params.replaceInParentSelector = parentSelector;
+		return this;
+	}
 
 	getUniqueCountElement() {
 		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
