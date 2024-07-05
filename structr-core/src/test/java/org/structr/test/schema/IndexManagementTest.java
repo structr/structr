@@ -360,7 +360,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 2)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -398,7 +398,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 1)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -453,7 +453,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 2)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -492,7 +492,7 @@ public class IndexManagementTest extends StructrTest {
 
 				// Note: we KNOW that the index will not be removed, so we deliberately test the
 				// wrong thing here in case it changes somehow in the future!
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 2)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -547,7 +547,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 2)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");

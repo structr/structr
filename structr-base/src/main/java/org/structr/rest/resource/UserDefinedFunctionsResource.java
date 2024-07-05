@@ -22,6 +22,7 @@ package org.structr.rest.resource;
 import java.util.Map;
 import java.util.Set;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.search.SortOrder;
@@ -53,7 +54,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 			// 12/2023: we decided to rename global schema methods to user-defined functions
 			// and make them available in the global scope just like built-in functions, hence
 			// the path
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
+			RESTParameter.forPattern("name", SchemaMethod.schemaMethodNamePattern, true)
 		);
 	}
 
