@@ -131,7 +131,7 @@ public abstract class AbstractCommand {
 			} else {
 
 				if (nodeId == null) {
-					logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
+					logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				}
 
 				final AbstractRelationship rel = getRelationship(id, nodeId);
