@@ -1414,7 +1414,7 @@ let Structr = {
 
 					} else {
 
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 					}
 
 				} else if (data.subtype === 'END') {
