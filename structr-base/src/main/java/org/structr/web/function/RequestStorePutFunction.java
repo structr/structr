@@ -44,7 +44,14 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+
+			if (sources.length != 2) {
+				throw ArgumentCountException.notEqual(sources.length, 2);
+			}
+
+			if (sources[0] == null) {
+				throw new ArgumentNullException();
+			}
 
 			return ctx.getRequestStore().put(sources[0].toString(), sources[1]);
 			
