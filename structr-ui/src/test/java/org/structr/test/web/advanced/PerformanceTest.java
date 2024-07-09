@@ -575,10 +575,7 @@ public class PerformanceTest extends IndexingTest {
 
 		try (final Tx tx = app.tx()) {
 
-
 			Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Type1.test(); }}", "test", "test");
-
-			Settings.CypherDebugLogging.setValue(true);
 
 			tx.success();
 
@@ -586,9 +583,6 @@ public class PerformanceTest extends IndexingTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		Settings.CypherDebugLogging.setValue(false);
-
 
 	}
 

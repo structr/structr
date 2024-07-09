@@ -1579,7 +1579,7 @@ let _Pages = {
 			saveEventMappingData(entity, el);
 		});
 
-		const updateEventMappingInterface = (entity, actionMapping) => {
+		const updateEventMappingInterface = (entity, actionMapping, calledAfterDelete = false) => {
 
 			if (!actionMapping) {
 				console.warn('No actionMapping object given', entity);
@@ -1730,11 +1730,13 @@ let _Pages = {
 			}
 
 			// append mapped parameters
-			Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
-				for (const parameterMapping of actionMapping.parameterMappings) {
-					getAndAppendParameterMapping(parameterMapping.id);
-				}
-			});
+			if (!calledAfterDelete) {
+				Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
+					for (const parameterMapping of actionMapping.parameterMappings) {
+						getAndAppendParameterMapping(parameterMapping.id);
+					}
+				});
+			}
 
 			// if (entity.triggeredActions && entity.triggeredActions.length) {
 			//
@@ -2019,7 +2021,7 @@ let _Pages = {
 					//console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
 					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
-						updateEventMappingInterface(entity, actionMappingObject);
+						updateEventMappingInterface(entity, actionMappingObject, true);
 						_Helpers.blinkGreen(el);
 					});
 

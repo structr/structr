@@ -873,8 +873,6 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void testGroupHierarchyMembershipVisibility() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		String user1Id = null;
 		String user2Id = null;
 		String group1Id = null;

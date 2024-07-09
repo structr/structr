@@ -1180,8 +1180,6 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		long average = 0;
 		long count   = 0;
 

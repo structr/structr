@@ -631,4 +631,87 @@ public class SchemaMethodsTest extends FrontendTest {
 			.when()
 				.post("/maintenance/globalSchemaMethods/globalTest1");
 	}
+
+	@Test
+	public void testSchemaMethodCache() {
+
+		final String customTypeName   = "Test";
+		final String schemaMethodName = "testMethod";
+		final String schemaMethodId   = "abcdef0123456789fedcba9876543210";
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
+			final PropertyMap testFooFileMethodProperties = new PropertyMap();
+
+			testFooFileMethodProperties.put(SchemaMethod.id, schemaMethodId);
+			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
+			testFooFileMethodProperties.put(SchemaMethod.source, "{ return 'test'; }");
+			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
+			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
+
+			app.create(SchemaMethod.class, testFooFileMethodProperties);
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		// 1. execute method
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("result", equalTo("test"))
+				.when()
+				.post(customTypeName + "/" + schemaMethodName);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		// 2. try to change the method
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.body("{ source: '{ return \"test2\"; }' }")
+				.expect()
+				.statusCode(200)
+				.when()
+				.put("/" + schemaMethodId);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+	}
 }

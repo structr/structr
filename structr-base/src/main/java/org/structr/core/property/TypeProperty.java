@@ -45,7 +45,7 @@ public class TypeProperty extends StringProperty {
 		readOnly();
 		indexed();
 		writeOnce();
-
+		nodeIndexOnly();
 	}
 
 	@Override

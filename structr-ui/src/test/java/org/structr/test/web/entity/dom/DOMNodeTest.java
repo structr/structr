@@ -413,8 +413,6 @@ public class DOMNodeTest extends DOMTest {
 			Element div = document.createElement("div");
 			assertNotNull(div);
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			// add children
 			div.appendChild(test1);
 			div.appendChild(test2);
@@ -432,8 +430,6 @@ public class DOMNodeTest extends DOMTest {
 
 			// test replace child
 			div.replaceChild(test6, test3);
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			// examine children
 			NodeList children2 = div.getChildNodes();

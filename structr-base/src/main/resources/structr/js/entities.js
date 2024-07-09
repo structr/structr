@@ -3227,7 +3227,7 @@ let _Entities = {
 			repeaterPartial: config => `
 				<div>
 					<label class="block mb-2" for="function-query-input">Function Query</label>
-					<input type="text" id="function-query-input" name="functionQuery">
+					${Structr.templates.autoScriptInput({ inputAttributeString: 'id="function-query-input" name="functionQuery"', wrapperClassString: 'w-full'})}
 				</div>
 
 				<div>
@@ -3292,9 +3292,11 @@ let _Entities = {
 				<div>
 					<label class="block mb-2" for="show-conditions">Show Conditions</label>
 					<div class="conditions-container flex">
-						<input id="show-conditions" type="text" name="showConditions" class="border border-r-0 rounded-none rounded-l">
+
+						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="show-conditions" name="showConditions"', wrapperClassString: 'w-full'})}
+
 						<div class="dropdown-menu dropdown-menu-large">
-							<button class="mr-0 dropdown-select rounded-none rounded-r border">
+							<button class="mr-0 dropdown-select rounded border ml-2">
 								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
 							</button>
 
@@ -3313,9 +3315,11 @@ let _Entities = {
 				<div>
 					<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
 					<div class="conditions-container flex">
-						<input id="hide-conditions" type="text" name="hideConditions" class="border border-r-0 rounded-none rounded-l">
+
+						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="hide-conditions" name="hideConditions"', wrapperClassString: 'w-full'})}
+
 						<div class="dropdown-menu dropdown-menu-large">
-							<button class="mr-0 dropdown-select rounded-none rounded-r border" data-preferred-position-x="left">
+							<button class="mr-0 dropdown-select rounded ml-2" data-preferred-position-x="left">
 								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
 							</button>
 

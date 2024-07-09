@@ -1246,7 +1246,7 @@ let Structr = {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
-		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessGrantWarningPopupsKey);
+		let showResourceAccessPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
@@ -1392,7 +1392,8 @@ let Structr = {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
 						Importing from: <span class="deployment-source">${data.source}</span><br><br>
-						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
+						<ol class="message-steps"></ol>
 					`;
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
@@ -1407,7 +1408,14 @@ let Structr = {
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					if (data.progressEntryClass) {
+
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass}">${data.message}</li>`).requiresConfirmation().replacesElement(`.${data.progressEntryClass}`, '.message-steps').show();
+
+					} else {
+
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					}
 
 				} else if (data.subtype === 'END') {
 
@@ -1436,29 +1444,21 @@ let Structr = {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
 						Exporting to: <span class="deployment-target">${data.target}</span><br><br>
-						System performance may be affected during Export.<br><ol class="message-steps"></ol>
+						System performance may be affected during Export.<br>
+						<ol class="message-steps"></ol>
 					`;
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					let shown = false;
-
 					if (data.progressEntryClass) {
 
-						let targetElement = document.querySelector(`.${messageCssClass} .${data.progressEntryClass}`);
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass}">${data.message}</li>`).requiresConfirmation().replacesElement(`.${data.progressEntryClass}`, '.message-steps').show();
 
-						if (targetElement) {
+					} else {
 
-							targetElement.textContent = data.message;
-							shown = true;
-						}
-					}
-
-					if (shown === false) {
-
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass ?? ''}">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 					}
 
 				} else if (data.subtype === 'END') {
@@ -1548,23 +1548,23 @@ let Structr = {
 
 			case "RESOURCE_ACCESS":
 
-				if (showResourceAccessGrantPopups) {
+				if (showResourceAccessPopups) {
 
 					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
 
-					let createGrant = (grantData) => {
+					let createPermission = (permissionData) => {
 
 						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
 						let flags     = _ResourceAccessPermissions.mask[maskIndex] || 0;
 
-						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, grantData);
+						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, permissionData);
 
 						let resourceAccessKey = 'resource-access';
 
-						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
-						if (!grantPagerConfig) {
+						let permissionPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
+						if (!permissionPagerConfig) {
 
-							grantPagerConfig = {
+							permissionPagerConfig = {
 								id: resourceAccessKey,
 								type: resourceAccessKey,
 								page: 1,
@@ -1575,15 +1575,15 @@ let Structr = {
 
 						} else {
 
-							grantPagerConfig = JSON.parse(grantPagerConfig);
+							permissionPagerConfig = JSON.parse(permissionPagerConfig);
 						}
 
-						grantPagerConfig.filters = {
+						permissionPagerConfig.filters = {
 							flags: false,
 							signature: data.signature
 						};
 
-						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(permissionPagerConfig));
 
 						if (Structr.isModuleActive(_Security)) {
 
@@ -1598,15 +1598,15 @@ let Structr = {
 
 					if (data.validUser === false) {
 
-						builder.specialInteractionButton('Create and show grant for <b>public</b> users', () => { createGrant({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
 
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
 						}
 
-						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
 					}
 
 					builder.show();
@@ -2048,6 +2048,20 @@ let Structr = {
 					</div>
 				</form>
 			</div>
+		`,
+		autoScriptInput: config => `
+			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
+				<input type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.inputClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.inputAttributeString ?? ''}>
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
+			</div>
+		`,
+		autoScriptTextArea: config => `
+			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
+				<textarea type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
+			</div>
 		`
 	}
 };
@@ -2418,6 +2432,9 @@ class MessageBuilder {
 			updatesButtons: false,
 			appendsText: false,
 			appendSelector: '',
+			replacesElement: false,
+			replacesSelector: '',
+			replaceInParentSelector: '',
 			incrementsUniqueCount: false,
 			specialInteractionButtons: []
 		};
@@ -2528,12 +2545,15 @@ class MessageBuilder {
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
 
+				let messageTextElement = existingMessage.querySelector('.message-text');
+
 				if (this.params.updatesText) {
 
 					if (titleElement) {
 						titleElement.innerHTML = this.params.title;
 					}
-					existingMessage.querySelector('.message-text').innerHTML = this.params.text;
+
+					messageTextElement.innerHTML = this.params.text;
 
 				} else if (this.params.appendsText) {
 
@@ -2541,8 +2561,27 @@ class MessageBuilder {
 						titleElement.innerHTML = this.params.title;
 					}
 
-					let selector = `.message-text ${((this.params.appendSelector !== '') ? this.params.appendSelector : '')}`;
-					existingMessage.querySelector(selector).insertAdjacentHTML('beforeend', this.params.text);
+					let appendTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.appendSelector) ?? messageTextElement);
+
+					appendTarget.insertAdjacentHTML('beforeend', this.params.text);
+
+				} else if (this.params.replacesElement) {
+
+					if (titleElement) {
+						titleElement.innerHTML = this.params.title;
+					}
+
+					let parentElement =  (this.params.replaceInParentSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.replaceInParentSelector) ?? messageTextElement);
+					let replaceElement = parentElement.querySelector(this.params.replacesSelector);
+
+					if (replaceElement) {
+
+						replaceElement.replaceWith(..._Helpers.createDOMElementsFromHTML(this.params.text));
+
+					} else {
+
+						parentElement.insertAdjacentHTML('beforeend', this.params.text);
+					}
 				}
 
 				if (this.params.updatesButtons) {
@@ -2631,6 +2670,17 @@ class MessageBuilder {
 		this.params.appendSelector = selector;
 		return this;
 	};
+
+	replacesElement(selector, parentSelector) {
+		if (!selector) {
+			throw new Error("Must provide selector to use replacesElement!");
+		}
+
+		this.params.replacesElement         = true;
+		this.params.replacesSelector        = selector;
+		this.params.replaceInParentSelector = parentSelector;
+		return this;
+	}
 
 	getUniqueCountElement() {
 		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
@@ -2762,12 +2812,12 @@ let UISettings = {
 			settings: {
 				showScriptingErrorPopupsKey: {
 					text: 'Show popups for scripting errors',
-					storageKey: 'showScriptinErrorPopups' + location.port,
+					storageKey: 'showScriptingErrorPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
-				showResourceAccessGrantWarningPopupsKey: {
-					text: 'Show popups for resource access grant warnings',
+				showResourceAccessPermissionWarningPopupsKey: {
+					text: 'Show popups for resource access permission warnings',
 					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
@@ -2841,7 +2891,7 @@ let UISettings = {
 					}
 				},
 				showVisibilityFlagsInPermissionsTableKey: {
-					text: 'Show visibility flags in Resource Access Grants table',
+					text: 'Show visibility flags in Resource Access table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
@@ -2852,8 +2902,8 @@ let UISettings = {
 					}
 				},
 				showBitmaskColumnInPermissionsTableKey: {
-					text: 'Show bitmask column in Resource Access Grants table',
-					infoText: 'This is an advanced editing feature to quickly set the grant configuration',
+					text: 'Show bitmask column in Resource Access permissions table',
+					infoText: 'This is an advanced editing feature to quickly set the permission configuration',
 					storageKey: 'showBitmaskColumnInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',

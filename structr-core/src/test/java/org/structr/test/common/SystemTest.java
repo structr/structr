@@ -961,8 +961,6 @@ public class SystemTest extends StructrTest {
 				app.create(type, "test" + i);
 			}
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			tx.success();
 
 		} catch (Throwable fex) {
@@ -972,8 +970,6 @@ public class SystemTest extends StructrTest {
 
 		final long t1 = System.currentTimeMillis();
 		System.out.println((t1-t0) + " ms");
-
-		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
