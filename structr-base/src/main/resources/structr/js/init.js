@@ -1378,21 +1378,26 @@ let Structr = {
 				break;
 
 			case 'DEPLOYMENT_IMPORT_STATUS':
-			case 'DEPLOYMENT_DATA_IMPORT_STATUS': {
+			case 'DEPLOYMENT_EXPORT_STATUS':
+			case 'DEPLOYMENT_DATA_IMPORT_STATUS':
+			case 'DEPLOYMENT_DATA_EXPORT_STATUS': {
 
-				let type            = 'Deployment Import';
-				let messageCssClass = 'deployment-import';
-
-				if (data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS') {
-					type            = 'Data Deployment Import';
-					messageCssClass = 'data-deployment-import';
-				}
+				let typeTitles      = {
+					DEPLOYMENT_IMPORT_STATUS:      'Deployment Import',
+					DEPLOYMENT_DATA_IMPORT_STATUS: 'Data Deployment Import',
+					DEPLOYMENT_EXPORT_STATUS:      'Deployment Export',
+					DEPLOYMENT_DATA_EXPORT_STATUS: 'Data Deployment Export',
+				};
+				let type            = typeTitles[data.type];
+				let messageCssClass = 'deployment-message';
+				let isImport        = (data.type === 'DEPLOYMENT_IMPORT_STATUS' || data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS');
 
 				if (data.subtype === 'BEGIN') {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
-						Importing from: <span class="deployment-source">${data.source}</span><br><br>
-						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
+						${(isImport ? 'Importing from' : 'Exporting to')}: <span class="deployment-path">${(isImport ? data.source : data.target)}</span><br><br>
+						System performance may be affected during Deployment.<br>
+						Please wait until the process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
 						<ol class="message-steps"></ol>
 					`;
 
@@ -1400,51 +1405,9 @@ let Structr = {
 
 				} else if (data.subtype === 'ALREADY_RUNNING') {
 
-					let text = `${type} was already running before page was loaded<br><br>
-						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
-					`;
-
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
-
-				} else if (data.subtype === 'PROGRESS') {
-
-					if (data.progressEntryClass) {
-
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass}">${data.message}</li>`).requiresConfirmation().replacesElement(`.${data.progressEntryClass}`, '.message-steps').show();
-
-					} else {
-
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
-					}
-
-				} else if (data.subtype === 'END') {
-
-					let text = `<br>${type} finished: ${new Date(data.end)}<br>
-						Total duration: ${data.duration}<br><br>
-						Reload the page to see the new data.`;
-
-					new SuccessMessage().title(`${type} finished`).uniqueClass(messageCssClass).text(text).specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
-
-				}
-				break;
-			}
-
-			case 'DEPLOYMENT_EXPORT_STATUS':
-			case 'DEPLOYMENT_DATA_EXPORT_STATUS': {
-
-				let type            = 'Deployment Export';
-				let messageCssClass = 'deployment-export';
-
-				if (data.type === 'DEPLOYMENT_DATA_EXPORT_STATUS') {
-					type            = 'Data Deployment Export';
-					messageCssClass = 'data-deployment-export';
-				}
-
-				if (data.subtype === 'BEGIN') {
-
-					let text = `${type} started: ${new Date(data.start)}<br>
-						Exporting to: <span class="deployment-target">${data.target}</span><br><br>
-						System performance may be affected during Export.<br>
+					type = 'Deployment';
+					let text = `A deployment was already running before page was loaded.<br><br>
+						Please wait until the deployment process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
 						<ol class="message-steps"></ol>
 					`;
 
@@ -1452,21 +1415,39 @@ let Structr = {
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					if (data.progressEntryClass) {
+					let chunkInfos     = [
+						(data.curChunkTime)  ? `chunk ${(data.curChunkTime  / 1000).toFixed(2)}s` : '',
+						(data.meanChunkTime) ? `&oslash; ${(data.meanChunkTime / 1000).toFixed(2)}s` : ''
+					].filter(s => (s !== '')).join(', ');
+					let timeInfo      = (chunkInfos.length > 0) ? `(${chunkInfos})` : '';
+					let truncatedType = (data.typeName) ? `<span class="inline-block align-bottom max-w-64 truncate font-bold" title="${data.typeName}">${data.typeName}</span>` : '';
+					let message       = `<li id="${data.messageId ?? ''}">${data.message} ${truncatedType} ${data.progress ?? ''} ${timeInfo}</li>`;
 
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li class="${data.progressEntryClass}">${data.message}</li>`).requiresConfirmation().replacesElement(`.${data.progressEntryClass}`, '.message-steps').show();
+					let infoMessage = new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(message).requiresConfirmation();
+
+					if (data.messageId) {
+
+						infoMessage.replacesElement(`#${data.messageId}`, '.message-steps').show();
 
 					} else {
 
-						new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li">${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+						infoMessage.appendsText('.message-steps').show();
 					}
 
 				} else if (data.subtype === 'END') {
 
-					let text = `<br>${type} finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
+					let text = `<br>${type} finished: ${new Date(data.end)}<br>
+						Total duration: ${data.duration}
+						${isImport ? '<br><br>Reload the page to see the new data.' : ''}`;
 
-					new SuccessMessage().title(`${type} finished`).uniqueClass(messageCssClass).text(text).appendsText().requiresConfirmation().show();
+					let finalMessage = new SuccessMessage().title(`${type} finished`).uniqueClass(messageCssClass).text(text).appendsText().requiresConfirmation();
 
+					if (isImport) {
+
+						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').updatesButtons();
+					}
+
+					finalMessage.show();
 				}
 				break;
 			}
@@ -2604,7 +2585,7 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg title">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
 						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>

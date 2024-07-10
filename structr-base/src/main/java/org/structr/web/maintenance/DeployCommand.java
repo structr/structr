@@ -106,7 +106,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX  = ".writeFunction";
 	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY   = "source";
 
-
 	private final static String DEPLOYMENT_CONF_FILE_PATH                             = "deployment.conf";
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
@@ -116,7 +115,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String WIDGETS_FILE_PATH                                     = "widgets.json";
 	private final static String LOCALIZATIONS_FILE_PATH                               = "localizations.json";
 	private final static String APPLICATION_CONFIGURATION_DATA_FILE_PATH              = "application-configuration-data.json";
-	private final static String FILES_FILE_PATH                                       = "files.json";
+	protected final static String FILES_FILE_PATH                                       = "files.json";
 	private final static String PAGES_FILE_PATH                                       = "pages.json";
 	private final static String COMPONENTS_FILE_PATH                                  = "components.json";
 	private final static String TEMPLATES_FILE_PATH                                   = "templates.json";
@@ -125,7 +124,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String SITES_FILE_PATH                                       = "sites.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
-	private final static String FILES_FOLDER_PATH                                     = "files";
+	protected final static String FILES_FOLDER_PATH                                     = "files";
 	private final static String PAGES_FOLDER_PATH                                     = "pages";
 	private final static String SECURITY_FOLDER_PATH                                  = "security";
 	private final static String TEMPLATES_FOLDER_PATH                                 = "templates";
@@ -200,9 +199,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return new HashMap<>();
 	}
 
-	public StreamingJsonWriter getJsonWriter() {
-		return new StreamingJsonWriter(PropertyView.All, true, 1, false, true);
-	}
+//	public StreamingJsonWriter getJsonWriter() {
+//		return new StreamingJsonWriter(PropertyView.All, true, 1, false, true);
+//	}
 
 	public Gson getGson() {
 		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).serializeNulls().create();
