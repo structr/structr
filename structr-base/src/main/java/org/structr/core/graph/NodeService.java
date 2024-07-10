@@ -35,8 +35,12 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.entity.StorageConfigurationEntry;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * The graph/node service.
@@ -133,6 +137,7 @@ public class NodeService implements SingletonService {
 		}
 
 		createAdminUser();
+		migrateFolderMountTarget();
 	}
 
 	@Override
@@ -252,6 +257,45 @@ public class NodeService implements SingletonService {
 
 					logger.info("Not creating initial user, as per configuration");
 				}
+			}
+		}
+	}
+
+	public void migrateFolderMountTarget() {
+
+		if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
+
+			final App app = StructrApp.getInstance();
+
+			try (final Tx tx = app.tx()) {
+
+				final List<Folder> mountedFolders = app.nodeQuery(Folder.class)
+														.notBlank(StructrApp.key(Folder.class, "mountTarget"))
+														.getAsList();
+
+				if (!mountedFolders.isEmpty()) {
+					logger.info("Migrating {} folders with old mountTarget property to respective storage configurations.", mountedFolders.size());
+				}
+
+				for (Folder folder : mountedFolders) {
+
+					StorageConfiguration config = app.create(StorageConfiguration.class,
+							new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"),     folder.getFolderPath())
+					);
+
+					app.create(StorageConfigurationEntry.class,
+							new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "configuration"), config),
+							new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "name"),          "mountTarget"),
+							new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "value"),         folder.getProperty("mountTarget"))
+					);
+
+					folder.setProperty(StructrApp.key(Folder.class, "storageConfiguration"), config);
+					folder.setProperty(StructrApp.key(Folder.class, "mountTarget"), null);
+				}
+
+			} catch (Throwable t) {
+
+				logger.warn("Failed to migrate mountTarget for folders.", t);
 			}
 		}
 	}
