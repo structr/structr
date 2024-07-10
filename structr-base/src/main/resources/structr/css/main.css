@@ -3571,7 +3571,7 @@ table.props td.__value {
 	margin-top: .5rem;
 }
 
-.deployment-source, .deployment-target {
+.deployment-path {
 	user-select: all;
 	font-weight: 600;
 }
@@ -4332,6 +4332,9 @@ ul.combined-input-select-field li:hover {
 }
 .min-h-20 {
 	min-height: 5rem;
+}
+.max-w-64 {
+	max-width: 16rem;
 }
 .max-w-120 {
 	max-width: 30rem;
