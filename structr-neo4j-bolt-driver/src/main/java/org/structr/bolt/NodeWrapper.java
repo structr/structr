@@ -236,14 +236,16 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				final String key2 = createKey(Direction.INCOMING, relationshipType);
 				return Iterables.flatten(
 					List.of(
-						getRelationshipsFromCache(key1, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1)),
-						getRelationshipsFromCache(key2, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2))
+						getRelationshipsFromCache(key1, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r: ", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1)),
+						getRelationshipsFromCache(key2, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r: ", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2))
 					)
 				);
 
 			case OUTGOING:
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r: ", rel, "]->(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
+
 			case INCOMING:
-				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r: ", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
 		}
 
 		return null;
@@ -319,21 +321,9 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		final String whereStatement         = " WHERE ID(n) = $id ";
 		final String statement              = concat("MATCH ", match, whereStatement, returnStatement);
-		final String cacheKey               = statement + id;
-
-		if (prefetched.contains(cacheKey)) {
-
-			// return cached result
-			return getRelationshipsFromCache(key, () -> Collections.EMPTY_LIST);
-		}
-
-		prefetched.add(cacheKey);
 
 		final CypherRelationshipIndex index = (CypherRelationshipIndex)db.relationshipIndex();
 		final AdvancedCypherQuery query     = new RelationshipQuery(new QueryContext(), index, statement);
-		final Set<String> keys              = new LinkedHashSet<>();
-
-		keys.add(key);
 
 		query.getParameters().put("id", id);
 
@@ -347,15 +337,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 			relationshipCache.insert(relKey, rel);
 			list.add(rel);
-			keys.add(relKey);
 
 			prefetched.add(relKey);
 		}
 
 		prefetched.add(key);
 
-		// return cached result
-		return getRelationshipsFromCache(key, () -> Collections.EMPTY_LIST);
+		return list;
 	}
 
 	private String createKey(final Relationship relationship) {

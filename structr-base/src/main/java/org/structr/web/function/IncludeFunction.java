@@ -152,6 +152,8 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		if (node != null) {
 
+			DOMNode.prefetchDOMNodes(node.getUuid());
+
 			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
 
 				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);

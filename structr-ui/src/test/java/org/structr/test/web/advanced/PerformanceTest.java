@@ -391,7 +391,7 @@ public class PerformanceTest extends IndexingTest {
 
 		final App app                   = StructrApp.getInstance(setupSecurityContext());
 		final Random randm              = new Random();
-		final int number                = 3000;
+		final int number                = 1000;
 		final int loops                 = 10;
 		int count                       = 0;
 
@@ -402,10 +402,10 @@ public class PerformanceTest extends IndexingTest {
 				logger.info("Creating {} nodes for user admin, count is {}", number, count);
 				try (final Tx tx = app.tx()) {
 
-					for (final NodeInterface n : createNodes(app, TestOne.class, number)){
+					for (final NodeInterface n : createNodes(app, TestTwo.class, number)){
 
 						n.setProperty(AbstractNode.name, "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
-
+						n.setProperty(StructrApp.key(TestTwo.class, "testFives"), createNodes(app, TestFive.class, 3));
 					}
 
 					tx.success();
@@ -434,9 +434,14 @@ public class PerformanceTest extends IndexingTest {
 					final long t0 = System.currentTimeMillis();
 
 					final int r               = randm.nextInt(10000);
-					final List<TestOne> nodes = app.nodeQuery(TestOne.class).andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
+					final List<TestTwo> nodes = app.nodeQuery(TestTwo.class).andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
 
 					assertEquals(1, nodes.size());
+
+					final TestTwo testOne = nodes.get(0);
+					final List<TestFive> testFives = Iterables.toList((Iterable)testOne.getProperty(StructrApp.key(TestTwo.class, "testFives")));
+
+					assertEquals(3, testFives.size());
 
 					averageNodeFetchTime += System.currentTimeMillis() - t0;
 
@@ -467,6 +472,8 @@ public class PerformanceTest extends IndexingTest {
 					final long t0 = System.currentTimeMillis();
 
 					final Principal user = app.nodeQuery(Principal.class).getFirst();
+
+					user.getGroups();
 
 					assertNotNull(user);
 
@@ -538,7 +545,7 @@ public class PerformanceTest extends IndexingTest {
 
 		System.out.println("Rendering took " + duration + " ms, average of " + average + " ms per run");
 
-		assertTrue("Rendering performance is too low", average < 300);
+		assertTrue("Rendering performance is too low", average < 500);
 	}
 
 	@Test

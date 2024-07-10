@@ -2127,6 +2127,43 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	public static void prefetchDOMNodes(final String id) {
 
+		/*
+		TransactionCommand.getCurrentTransaction().prefetch2(
+
+			"MATCH p = (n { id: '" + id + "' })-[r*0..]->(x) WITH collect(DISTINCT x) as nodes, collect(distinct last(r)) as rels RETURN nodes, rels",
+
+			Set.of(
+				"all/INCOMING/PAGE",
+				"all/INCOMING/CONTAINS_NEXT_SIBLING",
+				"all/INCOMING/SUCCESS_TARGET",
+				"all/INCOMING/FAILURE_TARGET",
+				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/INCOMING/RELOADS",
+				"all/INCOMING/FLOW",
+				"all/INCOMING/INPUT_ELEMENT",
+				"all/INCOMING/PARAMETER",
+				"all/INCOMING/TRIGGERED_BY",
+
+				"all/OUTGOING/PAGE",
+				"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/TRIGGERED_BY",
+				"all/OUTGOING/CONTAINS"
+
+			),
+			false
+		);
+		*/
+
 		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + id + "\" })-[:CONTAINS*]-(m)", Set.of(
 
 			"all/INCOMING/CONTAINS",

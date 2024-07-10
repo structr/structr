@@ -359,6 +359,50 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
+	public void prefetch2(final String query, final Set<String> keys, final boolean complete) {
+
+		// avoid prefetching the same set again if we know that it's complete
+		if (complete && prefetched.containsAll(keys)) {
+			return;
+		}
+
+		prefetched.addAll(keys);
+
+		final long t0             = System.currentTimeMillis();
+		long count                = 0L;
+
+		for (final org.neo4j.driver.Record r : collectRecords(query, Map.of(), null)) {
+
+			final List<org.neo4j.driver.types.Node> nodes        = (List)r.get("nodes").asList();
+			final List<org.neo4j.driver.types.Relationship> rels = (List)r.get("rels").asList();
+
+			for (final org.neo4j.driver.types.Node n : nodes) {
+				getNodeWrapper(n);
+				count++;
+			}
+
+			for (final org.neo4j.driver.types.Relationship rel : rels) {
+
+				final NodeWrapper start              = getNodeWrapper(rel.startNodeId());
+				final NodeWrapper end                = getNodeWrapper(rel.endNodeId());
+				final RelationshipWrapper relWrapper = getRelationshipWrapper(rel);
+
+				start.storeRelationship(relWrapper, true);
+				start.storePrefetchInfo(keys);
+
+				end.storeRelationship(relWrapper, true);
+				end.storePrefetchInfo(keys);
+
+				count++;
+			}
+		}
+
+		if (db.logQueries()) {
+
+			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+		}
+	}
+
 	// ----- public static methods -----
 	public static RuntimeException translateClientException(final ClientException cex) {
 
