@@ -293,6 +293,7 @@ public class NodeService implements SingletonService {
 					folder.setProperty(StructrApp.key(Folder.class, "mountTarget"), null);
 				}
 
+				tx.success();
 			} catch (Throwable t) {
 
 				logger.warn("Failed to migrate mountTarget for folders.", t);
