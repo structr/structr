@@ -51,7 +51,7 @@ public class PrefetchFunction extends CoreFunction {
 		final String query     = (String)sources[0];
 		final Set<String> keys = new LinkedHashSet<>((List)sources[1]);
 
-		TransactionCommand.getCurrentTransaction().prefetch(query, keys, false);
+		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
 
 		return null;
 	}

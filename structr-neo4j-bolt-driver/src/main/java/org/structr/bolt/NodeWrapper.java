@@ -236,16 +236,16 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				final String key2 = createKey(Direction.INCOMING, relationshipType);
 				return Iterables.flatten(
 					List.of(
-						getRelationshipsFromCache(key1, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r: ", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1)),
-						getRelationshipsFromCache(key2, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r: ", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2))
+						getRelationshipsFromCache(key1, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1)),
+						getRelationshipsFromCache(key2, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2))
 					)
 				);
 
 			case OUTGOING:
-				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r: ", rel, "]->(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
 
 			case INCOMING:
-				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r: ", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
 		}
 
 		return null;
@@ -317,7 +317,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	// ----- private methods -----
 	private Iterable<Relationship> fetchAndCacheRelationships(final BoltDatabaseService db, final long id, final String match, final String returnStatement, final String key) {
-
 
 		final String whereStatement         = " WHERE ID(n) = $id ";
 		final String statement              = concat("MATCH ", match, whereStatement, returnStatement);

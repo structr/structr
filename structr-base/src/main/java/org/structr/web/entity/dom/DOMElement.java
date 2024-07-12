@@ -1613,8 +1613,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey     = StructrApp.key(DOMElement.class, "parameterMappings");
-					final Iterable<? extends ParameterMapping>	parameterMappings = thisElementWithSuperuserContext.getProperty(parameterMappingsKey);
+					final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(DOMElement.class, "parameterMappings");
+					final Iterable<? extends ParameterMapping>	parameterMappings  = thisElementWithSuperuserContext.getProperty(parameterMappingsKey);
 
 					final boolean isParameterElement = parameterMappings.iterator().hasNext();
 

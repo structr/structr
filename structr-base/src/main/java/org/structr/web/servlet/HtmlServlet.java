@@ -853,9 +853,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			@Override
 			public void run() {
 
+				String name = "unknown";
+
 				try (final Tx tx = app.tx()) {
 
 					DOMNode.prefetchDOMNodes(rootNode.getUuid());
+
+					name = rootNode.getName();
 
 					// render
 					rootNode.render(renderContext, 0);
@@ -865,7 +869,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
-					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					t.printStackTrace();
+
+					logger.warn("Error while rendering page {}: {}", name, t.getMessage());
 					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {
@@ -920,10 +926,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 				} catch (EofException ee) {
+					ee.printStackTrace();
 
 					// ignore EofException which (by jettys standards) should be handled less verbosely
 
 				} catch (IOException | InterruptedException t) {
+					t.printStackTrace();
 					//logger.warn("Unexpected exception", t);
 				}
 			}
@@ -931,8 +939,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			@Override
 			public void onError(Throwable t) {
 
+				t.printStackTrace();
+
 				// prevent async from running into default timeout of 30s
 				async.complete();
+				finished.set(true);
 
 				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
