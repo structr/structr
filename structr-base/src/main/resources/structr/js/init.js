@@ -1993,7 +1993,29 @@ let Structr = {
 							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
-						<div class="self-center col-span-2 mt-2 text-right">
+						<div class="self-center mt-2">
+							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
+
+								<button type="button" class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
+									OAuth
+								</button>
+
+								<div class="dropdown-menu-container" style="width: 17rem;">
+
+									<div class="heading-row flex">
+										<h3 data-comment="The following OAuth provides *exist*. Any configured provider can be used to log in. Providers which are incomplete or incorrectly configured, will result in a server error.<br><br> Backend login only works if the appropriate configuration grants admin rights to the user.">OAuth Providers</h3>
+									</div>
+
+									${_Dialogs.loginDialog.oauthProviders.map(provider => `
+										<a href="/oauth/${provider.uripart}/login" class="block row no-underline">
+											${provider.name}
+										</a>
+									`).join('')}
+								</div>
+							</div>
+						</div>
+
+						<div class="self-center mt-2 text-right">
 							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
 							</button>

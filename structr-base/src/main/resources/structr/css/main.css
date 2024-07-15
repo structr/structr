@@ -4496,3 +4496,6 @@ ul.combined-input-select-field li:hover {
 .select-none {
 	user-select: none;
 }
+.no-underline {
+	text-decoration-line: none;
+}

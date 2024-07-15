@@ -91,6 +91,36 @@ let _Dialogs = {
 		},
 	},
 	loginDialog: {
+		oauthProviders: [
+			{
+				name: 'Auth0',
+				uripart: 'auth0'
+			},
+			{
+				name: 'Azure',
+				uripart: 'azure'
+			},
+			{
+				name: 'Facebook',
+				uripart: 'facebook'
+			},
+			{
+				name: 'Github',
+				uripart: 'github'
+			},
+			{
+				name: 'Google',
+				uripart: 'google'
+			},
+			{
+				name: 'LinkedIn',
+				uripart: 'linkedin'
+			},
+			{
+				name: 'Twitter',
+				uripart: 'twitter'
+			}
+		],
 		isOpen: () => {
 			let loginElement = document.querySelector('#login');
 			return (loginElement != null && loginElement.offsetParent !== null);
@@ -109,8 +139,12 @@ let _Dialogs = {
 				Structr.clearMain();
 
 				// show login box
-				_Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
+				let element = _Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
 					width: ''
+				});
+
+				_Helpers.activateCommentsInElement(element, {
+					insertAfter: true
 				});
 
 				document.querySelector('#usernameField').focus();
