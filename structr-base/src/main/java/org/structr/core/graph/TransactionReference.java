@@ -100,13 +100,23 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
-	public void prefetch(final String type1, String type2, final Set<String> keys, final boolean complete) {
-		tx.prefetch(type1, type2, keys, complete);
+	public void prefetch(final String type1, String type2, final Set<String> keys) {
+		tx.prefetch(type1, type2, keys);
 	}
 
 	@Override
-	public void prefetch(final String query, final Set<String> keys, final boolean complete) {
-		tx.prefetch(query, keys, complete);
+	public void prefetch(final String query, final Set<String> keys) {
+		tx.prefetch(query, keys);
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+		tx.prefetch(query, outgoingKeys, incomingKeys);
+	}
+
+	@Override
+	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+		tx.prefetch2(query, outgoingKeys, incomingKeys);
 	}
 
 	@Override

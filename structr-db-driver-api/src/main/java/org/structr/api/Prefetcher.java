@@ -22,6 +22,8 @@ import java.util.Set;
 
 public interface Prefetcher {
 
-	void prefetch(final String type1, final String type2, final Set<String> keys, final boolean complete);
-	void prefetch(final String query, final Set<String> keys, final boolean complete);
+	void prefetch(final String type1, final String type2, final Set<String> keys);
+	void prefetch(final String query, final Set<String> keys);
+	void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys);
+	void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys);
 }

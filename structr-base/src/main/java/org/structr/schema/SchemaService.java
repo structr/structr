@@ -499,7 +499,7 @@ public class SchemaService implements Service {
 
 	public static void prefetchSchemaNodes(final Prefetcher tx) {
 
-		tx.prefetch("SchemaReloadingNode", null, Set.of(
+		tx.prefetch("SchemaReloadingNode", (String)null, Set.of(
 
 			"all/INCOMING/OWNS",
 			"all/INCOMING/EXTENDS",
@@ -521,7 +521,7 @@ public class SchemaService implements Service {
 			"all/OUTGOING/HAS_VIEW",
 			"all/OUTGOING/IS_RELATED_TO"
 
-		), true);
+		));
 	}
 
 	// ----- interface Feature -----

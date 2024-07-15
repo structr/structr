@@ -2127,13 +2127,29 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	public static void prefetchDOMNodes(final String id) {
 
-		/*
 		TransactionCommand.getCurrentTransaction().prefetch2(
 
-			"MATCH p = (n { id: '" + id + "' })-[r*0..]->(x) WITH collect(DISTINCT x) as nodes, collect(distinct last(r)) as rels RETURN nodes, rels",
+			"MATCH p = (n:NodeInterface { id: '" + id + "' })-[r*]->(x) WITH collect(DISTINCT x) as nodes, collect(distinct last(r)) as rels RETURN nodes, rels",
+
+			Set.of(
+				"all/OUTGOING/PAGE",
+				"all/OUTGOING/CONTAINS",
+				"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/TRIGGERED_BY"
+			),
 
 			Set.of(
 				"all/INCOMING/PAGE",
+				"all/INCOMING/CONTAINS",
 				"all/INCOMING/CONTAINS_NEXT_SIBLING",
 				"all/INCOMING/SUCCESS_TARGET",
 				"all/INCOMING/FAILURE_TARGET",
@@ -2143,33 +2159,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				"all/INCOMING/FLOW",
 				"all/INCOMING/INPUT_ELEMENT",
 				"all/INCOMING/PARAMETER",
-				"all/INCOMING/TRIGGERED_BY",
+				"all/INCOMING/TRIGGERED_BY"
+			)
+		);
 
-				"all/OUTGOING/PAGE",
-				"all/OUTGOING/CONTAINS_NEXT_SIBLING",
-				"all/OUTGOING/SUCCESS_TARGET",
-				"all/OUTGOING/FAILURE_TARGET",
-				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
-				"all/OUTGOING/INPUT_ELEMENT",
-				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
-				"all/OUTGOING/RELOADS",
-				"all/OUTGOING/FLOW",
-				"all/OUTGOING/PARAMETER",
-				"all/OUTGOING/SYNC",
-				"all/OUTGOING/TRIGGERED_BY",
-				"all/OUTGOING/CONTAINS"
-
-			),
-			false
+		/*
+		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + id + "\" })-[:CONTAINS*]->(m)",
+			Set.of("all/OUTGOING/CONTAINS"),
+			Set.of("all/INCOMING/CONTAINS")
 		);
 		*/
-
-		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + id + "\" })-[:CONTAINS*]-(m)", Set.of(
-
-			"all/INCOMING/CONTAINS",
-			"all/OUTGOING/CONTAINS"
-
-		), true);
 	}
 
 	// ----- nested classes -----

@@ -40,6 +40,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.IndexingTest;
+import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
 import org.structr.test.web.entity.TestTwo;
@@ -60,14 +61,14 @@ import static org.testng.AssertJUnit.*;
 /**
  *
  */
-public class PerformanceTest extends IndexingTest {
+public class PerformanceTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class);
 
 	/**
 	 * Tests basic throughput of node creation operations
 	 *
-	 * Note that this is just a very rought test as performance is heavily
+	 * Note that this is just a very rough test as performance is heavily
 	 * depending on hardware and setup (cache parameters etc.)
 	 *
 	 * The assumed rate is low so if this test fails, there may be issues
@@ -294,7 +295,7 @@ public class PerformanceTest extends IndexingTest {
 					tx.prefetch("(n:TestTwo)-[r]->(m:TestFive)", Set.of(
 						"all/INCOMING/TEST",
 						"all/OUTGOING/TEST"
-					), true);
+					));
 
 					for (final TestTwo t : app.nodeQuery(TestTwo.class).getAsList()) {
 

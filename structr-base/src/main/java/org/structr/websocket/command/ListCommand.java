@@ -96,7 +96,7 @@ public class ListCommand extends AbstractCommand {
 			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
 				"all/INCOMING/CONTAINS",
 				"all/OUTGOING/CONFIGURED_BY"
-			), false);
+			));
 		}
 
 		// important
@@ -107,7 +107,7 @@ public class ListCommand extends AbstractCommand {
 			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
 				"all/INCOMING/CONTAINS",
 				"all/OUTGOING/CONFIGURED_BY"
-			), false);
+			));
 		}
 
 		try {

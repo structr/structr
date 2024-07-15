@@ -679,7 +679,7 @@ let _Dashboard = {
 				getMessageMarkupIfDeploymentServletInactive: (config, message) => (config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.templates.servletMessage({ message }))
 			},
 			history: {
-				get: () => LSWrapper.getItem(_Dashboard.tabs.deployment.deploymentHistoryKey, []).reverse(),
+				get: () => LSWrapper.getItem(_Dashboard.tabs.deployment.deploymentHistoryKey, []),
 				set: (entries) => LSWrapper.setItem(_Dashboard.tabs.deployment.deploymentHistoryKey, entries),
 				modes: {
 					import: {
@@ -728,7 +728,7 @@ let _Dashboard = {
 					},
 					exportData: {
 						containerId: '#dropdown-deployment-export-data',
-						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Path': entry.target, '# of types': entry.types.length }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Path': entry.target, '# of types': `<span title="${entry.types.join(', ')}">${entry.types.length}</span>` }),
 						apply: entry => {
 							document.querySelector('#data-export-target-input').value = entry.target;
 
@@ -739,7 +739,7 @@ let _Dashboard = {
 					},
 					exportDataAsZip: {
 						containerId: '#dropdown-deployment-export-data-zip',
-						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no'), '# of types': entry.types.length }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no'), '# of types': `<span title="${entry.types.join(', ')}">${entry.types.length}</span>` }),
 						apply: entry => {
 							document.querySelector('#zip-data-export-prefix').value             = entry.prefix;
 							document.querySelector('#zip-data-export-append-timestamp').checked = entry.ts;
@@ -759,7 +759,7 @@ let _Dashboard = {
 				refresh: (deploymentMode) => {
 
 					let modeDetail     = _Dashboard.tabs.deployment.history.modes[deploymentMode];
-					let historyEntries = _Dashboard.tabs.deployment.history.get().filter(e => e.mode === deploymentMode);
+					let historyEntries = _Dashboard.tabs.deployment.history.get().filter(e => e.mode === deploymentMode).reverse();
 					let container      = document.querySelector(modeDetail.containerId);
 
 					_Helpers.fastRemoveAllChildren(container);

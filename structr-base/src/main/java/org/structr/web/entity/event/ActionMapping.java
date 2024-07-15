@@ -41,12 +41,21 @@ public interface ActionMapping extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ActionMapping"));
 		type.setExtends(URI.create("#/definitions/NodeInterface"));
 
+		/*
 		type.relate(domElement,       "TRIGGERED_BY",   Cardinality.ManyToMany, "triggeredActions",   "triggerElements");
 		type.relate(domNode,          "SUCCESS_TARGET", Cardinality.ManyToMany,"reloadingActions","successTargets");
 		type.relate(domNode,          "FAILURE_TARGET", Cardinality.ManyToMany,"failureActions",  "failureTargets");
 		type.relate(parameterMapping, "PARAMETER",      Cardinality.OneToMany, "actionMapping",   "parameterMappings");
 		type.relate(domNode,          "SUCCESS_NOTIFICATION_ELEMENT", Cardinality.ManyToMany,"successNotificationActions",   "successNotificationElements");
 		type.relate(domNode,          "FAILURE_NOTIFICATION_ELEMENT", Cardinality.ManyToMany,"failureNotificationActions", "failureNotificationElements");
+		*/
+
+		domElement.relate(type,       "TRIGGERED_BY",   Cardinality.ManyToMany,   "triggerElements", "triggeredActions");
+		domNode.relate(type,          "SUCCESS_TARGET", Cardinality.ManyToMany,"successTargets","reloadingActions");
+		domNode.relate(type,          "FAILURE_TARGET", Cardinality.ManyToMany,  "failureTargets","failureActions");
+		type.relate(parameterMapping, "PARAMETER",      Cardinality.OneToMany, "actionMapping",   "parameterMappings");
+		domNode.relate(type,          "SUCCESS_NOTIFICATION_ELEMENT", Cardinality.ManyToMany,   "successNotificationElements","successNotificationActions");
+		domNode.relate(type,          "FAILURE_NOTIFICATION_ELEMENT", Cardinality.ManyToMany, "failureNotificationElements","failureNotificationActions");
 
 		type.addViewProperty(PropertyView.Ui, "triggerElements");
 		type.addViewProperty(PropertyView.Ui, "successTargets");
