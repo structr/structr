@@ -244,6 +244,8 @@ let _Code = {
 		}
 
 		_Code.tellFirstElementToShowDirtyState(dirty);
+
+		return formContent;
 	},
 	tellFirstElementToShowDirtyState: (dirty) => {
 		if (dirty === true) {
@@ -1388,6 +1390,10 @@ let _Code = {
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
 		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
+			let isCallableViaREST = (result.isPrivate !== true);
+			let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
+			let isStaticMethod      = result.isStatic;
+
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
 			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
@@ -1396,6 +1402,36 @@ let _Code = {
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+
+			let buttons = $('#method-buttons');
+
+			let updateVisibilityForAttribute = (attributeName, visible, forcedValue) => {
+
+				let element = buttons[0].querySelector(`[data-property="${attributeName}"]`);
+				if (element) {
+					let container = element.closest('.method-config-element');
+
+					container.classList.toggle('hidden', (visible === false));
+
+					if (visible === false && forcedValue !== undefined) {
+						Object.assign(element, forcedValue);
+					}
+				}
+			};
+
+			let updateVisibilityForAllAttributes = (currentState) => {
+
+				let isTypeMethod      = (!!currentState.schemaNode);
+				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(currentState);
+				let isCallableViaREST = (currentState.isPrivate !== true);
+
+				updateVisibilityForAttribute('isStatic',        (isTypeMethod && !isLifecycleMethod), { checked: false });
+				updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod),                 { checked: true });
+				updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
+				updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+			};
+
+			updateVisibilityForAllAttributes(result);
 
 			// method name input,etc
 			{
@@ -1414,6 +1450,9 @@ let _Code = {
 
 					_Editors.resizeVisibleEditors();
 					_Code.updateDirtyFlag(result);
+
+					let updatedObj = Object.assign({}, result, { name: currentMethodName });
+					updateVisibilityForAllAttributes(updatedObj);
 				};
 
 				methodNameInputElement.addEventListener('keyup', (e) => {
@@ -1581,8 +1620,6 @@ let _Code = {
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
 			};
 
-			let buttons = $('#method-buttons');
-
 			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
 			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
@@ -1597,22 +1634,12 @@ let _Code = {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
-			// run button
-			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic && !result.isPrivate) {
+			// run button (for user-defined functions and static methods which are callable via REST)
+			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaREST) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
 				});
-			}
-
-			// run button and global schema method flags
-			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
-
-				$('.method-config-element.global-method.hidden', buttons).removeClass('hidden');
-
-			} else if (result.schemaNode) {
-
-				$('.method-config-element.entity-method.hidden', buttons).removeClass('hidden');
 			}
 
 			_Helpers.activateCommentsInElement(buttons[0]);
@@ -1620,7 +1647,10 @@ let _Code = {
 			_Code.updateDirtyFlag(result);
 
 			$('input, select', buttons).on('input', () => {
-				_Code.updateDirtyFlag(result);
+				let changes = _Code.updateDirtyFlag(result);
+
+				let updatedObj = Object.assign({}, result, changes);
+				updateVisibilityForAllAttributes(updatedObj);
 			});
 
 			if (typeof callback === 'function') {
@@ -3035,15 +3065,15 @@ let _Code = {
 							</label>
 						</div>
 						<div class="method-config-element hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, the value returned by this method will NOT be wrapped in a result object.">
-								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via REST
 							</label>
 						</div>
 					</div>
 					<div>
 						<div class="method-config-element hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
-								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via REST
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to REST calls to this method.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
 							</label>
 						</div>
 						<div class="method-config-element hidden entity-method">
