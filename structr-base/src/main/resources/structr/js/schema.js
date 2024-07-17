@@ -152,7 +152,7 @@ let _Schema = {
 		_Schema.activateAdminTools();
 
 		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
-		document.getElementById('global-schema-methods').addEventListener('click', _Schema.methods.showGlobalSchemaMethods);
+		document.getElementById('user-defined-functions').addEventListener('click', _Schema.methods.showUserDefinedMethods);
 
 		$('#zoom-slider').slider({
 			min: 0.25,
@@ -3453,7 +3453,10 @@ let _Schema = {
 					initialName:     method.name,
 					initialisStatic: method.isStatic,
 					initialSource:   method.source || '',
-					codeType:        method.codeType || ''
+					codeType:        method.codeType || '',
+					isPrivate:       method.isPrivate,
+					returnRawResult: method.returnRawResult,
+					httpVerb:        method.httpVerb
 				};
 
 				_Schema.methods.bindRowEvents(gridRow, entity);
@@ -3510,6 +3513,20 @@ let _Schema = {
 				data.schemaMethods.push({ id: javaMethod.id });
 			}
 
+			let autoFixAttributesDependingOnMethodData = (data) => {
+
+				// Force certain attribute depending on the method configuration
+				/*
+				 -> isPrivate = automatically true, if it is a lifecycle method
+				 -> isStatic = only, if user set it to static AND the method is on a type AND it is not a lifecycle method
+				 */
+				let mockMethod        = Object.assign({ schemaNode: entity }, data);
+				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(mockMethod);
+
+				data.isStatic = (data.isStatic === true) && (!isLifecycleMethod) && (!!mockMethod.schemaNode);
+				data.isPrivate = (data.isPrivate === true) || isLifecycleMethod;
+			};
+
 			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
 				let methodId   = gridRow.dataset['methodId'];
@@ -3532,12 +3549,11 @@ let _Schema = {
 							allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 						}
 
-						data.schemaMethods.push({
-							id:       methodId,
-							name:     methodData.name,
-							isStatic: methodData.isStatic,
-							source:   methodData.source,
-						});
+						let tmpData = Object.assign({}, methodData);
+
+						autoFixAttributesDependingOnMethodData(tmpData);
+
+						data.schemaMethods.push(tmpData);
 
 					} else {
 
@@ -3556,12 +3572,12 @@ let _Schema = {
 						allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 					}
 
-					data.schemaMethods.push({
-						type:     'SchemaMethod',
-						name:     methodData.name,
-						isStatic: methodData.isStatic,
-						source:   methodData.source,
-					});
+					let newMethodData = Object.assign({ type: 'SchemaMethod' }, methodData);
+					delete newMethodData.id;
+
+					autoFixAttributesDependingOnMethodData(newMethodData);
+
+					data.schemaMethods.push(newMethodData);
 				}
 			}
 
@@ -3660,11 +3676,13 @@ let _Schema = {
 			gridBody.scrollTop = gridRow.offsetTop;
 
 			_Schema.methods.methodsData[method.id] = {
-				id: method.id,
-				isNew: true,
-				name: method.name,
-				isStatic: method.isStatic || false,
-				source: method.source || '',
+				id:              method.id,
+				isNew:           true,
+				name:            method.name,
+				isStatic:        method.isStatic ?? false,
+				source:          method.source ?? '',
+				isPrivate:       method.isPrivate ?? false,
+				returnRawResult: method.returnRawResult ?? false,
 			};
 
 			let propertyNameInput = gridRow.querySelector('.property-name');
@@ -3682,12 +3700,13 @@ let _Schema = {
 			});
 
 			gridRow.querySelector('.clone-action').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(gridBody, {
+
+				let clonedData = Object.assign({}, _Schema.methods.methodsData[method.id], {
 					id:       method.id + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy'),
-					isStatic: _Schema.methods.methodsData[method.id].isStatic,
-					source:   _Schema.methods.methodsData[method.id].source
-				}, entity);
+					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy')
+				});
+
+				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
 			});
 
 			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
@@ -3755,12 +3774,13 @@ let _Schema = {
 			});
 
 			gridRow.querySelector('.clone-action').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(gridRow.closest('.schema-grid-body'), {
+
+				let clonedData = Object.assign({}, methodData, {
 					id:       methodId + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy'),
-					isStatic: methodData.isStatic,
-					source:   methodData.source
-				}, entity);
+					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
+				});
+
+				_Schema.methods.appendNewMethod(gridRow.closest('.schema-grid-body'), clonedData, entity);
 			});
 
 			gridRow.querySelector('.remove-action').addEventListener('click', () => {
@@ -3836,7 +3856,7 @@ let _Schema = {
 
 			_Editors.resizeVisibleEditors();
 		},
-		showGlobalSchemaMethods: () => {
+		showUserDefinedMethods: () => {
 
 			Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
@@ -3893,7 +3913,7 @@ let _Schema = {
 						<input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}">
 					</div>
 					<div class="isstatic-col flex items-center justify-center">
-						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" value="${config.method.isStatic}">
+						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" ${config.method.isStatic === true ? 'checked' : ''}>
 					</div>
 					<div class="flex items-center justify-center gap-1">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
@@ -5493,7 +5513,7 @@ let _Schema = {
 					</button>
 
 					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="user-defined-functions">
 							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} User-defined functions
 						</button>
 					</div>

@@ -1405,33 +1405,35 @@ let _Code = {
 
 			let buttons = $('#method-buttons');
 
-			let updateVisibilityForAttribute = (attributeName, visible, forcedValue) => {
+			let updateUIForAttribute = (attributeName, canSeeAttr, canEditAttr, forcedValue) => {
 
 				let element = buttons[0].querySelector(`[data-property="${attributeName}"]`);
 				if (element) {
 					let container = element.closest('.method-config-element');
 
-					container.classList.toggle('hidden', (visible === false));
+					container.classList.toggle('hidden', (canSeeAttr === false));
 
-					if (visible === false && forcedValue !== undefined) {
+					element.disabled = !canEditAttr;
+
+					if (canEditAttr === false && forcedValue !== undefined) {
 						Object.assign(element, forcedValue);
 					}
 				}
 			};
 
-			let updateVisibilityForAllAttributes = (currentState) => {
+			let updateUIForAllAttributes = (currentState) => {
 
 				let isTypeMethod      = (!!currentState.schemaNode);
 				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(currentState);
 				let isCallableViaREST = (currentState.isPrivate !== true);
 
-				updateVisibilityForAttribute('isStatic',        (isTypeMethod && !isLifecycleMethod), { checked: false });
-				updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod),                 { checked: true });
-				updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
-				updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+				updateUIForAttribute('isStatic',        isTypeMethod, (isTypeMethod && !isLifecycleMethod), { checked: false });
+				updateUIForAttribute('isPrivate',       true, (!isLifecycleMethod),                 { checked: true });
+				updateUIForAttribute('returnRawResult', true, (!isLifecycleMethod && isCallableViaREST));
+				updateUIForAttribute('httpVerb',        true, (!isLifecycleMethod && isCallableViaREST));
 			};
 
-			updateVisibilityForAllAttributes(result);
+			updateUIForAllAttributes(result);
 
 			// method name input,etc
 			{
@@ -1452,7 +1454,7 @@ let _Code = {
 					_Code.updateDirtyFlag(result);
 
 					let updatedObj = Object.assign({}, result, { name: currentMethodName });
-					updateVisibilityForAllAttributes(updatedObj);
+					updateUIForAllAttributes(updatedObj);
 				};
 
 				methodNameInputElement.addEventListener('keyup', (e) => {
@@ -1650,7 +1652,7 @@ let _Code = {
 				let changes = _Code.updateDirtyFlag(result);
 
 				let updatedObj = Object.assign({}, result, changes);
-				updateVisibilityForAllAttributes(updatedObj);
+				updateUIForAllAttributes(updatedObj);
 			});
 
 			if (typeof callback === 'function') {
@@ -3060,23 +3062,23 @@ let _Code = {
 					<div id="method-actions"></div>
 					<div>
 						<div class="method-config-element hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
 							</label>
 						</div>
-						<div class="method-config-element hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
+						<div class="method-config-element entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via REST</strong>.<br>Lifecycle methods can never be called via REST.">
 								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via REST
 							</label>
 						</div>
 					</div>
 					<div>
-						<div class="method-config-element hidden entity-method">
+						<div class="method-config-element entity-method">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to REST calls to this method.">
 								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
 							</label>
 						</div>
-						<div class="method-config-element hidden entity-method">
+						<div class="method-config-element entity-method">
 							<select data-property="httpVerb">
 								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
 								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>

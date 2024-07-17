@@ -72,9 +72,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
 	public static final Property<String>             summary                 = new StringProperty("summary");
 	public static final Property<String>             description             = new StringProperty("description");
-	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
-	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate");
-	public static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult");
+	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);
+	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty();
+	public static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false);
 	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST);
 	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
