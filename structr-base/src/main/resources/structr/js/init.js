@@ -1994,25 +1994,11 @@ let Structr = {
 						</div>
 
 						<div class="self-center mt-2">
-							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 
-								<button type="button" class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									OAuth
-								</button>
+							<button id="sso-login-button" type="button" class="btn hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								SSO
+							</button>
 
-								<div class="dropdown-menu-container" style="width: 17rem;">
-
-									<div class="heading-row flex">
-										<h3 data-comment="The following OAuth provides *exist*. Any configured provider can be used to log in. Providers which are incomplete or incorrectly configured, will result in a server error.<br><br> Backend login only works if the appropriate configuration grants admin rights to the user.">OAuth Providers</h3>
-									</div>
-
-									${_Dialogs.loginDialog.oauthProviders.map(provider => `
-										<a href="/oauth/${provider.uripart}/login" class="block row no-underline">
-											${provider.name}
-										</a>
-									`).join('')}
-								</div>
-							</div>
 						</div>
 
 						<div class="self-center mt-2 text-right">
@@ -2022,6 +2008,20 @@ let Structr = {
 						</div>
 					</div>
 				</form>
+
+				<div id="login-sso" style="display:none;">
+
+					${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
+						<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green flex gap-2 items-center justify-center p-3 mb-2">
+							${_Icons.getSvgIcon(iconId)}
+							${name}
+						</button>
+					`).join('')}
+
+					<button id="login-sso-back" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center justify-center p-3">
+						${_Icons.getSvgIcon(_Icons.iconChevronLeft)} Back to login
+					</button>
+				</div>
 
 				<form id="login-two-factor" action="javascript:void(0);" style="display:none;">
 

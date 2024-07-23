@@ -91,36 +91,44 @@ let _Dialogs = {
 		},
 	},
 	loginDialog: {
-		oauthProviders: [
+		getOauthProviders: () => [
 			{
 				name: 'Auth0',
-				uripart: 'auth0'
+				uriPart: 'auth0',
+				iconId: _Icons.iconLogoAuth0
 			},
 			{
 				name: 'Azure',
-				uripart: 'azure'
+				uriPart: 'azure',
+				iconId: _Icons.iconLogoMicrosoft
 			},
 			{
 				name: 'Facebook',
-				uripart: 'facebook'
+				uriPart: 'facebook',
+				iconId: _Icons.iconLogoFacebook
 			},
 			{
 				name: 'Github',
-				uripart: 'github'
+				uriPart: 'github',
+				iconId: _Icons.iconLogoGithub
 			},
 			{
 				name: 'Google',
-				uripart: 'google'
+				uriPart: 'google',
+				iconId: _Icons.iconLogoGoogle
 			},
 			{
 				name: 'LinkedIn',
-				uripart: 'linkedin'
+				uriPart: 'linkedin',
+				iconId: _Icons.iconLogoLinkedIn
 			},
 			{
 				name: 'Twitter',
-				uripart: 'twitter'
+				uriPart: 'twitter',
+				iconId: _Icons.iconLogoTwitter
 			}
 		],
+		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login`,
 		isOpen: () => {
 			let loginElement = document.querySelector('#login');
 			return (loginElement != null && loginElement.offsetParent !== null);
@@ -162,6 +170,14 @@ let _Dialogs = {
 					return false;
 				});
 
+				element.querySelector('#sso-login-button').addEventListener('click', () => {
+					_Dialogs.loginDialog.showSSO();
+				});
+
+				element.querySelector('#login-sso-back').addEventListener('click', () => {
+					_Dialogs.loginDialog.hideSSO();
+				});
+
 				document.querySelector('form#login-two-factor').addEventListener('submit', (e) => {
 					e.stopPropagation();
 					e.preventDefault();
@@ -196,6 +212,46 @@ let _Dialogs = {
 		},
 		removeErrorMessages: () => {
 			[...document.querySelectorAll('#login .login-error-message')].map(m => m.remove());
+		},
+		showSSO: () => {
+
+			let promises = [];
+
+			for (let provider of _Dialogs.loginDialog.getOauthProviders()) {
+
+				let btn = document.getElementById(`sso-login-${provider.uriPart}`);
+				if (btn && !btn.dataset['checked']) {
+
+					let uri = _Dialogs.loginDialog.getSSOUriForURIPart(provider.uriPart);
+
+					promises.push(fetch(uri).then(res => {
+						btn.dataset['checked'] = true;
+
+						if (!res.ok) {
+							btn.remove();
+						}
+					}));
+				}
+			}
+
+			Promise.all(promises).then(() => {
+
+				let ssoBtns = document.getElementById('login-sso');
+
+				if (ssoBtns.children.length === 1) {
+
+					let msg = _Helpers.createSingleDOMElementFromHTML('<div class="mb-2">No valid SSO providers found.</div>');
+					ssoBtns.insertBefore(msg, ssoBtns.children[0]);
+				}
+			})
+
+			document.querySelector('#login-username-password').style.display = 'none';
+			document.querySelector('#login-sso').style.display = 'block';
+		},
+		hideSSO: () => {
+
+			document.querySelector('#login-sso').style.display = 'none';
+			document.querySelector('#login-username-password').style.display = 'block';
 		},
 		showTwoFactor: (data) => {
 
