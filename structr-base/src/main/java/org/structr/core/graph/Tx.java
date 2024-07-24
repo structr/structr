@@ -86,8 +86,8 @@ public class Tx implements AutoCloseable, Prefetcher {
 	}
 
 	@Override
-	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
-		TransactionCommand.getCurrentTransaction().prefetch2(query, outgoingKeys, incomingKeys);
+	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
+		TransactionCommand.getCurrentTransaction().prefetch2(query, outgoingKeys, incomingKeys, id);
 	}
 
 	public void setIsPing(final boolean isPing) {

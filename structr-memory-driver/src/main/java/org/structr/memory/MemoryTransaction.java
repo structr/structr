@@ -249,7 +249,7 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
-	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys) {
+	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys, final String id) {
 
 	}
 }

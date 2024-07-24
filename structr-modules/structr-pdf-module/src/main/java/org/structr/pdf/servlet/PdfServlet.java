@@ -38,6 +38,7 @@ import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.command.AbstractCommand;
@@ -107,12 +108,12 @@ public class PdfServlet extends HtmlServlet {
 	}
 
 	@Override
-	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
+	protected void renderAsyncOutput(final HttpServletRequest request, final HttpServletResponse response, final App app, final RenderContext renderContext, final DOMNode rootElement, final long requestStartTime) throws IOException {
 
 		final AsyncContext async = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
 		final AtomicBoolean finished = new AtomicBoolean(false);
-		final DOMNode rootNode = rootElement;
+		final DOMNode rootNode       = rootElement;
 
 		setCustomResponseHeaders(response);
 
@@ -124,7 +125,11 @@ public class PdfServlet extends HtmlServlet {
 			@Override
 			public void run() {
 
+				String name = "unknown";
+
 				try (final Tx tx = app.tx()) {
+
+					name = rootNode.getName();
 
 					// render
 					rootNode.render(renderContext, 0);
@@ -134,7 +139,7 @@ public class PdfServlet extends HtmlServlet {
 
 				} catch (Throwable t) {
 
-					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					logger.warn("Error while rendering page {}: {}", name, t.getMessage());
 					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {

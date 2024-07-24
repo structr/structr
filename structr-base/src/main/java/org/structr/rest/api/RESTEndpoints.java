@@ -100,7 +100,8 @@ public class RESTEndpoints {
 	public static RESTCallHandler resolveRESTCallHandler(final HttpServletRequest request, final String defaultView, final Class userType) throws FrameworkException {
 
 		final List<String> viewHolder = new LinkedList<>();
-		final String path             = RESTEndpoints.removeTrailingViewName(request.getPathInfo(), viewHolder);
+		final String pathInfo         = RESTEndpoints.getCleanedRequestPath(request);
+		final String path             = RESTEndpoints.removeTrailingViewName(pathInfo, viewHolder);
 		final String viewName         = viewHolder.isEmpty() ? defaultView : viewHolder.get(0);
 
 		// sort endpoints every 1000 calls
@@ -156,6 +157,23 @@ public class RESTEndpoints {
 		}
 
 		return path;
+	}
+
+	private static String getCleanedRequestPath(final HttpServletRequest request) {
+
+		final String pathInfo = request.getPathInfo();
+		if (pathInfo == null) {
+
+			final String servletPath = request.getServletPath();
+			if (servletPath.startsWith("/structr")) {
+
+				return servletPath.substring(8);
+			}
+
+			return servletPath;
+		}
+
+		return pathInfo;
 	}
 
 	// ----- nested classes -----

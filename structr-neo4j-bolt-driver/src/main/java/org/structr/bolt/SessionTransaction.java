@@ -430,21 +430,21 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
 
-		if (prefetched.containsAll(outgoingKeys) && prefetched.containsAll(incomingKeys) && prefetched.contains(query)) {
+		if (prefetched.containsAll(outgoingKeys) && prefetched.containsAll(incomingKeys) && prefetched.contains(query + id)) {
 
 			return;
 		}
 
 		prefetched.addAll(outgoingKeys);
 		prefetched.addAll(incomingKeys);
-		prefetched.add(query);
+		prefetched.add(query + id);
 
 		final long t0             = System.currentTimeMillis();
 		long count                = 0L;
 
-		for (final org.neo4j.driver.Record r : collectRecords(query, Map.of(), null)) {
+		for (final org.neo4j.driver.Record r : collectRecords(query, Map.of("id", id), null)) {
 
 			final List<org.neo4j.driver.types.Node> nodes        = (List)r.get("nodes").asList();
 			final List<org.neo4j.driver.types.Relationship> rels = (List)r.get("rels").asList();

@@ -62,7 +62,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiate(final Relationship relationship, final Identity pathSegmentId) {
 
-		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
+		if (relationship == null || TransactionCommand.isDeleted(relationship) || relationship.isDeleted()) {
 			return null;
 		}
 
