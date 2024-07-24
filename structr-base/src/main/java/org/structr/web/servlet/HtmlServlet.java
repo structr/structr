@@ -869,8 +869,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-
 					logger.warn("Error while rendering page {}: {}", name, t.getMessage());
 					logger.warn(ExceptionUtils.getStackTrace(t));
 
@@ -926,20 +924,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 				} catch (EofException ee) {
-					ee.printStackTrace();
-
 					// ignore EofException which (by jettys standards) should be handled less verbosely
 
 				} catch (IOException | InterruptedException t) {
-					t.printStackTrace();
 					//logger.warn("Unexpected exception", t);
 				}
 			}
 
 			@Override
 			public void onError(Throwable t) {
-
-				t.printStackTrace();
 
 				// prevent async from running into default timeout of 30s
 				async.complete();

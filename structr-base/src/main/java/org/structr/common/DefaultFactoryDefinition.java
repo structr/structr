@@ -113,7 +113,11 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final Node startNode = relationship.getStartNode();
 		final Node endNode   = relationship.getEndNode();
 
-		if (startNode == null || endNode == null) {
+		if (startNode == null || startNode.isDeleted()) {
+			return null;
+		}
+
+		if (endNode == null || endNode.isDeleted()) {
 			return null;
 		}
 

@@ -380,6 +380,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
+			// migrate imported app
+			MigrationService.execute();
+
 			if (!missingPrincipals.isEmpty()) {
 
 				final String title = "Missing Principal(s)";

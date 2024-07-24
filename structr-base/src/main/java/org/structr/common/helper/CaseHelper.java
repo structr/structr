@@ -18,7 +18,11 @@
  */
 package org.structr.common.helper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * A helper class that contains methods to convert strings to and from
@@ -34,6 +38,10 @@ public class CaseHelper {
 
 	public static String toLowerCamelCase(final String input) {
 		return input.substring(0, 1).toLowerCase().concat(WordUtils.capitalize(input, new char[] { '_' }).replaceAll("_", "").substring(1));
+	}
+
+	public static String dashesToCamelCase(final String input) {
+		return StringUtils.uncapitalize(Arrays.stream(input.split("\\-")).map(s -> StringUtils.capitalize(s)).collect(Collectors.joining()));
 	}
 
 	public static String toUnderscore(final String input, final boolean plural) {

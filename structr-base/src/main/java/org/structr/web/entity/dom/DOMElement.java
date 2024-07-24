@@ -122,7 +122,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final JsonSchema schema            = SchemaService.getDynamicSchema();
 		final JsonObjectType type          = schema.addType("DOMElement");
-		final JsonObjectType actionMapping = schema.addType("ActionMapping");
 
 		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
@@ -132,6 +131,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("tag",              PropertyView.Public, PropertyView.Ui).setIndexed(true).setCategory(PAGE_CATEGORY);
 		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("partialUpdateKey", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+
+		// cache
+		type.addBooleanProperty("hasSharedComponent");
 
 		type.addStringProperty("_html_onabort", PropertyView.Html);
 		type.addStringProperty("_html_onblur", PropertyView.Html);
@@ -1033,7 +1035,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final AsyncBuffer out                 = renderContext.getBuffer();
 		final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
-		final DOMElement synced               = (DOMElement)thisElement.getSharedComponent();
+		final boolean hasSharedComponent      = thisElement.getProperty(StructrApp.key(DOMElement.class, "hasSharedComponent"));
+		final DOMElement synced               = hasSharedComponent ? (DOMElement)thisElement.getSharedComponent() : null;
 		final boolean isVoid                  = thisElement.isVoidElement();
 		final String _tag                     = thisElement.getTag();
 
@@ -1093,6 +1096,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						// No child relationships, maybe this node is in sync with another node
 						if (synced != null) {
+
+							DOMNode.prefetchDOMNodes(synced.getUuid());
 
 							rels.addAll(synced.getChildRelationships());
 						}
@@ -1156,7 +1161,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static void openingTag(final DOMElement thisElement, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		final DOMElement _sharedComponentElement = (DOMElement) thisElement.getSharedComponent();
+		final boolean hasSharedComponent         = thisElement.getProperty(StructrApp.key(DOMElement.class, "hasSharedComponent"));
+		final DOMElement _sharedComponentElement = hasSharedComponent ? (DOMElement) thisElement.getSharedComponent() : null;
 
 		if (_sharedComponentElement != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
@@ -1284,17 +1290,28 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
 					final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getProperty(StructrApp.key(DOMElement.class, "triggeredActions"));
 					final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
+					boolean outputStructrId                          = false;
 
 					if (!list.isEmpty()) {
 
+						// all active elements need data-structr-id
+						outputStructrId = true;
+
 						// why only the first one?!
 						final ActionMapping triggeredAction = list.get(0);
+						final String options                = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "options"));
+
+						// support for configuration options
+						if (StringUtils.isNotBlank(options)) {
+							out.append(" data-structr-options=\"").append(uuid).append("\"");
+						}
 
 						// Support for legacy action mapping (simple interactive elements)
 						// ensure backwards compatibility with frontend.js before switch to new persistence model
-						if (StringUtils.isNotBlank(uuid)) {
-							out.append(" data-structr-id=\"").append(uuid).append("\"");
-						}
+						//if (StringUtils.isNotBlank(uuid)) {
+							//out.append(" data-structr-id=\"").append(uuid).append("\"");
+						//}
+
 						String eventsString = null;
 						final Map<String, Object> mapping = thisElement.getMappedEvents();
 						if (mapping != null) {
@@ -1303,12 +1320,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						// append all stored action mapping keys as data-structr-<key> attributes
 						for (final String key : new String[] { "event", "action", "method", "dataType", "idExpression" }) {
+
 							final String value = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, key));
 							if (StringUtils.isNotBlank(value)) {
+
 								final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
 								out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
 							}
+
 							if (key.equals("event")) {
+
 								eventsString = (String) value;
 							}
 						}
@@ -1335,12 +1356,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						final String successNotificationsPartial = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial"));
 						if (StringUtils.isNotBlank(successNotificationsPartial)) {
+
 							out.append(" data-structr-success-notifications-partial=\"").append(successNotificationsPartial).append("\"");
 						}
 
 						// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element
 						final String failureNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications"));
 						if (StringUtils.isNotBlank(failureNotifications)) {
+
 							out.append(" data-structr-failure-notifications=\"").append(failureNotifications).append("\"");
 						}
 
@@ -1351,12 +1374,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 								case ("custom-dialog-linked"):
 									out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "failureNotificationElements")).append("\"");
 									break;
+
 								default:
 
 							}
 						}
+
 						final String failureNotificationsPartial = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial"));
 						if (StringUtils.isNotBlank(failureNotificationsPartial)) {
+
 							out.append(" data-structr-failure-notifications-partial=\"").append(failureNotificationsPartial).append("\"");
 						}
 
@@ -1558,13 +1584,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							}
 						}
-
 					}
-
 
 					if (isTargetElement(thisElementWithSuperuserContext)) {
 
-						out.append(" data-structr-id=\"").append(uuid).append("\"");
+						outputStructrId = true;
 
 						// make current object ID available in reload targets
 						final GraphObject current = renderContext.getDetailsDataObject();
@@ -1601,9 +1625,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode")) != null) {
 
-						out.append(" data-structr-id=\"").append(uuid).append("\"");
 						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
 
+						outputStructrId = true;
 					}
 
 					if (renderContext.isTemplateRoot(uuid)) {
@@ -1616,11 +1640,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(DOMElement.class, "parameterMappings");
 					final Iterable<? extends ParameterMapping>	parameterMappings  = thisElementWithSuperuserContext.getProperty(parameterMappingsKey);
 
-					final boolean isParameterElement = parameterMappings.iterator().hasNext();
+					outputStructrId |= (thisElementWithSuperuserContext instanceof TemplateElement || parameterMappings.iterator().hasNext());
 
-					if (thisElementWithSuperuserContext instanceof TemplateElement || isParameterElement) {
-
-						// render ID into output so it can be re-used
+					// output data-structr-id only once
+					if (outputStructrId) {
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 
@@ -1941,13 +1964,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			thisElement.setProperty(reloadSourcesKey, actualReloadSources);
 			thisElement.setProperty(reloadTargetsKey, actualReloadTargets);
 
+			// update shared component sync flag
+			thisElement.setProperty(StructrApp.key(DOMElement.class, "hasSharedComponent"), thisElement.getSharedComponent() != null);
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
 		}
 	}
 
-	private org.jsoup.nodes.Element getMatchElement() {
+	default public org.jsoup.nodes.Element getMatchElement() {
 
 		final PropertyKey<String> classKey    = StructrApp.key(DOMElement.class, "_html_class");
 		final PropertyKey<String> idKey       = StructrApp.key(DOMElement.class, "_html_id");

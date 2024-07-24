@@ -1117,6 +1117,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		final SecurityContext securityContext = thisNode.getSecurityContext();
 
+		// superuser can do everything
+		if (securityContext != null && securityContext.isSuperUser()) {
+			return;
+		}
+
 		if (securityContext.isVisible(thisNode) || thisNode.isGranted(Permission.read, securityContext)) {
 			return;
 		}
@@ -2129,12 +2134,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		TransactionCommand.getCurrentTransaction().prefetch2(
 
-			"MATCH p = (n:NodeInterface { id: '" + id + "' })-[r*]->(x) WITH collect(DISTINCT x) as nodes, collect(distinct last(r)) as rels RETURN nodes, rels",
+			"MATCH (n:NodeInterface { id: $id })-[r:RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
 
 			Set.of(
-				"all/OUTGOING/PAGE",
 				"all/OUTGOING/CONTAINS",
-				"all/OUTGOING/CONTAINS_NEXT_SIBLING",
 				"all/OUTGOING/SUCCESS_TARGET",
 				"all/OUTGOING/FAILURE_TARGET",
 				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
@@ -2144,13 +2147,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				"all/OUTGOING/INPUT_ELEMENT",
 				"all/OUTGOING/PARAMETER",
 				"all/OUTGOING/SYNC",
-				"all/OUTGOING/TRIGGERED_BY"
-			),
+				"all/OUTGOING/TRIGGERED_BY",
 
-			Set.of(
-				"all/INCOMING/PAGE",
 				"all/INCOMING/CONTAINS",
-				"all/INCOMING/CONTAINS_NEXT_SIBLING",
 				"all/INCOMING/SUCCESS_TARGET",
 				"all/INCOMING/FAILURE_TARGET",
 				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
@@ -2160,7 +2159,34 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				"all/INCOMING/INPUT_ELEMENT",
 				"all/INCOMING/PARAMETER",
 				"all/INCOMING/TRIGGERED_BY"
-			)
+			),
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/TRIGGERED_BY",
+
+				"all/INCOMING/CONTAINS",
+				"all/INCOMING/SUCCESS_TARGET",
+				"all/INCOMING/FAILURE_TARGET",
+				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/INCOMING/RELOADS",
+				"all/INCOMING/FLOW",
+				"all/INCOMING/INPUT_ELEMENT",
+				"all/INCOMING/PARAMETER",
+				"all/INCOMING/TRIGGERED_BY"
+			),
+
+			id
 		);
 
 		/*
