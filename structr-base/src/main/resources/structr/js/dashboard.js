@@ -1166,7 +1166,7 @@ let _Dashboard = {
 
 				let container = document.querySelector('#dashboard-user-defined-methods');
 				_Helpers.fastRemoveAllChildren(container);
-				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&${Structr.getRequestParameterName('sort')}=name`);
+				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`);
 
 				if (response.ok) {
 
