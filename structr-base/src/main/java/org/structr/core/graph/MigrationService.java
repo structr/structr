@@ -25,11 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -44,9 +48,13 @@ public class MigrationService {
 
 	public static void execute() {
 
-		migrateEventActionMapping();
-		updateSharedComponentFlag();
-		warnAboutRestQueryRepeaters();
+		if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
+
+			migrateFolderMountTarget();
+			migrateEventActionMapping();
+			updateSharedComponentFlag();
+			warnAboutRestQueryRepeaters();
+		}
 	}
 
 	// ----- private methods -----
@@ -156,7 +164,6 @@ public class MigrationService {
 
 					if (delete) {
 
-						logger.info("Migrating {} relationship on {} {} to {} {}", relType, pm.getType(), pm.getUuid(), targetNode.getType(), targetNode.getUuid());
 						app.delete(rel);
 						directionCount++;
 					}
@@ -610,6 +617,43 @@ public class MigrationService {
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to check migration status for REST query repeaters: {}", fex.getMessage());
+		}
+	}
+
+	private static void migrateFolderMountTarget() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<Folder> mountedFolders = app.nodeQuery(Folder.class)
+				.notBlank(StructrApp.key(Folder.class, "mountTarget"))
+				.getAsList();
+
+			if (!mountedFolders.isEmpty()) {
+				logger.info("Migrating {} folders with old mountTarget property to respective storage configurations.", mountedFolders.size());
+			}
+
+			for (Folder folder : mountedFolders) {
+
+				StorageConfiguration config = app.create(StorageConfiguration.class,
+					new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"),     folder.getFolderPath())
+				);
+
+				app.create(StorageConfigurationEntry.class,
+					new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "configuration"), config),
+					new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "name"),          "mountTarget"),
+					new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "value"),         folder.getProperty("mountTarget"))
+				);
+
+				folder.setProperty(StructrApp.key(Folder.class, "storageConfiguration"), config);
+				folder.setProperty(StructrApp.key(Folder.class, "mountTarget"), null);
+			}
+
+			tx.success();
+		} catch (Throwable t) {
+
+			logger.warn("Failed to migrate mountTarget for folders.", t);
 		}
 	}
 }
