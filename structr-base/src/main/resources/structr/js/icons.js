@@ -169,6 +169,14 @@ let _Icons = {
 	iconWaitingSpinner:      'waiting-spinner',
 	iconHistory:             'history',
 
+	iconLogoAuth0:           'logo-auth0',
+	iconLogoMicrosoft:       'logo-microsoft',
+	iconLogoFacebook:        'logo-facebook',
+	iconLogoGithub:          'logo-github',
+	iconLogoGoogle:          'logo-google',
+	iconLogoLinkedIn:        'logo-linkedin',
+	iconLogoTwitter:         'logo-twitter',
+
 	getSvgIcon: (href, width = 16, height = 16, optionalClasses, title = '') => {
 		return _Icons.getSvgIconWithID(null, href, width, height, optionalClasses, title);
 	},

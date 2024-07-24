@@ -546,7 +546,7 @@ public class SecurityContext {
 		}
 
 		// SuperUser may always see the node
-		if (user instanceof SuperUser) {
+		if (user.isAdmin()) {
 
 			return true;
 		}
@@ -584,6 +584,10 @@ public class SecurityContext {
 
 		// Fetch already logged-in user, if present (don't try to login)
 		final Principal user = getUser(false);
+
+		if (user != null && user.isAdmin()) {
+			return true;
+		}
 
 		// Public nodes are visible to non-auth users only
 		if (node.isVisibleToPublicUsers() && user == null) {

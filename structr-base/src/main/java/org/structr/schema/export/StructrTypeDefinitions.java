@@ -502,6 +502,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
 		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
 		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
+		final Set<String> toMigrate                            = Set.of("AbstractMinifiedFileMINIFICATIONFile");
 
 		typesOnlyInDatabase.removeAll(structrTypes.keySet());
 		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
@@ -511,7 +512,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final String key : typesOnlyInDatabase) {
 
 			final StructrTypeDefinition type = databaseTypes.get(key);
-			if (type.isBuiltinType()) {
+			if (type.isBuiltinType() || toMigrate.contains(key)) {
 
 				handleRemovedBuiltInType(type);
 
@@ -548,7 +549,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		logger.warn("Built-in type {} was removed or renamed in the current version of the Structr schema, deleting.", type.getName());
 
+		final AbstractSchemaNode schemaNode = type.getSchemaNode();
+
 		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
-		StructrApp.getInstance().delete(type.getSchemaNode());
+		StructrApp.getInstance().delete(schemaNode);
 	}
 }

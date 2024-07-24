@@ -1072,7 +1072,6 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -1081,7 +1080,6 @@ public class DOMAndPageTest extends StructrUiTest {
 			.statusCode(200)
 			.when()
 			.get("/html/testExceptionHandling");
-
 	}
 
 	@Test
@@ -1109,16 +1107,14 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
-			.body("html.body.div",   Matchers.equalTo("content"))
+			.body("html.body.div", Matchers.equalTo("content"))
 			.statusCode(200)
 			.when()
 			.get("/html/testExceptionHandling");
-
 	}
 
 	@Test

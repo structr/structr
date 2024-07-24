@@ -77,6 +77,7 @@ public interface Image extends File {
 		image.addBooleanProperty("isImage",         PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		image.addBooleanProperty("isThumbnail",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		image.addBooleanProperty("isCreatingThumb").setIndexed(true);
+		image.addBooleanProperty("thumbnailCreationFailed");
 
 		image.addCustomProperty("imageData", ImageDataProperty.class.getName()).setTypeHint("String");
 		image.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("100, 100, false");
@@ -292,6 +293,12 @@ public interface Image extends File {
 
 		// Do not create thumbnails if this transaction is set to read-only
 		if (securityContext.isReadOnlyTransaction()) {
+
+			return null;
+		}
+
+		// do not create thumbnails if thumbnail creation failed before
+		if (Boolean.TRUE.equals(thisImage.getProperty(StructrApp.key(Image.class, "thumbnailCreationFailed")))) {
 
 			return null;
 		}

@@ -492,8 +492,8 @@ export class Frontend {
 
 		for (let container of reloadTargets) {
 
-			let data = container.dataset;
-			let id   = data.structrId;
+			let dataset = container.dataset;
+			let id   = dataset.structrId;
 
 			if (!id) {
 
@@ -516,13 +516,13 @@ export class Frontend {
 				}).then(data => {
 					if (data.result && data.result[0]) {
 						let id = data.result[0].id;
-						this.replacePartial(container, id, element, data, parameters, dontRebind);
+						this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 					}
 				});
 
 			} else {
 
-				this.replacePartial(container, id, element, data, parameters, dontRebind);
+				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 			}
 
 		}

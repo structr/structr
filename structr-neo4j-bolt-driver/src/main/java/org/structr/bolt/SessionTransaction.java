@@ -54,12 +54,12 @@ import org.structr.api.util.Iterables;
 abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final Logger logger                  = LoggerFactory.getLogger(SessionTransaction.class);
-	private final Set<String> prefetched                = new LinkedHashSet<>();
 	protected static final AtomicLong ID_SOURCE         = new AtomicLong();
 	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
 	protected final Set<Long> deletedNodes              = new LinkedHashSet<>();
 	protected final Set<Long> deletedRels               = new LinkedHashSet<>();
+	protected final Set<String> prefetched              = new LinkedHashSet<>();
 	protected final Object transactionKey               = new Object();
 	protected BoltDatabaseService db                    = null;
 	protected long transactionId                        = 0L;
@@ -253,7 +253,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
-	public void prefetch(final String type1, final String type2, final Set<String> keys, final boolean complete) {
+	public void prefetch(final String type1, final String type2, final Set<String> keys) {
 
 		final StringBuilder buf  = new StringBuilder();
 		final String tenantId    = db.getTenantIdentifier();
@@ -288,18 +288,89 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		buf.append(")");
 
-		prefetch(buf.toString(), keys, complete);
+		prefetch(buf.toString(), keys);
 	}
 
 	@Override
-	public void prefetch(final String query, final Set<String> keys, final boolean complete) {
+	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
 
-		// avoid prefetching the same set again if we know that it's complete
-		if (complete && prefetched.containsAll(keys)) {
+		if (prefetched.containsAll(outgoingKeys) && prefetched.containsAll(incomingKeys) && prefetched.contains(query)) {
+
+			return;
+		}
+
+		prefetched.addAll(outgoingKeys);
+		prefetched.addAll(incomingKeys);
+		prefetched.add(query);
+
+		final long t0             = System.currentTimeMillis();
+		final StringBuilder buf   = new StringBuilder();
+		final Set<Long> relsSeen  = new HashSet<>();
+		long count                = 0L;
+
+		buf.append("MATCH p = ");
+		buf.append(query);
+		buf.append(" RETURN p");
+
+		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
+
+			final Path p        = r.get("p").asPath();
+			NodeWrapper current = null;
+
+			for (final Segment s : p) {
+
+				final org.neo4j.driver.types.Relationship relationship = s.relationship();
+				final long relId                                       = relationship.id();
+				final boolean alreadySeen                              = relsSeen.contains(relId);
+				RelationshipWrapper rel                                = null;
+
+				if (current == null) {
+
+					current = getNodeWrapper(s.start());
+					current.storePrefetchInfo(outgoingKeys);
+					count++;
+				}
+
+				if (!alreadySeen) {
+
+					relsSeen.add(relId);
+
+					rel = getRelationshipWrapper(relationship);
+
+					// store outgoing rel
+					current.storeRelationship(rel, true);
+					count++;
+				}
+
+				// advance
+				current = getNodeWrapper(s.end());
+				current.storePrefetchInfo(incomingKeys);
+
+				if (!alreadySeen) {
+
+					// store incoming rel as well
+					current.storeRelationship(rel, true);
+					count++;
+				}
+			}
+		}
+
+		if (db.logQueries()) {
+
+			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+		}
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> keys) {
+
+		if (prefetched.containsAll(keys) && prefetched.contains(query)) {
+
 			return;
 		}
 
 		prefetched.addAll(keys);
+		prefetched.add(query);
 
 		final long t0             = System.currentTimeMillis();
 		final StringBuilder buf   = new StringBuilder();
@@ -350,6 +421,52 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					current.storeRelationship(rel, true);
 					count++;
 				}
+			}
+		}
+
+		if (db.logQueries()) {
+
+			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+		}
+	}
+
+	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
+
+		if (prefetched.containsAll(outgoingKeys) && prefetched.containsAll(incomingKeys) && prefetched.contains(query + id)) {
+
+			return;
+		}
+
+		prefetched.addAll(outgoingKeys);
+		prefetched.addAll(incomingKeys);
+		prefetched.add(query + id);
+
+		final long t0             = System.currentTimeMillis();
+		long count                = 0L;
+
+		for (final org.neo4j.driver.Record r : collectRecords(query, Map.of("id", id), null)) {
+
+			final List<org.neo4j.driver.types.Node> nodes        = (List)r.get("nodes").asList();
+			final List<org.neo4j.driver.types.Relationship> rels = (List)r.get("rels").asList();
+
+			for (final org.neo4j.driver.types.Node n : nodes) {
+				getNodeWrapper(n);
+				count++;
+			}
+
+			for (final org.neo4j.driver.types.Relationship rel : rels) {
+
+				final NodeWrapper start              = getNodeWrapper(rel.startNodeId());
+				final NodeWrapper end                = getNodeWrapper(rel.endNodeId());
+				final RelationshipWrapper relWrapper = getRelationshipWrapper(rel);
+
+				start.storeRelationship(relWrapper, true);
+				start.storePrefetchInfo(outgoingKeys);
+
+				end.storeRelationship(relWrapper, true);
+				end.storePrefetchInfo(incomingKeys);
+
+				count++;
 			}
 		}
 

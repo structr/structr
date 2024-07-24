@@ -41,10 +41,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.ManageDatabasesCommand;
-import org.structr.core.graph.NodeService;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
@@ -322,6 +319,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		// register change handlers for various Settings
 		registerSettingsChangeHandlers();
+
+		// run migration service
+		MigrationService.execute();
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
 		logger.info("---------------- Initialization complete ----------------");
