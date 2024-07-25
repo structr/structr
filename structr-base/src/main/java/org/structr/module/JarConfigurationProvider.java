@@ -1170,8 +1170,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					} catch (Throwable t) {
 
-						t.printStackTrace();
-
 						// log only errors from internal classes
 						if (className.startsWith("org.structr.")) {
 
@@ -1181,9 +1179,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				}
 
 			} catch (Throwable t) {
-
-				t.printStackTrace();
-
 				logger.warn("Error trying to load class {}: {}",  className, t.getMessage());
 			}
 		}

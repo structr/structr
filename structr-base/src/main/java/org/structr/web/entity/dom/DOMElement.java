@@ -377,22 +377,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().get(DOMElement.class, this.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
+
 			triggeredAction = triggeredActions.get(0);
 			action = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "action"));
+
 		} else {
+
 			throw new FrameworkException(422, "Cannot execute action without action defined on this DOMElement: " + this);
 		}
-
-		// parse event mapping property on this node and determine event type
-//		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
-//		if (eventMapping != null) {
-//
-//			final Map<String, Object> mapping = getMappedEvents();
-//			if (mapping != null) {
-//
-//				event = (String)mapping.get(event);
-//			}
-//		}
 
 		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
 		parameters.remove("id");
@@ -663,11 +655,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			removeInternalDataBindingKeys(parameters);
 
 			return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
-
-			// call global schema method
-			//return invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
-			//throw new FrameworkException(422, "Cannot execute action without target (data-structr-target attribute).");
-
 		}
 
 		if (Settings.isValidUuid(dataTarget)) {
@@ -686,7 +673,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				final AbstractMethod method = Methods.resolveMethod(target.getClass(), methodName);
 				if (method != null) {
 
-					method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
+					return method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute method " + target.getClass().getSimpleName() + "." + methodName + ": method not found.");
 				}
 			}
 
@@ -699,7 +690,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				final AbstractMethod method = Methods.resolveMethod(staticClass, methodName);
 				if (method != null) {
 
-					method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
+					return method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
 				}
 
 			} else {
