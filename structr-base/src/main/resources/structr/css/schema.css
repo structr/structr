@@ -65,10 +65,6 @@
 	background: var(--error-bg-light-red) !important;
 }
 
-#create-type i, #schema-tools i, #global-schema-methods i, .schema-tool-button i {
-	/*margin-top: -3px;*/
-}
-
 .schema {
 	padding-bottom: 6px ! important;
 }

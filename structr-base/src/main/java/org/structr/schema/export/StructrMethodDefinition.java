@@ -666,22 +666,24 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
 
-			if (isStatic) {
+			if (!isPrivate()) {
 
-				operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+				if (isStatic) {
 
-
-			} else {
-
-				if (parent != null) {
-
-					operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+					operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
 
 				} else {
 
-					final String path = "/" + getName();
+					if (parent != null) {
 
-					operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
+						operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+
+					} else {
+
+						final String path = "/" + getName();
+
+						operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
+					}
 				}
 			}
 		}

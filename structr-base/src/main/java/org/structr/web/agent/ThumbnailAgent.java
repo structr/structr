@@ -82,6 +82,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 	/**  Private Methods  **/
 	private static void createThumbnail(final SecurityContext securityContext, final String imageUuid, final int maxWidth, final int maxHeight, final boolean cropToFit) {
+
 		final Logger logger = LoggerFactory.getLogger(Image.class);
 		final App app = StructrApp.getInstance();
 
@@ -109,8 +110,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 				queuedImageUUIDs.add(imageUuid);
 			}
 
-			final ImageHelper.Thumbnail thumbnailData         = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
-
+			final ImageHelper.Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 			if (thumbnailData != null) {
 
 				final Integer tnWidth  = thumbnailData.getWidth();
@@ -163,8 +163,10 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 			} else {
 
-				logger.debug("Could not create thumbnail for image {} ({})", originalImage.getName(), imageUuid);
+				logger.warn("Could not create thumbnail for image {} ({})", originalImage.getName(), imageUuid);
 
+				// mark file so we don't try to create a thumbnail again
+				originalImage.setProperty(StructrApp.key(Image.class, "thumbnailCreationFailed"), true);
 			}
 
 			originalImage.unlockSystemPropertiesOnce();

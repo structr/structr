@@ -91,6 +91,44 @@ let _Dialogs = {
 		},
 	},
 	loginDialog: {
+		getOauthProviders: () => [
+			{
+				name: 'Auth0',
+				uriPart: 'auth0',
+				iconId: _Icons.iconLogoAuth0
+			},
+			{
+				name: 'Azure',
+				uriPart: 'azure',
+				iconId: _Icons.iconLogoMicrosoft
+			},
+			{
+				name: 'Facebook',
+				uriPart: 'facebook',
+				iconId: _Icons.iconLogoFacebook
+			},
+			{
+				name: 'Github',
+				uriPart: 'github',
+				iconId: _Icons.iconLogoGithub
+			},
+			{
+				name: 'Google',
+				uriPart: 'google',
+				iconId: _Icons.iconLogoGoogle
+			},
+			{
+				name: 'LinkedIn',
+				uriPart: 'linkedin',
+				iconId: _Icons.iconLogoLinkedIn
+			},
+			{
+				name: 'Twitter',
+				uriPart: 'twitter',
+				iconId: _Icons.iconLogoTwitter
+			}
+		],
+		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login`,
 		isOpen: () => {
 			let loginElement = document.querySelector('#login');
 			return (loginElement != null && loginElement.offsetParent !== null);
@@ -109,8 +147,12 @@ let _Dialogs = {
 				Structr.clearMain();
 
 				// show login box
-				_Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
+				let element = _Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
 					width: ''
+				});
+
+				_Helpers.activateCommentsInElement(element, {
+					insertAfter: true
 				});
 
 				document.querySelector('#usernameField').focus();
@@ -126,6 +168,14 @@ let _Dialogs = {
 						password: document.querySelector('#passwordField').value
 					});
 					return false;
+				});
+
+				element.querySelector('#sso-login-button').addEventListener('click', () => {
+					_Dialogs.loginDialog.showSSO();
+				});
+
+				element.querySelector('#login-sso-back').addEventListener('click', () => {
+					_Dialogs.loginDialog.hideSSO();
 				});
 
 				document.querySelector('form#login-two-factor').addEventListener('submit', (e) => {
@@ -162,6 +212,46 @@ let _Dialogs = {
 		},
 		removeErrorMessages: () => {
 			[...document.querySelectorAll('#login .login-error-message')].map(m => m.remove());
+		},
+		showSSO: () => {
+
+			let promises = [];
+
+			for (let provider of _Dialogs.loginDialog.getOauthProviders()) {
+
+				let btn = document.getElementById(`sso-login-${provider.uriPart}`);
+				if (btn && !btn.dataset['checked']) {
+
+					let uri = _Dialogs.loginDialog.getSSOUriForURIPart(provider.uriPart);
+
+					promises.push(fetch(uri).then(res => {
+						btn.dataset['checked'] = true;
+
+						if (!res.ok) {
+							btn.remove();
+						}
+					}));
+				}
+			}
+
+			Promise.all(promises).then(() => {
+
+				let ssoBtns = document.getElementById('login-sso');
+
+				if (ssoBtns.children.length === 1) {
+
+					let msg = _Helpers.createSingleDOMElementFromHTML('<div class="mb-2">No valid SSO providers found.</div>');
+					ssoBtns.insertBefore(msg, ssoBtns.children[0]);
+				}
+			})
+
+			document.querySelector('#login-username-password').style.display = 'none';
+			document.querySelector('#login-sso').style.display = 'block';
+		},
+		hideSSO: () => {
+
+			document.querySelector('#login-sso').style.display = 'none';
+			document.querySelector('#login-username-password').style.display = 'block';
 		},
 		showTwoFactor: (data) => {
 

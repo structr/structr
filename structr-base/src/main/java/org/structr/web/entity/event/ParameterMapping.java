@@ -48,7 +48,7 @@ public interface ParameterMapping extends NodeInterface {
 		type.addStringProperty("methodResult",         PropertyView.Ui).setHint("Method to be evaluated to result value");
 		type.addStringProperty("flowResult",           PropertyView.Ui).setHint("Flow to be evaluated to result value");
 
-		type.relate(elem, "INPUT_ELEMENT",   Cardinality.ManyToOne,"parameterMappings",  "inputElement");
+		elem.relate(type, "INPUT_ELEMENT",   Cardinality.OneToMany,"inputElement",  "parameterMappings");
 
 		type.addViewProperty(PropertyView.Ui, "inputElement");
 

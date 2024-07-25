@@ -234,12 +234,22 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
-	public void prefetch(String type1, String type2, Set<String> keys, final boolean complete) {
+	public void prefetch(String type1, String type2, Set<String> keys) {
 
 	}
 
 	@Override
-	public void prefetch(String query, Set<String> keys, final boolean complete) {
+	public void prefetch(String query, Set<String> keys) {
+
+	}
+
+	@Override
+	public void prefetch(String query, Set<String> outgoingKeys, Set<String> incomingKeys) {
+
+	}
+
+	@Override
+	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys, final String id) {
 
 	}
 }

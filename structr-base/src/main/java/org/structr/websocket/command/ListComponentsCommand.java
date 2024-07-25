@@ -69,7 +69,7 @@ public class ListComponentsCommand extends AbstractCommand {
 				"all/OUTGOING/PAGE",
 				"all/OUTGOING/CONTAINS"
 
-			), true);
+			));
 
 			// Filter list and return only top level nodes
 			for (DOMNode node : resultList) {

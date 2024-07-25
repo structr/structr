@@ -30,6 +30,7 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
@@ -97,7 +98,7 @@ public class Methods {
 				cacheEntry = new CacheEntry();
 				methodCache.put(methodName, cacheEntry);
 
-				try {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 
 					final SchemaMethod method = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(methodName).and(SchemaMethod.schemaNode, null).getFirst();
 					if (method != null) {
@@ -151,10 +152,15 @@ public class Methods {
 				cacheEntry = new CacheEntry();
 				methodCache.put(cacheId, cacheEntry);
 
-				final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
-				if (schemaMethod != null) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					cacheEntry.method = new ScriptMethod(schemaMethod);
+					final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
+					if (schemaMethod != null) {
+
+						cacheEntry.method = new ScriptMethod(schemaMethod);
+					}
+
+					tx.success();
 				}
 			}
 

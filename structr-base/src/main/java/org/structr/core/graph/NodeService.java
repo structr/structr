@@ -35,8 +35,12 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.entity.StorageConfigurationEntry;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * The graph/node service.

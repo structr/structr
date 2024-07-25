@@ -47,19 +47,18 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final DOMNode node = getDOMNode(webSocketData.getId());
+		final String id    = webSocketData.getId();
+		final DOMNode node = getDOMNode(id);
 
 		if (node == null) {
 
 			return;
 		}
 
-		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + webSocketData.getId() + "\" })-[:CONTAINS|CONTAINS_NEXT_SIBLING]->(m)", Set.of(
-
-			"all/INCOMING/CONTAINS",
-			"all/OUTGOING/CONTAINS"
-
-		), true);
+		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + webSocketData.getId() + "\" })-[:CONTAINS]->(m)",
+			Set.of("all/OUTGOING/CONTAINS"),
+			Set.of("all/INCOMING/CONTAINS")
+		);
 
 		final List<GraphObject> result = new LinkedList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();
