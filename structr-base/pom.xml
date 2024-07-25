@@ -20,7 +20,7 @@
 		<jaxb.version>2.3.3</jaxb.version>
 		<imageio.version>3.10.1</imageio.version>
 		<batik.version>[1.17,)</batik.version>
-		<graal.version>24.0.1</graal.version>
+		<graal.version>24.0.2</graal.version>
 		<apache.sshd.version>2.7.0</apache.sshd.version>
 	</properties>
 
