@@ -566,7 +566,7 @@ public class Settings {
 
 
 	// oauth settings
-	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-separated List of available oauth services. Defaults to 'github twitter linkedin google facebook auth0'");
+	public static final Setting<String> OAuthServers          = new StringSetting(oauthGroup, "General", "oauth.servers", "auth0 azure facebook github google linkedin twitter", "Space-separated List of available oauth services. Defaults to a list of all available services.");
 	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
