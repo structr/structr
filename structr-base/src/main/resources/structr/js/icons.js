@@ -175,7 +175,6 @@ let _Icons = {
 	iconLogoGithub:          'logo-github',
 	iconLogoGoogle:          'logo-google',
 	iconLogoLinkedIn:        'logo-linkedin',
-	iconLogoTwitter:         'logo-twitter',
 
 	getSvgIcon: (href, width = 16, height = 16, optionalClasses, title = '') => {
 		return _Icons.getSvgIconWithID(null, href, width, height, optionalClasses, title);

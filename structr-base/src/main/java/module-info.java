@@ -99,7 +99,6 @@ module structr.base {
     requires simpleclient;
     requires textile.j;
     requires thumbnailator;
-    requires twitter4j.core;
     requires urlrewritefilter;
     requires xml.apis.ext;
     requires zero.allocation.hashing;
@@ -188,7 +187,6 @@ module structr.base {
     exports org.structr.web;
     exports org.structr.web.agent;
     exports org.structr.web.auth;
-    exports org.structr.web.auth.legacy;
     exports org.structr.web.auth.provider;
     exports org.structr.web.common;
     exports org.structr.web.common.microformat;

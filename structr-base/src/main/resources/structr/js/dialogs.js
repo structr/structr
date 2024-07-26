@@ -121,11 +121,6 @@ let _Dialogs = {
 				name: 'LinkedIn',
 				uriPart: 'linkedin',
 				iconId: _Icons.iconLogoLinkedIn
-			},
-			{
-				name: 'Twitter',
-				uriPart: 'twitter',
-				iconId: _Icons.iconLogoTwitter
 			}
 		],
 		getSSOUriForURIPart: (uripart, withLoginIndicator = false) => `/oauth/${uripart}/login${withLoginIndicator ? '?isBackendOAuthLogin' : ''}`,
