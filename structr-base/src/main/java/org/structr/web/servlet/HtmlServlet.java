@@ -46,6 +46,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -530,6 +531,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			} catch (FrameworkException fex) {
 				logger.error("Exception while processing request: {}", fex.getMessage());
 			}
+
+		} catch (OAuthException oae) {
+
+			logger.error("{}", oae.getMessage());
+			UiAuthenticator.writeFrameworkException(response, oae);
 
 		} catch (FrameworkException fex) {
 

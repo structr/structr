@@ -2000,18 +2000,18 @@ let Structr = {
 						</div>
 					</div>
 
-					<div id="login-sso" class="mx-4 mt-8 hidden">
-
-						${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
-							<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green gap-2 items-center justify-center p-3 mb-2 hidden">
-								${_Icons.getSvgIcon(iconId)}
-								${name}
-							</button>
-						`).join('')}
-
-					</div>
-
 				</form>
+
+				<div id="login-sso" class="mx-4 mt-8 hidden">
+
+					${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
+						<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart, true)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
+							${_Icons.getSvgIcon(iconId)}
+							${name}
+						</button>
+					`).join('')}
+
+				</div>
 
 				<form id="login-two-factor" action="javascript:void(0);" style="display:none;">
 

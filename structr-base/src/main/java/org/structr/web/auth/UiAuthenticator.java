@@ -37,6 +37,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeServiceCommand;
@@ -84,7 +85,6 @@ public class UiAuthenticator implements Authenticator {
 		methods.put("PATCH", Method.PATCH);
 		methods.put("DELETE", Method.DELETE);
 		methods.put("OPTIONS", Method.OPTIONS);
-
 	}
 
 	// access flags
@@ -107,6 +107,8 @@ public class UiAuthenticator implements Authenticator {
 
 	public static final long AUTH_USER_PATCH	= 4096;
 	public static final long NON_AUTH_USER_PATCH	= 8192;
+
+	private static final String BACKEND_SSO_LOGIN_INDICATOR = "isBackendOAuthLogin";
 
 	/**
 	 * Examine request and try to find a user.
@@ -569,28 +571,35 @@ public class UiAuthenticator implements Authenticator {
 
 		OAuth2Client oAuth2Client = null;
 
-		switch (name) {
-			case "auth0":
-				oAuth2Client = new Auth0AuthClient(request);
-				break;
-			case "facebook":
-				oAuth2Client = new FacebookAuthClient(request);
-				break;
-			case "github":
-				oAuth2Client = new GithubAuthClient(request);
-				break;
-			case "google":
-				oAuth2Client = new GoogleAuthClient(request);
-				break;
-			case "linkedin":
-				oAuth2Client = new LinkedInAuthClient(request);
-				break;
-			case "azure":
-				oAuth2Client = new AzureAuthClient(request);
-				break;
-			default:
-				logger.error("Could not initialize oAuth2Client for provider {}", name);
-				return null;
+		try {
+
+			switch (name) {
+				case "auth0":
+					oAuth2Client = new Auth0AuthClient(request);
+					break;
+				case "facebook":
+					oAuth2Client = new FacebookAuthClient(request);
+					break;
+				case "github":
+					oAuth2Client = new GithubAuthClient(request);
+					break;
+				case "google":
+					oAuth2Client = new GoogleAuthClient(request);
+					break;
+				case "linkedin":
+					oAuth2Client = new LinkedInAuthClient(request);
+					break;
+				case "azure":
+					oAuth2Client = new AzureAuthClient(request);
+					break;
+				default:
+					logger.error("Unable to initialize oAuth2Client for provider {}", name);
+					return null;
+			}
+
+		} catch (IllegalArgumentException iae) {
+
+			throw new OAuthException("Unable to initialize OAuth client '" + name + "': " + iae.getMessage());
 		}
 
 		if ("login".equals(action)) {
@@ -690,19 +699,23 @@ public class UiAuthenticator implements Authenticator {
 
 							URIBuilder uriBuilder = new URIBuilder();
 							if (originalRequestParameters != null) {
-								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-									for (String parameterEntry : entry.getValue()) {
+
+								for (final Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+
+									for (final String parameterEntry : entry.getValue()) {
 
 										final String entryKey = entry.getKey();
 
 										if (StringUtils.equals(entryKey, "createTokens") && StringUtils.equals(parameterEntry, "true")) {
+
 											isTokenLogin = true;
 
-											Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
+											final Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 
 											uriBuilder.addParameter("access_token", tokenMap.get("access_token"));
 											uriBuilder.addParameter("refresh_token", tokenMap.get("refresh_token"));
-										} else {
+
+										} else if (!BACKEND_SSO_LOGIN_INDICATOR.equals(entry.getKey())) {
 
 											uriBuilder.addParameter(entry.getKey(), parameterEntry);
 										}
@@ -712,26 +725,37 @@ public class UiAuthenticator implements Authenticator {
 
 							logger.debug("Logging in user {}", user);
 
-							if(!isTokenLogin) {
+							if (!isTokenLogin) {
+
 								AuthHelper.doLogin(request, user);
 							}
+
 							HtmlServlet.setNoCacheHeaders(response);
 
 							oAuth2Client.invokeOnLoginMethod(user);
 
 							logger.debug("HttpServletResponse status: {}", response.getStatus());
 
-							final String configuredReturnUri = oAuth2Client.getReturnURI();
-							if (StringUtils.startsWith(configuredReturnUri, "http")) {
+							boolean isBackendSSOLogin = (originalRequestParameters.get(BACKEND_SSO_LOGIN_INDICATOR) != null);
+							if (!isBackendSSOLogin) {
 
-								URI redirectUri = new URI(configuredReturnUri);
-								uriBuilder.setHost(redirectUri.getHost());
-								uriBuilder.setPath(redirectUri.getPath());
-								uriBuilder.setPort(redirectUri.getPort());
-								uriBuilder.setScheme(redirectUri.getScheme());
+								final String configuredReturnUri = oAuth2Client.getReturnURI();
+								if (StringUtils.startsWith(configuredReturnUri, "http")) {
+
+									URI redirectUri = new URI(configuredReturnUri);
+									uriBuilder.setHost(redirectUri.getHost());
+									uriBuilder.setPath(redirectUri.getPath());
+									uriBuilder.setPort(redirectUri.getPort());
+									uriBuilder.setScheme(redirectUri.getScheme());
+
+								} else {
+
+									uriBuilder.setPath(configuredReturnUri);
+								}
 
 							} else {
-								uriBuilder.setPath(configuredReturnUri);
+
+								uriBuilder.setPath("/structr/");
 							}
 
 							response.resetBuffer();

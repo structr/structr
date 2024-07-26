@@ -128,7 +128,7 @@ let _Dialogs = {
 				iconId: _Icons.iconLogoTwitter
 			}
 		],
-		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login`,
+		getSSOUriForURIPart: (uripart, withLoginIndicator = false) => `/oauth/${uripart}/login${withLoginIndicator ? '?isBackendOAuthLogin' : ''}`,
 		isOpen: () => {
 			let loginElement = document.querySelector('#login');
 			return (loginElement != null && loginElement.offsetParent !== null);
@@ -209,32 +209,30 @@ let _Dialogs = {
 		},
 		showSSO: () => {
 
-			/*
-
-			* */
-
-			let ssoElement = document.querySelector('#login-sso');
-			let promises = [];
+			let ssoElement   = document.querySelector('#login-sso');
+			let promises     = [];
+			let ssoAvailable = false;
 
 			for (let { name, uriPart, iconId } of _Dialogs.loginDialog.getOauthProviders()) {
 
 				let uri = _Dialogs.loginDialog.getSSOUriForURIPart(uriPart);
 
-				promises.push(fetch(uri).then(res => {
+				promises.push(fetch(uri, { redirect: "error" }).catch(e => {
+					// redirect => this provider works
+					ssoAvailable = true;
 
 					let btn = document.getElementById(`sso-login-${uriPart}`);
-					btn.classList.toggle('hidden', !res.ok);
-					btn.classList.toggle('flex', res.ok);
-
-					if (res.ok) {
-						ssoElement.classList.remove('hidden');
-					}
+					btn.classList.add('flex');
+					btn.classList.remove('hidden');
 				}));
 			}
 
 			Promise.all(promises).then(() => {
+				if (ssoAvailable) {
+					ssoElement.classList.remove('hidden');
+				}
 				_Dialogs.basic.centerAll(); // or too jumpy?
-			})
+			});
 		},
 		showTwoFactor: (data) => {
 
