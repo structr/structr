@@ -170,13 +170,7 @@ let _Dialogs = {
 					return false;
 				});
 
-				element.querySelector('#sso-login-button').addEventListener('click', () => {
-					_Dialogs.loginDialog.showSSO();
-				});
-
-				element.querySelector('#login-sso-back').addEventListener('click', () => {
-					_Dialogs.loginDialog.hideSSO();
-				});
+				_Dialogs.loginDialog.showSSO();
 
 				document.querySelector('form#login-two-factor').addEventListener('submit', (e) => {
 					e.stopPropagation();
@@ -215,43 +209,32 @@ let _Dialogs = {
 		},
 		showSSO: () => {
 
+			/*
+
+			* */
+
+			let ssoElement = document.querySelector('#login-sso');
 			let promises = [];
 
-			for (let provider of _Dialogs.loginDialog.getOauthProviders()) {
+			for (let { name, uriPart, iconId } of _Dialogs.loginDialog.getOauthProviders()) {
 
-				let btn = document.getElementById(`sso-login-${provider.uriPart}`);
-				if (btn && !btn.dataset['checked']) {
+				let uri = _Dialogs.loginDialog.getSSOUriForURIPart(uriPart);
 
-					let uri = _Dialogs.loginDialog.getSSOUriForURIPart(provider.uriPart);
+				promises.push(fetch(uri).then(res => {
 
-					promises.push(fetch(uri).then(res => {
-						btn.dataset['checked'] = true;
+					let btn = document.getElementById(`sso-login-${uriPart}`);
+					btn.classList.toggle('hidden', !res.ok);
+					btn.classList.toggle('flex', res.ok);
 
-						if (!res.ok) {
-							btn.remove();
-						}
-					}));
-				}
+					if (res.ok) {
+						ssoElement.classList.remove('hidden');
+					}
+				}));
 			}
 
 			Promise.all(promises).then(() => {
-
-				let ssoBtns = document.getElementById('login-sso');
-
-				if (ssoBtns.children.length === 1) {
-
-					let msg = _Helpers.createSingleDOMElementFromHTML('<div class="mb-2">No valid SSO providers found.</div>');
-					ssoBtns.insertBefore(msg, ssoBtns.children[0]);
-				}
+				_Dialogs.basic.centerAll(); // or too jumpy?
 			})
-
-			document.querySelector('#login-username-password').style.display = 'none';
-			document.querySelector('#login-sso').style.display = 'block';
-		},
-		hideSSO: () => {
-
-			document.querySelector('#login-sso').style.display = 'none';
-			document.querySelector('#login-username-password').style.display = 'block';
 		},
 		showTwoFactor: (data) => {
 
