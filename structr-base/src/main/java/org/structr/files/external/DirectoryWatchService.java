@@ -166,7 +166,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 			if (!Services.getInstance().isInitialized()) {
 
-				try { Thread.sleep(100); } catch (InterruptedException i) {}
+				try { Thread.sleep(1000); } catch (InterruptedException i) {}
 
 				// loop until we are stopped
 				continue;
@@ -250,7 +250,10 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 				tx.success();
 
 			} catch (Throwable t) {
-				logger.error(ExceptionUtils.getStackTrace(t));
+
+				logger.warn("Unable to update watch event queue, waiting for 1 minute before trying again.");
+
+				try { Thread.sleep(TimeUnit.MINUTES.toMillis(1)); } catch (InterruptedException i) {}
 			}
 
 		}
