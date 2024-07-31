@@ -1033,8 +1033,6 @@ let _Elements = {
 				});
 			}
 
-			_Editors.enableSpeechToTextForEditor(editor, buttonArea);
-
 			saveButton.addEventListener('click', (e) => {
 				e.stopPropagation();
 

@@ -56,7 +56,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrMethodDefinition.class.getName());
 
-	private final Set<String> OpenAPIMethodNameBlacklist      = Set.of("onCreate", "onSave", "onDelete", "afterCreate");
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
 	private final Set<String> tags                            = new TreeSet<>();
@@ -662,27 +661,35 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
 
-		if (!OpenAPIMethodNameBlacklist.contains(getName())) {
+		if (includeInOpenAPI()) {
 
-			final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+			final SchemaMethod method = this.getSchemaMethod();
 
-			if (!isPrivate()) {
+			final boolean isLifecycleMethod = method.isLifecycleMethod();
+			final boolean isTypeMethod      = (parent != null);
 
-				if (isStatic) {
+			if (!isLifecycleMethod) {
 
-					operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+				final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
 
-				} else {
+				if (!isPrivate()) {
 
-					if (parent != null) {
+					if (isStatic()) {
 
-						operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+						operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
 
 					} else {
 
-						final String path = "/" + getName();
+						if (isTypeMethod) {
 
-						operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
+							operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+
+						} else {
+
+							final String path = "/" + getName();
+
+							operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
+						}
 					}
 				}
 			}

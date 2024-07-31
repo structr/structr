@@ -3513,20 +3513,6 @@ let _Schema = {
 				data.schemaMethods.push({ id: javaMethod.id });
 			}
 
-			let autoFixAttributesDependingOnMethodData = (data) => {
-
-				// Force certain attribute depending on the method configuration
-				/*
-				 -> isPrivate = automatically true, if it is a lifecycle method
-				 -> isStatic = only, if user set it to static AND the method is on a type AND it is not a lifecycle method
-				 */
-				let mockMethod        = Object.assign({ schemaNode: entity }, data);
-				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(mockMethod);
-
-				data.isStatic = (data.isStatic === true) && (!isLifecycleMethod) && (!!mockMethod.schemaNode);
-				data.isPrivate = (data.isPrivate === true) || isLifecycleMethod;
-			};
-
 			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
 				let methodId   = gridRow.dataset['methodId'];
@@ -3549,11 +3535,12 @@ let _Schema = {
 							allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 						}
 
-						let tmpData = Object.assign({}, methodData);
-
-						autoFixAttributesDependingOnMethodData(tmpData);
-
-						data.schemaMethods.push(tmpData);
+						data.schemaMethods.push({
+							id:       methodId,
+							name:     methodData.name,
+							isStatic: methodData.isStatic,
+							source:   methodData.source,
+						});
 
 					} else {
 
@@ -3572,12 +3559,12 @@ let _Schema = {
 						allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 					}
 
-					let newMethodData = Object.assign({ type: 'SchemaMethod' }, methodData);
-					delete newMethodData.id;
-
-					autoFixAttributesDependingOnMethodData(newMethodData);
-
-					data.schemaMethods.push(newMethodData);
+					data.schemaMethods.push({
+						type:     'SchemaMethod',
+						name:     methodData.name,
+						isStatic: methodData.isStatic,
+						source:   methodData.source,
+					});
 				}
 			}
 

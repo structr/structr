@@ -1390,7 +1390,7 @@ let _Code = {
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
 		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
-			let isCallableViaREST = (result.isPrivate !== true);
+			let isCallableViaREST   = (result.isPrivate !== true);
 			let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
 			let isStaticMethod      = result.isStatic;
 
@@ -1405,19 +1405,13 @@ let _Code = {
 
 			let buttons = $('#method-buttons');
 
-			let updateUIForAttribute = (attributeName, canSeeAttr, canEditAttr, forcedValue) => {
+			let updateVisibilityForAttribute = (attributeName, canSeeAttr) => {
 
 				let element = buttons[0].querySelector(`[data-property="${attributeName}"]`);
 				if (element) {
 					let container = element.closest('.method-config-element');
 
 					container.classList.toggle('hidden', (canSeeAttr === false));
-
-					element.disabled = !canEditAttr;
-
-					if (canEditAttr === false && forcedValue !== undefined) {
-						Object.assign(element, forcedValue);
-					}
 				}
 			};
 
@@ -1427,10 +1421,10 @@ let _Code = {
 				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(currentState);
 				let isCallableViaREST = (currentState.isPrivate !== true);
 
-				updateUIForAttribute('isStatic',        isTypeMethod, (isTypeMethod && !isLifecycleMethod), { checked: false });
-				updateUIForAttribute('isPrivate',       true, (!isLifecycleMethod),                 { checked: true });
-				updateUIForAttribute('returnRawResult', true, (!isLifecycleMethod && isCallableViaREST));
-				updateUIForAttribute('httpVerb',        true, (!isLifecycleMethod && isCallableViaREST));
+				updateVisibilityForAttribute('isStatic',        (isTypeMethod && !isLifecycleMethod));
+				updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
+				updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
+				updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
 			};
 
 			updateUIForAllAttributes(result);

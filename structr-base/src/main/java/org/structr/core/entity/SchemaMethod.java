@@ -42,6 +42,8 @@ import org.structr.schema.action.ActionEntry;
 
 import java.lang.reflect.*;
 import java.util.*;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.User;
 
 /**
  *
@@ -220,12 +222,25 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+
+		handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
+	}
+
+	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		if (Boolean.TRUE.equals(getProperty(deleteMethod))) {
+
 			StructrApp.getInstance().delete(this);
+
+		} else {
+
+			handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
 		}
 
 		final String uuid = getUuid();
@@ -245,6 +260,28 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 				this.clearMethodCacheOfExtendingNodes();
 			}
+		}
+	}
+
+	private void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final boolean isLifeCycleMethod = isLifecycleMethod();
+		final boolean isTypeMethod      = (getProperty(SchemaMethod.schemaNode) != null);
+
+		// - lifecycle methods can never be static
+		// - user-defined functions can also not be static (? or should always be static?)
+		if (!isTypeMethod || isLifeCycleMethod) {
+			setProperty(SchemaMethod.isStatic, false);
+		}
+
+		// lifecycle methods are NEVER callable via REST
+		if (isLifeCycleMethod) {
+			setProperty(SchemaMethod.isPrivate, true);
+		}
+
+		// a method which is not callable via REST should not be present in OpenAPI
+		if (getProperty(SchemaMethod.isPrivate) == true) {
+			setProperty(SchemaMethod.includeInOpenAPI, false);
 		}
 	}
 
@@ -392,6 +429,72 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				}
 			}
 		}
+	}
+
+	public boolean isLifecycleMethod () {
+
+		final AbstractSchemaNode parent = getProperty(SchemaMethod.schemaNode);
+		final boolean hasParent         = (parent != null);
+		final String methodName         = getName();
+
+		if (hasParent) {
+
+			final List<String> typeBasedLifecycleMethods = List.of("onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
+			final List<String> fileLifecycleMethods = List.of("onUpload", "onDownload");
+			final List<String> userLifecycleMethods = List.of("onOAuthLogin");
+
+			for (final String lifecycleMethodPrefix : typeBasedLifecycleMethods) {
+
+				if (methodName.startsWith(lifecycleMethodPrefix)) {
+					return true;
+				}
+			}
+
+			boolean inheritsFromFile = false;
+			boolean inheritsFromUser = false;
+
+			final Class type = SchemaHelper.getEntityClassForRawType(parent.getName());
+
+			if (type != null) {
+
+				inheritsFromFile = AbstractFile.class.isAssignableFrom(type);
+				inheritsFromUser = User.class.isAssignableFrom(type);
+			}
+
+			if (inheritsFromFile) {
+
+				for (final String lifecycleMethodName : fileLifecycleMethods) {
+
+					if (methodName.equals(lifecycleMethodName)) {
+						return true;
+					}
+				}
+			}
+
+			if (inheritsFromUser) {
+
+				for (final String lifecycleMethodName : userLifecycleMethods) {
+
+					if (methodName.equals(lifecycleMethodName)) {
+						return true;
+					}
+				}
+			}
+
+		} else {
+
+			final List<String> globalLifecycleMethods = List.of("onStructrLogin", "onStructrLogout", "onAcmeChallenge");
+
+			for (final String lifecycleMethodName : globalLifecycleMethods) {
+
+				if (methodName.equals(lifecycleMethodName)) {
+					return true;
+				}
+			}
+
+		}
+
+		return false;
 	}
 
 	// ----- interface Favoritable -----

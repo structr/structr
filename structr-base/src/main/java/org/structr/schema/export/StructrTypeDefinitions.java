@@ -29,8 +29,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -397,16 +399,25 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 
+		final App app                 = StructrApp.getInstance();
 		final Map<String, Object> map = new TreeMap<>();
 
-		for (final StructrTypeDefinition type : typeDefinitions) {
+		try (final Tx tx = app.tx()) {
 
-			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
+			for (final StructrTypeDefinition type : typeDefinitions) {
 
-				Set<String> viewNames = this.getViewNamesOfType(type, null);
+				if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
 
-				map.putAll(type.serializeOpenAPIOperations(tag, viewNames));
+					Set<String> viewNames = this.getViewNamesOfType(type, null);
+
+					map.putAll(type.serializeOpenAPIOperations(tag, viewNames));
+				}
 			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
 		}
 
 		return map;
