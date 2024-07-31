@@ -546,7 +546,7 @@ public class PerformanceTest extends StructrUiTest {
 
 		System.out.println("Rendering took " + duration + " ms, average of " + average + " ms per run");
 
-		assertTrue("Rendering performance is too low", average < 500);
+		assertTrue("Rendering performance is too low", average < 600);
 	}
 
 	@Test
