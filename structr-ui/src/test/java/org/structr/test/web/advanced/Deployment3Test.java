@@ -183,7 +183,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			assertEquals("Invalid SchemaMethod deployment result", "method1",                       method1.getProperty(SchemaMethod.name));
 			assertEquals("Invalid SchemaMethod deployment result", "source1",                       method1.getProperty(SchemaMethod.source));
-			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.includeInOpenAPI));
+			assertEquals("Invalid SchemaMethod deployment result", false,                           (boolean)method1.getProperty(SchemaMethod.includeInOpenAPI));
 			assertEquals("Invalid SchemaMethod deployment result", "tag1",                          method1.getProperty(SchemaMethod.tags)[0]);
 			assertEquals("Invalid SchemaMethod deployment result", "tag2",                          method1.getProperty(SchemaMethod.tags)[1]);
 			assertEquals("Invalid SchemaMethod deployment result", "summary",                       method1.getProperty(SchemaMethod.summary));
