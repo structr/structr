@@ -145,7 +145,7 @@ public class Deployment3Test extends DeploymentTestBase {
 				new NodeAttribute<>(SchemaMethod.schemaNode,                  testType),
 				new NodeAttribute<>(SchemaMethod.name,                        "method1"),
 				new NodeAttribute<>(SchemaMethod.source,                      "source1"),
-				new NodeAttribute<>(SchemaMethod.includeInOpenAPI,            true),
+				new NodeAttribute<>(SchemaMethod.includeInOpenAPI,            false),
 				new NodeAttribute<>(SchemaMethod.tags,                        new String[] { "tag1", "tag2" }),
 				new NodeAttribute<>(SchemaMethod.summary,                     "summary"),
 				new NodeAttribute<>(SchemaMethod.description,                 "description"),
