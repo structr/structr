@@ -322,7 +322,7 @@ public class SchemaTest extends StructrTest {
 			project.addDateProperty("startDate", "public", "ui");
 
 			// methods
-			project.addMethod("onCreate", "set(this, 'name', 'wurst')");
+			project.addMethod("onCreate", "set(this, 'name', 'wurst')").setIsPrivate(true);
 
 
 
