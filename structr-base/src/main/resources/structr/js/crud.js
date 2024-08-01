@@ -443,6 +443,11 @@ let _Crud = {
 				}
 			});
 
+			// fall back to public view if saved view does not exist (anymore)
+			if (!Object.keys(_Crud.availableViews[type]).includes(_Crud.view[type])) {
+				_Crud.view[type] = 'public';
+			}
+
 			_Crud.determinePagerData(type);
 
 			let pagerNode = _Crud.addPager(type, crudRight);
