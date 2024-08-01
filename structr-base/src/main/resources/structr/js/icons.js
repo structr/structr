@@ -492,7 +492,7 @@ let _Icons = {
 
 		return _Icons.iconSchemaPropertyString;
 	},
-	getSvgIconForContentNode: (content, initialClasses = []) => {
+	getSvgIconForContentNode: (content, initialClasses = [], title) => {
 
 		let isComment    = (content.type === 'Comment');
 		let isTemplate   = (content.type === 'Template');
@@ -501,44 +501,44 @@ let _Icons = {
 
 		if (isComment) {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMCommentElement, 16, 16, ['icon-grey', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMCommentElement, 16, 16, ['icon-grey', ...initialClasses], title);
 
 		} else if (isTemplate) {
 
 			if (isComponent) {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
 			} else if (isActiveNode) {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], content.getActiveNodeInfoAsString());
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses], title);
 			}
 
 		} else {
 
 			if (isComponent) {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
 			} else if (isActiveNode) {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses], title);
 			}
 		}
 	},
-	getSvgIconForElementNode: (element, initialClasses = []) => {
+	getSvgIconForElementNode: (element, initialClasses = [], title) => {
 		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
 		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
 
 		if (isActiveNode) {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMTreeActiveElement, 16, 16, ['typeIcon', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeActiveElement, 16, 16, ['typeIcon', ...initialClasses], element.getActiveNodeInfoAsString());
 
 		} else if (isComponent) {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-yellow', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-yellow', ...initialClasses], title);
 
 		} else {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-transparent', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-transparent', ...initialClasses], title);
 		}
 	},
 	getSvgIconForMessageClass: (messageClass) => {

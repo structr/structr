@@ -390,7 +390,7 @@ let StructrModel = {
 			let iconEl = element.children('.typeIcon');
 			if (element.hasClass('element')) {
 
-				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? [_Icons.typeIconClassNoChildren] : []);
+				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? [_Icons.typeIconClassNoChildren] : [], obj.getActiveNodeInfoAsString());
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('content')) {
@@ -400,7 +400,7 @@ let StructrModel = {
 					iconClasses.push(_Icons.typeIconClassNoChildren)
 				}
 
-				icon   = _Icons.getSvgIconForContentNode(obj, iconClasses);
+				icon   = _Icons.getSvgIconForContentNode(obj, iconClasses, obj.getActiveNodeInfoAsString());
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('file')) {
@@ -913,6 +913,56 @@ StructrElement.prototype.isActiveNode = function() {
 		;
 };
 
+StructrElement.prototype.getActiveNodeInfo = function() {
+
+	let list = [];
+
+	if (this.hideOnIndex) {
+		list.push('Hidden on index');
+	}
+	if (this.hideOnDetail) {
+		list.push('Hidden on detail');
+	}
+	if (this.hideConditions) {
+		list.push('Has hide condition');
+	}
+	if (this.showConditions) {
+		list.push('Has show condition');
+	}
+	if (this.dataKey) {
+		list.push('Has data key in repeater configuration');
+	}
+	if (this.restQuery) {
+		list.push('Has REST query in repeater configuration');
+	}
+	if (this.cypherQuery) {
+		list.push('Has cypher query in repeater configuration');
+	}
+	if (this.xpathQuery) {
+		list.push('Has XPath query in repeater configuration');
+	}
+	if (this.functionQuery) {
+		list.push('Has function query in repeater configuration');
+	}
+	if (this["data-structr-id"]) {
+		list.push('Has populated data-structr-id attribute');
+	}
+	if (this["eventMapping"]) {
+		list.push('Has event mapping');
+	}
+	if ((this["triggeredActions"] ?? []).length > 0) {
+		list.push('Has triggered actions');
+	}
+	return list;
+};
+
+StructrElement.prototype.getActiveNodeInfoAsString = function() {
+
+	let list = this.getActiveNodeInfo();
+
+	return list.map(s => '- ' + s).join('\n');
+};
+
 /**************************************
  * Structr Content
  **************************************/
@@ -986,6 +1036,56 @@ StructrContent.prototype.exists = function() {
 
 StructrContent.prototype.isActiveNode = function() {
 	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
+};
+
+StructrContent.prototype.getActiveNodeInfo = function() {
+
+	let list = [];
+
+	if (this.hideOnIndex) {
+		list.push('Hidden on index');
+	}
+	if (this.hideOnDetail) {
+		list.push('Hidden on detail');
+	}
+	if (this.hideConditions) {
+		list.push('Has hide condition');
+	}
+	if (this.showConditions) {
+		list.push('Has show condition');
+	}
+	if (this.dataKey) {
+		list.push('Has data key in repeater configuration');
+	}
+	if (this.restQuery) {
+		list.push('Has REST query in repeater configuration');
+	}
+	if (this.cypherQuery) {
+		list.push('Has cypher query in repeater configuration');
+	}
+	if (this.xpathQuery) {
+		list.push('Has XPath query in repeater configuration');
+	}
+	if (this.functionQuery) {
+		list.push('Has function query in repeater configuration');
+	}
+	if (this["data-structr-id"]) {
+		list.push('Has populated data-structr-id attribute');
+	}
+	if (this["eventMapping"]) {
+		list.push('Has event mapping');
+	}
+	if ((this["triggeredActions"] ?? []).length > 0) {
+		list.push('Has triggered actions');
+	}
+	return list;
+};
+
+StructrContent.prototype.getActiveNodeInfoAsString = function() {
+
+	let list = this.getActiveNodeInfo();
+
+	return list.map(s => '- ' + s).join('\n');
 };
 
 /**************************************
