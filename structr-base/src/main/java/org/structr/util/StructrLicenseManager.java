@@ -35,6 +35,7 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -386,13 +387,6 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		// verify that the license is valid for the current date
-		if (licenseExpired(licenseEndDate)) {
-
-			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(licenseEndDate.getTime()));
-			return false;
-		}
-
 		try {
 
 			final byte[] data      = src.getBytes(CharSet);
@@ -450,12 +444,6 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		if (StringUtils.isEmpty(endDateString)) {
-
-			logger.error("License file doesn't contain end date.");
-			return false;
-		}
-
 		// verify host ID
 		if (!thisHostId.equals(hostId) && !"*".equals(hostId)) {
 
@@ -477,6 +465,8 @@ public class StructrLicenseManager implements LicenseManager {
 				return checkVolumeLicense(properties, serversString);
 			}
 
+			// if we end up here, the license is an evaluation license (host ID "*" but no license server(s) set)
+
 			final Calendar issuedAtPlusOneMonth = GregorianCalendar.getInstance();
 			final Calendar cal                  = GregorianCalendar.getInstance();
 
@@ -487,7 +477,16 @@ public class StructrLicenseManager implements LicenseManager {
 			// check that the license file was issued not more than one month ago
 			if (cal.after(issuedAtPlusOneMonth)) {
 
-				logger.error("Development license found in license file is not valid any more, license period ended {}.", format.format(issuedAtPlusOneMonth.getTime()));
+				logger.error("Evaluation license found in license file is not valid any more, license period ended {}.", format.format(issuedAtPlusOneMonth.getTime()));
+				return false;
+			}
+
+		} else {
+
+			// verify that the license is valid for the current date
+			if (licenseExpired(licenseEndDate)) {
+
+				logger.error("License found in license file is not valid any more, license period ended {}.", format.format(licenseEndDate.getTime()));
 				return false;
 			}
 		}
@@ -702,7 +701,11 @@ public class StructrLicenseManager implements LicenseManager {
 		properties.put(NameKey,    name.trim());
 		properties.put(DateKey,    format.format(System.currentTimeMillis()));
 		properties.put(StartKey,   start.trim());
-		properties.put(EndKey,     end.trim());
+
+		// end date in license file is now optional
+		if (end != null) {
+			properties.put(EndKey, end.trim());
+		}
 		properties.put(EditionKey, edition.trim());
 		properties.put(ModulesKey, modules.trim());
 		properties.put(MachineKey, hostId.trim());
@@ -780,6 +783,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 			final KeyGenerator kgen = KeyGenerator.getInstance("AES");
 			final byte[] data       = write(properties).getBytes("utf-8");
+			final String endDate    = properties.get(EndKey);
 			final String name       = properties.get(NameKey);
 			final byte[] expected   = name.getBytes("utf-8");
 
@@ -801,7 +805,7 @@ public class StructrLicenseManager implements LicenseManager {
 						final byte[] key           = encryptSessionKey(aesKey.getEncoded());
 						final byte[] encryptedIV   = encryptSessionKey(ivspec);
 						final byte[] encryptedData = encryptData(data, aesKey, ivspec);
-						final byte[] response      = sendAndReceive(address, key, encryptedIV, encryptedData);
+						final byte[] response      = sendAndReceive(address, key, encryptedIV, encryptedData, endDate == null);
 						final boolean result       = verify(expected, response);
 
 						if (result == true) {
@@ -843,20 +847,20 @@ public class StructrLicenseManager implements LicenseManager {
 		return cipher.doFinal(sessionKey);
 	}
 
-	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
+	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data, final boolean readEndDate) {
 
 		if (address != null && address.toLowerCase().startsWith("http://")) {
 
-			return sendAndReceiveHttp(address, key, ivspec, data);
+			return sendAndReceiveHttp(address, key, ivspec, data, readEndDate);
 
 		} else {
 
-			return sendAndReceiveBinary(address, key, ivspec, data);
+			return sendAndReceiveBinary(address, key, ivspec, data, readEndDate);
 		}
 
 	}
 
-	private byte[] sendAndReceiveBinary(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
+	private byte[] sendAndReceiveBinary(final String address, final byte[] key, final byte[] ivspec, final byte[] data, final boolean readEndDate) {
 
 		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
 		final int retries             = 3;
@@ -866,23 +870,34 @@ public class StructrLicenseManager implements LicenseManager {
 
 			final byte[] result = new byte[256];
 
-			try(final Socket socket = new java.net.Socket(address, ServerPort)) {
+			try (final Socket socket = new java.net.Socket(address, ServerPort)) {
 
-				socket.getOutputStream().write(key);
-				socket.getOutputStream().flush();
+				try (final OutputStream os = socket.getOutputStream()) {
 
-				socket.getOutputStream().write(ivspec);
-				socket.getOutputStream().flush();
+					os.write(key);
+					os.flush();
 
-				socket.getOutputStream().write(data);
-				socket.getOutputStream().flush();
+					os.write(ivspec);
+					os.flush();
 
-				socket.setSoTimeout(timeoutMilliseconds);
+					os.write(data);
+					os.flush();
 
-				// read exactly 256 bytes (size of expected signature response)
-				socket.getInputStream().read(result, 0, 256);
+					socket.setSoTimeout(timeoutMilliseconds);
 
-				return result;
+					try (final InputStream is = socket.getInputStream()) {
+
+						// read exactly 256 bytes (size of expected signature response)
+						is.read(result, 0, 256);
+
+						if (readEndDate) {
+
+							endDate = parseDate(new String(is.readNBytes(10), StandardCharsets.UTF_8));
+						}
+
+						return result;
+					}
+				}
 
 			} catch (ConnectException cex) {
 
@@ -908,7 +923,7 @@ public class StructrLicenseManager implements LicenseManager {
 		return null;
 	}
 
-	private byte[] sendAndReceiveHttp(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
+	private byte[] sendAndReceiveHttp(final String address, final byte[] key, final byte[] ivspec, final byte[] data, final boolean readEndDate) {
 
 		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
 		final int retries             = 3;
@@ -924,14 +939,17 @@ public class StructrLicenseManager implements LicenseManager {
 				final int proxyPort = Settings.HttpProxyPort.getValue(80);
 
 				if (StringUtils.isNotBlank(proxyUrl)) {
+
 					logger.info("Using configured Proxy {}:{} for license check request", proxyUrl, proxyPort);
-					Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl, proxyPort));
-					connection = url.openConnection(proxy);
+
+					connection = url.openConnection(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl, proxyPort)));
+
  				} else {
+
 					connection = url.openConnection();
 				}
 
-				final HttpURLConnection http   = (HttpURLConnection)connection;
+				final HttpURLConnection http = (HttpURLConnection)connection;
 
 				http.setDoInput(true);
 				http.setDoOutput(true);
@@ -952,13 +970,20 @@ public class StructrLicenseManager implements LicenseManager {
 				http.getOutputStream().flush();
 				http.getOutputStream().close();
 
-				// read response
-				final byte[] response = http.getInputStream().readNBytes(256);
+				try (final InputStream is = http.getInputStream()) {
 
-				http.getInputStream().close();
-				http.disconnect();
+					// read response
+					final byte[] response = is.readNBytes(256);
 
-				return response;
+					if (readEndDate) {
+
+						endDate = parseDate(new String(is.readNBytes(10), StandardCharsets.UTF_8));
+					}
+
+					http.disconnect();
+
+					return response;
+				}
 
 			} catch (MalformedURLException | ProtocolException mex) {
 
@@ -973,7 +998,7 @@ public class StructrLicenseManager implements LicenseManager {
 				logger.warn("Unable to verify volume license: {}, attempt {} of {}", cex.getMessage(), (i+1), retries);
 
 				// wait some time..
-				try { Thread.sleep(1234 * i); } catch (Throwable t) {}
+				try { Thread.sleep(1234 * (i+1)); } catch (Throwable t) {}
 
 				if ((i+1) == retries) {
 					throw new RuntimeException("no connection to license server");
@@ -1041,10 +1066,10 @@ public class StructrLicenseManager implements LicenseManager {
 				outFile = "license.key";
 			}
 
-			if (name == null || start == null || end == null || edition == null || modules == null || hostId == null || keystore == null || password == null) {
+			if (name == null || start == null /*|| end == null*/ || edition == null || modules == null || hostId == null || keystore == null || password == null) {
 
 				success = false;
-				logger.warn("Cannot create license file, missing parameter. Parameters are: name, start, end, edition, modules, machine, keystore, password, outFile (optional).");
+				logger.warn("Cannot create license file, missing parameter. Parameters are: name, start, edition, modules, machine, keystore, password, outFile (optional).");
 
 			} else {
 
