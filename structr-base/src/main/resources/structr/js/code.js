@@ -3061,14 +3061,14 @@ let _Code = {
 							</label>
 						</div>
 						<div class="method-config-element entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via REST</strong>.<br>Lifecycle methods can never be called via REST.">
-								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via REST
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
 							</label>
 						</div>
 					</div>
 					<div>
 						<div class="method-config-element entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to REST calls to this method.">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
 								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
 							</label>
 						</div>
