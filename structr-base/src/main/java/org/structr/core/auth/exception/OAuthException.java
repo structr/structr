@@ -18,7 +18,6 @@
  */
 package org.structr.core.auth.exception;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
 
@@ -27,7 +26,17 @@ import org.structr.common.error.FrameworkException;
  */
 public class OAuthException extends FrameworkException {
 
-	public OAuthException(final String message) {
+	private boolean isSilent;
+
+	public OAuthException(final String message, final boolean isSilent) {
+
 		super(HttpServletResponse.SC_NOT_IMPLEMENTED, message);
+
+		this.isSilent = isSilent;
+	}
+
+	public boolean isSilent() {
+
+		return isSilent;
 	}
 }

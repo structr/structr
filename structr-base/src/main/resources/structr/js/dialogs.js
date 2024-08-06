@@ -123,7 +123,7 @@ let _Dialogs = {
 				iconId: _Icons.iconLogoLinkedIn
 			}
 		],
-		getSSOUriForURIPart: (uripart, withLoginIndicator = false) => `/oauth/${uripart}/login${withLoginIndicator ? '?isBackendOAuthLogin' : ''}`,
+		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
 		isOpen: () => {
 			let loginElement = document.querySelector('#login');
 			return (loginElement != null && loginElement.offsetParent !== null);

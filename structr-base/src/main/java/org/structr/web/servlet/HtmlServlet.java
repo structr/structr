@@ -182,6 +182,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
+
+			} catch (final OAuthException oae) {
+
+				if (!oae.isSilent()) {
+
+					logger.error("{}", oae.getMessage());
+				}
+
+				UiAuthenticator.writeFrameworkException(response, oae);
+
+				return;
 			}
 
 			app = StructrApp.getInstance(securityContext);
@@ -531,11 +542,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			} catch (FrameworkException fex) {
 				logger.error("Exception while processing request: {}", fex.getMessage());
 			}
-
-		} catch (OAuthException oae) {
-
-			logger.error("{}", oae.getMessage());
-			UiAuthenticator.writeFrameworkException(response, oae);
 
 		} catch (FrameworkException fex) {
 

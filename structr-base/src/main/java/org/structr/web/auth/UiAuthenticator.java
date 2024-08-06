@@ -593,13 +593,17 @@ public class UiAuthenticator implements Authenticator {
 					oAuth2Client = new AzureAuthClient(request);
 					break;
 				default:
+
 					logger.error("Unable to initialize oAuth2Client for provider {}", name);
 					return null;
 			}
 
 		} catch (IllegalArgumentException iae) {
 
-			throw new OAuthException("Unable to initialize OAuth client '" + name + "': " + iae.getMessage());
+			// always throw exception, but handle it silently for backend SSO probes
+			final boolean treatSilently = (request.getParameter(BACKEND_SSO_LOGIN_INDICATOR) != null);
+
+			throw new OAuthException("Unable to initialize OAuth client '" + name + "': " + iae.getMessage(), treatSilently);
 		}
 
 		if ("login".equals(action)) {
