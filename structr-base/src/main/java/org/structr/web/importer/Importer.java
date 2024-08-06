@@ -207,7 +207,7 @@ public class Importer {
 
 		init();
 
-		if (StringUtils.isNotBlank(code)) {
+		if (StringUtils.isNotBlank(code) || StringUtils.isBlank(address)) {
 
 			if (isDeployment) {
 
