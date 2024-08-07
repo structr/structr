@@ -185,14 +185,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			} catch (final OAuthException oae) {
 
+				response.setStatus(oae.getStatus());
+
+				securityContext = SecurityContext.getInstance(null, request, AccessMode.Frontend);
+
 				if (!oae.isSilent()) {
 
 					logger.error("{}", oae.getMessage());
 				}
-
-				UiAuthenticator.writeFrameworkException(response, oae);
-
-				return;
 			}
 
 			app = StructrApp.getInstance(securityContext);
@@ -223,7 +223,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					// Don't cache if a user is logged in
 					dontCache = true;
-
 				}
 
 				RuntimeEventLog.http(path, user);
@@ -231,55 +230,71 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 				final EditMode edit               = renderContext.getEditMode(user);
 
-				DOMNode rootElement = null;
+				DOMNode rootElement   = null;
 				AbstractNode dataNode = null;
 
 				final String[] uriParts = PathHelper.getParts(path);
 
-				if (uriParts == null) {
-					logger.error("URI parts array is null, shouldn't happen.");
-					throw new FrameworkException(500, "URI parts array is null, shouldn't happen.");
+				if (response.getStatus() != HttpServletResponse.SC_OK) {
+
+					// response already has non-200 status. checking for existing error pages
+					rootElement = getErrorPageForStatus(response, securityContext);
+
+					if (rootElement == null) {
+
+						// did not find error page and the status was already set -> send the error response
+						tx.success();
+						return;
+					}
 				}
 
-				if (uriParts.length == 0) {
+				if (rootElement == null) {
 
-					logger.debug("No path supplied, trying to find index page");
-
-					// find a visible page
-					rootElement = findIndexPage(securityContext, edit);
-
-				} else {
-
-					// special optimization for UUID-addressed partials
-					if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
-
-						final AbstractNode node = findNodeByUuid(securityContext, uriParts[0]);
-						if (node != null && node instanceof DOMElement) {
-
-							rootElement = (DOMElement) node;
-
-							renderContext.setIsPartialRendering(true);
-						}
+					if (uriParts == null) {
+						logger.error("URI parts array is null, shouldn't happen.");
+						throw new FrameworkException(500, "URI parts array is null, shouldn't happen.");
 					}
 
-					if (rootElement == null) {
+					if (uriParts.length == 0) {
 
-						// check dynamic paths
-						rootElement = PagePaths.findPageAndResolveParameters(renderContext, path);
-					}
+						logger.debug("No path supplied, trying to find index page");
 
-					if (rootElement == null) {
-
-						rootElement = findPage(securityContext, path, edit);
-
-						// special case where path is defined as "/custom/path" and request URI is "/custom/path/"
-						if (rootElement == null && path.endsWith("/")) {
-							rootElement = findPage(securityContext, path.substring(0, path.length() - 1), edit);
-						}
+						// find a visible page
+						rootElement = findIndexPage(securityContext, edit);
 
 					} else {
 
-						dontCache = true;
+						// special optimization for UUID-addressed partials
+						if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
+
+							final AbstractNode node = findNodeByUuid(securityContext, uriParts[0]);
+							if (node != null && node instanceof DOMElement) {
+
+								rootElement = (DOMElement) node;
+
+								renderContext.setIsPartialRendering(true);
+							}
+						}
+
+						if (rootElement == null) {
+
+							// check dynamic paths
+							rootElement = PagePaths.findPageAndResolveParameters(renderContext, path);
+						}
+
+						if (rootElement == null) {
+
+							rootElement = findPage(securityContext, path, edit);
+
+							// special case where path is defined as "/custom/path" and request URI is "/custom/path/"
+							if (rootElement == null && path.endsWith("/")) {
+								rootElement = findPage(securityContext, path.substring(0, path.length() - 1), edit);
+							}
+
+						} else {
+
+							dontCache = true;
+						}
 					}
 				}
 
@@ -999,6 +1014,23 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		response.sendError(HttpServletResponse.SC_NOT_FOUND);
+
+		return null;
+	}
+
+	private Page getErrorPageForStatus(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
+
+		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(StructrApp.key(Page.class, "showOnErrorCodes"), "" + response.getStatus(), false).getAsList();
+
+		for (final Page errorPage : errorPages) {
+
+			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
+
+				return errorPage;
+			}
+		}
+
+		response.sendError(response.getStatus());
 
 		return null;
 	}
