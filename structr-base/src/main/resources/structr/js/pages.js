@@ -1413,9 +1413,11 @@ let _Pages = {
 
 		let successNotificationsSelect       = container.querySelector('#success-notifications-select');
 		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
+		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input')
 
 		let failureNotificationsSelect       = container.querySelector('#failure-notifications-select');
 		let failureNotificationsPartialInput = container.querySelector('#failure-notifications-custom-dialog-input');
+		let failureNotificationsEventInput   = container.querySelector('#failure-notifications-fire-event-input')
 
 		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
@@ -1608,9 +1610,11 @@ let _Pages = {
 
 			successNotificationsSelect.value       = actionMapping.successNotifications;
 			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
+			successNotificationsEventInput.value   = actionMapping.successNotificationsEvent;
 
 			failureNotificationsSelect.value       = actionMapping.failureNotifications;
 			failureNotificationsPartialInput.value = actionMapping.failureNotificationsPartial;
+			failureNotificationsEventInput.value   = actionMapping.failureNotificationsEvent;
 
 			successBehaviourSelect.value           = actionMapping.successBehaviour;
 			successPartialRefreshInput.value       = actionMapping.successPartial;
@@ -1998,8 +2002,10 @@ let _Pages = {
 				idExpression:                idExpressionInput.value,
 				successNotifications:        successNotificationsSelect.value,
 				successNotificationsPartial: successNotificationsPartialInput.value,
+				successNotificationsEvent:   successNotificationsEventInput.value,
 				failureNotifications:        failureNotificationsSelect.value,
 				failureNotificationsPartial: failureNotificationsPartialInput.value,
+				failureNotificationsEvent:   failureNotificationsEventInput.value,
 				successBehaviour:            successBehaviourSelect?.value,
 				successPartial:              successPartialRefreshInput?.value,
 				successURL:                  successNavigateToURLInput?.value,
