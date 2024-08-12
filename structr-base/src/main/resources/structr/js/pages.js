@@ -1413,11 +1413,11 @@ let _Pages = {
 
 		let successNotificationsSelect       = container.querySelector('#success-notifications-select');
 		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
-		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input')
+		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input');
 
 		let failureNotificationsSelect       = container.querySelector('#failure-notifications-select');
 		let failureNotificationsPartialInput = container.querySelector('#failure-notifications-custom-dialog-input');
-		let failureNotificationsEventInput   = container.querySelector('#failure-notifications-fire-event-input')
+		let failureNotificationsEventInput   = container.querySelector('#failure-notifications-fire-event-input');
 
 		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');

@@ -710,7 +710,7 @@ let _Files = {
 		// store current folder id so we can filter slow requests
 		_Files.getFolderContentsElement().dataset['currentFolder'] = id;
 
-		let handleChildren = (children) => {
+		let handleFileChildren = (children) => {
 
 			let currentFolder = _Files.getFolderContentsElement().dataset['currentFolder'];
 
@@ -736,7 +736,7 @@ let _Files = {
 			}).then(async response => {
 				if (response.ok) {
 					let data = await response.json();
-					handleChildren(data.result);
+					handleFileChildren(data.result);
 				}
 			});
 
@@ -744,7 +744,7 @@ let _Files = {
 
 			let handleFolderChildren = (folders) => {
 
-				handleChildren(folders);
+				handleFileChildren(folders);
 
 				_Files.registerFolderLinks();
 			};
@@ -762,7 +762,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, _Files.defaultFileAttributes, true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = filesPager.el.querySelectorAll('.node.file');
@@ -995,7 +995,22 @@ let _Files = {
 
 			_Helpers.fastRemoveElement(tableBody.querySelector(`#${rowId}`));
 
-			tableBody.appendChild(row);
+			// folders are appended after last folder, files are appended at the end
+			if (d.isFile || !tableBody.hasChildNodes()) {
+				tableBody.appendChild(row);
+			} else {
+
+				let lastFolder = [...tableBody.querySelectorAll('.is-folder')].pop()?.closest('tr');
+
+				if (lastFolder) {
+
+					lastFolder.insertAdjacentElement("afterend", row);
+
+				} else {
+
+					tableBody.insertBefore(row, tableBody.firstElementChild);
+				}
+			}
 
 			_Elements.contextMenu.enableContextMenuOnElement(row, d);
 
@@ -1037,7 +1052,22 @@ let _Files = {
 
 			_Helpers.fastRemoveElement(tilesContainer.querySelector(`#${tileId}`));
 
-			tilesContainer.appendChild(tile);
+			// folders are appended after last folder, files are appended at the end
+			if (d.isFile || !tilesContainer.hasChildNodes()) {
+				tilesContainer.appendChild(tile);
+			} else {
+
+				let lastFolder = [...tilesContainer.querySelectorAll('.folder')].pop()?.closest('.tile');
+
+				if (lastFolder) {
+
+					lastFolder.insertAdjacentElement("afterend", tile);
+
+				} else {
+
+					tilesContainer.insertBefore(tile, tilesContainer.firstElementChild);
+				}
+			}
 
 			_Elements.contextMenu.enableContextMenuOnElement(tile, d);
 		}

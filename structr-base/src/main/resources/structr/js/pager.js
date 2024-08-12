@@ -117,7 +117,7 @@ let _Pager = {
 
 		return false;
 	},
-	addPager: (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, startPaused) => {
+	addPager: (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, startPaused, useHTTP = false) => {
 
 		let pager = new Pager(id, el, rootOnly, type, view, callback, startPaused);
 
@@ -148,7 +148,43 @@ let _Pager = {
 						filterAttrs['!type'] = 'ShadowDocument';
 					}
 
-					Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
+					if (useHTTP === false) {
+
+						Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
+
+					} else {
+
+						let prefix = (Structr.legacyRequestParameters === true) ? '' : '_';
+						let params = Object.assign({
+							[prefix + 'sort']:     _Pager.sortKey[id],
+							[prefix + 'order']:    _Pager.sortOrder[id],
+							[prefix + 'pageSize']: _Pager.pageSize[id],
+							[prefix + 'page']:     _Pager.page[id],
+							[prefix + 'loose']:    1
+						}, filterAttrs);
+
+						let url = Structr.rootUrl + pager.getType() + '/' + view + '?' + new URLSearchParams(params).toString();
+						let fetchConfig = {};
+
+						if (customView) {
+							fetchConfig['headers'] = {
+								'Accept': 'application/json; properties=' + customView
+							};
+						}
+
+						fetch(url, fetchConfig).then(response => response.json()).then(data => {
+
+							let resultCount = data.result_count;
+
+							// handle new soft-limited REST result without counts
+							if (data.result_count === undefined && data.page_count === undefined) {
+								resultCount = _Crud.getSoftLimitedResultCount();
+								_Crud.showSoftLimitAlert($('input.pageCount'));
+							}
+
+							pager.internalCallback(data.result, resultCount);
+						});
+					}
 				}
 			}
 		};
@@ -181,6 +217,10 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 
 	if (typeof _Pager.pagerFilters[this.id] !== 'object') {
 		_Pager.pagerFilters[this.id] = {};
+	}
+
+	this.getType = () => {
+		return this.type;
 	}
 
 	this.isPaused = () => {
