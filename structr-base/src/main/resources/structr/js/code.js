@@ -33,6 +33,9 @@ let _Code = {
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
+	methodsFetchExampleStateKey: 'methodsFetchExampleStateKey_' + location.port,
+	methodsCurlExampleStateKey: 'methodsCurlExampleStateKey_' + location.port,
+	methodsScriptingExampleStateKey: 'methodsScriptingExampleStateKey_' + location.port,
 	additionalDirtyChecks: [],
 	defaultPageSize: 10000,
 	defaultPage: 1,
@@ -1388,9 +1391,9 @@ let _Code = {
 	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI,index,exampleValue,parameterType', (result) => {
 
-			let isCallableViaREST   = (result.isPrivate !== true);
+			let isCallableViaHTTP   = (result.isPrivate !== true);
 			let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
 			let isStaticMethod      = result.isStatic;
 
@@ -1491,11 +1494,13 @@ let _Code = {
 			let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
 			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
-			 if (_Code.shouldHideOpenAPITabForMethod(result)) {
+			if (_Code.shouldHideOpenAPITabForMethod(result)) {
 
 				$('li[data-name=api]').hide();
 
-				lastOpenTab = 'source';
+				if (lastOpenTab === 'api') {
+					lastOpenTab = 'source';
+				}
 
 			} else {
 
@@ -1551,18 +1556,15 @@ let _Code = {
 					_Code.updateDirtyFlag(result);
 				};
 
-				Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', { schemaMethod: result.id }, (parameters) => {
+				result.parameters.sort((p1, p2) => (p1.index ?? 0) - (p2.index ?? 0));
 
-					_Code.additionalDirtyChecks.push(() => {
-						return _Code.schemaMethodParametersChanged(parameters);
-					});
+				for (let p of result.parameters) {
+					addParameterRow(p);
+				}
 
-					for (let p of parameters) {
-
-						addParameterRow(p);
-					}
-
-				}, true, null, 'index,name,parameterType,description,exampleValue');
+				_Code.additionalDirtyChecks.push(() => {
+					return _Code.schemaMethodParametersChanged(result.parameters);
+				});
 
 				$('#add-parameter-button').on('click', () => { addParameterRow(); });
 
@@ -1595,13 +1597,125 @@ let _Code = {
 				_Helpers.activateCommentsInElement(apiTab[0]);
 			}
 
+			if (_Code.shouldHideAPIExampleTabForMethod(result)) {
+
+				$('li[data-name=api-examples]').hide();
+
+				if (lastOpenTab === 'api-examples') {
+					lastOpenTab = 'source';
+				}
+
+			} else {
+
+				let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-examples');
+
+				let exampleData = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
+				let isGet       = (result.httpVerb.toLowerCase() === 'get');
+				let isStatic    = (result.isStatic === true);
+				let url         = `${_Code.getURLForSchemaMethod(result, true)}${(isGet ? `?${(new URLSearchParams(exampleData)).toString()}` : '' )}`;
+
+				let getFetchParts = () => {
+
+					if (isGet) {
+
+						return [
+							`fetch('${url}').then(response => {`,
+							'	// handle response',
+							'	console.log(response);',
+							'})'
+						];
+
+					} else {
+
+						return [
+							`let data = ${JSON.stringify(exampleData, undefined, '\t')};`,
+							'',
+							`fetch('${_Code.getURLForSchemaMethod(result, true)}', {`,
+							`	method: '${result.httpVerb.toUpperCase()}',`,
+							'	body: JSON.stringify(data)',
+							'}).then(response => {',
+							'	// handle response',
+							'	console.log(response);',
+							'})'
+						];
+					}
+				};
+
+				let getCurlParts = () => {
+					let curlParts = [
+						`curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}"`
+					];
+					if (!isGet) {
+						curlParts.push(`-d '${JSON.stringify(exampleData)}'`);
+					}
+					return curlParts;
+				};
+
+				let getScriptingParts = () => {
+
+					if (isStatic) {
+
+						return [
+							'${{',
+							`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`,
+							`	let result     = $.${result.schemaNode.name}.${result.name}(parameters);`,
+							'}}'
+						];
+
+					} else {
+
+						return [
+							'${{',
+							`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`,
+							'',
+							`	// a) this instance method can be called from anywhere by looking up a specific node of type "${result.schemaNode.name}" by UUID (or any other means)`,
+							`	let myInstanceUUID = '<b>INSTANCE_UUID</b>';`,
+							`	let nodeInstance   = $.find('${result.schemaNode.name}', myInstanceUUID);`,
+							`	let resultOne      = nodeInstance.${result.name}(parameters);`,
+							'',
+							'',
+							`	// b) this instance method can be called if the current scripting context is already a node of type "${result.schemaNode.name}". Then we can use $.this`,
+							`	let resultTwo = $.this.${result.name}(parameters);`,
+							'}}'
+						];
+
+					}
+				}
+
+				let templateConfig = {
+					type: result.type,
+					method: result,
+					exampleData: exampleData,
+					fetchExample: getFetchParts().join('\n'),
+					curlExample: getCurlParts().join(' \\\n\t'),
+					scriptingExample: getScriptingParts().join('\n')
+				};
+				apiExamplesTab.insertAdjacentHTML('beforeend', _Code.templates.schemaMethodAPIExamples(templateConfig));
+
+				apiExamplesTab.querySelector('#fetch-example')?.addEventListener('toggle', (e) => {
+					LSWrapper.setItem(_Code.methodsFetchExampleStateKey, e.newState);
+				});
+
+				apiExamplesTab.querySelector('#curl-example')?.addEventListener('toggle', (e) => {
+					LSWrapper.setItem(_Code.methodsCurlExampleStateKey, e.newState);
+				});
+
+				apiExamplesTab.querySelector('#scripting-example')?.addEventListener('toggle', (e) => {
+					LSWrapper.setItem(_Code.methodsScriptingExampleStateKey, e.newState);
+				});
+			}
+
 			// default buttons
 			_Code.runCurrentEntitySaveAction = () => {
 
 				let storeParametersInFormDataFunction = (formData) => {
+
 					let parametersData = _Code.collectSchemaMethodParameters();
 
-					formData['parameters'] = parametersData;
+					if (parametersData !== null) {
+
+						formData['parameters'] = parametersData;
+					}
 				};
 
 				let afterSaveCallback = () => {
@@ -1630,8 +1744,8 @@ let _Code = {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
-			// run button (for user-defined functions and static methods which are callable via REST)
-			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaREST) {
+			// run button (for user-defined functions and static methods which are callable via HTTP)
+			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
@@ -1678,7 +1792,18 @@ let _Code = {
 	},
 	shouldHideOpenAPITabForMethod: (entity) => {
 
-		return entity.codeType === 'java' || LifecycleMethods.isLifecycleMethod(entity);
+		let isJavaMethod         = (entity.codeType === 'java');
+		let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
+		let isNotCallableViaHTTP = (entity.isPrivate === true);
+
+		return isJavaMethod || isLifecycleMethod || isNotCallableViaHTTP;
+	},
+	shouldHideAPIExampleTabForMethod: (entity) => {
+
+		let isJavaMethod         = (entity.codeType === 'java');
+		let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
+
+		return isJavaMethod || isLifecycleMethod;
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 
@@ -1697,6 +1822,13 @@ let _Code = {
 		}
 	},
 	collectSchemaMethodParameters: () => {
+
+		let container = _Code.codeContents[0].querySelector('#openapi-options');
+		if (container === null) {
+
+			// we are not showing API tab, do not return anything
+			return null;
+		}
 
 		let parametersData = [];
 		for (let formParam of _Code.codeContents[0].querySelectorAll('.method-parameter')) {
@@ -2483,10 +2615,29 @@ let _Code = {
 			}
 		});
 	},
+	getURLForSchemaMethod: (schemaMethod, absolute = true) => {
+
+		let isStatic              = (schemaMethod.isStatic === true);
+		let isUserDefinedFunction = (schemaMethod.schemaNode === null);
+
+		let parts = [];
+
+		if (!isUserDefinedFunction) {
+			parts.push(schemaMethod.schemaNode.name);
+		}
+		if (!isStatic) {
+			parts.push('<b>[INSTANCE_UUID]</b>');
+		}
+
+		parts.push(schemaMethod.name);
+		let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
+
+		return url;
+	},
 	runSchemaMethod: (schemaMethod) => {
 
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
-		let url  = Structr.rootUrl + ((schemaMethod.schemaNode === null) ? '' : schemaMethod.schemaNode.name + '/' ) + schemaMethod.name;
+		let url  = _Code.getURLForSchemaMethod(schemaMethod);
 
 		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
@@ -3089,6 +3240,7 @@ let _Code = {
 				<ul>
 					<li data-name="source">Code</li>
 					<li data-name="api">API</li>
+					<li data-name="api-examples">Examples</li>
 				</ul>
 				<div id="methods-content" class="flex flex-col flex-grow">
 
@@ -3097,6 +3249,9 @@ let _Code = {
 					</div>
 
 					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api">
+					</div>
+					
+					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api-examples">
 					</div>
 
 				</div>
@@ -3190,6 +3345,30 @@ let _Code = {
 				<label class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</label>
 				<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 			</div>
+		`,
+		schemaMethodAPIExamples: config => `
+			
+			<div class="p-2">
+
+				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'fetch-example', stateKey: _Code.methodsFetchExampleStateKey, summary: 'fetch()', text: config.fetchExample }) : ''}
+
+				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'curl-example', stateKey: _Code.methodsCurlExampleStateKey, summary: 'curl', text: config.curlExample }) : ''}
+
+				${_Code.templates.schemaMethodAPIExampleDetail({ id: 'scripting-example', stateKey: _Code.methodsScriptingExampleStateKey, summary: 'Serverside JavaScript Scripting', text: config.scriptingExample })}
+
+			</div>
+		`,
+		schemaMethodAPIExampleDetail: config => `
+
+			<details id="${config.id}" ${LSWrapper.getItem(config.stateKey, 'closed')} class="py-1">
+
+				<summary class="cursor-pointer">${config.summary}</summary>
+
+				<div class="ml-4 my-2 p-4 rounded-md bg-black text-gray-ddd">
+					<div class="whitespace-pre-wrap font-mono">${config.text}</div>
+				</div>
+
+			</details>
 		`,
 		propertiesInherited: config => `
 			<h2>Inherited Attributes of type ${config.data.type}</h2>

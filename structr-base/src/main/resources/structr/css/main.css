@@ -4092,6 +4092,9 @@ ul.combined-input-select-field li:hover {
 	font-size: 2.25rem;
 	line-height: 2.5rem;
 }
+.text-gray-ddd {
+	color: var(--gray-ddd);
+}
 .font-medium {
 	font-weight: 500;
 }
@@ -4219,6 +4222,12 @@ ul.combined-input-select-field li:hover {
 }
 .whitespace-nowrap {
 	white-space: nowrap;
+}
+.whitespace-pre {
+	white-space: pre;
+}
+.whitespace-pre-wrap {
+	white-space: pre-wrap;
 }
 .break-word {
 	word-break: break-word;
@@ -4473,6 +4482,9 @@ ul.combined-input-select-field li:hover {
 	bottom: 0px;
 	left: 0px;
 }
+.bg-black {
+	background-color: var(--solid-black);
+}
 .bg-white {
 	background-color: var(--solid-white);
 }
@@ -4498,4 +4510,7 @@ ul.combined-input-select-field li:hover {
 }
 .no-underline {
 	text-decoration-line: none;
+}
+.font-mono {
+	font-family: var(--font-monospace);
 }
