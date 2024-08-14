@@ -27,7 +27,6 @@ import org.structr.core.api.Arguments;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 
-import javax.swing.*;
 import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -201,7 +200,13 @@ public abstract class PolyglotWrapper {
 					return unwrap(actionContext, value.asHostObject());
 				}
 
+				if (value.isInstant() && value.isTimeZone()) {
+
+					return ZonedDateTime.ofInstant(value.asInstant(), value.asTimeZone());
+				}
+
 				if (value.isDate() && value.isTime() && value.isTimeZone()) {
+
 					return ZonedDateTime.of(LocalDateTime.of(value.asDate(), value.asTime()), value.asTimeZone());
 				}
 
