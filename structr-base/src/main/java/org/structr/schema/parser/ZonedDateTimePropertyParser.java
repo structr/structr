@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import com.caucho.quercus.lib.date.DateTime;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -90,14 +91,18 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
             ZonedDateTime parsedDate = null;
 
             try {
-                parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
-            } catch (DateTimeParseException ex) {}
 
-            if (parsedDate != null) {
-                return parsedDate;
+                parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
+            } catch (DateTimeParseException ignored) {}
+
+            if (parsedDate == null) {
+
+                try {
+                    parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ISO_DATE_TIME);
+                } catch (DateTimeParseException ignored) {}
             }
 
-            return null;
+            return parsedDate;
 
         } else {
 
