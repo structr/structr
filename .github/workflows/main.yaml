@@ -51,7 +51,7 @@ jobs:
 
       - name: Compile and run Tests
         run:  >-
-          mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB && 
+          mvn clean install -q -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
           cd ${{ matrix.module }} && 
           mvn install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
 
