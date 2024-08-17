@@ -12,41 +12,41 @@ This unique combination of low-code and pro-code capabilities makes Structr an e
 
 ## Benefits
 
-See [https://structr.com/product/benefits](https://structr.com/product/benefits).
+See <https://structr.com/product/benefits>.
 
 ## Features
 
-See [https://structr.com/product/features](https://structr.com/product/features).
+See <https://structr.com/product/features>.
 
 ## Download
 
-Download the official binary packages from [https://structr.com/resources/download](https://structr.com/resources/download).
+Download the official binary packages from <https://structr.com/resources/download>.
 
-There are docker images available on [https://hub.docker.com/r/structr/structr/](https://hub.docker.com/r/structr/structr/).
+There are docker images available on <https://hub.docker.com/r/structr/structr/>.
 
-A more versatile setup is described here: [https://github.com/structr/docker-setup](https://github.com/structr/docker-setup)
+A more versatile setup is described here: <https://github.com/structr/docker-setup>
 
 ## Licensing
 
-Structr is dual licensed under the GPLv3/AGPLv3 and a commercial license. To use Structr without the restrictions of the Open Source licenses and get vendor support, please contact us at [https://structr.com/contact](https://structr.com/contact).
+Structr is dual licensed under the GPLv3/AGPLv3 and a commercial license. To use Structr without the restrictions of the Open Source licenses and get vendor support, please contact us at <https://structr.com/contact>.
 
 ## Documentation
 
-The documentation can be found at [https://docs.structr.com/docs](https://docs.structr.com/docs).
+The documentation can be found at <https://docs.structr.com/docs>.
 
 ## Installation and Setup
 
-Prerequisites are the GraalVM 11 JDK. See [https://docs.structr.com/docs/running-structr#installation](https://docs.structr.com/docs/running-structr#installation) for instructions on how to install and start Structr.
+Prerequisites are the GraalVM 11 JDK. See <https://docs.structr.com/docs/running-structr#installation> for instructions on how to install and start Structr.
 
 ## First Login
 
-Login with the default credentials admin/admin at: [http://localhost:8082/structr/](http://localhost:8082/structr/)
+Login with the default credentials admin/admin at: <http://localhost:8082/structr/>
 
 ## Community Support
 
-For general questions and discussions please use the [Structr Google Group](https://groups.google.com/forum/#!forum/structr) or send an e-mail to [structr@googlegroups.com](structr@googlegroups.com).
+For general questions and discussions please use the [Structr Google Group](https://groups.google.com/forum/#!forum/structr) or send an e-mail to <structr@googlegroups.com>.
 
-Technical questions should be asked on stackoverflow: [https://stackoverflow.com/questions/tagged/structr](https://stackoverflow.com/questions/tagged/structr)
+Technical questions should be asked on stackoverflow: <https://stackoverflow.com/questions/tagged/structr>
 
 ## Report Bugs
 
