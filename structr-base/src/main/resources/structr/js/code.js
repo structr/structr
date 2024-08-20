@@ -1609,17 +1609,22 @@ let _Code = {
 
 				let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-examples');
 
-				let exampleData = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
-				let isGet       = (result.httpVerb.toLowerCase() === 'get');
-				let isStatic    = (result.isStatic === true);
-				let url         = `${_Code.getURLForSchemaMethod(result, true)}${(isGet ? `?${(new URLSearchParams(exampleData)).toString()}` : '' )}`;
+				let exampleData     = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
+				let isGet           = (result.httpVerb.toLowerCase() === 'get');
+				let isStatic        = (result.isStatic === true);
+				let url             = _Code.getURLForSchemaMethod(result, true);
+				let queryString     = new URLSearchParams(exampleData).toString();
+				let isUserDefinedFn = (!result.schemaNode);
 
 				let getFetchParts = () => {
 
 					if (isGet) {
 
 						return [
-							`fetch('${url}').then(response => {`,
+							`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`,
+							'let queryString = new URLSearchParams(parameters);',
+							'',
+							`fetch('${url}?' + queryString).then(response => {`,
 							'	// handle response',
 							'	console.log(response);',
 							'})'
@@ -1643,7 +1648,7 @@ let _Code = {
 
 				let getCurlParts = () => {
 					let curlParts = [
-						`curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}"`
+						`curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}${queryString.length > 0 ? '?' + queryString : ''}"`
 					];
 					if (!isGet) {
 						curlParts.push(`-d '${JSON.stringify(exampleData)}'`);
@@ -1653,7 +1658,16 @@ let _Code = {
 
 				let getScriptingParts = () => {
 
-					if (isStatic) {
+					if (isUserDefinedFn) {
+
+						return [
+							'${{',
+							`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`,
+							`	let result     = $.${result.name}(parameters);`,
+							'}}'
+						];
+
+					} else if (isStatic) {
 
 						return [
 							'${{',
@@ -2624,9 +2638,10 @@ let _Code = {
 
 		if (!isUserDefinedFunction) {
 			parts.push(schemaMethod.schemaNode.name);
-		}
-		if (!isStatic) {
-			parts.push('<b>[INSTANCE_UUID]</b>');
+
+			if (!isStatic) {
+				parts.push('<b>[INSTANCE_UUID]</b>');
+			}
 		}
 
 		parts.push(schemaMethod.name);
