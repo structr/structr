@@ -392,3 +392,9 @@ img.loader {
 .resourceBox .pager {
 	margin: 1rem;
 }
+
+/* addons for ZonedDateTime picker*/
+#ui-datepicker-div.is-zoned { width: 25rem;}
+#ui-datepicker-div.is-zoned .ui_tpicker_time { word-wrap: break-word; }
+#ui-datepicker-div.is-zoned .ui-timepicker-div dl dd { margin: 0 10px 10px 30%; }
+#ui-datepicker-div.is-zoned .ui-timepicker-div select { max-width: 100%; }

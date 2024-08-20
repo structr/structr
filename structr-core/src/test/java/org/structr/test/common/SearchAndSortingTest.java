@@ -41,6 +41,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -2575,6 +2577,44 @@ public class SearchAndSortingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void testSearchAttribute() {
+
+		final Class<SchemaMethod> schemaNodeClass = StructrApp.getConfiguration().getNodeEntityClass("SchemaMethod");
+		final String userDefinedMethodName        = "userDefinedMethodXXX";
+
+		try (final Tx tx = app.tx()) {
+
+			// create 1 user-defined method
+			createTestNode(schemaNodeClass, new NodeAttribute<>(AbstractNode.name, userDefinedMethodName));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// try to create another user-defined function with identical name
+			final SchemaMethod newSchemaNode = createTestNode(schemaNodeClass, new NodeAttribute<>(AbstractNode.name, userDefinedMethodName));
+
+			// make sure that we only find the previously created node when we search with these filters
+			final List<SchemaMethod> list = StructrApp.getInstance().nodeQuery(SchemaMethod.class)
+					.and(SchemaMethod.name, userDefinedMethodName)
+					.blank(SchemaMethod.schemaNode)
+					.not().and(SchemaMethod.id, newSchemaNode.getUuid())
+					.getAsList();
+
+			assertEquals(1, list.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

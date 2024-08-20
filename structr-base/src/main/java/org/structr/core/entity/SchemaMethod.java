@@ -193,22 +193,15 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		try {
 
 			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.name, thisMethodName).and(SchemaMethod.schemaNode, parentOrNull).not().and(SchemaMethod.id, this.getUuid()).getAsList();
-			final Integer paramCount = Iterables.count(this.getProperty(SchemaMethod.parameters));
 
 			for (final SchemaMethod schemaMethod : methodsOnCurrentLevel) {
 
-				final boolean isSameNode = this.getUuid().equals(schemaMethod.getUuid());
+				final boolean isSameNameIgnoringCase = thisMethodName.equalsIgnoreCase(schemaMethod.getName());
 
-				if (!isSameNode) {
+				if (isSameNameIgnoringCase) {
 
-					final boolean isSameNameIgnoringCase = thisMethodName.equalsIgnoreCase(schemaMethod.getName());
-					final boolean hasSameParameterCount  = (paramCount == Iterables.count(schemaMethod.getProperty(SchemaMethod.parameters)));
-
-					if (isSameNameIgnoringCase && !hasSameParameterCount) {
-
-						errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
-						valid = false;
-					}
+					errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
+					valid = false;
 				}
 			}
 
