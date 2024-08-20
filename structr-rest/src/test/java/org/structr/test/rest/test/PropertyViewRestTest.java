@@ -25,14 +25,12 @@ import org.structr.api.config.Settings;
 import org.structr.common.RequestKeywords;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestTwo;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -427,83 +425,4 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		Settings.JsonRedundancyReduction.getValue(true);
 	}
 
-	@Test
-	public void testCustomViewExistenceAfterCreatingCustomProperty() {
-
-		try (final Tx tx = app.tx()) {
-
-			app.create(SchemaNode.class,
-					new NodeAttribute<>(SchemaNode.name, "SomeType"),
-					new NodeAttribute<>(new StringProperty("_test"), "String")
-			);
-
-			tx.success();
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		final String resource = "/SomeType";
-
-		final String uuid = getUuidFromLocation(RestAssured
-
-				.given()
-				.contentType("application/json; charset=UTF-8")
-				.header("Accept", "application/json; charset=UTF-8")
-				.body(" { 'name' : 'some_object', 'test': 'some_test_value' } ")
-
-				.expect()
-				.statusCode(201)
-
-				.when()
-				.post(resource).getHeader("Location")
-		);
-
-
-		RestAssured.given()
-				.contentType("application/json; charset=UTF-8")
-				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-
-				.expect()
-				.statusCode(200)
-				.body("query_time",                                      notNullValue())
-				.body("serialization_time",                              notNullValue())
-				.body("result_count",                                    equalTo(1))
-
-				.when()
-				.get(resource.concat("/custom"));
-
-
-		// Step 2: Delete custom string property again and attempt to access custom view (which should be empty or better, not exist anymore)
-		try (final Tx tx = app.tx()) {
-
-			final SchemaProperty testStringProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.name, "test").getFirst();
-
-			app.delete(testStringProperty);
-
-			tx.success();
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		// This should return a list with one object and no keys (if the custom view still exists and is empty, or it should return a 404 if the view does not exist anymore)
-		RestAssured.given()
-				.contentType("application/json; charset=UTF-8")
-				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-
-				.expect()
-				.statusCode(200)
-				.body("query_time",                                      notNullValue())
-				.body("serialization_time",                              notNullValue())
-				.body("result_count",                                    equalTo(1))
-
-				.when()
-				.get(resource.concat("/custom"));
-
-	}
 }

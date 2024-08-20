@@ -23,19 +23,15 @@ else
     unset JAVA_AGENT_PATH
 fi
 
-if [ -n "$STRUCTR_TIMEZONE" ]; then
-  export PROCESS_TZ=$STRUCTR_TIMEZONE
-  echo "Using user-provided timezone $STRUCTR_TIMEZONE"
-elif [ -z "$TZ" ]; then
-  export PROCESS_TZ="UTC"
-  echo "Using default timezone $PROCESS_TZ"
+if [ -z "$TZ" ]; then
+  export TZ="Europe/Berlin"
+  echo "        Setting default TZ to $TZ"
 else
-  export PROCESS_TZ=$TZ
-  echo "Using system TZ env timezone $TZ"
+  echo "        Using $TZ timezone"
 fi
 
 RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
-JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.country=US -Duser.language=en -Duser.timezone=$PROCESS_TZ -Dfile.encoding=UTF-8 -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC $DEBUG_OPTS"
+JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.country=US -Duser.language=en -Dfile.encoding=UTF-8 -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC $DEBUG_OPTS"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
 PID_FILE="server.pid"
