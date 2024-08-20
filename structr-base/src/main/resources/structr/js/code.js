@@ -1622,7 +1622,7 @@ let _Code = {
 
 						return [
 							`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`,
-							'let queryString = new URLSearchParams(parameters);',
+							'let queryString = new URLSearchParams(parameters).toString();',
 							'',
 							`fetch('${url}?' + queryString).then(response => {`,
 							'	// handle response',
