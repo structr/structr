@@ -4403,6 +4403,9 @@ ul.combined-input-select-field li:hover {
 .hover\:bg-gray-100:hover:not([disabled]) {
 	background-color: var(--light-gray-bg-f3);
 }
+.hover\:bg-gray-200:hover:not([disabled]) {
+	background-color: var(--medium-light-gray-e0);
+}
 .focus\:border-gray-666:focus {
 	border: 1px solid var(--gray-666);
 }

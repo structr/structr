@@ -3404,7 +3404,7 @@ let _Code = {
 					<div usage-text class="whitespace-pre-wrap font-mono">${config.text}</div>
 					
 					<div>
-						<button copy-button class="flex items-center bg-gray" style="margin: 0;">${_Icons.getSvgIcon(_Icons.iconClipboardPencil, 16, 16, 'mr-2')} Copy</button>
+						<button copy-button class="flex items-center bg-gray hover:bg-gray-200 focus:border-gray-666 active:border-green" style="margin: 0;">${_Icons.getSvgIcon(_Icons.iconClipboardPencil, 16, 16, 'mr-2')} Copy</button>
 					</div>
 				</div>
 
