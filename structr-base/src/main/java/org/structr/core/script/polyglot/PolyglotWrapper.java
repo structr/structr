@@ -144,6 +144,11 @@ public abstract class PolyglotWrapper {
 
 				Value value = (Value) obj;
 
+				// Is value is a host object, return it's original type
+				if (value.isHostObject()) {
+					return unwrap(actionContext, value.asHostObject());
+				}
+
 				// Deal with wrapped primitives
 				if (value.isString()) {
 
@@ -194,10 +199,6 @@ public abstract class PolyglotWrapper {
 				if (value.canExecute()) {
 
 					return new FunctionWrapper(actionContext, value);
-				}
-
-				if (value.isHostObject()) {
-					return unwrap(actionContext, value.asHostObject());
 				}
 
 				if (value.isInstant() && value.isTimeZone()) {
@@ -285,9 +286,9 @@ public abstract class PolyglotWrapper {
 
 			}
 
-			if (obj instanceof Iterable) {
+			if (obj instanceof List) {
 
-				return unwrapIterable(actionContext, (Iterable) obj);
+				return unwrapList(actionContext, (List) obj);
 			}
 
 			if (obj instanceof Map) {
@@ -331,11 +332,11 @@ public abstract class PolyglotWrapper {
 		return arguments;
 	}
 
-	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {
+	protected static List<Object> unwrapList(final ActionContext actionContext, final List<Object> list) {
 
 		final List<Object> unwrappedList = new ArrayList<>();
 
-		for (Object o : iterable) {
+		for (Object o : list) {
 
 			unwrappedList.add(unwrap(actionContext, o));
 		}
