@@ -189,7 +189,7 @@ public class Scripting {
 
 		if (isScriptEngine) {
 
-			return evaluateScript(actionContext, entity, engine, snippet);
+			return PolyglotWrapper.unwrap(actionContext, evaluateScript(actionContext, entity, engine, snippet));
 
 		} else if (isJavascript) {
 
@@ -199,7 +199,7 @@ public class Scripting {
 				securityContext.setDoTransactionNotifications(true);
 			}
 
-			return result;
+			return PolyglotWrapper.unwrap(actionContext, result);
 
 		} else {
 
@@ -225,7 +225,7 @@ public class Scripting {
 				});
 				*/
 
-				return extractedValue;
+				return PolyglotWrapper.unwrap(actionContext, extractedValue);
 
 			} catch (StructrScriptException t) {
 

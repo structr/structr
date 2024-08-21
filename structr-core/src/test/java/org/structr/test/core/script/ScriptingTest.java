@@ -6275,16 +6275,16 @@ public class ScriptingTest extends StructrTest {
 
 
 
-			// - crate a native set in a method, and add values via add() => success
+			// - crate a native list in a method, and add values via add() => success
 			// - also test for Set functionality where duplicates are not added
 			// - also ignore direct property access (at least in size calculation)
-			final Set<Object> value10 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test10(); }}", "test10");
+			final List<Object> value10 = (List)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test10(); }}", "test10");
 			assertEquals(3, value10.size());
 
-			// - create a native set in a method, add values via add() => success
+			// - create a native list in a method, add values via add() => success
 			// - ignore setting of a value via array-index lookup
 			// - also ignore direct property access (at least in size calculation)
-			final Set<Object> value11 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test11(); }}", "test11");
+			final List<Object> value11 = (List)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test11(); }}", "test11");
 			assertEquals(2, value11.size());
 
 			tx.success();

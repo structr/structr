@@ -106,12 +106,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 			}
 		}
 
-		for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-
-			parameterMap.computeIfAbsent(entry.getKey(), k -> entry.getValue());
-		}
-
-
 		return parameterMap;
 	}
 
