@@ -1599,101 +1599,115 @@ let _Code = {
 
 			if (_Code.shouldHideAPIExampleTabForMethod(result)) {
 
-				$('li[data-name=api-examples]').hide();
+				$('li[data-name=api-usage]').hide();
 
-				if (lastOpenTab === 'api-examples') {
+				if (lastOpenTab === 'api-usage') {
 					lastOpenTab = 'source';
 				}
 
 			} else {
 
-				let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-examples');
+				let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-usage');
 
-				let exampleData     = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
-				let isGet           = (result.httpVerb.toLowerCase() === 'get');
-				let isStatic        = (result.isStatic === true);
-				let url             = _Code.getURLForSchemaMethod(result, true);
-				let queryString     = new URLSearchParams(exampleData).toString();
-				let isUserDefinedFn = (!result.schemaNode);
+				let exampleData      = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
+				let isGet            = (result.httpVerb.toLowerCase() === 'get');
+				let isStatic         = (result.isStatic === true);
+				let url              = _Code.getURLForSchemaMethod(result, true);
+				let queryString      = new URLSearchParams(exampleData).toString();
+				let isUserDefinedFn  = (!result.schemaNode);
+				let isInstanceMethod = (!isStatic && !isUserDefinedMethod);
+
+				let uuidHelpText = 'Note that {uuid} must be replaced with a UUID of a database object of a matching type';
 
 				let getFetchParts = () => {
 
+					let parts = [];
+
 					if (isGet) {
 
-						return [
-							`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`,
-							'let queryString = new URLSearchParams(parameters).toString();',
-							'',
-							`fetch('${url}?' + queryString).then(response => {`,
-							'	// handle response',
-							'	console.log(response);',
-							'})'
-						];
+						parts.push(`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`);
+						parts.push('let queryString = new URLSearchParams(parameters).toString();');
+						parts.push('');
+
+						if (isInstanceMethod) {
+							parts.push(`// ${uuidHelpText}`);
+						}
+
+						parts.push(`fetch('${url}?' + queryString).then(response => {`);
+						parts.push('	// handle response');
+						parts.push('	console.log(response);');
+						parts.push('});');
 
 					} else {
 
-						return [
-							`let data = ${JSON.stringify(exampleData, undefined, '\t')};`,
-							'',
-							`fetch('${_Code.getURLForSchemaMethod(result, true)}', {`,
-							`	method: '${result.httpVerb.toUpperCase()}',`,
-							'	body: JSON.stringify(data)',
-							'}).then(response => {',
-							'	// handle response',
-							'	console.log(response);',
-							'})'
-						];
+						parts.push(`let data = ${JSON.stringify(exampleData, undefined, '\t')};`);
+						parts.push('');
+
+						if (isInstanceMethod) {
+							parts.push(`// ${uuidHelpText}`);
+						}
+
+						parts.push(`fetch('${_Code.getURLForSchemaMethod(result, true)}', {`);
+						parts.push(`	method: '${result.httpVerb.toUpperCase()}',`);
+						parts.push('	body: JSON.stringify(data)');
+						parts.push('}).then(response => {');
+						parts.push('	// handle response');
+						parts.push('	console.log(response);');
+						parts.push('});');
 					}
+
+					return parts;
 				};
 
 				let getCurlParts = () => {
-					let curlParts = [
-						`curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}${queryString.length > 0 ? '?' + queryString : ''}"`
+
+					let parts = [
+						`${isInstanceMethod ? `# ${uuidHelpText}\n` : ''}curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}${(isGet && queryString.length > 0) ? '?' + queryString : ''}"`
 					];
+
 					if (!isGet) {
-						curlParts.push(`-d '${JSON.stringify(exampleData)}'`);
+						parts.push(`-d '${JSON.stringify(exampleData)}'`);
 					}
-					return curlParts;
+
+					return parts;
 				};
 
 				let getScriptingParts = () => {
 
+					let parts = [];
+
 					if (isUserDefinedFn) {
 
-						return [
-							'${{',
-							`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`,
-							`	let result     = $.${result.name}(parameters);`,
-							'}}'
-						];
+						parts.push('${{');
+						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+						parts.push(`	let result     = $.${result.name}(parameters);`);
+						parts.push('}}');
 
 					} else if (isStatic) {
 
-						return [
-							'${{',
-							`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`,
-							`	let result     = $.${result.schemaNode.name}.${result.name}(parameters);`,
-							'}}'
-						];
+						parts.push('${{');
+						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+						parts.push(`	let result     = $.${result.schemaNode.name}.${result.name}(parameters);`);
+						parts.push('}}');
 
 					} else {
 
-						return [
-							'${{',
-							`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`,
-							'',
-							`	// a) this instance method can be called from anywhere by looking up a specific node of type "${result.schemaNode.name}" by UUID (or any other means)`,
-							`	let myInstanceUUID = '<b>INSTANCE_UUID</b>';`,
-							`	let nodeInstance   = $.find('${result.schemaNode.name}', myInstanceUUID);`,
-							`	let resultOne      = nodeInstance.${result.name}(parameters);`,
-							'',
-							'',
-							`	// b) this instance method can be called if the current scripting context is already a node of type "${result.schemaNode.name}". Then we can use $.this`,
-							`	let resultTwo = $.this.${result.name}(parameters);`,
-							'}}'
-						];
-
+						parts.push('${{');
+						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+						parts.push('');
+						parts.push(`	// option a) this instance method can be called from anywhere by looking up a specific object of type "${result.schemaNode.name}" by UUID (or any other means)`);
+						parts.push(`	// ${uuidHelpText}`);
+						parts.push(`	let objectUUID   = '<b>{uuid}</b>';`);
+						parts.push(`	let nodeInstance = $.find('${result.schemaNode.name}', objectUUID);`);
+						parts.push(`	let resultOne    = nodeInstance.${result.name}(parameters);`);
+						parts.push('');
+						parts.push('');
+						parts.push(`	// option b) this instance method can be called if the current scripting context is already a object of type "${result.schemaNode.name}". Then we can use $.this`);
+						parts.push(`	let resultTwo = $.this.${result.name}(parameters);`);
+						parts.push('}}');
 					}
+
+					return parts;
 				}
 
 				let templateConfig = {
@@ -1705,6 +1719,13 @@ let _Code = {
 					scriptingExample: getScriptingParts().join('\n')
 				};
 				apiExamplesTab.insertAdjacentHTML('beforeend', _Code.templates.schemaMethodAPIExamples(templateConfig));
+
+				for (let copyBtn of apiExamplesTab.querySelectorAll('button[copy-button]')) {
+					copyBtn.addEventListener('click', async (e) => {
+						let text  =copyBtn.closest('details').querySelector('div[usage-text]').textContent;
+						await navigator.clipboard.writeText(text);
+					});
+				}
 
 				apiExamplesTab.querySelector('#fetch-example')?.addEventListener('toggle', (e) => {
 					LSWrapper.setItem(_Code.methodsFetchExampleStateKey, e.newState);
@@ -2640,7 +2661,7 @@ let _Code = {
 			parts.push(schemaMethod.schemaNode.name);
 
 			if (!isStatic) {
-				parts.push('<b>[INSTANCE_UUID]</b>');
+				parts.push('<b>{uuid}</b>');
 			}
 		}
 
@@ -3255,7 +3276,7 @@ let _Code = {
 				<ul>
 					<li data-name="source">Code</li>
 					<li data-name="api">API</li>
-					<li data-name="api-examples">Examples</li>
+					<li data-name="api-usage">Usage</li>
 				</ul>
 				<div id="methods-content" class="flex flex-col flex-grow">
 
@@ -3266,7 +3287,7 @@ let _Code = {
 					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api">
 					</div>
 					
-					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api-examples">
+					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api-usage">
 					</div>
 
 				</div>
@@ -3365,7 +3386,7 @@ let _Code = {
 			
 			<div class="p-2">
 
-				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'fetch-example', stateKey: _Code.methodsFetchExampleStateKey, summary: 'fetch()', text: config.fetchExample }) : ''}
+				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'fetch-example', stateKey: _Code.methodsFetchExampleStateKey, summary: 'Browser fetch()', text: config.fetchExample }) : ''}
 
 				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'curl-example', stateKey: _Code.methodsCurlExampleStateKey, summary: 'curl', text: config.curlExample }) : ''}
 
@@ -3379,8 +3400,12 @@ let _Code = {
 
 				<summary class="cursor-pointer">${config.summary}</summary>
 
-				<div class="ml-4 my-2 p-4 rounded-md bg-black text-gray-ddd">
-					<div class="whitespace-pre-wrap font-mono">${config.text}</div>
+				<div class="flex justify-between ml-4 my-2 p-4 rounded-md bg-black text-gray-ddd">
+					<div usage-text class="whitespace-pre-wrap font-mono">${config.text}</div>
+					
+					<div>
+						<button copy-button class="flex items-center bg-gray" style="margin: 0;">${_Icons.getSvgIcon(_Icons.iconClipboardPencil, 16, 16, 'mr-2')} Copy</button>
+					</div>
 				</div>
 
 			</details>
