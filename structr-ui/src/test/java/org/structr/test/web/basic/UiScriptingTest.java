@@ -1419,7 +1419,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Actions.execute(securityContext, null, "${application_store_put('getKeys2', 2)}","Store test value");
 
 			Object getKeysValueWrapper = Actions.execute(securityContext, null, "${application_store_get_keys('testDelete')}","Probe deleted key");
-			List<String> getKeysValue = (List<String>) getKeysValueWrapper;
+			Set<String> getKeysValue = (Set<String>) getKeysValueWrapper;
 
 			Set<String> expectedKeySet = new HashSet<String>(Arrays.asList(new String[]{"getKeys1", "getKeys2"}));
 
