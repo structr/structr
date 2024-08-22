@@ -209,18 +209,15 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
-	public void refresh(boolean readLicense) {
+	public void refresh() {
 
-		if (readLicense) {
+		if (licensePresent == true) {
 
-			if (licensePresent == true) {
+			initializeLicense();
 
-				initializeLicense();
+		} else {
 
-			} else {
-
-				logger.warn("Unable to update license info without a restart because no previous license was configured!");
-			}
+			logger.warn("Unable to update license info without a restart because no previous license was configured!");
 		}
 
 		if (endDate == null) {
@@ -868,8 +865,6 @@ public class StructrLicenseManager implements LicenseManager {
 		// try to connect to the license server 3 times..
 		for (int i=0; i<retries; i++) {
 
-			final byte[] result = new byte[256];
-
 			try (final Socket socket = new java.net.Socket(address, ServerPort)) {
 
 				try (final OutputStream os = socket.getOutputStream()) {
@@ -887,15 +882,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 					try (final InputStream is = socket.getInputStream()) {
 
-						// read exactly 256 bytes (size of expected signature response)
-						is.read(result, 0, 256);
-
-						if (readEndDate) {
-
-							endDate = parseDate(new String(is.readNBytes(10), StandardCharsets.UTF_8));
-						}
-
-						return result;
+						return readResponse(is, readEndDate);
 					}
 				}
 
@@ -972,13 +959,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 				try (final InputStream is = http.getInputStream()) {
 
-					// read response
-					final byte[] response = is.readNBytes(256);
-
-					if (readEndDate) {
-
-						endDate = parseDate(new String(is.readNBytes(10), StandardCharsets.UTF_8));
-					}
+					final byte[] response = readResponse(is, readEndDate);
 
 					http.disconnect();
 
@@ -1015,6 +996,23 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		return null;
+	}
+
+	private byte[] readResponse(final InputStream is, final boolean readEndDate) throws IOException {
+
+		// read response
+		final byte[] response = is.readNBytes(256);
+
+		if (readEndDate) {
+
+			final String endDateString = new String(is.readNBytes(10), StandardCharsets.UTF_8);
+			if (StringUtils.isNotBlank(endDateString)) {
+
+				endDate = parseDate(endDateString);
+			}
+		}
+
+		return response;
 	}
 
 	private boolean verify(final byte[] data, final byte[] signatureData) {
@@ -1122,7 +1120,7 @@ public class StructrLicenseManager implements LicenseManager {
 		@Override
 		public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-			Services.getInstance().getLicenseManager().refresh(true);
+			Services.getInstance().getLicenseManager().refresh();
 		}
 
 		@Override
