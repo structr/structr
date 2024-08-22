@@ -1333,6 +1333,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							out.append(" data-structr-events=\"").append(eventsString).append("\"");
 						}
 
+						final String dialogType = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "dialogType"));
+						if(!dialogType.equals("none")) {
+							final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "dialogTitle"));
+							final String dialogText = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "dialogText"));
+
+							out.append(" data-structr-dialog-type=\"").append(dialogType).append("\"");
+							out.append(" data-structr-dialog-title=\"").append(escapeForHtmlAttributes(dialogTitle)).append("\"");
+							out.append(" data-structr-dialog-text=\"").append(escapeForHtmlAttributes(dialogText)).append("\"");
+						}
+
 						// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element
 						final String successNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotifications"));
 						if (StringUtils.isNotBlank(successNotifications)) {
