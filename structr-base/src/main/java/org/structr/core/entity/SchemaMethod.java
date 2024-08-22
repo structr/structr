@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -192,19 +193,24 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		try {
 
-			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.name, thisMethodName).and(SchemaMethod.schemaNode, parentOrNull).not().and(SchemaMethod.id, this.getUuid()).getAsList();
-			final Integer paramCount = Iterables.count(this.getProperty(SchemaMethod.parameters));
+			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, parentOrNull).getAsList();
+			final List<SchemaMethodParameter> params       = Iterables.toList(this.getParameters());
+			// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
+			final String paramsAsString                    = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
 
-			for (final SchemaMethod schemaMethod : methodsOnCurrentLevel) {
+			for (final SchemaMethod otherSchemaMethod : methodsOnCurrentLevel) {
 
-				final boolean isSameNode = this.getUuid().equals(schemaMethod.getUuid());
+				final boolean isDifferentMethod = !(this.getUuid().equals(otherSchemaMethod.getUuid()));
 
-				if (!isSameNode) {
+				if (isDifferentMethod) {
 
-					final boolean isSameNameIgnoringCase = thisMethodName.equalsIgnoreCase(schemaMethod.getName());
-					final boolean hasSameParameterCount  = (paramCount == Iterables.count(schemaMethod.getProperty(SchemaMethod.parameters)));
+					final boolean isSameNameIgnoringCase                = thisMethodName.equalsIgnoreCase(otherSchemaMethod.getName());
+					final List<SchemaMethodParameter> otherMethodParams = Iterables.toList(otherSchemaMethod.getParameters());
+					final String otherParamsAsString                    = otherMethodParams.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
 
-					if (isSameNameIgnoringCase && !hasSameParameterCount) {
+					final boolean hasSameParameters = (params.size() == otherMethodParams.size() && paramsAsString.equals(otherParamsAsString));
+
+					if (isSameNameIgnoringCase && hasSameParameters) {
 
 						errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
 						valid = false;
