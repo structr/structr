@@ -1618,9 +1618,9 @@ let _Pages = {
 
 			idExpressionInput.value                = actionMapping.idExpression;
 
-			dialogTypeSelect.value                 = actionMapping.dialogType;
-			dialogTitleInput.value                 = actionMapping.dialogTitle;
-			dialogTextInput.value                  = actionMapping.dialogText;
+			dialogTypeSelect.value                 = actionMapping.dialogType ?? 'none';
+			dialogTitleInput.value                 = actionMapping.dialogTitle ?? '';
+			dialogTextInput.value                  = actionMapping.dialogText ?? '';
 
 			successNotificationsSelect.value       = actionMapping.successNotifications;
 			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
