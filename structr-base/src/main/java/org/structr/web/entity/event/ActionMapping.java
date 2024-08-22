@@ -71,6 +71,10 @@ public interface ActionMapping extends NodeInterface {
 		type.addStringProperty("idExpression",     PropertyView.Ui).setHint("Script expression that evaluates to the id of the object the method should be executed on");
 		type.addStringProperty("options",          PropertyView.Ui).setHint("JSON string with that contains configuration options for this action mapping");
 
+		type.addStringProperty("dialogType",        	PropertyView.Ui).setHint("Type of dialog to confirm a destructive / update action");
+		type.addStringProperty("dialogTitle", 		PropertyView.Ui).setHint("Dialog Title");
+		type.addStringProperty("dialogText",   		PropertyView.Ui).setHint("Dialog Text");
+
 		type.addStringProperty("successNotifications",        PropertyView.Ui).setHint("Notifications after successful execution of action");
 		type.addStringProperty("successNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as success notification");
 		type.addStringProperty("successNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for success notifications");

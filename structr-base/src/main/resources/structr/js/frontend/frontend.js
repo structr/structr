@@ -770,7 +770,20 @@ export class Frontend {
 
 		} else if (id) {
 
+
+			// Dialog
+			if(data.structrDialogType === 'okcancel') {
+
+				let dialogMessage = data.structrDialogTitle + '\n\n' + data.structrDialogText;
+				if(!window.confirm(dialogMessage)) {
+					return; // Exit on 'Cancel' doHandleGenericEvent without fire main Event
+				}
+
+			}
+
 			this.fireEvent('start', { target: target, data: data, event: event });
+
+
 
 			// server-side
 			// store event type in htmlEvent property

@@ -1411,6 +1411,10 @@ let _Pages = {
 		let addParameterMappingButton        = container.querySelector('.em-add-parameter-mapping-button');
 		let addParameterMappingForTypeButton = container.querySelector('.em-add-parameter-mapping-for-type-button');
 
+		let dialogTypeSelect                 = container.querySelector('#dialog-select');
+		let dialogTitleInput                 = container.querySelector('#dialog-title');
+		let dialogTextInput                  = container.querySelector('#dialog-text');
+
 		let successNotificationsSelect       = container.querySelector('#success-notifications-select');
 		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
 		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input');
@@ -1442,8 +1446,8 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
-				//console.log('Using first object for event action mapping:', result);
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+				console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
 		}
@@ -1557,6 +1561,12 @@ let _Pages = {
 			});
 		});
 
+		dialogTypeSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+			saveEventMappingData(entity, el);
+		});
+
 		successNotificationsSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
@@ -1607,6 +1617,10 @@ let _Pages = {
 			dataTypeInput.value                    = actionMapping.dataType;
 
 			idExpressionInput.value                = actionMapping.idExpression;
+
+			dialogTypeSelect.value                 = actionMapping.dialogType;
+			dialogTitleInput.value                 = actionMapping.dialogTitle;
+			dialogTextInput.value                  = actionMapping.dialogText;
 
 			successNotificationsSelect.value       = actionMapping.successNotifications;
 			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
@@ -1659,6 +1673,8 @@ let _Pages = {
 						actionSelectElement.classList.add('required');
 					}
 
+
+
 					// show all relevant elements for event
 					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelectElement.value}`)) {
 						eventRelevant.classList.remove('hidden');
@@ -1669,6 +1685,18 @@ let _Pages = {
 						actionRelevant.classList.remove('hidden');
 					}
 
+					// show dialog
+					{
+						if(dialogTypeSelect.value !== 'none') {
+							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
+								dialogInput.classList.remove('hidden');
+							}
+						} else {
+							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
+								dialogInput.classList.add('hidden');
+							}
+						}
+					}
 
 					// success notifications
 					{
@@ -2000,6 +2028,9 @@ let _Pages = {
 				method:                      methodNameInput?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
 				idExpression:                idExpressionInput.value,
+				dialogType:                  dialogTypeSelect.value,
+				dialogTitle:                 dialogTitleInput.value,
+				dialogText:                  dialogTextInput.value,
 				successNotifications:        successNotificationsSelect.value,
 				successNotificationsPartial: successNotificationsPartialInput.value,
 				successNotificationsEvent:   successNotificationsEventInput.value,
@@ -4167,9 +4198,33 @@ let _Pages = {
 								<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
 								<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
 							</h3>
-
 							<div class="em-parameter-mappings-container"></div>
 
+						</div>
+						
+						<div class="col-span-2 hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
+							<h3>Dialog Settings</h3>
+							<div class="grid grid-cols-2 gap-8">
+							
+								<div>
+									<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
+		
+									<select class="select2" id="dialog-select">
+										<option value="none">None</option>
+										<option value="okcancel">Confirm Dialog (window.confirm)</option>
+									</select>
+								</div>
+
+								<div class="dialog-input-field-group hidden">
+									<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
+									<input type="text" id="dialog-title">
+						
+									<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
+									<input type="text" id="dialog-text">
+								</div>
+
+								
+							</div>
 						</div>
 
 						<div class="col-span-2 hidden em-action-element em-action-any">
