@@ -16,34 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.service;
+package org.structr.util;
 
-import java.security.CodeSigner;
-import java.util.Date;
+public class ValidationResult {
 
-/**
- */
-public interface LicenseManager {
+	private boolean isValid = false;
+	private String endDate  = null;
 
-	void logLicenseInfo();
+	public ValidationResult() {
+	}
 
-	void refresh();
+	public void setValid(final boolean isValid) {
+		this.isValid = isValid;
+	}
 
-	String getEdition();
+	public boolean isValid() {
+		return this.isValid;
+	}
 
-	String getLicensee();
-	String getHardwareFingerprint();
+	public String getEndDate() {
+		return this.endDate;
+	}
 
-	Date getStartDate();
-	Date getEndDate();
+	public void setEndDate(final String endDate) {
+		this.endDate = endDate;
+	}
 
-	int getNumberOfUsers();
-
-	boolean isValid(final Feature feature);
-	boolean isValid(final CodeSigner[] codeSigners);
-
-	boolean isModuleLicensed(final String module);
-	boolean isClassLicensed(final String fqcn);
-
-	void addLicensedClass(final String fqcn);
+	public boolean hasEndDate() {
+		return this.endDate != null;
+	}
 }
