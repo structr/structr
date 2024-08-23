@@ -64,6 +64,19 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
+	public int hashCode() {
+		return getName().hashCode();
+	}
+
+	public boolean equals(final Object obj) {
+
+		if (obj instanceof Function) {
+			return obj.hashCode() == hashCode();
+		}
+
+		return false;
+	}
+
 	/**
 	 * Basic logging for functions called with wrong parameter combination/count
 	 *

@@ -31,8 +31,6 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.api.util.CountResult;
-import org.structr.common.Permission;
-import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -69,7 +67,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
-	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
@@ -1309,16 +1307,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 		getServices(type).put(name, service);
 	}
 
-	public void updateLicense() {
-		if (licenseManager != null) {
-			licenseManager.refresh(true);
-		}
-	}
-
 	private void checkLicense() {
 
 		if (licenseManager != null) {
-			licenseManager.refresh(false);
+			licenseManager.refresh();
 		}
 	}
 

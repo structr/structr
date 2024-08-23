@@ -43,22 +43,29 @@ import java.util.*;
 public class Functions {
 
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
+	private static final Set<Function<Object, Object>> allFunctions      = new LinkedHashSet<>();
 	private static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
 	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function) {
+		Functions.put(licenseManager, function, true);
+	}
+
+	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function, final boolean warnUnregistered) {
 
 		final boolean licensed = (licenseManager == null || licenseManager.isModuleLicensed(function.getRequiredModule()));
 
-		registerFunction(licensed, function.getName(), function);
+		allFunctions.add(function);
+
+		registerFunction(licensed, function.getName(), function, warnUnregistered);
 
 		function.aliases().forEach(alias -> {
-			registerFunction(licensed, alias, function);
+			registerFunction(licensed, alias, function, warnUnregistered);
 		});
 	}
 
-	private static void registerFunction(final boolean licensed, final String name, final Function<Object, Object> function) {
+	private static void registerFunction(final boolean licensed, final String name, final Function<Object, Object> function, final boolean warnUnregistered) {
 
-		if (functions.containsKey(name)) {
+		if (warnUnregistered && functions.containsKey(name)) {
 			logger.warn("A function named '{}' is already registered! The previous function will be overwritten with this one.", name);
 		}
 
@@ -95,6 +102,14 @@ public class Functions {
 
 	public static Collection<Function<Object, Object>> getFunctions() {
 		return new LinkedList<>(functions.values());
+	}
+
+	public static void refresh(final LicenseManager manager) {
+
+		for (final Function<Object, Object> function : allFunctions) {
+
+			Functions.put(manager, function, false);
+		}
 	}
 
 	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {

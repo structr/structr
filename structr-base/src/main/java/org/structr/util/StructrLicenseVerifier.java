@@ -32,6 +32,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -118,15 +119,15 @@ public class StructrLicenseVerifier {
 					logger.info("##### New connection from {}", socket.getInetAddress().getHostAddress());
 
 					final InputStream is = socket.getInputStream();
-					final int bufSize    = 4096;
+					final int bufSize = 4096;
 
 					socket.setSoTimeout(2000);
 
 					// decrypt AES stream key using RSA block cipher
 					final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
-					final byte[] ivSpec     = blockCipher.doFinal(IOUtils.readFully(is, 256));
-					final byte[] buf        = new byte[bufSize];
-					int count               = 0;
+					final byte[] ivSpec = blockCipher.doFinal(IOUtils.readFully(is, 256));
+					final byte[] buf = new byte[bufSize];
+					int count = 0;
 
 					// initialize cipher using stream key
 					streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
@@ -138,32 +139,42 @@ public class StructrLicenseVerifier {
 
 						count = is.read(buf, 0, bufSize);
 
-					} catch (IOException ioex) { }
-
-					final byte[] decrypted        = streamCipher.doFinal(buf, 0, count);
-					final String data             = new String(decrypted, "utf-8");
-
-					// transform decrypted data into a Map<String, String>
-					final List<Pair> pairs        = split(data).stream().map(StructrLicenseVerifier::keyValue).collect(Collectors.toList());
-					final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-
-					// validate data against customer database
-					if (isValid(map)) {
-
-						// send signatur of name field back to client
-						final String name     = (String)map.get(StructrLicenseManager.NameKey);
-						final byte[] response = name.getBytes("utf-8");
-
-						// respond with the signature of the data sent to us
-						socket.getOutputStream().write(sign(response));
-						socket.getOutputStream().flush();
-
-					} else {
-
-						logger.info("License verification failed.");
+					} catch (IOException ioex) {
 					}
 
-					socket.getOutputStream().close();
+					final byte[] decrypted = streamCipher.doFinal(buf, 0, count);
+					final String data = new String(decrypted, "utf-8");
+
+					// transform decrypted data into a Map<String, String>
+					final List<Pair> pairs = split(data).stream().map(StructrLicenseVerifier::keyValue).collect(Collectors.toList());
+					final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+
+					try (final OutputStream out = socket.getOutputStream()) {
+
+						// validate data against customer database
+						final ValidationResult result = isValid(map);
+						if (result.isValid()) {
+
+							// send signature of name field back to client
+							final String name = map.get(StructrLicenseManager.NameKey);
+							final byte[] response = name.getBytes("utf-8");
+
+							// respond with the signature of the data sent to us
+							out.write(sign(response));
+							out.flush();
+
+							// send end date if present?!
+							if (result.hasEndDate()) {
+
+								out.write(result.getEndDate().getBytes(StandardCharsets.UTF_8));
+								out.flush();
+							}
+
+						} else {
+
+							logger.info("License verification failed.");
+						}
+					}
 
 				} catch (Throwable t) {
 					logger.warn("Unable to verify license: {}", t.getMessage());
@@ -175,14 +186,14 @@ public class StructrLicenseVerifier {
 		}
 	}
 
-	private boolean isValid(final Map<String, String> map) {
+	private ValidationResult isValid(final Map<String, String> map) {
 
 		final String toValidate       = StructrLicenseManager.collectLicenseFieldsForSignature(map);
 		final String signature        = map.get(StructrLicenseManager.SignatureKey);
 		final String startDate        = map.get(StructrLicenseManager.StartKey);
 		final String licensee         = map.get(StructrLicenseManager.NameKey);
 		final String hostId           = map.get(StructrLicenseManager.HostIdKey);
-		boolean valid                 = false;
+		final ValidationResult valid  = new ValidationResult();
 
 		if (StringUtils.isNotBlank(toValidate) && StringUtils.isNotBlank(signature)) {
 
@@ -199,14 +210,14 @@ public class StructrLicenseVerifier {
 
 					logger.info("Client signature not valid.");
 
-					return false;
+					return valid;
 				}
 
 			} catch (Throwable t) {
 
 				logger.warn("Unable to verify client signature: {}", t.getMessage());
 
-				return false;
+				return valid;
 			}
 
 			// verify license contents
@@ -235,20 +246,22 @@ public class StructrLicenseVerifier {
 					final int hostIdCount                   = getIntValue(hostIdMapping, hostId, 0);
 					final int count                         = hostIdMapping.size();
 
+					// send end date from server to client
+					valid.setEndDate(getStringValue(config, StructrLicenseManager.EndKey, null));
+
 					if (limit == -1) {
 
 						// no numerical limit found in config, check for "*" value
-						valid = "*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null));
+						valid.setValid("*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null)));
 
-						logger.info("count: {}, unlimited license", count);
+						logger.info("count: {}, unlimited license, end date: {}", count, valid.getEndDate());
 
 					} else {
 
-						valid = count <= limit;
+						valid.setValid(count <= limit);
 
-						logger.info("count: {}, limit: {}", count, limit);
+						logger.info("count: {}, limit: {}, end date: {}", count, limit, valid.getEndDate());
 					}
-
 
 					// update host ID count
 					hostIdMapping.put(hostId, hostIdCount + 1);

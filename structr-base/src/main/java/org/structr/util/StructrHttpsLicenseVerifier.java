@@ -34,6 +34,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.*;
@@ -159,21 +160,30 @@ public class StructrHttpsLicenseVerifier {
 							final List<Pair> pairs        = split(data).stream().map(StructrHttpsLicenseVerifier::keyValue).collect(Collectors.toList());
 							final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
-							// send signatur of name field back to client
-							final String name     = (String)map.get(StructrLicenseManager.NameKey);
+							// send signature of name field back to client
+							final String name     = map.get(StructrLicenseManager.NameKey);
 							final byte[] response = name.getBytes("utf-8");
 
 							// send response body
 							try (final OutputStream out = exchange.getResponseBody()) {
 
-								exchange.getResponseHeaders().add("Content-Type", "application/octet-stream");
-								exchange.sendResponseHeaders(200, 256);
-
 								// validate data against customer database
-								if (isValid(ciphers, map)) {
+								final ValidationResult result = isValid(ciphers, map);
+
+								exchange.getResponseHeaders().add("Content-Type", "application/octet-stream");
+								exchange.sendResponseHeaders(200, result.hasEndDate() ? 266 : 256);
+
+								if (result.isValid()) {
 
 									out.write(sign(ciphers, response));
 									out.flush();
+
+									// send end date if present?!
+									if (result.hasEndDate()) {
+
+										out.write(result.getEndDate().getBytes(StandardCharsets.UTF_8));
+										out.flush();
+									}
 
 								} else {
 
@@ -185,6 +195,8 @@ public class StructrHttpsLicenseVerifier {
 								}
 
 							} catch (Throwable t) {
+
+								t.printStackTrace();
 
 								logger.warn("License verification failed, can't get response body.");
 								exchange.sendResponseHeaders(400, 0);
@@ -217,14 +229,14 @@ public class StructrHttpsLicenseVerifier {
 		}
 	}
 
-	private boolean isValid(final Ciphers ciphers, final Map<String, String> map) {
+	private ValidationResult isValid(final Ciphers ciphers, final Map<String, String> map) {
 
 		final String toValidate       = StructrLicenseManager.collectLicenseFieldsForSignature(map);
 		final String signature        = map.get(StructrLicenseManager.SignatureKey);
 		final String startDate        = map.get(StructrLicenseManager.StartKey);
 		final String licensee         = map.get(StructrLicenseManager.NameKey);
 		final String hostId           = map.get(StructrLicenseManager.HostIdKey);
-		boolean valid                 = false;
+		final ValidationResult valid  = new ValidationResult();
 
 		if (StringUtils.isNotBlank(toValidate) && StringUtils.isNotBlank(signature)) {
 
@@ -241,14 +253,14 @@ public class StructrHttpsLicenseVerifier {
 
 					logger.info("Client signature not valid.");
 
-					return false;
+					return valid;
 				}
 
 			} catch (Throwable t) {
 
 				logger.warn("Unable to verify client signature: {}", t.getMessage());
 
-				return false;
+				return valid;
 			}
 
 			// verify license contents
@@ -265,7 +277,7 @@ public class StructrHttpsLicenseVerifier {
 					logger.info("Loading license configuration from {}..", configName);
 
 					// reading and wrinting the configuration must be synchronized
-					// so the file is protected from accidental overwrititing
+					// so the file is protected from accidental overwriting
 					synchronized (this) {
 
 						// load config file or create new one
@@ -277,22 +289,25 @@ public class StructrHttpsLicenseVerifier {
 
 						// load count
 						final Map<String, Object> hostIdMapping = getMapValue(config, StructrLicenseManager.HostIdMappingKey);
-						final int limit = getIntValue(config, StructrLicenseManager.LimitKey, -1);
-						final int hostIdCount = getIntValue(hostIdMapping, hostId, 0);
-						final int count = hostIdMapping.size();
+						final int limit                         = getIntValue(config, StructrLicenseManager.LimitKey, -1);
+						final int hostIdCount                   = getIntValue(hostIdMapping, hostId, 0);
+						final int count                         = hostIdMapping.size();
+
+						// send end date from server to client
+						valid.setEndDate(getStringValue(config, StructrLicenseManager.EndKey, null));
 
 						if (limit == -1) {
 
 							// no numerical limit found in config, check for "*" value
-							valid = "*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null));
+							valid.setValid("*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null)));
 
-							logger.info("count: {}, unlimited license", count);
+							logger.info("count: {}, unlimited license, end date {}", count, valid.getEndDate());
 
 						} else {
 
-							valid = count <= limit;
+							valid.setValid(count <= limit);
 
-							logger.info("count: {}, limit: {}", count, limit);
+							logger.info("count: {}, limit: {}, end date {}", count, limit, valid.getEndDate());
 						}
 
 
