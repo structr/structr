@@ -386,9 +386,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute action without action defined on this DOMElement: " + this);
 		}
 
-		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
-		parameters.remove("id");
-
 		// store event context in object
 		actionContext.setConstant("eventContext", eventContext);
 
