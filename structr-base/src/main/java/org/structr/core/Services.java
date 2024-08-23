@@ -67,8 +67,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
-	//private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
-	private static final long licenseCheckInterval     = TimeUnit.MINUTES.toMillis(1);
+	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;

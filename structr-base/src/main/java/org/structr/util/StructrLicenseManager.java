@@ -28,6 +28,7 @@ import org.structr.api.service.Feature;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 
@@ -234,8 +235,6 @@ public class StructrLicenseManager implements LicenseManager {
 
 			allModulesLicensed = false;
 
-			edition = "Community";
-
 			// check license validation setting
 			if (!Settings.LicenseAllowFallback.getValue(false)) {
 
@@ -247,6 +246,9 @@ public class StructrLicenseManager implements LicenseManager {
 				logger.info("No valid license found, but {} has a value of true, continuing.", Settings.LicenseAllowFallback.getKey());
 			}
 		}
+
+		// update functions according to licensed modules
+		Functions.refresh(this);
 	}
 
 	@Override
@@ -374,16 +376,6 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		final Date licenseStartDate = parseDate(startDateString);
-		final Date licenseEndDate   = parseDate(endDateString);
-
-		// verify that the license is valid for the current date
-		if (licenseStartDate != null && now.before(licenseStartDate) && !now.equals(licenseStartDate)) {
-
-			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(licenseStartDate.getTime()));
-			return false;
-		}
-
 		try {
 
 			final byte[] data      = src.getBytes(CharSet);
@@ -445,6 +437,16 @@ public class StructrLicenseManager implements LicenseManager {
 		if (!thisHostId.equals(hostId) && !"*".equals(hostId)) {
 
 			logger.error("Host ID found in license ({}) file does not match current host ID.", hostId);
+			return false;
+		}
+
+		final Date licenseStartDate = parseDate(startDateString);
+		final Date licenseEndDate   = parseDate(endDateString);
+
+		// verify that the license is valid for the current date
+		if (licenseStartDate != null && now.before(licenseStartDate) && !now.equals(licenseStartDate)) {
+
+			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(licenseStartDate.getTime()));
 			return false;
 		}
 
@@ -802,7 +804,7 @@ public class StructrLicenseManager implements LicenseManager {
 						final byte[] key           = encryptSessionKey(aesKey.getEncoded());
 						final byte[] encryptedIV   = encryptSessionKey(ivspec);
 						final byte[] encryptedData = encryptData(data, aesKey, ivspec);
-						final byte[] response      = sendAndReceive(address, key, encryptedIV, encryptedData, endDate == null);
+						final byte[] response      = sendAndReceive(address, key, encryptedIV, encryptedData);
 						final boolean result       = verify(expected, response);
 
 						if (result == true) {
@@ -844,20 +846,20 @@ public class StructrLicenseManager implements LicenseManager {
 		return cipher.doFinal(sessionKey);
 	}
 
-	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data, final boolean readEndDate) {
+	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
 
 		if (address != null && address.toLowerCase().startsWith("http://")) {
 
-			return sendAndReceiveHttp(address, key, ivspec, data, readEndDate);
+			return sendAndReceiveHttp(address, key, ivspec, data);
 
 		} else {
 
-			return sendAndReceiveBinary(address, key, ivspec, data, readEndDate);
+			return sendAndReceiveBinary(address, key, ivspec, data);
 		}
 
 	}
 
-	private byte[] sendAndReceiveBinary(final String address, final byte[] key, final byte[] ivspec, final byte[] data, final boolean readEndDate) {
+	private byte[] sendAndReceiveBinary(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
 
 		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
 		final int retries             = 3;
@@ -882,7 +884,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 					try (final InputStream is = socket.getInputStream()) {
 
-						return readResponse(is, readEndDate);
+						return readResponse(is);
 					}
 				}
 
@@ -910,7 +912,7 @@ public class StructrLicenseManager implements LicenseManager {
 		return null;
 	}
 
-	private byte[] sendAndReceiveHttp(final String address, final byte[] key, final byte[] ivspec, final byte[] data, final boolean readEndDate) {
+	private byte[] sendAndReceiveHttp(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
 
 		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
 		final int retries             = 3;
@@ -959,7 +961,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 				try (final InputStream is = http.getInputStream()) {
 
-					final byte[] response = readResponse(is, readEndDate);
+					final byte[] response = readResponse(is);
 
 					http.disconnect();
 
@@ -998,19 +1000,20 @@ public class StructrLicenseManager implements LicenseManager {
 		return null;
 	}
 
-	private byte[] readResponse(final InputStream is, final boolean readEndDate) throws IOException {
+	private byte[] readResponse(final InputStream is) throws IOException {
 
 		// read response
 		final byte[] response = is.readNBytes(256);
 
-		if (readEndDate) {
-
+		// try to read end date (new license server?)
+		try {
 			final String endDateString = new String(is.readNBytes(10), StandardCharsets.UTF_8);
 			if (StringUtils.isNotBlank(endDateString)) {
 
 				endDate = parseDate(endDateString);
 			}
-		}
+
+		} catch (Throwable ignore) {}
 
 		return response;
 	}
