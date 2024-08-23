@@ -565,7 +565,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			baseType.relate(linked, "LINKED", Cardinality.ManyToOne, "baseTypes", "linked");
 
-			baseType.addMethod("onCreate","{ $.this.linked = $.requestStore.linked; $.log($.requestStore.linked.baseTypes); }");
+			baseType.addMethod("onCreate","{ $.this.linked = $.requestStore.linked; }");
 
 			// creation method
 			type1.addMethod("test", "{ $.requestStore.linked = $.create('LinkedType'); for (var i=0; i<100; i++) { $.create('Type1'); $.create('Type2'); } }").setIsStatic(true);
