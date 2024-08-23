@@ -1331,9 +1331,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						}
 
 						final String dialogType = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "dialogType"));
-
-
-						if (dialogType!=null && !dialogType.equals("none")) {
+						if (dialogType != null && !dialogType.equals("none")) {
 
 							final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "dialogTitle"));
 							final String dialogText = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "dialogText"));
