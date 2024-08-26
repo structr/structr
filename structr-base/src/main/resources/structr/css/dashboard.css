@@ -135,7 +135,6 @@
 }
 
 .textarea-is-scrolled::after {
-	content: "//";
 	position: relative;
 	top: -5px;
 	background: white;
