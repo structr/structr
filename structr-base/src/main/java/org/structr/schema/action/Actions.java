@@ -57,6 +57,7 @@ public class Actions {
 
 	public enum Type {
 
+		OnNodeCreation("onNodeCreation","SecurityContext securityContext", "securityContext", "onNodeCreation", SecurityContext.class),
 		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer", "onCreate", SecurityContext.class, ErrorBuffer.class),
 		AfterCreate("afterCreation","SecurityContext securityContext", "securityContext", "afterCreate", SecurityContext.class),
 		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave", SecurityContext.class, ErrorBuffer.class, ModificationQueue.class),

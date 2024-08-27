@@ -340,18 +340,6 @@ public class SchemaHelper {
 			extendsAbstractNode = false;
 		}
 
-        /*
-		// check superclass
-		if (!extendsAbstractNode && !superClass.startsWith("org.structr.dynamic.") && !SchemaHelper.hasType(superClass)) {
-
-			// we can only detect if a type is missing that is usually provided by a module; we
-			// can not detect whether a dynamic type is missing because those are only available
-			// after compiling the whole set of schema nodes
-			logger.warn("Dynamic type {} cannot be used, superclass {} not defined.", schemaNode.getName(), superClass);
-			throw new FrameworkException(500, "Dynamic type " + schemaNode.getName() + " cannot be used, superclass " + superClass + " not defined.");
-		}
-		*/
-
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
 		SchemaHelper.collectInterfaces(schemaNode, implementedInterfaces);
 
@@ -1007,6 +995,10 @@ public class SchemaHelper {
 
 			switch (name) {
 
+				case "onNodeCreation":
+					formatNodeCreationCallback(src, schemaNode, name, actionList);
+					break;
+
 				case "onCreation":
 					formatCreationCallback(src, schemaNode, name, actionList);
 					break;
@@ -1036,7 +1028,26 @@ public class SchemaHelper {
 					break;
 			}
 		}
+	}
 
+	public static void formatNodeCreationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
+
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0);");
+
+		for (final ActionEntry action : actionList) {
+
+			action.getSource(src, "this", "arg0", false);
+		}
+
+		src.end();
 	}
 
 	public static void formatCreationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {

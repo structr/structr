@@ -47,7 +47,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final long sourceTransactionId);
 
-	void onNodeCreation();
+	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
 	void onNodeDeletion(SecurityContext securityContext) throws FrameworkException;
 

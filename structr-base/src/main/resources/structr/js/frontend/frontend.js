@@ -62,6 +62,10 @@ export class Frontend {
 				continue;
 			}
 
+            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression') {
+				continue;
+            }
+
 			resolved[key] = this.resolveValue(key, value, data, event, target);
 
 		}
@@ -782,8 +786,6 @@ export class Frontend {
 			}
 
 			this.fireEvent('start', { target: target, data: data, event: event });
-
-
 
 			// server-side
 			// store event type in htmlEvent property

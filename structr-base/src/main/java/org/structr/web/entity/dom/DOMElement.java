@@ -93,26 +93,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 	static final String lowercaseBodyName        = "body";
 
-	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID                                   = "structrId";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT                                   = "htmlEvent";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION                         = "structrIdExpression";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET                               = "structrTarget";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTR_RELOAD_TARGET                       = "structrReloadTarget";
+	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE                             = "structrDataType";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD                               = "structrMethod";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION                               = "structrAction";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT                                = "structrEvent";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS                               = "structrEvents";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_CHILDID                                     = "childId";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT                                = "sourceObject";
 	static final String EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY                              = "sourceProperty";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_REPEATER_DATA_OBJECT_ID                     = "repeaterDataObjectId";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS                       = "structrSuccessNotifications";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_FAILURE_NOTIFICATIONS                       = "structrFailureNotifications";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_TARGET                              = "structrSuccessTarget";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_FAILURE_TARGET                              = "structrFailureTarget";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_FLOW_RESULT                                 = "flowResult";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_METHOD_RESULT                               = "methodResult";
-	static final String EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT = "structrSuccessNotificationsCustomDialogElement";
 
 
 	static final int HtmlPrefixLength            = PropertyView.Html.length();
@@ -922,33 +910,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTR_RELOAD_TARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_REPEATER_DATA_OBJECT_ID);
-//		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_DATA_TYPE);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_FAILURE_NOTIFICATIONS);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_TARGET);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_FAILURE_TARGET);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_FLOW_RESULT);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_METHOD_RESULT);
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT);
-
-		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 	}
-
-
-
-
-
-
 
 	// ----- static methods -----
 	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {

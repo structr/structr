@@ -196,9 +196,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		if (node != null) {
 
-			// notify node of its creation
-			node.onNodeCreation();
-
 			// iterate post creation transformations
 			final Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
 			for (Transformation<GraphObject> transformation : transformations) {
@@ -216,6 +213,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				securityContext.getCreationDetails().add(obj);
 			}
+
+			// notify node of its creation
+			node.onNodeCreation(securityContext);
 		}
 
 		return node;

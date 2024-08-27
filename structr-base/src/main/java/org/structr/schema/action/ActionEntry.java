@@ -89,6 +89,12 @@ public class ActionEntry implements Comparable<ActionEntry> {
 			this.type = Actions.Type.AfterSave;
 			positionOffset = 12;
 
+		} else if (sourceName.startsWith("___onNodeCreation")) {
+
+			this.name = "onNodeCreation";
+			this.type = Actions.Type.OnNodeCreation;
+			positionOffset = 17;
+
 		} else if (sourceName.startsWith("___onCreate")) {
 
 			this.name = "onCreation";

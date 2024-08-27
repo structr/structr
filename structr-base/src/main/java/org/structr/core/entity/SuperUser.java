@@ -237,7 +237,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void onNodeCreation() {
+	public void onNodeCreation(final SecurityContext securityContext) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

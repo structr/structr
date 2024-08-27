@@ -92,7 +92,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public void onNodeCreation() {
+	public void onNodeCreation(final SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override

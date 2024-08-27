@@ -81,7 +81,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void onNodeCreation() {
+	public void onNodeCreation(final SecurityContext securityContext) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

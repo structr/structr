@@ -969,12 +969,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
 				} else {
 
-					final SecurityContext sc = renderContext.getSecurityContext();
-					final Principal user     = sc.getUser(false);
-					final String username    = (user != null) ? user.getName() : "anonymous";
-
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
+					logger.warn(" -> From: {} | URI: {} | Query: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString());
 				}
 			}
 		});

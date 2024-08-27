@@ -2311,6 +2311,15 @@ class LifecycleMethods {
 		},
 		/** AbstractNode */
 		{
+			name: 'onNodeCreation',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: `
+				The <strong>onNodeCreation</strong> method runs immediately after creation of a node, before everything is committed.
+				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.
+			`,
+			isPrefix: true
+		},
+		{
 			name: 'onCreate',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
 			comment: `

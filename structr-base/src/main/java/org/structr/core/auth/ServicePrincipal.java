@@ -204,7 +204,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public void onNodeCreation() {
+	public void onNodeCreation(final SecurityContext securityContext) {
 	}
 
 	@Override
