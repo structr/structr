@@ -4176,7 +4176,7 @@ let _Pages = {
 
 						<div class="hidden options-method em-action-element em-action-method">
 							<div>
-								<label class="block mb-2" for="method-name-input">Name of method to execute</label>
+								<label class="block mb-2" for="method-name-input" data-comment="Enter name of an User-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
 								<input type="text" id="method-name-input">
 							</div>
 						</div>
