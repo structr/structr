@@ -20,7 +20,9 @@ package org.structr.schema.parser;
 
 import com.caucho.quercus.lib.date.DateTime;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.ZonedDateTimeProperty;
@@ -84,22 +86,35 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
      * @param pattern optional SimpleDateFormat pattern
      * @return
      */
-    public static ZonedDateTime parse(String source, final String pattern) {
+    public static ZonedDateTime parse(String source, final String pattern) throws FrameworkException {
 
         if (StringUtils.isBlank(pattern)) {
 
             ZonedDateTime parsedDate = null;
 
+            DateTimeParseException parseException = null;
+
             try {
 
                 parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
-            } catch (DateTimeParseException ignored) {}
+            } catch (DateTimeParseException ex) {
+                parseException = ex;
+            }
 
             if (parsedDate == null) {
 
                 try {
                     parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ISO_DATE_TIME);
-                } catch (DateTimeParseException ignored) {}
+                    // If fallback succeeds, it's safe to clear the previous exception.
+                    parseException = null;
+                } catch (DateTimeParseException ex) {
+                    parseException = ex;
+                }
+            }
+
+            if (parseException != null) {
+                
+                throw new FrameworkException(422, ("Could not parse ZonedDateTime from source " + source + ". Cause: " + parseException.getCause()), parseException.getCause());
             }
 
             return parsedDate;
@@ -111,7 +126,7 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
         }
 
     }
-    public static ZonedDateTime parse(String source) {
+    public static ZonedDateTime parse(String source) throws FrameworkException {
         return parse(source, null);
     }
 
