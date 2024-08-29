@@ -287,10 +287,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (Throwable t) {
 
-				if (t instanceof SyntaxErrorException see) {
-
-					logger.error(see.getMessage());	
-				} else {
+				if (!(t instanceof SyntaxErrorException)) {
 
 					t.printStackTrace();
 				}

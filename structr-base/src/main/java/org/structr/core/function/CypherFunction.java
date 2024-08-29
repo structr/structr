@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -124,12 +125,12 @@ public class CypherFunction extends CoreFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
-		} catch (UnknownClientException uce) {
+		} catch (SyntaxErrorException | UnknownClientException ex) {
 
-			logException(uce, "{}: Exception in '{}' for parameters: {} (Cause: {})", new Object[] { getReplacement(), caller, sources, uce.getMessage() });
+			logException(ex, "{}: Exception in '{}' for parameters: {} (Cause: {})", new Object[] {getReplacement(), caller, sources, ex.getMessage()});
 			return null;
 		}
-	}
+    }
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
