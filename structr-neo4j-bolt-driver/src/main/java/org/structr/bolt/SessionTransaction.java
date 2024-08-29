@@ -29,10 +29,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.ConstraintViolationException;
-import org.structr.api.DataFormatException;
-import org.structr.api.UnknownClientException;
-import org.structr.api.UnknownDatabaseException;
+import org.structr.api.*;
 
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +41,6 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Path.Segment;
 import org.neo4j.driver.types.Relationship;
-import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.Iterables;
 
@@ -483,12 +479,16 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			case "Neo.ClientError.Schema.ConstraintValidationFailed":
 				throw new ConstraintViolationException(cex, cex.code(), cex.getMessage());
-
-			// add handlers / translated exceptions for ClientExceptions here..
+			case "Neo.ClientError.Statement.SyntaxError":
+				throw new SyntaxErrorException(cex, cex.code(), cex.getMessage());
+			case "N/A":
+				if (cex.getCause() != null && cex.getCause() instanceof ClientException causeCex) {
+					throw translateClientException(causeCex);
+				}
+				throw new UnknownClientException(cex, cex.code(), cex.getMessage());
+			default:
+				throw new UnknownClientException(cex, cex.code(), cex.getMessage());
 		}
-
-		// wrap exception if no other cause could be found
-		throw new UnknownClientException(cex, cex.code(), cex.getMessage());
 	}
 
 	public static RuntimeException translateDatabaseException(final DatabaseException dex) {

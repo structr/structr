@@ -28,6 +28,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.SyntaxErrorException;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
@@ -286,7 +287,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				if (t instanceof SyntaxErrorException see) {
+
+					logger.error(see.getMessage());	
+				} else {
+
+					t.printStackTrace();
+				}
 
 				try (final Tx tx = app.tx(true, true, true)) {
 
