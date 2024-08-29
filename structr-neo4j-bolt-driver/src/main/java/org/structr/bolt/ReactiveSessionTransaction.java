@@ -18,6 +18,7 @@
  */
 package org.structr.bolt;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
@@ -462,11 +463,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			final Iterable<Map<String, Object>> iterable = Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable());
-
-			iterable.iterator().hasNext();
-
-			return iterable;
+            return Iterables.toList(Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable()));
 
 		} catch (TransientException tex) {
 			closed = true;

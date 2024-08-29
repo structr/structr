@@ -22,6 +22,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.SyntaxErrorException;
 
 import java.util.*;
 import java.util.function.Function;
@@ -53,10 +54,6 @@ public class Iterables {
 					collection.add(next);
 				}
 			}
-
-		} catch (Throwable t) {
-
-			logger.error(ExceptionUtils.getStackTrace(t));
 
 		} finally {
 
