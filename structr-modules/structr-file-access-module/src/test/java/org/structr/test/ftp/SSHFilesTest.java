@@ -63,38 +63,26 @@ public class SSHFilesTest extends SSHTest {
 			final Vector<LsEntry> entries = sftp.ls("/");
 
 			// listing contains "." => 5 entries
-			assertEquals("Invalid result size for SSH root directory", 3, entries.size());
+			assertEquals("Invalid result size for SSH root directory", 1, entries.size());
 
 			final LsEntry currentDir      = entries.get(0);
-			final LsEntry files           = entries.get(1);
-			final LsEntry schema          = entries.get(2);
 
 			// check names
 			assertEquals("Invalid current directory name",    ".", currentDir.getFilename());
-			assertEquals("Invalid files directory name",      "files", files.getFilename());
-			assertEquals("Invalid schema directory name",     "schema", schema.getFilename());
 
 			// check permissions
-			assertEquals("Invalid permissions on . directory",          "dr--------", currentDir.getAttrs().getPermissionsString());
-			assertEquals("Invalid permissions on files directory",      "drwxrwxr-x", files.getAttrs().getPermissionsString());
-			assertEquals("Invalid permissions on schema directory",     "drwxrwxr-x", schema.getAttrs().getPermissionsString());
+			assertEquals("Invalid permissions on . directory",          "drwxrwxr-x", currentDir.getAttrs().getPermissionsString());
 
 			// check flags (?)
 			assertEquals("Invalid flags on . directory",          12, currentDir.getAttrs().getFlags());
-			assertEquals("Invalid flags on files directory",      12, files.getAttrs().getFlags());
-			assertEquals("Invalid flags on schema directory",     12, schema.getAttrs().getFlags());
 
 			// check size
 			assertEquals("Invalid size on . directory",          0, currentDir.getAttrs().getSize());
-			assertEquals("Invalid size on files directory",      0, files.getAttrs().getSize());
-			assertEquals("Invalid size on schema directory",     0, schema.getAttrs().getSize());
 
 			final String date = getDateStringDependingOnCurrentDayOfMonth();
 
 			// check string representation
-			assertEquals("Invalid string representation of . directory",         "dr--------   1 superadmin superadmin        0 " + date + " .",          currentDir.getLongname());
-			assertEquals("Invalid string representation of files directory",     "drwxrwxr-x   1 superadmin superadmin        0 " + date + " files",      files.getLongname());
-			assertEquals("Invalid string representation of schema directory",    "drwxrwxr-x   1 superadmin superadmin        0 " + date + " schema",     schema.getLongname());
+			assertEquals("Invalid string representation of . directory",         "drwxrwxr-x   1 superadmin superadmin        0 " + date + " .",          currentDir.getLongname());
 
 			sftp.disconnect();
 
@@ -118,12 +106,12 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 
-			final Vector files = sftp.ls("/files");
+			final Vector files = sftp.ls("/");
 
 			assertNotNull(files);
-			assertEquals(2, files.size());
+			assertEquals(1, files.size());
 
-			try (final OutputStream os = sftp.put("/files/" + name1)) {
+			try (final OutputStream os = sftp.put("/" + name1)) {
 
 				IOUtils.write(testContent1, os);
 				os.flush();
@@ -132,7 +120,7 @@ public class SSHFilesTest extends SSHTest {
 				ioex.printStackTrace();
 			}
 
-			try (final OutputStream os = sftp.put("/files/" + name2)) {
+			try (final OutputStream os = sftp.put("/" + name2)) {
 
 				IOUtils.write(testContent2, os);
 				os.flush();
@@ -173,13 +161,13 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
-			final Vector<LsEntry> entries = sftp.ls("/files");
+			final Vector<LsEntry> entries = sftp.ls("/");
 
 			// listing contains "." and ".." => 4 entries
-			assertEquals("Invalid result size for directory", 4, entries.size());
+			assertEquals("Invalid result size for directory", 3, entries.size());
 
-			final LsEntry file1 = entries.get(2);
-			final LsEntry file2 = entries.get(3);
+			final LsEntry file1 = entries.get(1);
+			final LsEntry file2 = entries.get(2);
 
 			// check names
 			assertEquals("Invalid test file name", name1, file1.getFilename());
@@ -223,7 +211,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 
-			try (final OutputStream os = sftp.put("/files/" + name1)) {
+			try (final OutputStream os = sftp.put("/" + name1)) {
 
 				IOUtils.write(testContent1, os);
 				os.flush();
@@ -232,7 +220,7 @@ public class SSHFilesTest extends SSHTest {
 				ioex.printStackTrace();
 			}
 
-			sftp.rename("/files/" + name1, "/files/" + name2);
+			sftp.rename("/" + name1, "/" + name2);
 
 		} catch (SftpException ex) {
 			logger.warn("", ex);
@@ -241,12 +229,12 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 			final String date = getDateStringDependingOnCurrentDayOfMonth();
-			final Vector<LsEntry> entries = sftp.ls("/files");
+			final Vector<LsEntry> entries = sftp.ls("/");
 
-			// listing contains "." and ".." => 3 entries
-			assertEquals("Invalid result size for directory", 3, entries.size());
+			// listing contains "." and ".." => 2 entries
+			assertEquals("Invalid result size for directory", 2, entries.size());
 
-			final LsEntry file = entries.get(2);
+			final LsEntry file = entries.get(1);
 
 			// check attributes
 			assertEquals("Invalid test file name", name2, file.getFilename());
@@ -277,10 +265,10 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 
-			sftp.mkdir("/files/dir1");
-			sftp.mkdir("/files/dir2");
+			sftp.mkdir("/dir1");
+			sftp.mkdir("/dir2");
 
-			try (final OutputStream os = sftp.put("/files/dir1/" + name1)) {
+			try (final OutputStream os = sftp.put("/dir1/" + name1)) {
 
 				ByteArrayInputStream is = new ByteArrayInputStream(testContent1.getBytes());
 				IOUtils.copy(is, os);
@@ -290,7 +278,7 @@ public class SSHFilesTest extends SSHTest {
 				ioex.printStackTrace();
 			}
 
-			sftp.rename("/files/dir1/" + name1, "/files/dir2/" + name2);
+			sftp.rename("/dir1/" + name1, "/dir2/" + name2);
 			date = getDateStringDependingOnCurrentDayOfMonth();
 
 		} catch (SftpException ex) {
@@ -300,7 +288,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
-			final Vector<LsEntry> entries = sftp.ls("/files/dir2");
+			final Vector<LsEntry> entries = sftp.ls("/dir2");
 
 			// listing contains "." and ".." => 3 entries
 			assertEquals("Invalid result size for directory", 3, entries.size());
@@ -334,13 +322,13 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 
-			final Vector files = sftp.ls("/files");
+			final Vector files = sftp.ls("/");
 
 			assertNotNull(files);
-			// listing contains "." and ".." => 3 entries
-			assertEquals(2, files.size());
+			// listing contains "." => 1 entry
+			assertEquals(1, files.size());
 
-			try (final OutputStream os = sftp.put("/files/" + name)) {
+			try (final OutputStream os = sftp.put("/" + name)) {
 
 				IOUtils.write(testContent1, os);
 				os.flush();
@@ -349,7 +337,7 @@ public class SSHFilesTest extends SSHTest {
 				ioex.printStackTrace();
 			}
 
-			try (final OutputStream os = sftp.put("/files/" + name)) {
+			try (final OutputStream os = sftp.put("/" + name)) {
 
 				IOUtils.write(testContent2, os);
 				os.flush();
@@ -387,12 +375,12 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
-			final Vector<LsEntry> entries = sftp.ls("/files");
+			final Vector<LsEntry> entries = sftp.ls("/");
 
-			// listing contains "." and ".." => 3 entries
-			assertEquals("Invalid result size for directory", 3, entries.size());
+			// listing contains "." and file => 2 entries
+			assertEquals("Invalid result size for directory", 2, entries.size());
 
-			final LsEntry file1 = entries.get(2);
+			final LsEntry file1 = entries.get(1);
 
 			// check names
 			assertEquals("Invalid test file name", name, file1.getFilename());
@@ -430,12 +418,12 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 
-			final Vector files = sftp.ls("/files");
+			final Vector files = sftp.ls("/");
 
 			assertNotNull(files);
-			assertEquals(2, files.size());
+			assertEquals(1, files.size());
 
-			try (final OutputStream os = sftp.put("/files/" + name)) {
+			try (final OutputStream os = sftp.put("/" + name)) {
 
 				IOUtils.write(testContent, os);
 				os.flush();
@@ -474,7 +462,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try {
 
-			sftp.rm("/files/" + name);
+			sftp.rm("/" + name);
 
 			sftp.disconnect();
 
@@ -506,13 +494,13 @@ public class SSHFilesTest extends SSHTest {
 		try {
 
 			// create some dirs
-			sftp.mkdir("/files/test1");
-			sftp.mkdir("/files/test2");
-			sftp.mkdir("/files/test2/nested1");
-			sftp.mkdir("/files/test2/nested1/nested2");
+			sftp.mkdir("/test1");
+			sftp.mkdir("/test2");
+			sftp.mkdir("/test2/nested1");
+			sftp.mkdir("/test2/nested1/nested2");
 
 			// delete one dir
-			sftp.rmdir("/files/test2/nested1/nested2");
+			sftp.rmdir("/test2/nested1/nested2");
 
 			// byebye
 			sftp.disconnect();
