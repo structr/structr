@@ -136,7 +136,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		final String terminalType = env.getEnv().get("TERM");
 		if (terminalType != null) {
 
-			if (terminalType.startsWith("xterm") || terminalType.startsWith("vt100") || terminalType.startsWith("vt220")) {
+			if (terminalType.startsWith("xterm") || terminalType.startsWith("xterm-256color") || terminalType.startsWith("vt100") || terminalType.startsWith("vt220")) {
 
 				term = new XTermTerminalEmulator(in, out, this);
 
@@ -144,8 +144,6 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 				logger.warn("Unsupported terminal type {}, aborting.", terminalType);
 			}
-
-			logger.warn("No terminal type provided, aborting.", terminalType);
 		}
 
 		if (term != null) {
@@ -272,36 +270,28 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		final StringBuilder buffer = new StringBuilder();
 
-		buffer.append("\u001b[1m");
-		buffer.append(console.getPrompt());
+		final App app = StructrApp.getInstance();
+		try (Tx tx = app.tx()) {
+			buffer.append("\u001b[1m");
+			buffer.append(console.getPrompt());
 
-		if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
-			buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
-		} else {
-			buffer.append("/");
+			if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
+				buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
+			} else {
+				buffer.append("/");
+			}
+
+			buffer.append(">");
+			buffer.append("\u001b[0m");
+			buffer.append(" ");
+
+			tx.success();
+		} catch (FrameworkException ex) {
+
+			logger.error("Unexpected exception", ex);
 		}
-
-		buffer.append(">");
-		buffer.append("\u001b[0m");
-		buffer.append(" ");
 
 		return buffer.toString();
-	}
-
-	public boolean isAllowed(final AbstractFile file, final Permission permission, final boolean explicit) {
-
-		if (file == null) {
-			return false;
-		}
-
-		final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-
-		if (Permission.read.equals(permission) && !explicit) {
-
-			return file.isVisibleToAuthenticatedUsers() || file.isVisibleToPublicUsers() || file.isGranted(permission, securityContext);
-		}
-
-		return file.isGranted(permission, securityContext);
 	}
 
 	// ----- private methods -----

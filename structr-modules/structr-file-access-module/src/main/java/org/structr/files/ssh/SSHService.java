@@ -463,7 +463,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ---- interface ShellFactory -----
 	@Override
 	public org.apache.sshd.server.command.Command createShell(ChannelSession channelSession) throws IOException {
-		return new StructrShellCommand();
+		return new StructrConsoleCommand(securityContext );
 	}
 	// ----- -----
 

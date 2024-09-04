@@ -16,24 +16,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.files.ssh.filesystem.path.schema;
+package org.structr.files.ssh.filesystem.path.file;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
+import org.structr.files.ssh.filesystem.StructrRootAttributes;
 import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 
 import java.io.IOException;
-import java.nio.channels.Channel;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -44,46 +46,47 @@ import java.util.*;
 /**
  *
  */
-public class StructrSchemaMethodsPath extends StructrPath {
+public class StructrFilesRootPath extends StructrPath {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrSchemaMethodsPath.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrFilesRootPath.class.getName());
+	private static final StructrRootAttributes rootAttributes = new StructrRootAttributes(StructrPath.ROOT_DIRECTORY);
 
-	private AbstractSchemaNode schemaNode = null;
+	public StructrFilesRootPath(final StructrFilesystem fs) {
 
-	public StructrSchemaMethodsPath(final StructrFilesystem fs, final StructrPath parent, final AbstractSchemaNode schemaNode) {
-		super(fs, parent, "methods");
+		super(fs);
+	}
 
-		this.schemaNode = schemaNode;
+	@Override
+	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
+		throw new AccessDeniedException(toString());
 	}
 
 	@Override
 	public DirectoryStream<Path> getDirectoryStream(final DirectoryStream.Filter<? super Path> filter) {
 
-		if (schemaNode != null) {
+		return new DirectoryStream<>() {
 
-			return new DirectoryStream() {
+			boolean closed = false;
 
-				boolean closed = false;
+			@Override
+			public @NotNull Iterator<Path> iterator() {
 
-				@Override
-				public Iterator iterator() {
+				if (!closed) {
 
-					final App app                 = StructrApp.getInstance(fs.getSecurityContext());
-					final List<StructrPath> nodes = new LinkedList<>();
+					final App app                           = StructrApp.getInstance(fs.getSecurityContext());
+					final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
+					final List<Path> files           = new LinkedList<>();
 
 					try (final Tx tx = app.tx()) {
 
-						for (final SchemaMethod schemaMethod : schemaNode.getProperty(SchemaNode.schemaMethods)) {
+						for (final Folder folder : app.nodeQuery(Folder.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
 
-							// schema methods have a virtual file name so that external editors don't get confused
-							String name = schemaMethod.getProperty(SchemaMethod.virtualFileName);
-							if (name == null) {
+							files.add(new StructrFilePath(fs, StructrFilesRootPath.this, folder.getName()));
+						}
 
-								// no virtual file name set, use real name
-								name = schemaMethod.getName();
-							}
+						for (final File file : app.nodeQuery(File.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
 
-							nodes.add(new StructrSchemaMethodPath(fs, StructrSchemaMethodsPath.this,schemaNode, name));
+							files.add(new StructrFilePath(fs, StructrFilesRootPath.this, file.getName()));
 						}
 
 						tx.success();
@@ -92,28 +95,24 @@ public class StructrSchemaMethodsPath extends StructrPath {
 						logger.warn("", fex);
 					}
 
-					return nodes.iterator();
+					return files.iterator();
+
 				}
 
-				@Override
-				public void close() throws IOException {
-					closed = true;
-				}
-			};
+				return Collections.emptyIterator();
+			}
 
-		}
+			@Override
+			public void close() throws IOException {
+				closed = true;
+			}
+		};
 
-		return null;
 	}
 
 	@Override
-	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public void createDirectory(FileAttribute<?>... attrs) throws IOException {
-		throw new FileAlreadyExistsException(toString());
+	public void createDirectory(final FileAttribute<?>... attrs) throws IOException {
+		throw new FileAlreadyExistsException(this.toString());
 	}
 
 	@Override
@@ -123,17 +122,17 @@ public class StructrSchemaMethodsPath extends StructrPath {
 
 	@Override
 	public StructrPath resolveStructrPath(final String pathComponent) {
-		return new StructrSchemaMethodPath(fs, this, schemaNode, pathComponent);
+		return new StructrFilePath(fs, this, pathComponent);
 	}
 
 	@Override
-	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) throws IOException {
-		return new StructrToplevelAttributes("methods").toMap(attributes);
+	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) {
+		return rootAttributes.toMap(attributes);
 	}
 
 	@Override
-	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) throws IOException {
-		return (T)new StructrToplevelAttributes("methods");
+	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) {
+		return (T)rootAttributes;
 	}
 
 	@Override
