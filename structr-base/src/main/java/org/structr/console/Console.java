@@ -19,6 +19,9 @@
 package org.structr.console;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.SyntaxErrorException;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -45,6 +48,8 @@ import java.util.*;
 
 
 public class Console {
+
+	private static Logger logger = LoggerFactory.getLogger(Console.class);
 
 	public enum ConsoleMode {
 		Cypher, JavaScript, StructrScript, AdminShell, REST
@@ -248,6 +253,9 @@ public class Console {
 			writable.println();
 
 			tx.success();
+		} catch (SyntaxErrorException see) {
+
+			logger.error("Unexpected syntax error in console command. {}", see.getMessage());
 		}
 
 	}

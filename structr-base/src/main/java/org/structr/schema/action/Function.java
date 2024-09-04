@@ -126,7 +126,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 			l.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			l.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
+			l.error(msg + "\n(Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 

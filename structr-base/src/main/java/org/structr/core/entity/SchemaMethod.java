@@ -445,9 +445,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		if (hasParent) {
 
-			final List<String> typeBasedLifecycleMethods = List.of("onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
-			final List<String> fileLifecycleMethods = List.of("onUpload", "onDownload");
-			final List<String> userLifecycleMethods = List.of("onOAuthLogin");
+			final List<String> typeBasedLifecycleMethods = List.of("onNodeCreation", "onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
+			final List<String> fileLifecycleMethods      = List.of("onUpload", "onDownload");
+			final List<String> userLifecycleMethods      = List.of("onOAuthLogin");
 
 			for (final String lifecycleMethodPrefix : typeBasedLifecycleMethods) {
 

@@ -255,10 +255,14 @@ public class Scripting {
 
 		Object result = null;
 
-		final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
-		result = PolyglotWrapper.unwrap(actionContext, value);
+		try {
 
-		context.leave();
+			final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
+			result = PolyglotWrapper.unwrap(actionContext, value);
+		} finally {
+
+			context.leave();
+		}
 
 		// Prefer explicitly printed output over actual result
 		final String outputBuffer = actionContext.getOutput();
