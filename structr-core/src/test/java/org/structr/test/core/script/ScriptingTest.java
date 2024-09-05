@@ -6430,7 +6430,6 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testDateWrappingAndFormats() {
 
-
 		// setup
 		try (final Tx tx = app.tx()) {
 
@@ -6641,6 +6640,67 @@ public class ScriptingTest extends StructrTest {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testGetOwnPropertyNames() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("doTest1",             "{ return 'test1; }");
+			type.addMethod("doTest2",             "{ return 'test2; }").setIsStatic(true);
+			type.addMethod("doTest3",             "{ return 'test2; }").setIsPrivate(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test     = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
+			final List<String> result1 = (List) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return Object.getOwnPropertyNames($.this); }}", "test");
+			final Set<String> expected = new LinkedHashSet<>();
+
+			expected.add("name");
+			expected.add("hidden");
+			expected.add("owner");
+			expected.add("ownerId");
+			expected.add("grantees");
+			expected.add("internalEntityContextPath");
+			expected.add("base");
+			expected.add("type");
+			expected.add("id");
+			expected.add("createdDate");
+			expected.add("createdBy");
+			expected.add("lastModifiedDate");
+			expected.add("lastModifiedBy");
+			expected.add("visibleToPublicUsers");
+			expected.add("visibleToAuthenticatedUsers");
+
+			// new: methods (non-lifecycle)
+			expected.add("doTest1");
+			expected.add("doTest2");
+
+			assertTrue("Invalid scripting reflection result", result1.containsAll(expected));
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 
 	}
 

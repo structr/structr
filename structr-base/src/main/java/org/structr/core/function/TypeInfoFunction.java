@@ -25,7 +25,7 @@ import org.structr.schema.action.ActionContext;
 public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_TYPE_INFO    = "Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}";
-	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${Structr.type_info(type[, view])}. Example ${Structr.type_info('User', 'public')}";
+	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${$.typeInfo(type[, view])}. Example ${$.typeInfo('User', 'public')}";
 
 	@Override
 	public String getName() {
