@@ -63,6 +63,7 @@ public class ActionContext {
 	private final StringBuilder outputBuffer             = new StringBuilder();
 	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
 	private Locale locale                                = Locale.getDefault();
+	private AbstractMethod currentMethod                 = null;
 	private SecurityContext securityContext              = null;
 	private Predicate predicate                          = null;
 	private boolean disableVerboseExceptionLogging       = false;
@@ -527,54 +528,6 @@ public class ActionContext {
 		return null;
 	}
 
-	public static String getBaseUrl() {
-		return getBaseUrl(null);
-	}
-
-	public static String getBaseUrl(final HttpServletRequest request) {
-		return getBaseUrl(request, false);
-	}
-
-	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
-
-		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
-
-		if (StringUtils.isNotEmpty(baseUrlOverride)) {
-			return baseUrlOverride;
-		}
-
-		final StringBuilder sb = new StringBuilder("http");
-
-		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
-		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
-
-		if (httpsEnabled) {
-			sb.append("s");
-		}
-
-		sb.append("://");
-		sb.append(name);
-
-		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
-		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
-			sb.append(":").append(port);
-		}
-
-		return sb.toString();
-	}
-
-	public static String getRemoteAddr(HttpServletRequest request) {
-
-		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
-
-		if (remoteAddress == null) {
-			return request.getRemoteAddr();
-		}
-
-		return remoteAddress;
-	}
-
 	public void print(final Object[] objects, final Object caller) {
 
 		for (final Object obj : objects) {
@@ -653,6 +606,62 @@ public class ActionContext {
 
 	public boolean isRenderContext() {
 		return false;
+	}
 
+	public void setCurrentMethod(final AbstractMethod currentMethod) {
+		this.currentMethod = currentMethod;
+	}
+
+	public AbstractMethod getCurrentMethod() {
+		return currentMethod;
+	}
+
+	// ----- public static methods -----
+	public static String getBaseUrl() {
+		return getBaseUrl(null);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request) {
+		return getBaseUrl(request, false);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
+
+		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
+
+		if (StringUtils.isNotEmpty(baseUrlOverride)) {
+			return baseUrlOverride;
+		}
+
+		final StringBuilder sb = new StringBuilder("http");
+
+		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
+		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
+		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
+		if (httpsEnabled) {
+			sb.append("s");
+		}
+
+		sb.append("://");
+		sb.append(name);
+
+		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
+		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
+			sb.append(":").append(port);
+		}
+
+		return sb.toString();
+	}
+
+	public static String getRemoteAddr(HttpServletRequest request) {
+
+		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+
+		if (remoteAddress == null) {
+			return request.getRemoteAddr();
+		}
+
+		return remoteAddress;
 	}
 }

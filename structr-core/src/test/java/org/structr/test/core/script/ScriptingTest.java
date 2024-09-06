@@ -6651,9 +6651,9 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("doTest1",             "{ return 'test1; }");
-			type.addMethod("doTest2",             "{ return 'test2; }").setIsStatic(true);
-			type.addMethod("doTest3",             "{ return 'test2; }").setIsPrivate(true);
+			type.addMethod("doTest1",             "{ return 'test1'; }");
+			type.addMethod("doTest2",             "{ return 'test2'; }").setIsStatic(true);
+			type.addMethod("doTest3",             "{ return 'test3'; }").setIsPrivate(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6700,8 +6700,92 @@ public class ScriptingTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testFunctionInfoFunction() {
 
 
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("doTest1", "{ $.log($.functionInfo()); return $.functionInfo(); }").addParameter("id", "string").addParameter("date", "date");
+			type.addMethod("doTest2", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsStatic(true);
+			type.addMethod("doTest3", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsPrivate(true);
+			type.addMethod("doTest4", "{ $.log($.functionInfo()); return $.this.doTest1(); }");
+			type.addMethod("doTest5", "{ $.log($.functionInfo()); return $.this.doTest4(); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test            = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
+
+			// test successful execution
+			final Map<String, Object> result1 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest1(); }}", "test");
+			final Map<String, Object> result2 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.Test.doTest2(); }}", "test");
+			final Map<String, Object> result3 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest3(); }}", "test");
+			final Map<String, Object> result4 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest4(); }}", "test");
+			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest5(); }}", "test");
+			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test', 'doTest1'); }}", "test");
+
+			final String result7 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('TestWrong', 'doTest1'); }}", "test");
+			final String result8 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test', 'wrongName'); }}", "test");
+			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test'); }}", "test");
+
+
+			assertEquals("Invalid functionInfo() result", "doTest1", result1.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest2", result2.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest3", result3.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest1", result4.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest1", result5.get("name"));
+
+			assertEquals("Invalid functionInfo() result", false, result1.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result1.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", "POST", result1.get("httpVerb"));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result1.get("parameters")).get("id"));
+			assertEquals("Invalid functionInfo() result", "date", ((Map)result1.get("parameters")).get("date"));
+
+			assertEquals("Invalid functionInfo() result", true,  result2.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result2.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false, result3.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", true,  result3.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false, result4.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result4.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false, result5.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result5.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false,    result6.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false,    result6.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", "POST",   result6.get("httpVerb"));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get("parameters")).get("id"));
+			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get("parameters")).get("date"));
+
+			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result7);
+			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result8);
+			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result9);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods ----
