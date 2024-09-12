@@ -62,7 +62,7 @@ export class Frontend {
 				continue;
 			}
 
-            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression') {
+            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
 				continue;
             }
 
