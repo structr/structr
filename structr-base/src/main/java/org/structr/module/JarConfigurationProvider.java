@@ -780,6 +780,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		// merge dynamic views in as well
 		views.addAll(dynamicViews);
+		views.add("custom");
 
 		return Collections.unmodifiableSet(views);
 	}

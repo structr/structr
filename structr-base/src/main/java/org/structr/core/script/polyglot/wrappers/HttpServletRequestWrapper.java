@@ -44,42 +44,17 @@ public class HttpServletRequestWrapper implements ProxyObject {
 	public Object getMember(String key) {
 
 		if (request != null) {
-			Object value = request.getParameterValues(key);
+
+			final Object value = request.getParameterValues(key);
+
 			if (value != null && ((String[]) value).length == 1) {
 
-				value = ((String[]) value)[0];
-				return value;
+				return ((String[]) value)[0];
+
 			} else if (value != null && ((String[]) value).length > 1) {
 
 				return PolyglotWrapper.wrap(actionContext, value);
-			} else {
-
-				Method[] methods = request.getClass().getMethods();
-				for (Method method : methods) {
-
-					if (method.getName().equals(key)) {
-
-						return (ProxyExecutable) arguments -> {
-							try {
-
-								if (method.getParameterCount() == 0) {
-
-									return PolyglotWrapper.wrap(actionContext, method.invoke(this.request));
-								} else {
-
-									return PolyglotWrapper.wrap(actionContext, method.invoke(this.request, Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray()));
-								}
-							} catch (InvocationTargetException | IllegalAccessException ex) {
-
-								LoggerFactory.getLogger(HttpServletRequestWrapper.class).error("Unexpected exception while trying to invoke member function on Request.", ex);
-							}
-
-							return null;
-						};
-					}
-				}
 			}
-
 		}
 
 		return null;
@@ -98,19 +73,10 @@ public class HttpServletRequestWrapper implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
+
 		if (request != null) {
-			if (request.getParameterMap().containsKey(key)) {
-				return true;
-			} else {
-				Method[] methods = request.getClass().getMethods();
-				for (Method method : methods) {
 
-					if (method.getName().equals(key)) {
-
-						return true;
-					}
-				}
-			}
+			return request.getParameterMap().containsKey(key);
 		}
 
 		return false;
