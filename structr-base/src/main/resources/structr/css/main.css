@@ -3919,6 +3919,9 @@ ul.combined-input-select-field li:hover {
 .mr-12 {
 	margin-right: 3rem;
 }
+.ml-px {
+	margin-left: 1px;
+}
 .ml-1 {
 	margin-left: .25rem;
 }
@@ -4038,6 +4041,9 @@ ul.combined-input-select-field li:hover {
 }
 .w-60 {
 	width: 15rem;
+}
+.w-64 {
+	width: 16rem;
 }
 .w-72 {
 	width: 18rem;

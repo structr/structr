@@ -3424,6 +3424,14 @@ let _Schema = {
 			let methodsGrid = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(methodsGridConfig));
 			container.querySelector('#methods-grid-container').appendChild(methodsGrid);
 
+			let scrollContainer = container.querySelector('#methods-container-left');
+
+			methodsGrid.addEventListener(Structr.dropdownOpenEventName, () => {
+
+				// scroll container to end to show all options
+				scrollContainer.scrollTop = scrollContainer.scrollHeight;
+			});
+
 			let gridBody = container.querySelector('.schema-grid-body');
 
 			_Schema.methods.activateUIActions(container, gridBody, entity);
@@ -3911,11 +3919,11 @@ let _Schema = {
 				</div>
 			`,
 			addMethodsDropdown: config => `
-				<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
+				<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large relative">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="false">
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
 					</button>
-					<div class="dropdown-menu-container">
+					<div class="dropdown-menu-container ml-px w-64">
 						<div class="flex flex-col divide-x-0 divide-y">
 							<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
@@ -3926,8 +3934,8 @@ let _Schema = {
 				</div>
 			`,
 			methodsDropdownButton: (config) => `
-				<a data-name="${config.name}" data-is-prefix="${config.isPrefix}" class="add-method-button inline-flex items-center justify-between hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="${_Helpers.escapeForHtmlAttributes(config.comment)}">
-					<span class="inline-flex items-center">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add ${config.name}</span>
+				<a data-name="${config.name}" data-is-prefix="${config.isPrefix}" class="add-method-button inline-flex items-center gap-x-2 justify-between hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="${_Helpers.escapeForHtmlAttributes(config.comment)}" data-comment-config='{ "customToggleIconClasses": ["flex-shrink-0"] }'>
+					<span class="inline-flex items-center">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2 flex-shrink-0')} Add ${config.name}</span>
 				</a>
 			`
 		}
@@ -5872,7 +5880,7 @@ let _Schema = {
 				<div class="schema-grid-body contents">
 				</div>
 				<div class="schema-grid-footer contents">
-					<div class="actions-col flex flex-wrap gap-y-2 items-center mt-2" style="grid-column: 1 / -1;">
+					<div class="actions-col flex flex-wrap gap-y-2 items-center mt-2 mb-1" style="grid-column: 1 / -1;">
 						${config.buttons ?? ''}
 						${config.noButtons === true ? '' : `
 							<div class="flex">

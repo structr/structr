@@ -1888,7 +1888,8 @@ let Structr = {
 				}
 
 				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
-					bubbles: true
+					bubbles: true,
+					detail: container
 				}));
 			}
 		}
