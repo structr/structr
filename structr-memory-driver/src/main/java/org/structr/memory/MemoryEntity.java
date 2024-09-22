@@ -259,13 +259,7 @@ public abstract class MemoryEntity implements PropertyContainer {
 		final MemoryTransaction tx = db.getCurrentTransaction(!read);
 		if (tx != null) {
 
-			if (tx.isDeleted(id)) {
-				tx.isDeleted(id);
-				throw new NotFoundException("Entity with ID " + id + " not found.");
-			}
-
 			if (!tx.exists(id)) {
-				tx.exists(id);
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 

@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -42,9 +43,9 @@ public class MemoryNodeRepository extends EntityRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(MemoryNodeRepository.class);
 
-	final Map<MemoryIdentity, MemoryNode> masterData  = new ConcurrentHashMap<>();
-	final Map<String, Set<MemoryIdentity>> labelCache = new ConcurrentHashMap<>();
-	final Map<String, Set<MemoryIdentity>> typeCache  = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, MemoryNode> masterData  = new ConcurrentSkipListMap<>();
+	final Map<String, Set<MemoryIdentity>> labelCache = new ConcurrentSkipListMap<>();
+	final Map<String, Set<MemoryIdentity>> typeCache  = new ConcurrentSkipListMap<>();
 
 	MemoryNode get(final MemoryIdentity id) {
 		return masterData.get(id);

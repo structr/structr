@@ -1674,7 +1674,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, "failureBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
 				putData(entry, "failurePartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
 				putData(entry, "failureURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
-				putData(entry, "successEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
+				putData(entry, "failureEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
 			}
 		}
 

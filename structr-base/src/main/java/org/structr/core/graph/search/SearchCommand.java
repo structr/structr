@@ -36,6 +36,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.*;
@@ -671,6 +672,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Operation.endsWith : ComparisonQuery.Operation.caseInsensitiveEndsWith, suffix, Occurrence.EXACT));
 
 		assertPropertyIsIndexed(key);
+
+		return this;
+	}
+
+	@Override
+	public <P> Query<T> matches(final PropertyKey<P> key, final String regex) {
+
+		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, ComparisonQuery.Operation.matches, regex, Occurrence.EXACT));
 
 		return this;
 	}

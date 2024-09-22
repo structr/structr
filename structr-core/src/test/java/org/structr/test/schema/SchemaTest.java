@@ -1019,8 +1019,6 @@ public class SchemaTest extends StructrTest {
 		// setup 2: delete base type
 		try (final Tx tx = app.tx()) {
 
-			System.out.println(StructrSchema.createFromDatabase(app).toString());
-
 			logger.info("Renaming base type..");
 
 			final SchemaNode base = app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst();

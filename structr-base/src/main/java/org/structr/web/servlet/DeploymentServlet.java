@@ -97,7 +97,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	@Override
 	public String getModuleName() {
-		return "deployment";
+		return "core";
 	}
 
 	@Override

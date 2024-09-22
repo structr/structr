@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -1204,7 +1205,8 @@ public class SystemTest extends StructrTest {
 			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(n));
 
 			for (final RelationshipInterface rel : rels) {
-				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(rel.getRelationship()));
+				final Relationship r = rel.getRelationship();
+				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(r));
 			}
 
 			tx.success();
@@ -1591,36 +1593,45 @@ public class SystemTest extends StructrTest {
 		// start a worker thread that deletes groups in batches of 500
 		final Thread deleter = new Thread(() -> {
 
-			boolean run = true;
+			try {
+				boolean run = true;
 
-			while (run) {
+				while (run) {
 
-				int count = 0;
-				run = false;
+					int count = 0;
+					run = false;
 
-				synchronized (System.out) {
-					System.out.println("Deleter: fetching objects...");
-				}
-
-				try (final Tx tx = app.tx()) {
-
-					for (final Group group : app.nodeQuery(Group.class).pageSize(2).getAsList()) {
-
-						app.delete(group);
-						run = true;
-						count++;
+					synchronized (System.out) {
+						System.out.println("Deleter: fetching objects...");
 					}
 
-					tx.success();
+					try (final Tx tx = app.tx()) {
 
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-					fail("Unexpected exception.");
+						for (final Group group : app.nodeQuery(Group.class).pageSize(2).getAsList()) {
+
+							app.delete(group);
+							run = true;
+							count++;
+						}
+
+						tx.success();
+
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+						fail("Unexpected exception.");
+					}
+
+					synchronized (System.out) {
+						System.out.println("Deleter: deleted " + count + " objects");
+					}
 				}
 
-				synchronized (System.out) {
-					System.out.println("Deleter: deleted " + count + " objects");
-				}
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+				msgs.add(t.getMessage());
+				error.set(true);
 			}
 
 		}, "Deleter");

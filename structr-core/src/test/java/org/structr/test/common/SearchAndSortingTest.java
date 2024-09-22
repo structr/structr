@@ -962,7 +962,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try {
 
-			final List<TestOne> nodes = this.createTestNodes(TestOne.class, 10);
+			final List<TestOne> nodes = this.createTestNodes(TestOne.class, 10, 100);
 			try (final Tx tx = app.tx()) {
 
 				int i = 0;
@@ -2574,7 +2574,60 @@ public class SearchAndSortingTest extends StructrTest {
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testRegexPredicate() {
+
+		try  {
+
+			Class type                      = TestOne.class;
+			int number                      = 4;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
+
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
+
+			try (final Tx tx = app.tx()) {
+
+				int i = offset;
+				String name;
+
+				for (NodeInterface node : nodes) {
+
+					name = "TestOne-" + i;
+
+					i++;
+
+					node.setProperty(AbstractNode.name, name);
+
+				}
+
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				try {
+					Settings.CypherDebugLogging.setValue(true);
+
+					assertEquals(4, app.nodeQuery(type).matches(AbstractNode.name, "(?i).*one.*").getAsList().size());
+					assertEquals(1, app.nodeQuery(type).matches(AbstractNode.name, ".*One\\-11").getAsList().size());
+
+				} finally {
+
+					Settings.CypherDebugLogging.setValue(false);
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
 	}
 
 	// ----- private methods -----

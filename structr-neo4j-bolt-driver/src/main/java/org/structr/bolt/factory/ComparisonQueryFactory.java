@@ -100,6 +100,11 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 					operationString = "CONTAINS";
 					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
 					return true;
+
+				case matches:
+					operationString = "=~";
+					break;
+
 			}
 
 			query.addSimpleParameter(name, operationString, value);

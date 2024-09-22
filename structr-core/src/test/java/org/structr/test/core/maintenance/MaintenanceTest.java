@@ -293,7 +293,7 @@ public class MaintenanceTest extends StructrTest {
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {
 
-				// check nodes, we should find 100 Groups here
+				// check nodes, we should find 3000 Groups here
 				assertEquals(3000, app.nodeQuery(Group.class).getAsList().size());
 
 				// check nodes

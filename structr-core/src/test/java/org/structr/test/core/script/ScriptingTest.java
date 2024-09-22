@@ -4121,6 +4121,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
 			//case insensitive
+			System.out.println("#################################");
 			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 

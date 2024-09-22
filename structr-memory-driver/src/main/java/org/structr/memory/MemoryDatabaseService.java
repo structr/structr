@@ -104,6 +104,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 		tx.create(newNode);
 
+		newNode.setProperty("type", type);
 		newNode.setProperties(properties);
 
 		return newNode;

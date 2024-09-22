@@ -29,11 +29,15 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements ComparisonQuery {
 
 	private PropertyKey<T> searchKey = null;
 	private T searchValue	         = null;
 	private Operation operation      = null;
+	private Pattern pattern          = null;
 
 	public ComparisonSearchAttribute(final PropertyKey<T> searchKey, final Operation operation, final Object value, final Occurrence occur) {
 		super(occur);
@@ -105,8 +109,8 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 				final Comparable a = (Comparable)value;
 				final Comparable b = (Comparable)searchValue;
 
-				final String s1    = stringOrNull(value);
-				final String s2    = stringOrNull(searchValue);
+				final String propertyStringValue = stringOrNull(value);
+				final String searchStringValue   = stringOrNull(searchValue);
 
 				switch (this.operation) {
 
@@ -135,27 +139,31 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 					}
 
 					case startsWith -> {
-						return s1 != null && s2 != null && StringUtils.startsWith(s1, s2);
+						return propertyStringValue != null && searchStringValue != null && StringUtils.startsWith(propertyStringValue, searchStringValue);
 					}
 
 					case endsWith -> {
-						return s1 != null && s2 != null && StringUtils.endsWith(s1, s2);
+						return propertyStringValue != null && searchStringValue != null && StringUtils.endsWith(propertyStringValue, searchStringValue);
 					}
 
 					case contains -> {
-						return s1 != null && s2 != null && StringUtils.contains(s1, s2);
+						return propertyStringValue != null && searchStringValue != null && StringUtils.contains(propertyStringValue, searchStringValue);
 					}
 
 					case caseInsensitiveStartsWith -> {
-						return s1 != null && s2 != null && StringUtils.startsWithIgnoreCase(s1, s2);
+						return propertyStringValue != null && searchStringValue != null && StringUtils.startsWithIgnoreCase(propertyStringValue, searchStringValue);
 					}
 
 					case caseInsensitiveEndsWith -> {
-						return s1 != null && s2 != null && StringUtils.endsWithIgnoreCase(s1, s2);
+						return propertyStringValue != null && searchStringValue != null && StringUtils.endsWithIgnoreCase(propertyStringValue, searchStringValue);
 					}
 
 					case caseInsensitiveContains -> {
-						return s1 != null && s2 != null && StringUtils.containsIgnoreCase(s1, s2);
+						return propertyStringValue != null && searchStringValue != null && StringUtils.containsIgnoreCase(propertyStringValue, searchStringValue);
+					}
+
+					case matches -> {
+						return getMatcher(searchStringValue, propertyStringValue).matches();
 					}
 				}
 			}
@@ -190,5 +198,22 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 		}
 
 		return null;
+	}
+
+	private Matcher getMatcher(final String regex, final String input) {
+
+		final Pattern pattern = getPattern(regex);
+
+		return pattern.matcher(input);
+	}
+
+	private Pattern getPattern(final String regex) {
+
+		if (this.pattern == null) {
+
+			this.pattern = pattern.compile(regex);
+		}
+
+		return this.pattern;
 	}
 }
