@@ -245,9 +245,6 @@ let _Security = {
 
 				<div id="filter-resource-access-permissions" class="flex items-center">
 					<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
-					<label class="ui-setting-checkbox inline-flex ml-4">
-						<input type="checkbox" id="show-permissions-in-use" ${(Structr.isInMemoryDatabase ? 'disabled title="This feature can not be used when working on an in-memory database"' : 'class="filter" data-attribute="flags"')}> Show only permissions in use
-					</label>
 				</div>
 			</div>
 
@@ -743,8 +740,6 @@ let _ResourceAccessPermissions = {
 			return;
 		}
 
-		let pagerTransportFunction = false && Structr.isInMemoryDatabase ? null : _ResourceAccessPermissions.customPagerTransportFunction;
-
 		_Helpers.fastRemoveAllChildren(_ResourceAccessPermissions.getResourceAccessesElement());
 
 		let resourceAccessHtml = _Security.templates.resourceAccess({
@@ -755,7 +750,7 @@ let _ResourceAccessPermissions = {
 
 		_Helpers.activateCommentsInElement(_ResourceAccessPermissions.getResourceAccessesElement());
 
-		let raPager = _Pager.addPager(_Security.resourceAccessesPagerId, _ResourceAccessPermissions.getResourceAccessesElement().querySelector('#resourceAccessesPager'), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
+		let raPager = _Pager.addPager(_Security.resourceAccessesPagerId, _ResourceAccessPermissions.getResourceAccessesElement().querySelector('#resourceAccessesPager'), true, 'ResourceAccess', undefined, undefined, null, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
 
 		raPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(document.querySelector('#resourceAccessesTable tbody'));
@@ -771,43 +766,6 @@ let _ResourceAccessPermissions = {
 				_ResourceAccessPermissions.addResourcePermission();
 			}
 		});
-	},
-	customPagerTransportFunction: (type, pageSize, page, filterAttrs, callback) => {
-
-		let filterString = "";
-		let presentFilters = Object.keys(filterAttrs);
-		if (presentFilters.length > 0) {
-			filterString = 'WHERE ' + presentFilters.map((key) => {
-				if (key === 'flags') {
-					return (filterAttrs[key] === true) ? 'n.flags > 0' : 'n.flags >= 0';
-				} else {
-					return `n.${key} =~ "(?i).*${filterAttrs[key]}.*"`;
-				}
-			}).join(' AND ');
-		}
-
-		let fetchCompletePermissionData = (result, count) => {
-
-			let fetchPromises = [];
-
-			for (let r of result) {
-
-				fetchPromises.push(new Promise((resolve, reject) => {
-					Command.get(r.id, _ResourceAccessPermissions.defaultResourceAccessPermissionAttributes, (permission) => {
-						Object.assign(r, permission);
-						resolve();
-					})
-				}));
-			}
-
-			Promise.all(fetchPromises).then(() => {
-				callback(result, count);
-			});
-		}
-
-		// only fetch the ids at first because we have to re-fetch everything later to get the grantees
-		let query = `MATCH (n:ResourceAccess) ${filterString} WITH n ORDER BY n.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]} RETURN DISTINCT { id: n.id }`;
-		Command.cypher(query, undefined, fetchCompletePermissionData, pageSize, page);
 	},
 	addResourcePermission: () => {
 

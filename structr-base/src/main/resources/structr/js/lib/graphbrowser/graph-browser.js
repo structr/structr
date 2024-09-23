@@ -899,7 +899,7 @@ var animating = undefined;
 		});
 
 		addMethod('getSchemaInformation', function(onResult){
-			var url = Graphbrowser.rootUrl + '_schema/';
+			var url = Graphbrowser.rootUrl + '_schema';
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult);
 		});
@@ -979,7 +979,6 @@ var animating = undefined;
 		_callbacks.api.reset 			= reset;
 
 		function init(){
-			console.log('init');
 			if(Graphbrowser.Modules){
 				$.each(Graphbrowser.Modules, function(i, module){
 					var newModule = new module(_s, _callbacks);
@@ -1012,7 +1011,6 @@ var animating = undefined;
 		};
 
 		function start(settings){
-			console.log(settings);
 			$.each(_browserEventHandlers['start'], function(i, func){
 				func(settings);
 			});

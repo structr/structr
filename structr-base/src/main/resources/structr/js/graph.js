@@ -178,259 +178,262 @@ let _Graph = {
 
 	onload: () => {
 
-		_Graph.eventHandlers.register();
+		Structr.performActionAfterEnvResourceLoaded(() => {
 
-		live('#toggleNodeLabels', 'change', (e) => {
-			_Graph.nodeLabelsHidden = !_Graph.nodeLabelsHidden;
-			_Graph.graphBrowser.changeSigmaSetting('drawLabels', !_Graph.nodeLabelsHidden);
-		});
+			_Graph.eventHandlers.register();
 
-		live('#toggleEdgeLabels', 'change', (e) => {
-			_Graph.edgeLabelsHidden = !_Graph.edgeLabelsHidden;
-			_Graph.graphBrowser.changeSigmaSetting('drawEdgeLabels', !_Graph.edgeLabelsHidden);
-		});
-
-		live('#fruchterman-controlElement', 'click', () => {
-			_Graph.graphBrowser.doLayout('fruchtermanReingold');
-		});
-
-		live('#dagre-controlElement', 'click', () => {
-			_Graph.graphBrowser.doLayout('dagre');
-		});
-
-		live('#forceAtlas-controlElement', 'click', (e) => {
-			let el = e.target.closest('a#forceAtlas-controlElement');
-			el.classList.toggle('active');
-			_Graph.graphBrowser.startForceAtlas2();
-		});
-
-		Structr.setMainContainerHTML(_Graph.templates.main());
-		Structr.setFunctionBarHTML(_Graph.templates.functions());
-
-		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('graph'));
-
-		// UISettings.showSettingsForCurrentModule();
-
-		document.querySelector('#clear-graph')?.addEventListener('click', _Graph.clearGraph);
-
-		let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
-		$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
-		$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
-		$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
-		$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
-		$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
-		$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
-		$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
-
-		$('#selectionLasso').on('click', function() {
-			if (!_Graph.graphBrowser.selectionToolsActive) {
-				_Graph.graphBrowser.activateSelectionLasso(true);
-			}
-		});
-
-		$('#newSelectionGroup').on('click', function() {
-
-			let newId = _Graph.graphBrowser.createSelectionGroup();
-
-			let newSelectionGroupHtml = _Graph.templates.newSelectionGroup({newId: newId});
-
-			$('#selectiontools-selectionTable-groupSelectionItems').append(newSelectionGroupHtml);
-			$("input[name='selectedGroup[]']").trigger('click');
-			$("input[value='selected." + newId + "']").prop('checked', true);
-		});
-
-		$(document).on('click', ".selectionTableRemoveBtn", function() {
-			var val = $(this).val();
-			_Graph.graphBrowser.dropSelection(val);
-		});
-
-		$(document).on('click', "input[name='selectedGroup[]']",  function() {
-			var self = $(this);
-
-			if (self.is(':checked')) {
-				$("input[name='selectedGroup[]']").prop("checked", false);
-				self.prop("checked", true);
-				var val = self.val().split('.');
-				_Graph.graphBrowser.activateSelectionTools();
-				_Graph.graphBrowser.activateSelectionGroup(val[1]);
-			} else {
-				_Graph.graphBrowser.deactivateSelectionTools();
-				self.prop("checked", false);
-			}
-		});
-
-		$(document).on('click', "input[name='Hidden[]']",  function() {
-			var self = $(this);
-			var val = self.val().split('.');
-
-			_Graph.graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
-		});
-
-		$(document).on('click', "input[name='Fixed[]']",  function() {
-			var self = $(this);
-			var val = self.val().split('.');
-
-			_Graph.graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
-		});
-
-		for (let clearSearchIcon of document.querySelectorAll('.clearSearchIcon')) {
-			clearSearchIcon.addEventListener('click', (e) => {
-				let svg = e.target.closest('svg');
-				_Graph.clearSearch(svg.parentNode.querySelector('.search'));
+			live('#toggleNodeLabels', 'change', (e) => {
+				_Graph.nodeLabelsHidden = !_Graph.nodeLabelsHidden;
+				_Graph.graphBrowser.changeSigmaSetting('drawLabels', !_Graph.nodeLabelsHidden);
 			});
-		}
 
-		$('#exec-rest').on('click', function() {
-			var query = $('.search[name=rest]').val();
-			if (query && query.length) {
-				_Graph.execQuery(query, 'rest');
-			}
-		});
+			live('#toggleEdgeLabels', 'change', (e) => {
+				_Graph.edgeLabelsHidden = !_Graph.edgeLabelsHidden;
+				_Graph.graphBrowser.changeSigmaSetting('drawEdgeLabels', !_Graph.edgeLabelsHidden);
+			});
 
-		$('#exec-cypher').on('click', function() {
-			var query = $('.search[name=cypher]').val();
-			// var params = {};
-			// var names = $.map($('[name="cyphername[]"]'), function(n) {
-			// 	return $(n).val();
-			// });
-			// var values = $.map($('[name="cyphervalue[]"]'), function(v) {
-			// 	return $(v).val();
-			// });
-			//
-			// for (var i = 0; i < names.length; i++) {
-			// 	params[names[i]] = values[i];
-			// }
+			live('#fruchterman-controlElement', 'click', () => {
+				_Graph.graphBrowser.doLayout('fruchtermanReingold');
+			});
 
-			if (query && query.length) {
-				_Graph.execQuery(query, 'cypher'
-				//	, JSON.stringify(params)
-				);
-			}
-		});
+			live('#dagre-controlElement', 'click', () => {
+				_Graph.graphBrowser.doLayout('dagre');
+			});
 
-		$(document).on('click', '.closeTooltipBtn', () => {
-			_Graph.graphBrowser.closeTooltip();
-		});
+			live('#forceAtlas-controlElement', 'click', (e) => {
+				let el = e.target.closest('a#forceAtlas-controlElement');
+				el.classList.toggle('active');
+				_Graph.graphBrowser.startForceAtlas2();
+			});
 
-		$(document).on('click', '#tooltipBtnProps', function() {
-			var id   = $(this).attr("value");
-			var type = $(this).data("type");
-			_Entities.showProperties({id: id, type: type });
-			_Graph.graphBrowser.closeTooltip();
-		});
+			Structr.setMainContainerHTML(_Graph.templates.main());
+			Structr.setFunctionBarHTML(_Graph.templates.functions());
 
-		$(document).on('click', '#tooltipBtnHide', function() {
-			var id = $(this).attr("value");
-			_Graph.graphBrowser.closeTooltip();
-			_Graph.graphBrowser.hideNode(id, true);
-		});
+			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('graph'));
 
-		$(document).on('click', '#tooltipBtnDrop', function() {
-			let id = $(this).attr("value");
-			_Graph.graphBrowser.closeTooltip();
-			_Graph.graphBrowser.dropNode(id);
-			_Graph.graphBrowser.dataChanged();
-			_Graph.updateRelationshipTypes();
-		});
+			// UISettings.showSettingsForCurrentModule();
 
-		$(document).on('click', '#tooltipBtnDel', function() {
+			document.querySelector('#clear-graph')?.addEventListener('click', _Graph.clearGraph);
 
-			let self = $(this);
-			let id = self.attr("value");
+			let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
+			$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
+			$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
+			$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
+			$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
+			$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
+			$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
+			$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
-			Command.get(id, 'id,type,name,sourceId,targetId', (entity) => {
-				if (_Graph.graphBrowser.getNode(entity.id)) {
-					_Entities.deleteNode(entity, false, (entity) => {
-						_Graph.graphBrowser.dropNode(entity);
-						_Graph.graphBrowser.dataChanged();
-						_Graph.updateRelationshipTypes();
-					});
-				} else {
-					_Entities.deleteEdge(entity, false, (entity) => {
-						if(_Graph.graphBrowser.getEdge(entity)) {
-							_Graph.graphBrowser.dropEdge(entity);
-						}
-						_Graph.graphBrowser.dataChanged();
-						_Graph.updateRelationshipTypes();
-					});
+			$('#selectionLasso').on('click', function () {
+				if (!_Graph.graphBrowser.selectionToolsActive) {
+					_Graph.graphBrowser.activateSelectionLasso(true);
 				}
 			});
-			_Graph.graphBrowser.closeTooltip();
-		});
 
-		let canvas = $('#graph-canvas');
+			$('#newSelectionGroup').on('click', function () {
 
-		canvas.droppable({
-			accept: '.node-type',
-			drop: function(e, ui) {
-				let nodeType = ui.helper.attr('data-node-type');
-				Command.create({
-					type: nodeType
-				}, (obj) => {
-					if(obj != null) {
-						Command.get(obj.id, 'id,type,name,color,tag', (node) => {
-							_Graph.drawNode(node);
+				let newId = _Graph.graphBrowser.createSelectionGroup();
+
+				let newSelectionGroupHtml = _Graph.templates.newSelectionGroup({newId: newId});
+
+				$('#selectiontools-selectionTable-groupSelectionItems').append(newSelectionGroupHtml);
+				$("input[name='selectedGroup[]']").trigger('click');
+				$("input[value='selected." + newId + "']").prop('checked', true);
+			});
+
+			$(document).on('click', ".selectionTableRemoveBtn", function () {
+				var val = $(this).val();
+				_Graph.graphBrowser.dropSelection(val);
+			});
+
+			$(document).on('click', "input[name='selectedGroup[]']", function () {
+				var self = $(this);
+
+				if (self.is(':checked')) {
+					$("input[name='selectedGroup[]']").prop("checked", false);
+					self.prop("checked", true);
+					var val = self.val().split('.');
+					_Graph.graphBrowser.activateSelectionTools();
+					_Graph.graphBrowser.activateSelectionGroup(val[1]);
+				} else {
+					_Graph.graphBrowser.deactivateSelectionTools();
+					self.prop("checked", false);
+				}
+			});
+
+			$(document).on('click', "input[name='Hidden[]']", function () {
+				var self = $(this);
+				var val = self.val().split('.');
+
+				_Graph.graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
+			});
+
+			$(document).on('click', "input[name='Fixed[]']", function () {
+				var self = $(this);
+				var val = self.val().split('.');
+
+				_Graph.graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
+			});
+
+			for (let clearSearchIcon of document.querySelectorAll('.clearSearchIcon')) {
+				clearSearchIcon.addEventListener('click', (e) => {
+					let svg = e.target.closest('svg');
+					_Graph.clearSearch(svg.parentNode.querySelector('.search'));
+				});
+			}
+
+			$('#exec-rest').on('click', function () {
+				var query = $('.search[name=rest]').val();
+				if (query && query.length) {
+					_Graph.execQuery(query, 'rest');
+				}
+			});
+
+			$('#exec-cypher').on('click', function () {
+				var query = $('.search[name=cypher]').val();
+				// var params = {};
+				// var names = $.map($('[name="cyphername[]"]'), function(n) {
+				// 	return $(n).val();
+				// });
+				// var values = $.map($('[name="cyphervalue[]"]'), function(v) {
+				// 	return $(v).val();
+				// });
+				//
+				// for (var i = 0; i < names.length; i++) {
+				// 	params[names[i]] = values[i];
+				// }
+
+				if (query && query.length) {
+					_Graph.execQuery(query, 'cypher'
+						//	, JSON.stringify(params)
+					);
+				}
+			});
+
+			$(document).on('click', '.closeTooltipBtn', () => {
+				_Graph.graphBrowser.closeTooltip();
+			});
+
+			$(document).on('click', '#tooltipBtnProps', function () {
+				var id = $(this).attr("value");
+				var type = $(this).data("type");
+				_Entities.showProperties({id: id, type: type});
+				_Graph.graphBrowser.closeTooltip();
+			});
+
+			$(document).on('click', '#tooltipBtnHide', function () {
+				var id = $(this).attr("value");
+				_Graph.graphBrowser.closeTooltip();
+				_Graph.graphBrowser.hideNode(id, true);
+			});
+
+			$(document).on('click', '#tooltipBtnDrop', function () {
+				let id = $(this).attr("value");
+				_Graph.graphBrowser.closeTooltip();
+				_Graph.graphBrowser.dropNode(id);
+				_Graph.graphBrowser.dataChanged();
+				_Graph.updateRelationshipTypes();
+			});
+
+			$(document).on('click', '#tooltipBtnDel', function () {
+
+				let self = $(this);
+				let id = self.attr("value");
+
+				Command.get(id, 'id,type,name,sourceId,targetId', (entity) => {
+					if (_Graph.graphBrowser.getNode(entity.id)) {
+						_Entities.deleteNode(entity, false, (entity) => {
+							_Graph.graphBrowser.dropNode(entity);
+							_Graph.graphBrowser.dataChanged();
+							_Graph.updateRelationshipTypes();
+						});
+					} else {
+						_Entities.deleteEdge(entity, false, (entity) => {
+							if (_Graph.graphBrowser.getEdge(entity)) {
+								_Graph.graphBrowser.dropEdge(entity);
+							}
+							_Graph.graphBrowser.dataChanged();
+							_Graph.updateRelationshipTypes();
 						});
 					}
 				});
-			}
-		});
+				_Graph.graphBrowser.closeTooltip();
+			});
 
-		_Graph.init();
-		// _Graph.appendCypherParameter($('#cypher-params'));
-		//
-		// $('#add-cypher-parameter').on('click', function() {
-		// 	_Graph.appendCypherParameter($('#cypher-params'));
-		// });
-		//
-		// $(document).on('click', '.remove-cypher-parameter', function() {
-		// 	$(this).parent().remove();
-		// });
+			let canvas = $('#graph-canvas');
 
-		// _Graph.listSavedQueries();
+			canvas.droppable({
+				accept: '.node-type',
+				drop: function (e, ui) {
+					let nodeType = ui.helper.attr('data-node-type');
+					Command.create({
+						type: nodeType
+					}, (obj) => {
+						if (obj != null) {
+							Command.get(obj.id, 'id,type,name,color,tag', (node) => {
+								_Graph.drawNode(node);
+							});
+						}
+					});
+				}
+			});
 
-		let restQueryBox   = document.querySelector('.query-box.rest .search');
-		let cypherQueryBox = document.querySelector('.query-box.cypher .search');
-		restQueryBox.focus();
+			_Graph.init();
+			// _Graph.appendCypherParameter($('#cypher-params'));
+			//
+			// $('#add-cypher-parameter').on('click', function() {
+			// 	_Graph.appendCypherParameter($('#cypher-params'));
+			// });
+			//
+			// $(document).on('click', '.remove-cypher-parameter', function() {
+			// 	$(this).parent().remove();
+			// });
 
-		let searchKeydownHandler = (e) => {
+			// _Graph.listSavedQueries();
 
-			// keydown so Enter key is preventable
+			let restQueryBox = document.querySelector('.query-box.rest .search');
+			let cypherQueryBox = document.querySelector('.query-box.cypher .search');
+			restQueryBox.focus();
 
-			let searchString = e.target.value;
-			let type         = e.target.getAttribute('name');
+			let searchKeydownHandler = (e) => {
 
-			if (searchString && searchString.length) {
-				e.target.parentNode.querySelector('.clearSearchIcon').style.display = 'block';
-			} else {
-				_Graph.clearSearch(e.target);
-			}
+				// keydown so Enter key is preventable
 
-			if (searchString && searchString.length && e.which === 13) {
+				let searchString = e.target.value;
+				let type = e.target.getAttribute('name');
 
-				if (e.shiftKey === false) {
-
-					e.stopPropagation();
-					e.preventDefault();
-					_Graph.execQuery(searchString, type);
-					return false;
+				if (searchString && searchString.length) {
+					e.target.parentNode.querySelector('.clearSearchIcon').style.display = 'block';
+				} else {
+					_Graph.clearSearch(e.target);
 				}
 
-			} else if (e.which === 27) {
+				if (searchString && searchString.length && e.which === 13) {
 
-				_Graph.clearSearch(e.target);
-			}
-		};
+					if (e.shiftKey === false) {
 
-		restQueryBox.addEventListener('keydown', searchKeydownHandler);
-		cypherQueryBox.addEventListener('keydown', searchKeydownHandler);
-		cypherQueryBox.addEventListener('keyup', () => {
-			// keyup so we have the actual value
-			cypherQueryBox.setAttribute('rows', cypherQueryBox.value.split('\n').length);
+						e.stopPropagation();
+						e.preventDefault();
+						_Graph.execQuery(searchString, type);
+						return false;
+					}
+
+				} else if (e.which === 27) {
+
+					_Graph.clearSearch(e.target);
+				}
+			};
+
+			restQueryBox.addEventListener('keydown', searchKeydownHandler);
+			cypherQueryBox?.addEventListener('keydown', searchKeydownHandler);
+			cypherQueryBox?.addEventListener('keyup', () => {
+				// keyup so we have the actual value
+				cypherQueryBox.setAttribute('rows', cypherQueryBox.value.split('\n').length);
+			});
+
+			$('#newSelectionGroup').trigger('click');
+			Structr.mainMenu.unblock(100);
 		});
-
-		$('#newSelectionGroup').trigger('click');
-		Structr.mainMenu.unblock(100);
 	},
 	unload: () => {
 
@@ -1040,15 +1043,17 @@ let _Graph = {
 				</a>
 			</div>
 
-			<div class="query-box cypher flex mr-4">
-				<div class="relative max-h-5">
-					<textarea class="search min-h-5 min-w-64" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Cypher')}
+			${Structr.isInMemoryDatabase ? '' : `
+				<div class="query-box cypher flex mr-4">
+					<div class="relative max-h-5">
+						<textarea class="search min-h-5 min-w-64" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Cypher')}
+					</div>
+					<a class="icon" id="exec-cypher">
+						${_Icons.getSvgIcon(_Icons.iconRunButton, 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
+					</a>
 				</div>
-				<a class="icon" id="exec-cypher">
-					${_Icons.getSvgIcon(_Icons.iconRunButton, 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
-				</a>
-			</div>
+			`}
 
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
