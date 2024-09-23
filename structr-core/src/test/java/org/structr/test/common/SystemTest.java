@@ -1572,12 +1572,12 @@ public class SystemTest extends StructrTest {
 		final List<String> msgs   = new LinkedList<>();
 		int num                   = 0;
 
-		for (int i=0; i<2; i++) {
+		for (int i=0; i<10; i++) {
 
 			// setup: create groups
 			try (final Tx tx = app.tx()) {
 
-				for (int j=0; j<2; j++) {
+				for (int j=0; j<10; j++) {
 
 					app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
 				}
@@ -1607,7 +1607,7 @@ public class SystemTest extends StructrTest {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Group group : app.nodeQuery(Group.class).pageSize(2).getAsList()) {
+						for (final Group group : app.nodeQuery(Group.class).pageSize(5).getAsList()) {
 
 							app.delete(group);
 							run = true;

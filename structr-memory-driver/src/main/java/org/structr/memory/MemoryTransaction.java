@@ -157,7 +157,7 @@ public class MemoryTransaction implements Transaction {
 		sources.add(db.getNodes(filter));
 
 		// return union of new and existing nodes, filtered for deleted nodes
-		return Iterables.filter(n -> !deletedNodes.contains(n.getIdentity()), Iterables.flatten(sources));
+		return Iterables.filter(n -> exists(n.getIdentity()) && !deletedNodes.contains(n.getIdentity()), Iterables.flatten(sources));
 	}
 
 	Iterable<MemoryRelationship> getRelationships(final Filter<MemoryRelationship> filter) {
@@ -168,7 +168,7 @@ public class MemoryTransaction implements Transaction {
 		sources.add(db.getRelationships(filter));
 
 		// return union of new and existing nodes
-		return Iterables.filter(r -> !deletedRelationships.containsKey(r.getIdentity()), Iterables.flatten(sources));
+		return Iterables.filter(r -> exists(r.getIdentity()) && !deletedRelationships.containsKey(r.getIdentity()), Iterables.flatten(sources));
 	}
 
 	MemoryNode getNodeById(final MemoryIdentity id) {
@@ -185,7 +185,7 @@ public class MemoryTransaction implements Transaction {
 			return candidate;
 		}
 
-		throw new NotFoundException("Node with ID " + id + " not found.");
+		return null;
 	}
 
 	MemoryRelationship getRelationshipById(final MemoryIdentity id) {
@@ -202,17 +202,7 @@ public class MemoryTransaction implements Transaction {
 			return candidate;
 		}
 
-		throw new NotFoundException("Relationship with ID " + id + " not found.");
-	}
-
-	boolean isDeleted(final MemoryIdentity id) {
-
-		if (id.isNode()) {
-
-			return deletedNodes.contains(id);
-		}
-
-		return deletedRelationships.containsKey(id);
+		return null;
 	}
 
 	boolean exists(final MemoryIdentity id) {

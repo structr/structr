@@ -72,7 +72,7 @@ public class MemoryNodeRepository extends EntityRepository {
 					cache.addAll(getCacheForLabel(label));
 				}
 
-				return Iterables.map(i -> masterData.get(i), cache);
+				return Iterables.filter(n -> n != null, Iterables.map(i -> masterData.get(i), cache));
 			}
 
 			if (filter instanceof MemoryTypeFilter) {
@@ -80,7 +80,7 @@ public class MemoryNodeRepository extends EntityRepository {
 				final MemoryTypeFilter<MemoryNode> mt = (MemoryTypeFilter<MemoryNode>)filter;
 				final String type                     = mt.getType();
 
-				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForType(type)));
+				return Iterables.filter(n -> n != null, Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForType(type))));
 			}
 		}
 
