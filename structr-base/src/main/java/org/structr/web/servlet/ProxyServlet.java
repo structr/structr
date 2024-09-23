@@ -176,12 +176,23 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
-			final Principal user = securityContext.getCachedUser();
 
-			if (user != null && StringUtils.isBlank(proxyUrl)) {
-				proxyUrl      = user.getProperty(proxyUrlKey);
-				proxyUsername = user.getProperty(proxyUsernameKey);
-				proxyPassword = user.getProperty(proxyPasswordKey);
+			if (StringUtils.isBlank(proxyUrl)) {
+
+				final Principal user = securityContext.getCachedUser();
+				if (user != null) {
+
+					try (final Tx tx = StructrApp.getInstance().tx()) {
+
+						proxyUrl = user.getProperty(proxyUrlKey);
+						proxyUsername = user.getProperty(proxyUsernameKey);
+						proxyPassword = user.getProperty(proxyPasswordKey);
+
+						tx.success();
+
+					} catch (FrameworkException fex) {
+					}
+				}
 			}
 
 			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
