@@ -32,6 +32,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -103,7 +104,7 @@ public class LoginCommand extends AbstractCommand {
 					getWebSocket().send(MessageBuilder.status().code(403).build(), false);
 				}
 
-				if (user != null) {
+				if (user != null && !(user instanceof SuperUser)) {
 
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 
@@ -154,8 +155,7 @@ public class LoginCommand extends AbstractCommand {
 
 				} else {
 
-					getWebSocket().send(MessageBuilder.status().code(401).build(), true);
-
+					throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 				}
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
