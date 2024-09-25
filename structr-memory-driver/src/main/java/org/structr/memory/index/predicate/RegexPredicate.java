@@ -18,27 +18,27 @@
  */
 package org.structr.memory.index.predicate;
 
-import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
+
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  */
-public class StringContainsPredicate<T extends PropertyContainer> implements Predicate<T> {
+public class RegexPredicate<T extends PropertyContainer> implements org.structr.api.Predicate<T> {
 
-	private String key              = null;
-	private String desiredValue     = null;
-	private boolean caseInsensitive = false;
+	private String key      = null;
+	private Pattern pattern = null;
 
-	public StringContainsPredicate(final String key, final String desiredValue, final boolean caseInsensitive) {
+	public RegexPredicate(final String key, final String regex) {
 
-		this.key             = key;
-		this.desiredValue    = desiredValue;
-		this.caseInsensitive = caseInsensitive;
+		this.key   = key;
+		this.pattern = Pattern.compile(regex);
 	}
 
 	@Override
 	public String toString() {
-		return "CONTAINS(" + key + ", " + desiredValue + ", case " + (caseInsensitive ? "insensitive" : "sensitive") + ")";
+		return "REGEX(" + key + ", " + pattern.pattern() + ")";
 	}
 
 	@Override
@@ -47,18 +47,9 @@ public class StringContainsPredicate<T extends PropertyContainer> implements Pre
 		final Object value = entity.getProperty(key);
 		if (value != null) {
 
-			if (caseInsensitive) {
+			final Predicate<String> predicate = pattern.asMatchPredicate();
 
-				final String string = value.toString().toLowerCase();
-
-				return value != null && string.contains(desiredValue.toLowerCase());
-
-			} else {
-
-				final String string = value.toString();
-
-				return value != null && string.contains(desiredValue);
-			}
+			return predicate.test(value.toString());
 		}
 
 		return false;

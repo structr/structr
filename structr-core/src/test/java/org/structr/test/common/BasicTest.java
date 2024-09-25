@@ -225,6 +225,7 @@ public class BasicTest extends StructrTest {
 			final TestOne testOne  = createTestNode(TestOne.class);
 			final TestSix testSix  = createTestNode(TestSix.class);
 			SixOneOneToOne rel     = null;
+			String uuid             = null;
 
 			assertNotNull(testOne);
 			assertNotNull(testSix);
@@ -232,6 +233,8 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				uuid = rel.getUuid();
+
 				tx.success();
 			}
 
@@ -244,9 +247,6 @@ public class BasicTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (NotInTransactionException e) {}
 
-			// Relationship still there
-			assertNotNull(rel);
-
 			try (final Tx tx = app.tx()) {
 
 				app.delete(rel);
@@ -255,8 +255,9 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				String uuid = rel.getUuid();
-				fail("Deleted entity should have thrown an exception on access.");
+				List result = app.relationshipQuery().uuid(uuid).getAsList();
+
+				assertEquals("Relationship should have been deleted", 0, result.size());
 
 			} catch (NotFoundException iex) {
 			}

@@ -21,43 +21,56 @@ package org.structr.memory.index.predicate;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 
+import java.util.Locale;
+
 /**
  */
-public class StringContainsPredicate<T extends PropertyContainer> implements Predicate<T> {
+public class StartsOrEndsWithPredicate<T extends PropertyContainer, V> implements Predicate<T> {
 
-	private String key              = null;
-	private String desiredValue     = null;
 	private boolean caseInsensitive = false;
+	private boolean startsWith      = false;
+	private String value            = null;
+	private String key              = null;
 
-	public StringContainsPredicate(final String key, final String desiredValue, final boolean caseInsensitive) {
+	public StartsOrEndsWithPredicate(final String key, final String value, final boolean startsWith, final boolean caseInsensitive) {
 
-		this.key             = key;
-		this.desiredValue    = desiredValue;
 		this.caseInsensitive = caseInsensitive;
-	}
-
-	@Override
-	public String toString() {
-		return "CONTAINS(" + key + ", " + desiredValue + ", case " + (caseInsensitive ? "insensitive" : "sensitive") + ")";
+		this.startsWith      = startsWith;
+		this.value           = value;
+		this.key             = key;
 	}
 
 	@Override
 	public boolean accept(final T entity) {
 
-		final Object value = entity.getProperty(key);
-		if (value != null) {
+		final Object propertyValue = entity.getProperty(key);
+		if (propertyValue != null) {
 
-			if (caseInsensitive) {
+			final String stringValue = propertyValue.toString();
 
-				final String string = value.toString().toLowerCase();
+			if (startsWith) {
 
-				return value != null && string.contains(desiredValue.toLowerCase());
+				// startsWith
+				if (caseInsensitive) {
+
+					return stringValue.startsWith(value);
+
+				} else {
+
+					return stringValue.toLowerCase().startsWith(value.toLowerCase());
+				}
 
 			} else {
 
-				final String string = value.toString();
+				// endsWith
+				if (caseInsensitive) {
 
-				return value != null && string.contains(desiredValue);
+					return stringValue.endsWith(value);
+
+				} else {
+
+					return stringValue.toLowerCase().endsWith(value.toLowerCase());
+				}
 			}
 		}
 

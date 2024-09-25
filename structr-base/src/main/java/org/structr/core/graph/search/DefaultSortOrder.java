@@ -136,6 +136,11 @@ public class DefaultSortOrder implements SortOrder {
 			this.key        = key;
 		}
 
+		@Override
+		public String toString() {
+			return "PropertySortSpec(" + key.jsonName() + ", " + descending + ")";
+		}
+
 		public PropertyKey getSortProperty() {
 			return key;
 		}

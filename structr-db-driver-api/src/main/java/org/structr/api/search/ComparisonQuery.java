@@ -34,8 +34,8 @@ public interface ComparisonQuery<T> extends QueryPredicate {
 		contains,
 		caseInsensitiveStartsWith,
 		caseInsensitiveEndsWith,
-		caseInsensitiveContains
-
+		caseInsensitiveContains,
+		matches
 	}
 
 	T getSearchValue();

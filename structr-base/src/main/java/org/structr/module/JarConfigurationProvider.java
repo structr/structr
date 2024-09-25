@@ -34,6 +34,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+import org.structr.web.common.UiModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -780,6 +781,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		// merge dynamic views in as well
 		views.addAll(dynamicViews);
+		views.add("custom");
 
 		return Collections.unmodifiableSet(views);
 	}
@@ -1171,7 +1173,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					} catch (Throwable t) {
 
 						// log only errors from internal classes
-						if (className.startsWith("org.structr.")) {
+						if (className.startsWith("org.structr.") && !UiModule.class.getName().equals(className)) {
 
 							logger.warn("Unable to instantiate module " + clazz.getName(), t);
 						}

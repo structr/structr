@@ -183,18 +183,22 @@ public abstract class MemoryEntity implements PropertyContainer {
 		unlock();
 	}
 
-	void lock() {
+	MemoryEntity lock() {
 
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
+
+		return this;
 	}
 
-	void unlock() {
+	MemoryEntity unlock() {
 
 		if (lock.isHeldByCurrentThread()) {
 			lock.unlock();
 		}
+
+		return this;
 	}
 
 	// ----- package-private methods -----
@@ -258,16 +262,6 @@ public abstract class MemoryEntity implements PropertyContainer {
 		// read-only access does not need a transaction
 		final MemoryTransaction tx = db.getCurrentTransaction(!read);
 		if (tx != null) {
-
-			if (tx.isDeleted(id)) {
-				tx.isDeleted(id);
-				throw new NotFoundException("Entity with ID " + id + " not found.");
-			}
-
-			if (!tx.exists(id)) {
-				tx.exists(id);
-				throw new NotFoundException("Entity with ID " + id + " not found.");
-			}
 
 			final long transactionId = tx.getTransactionId();
 			ChangeAwareMap copy      = txData.get(transactionId);

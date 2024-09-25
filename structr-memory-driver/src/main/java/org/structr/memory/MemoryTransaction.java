@@ -18,6 +18,7 @@
  */
 package org.structr.memory;
 
+import org.structr.api.NotFoundException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -44,6 +45,7 @@ public class MemoryTransaction implements Transaction {
 	private final Set<MemoryIdentity> deletedNodes                             = new LinkedHashSet<>();
 	private final long transactionId                                           = idCounter.incrementAndGet();
 	private MemoryDatabaseService db                                           = null;
+	private boolean failureOverride                                            = false;
 	private boolean success                                                    = false;
 
 	public MemoryTransaction(final MemoryDatabaseService db) {
@@ -52,6 +54,7 @@ public class MemoryTransaction implements Transaction {
 
 	@Override
 	public void failure() {
+		failureOverride = true;
 	}
 
 	@Override
@@ -76,7 +79,7 @@ public class MemoryTransaction implements Transaction {
 	@Override
 	public void close() {
 
-		if (success) {
+		if (success && !failureOverride) {
 
 			for (final MemoryEntity entity : modifiedEntities) {
 
@@ -111,12 +114,12 @@ public class MemoryTransaction implements Transaction {
 
 	@Override
 	public boolean isRelationshipDeleted(final long id) {
-		return deletedNodes.contains(id);
+		return deletedRelationships.containsKey(id);
 	}
 
 	@Override
 	public boolean isNodeDeleted(final long id) {
-		return deletedRelationships.containsKey(id);
+		return deletedNodes.contains(id);
 	}
 
 	public void create(final MemoryNode newNode) {
@@ -150,12 +153,11 @@ public class MemoryTransaction implements Transaction {
 
 		final List<Iterable<MemoryNode>> sources = new LinkedList<>();
 
-		// FIXME: this might return wrong data when newly created nodes match the filter but are not filtered
 		sources.add(createdNodes.values(filter));
 		sources.add(db.getNodes(filter));
 
 		// return union of new and existing nodes, filtered for deleted nodes
-		return Iterables.filter(n -> !deletedNodes.contains(n.getIdentity()), Iterables.flatten(sources));
+		return Iterables.filter(n -> exists(n.getIdentity()) && !deletedNodes.contains(n.getIdentity()), Iterables.flatten(sources));
 	}
 
 	Iterable<MemoryRelationship> getRelationships(final Filter<MemoryRelationship> filter) {
@@ -166,15 +168,10 @@ public class MemoryTransaction implements Transaction {
 		sources.add(db.getRelationships(filter));
 
 		// return union of new and existing nodes
-		return Iterables.filter(r -> !deletedRelationships.containsKey(r.getIdentity()), Iterables.flatten(sources));
+		return Iterables.filter(r -> exists(r.getIdentity()) && !deletedRelationships.containsKey(r.getIdentity()), Iterables.flatten(sources));
 	}
 
 	MemoryNode getNodeById(final MemoryIdentity id) {
-
-		// deleted, dont return value
-		if (deletedNodes.contains(id)) {
-			return null;
-		}
 
 		MemoryNode candidate = createdNodes.get(id);
 		if (candidate != null) {
@@ -193,11 +190,6 @@ public class MemoryTransaction implements Transaction {
 
 	MemoryRelationship getRelationshipById(final MemoryIdentity id) {
 
-		// deleted, dont return value
-		if (deletedRelationships.containsKey(id)) {
-			return null;
-		}
-
 		MemoryRelationship candidate = createdRelationships.get(id);
 		if (candidate != null) {
 
@@ -211,16 +203,6 @@ public class MemoryTransaction implements Transaction {
 		}
 
 		return null;
-	}
-
-	boolean isDeleted(final MemoryIdentity id) {
-
-		if (id.isNode()) {
-
-			return deletedNodes.contains(id);
-		}
-
-		return deletedRelationships.containsKey(id);
 	}
 
 	boolean exists(final MemoryIdentity id) {

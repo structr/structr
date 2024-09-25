@@ -36,7 +36,11 @@ import org.structr.schema.action.ActionContext;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
@@ -114,7 +118,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 
 			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-
 			if (propKey != null) {
 
 				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
@@ -161,11 +164,24 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 		} else if (node != null) {
 
+			final List<String> members = new ArrayList<>();
+
 			final Set<PropertyKey> keys = node.getPropertyKeys("all");
 			if (keys != null) {
 
-				return keys.stream().map(PropertyKey::dbName).toArray();
+				members.addAll(keys.stream().map(k -> k.jsonName()).collect(Collectors.toList()));
 			}
+
+			for (final Map.Entry<String, AbstractMethod> entry : Methods.getAllMethods(node.getClass()).entrySet()) {
+
+				final AbstractMethod method = entry.getValue();
+				if (method != null && !method.isPrivate()) {
+
+					members.add(entry.getKey());
+				}
+			}
+
+			return members.toArray();
 		}
 
 		return null;

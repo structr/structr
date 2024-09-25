@@ -480,7 +480,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// create resource access grant for user
 			createTestNode(ResourceAccess.class,
 					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "signature"), "Folder/_Someprops"),
-					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1),
+					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1L),
 					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "visibleToAuthenticatedUsers"), true)
 			);
 

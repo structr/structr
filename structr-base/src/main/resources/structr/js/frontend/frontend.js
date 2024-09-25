@@ -62,7 +62,7 @@ export class Frontend {
 				continue;
 			}
 
-            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression') {
+            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
 				continue;
             }
 
@@ -339,6 +339,11 @@ export class Frontend {
 				}
 				break;
 
+			case 'fire-event':
+				let event = success ? element.dataset.structrSuccessNotificationsEvent : element.dataset.structrFailureNotificationsEvent;
+				element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameter, status: status, element: element } }));
+				break;
+
 			case 'none':
 			default:
 				// Default is do nothing
@@ -352,7 +357,7 @@ export class Frontend {
 
 		if (success && element.dataset.structrSuccessTarget) {
 
-			let successTargets = element.dataset.structrReloadTarget;
+			let successTargets = element.dataset.structrSuccessTarget;
 
 			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
@@ -820,7 +825,7 @@ export class Frontend {
 		//let target       = event.target;
 		let data         = target.dataset;
 		let selector     = data.structrTarget;
-		let reloadTarget = data.structrReloadTarget;
+		let reloadTarget = data.structrSuccessTargets;
 
 		if (!selector) {
 			console.log('Selector not found: ' + selector);

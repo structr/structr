@@ -18,19 +18,14 @@
  */
 package org.structr.core.api;
 
-import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumericalMethodInputParsingException;
@@ -116,6 +111,9 @@ public abstract class AbstractMethod {
 
 							binding.setEntity(entity);
 							binding.setActionContext(inner);
+
+							// store current AbstractMethod object in ActionContext
+							inner.setCurrentMethod(this);
 
 							return Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
 

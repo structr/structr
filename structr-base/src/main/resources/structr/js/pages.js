@@ -1396,10 +1396,10 @@ let _Pages = {
 
 		_Helpers.activateCommentsInElement(container);
 
-		let eventSelectElement               = container.querySelector('#event-select');
+		let eventSelect                      = container.querySelector('#data-event-select');
+		let eventSelectUl                    = eventSelect.parentNode.querySelector('ul');
+		let eventInput                       = container.querySelector('#data-event-input');
 		let actionSelectElement              = container.querySelector('#action-select');
-
-		let customEventInput                 = container.querySelector('#custom-event-input');
 
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
@@ -1461,8 +1461,69 @@ let _Pages = {
 
 		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
 
-		eventSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+		eventSelect.addEventListener('change', e => saveEventMappingData(entity));
 		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+
+		// combined event select and input
+		{
+			let showEventList = () => { eventSelectUl.classList.remove('hidden'); };
+			let hideEventList = () => { eventSelectUl.classList.add('hidden'); };
+
+			eventSelect.addEventListener('change', e => {
+				eventInput.value = eventSelect.value;
+			});
+
+			eventSelect.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+				showEventList();
+			});
+
+			eventSelectUl.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+			});
+
+			eventSelectUl.addEventListener('click', e => {
+				if (e.target.dataset.value) {
+					eventInput.value  = e.target.dataset.value;
+					eventSelect.value = eventInput.value;
+
+					saveEventMappingData(entity, eventSelectUl);
+
+					hideEventList();
+				}
+			});
+
+			container.addEventListener('mousedown', e => {
+				if (e.defaultPrevented === false) {
+					hideEventList();
+				}
+			});
+
+			eventInput.addEventListener('keyup', e => {
+				const el  = e.target;
+				const key = e.key;
+
+				if (key === 'Escape') {
+
+					eventSelectUl.classList.add('hidden');
+					return;
+
+				} else if (key === 'Enter') {
+
+					saveEventMappingData(entity, eventInput);
+					eventSelectUl.classList.add('hidden');
+					return;
+				}
+
+				for (let child of eventSelectUl.children) {
+
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
+				}
+
+				showEventList();
+			});
+		}
 
 		// combined type select and input
 		{
@@ -1598,18 +1659,15 @@ let _Pages = {
 				return;
 			}
 
-			//console.log('updateEventMapping', entity, actionMapping);
+			//console.log('updateEventMapping', actionMapping);
 
 			// TODO: Find better solution for the following conversion which is necessary because of 'previous-page' vs. 'prev-page'
 			if (actionMapping.action === 'previous-page') {
 				actionMapping.action = 'prev-page';
 			}
 
-			// if (actionMapping.event === 'custom') {
-			// 	customEventInput.value  = actionMapping.event;
-			// }
-
-			eventSelectElement.value               = actionMapping.event;
+			eventSelect.value                      = actionMapping.event;
+			eventInput.value                       = actionMapping.event;
 			actionSelectElement.value              = actionMapping.action;
 
 			methodNameInput.value                  = actionMapping.method;
@@ -1648,13 +1706,13 @@ let _Pages = {
 					any.classList.add('hidden');
 				}
 
-				if (eventSelectElement.value === 'none') {
+				if (eventSelect.value === 'none') {
 
-					eventSelectElement.classList.add('required');
+					eventSelect.classList.add('required');
 
 				} else {
 
-					eventSelectElement.classList.remove('required');
+					eventSelect.classList.remove('required');
 
 					// show all elements that are shown for non-empty event values
 					for (let any of document.querySelectorAll('.em-event-any')) {
@@ -1676,7 +1734,7 @@ let _Pages = {
 
 
 					// show all relevant elements for event
-					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelectElement.value}`)) {
+					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelect.value}`)) {
 						eventRelevant.classList.remove('hidden');
 					}
 
@@ -2023,7 +2081,7 @@ let _Pages = {
 
 			let actionMappingObject = {
 				type:                        'ActionMapping',
-				event:                       eventSelectElement?.value,
+				event:                       eventInput?.value ?? eventSelect?.value,
 				action:                      actionSelectElement?.value,
 				method:                      methodNameInput?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
@@ -4081,18 +4139,59 @@ let _Pages = {
 					<div class="grid grid-cols-2 gap-8">
 
 						<div>
-							<label class="block mb-2" data-comment="Select the event type that triggers the action.">Event</label>
-
-							<select class="select2" id="event-select">
-								<option value="none">None</option>
-								<option value="click">Click</option>
-								<option value="change">Change</option>
-								<option value="focusout">Focus out</option>
-								<option value="drop">Drop</option>
-								<option value="load">Load</option>
-								<option value="custom">Custom frontend event</option>
-							</select>
+							<div class="relative">
+								<label class="block mb-2" for="data-event-select" data-comment="Use this setting to bind a browser event to a backend action.">Event</label>
+								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
+								<select class="required combined-input-select-field" id="data-event-select">
+									<option value="">Select event from list</option>
+									<option value="none">None</option>
+									<option value="click">Click</option>
+									<option value="change">Change</option>
+									<option value="focusout">Focus out</option>
+									<option value="keydown">Key down</option>
+									<option value="keyup">Key up</option>
+									<option value="keypress">Key press</option>
+									<option value="mousemove">Mouse move</option>
+									<option value="mouseover">Mouse over</option>
+									<option value="mouseenter">Mouse enter</option>
+									<option value="mouseout">Mouse out</option>
+									<option value="mouseleave">Mouse leave</option>
+									<option value="input">Input</option>
+									<option value="load">Page load</option>
+									<option value="drop">Drop</option>
+									<option value="copy">Copy</option>
+									<option value="cut">Cut</option>
+									<option value="paste">Paste</option>
+									<option value="offline">Offline</option>
+									<option value="online">Online</option>
+									<!-- add more events here? -->
+								</select>
+								<ul class="combined-input-select-field hidden">
+									<li data-value="none">None</li>
+									<li data-value="click">Click</li>
+									<li data-value="change">Change</li>
+									<li data-value="focusout">Focus out</li>
+									<li data-value="keydown">Key down</li>
+									<li data-value="keyup">Key up</li>
+									<li data-value="keypress">Key press</li>
+									<li data-value="mousemove">Mouse move</li>
+									<li data-value="mouseover">Mouse over</li>
+									<li data-value="mouseenter">Mouse enter</li>
+									<li data-value="mouseout">Mouse out</li>
+									<li data-value="mouseleave">Mouse leave</li>
+									<li data-value="input">Input</li>
+									<li data-value="load">Page load</li>
+									<li data-value="drop">Drop</li>
+									<li data-value="copy">Copy</li>
+									<li data-value="cut">Cut</li>
+									<li data-value="paste">Paste</li>
+									<li data-value="offline">Offline</li>
+									<li data-value="online">Online</li>
+									<!-- add more events here? -->
+								</ul>
+							</div>
 						</div>
+
 
 						<div class="hidden em-event-element em-event-any">
 							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
@@ -4119,11 +4218,6 @@ let _Pages = {
 									<option value="reset-password">Reset password</option>
 								</optgroup>
 							</select>
-						</div>
-
-						<div class="hidden em-event-element em-event-custom">
-							<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
-							<input type="text" id="custom-event-input">
 						</div>
 
 						<div class="hidden em-event-element em-action-custom">

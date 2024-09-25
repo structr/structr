@@ -379,7 +379,7 @@ let _Files = {
 				});
 			}
 
-			Structr.performModuleDependentAction(() => {
+			Structr.performActionAfterEnvResourceLoaded(() => {
 				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
@@ -391,7 +391,7 @@ let _Files = {
 				}
 			});
 
-			Structr.performModuleDependentAction(() => {
+			Structr.performActionAfterEnvResourceLoaded(() => {
 				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),

@@ -223,7 +223,7 @@ let Structr = {
 	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
-	moduleAvailabilityCallbacks: [],
+	envInfoAvailableCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
 	subModule: undefined,
@@ -917,8 +917,8 @@ let Structr = {
 			}
 
 			// run previously registered callbacks
-			let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
-			Structr.moduleAvailabilityCallbacks = [];
+			let registeredCallbacks = Structr.envInfoAvailableCallbacks;
+			Structr.envInfoAvailableCallbacks = [];
 			registeredCallbacks.forEach((cb) => {
 				cb();
 			});
@@ -1110,15 +1110,15 @@ let Structr = {
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
 	},
-	performModuleDependentAction: (action) => {
+	performActionAfterEnvResourceLoaded: (action) => {
 		if (Structr.isModuleInformationAvailable()) {
 			action();
 		} else {
-			Structr.registerActionAfterModuleInformationIsAvailable(action);
+			Structr.registerActionToRunAfterEnvInfoIsAvailable(action);
 		}
 	},
-	registerActionAfterModuleInformationIsAvailable: (cb) => {
-		Structr.moduleAvailabilityCallbacks.push(cb);
+	registerActionToRunAfterEnvInfoIsAvailable: (cb) => {
+		Structr.envInfoAvailableCallbacks.push(cb);
 	},
 	isAvailableInEdition: (requiredEdition) => {
 		switch (Structr.edition) {
@@ -1888,7 +1888,8 @@ let Structr = {
 				}
 
 				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
-					bubbles: true
+					bubbles: true,
+					detail: container
 				}));
 			}
 		}

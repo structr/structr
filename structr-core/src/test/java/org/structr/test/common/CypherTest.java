@@ -131,6 +131,7 @@ public class CypherTest extends StructrTest {
 			final TestOne testOne  = createTestNode(TestOne.class);
 			final TestSix testSix  = createTestNode(TestSix.class);
 			SixOneOneToOne rel     = null;
+			String uuid = null;
 
 			assertNotNull(testOne);
 			assertNotNull(testSix);
@@ -138,6 +139,7 @@ public class CypherTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				uuid = rel.getUuid();
 				tx.success();
 			}
 
@@ -151,8 +153,9 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				rel.getUuid();
-				fail("Accessing a deleted relationship should thow an exception.");
+				List result = app.relationshipQuery().uuid(uuid).getAsList();
+
+				assertEquals("Relationship should have been deleted", 0, result.size());
 
 				tx.success();
 

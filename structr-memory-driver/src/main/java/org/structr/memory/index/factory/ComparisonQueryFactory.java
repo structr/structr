@@ -23,10 +23,7 @@ import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
-import org.structr.memory.index.predicate.NotPredicate;
-import org.structr.memory.index.predicate.NullPredicate;
-import org.structr.memory.index.predicate.RangePredicate;
-import org.structr.memory.index.predicate.ValuePredicate;
+import org.structr.memory.index.predicate.*;
 
 public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
@@ -84,31 +81,32 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 					return true;
 
 				case startsWith:
-					//operationString = "STARTS WITH";
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString(), true, false));
 					break;
 
 				case endsWith:
-					//operationString = "ENDS WITH";
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString(), false, false));
 					break;
 
 				case contains:
-					//operationString = "CONTAINS";
+					query.addPredicate(new StringContainsPredicate(name, value.toString(), false));
 					break;
 
 				case caseInsensitiveStartsWith:
-					//operationString = "STARTS WITH";
-					//query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
-					return true;
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString().toLowerCase(), true, true));
+					break;
 
 				case caseInsensitiveEndsWith:
-					//operationString = "ENDS WITH";
-					//query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
-					return true;
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString().toLowerCase(), false, true));
+					break;
 
 				case caseInsensitiveContains:
-					//operationString = "CONTAINS";
-					//query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
-					return true;
+					query.addPredicate(new StringContainsPredicate(name, value.toString().toLowerCase(), true));
+					break;
+
+				case matches:
+					query.addPredicate(new RegexPredicate(name, value.toString()));
+					break;
 			}
 		}
 

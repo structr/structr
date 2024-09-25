@@ -325,7 +325,7 @@ public class AccessControlTest extends StructrTest {
 		try {
 
 			final Class type = TestOne.class;
-			final List<NodeInterface> nodes = createTestNodes(type, 10);
+			final List<NodeInterface> nodes = createTestNodes(type, 10, 100);
 
 			try (final Tx tx = app.tx()) {
 				nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
