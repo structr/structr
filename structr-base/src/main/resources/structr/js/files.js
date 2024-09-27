@@ -46,6 +46,16 @@ let _Files = {
 	isViewModeActive: viewMode => (viewMode === _Files.getViewMode()),
 	init: () => {
 
+		_Files.dateFormat = new Intl.DateTimeFormat(navigator.language, {
+			//weekday: 'long',
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: 'numeric',
+			minute: 'numeric',
+			second: 'numeric'
+		});
+
 		_Files.setViewMode(_Files.getViewMode());
 
 		Structr.adaptUiToAvailableFeatures();
@@ -216,6 +226,33 @@ let _Files = {
 			if (treeNode) {
 				_Files.getFilesTree().jstree().get_node(node.id).text = node.name;
 				_Files.getFilesTree().jstree().refresh_node(node.id);
+			}
+
+		} else {
+
+			let size                  = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
+			let modifiedDate          = _Files.getFormattedDate(node.lastModifiedDate);
+			let name                  = node.name || '[unnamed]';
+			let listModeActive        = _Files.isViewModeActive('list');
+			let tilesModeActive       = _Files.isViewModeActive('tiles');
+			let imageModeActive       = _Files.isViewModeActive('img');
+			let iconSize              = (tilesModeActive || imageModeActive) ? 40 : 16;
+			let fileIcon              = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
+			let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
+			let ownerString           = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
+
+			let container             = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
+
+			container.querySelector('[data-key=name]')?.replaceChildren(name);
+			container.querySelector('[data-key=name]')?.setAttribute('title', name);
+			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
+			container.querySelector('[data-key=size]')?.replaceChildren(size);
+			container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
+			container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+
+			let svgIcon = container.querySelector('.file-icon a svg');
+			if (svgIcon) {
+				_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
 			}
 		}
 	},
@@ -927,27 +964,18 @@ let _Files = {
 			}, 200);
 		}
 	},
+	getFormattedDate: (date) => {
+		return _Files.dateFormat.format(new Date(date));
+	},
 	appendFileOrFolder: (d) => {
 
 		if (!d.isFile && !d.isFolder) return;
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
-		const dateOptions = {
-			//weekday: 'long',
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit',
-			hour: 'numeric',
-			minute: 'numeric',
-			second: 'numeric'
-		};
-
-		const dateFormat          = new Intl.DateTimeFormat(navigator.language, dateOptions);
-
 		let size                  = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
-		let createdDate           = dateFormat.format(new Date(d.createdDate));
-		let modifiedDate          = dateFormat.format(new Date(d.lastModifiedDate));
+		let createdDate           = _Files.getFormattedDate(d.createdDate);
+		let modifiedDate          = _Files.getFormattedDate(d.lastModifiedDate);
 		let progressIndicatorHTML = _Files.templates.progressIndicator({ size });
 		let name                  = d.name || '[unnamed]';
 		let listModeActive        = _Files.isViewModeActive('list');
@@ -958,6 +986,7 @@ let _Files = {
 		let fileIcon              = (d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d));
 		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
 		let parentIdString        = d.parentId ? `data-parent-id="${d.parentId}"` : '';
+		let ownerString           = (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '');
 
 		if (listModeActive) {
 
@@ -976,17 +1005,17 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate"></b>
+							<b class="name_ leading-8 truncate" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
 					<td class="truncate id_ leading-8">${d.id}</td>
 					<td class="truncate date">${createdDate}</td>
-					<td class="truncate date">${modifiedDate}</td>
-					<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
-					<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
-					<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
+					<td class="truncate date" data-key="lastModifiedDate">${modifiedDate}</td>
+					<td class="size whitespace-nowrap" data-key="size">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
+					<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (<span  data-key="contentType">${d.contentType}</span>)` : '')}</td>
+					<td data-key="owner">${ownerString}</td>
 				</tr>
 			`;
 
@@ -1041,7 +1070,7 @@ let _Files = {
 				<div id="${tileId}" class="tile${d.isThumbnail ? ' thumbnail' : ''}${imageModeActive ? ' img-tile' : ''}">
 					<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} relative flex flex-col" draggable="true">
 					${getFileIcon()}
-					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center"></b>
+					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center" data-key="name"></b>
 					${d.isFolder ? '' : progressIndicatorHTML}
 					<div class="icons-container flex items-center"></div>
 				</div>
