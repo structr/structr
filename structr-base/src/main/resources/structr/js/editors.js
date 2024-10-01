@@ -16,7 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-require.config({ paths: { 'vs': 'js/lib/monaco-editor/min/vs' }});
+require.config({
+	baseUrl: location.origin + location.pathname,
+	paths: {
+		vs: 'js/lib/monaco-editor/min/vs'
+	}
+});
 require(['vs/editor/editor.main'], () => {
 	_Editors.setupMonacoAutoCompleteOnce();
 
