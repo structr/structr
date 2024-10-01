@@ -75,7 +75,7 @@ public abstract class StructrRestTestBase {
 
 		final Set<String> htmlTypes = Set.of(
 			"A", "Abbr", "Address", "Area", "Article", "Aside", "Audio", "B", "Base", "Bdi", "Bdo", "Blockquote", "Body", "Br", "Button", "Canvas", "Caption", "Cdata", "Cite", "Code",
-			"Col", "Colgroup", "Command", "Comment", "Component", "Content", "ContentContainer", "ContentItem", "CssDeclaration", "CssRule", "CssSelector", "CssSemanticClass","Data",
+			"Col", "Colgroup", "Command", "Comment", "Component", "Content", "CssDeclaration", "CssRule", "CssSelector", "CssSemanticClass","Data",
 			"Datalist", "Dd", "Del", "Details", "Dfn", "Dialog", "Div", "Dl", "Dt", "Em", "Embed", "Fieldset", "Figcaption", "Figure", "Footer", "Form", "G", "H1", "H2", "H3", "H4",
 			"H5", "H6", "Head", "Header", "Hgroup", "Hr", "Html", "I", "Iframe", "Img", "Input", "Ins", "Kbd", "Keygen", "Label", "Legend", "Li", "Link", "Main", "Map", "Mark", "Menu",
 			"Meta", "Meter", "Nav", "Noscript", "Object", "Ol", "Optgroup", "Option", "Output", "P", "Param", "Picture", "Pre", "Progress", "Q", "Rp", "Rt", "Ruby", "S","Samp",

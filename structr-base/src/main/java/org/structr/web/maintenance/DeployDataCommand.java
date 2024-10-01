@@ -116,8 +116,8 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (StringUtils.isBlank(types)) {
 
-			publishWarningMessage("Data export not started", "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
-			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
+			publishWarningMessage("Data export not started", "Please provide a comma-separated list of type(s) to export.");
+			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export.");
 		}
 
 		final Path target  = Paths.get(path);
