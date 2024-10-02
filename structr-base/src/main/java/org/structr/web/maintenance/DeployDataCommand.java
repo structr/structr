@@ -32,6 +32,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -625,16 +627,23 @@ public class DeployDataCommand extends DeployCommand {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<AbstractFile> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
+					final List<AbstractNode> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
 					hasMore = (files.size() == pageSize);
 
-					for (final AbstractFile fileOrFolder : files) {
+					for (final AbstractNode fileOrFolder : files) {
 
-						exportFileOrFolder(fileOrFolder, filesAndFoldersMap, filesDir, true);
+						if (fileOrFolder instanceof GenericNode) {
 
-						exportRelationshipsForNode(context, fileOrFolder, relsDir);
+							logger.info("Not exporting database object because its schema type does not exist anymore: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
 
-						nodeCount++;
+						} else {
+
+							exportFileOrFolder((AbstractFile) fileOrFolder, filesAndFoldersMap, filesDir, true);
+
+							exportRelationshipsForNode(context, fileOrFolder, relsDir);
+
+							nodeCount++;
+						}
 					}
 				}
 
@@ -675,10 +684,25 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportFileOrFolder(final AbstractFile fileOrFolder, final Map<String, Object> filesAndFoldersMap, final Path filesDir, final Boolean isDirectExport) throws IOException {
 
-		if (fileOrFolder.getHasParent()) {
+		if (fileOrFolder instanceof GenericNode) {
 
-			// parents have to be exported, even if the given Folder type is not part of the export set
-			exportFileOrFolder(fileOrFolder.getParent(), filesAndFoldersMap, filesDir, false);
+			logger.info("Not exporting database object because its schema type does not exist anymore: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
+			return;
+		}
+
+		if (Boolean.TRUE.equals(fileOrFolder.getHasParent())) {
+
+			final AbstractFile parent = fileOrFolder.getParent();
+
+			if (parent == null) {
+
+				logger.info("Not exporting parent folder for database object because can not be instantiated. This typically means that the schema type of the parent node does not exist anymore. Current node: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
+
+			} else {
+
+				// parents have to be exported, even if the given Folder type is not part of the export set
+				exportFileOrFolder(parent, filesAndFoldersMap, filesDir, false);
+			}
 		}
 
 		final String path             = fileOrFolder.getPath();
