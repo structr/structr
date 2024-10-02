@@ -23,6 +23,7 @@ import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
@@ -40,19 +41,17 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Scripting {
 
-	private static final Pattern importPattern                      = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
@@ -193,6 +192,7 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
+			snippet.setMimeType("application/javascript+module");
 			final Object result = evaluateScript(actionContext, entity, "js", snippet);
 
 			if (enableTransactionNotifications && securityContext != null) {
@@ -279,16 +279,15 @@ public class Scripting {
 		try {
 
 			Source source = null;
+			String code;
 
-			switch (engineName) {
-				case "js" -> {
-					final String code   = Scripting.embedInFunction(snippet);
-					source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
-				}
-				default -> {
-					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
-				}
+			if (Settings.WrapJSInMainFunction.getValue(false)) {
+				code = JSFunctionTranspiler.transpileSource(snippet);
+			} else {
+				code = snippet.getSource();
 			}
+
+			source = Source.newBuilder(engineName, code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 			try {
 				if (source != null) {
@@ -374,43 +373,6 @@ public class Scripting {
 	}
 
 	// ----- private methods -----
-	public static String embedInFunction(final Snippet snippet) {
-
-		if (snippet.embed()) {
-
-			final String transpiledSource;
-			// Regex that matches import statements
-
-			if (importPattern.matcher(snippet.getSource()).find()) {
-
-				final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
-				final String importStatements = String.join("\n", partitionedScript.get(true));
-				final String code = String.join("\n", partitionedScript.get(false));
-
-				StringBuilder reassembledScript = new StringBuilder();
-				reassembledScript
-						.append(importStatements).append("\n")
-						.append("function main() {\n")
-						.append(code)
-						.append("\n}\n\nmain();");
-				transpiledSource = reassembledScript.toString();
-				// Change mimetype to module since import statements have been found.
-				snippet.setMimeType("application/javascript+module");
-			} else {
-
-				transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
-			}
-
-			snippet.setTranscribedSource(transpiledSource);
-		}
-
-		if (snippet.getTranscribedSource() == null) {
-
-			return snippet.getSource();
-		}
-
-		return snippet.getTranscribedSource();
-	}
 
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {

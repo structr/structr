@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot;
 
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +32,7 @@ import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -272,6 +274,13 @@ public abstract class PolyglotWrapper {
 					return convertValueToSet(actionContext, value);
 				}
 
+				if (value.hasMembers() && value.getMetaObject() != null && "promise".equals(value.getMetaObject().getMetaSimpleName().toLowerCase())) {
+
+					PromiseConsumer consumer = new PromiseConsumer();
+					value.invokeMember("then", consumer);
+					return consumer.getResult();
+				}
+
 				if (value.isNull()) {
 
 					return null;
@@ -348,7 +357,7 @@ public abstract class PolyglotWrapper {
 
 		final Map<String, Object> unwrappedMap = new HashMap<>();
 
-		for (Map.Entry<String,Object> entry : map.entrySet()) {
+		for (Entry<String,Object> entry : map.entrySet()) {
 
 			unwrappedMap.put(entry.getKey(), unwrap(actionContext, entry.getValue()));
 		}
@@ -472,6 +481,20 @@ public abstract class PolyglotWrapper {
 		public Value getValue() {
 
 			return func;
+		}
+	}
+
+	public static class PromiseConsumer implements Consumer<Object> {
+		private Object result;
+
+		@HostAccess.Export
+		@Override
+		public void accept(Object o) {
+			result = o;
+		}
+
+		public Object getResult() {
+			return result;
 		}
 	}
 }
