@@ -98,6 +98,7 @@ public class Settings {
 
 	// scripting related settings
 	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
+	public static final Setting<Boolean> WrapJSInMainFunction      = new BooleanSetting(generalGroup,                      "Scripting", "application.scripting.js.wrapinmainfunction", false, "Forces js scripts to be wrapped in a main function for legacy behaviour.");
 
 	public static final Setting<String> AllowedHostClasses          = new StringSetting(generalGroup,          "Scripting",   "application.scripting.allowedhostclasses",     "", "Space-separated list of fully-qualified Java class names that you can load dynamically in a scripting environment.");
 
