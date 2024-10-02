@@ -870,38 +870,43 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (!alreadyExportedRelationships.contains(relUuid)) {
 
-
 				try (final Tx tx = app.tx()) {
 
-					final Map<String, Object> entry = new TreeMap<>();
+					final NodeInterface sourceNode = rel.getSourceNode();
+					final NodeInterface targetNode = rel.getTargetNode();
 
-					final Class sourceNodeClass = rel.getSourceNode().getClass();
-					final Class targetNodeClass = rel.getTargetNode().getClass();
+					if (!(sourceNode instanceof GenericNode) && !(targetNode instanceof GenericNode)) {
 
-					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+						final Map<String, Object> entry = new TreeMap<>();
 
-						missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+						final Class sourceNodeClass = sourceNode.getClass();
+						final Class targetNodeClass = targetNode.getClass();
+
+						if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+
+							missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+						}
+
+						if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
+
+							missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
+						}
+
+						final PropertyContainer pc = rel.getPropertyContainer();
+
+						for (final String key : pc.getPropertyKeys()) {
+
+							putData(entry, key, pc.getProperty(key));
+						}
+
+						entry.put("sourceId", rel.getSourceNodeId());
+						entry.put("targetId", rel.getTargetNodeId());
+						entry.put("relType",  rel.getProperty("relType"));
+
+						exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
+
+						alreadyExportedRelationships.add(relUuid);
 					}
-
-					if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
-
-						missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
-					}
-
-					final PropertyContainer pc = rel.getPropertyContainer();
-
-					for (final String key : pc.getPropertyKeys()) {
-
-						putData(entry, key, pc.getProperty(key));
-					}
-
-					entry.put("sourceId", rel.getSourceNodeId());
-					entry.put("targetId", rel.getTargetNodeId());
-					entry.put("relType",  rel.getProperty("relType"));
-
-					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
-
-					alreadyExportedRelationships.add(relUuid);
 				}
 			}
 		}
