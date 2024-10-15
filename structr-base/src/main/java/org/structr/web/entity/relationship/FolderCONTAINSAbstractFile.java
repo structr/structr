@@ -19,8 +19,6 @@
 package org.structr.web.entity.relationship;
 
 import org.structr.core.entity.OneToMany;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 

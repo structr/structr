@@ -20,6 +20,10 @@ package org.structr.web.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -30,8 +34,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.storage.StorageProvider;
+import org.structr.web.entity.relationship.AbstractFileCONFIGURED_BYStorageConfiguration;
 import org.structr.web.entity.relationship.StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry;
 
 import java.util.LinkedHashMap;
@@ -44,6 +50,8 @@ import java.util.Map;
 public class StorageConfiguration extends AbstractNode {
 
 	public static final Property<Iterable<StorageConfigurationEntry>> entriesProperty = new EndNodes<>("entries", StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry.class).partOfBuiltInSchema();
+	public static final Property<Iterable<AbstractFile>> foldersProperty              = new StartNodes<>("folders", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
+	//type.relate(StorageConfiguration.class, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add).setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 
 	public static final Property<String> nameProperty     = new StringProperty("name").indexed().unique().notNull().partOfBuiltInSchema();
 	public static final Property<String> providerProperty = new StringProperty("provider").indexed().notNull().partOfBuiltInSchema();

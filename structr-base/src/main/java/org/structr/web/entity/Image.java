@@ -44,7 +44,9 @@ import org.structr.schema.SchemaService;
 import org.structr.web.agent.ThumbnailTask;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import org.structr.web.entity.relationship.FolderCONTAINSImage;
 import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
+import org.structr.web.entity.relationship.ImageTHUMBNAILImage;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 
@@ -57,7 +59,10 @@ import java.util.List;
  */
 public interface Image extends File {
 
-	final Property<User> imageOfUser = new EndNode<>("imageOfUser", ImagePICTURE_OFUser.class);
+	Property<Folder> imageParentProperty         = new StartNode<>("imageParent", FolderCONTAINSImage.class).partOfBuiltInSchema();
+	Property<User> imageOfUser                   = new EndNode<>("imageOfUser", ImagePICTURE_OFUser.class).partOfBuiltInSchema();
+	Property<Iterable<Image>> thumbnailsProperty = new EndNodes<>("thumbnails", ImageTHUMBNAILImage.class).partOfBuiltInSchema();
+	Property<Image> originalImageProperty        = new StartNode<>("originalImage", ImageTHUMBNAILImage.class).partOfBuiltInSchema();
 
 	final static String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
 
@@ -130,8 +135,6 @@ public interface Image extends File {
 		getScaledImage4.addParameter("arg0", "int");
 		getScaledImage4.addParameter("arg1", "int");
 		getScaledImage4.addParameter("arg2", "boolean");
-
-		image.relate(image, "THUMBNAIL",  Cardinality.OneToMany, "originalImage", "thumbnails").setCascadingDelete(Cascade.sourceToTarget);
 
 		// view configuration
 		image.addViewProperty(PropertyView.Public, "parent");

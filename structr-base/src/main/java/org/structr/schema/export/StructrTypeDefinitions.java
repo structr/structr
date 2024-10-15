@@ -516,7 +516,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
 		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
 		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
-		final Set<String> toMigrate                            = Set.of("AbstractMinifiedFileMINIFICATIONFile");
+
+		final Set<String> toMigrate = Set.of(
+			"AbstractMinifiedFileMINIFICATIONFile", "ImagePICTURE_OFUser", "ImageTHUMBNAILImage", "UserHOME_DIRFolder", "UserWORKING_DIRFolder",
+			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", "FolderCONTAINSAbstractFile", "FolderCONTAINSFile", "FolderCONTAINSFolder",
+			"FolderCONTAINSImage", "VideoFileHAS_CONVERTED_VIDEOVideoFile", "VideoFileHAS_POSTER_IMAGEImage",
+			"AbstractFileCONFIGURED_BYStorageConfiguration"
+		);
 
 		typesOnlyInDatabase.removeAll(structrTypes.keySet());
 		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
