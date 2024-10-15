@@ -306,7 +306,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	}
 
 	@Test
-	public void test05InheritedSchemaMethodOnBuildinType() {
+	public void test05InheritedSchemaMethodOnBuiltInType() {
 
 		final String builtinTypeName = "File";
 		final String schemaMethodName = "testFileMethodOnInheritingType";

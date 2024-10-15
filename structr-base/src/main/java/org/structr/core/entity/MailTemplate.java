@@ -18,40 +18,49 @@
  */
 package org.structr.core.entity;
 
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-
-import java.net.URI;
 
 /**
  *
  */
 
-public interface MailTemplate extends NodeInterface {
+public class MailTemplate extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<String> textProperty = new StringProperty("text").partOfBuiltInSchema();
+	public static final Property<String> localeProperty = new StringProperty("locale").indexed().partOfBuiltInSchema();
 
-		final JsonType type = SchemaService.getDynamicSchema().addType("MailTemplate");
+	public static final View defaultView = new View(MailTemplate.class, PropertyView.Public,
+		name, textProperty, localeProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MailTemplate"));
-		type.setCategory("core");
+	public static final View uiView      = new View(MailTemplate.class, PropertyView.Ui,
+		name, textProperty, localeProperty
+	);
 
-		type.addStringProperty("text",   PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("locale", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+	static {
 
-		type.addPropertyGetter("text", String.class);
-		type.addPropertyGetter("locale", String.class);
-		type.addPropertySetter("locale", String.class);
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("MailTemplate");
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
+		type.setExtends(MailTemplate.class);
+	}
 
-	}}
+	public String getText() {
+		return getProperty(textProperty);
+	}
 
-	String getText();
-	String getLocale();
-	void setLocale(final String locale) throws FrameworkException;
+	public String getLocale() {
+		return getProperty(localeProperty);
+	}
+
+	public void setLocale(final String locale) throws FrameworkException {
+		setProperty(localeProperty, locale);
+	}
 }

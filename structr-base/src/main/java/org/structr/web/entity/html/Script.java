@@ -18,63 +18,56 @@
  */
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaService;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.w3c.dom.Node;
 
-import java.net.URI;
+public class Script extends DOMElement implements LinkSource {
 
-public interface Script extends LinkSource {
+	public static final Property<String> htmlSrcProperty     = new StringProperty("_html_src").partOfBuiltInSchema();
+	public static final Property<String> htmlAsyncProperty   = new StringProperty("_html_async").partOfBuiltInSchema();
+	public static final Property<String> htmlDeferProperty   = new StringProperty("_html_defer").partOfBuiltInSchema();
+	public static final Property<String> htmlTypeProperty    = new StringProperty("_html_type").partOfBuiltInSchema();
+	public static final Property<String> htmlCharsetProperty = new StringProperty("_html_charset").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Script.class, PropertyView.Html,
+		htmlSrcProperty, htmlAsyncProperty, htmlDeferProperty, htmlTypeProperty, htmlCharsetProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Script");
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Script"));
-		type.setExtends(URI.create("#/definitions/LinkSource"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_src",     PropertyView.Html);
-		type.addStringProperty("_html_async",   PropertyView.Html);
-		type.addStringProperty("_html_defer",   PropertyView.Html);
-		type.addStringProperty("_html_type",    PropertyView.Html);
-		type.addStringProperty("_html_charset", PropertyView.Html);
-
-		type.overrideMethod("onCreation",        true,  Script.class.getName() + ".onCreation(this, arg0, arg1);");
-		type.overrideMethod("handleNewChild",    false, Script.class.getName() + ".handleNewChild(this, arg0);");
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-	}}
-
-	static void onCreation(final Script thisScript, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		super.onCreation(securityContext, errorBuffer);
 
 		final PropertyKey<String> key = StructrApp.key(Script.class, "_html_type");
-		final String value            = thisScript.getProperty(key);
+		final String value            = getProperty(key);
 
 		if (StringUtils.isBlank(value)) {
-			thisScript.setProperty(key, "text/javascript");
+			setProperty(key, "text/javascript");
 		}
 	}
 
-	static void handleNewChild(final Script thisScript, final Node newChild) {
+	@Override
+	public void handleNewChild(final Node newChild) {
 
 		if (newChild instanceof Content) {
 
 			try {
-				final String scriptType = thisScript.getProperty(StructrApp.key(Script.class, "_html_type"));
+				final String scriptType = getProperty(StructrApp.key(Script.class, "_html_type"));
 
 				if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(((Content)newChild).getContentType())) {
 
@@ -89,5 +82,10 @@ public interface Script extends LinkSource {
 
 			}
 		}
+	}
+
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
 }

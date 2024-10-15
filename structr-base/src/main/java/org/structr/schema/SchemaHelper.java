@@ -49,6 +49,7 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -73,7 +74,6 @@ public class SchemaHelper {
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
-	public static final Map<Type, GraphQLScalarType> graphQLTypeMap                   = new LinkedHashMap<>();
 	public static final Map<Type, Integer> sortIndexMap                               = new LinkedHashMap<>();
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
@@ -139,18 +139,6 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.Join,          22);
 		sortIndexMap.put(Type.IdNotion,      23);
 		sortIndexMap.put(Type.Notion,        24);
-
-		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
-		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
-		graphQLTypeMap.put(Type.Integer, Scalars.GraphQLInt);
-		graphQLTypeMap.put(Type.String, Scalars.GraphQLString);
-		graphQLTypeMap.put(Type.Double, Scalars.GraphQLFloat);
-		graphQLTypeMap.put(Type.Count, Scalars.GraphQLInt);
-		graphQLTypeMap.put(Type.Long, Scalars.GraphQLLong);
-		graphQLTypeMap.put(Type.Enum, Scalars.GraphQLString);
-		graphQLTypeMap.put(Type.EnumArray, Scalars.GraphQLString);
-		graphQLTypeMap.put(Type.Date, Scalars.GraphQLString);
-		graphQLTypeMap.put(Type.ZonedDateTime, Scalars.GraphQLString);
 	}
 
 	/**
@@ -267,11 +255,6 @@ public class SchemaHelper {
 			type = configuration.getInterfaces().get(normalizedEntityName);
 		}
 
-		// third try: interface with FQN
-		if (type == null) {
-			type = configuration.getInterfaces().get("org.structr.dynamic." + normalizedEntityName);
-		}
-
 		// store type but only if it exists!
 		if (type != null) {
 			normalizedEntityNameCache.put(rawType, type.getSimpleName());
@@ -323,11 +306,6 @@ public class SchemaHelper {
 		final String _extendsClassInternal                     = schemaNode.getProperty(SchemaNode.extendsClassInternal);
 		String superClass                                      = baseType.getSimpleName();
 		boolean extendsAbstractNode                            = true;
-
-		// Since we cannot have relationships between dynamic types (which exist as nodes in the database) and
-		// static types (which only exist as Java classes on disk), we now need to support extendsClass and
-		// extendsClassInternal, which contains the resolved FQCN (including generics) for our core types.
-
 
 		if (_extendsClass != null) {
 
@@ -563,19 +541,24 @@ public class SchemaHelper {
 						// add property name to set for later use
 						propertyNames.add(schemaProperty.getPropertyName());
 
-						// append created source from parser
-						parser.getPropertySource(schemaNodes, src, entity);
+						try {
+							// append created source from parser
+							parser.getPropertySource(schemaNodes, src, entity);
 
-						// register global elements created by parser
-						validators.addAll(parser.getGlobalValidators());
-						compoundIndexKeys.addAll(parser.getCompoundIndexKeys());
-						enums.addAll(parser.getEnumDefinitions());
+							// register global elements created by parser
+							validators.addAll(parser.getGlobalValidators());
+							compoundIndexKeys.addAll(parser.getCompoundIndexKeys());
+							enums.addAll(parser.getEnumDefinitions());
 
-						// built-in schema properties are configured manually
-						if (!schemaProperty.isPartOfBuiltInSchema()) {
+							// built-in schema properties are configured manually
+							if (!schemaProperty.isPartOfBuiltInSchema()) {
 
-							// register property in default view
-							addPropertyToView(PropertyView.Custom, propertyName, views);
+								// register property in default view
+								addPropertyToView(PropertyView.Custom, propertyName, views);
+							}
+
+						} catch (Throwable t) {
+							t.printStackTrace();
 						}
 					}
 				}
@@ -729,11 +712,6 @@ public class SchemaHelper {
 						} else if (basePropertyNames.contains(propertyName)) {
 
 							view.add(SchemaHelper.cleanPropertyName(propertyName));
-
-						} else {
-
-							logger.warn("Unknown property {} in non-graph properties, ignoring.", propertyName);
-							SchemaHelper.isDynamic(schemaNodes, entity.getClassName(), propertyName);
 						}
 					}
 				}
@@ -914,6 +892,7 @@ public class SchemaHelper {
 
 		if (hasUiClasses()) {
 			sourceFile.importLine("org.structr.web.property.*");
+			sourceFile.importLine("org.structr.web.entity.*");
 		}
 
 		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
@@ -1326,7 +1305,7 @@ public class SchemaHelper {
 				src.line(schemaNode, "private static final Set<String> accessControlPermissions = new HashSet<>(", formatJoined(accessControl), ");");
 
 				src.line(schemaNode, "@Override");
-				src.begin(schemaNode, "protected boolean allowedBySchema(final org.structr.core.entity.Principal principal, final org.structr.common.Permission permission) {");
+				src.begin(schemaNode, "protected boolean allowedBySchema(final org.structr.core.entity.PrincipalInterface principal, final org.structr.common.Permission permission) {");
 
 				src.line(schemaNode, "final String id = principal.getUuid();");
 
@@ -1610,248 +1589,6 @@ public class SchemaHelper {
 		return null;
 	}
 
-	public static GraphQLOutputType getGraphQLOutputTypeForProperty(final SchemaProperty property) {
-
-		final Type propertyType            = property.getPropertyType();
-		final GraphQLOutputType outputType = graphQLTypeMap.get(propertyType);
-		if (outputType != null) {
-
-			return outputType;
-		}
-
-		switch (propertyType) {
-
-			case Function:
-			case Custom:
-			case Cypher:
-				final String typeHint = property.getTypeHint();
-				if (typeHint != null) {
-
-					final String lowerCaseTypeHint = typeHint.toLowerCase();
-					switch (lowerCaseTypeHint) {
-
-						case "boolean": return graphQLTypeMap.get(Type.Boolean);
-						case "string":  return graphQLTypeMap.get(Type.String);
-						case "int":     return graphQLTypeMap.get(Type.Integer);
-						case "long":    return graphQLTypeMap.get(Type.Long);
-						case "double":  return graphQLTypeMap.get(Type.Double);
-						case "date":    return graphQLTypeMap.get(Type.Date);
-					}
-
-					// object array type?
-					if (typeHint.endsWith("[]")) {
-
-						// list type
-						return new GraphQLListType(typeRef(StringUtils.substringBefore(typeHint, "[]")));
-
-					} else {
-
-						// object type
-						return typeRef(typeHint);
-					}
-				}
-				break;
-		}
-
-
-		return null;
-	}
-
-	public static GraphQLInputType getGraphQLInputTypeForProperty(final SchemaProperty property) {
-
-		final Type propertyType = property.getPropertyType();
-		switch (propertyType) {
-
-			case Function:
-			case Custom:
-			case Cypher:
-				final String typeHint = property.getTypeHint();
-				if (typeHint != null) {
-
-					final String lowerCaseTypeHint = typeHint.toLowerCase();
-					switch (lowerCaseTypeHint) {
-
-						case "boolean": return graphQLTypeMap.get(Type.Boolean);
-						case "string":  return graphQLTypeMap.get(Type.String);
-						case "int":     return graphQLTypeMap.get(Type.Integer);
-						case "long":    return graphQLTypeMap.get(Type.Long);
-						case "double":  return graphQLTypeMap.get(Type.Double);
-						case "date":    return graphQLTypeMap.get(Type.Date);
-					}
-				}
-				break;
-		}
-
-		final GraphQLScalarType type = graphQLTypeMap.get(propertyType);
-		if (type != null) {
-
-			return type;
-		}
-
-		// default / fallback
-		return Scalars.GraphQLString;
-	}
-
-	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final Set<String> queryTypeNames, final String type) throws FrameworkException {
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-		final SchemaNode schemaNode           = schemaNodes.get(type);
-
-		if (schemaNode != null) {
-
-			// register parent type arguments as well!
-			final SchemaNode parentSchemaNode = schemaNode.getProperty(SchemaNode.extendsClass);
-			if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
-
-				arguments.addAll(getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, queryTypeNames, parentSchemaNode.getName()));
-			}
-
-			// outgoing relationships
-			for (final SchemaRelationshipNode outNode : schemaNode.getProperty(SchemaNode.relatedTo)) {
-
-				final SchemaNode targetNode = outNode.getTargetNode();
-				final String targetTypeName = targetNode.getClassName();
-				final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
-				final String queryTypeName  = type + propertyName + targetTypeName + "InInput";
-
-				if (!queryTypeNames.contains(queryTypeName)) {
-
-					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-							.name(queryTypeName)
-							.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, targetNode))
-							.build()
-					).build());
-
-					queryTypeNames.add(queryTypeName);
-				}
-			}
-
-			// incoming relationships
-			for (final SchemaRelationshipNode inNode : schemaNode.getProperty(SchemaNode.relatedFrom)) {
-
-				final SchemaNode sourceNode = inNode.getSourceNode();
-				final String sourceTypeName = sourceNode.getClassName();
-				final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
-				final String queryTypeName  = type + propertyName + sourceTypeName + "OutInput";
-
-				if (!queryTypeNames.contains(queryTypeName)) {
-
-					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-							.name(queryTypeName)
-							.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, sourceNode))
-							.build()
-					).build());
-
-					queryTypeNames.add(queryTypeName);
-				}
-			}
-
-			// properties
-			for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
-
-				if (property.isIndexed() || property.isCompound()) {
-
-					final String name          = property.getName();
-					final String selectionName = type + name + "Selection";
-
-					GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
-					if (selectionType == null) {
-
-						selectionType = GraphQLInputObjectType.newInputObject()
-								.name(selectionName)
-								.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-								.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
-								.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
-								.build();
-
-						selectionTypes.put(selectionName, selectionType);
-					}
-
-					arguments.add(GraphQLArgument.newArgument()
-							.name(name)
-							.type(selectionType)
-							.build()
-					);
-				}
-			}
-
-			final String ownerTypeName = type + "ownerInput";
-
-			if (!queryTypeNames.contains(ownerTypeName)) {
-
-				// manual registration for built-in relationships that are not dynamic
-				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
-						.name(ownerTypeName)
-						.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, schemaNodes.get("Principal")))
-						.build()
-				).build());
-
-				queryTypeNames.add(ownerTypeName);
-			}
-		}
-
-		return arguments;
-	}
-
-	public static List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final SchemaNode schemaNode) throws FrameworkException {
-
-		final Map<String, GraphQLInputObjectField> fields = new LinkedHashMap<>();
-
-		// register parent type arguments as well!
-		final SchemaNode parentSchemaNode = schemaNode.getProperty(SchemaNode.extendsClass);
-		if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
-
-			for (final GraphQLInputObjectField field : getGraphQLInputFieldsForType(schemaNodes, selectionTypes, parentSchemaNode)) {
-
-				fields.put(field.getName(), field);
-			}
-		}
-
-		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
-
-			if (property.isIndexed() || property.isCompound()) {
-
-				final String name          = property.getName();
-				final String selectionName = name + "Selection";
-
-				GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
-				if (selectionType == null) {
-
-					selectionType = GraphQLInputObjectType.newInputObject()
-							.name(selectionName)
-							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
-							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
-							.build();
-
-					selectionTypes.put(selectionName, selectionType);
-				}
-
-				fields.put(name, GraphQLInputObjectField.newInputObjectField().name(name).type(selectionType).build());
-			}
-		}
-
-		if (!fields.containsKey("name")) {
-
-			GraphQLInputObjectType selectionType = selectionTypes.get("nameSelection");
-			if (selectionType == null) {
-
-				selectionType = GraphQLInputObjectType.newInputObject()
-					.name("nameSelection")
-					.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-					.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
-					.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
-					.build();
-
-				selectionTypes.put("nameSelection", selectionType);
-			}
-
-			fields.put("name", GraphQLInputObjectField.newInputObjectField().name("name").type(selectionType).build());
-		}
-
-		return new LinkedList<>(fields.values());
-	}
-
 	// ----- private methods -----
 	private static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
@@ -1864,7 +1601,7 @@ public class SchemaHelper {
 			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			logger.warn("Unable to instantiate parser for {}: {}", propertyName, t);
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));

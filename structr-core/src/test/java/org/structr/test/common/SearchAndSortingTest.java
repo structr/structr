@@ -40,7 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -59,6 +59,7 @@ import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSeven;
 import org.structr.test.core.entity.TestSix;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -1681,14 +1682,14 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void test06PagingVisibility() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create non-admin user
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			tx.success();
 
@@ -1860,7 +1861,7 @@ public class SearchAndSortingTest extends StructrTest {
 	public void testManyToManyReverseNodeSearch() {
 
 		final Class<Group> groupType                     = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<Iterable<Principal>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
+		final PropertyKey<Iterable<PrincipalInterface>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
 		final List<Group> groups                         = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
@@ -2008,7 +2009,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		final Class<Group> groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
 		final PropertyKey<String> nameKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
-		final PropertyKey<Principal> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
+		final PropertyKey<PrincipalInterface> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
 
 		try (final Tx tx = app.tx()) {
 
@@ -2531,22 +2532,20 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testSortWithPathResolution() {
 
-		final Class<Group> principalType  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Group.class, "name");
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal ownerC = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "C"));
-			final Principal ownerD = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "D"));
-			final Principal ownerA = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "A"));
-			final Principal ownerE = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "E"));
+			final PrincipalInterface ownerC = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "C"));
+			final PrincipalInterface ownerD = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "D"));
+			final PrincipalInterface ownerA = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "A"));
+			final PrincipalInterface ownerE = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "E"));
 
-			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "zzz"));
-			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));
-			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "ttt"), new NodeAttribute<>(AbstractNode.owner, ownerE));
-			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "xxx"), new NodeAttribute<>(AbstractNode.owner, ownerC));
-			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "bbb"), new NodeAttribute<>(AbstractNode.owner, ownerD));
+			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "zzz"));
+			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));
+			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "ttt"), new NodeAttribute<>(AbstractNode.owner, ownerE));
+			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "xxx"), new NodeAttribute<>(AbstractNode.owner, ownerC));
+			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "bbb"), new NodeAttribute<>(AbstractNode.owner, ownerD));
 
 			tx.success();
 

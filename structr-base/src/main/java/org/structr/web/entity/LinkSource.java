@@ -18,50 +18,32 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.SchemaService;
-import org.structr.web.entity.dom.DOMElement;
-
-import java.net.URI;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.Property;
+import org.structr.web.entity.html.relationship.LinkSourceLINKLinkable;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
-public interface LinkSource extends DOMElement {
+public interface LinkSource extends NodeInterface {
 
-	static class Impl { static {
+	Property<Linkable> linkableProperty = new EndNode<>("linkable", LinkSourceLINKLinkable.class).partOfBuiltInSchema();
+	Property<String> linkableIdProperty = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
 
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("LinkSource");
-		final JsonObjectType linkable = (JsonObjectType)schema.getType("Linkable");
+	View uiView = new View(LinkSource.class, PropertyView.Ui,
+		linkableProperty, linkableIdProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LinkSource"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("ui");
+	default Linkable getLinkable() {
+		return getProperty(linkableProperty);
+	}
 
-		type.overrideMethod("getLinkable", false, "return getProperty(linkableProperty);");
-
-		type.addMethod("setLinkable")
-			.setSource("setProperty(linkableProperty, (Linkable)linkable);")
-			.addException(FrameworkException.class.getName())
-			.addParameter("linkable", "org.structr.web.entity.Linkable");
-
-		final JsonReferenceType rel = type.relate(linkable, "LINK", Cardinality.ManyToOne, "linkingElements", "linkable");
-
-		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
-		linkable.addIdReferenceProperty("linkingElementsIds", rel.getSourceProperty());
-
-		// view configuration
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "linkable");
-		type.addViewProperty(PropertyView.Ui, "linkableId");
-	}}
-
-	Linkable getLinkable();
-	void setLinkable(final Linkable linkable) throws FrameworkException;
+	default Object setLinkable(final Linkable linkable) throws FrameworkException {
+		return setProperty(linkableProperty, linkable);
+	}
 }

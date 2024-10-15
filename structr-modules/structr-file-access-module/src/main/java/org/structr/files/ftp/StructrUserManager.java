@@ -28,7 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 
@@ -70,11 +70,11 @@ public class StructrUserManager implements UserManager {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			final List<String> userNames = new ArrayList();
-			final List<Principal> result = new LinkedList<>();
+			final List<PrincipalInterface> result = new LinkedList<>();
 
 			try {
 
-				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(Principal.class).sort(AbstractNode.name).getResultStream());
+				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(PrincipalInterface.class).sort(AbstractNode.name).getResultStream());
 
 			} catch (FrameworkException ex) {
 
@@ -84,9 +84,9 @@ public class StructrUserManager implements UserManager {
 
 			if (!result.isEmpty()) {
 
-				for (Principal p : result) {
+				for (PrincipalInterface p : result) {
 
-					userNames.add(p.getProperty(Principal.name));
+					userNames.add(p.getProperty(PrincipalInterface.name));
 				}
 			}
 
@@ -149,7 +149,7 @@ public class StructrUserManager implements UserManager {
 				userName = authentication.getUsername();
 				password = authentication.getPassword();
 
-				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(Principal.name, userName, password);
+				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(PrincipalInterface.name, userName, password);
 
 				securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
@@ -184,7 +184,7 @@ public class StructrUserManager implements UserManager {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, userName);
+			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(PrincipalInterface.name, userName);
 
 			tx.success();
 

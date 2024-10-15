@@ -20,55 +20,45 @@ package org.structr.feed.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
-import org.structr.schema.SchemaService;
 
 import java.io.InputStream;
-import java.net.URI;
 
 /**
  *
  *
  */
-public interface RemoteDocument extends NodeInterface, Indexable {
+public class RemoteDocument extends AbstractNode implements Indexable {
 
-	static class Impl { static {
+	public static final Property<String> urlProperty              = new StringProperty("url");
+	public static final Property<Long> checksumProperty           = new LongProperty("checksum").readOnly();
+	public static final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
+	public static final Property<Integer> versionProperty         = new IntProperty("version").readOnly();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("RemoteDocument");
+	public static final View defaultView = new View(RemoteDocument.class, PropertyView.Public,
+		name, owner, urlProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/RemoteDocument"));
-		type.setImplements(URI.create("#/definitions/Indexable"));
+	public static final View uiView = new View(RemoteDocument.class, PropertyView.Ui,
+		urlProperty, checksumProperty, cacheForSecondsProperty, versionProperty
+	);
 
-		type.addStringProperty("url",              PropertyView.Ui, PropertyView.Public);
-		type.addLongProperty("checksum",           PropertyView.Ui).setReadOnly(true);
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
-		type.addIntegerProperty("version",         PropertyView.Ui).setReadOnly(true);
+	public String getUrl() {
+		return getProperty(urlProperty);
+	}
 
-		type.addPropertyGetter("url",              String.class);
-		type.addPropertyGetter("contentType",      String.class);
-		type.addPropertyGetter("extractedContent", String.class);
+	@Override
+	public InputStream getInputStream() {
 
-		// methods shared with FeedItemContent
-		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
-		type.overrideMethod("getInputStream",   false, "return " + RemoteDocument.class.getName() + ".getInputStream(this);");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "owner");
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
-
-	String getUrl();
-
-	static InputStream getInputStream(final RemoteDocument thisDocument) {
-
-		final String remoteUrl = thisDocument.getUrl();
+		final String remoteUrl = getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
 			return HttpHelper.getAsStream(remoteUrl);
@@ -78,22 +68,32 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 	}
 
 	@Override
-	default boolean indexingEnabled() {
+	public boolean indexingEnabled() {
 		return Settings.RemoteDocumentIndexingEnabled.getValue();
 	}
 
 	@Override
-	default Integer maximumIndexedWords() {
+	public Integer maximumIndexedWords() {
 		return Settings.RemoteDocumentIndexingLimit.getValue();
 	}
 
 	@Override
-	default Integer indexedWordMinLength() {
+	public Integer indexedWordMinLength() {
 		return Settings.RemoteDocumentIndexingMinLength.getValue();
 	}
 
 	@Override
-	default Integer indexedWordMaxLength() {
+	public Integer indexedWordMaxLength() {
 		return Settings.RemoteDocumentIndexingMaxLength.getValue();
+	}
+
+	@Override
+	public String getExtractedContent() {
+		return getProperty(extractedContentProperty);
+	}
+
+	@Override
+	public String getContentType() {
+		return getProperty(contentTypeProperty);
 	}
 }

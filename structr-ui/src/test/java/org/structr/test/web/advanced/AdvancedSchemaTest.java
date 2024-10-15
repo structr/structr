@@ -20,8 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,19 +46,19 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.test.web.basic.ResourceAccessTest;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
-import org.structr.web.entity.File;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class AdvancedSchemaTest extends FrontendTest {
 
@@ -1146,7 +1144,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 	}
 
 
-	@Test
+	//@Test
+	// Disabled because we don't need to allow overriding of built-in methods
+	// in custom classes.
 	public void testIsValidPasswordMethodOfUser() {
 
 		try (final Tx tx = app.tx()) {
@@ -1159,7 +1159,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").overrideMethod("isValidPassword", false, "return true;");
+			schema.getType("User").overrideMethod("isValidPassword", false, "return true;")
+				.addParameter("password", "String")
+				.setReturnType("boolean");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

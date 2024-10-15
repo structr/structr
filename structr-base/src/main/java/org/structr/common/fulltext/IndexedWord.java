@@ -18,25 +18,38 @@
  */
 package org.structr.common.fulltext;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.fulltext.relationship.IndexableINDEXED_WORDIndexedWord;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
 
 /**
  */
-public interface IndexedWord extends NodeInterface {
+public class IndexedWord extends AbstractNode {
 
-	static class Impl { static {
+	Property<Iterable<Indexable>> indexablesProperty  = new StartNodes<>("indexables", IndexableINDEXED_WORDIndexedWord.class);
+	public static final Property<String> nameProperty = new StringProperty("name").indexed().unique();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("IndexedWord");
+	public static final View defaultView = new View(IndexedWord.class, PropertyView.Public,
+		nameProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/IndexedWord"));
+	public static final View uiView      = new View(IndexedWord.class, PropertyView.Ui,
+		nameProperty
+	);
 
-		type.addStringProperty("name", PropertyView.Ui, PropertyView.Public).setIndexed(true).setUnique(true);
-	}}
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidUniqueProperty(this, IndexedWord.nameProperty, errorBuffer);
+
+		return valid;
+	}
 }

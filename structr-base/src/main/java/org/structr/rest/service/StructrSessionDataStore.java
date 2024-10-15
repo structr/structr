@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -65,9 +65,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
+			final PropertyKey<String[]> key = StructrApp.key(PrincipalInterface.class, "sessionIds");
 			final String[] value            = new String[] { id };
-			final Principal user            = app.nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
+			final PrincipalInterface user            = app.nodeQuery(PrincipalInterface.class).and(key, value).disableSorting().getFirst();
 
 			if (user != null) {
 

@@ -49,7 +49,7 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -218,7 +218,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					return;
 				}
 
-				final Principal user = securityContext.getUser(false);
+				final PrincipalInterface user = securityContext.getUser(false);
 				if (user != null) {
 
 					// Don't cache if a user is logged in
@@ -623,7 +623,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					return;
 				}
 
-				final Principal user = securityContext.getUser(false);
+				final PrincipalInterface user = securityContext.getUser(false);
 				if (user != null) {
 
 					// Don't cache if a user is logged in
@@ -1252,17 +1252,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final App app = StructrApp.getInstance();
 
-			List<Principal> results;
+			List<PrincipalInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKey, key).getAsList();
+				results = app.nodeQuery(PrincipalInterface.class).and(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
 
 			if (!results.isEmpty()) {
 
-				final Principal user = results.get(0);
+				final PrincipalInterface user = results.get(0);
 				long userId;
 
 				try (final Tx tx = app.tx()) {
@@ -1346,17 +1346,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final App app = StructrApp.getInstance();
 
-			List<Principal> results;
+			List<PrincipalInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery(PrincipalInterface.class).and(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
 
 			if (!results.isEmpty()) {
 
-				final Principal user = results.get(0);
+				final PrincipalInterface user = results.get(0);
 				long userId;
 
 				try (final Tx tx = app.tx()) {
@@ -1878,7 +1878,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			// check Http Basic Authentication headers
-			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
+			final PrincipalInterface principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
 			if (principal != null) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
@@ -1911,7 +1911,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return HttpBasicAuthResult.NO_BASIC_AUTH;
 	}
 
-	private Principal getPrincipalForAuthorizationHeader(final String authHeader) {
+	private PrincipalInterface getPrincipalForAuthorizationHeader(final String authHeader) {
 
 		if (authHeader != null) {
 
@@ -1938,7 +1938,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (StringUtils.isNoneBlank(username, password)) {
 
 					try {
-						return AuthHelper.getPrincipalForPassword(Principal.name, username, password);
+						return AuthHelper.getPrincipalForPassword(PrincipalInterface.name, username, password);
 
 					} catch (Throwable t) {
 						// ignore

@@ -18,29 +18,26 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
-
-import java.net.URI;
 
 /**
  * Represents a component. A component is an assembly of elements
  */
-public interface Component extends DOMElement {
+public class Component extends DOMElement {
 
-	static class Impl { static {
+	public static final Property<String> kindProperty      = new StringProperty("kind").partOfBuiltInSchema();
+	public static final Property<Integer> positionProperty = new IntProperty("position").partOfBuiltInSchema();
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Component");
+	public static final View defaultView = new View(Component.class,PropertyView.Public,
+		kindProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addIntegerProperty("position");
-		type.addStringProperty("kind", PropertyView.Public, PropertyView.Ui);
-	}}
+	public static final View uiView = new View(Component.class,PropertyView.Ui,
+		kindProperty
+	);
 }

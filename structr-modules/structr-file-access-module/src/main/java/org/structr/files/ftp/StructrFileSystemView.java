@@ -30,7 +30,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
@@ -55,7 +55,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, user.getName());
+			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(PrincipalInterface.name, user.getName());
 
 			securityContext = SecurityContext.getInstance(structrUser, AccessMode.Backend);
 
@@ -73,7 +73,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, user.getName());
+			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(PrincipalInterface.name, user.getName());
 
 			final Folder homeDir = structrUser.getHomeDirectory();
 

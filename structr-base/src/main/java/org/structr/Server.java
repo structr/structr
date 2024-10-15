@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 
 /**
  * Main startup class for Structr.
@@ -35,6 +36,8 @@ public class Server {
 	public static void main(String[] args) {
 
 		logger.info("Starting Structr {}", VersionHelper.getFullVersionInfo());
+
+		StructrApp.initializeSchemaIds();
 
 		// start service layer using default configuration
 		// augmented by local structr.conf

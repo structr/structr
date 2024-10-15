@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.test.web.StructrUiTest;
@@ -64,7 +64,7 @@ public class ConsoleTest extends StructrUiTest {
 	public void testUserCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		Principal admin       = null;
+		PrincipalInterface admin       = null;
 		String uuid           = null;
 
 		try {
@@ -151,35 +151,28 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
-		final int nodeCount           = 1824;
-		final int relCount            = 2827;
+		final int nodeCount           = 205;
+		final int relCount            = 321;
 		final int resourceAccessCount = 0;
-		final int typedNodeCount      = 669;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
-			"RebuildNodeIndex: 1000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: 1000 objects processed\r\n" +
-			"RebuildRelIndex: 2000 objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
 
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
-			"RebuildNodeIndex: 1000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
 
 		final String relIndexRebuildOutput =
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: 1000 objects processed\r\n" +
-			"RebuildRelIndex: 2000 objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
@@ -196,7 +189,6 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
-			"SetNodeUuid: 1000 objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";
@@ -213,8 +205,6 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String createRelUuidsOutput =
 			"Start setting UUID on all rels\r\n" +
-			"SetRelationshipUuid: 1000 objects processed\r\n" +
-			"SetRelationshipUuid: 2000 objects processed\r\n" +
 			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
 			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
 			"Done with setting UUID on " + relCount + " relationships\r\n";

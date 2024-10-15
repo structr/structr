@@ -18,29 +18,24 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Source extends DOMElement {
 
-public interface Source extends DOMElement {
+	public static final Property<String> htmlSrcProperty   = new StringProperty("_html_src").partOfBuiltInSchema();
+	public static final Property<String> htmlTypeProperty  = new StringProperty("_html_type").partOfBuiltInSchema();
+	public static final Property<String> htmlMediaProperty = new StringProperty("_html_media").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Source.class, PropertyView.Html,
+		htmlSrcProperty, htmlTypeProperty, htmlMediaProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Source");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Source"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_src",   PropertyView.Html);
-		type.addStringProperty("_html_type",  PropertyView.Html);
-		type.addStringProperty("_html_media", PropertyView.Html);
-
-		type.overrideMethod("isVoidElement",   false, "return true;");
-	}}
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
 }

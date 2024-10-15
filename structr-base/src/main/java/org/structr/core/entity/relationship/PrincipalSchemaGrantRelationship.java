@@ -19,18 +19,18 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SchemaGrant;
 
 /**
  *
  *
  */
-public class PrincipalSchemaGrantRelationship extends OneToMany<Principal, SchemaGrant> {
+public class PrincipalSchemaGrantRelationship extends OneToMany<PrincipalInterface, SchemaGrant> {
 
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public Class<PrincipalInterface> getSourceType() {
+		return PrincipalInterface.class;
 	}
 
 	@Override

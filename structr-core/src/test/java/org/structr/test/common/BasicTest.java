@@ -33,6 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
+import org.structr.web.entity.User;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
@@ -43,7 +44,6 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -1761,7 +1761,7 @@ public class BasicTest extends StructrTest {
 			// create two OWNS relationships with different end node types
 			final TestOne testOne     = app.create(TestOne.class, "testone");
 			final TestThree testThree = app.create(TestThree.class, "testthree");
-			final Principal testUser  = app.create(Principal.class, "testuser");
+			final User testUser       = app.create(User.class, "testuser");
 
 			testOne.setProperty(TestOne.testThree, testThree);
 			testThree.setProperty(TestThree.owner, testUser);
@@ -1794,13 +1794,13 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testRelationshipsOnNodeCreation() {
 
-		Principal user = null;
+		User user = null;
 		TestOne test  = null;
 
 		// create user
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(Principal.class, "tester");
+			user = app.create(User.class, "tester");
 
 			tx.success();
 
@@ -1870,13 +1870,13 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testRelationshipsOnNodeCreationAfterRollback() {
 
-		Principal user = null;
+		User user = null;
 		TestThirteen test  = null;
 
 		// create user
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(Principal.class, "tester");
+			user = app.create(User.class, "tester");
 
 			tx.success();
 
