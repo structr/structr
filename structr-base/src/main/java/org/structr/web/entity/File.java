@@ -39,30 +39,34 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.relationship.FolderCONTAINSFile;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
@@ -77,15 +81,14 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
-import org.structr.core.api.Arguments;
 
 /**
  *
  *
  */
 public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, Favoritable, DataSource {
+
+	Property<Folder> fileParentProperty = new StartNode<>("fileParent", FolderCONTAINSFile.class).partOfBuiltInSchema();
 
 	static class Impl { static {
 

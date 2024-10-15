@@ -22,11 +22,7 @@ package org.structr.web.entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.graph.PropagationDirection;
-import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -39,13 +35,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.relationship.AbstractFileCONFIGURED_BYStorageConfiguration;
+import org.structr.web.entity.relationship.FolderCONTAINSAbstractFile;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
 
@@ -60,11 +57,14 @@ import java.util.List;
  */
 public interface AbstractFile extends NodeInterface {
 
+	Property<StorageConfiguration> storageConfigurationProperty = new EndNode<>("storageConfiguration", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
+	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema();
+	Property<String> parentIdProperty                           = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
+
 	static class Impl { static {
 
-		final JsonSchema schema     = SchemaService.getDynamicSchema();
-		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
-		final JsonObjectType type   = schema.addType("AbstractFile");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("AbstractFile");
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
@@ -103,16 +103,6 @@ public interface AbstractFile extends NodeInterface {
 			.setSource("setProperty(parentProperty, (Folder)parent);")
 			.addException(FrameworkException.class.getName())
 			.addParameter("parent", "org.structr.web.entity.Folder");
-
-		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
-
-		// link to static type
-		type.relate(StorageConfiguration.class, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add).setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
-
-		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
-
-		// sort position of children in page
-		parentRel.addIntegerProperty("position");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "visibleToAuthenticatedUsers");
