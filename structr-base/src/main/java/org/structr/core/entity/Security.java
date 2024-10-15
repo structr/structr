@@ -25,13 +25,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
  * Relationship type class for SECURITY relationships.
  */
-public class Security extends ManyToMany<Principal, NodeInterface> {
+public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
 
 	public static final SourceId           principalId          = new SourceId("principalId");
 	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
@@ -102,8 +101,8 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	// ----- class Relation -----
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public Class<PrincipalInterface> getSourceType() {
+		return PrincipalInterface.class;
 	}
 
 	@Override

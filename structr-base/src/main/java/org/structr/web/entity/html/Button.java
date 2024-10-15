@@ -18,34 +18,27 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Button extends DOMElement {
 
-public interface Button extends DOMElement {
+	public static final Property<String> htmlAutofocusProperty      = new StringProperty("_html_autofocus");
+	public static final Property<String> htmlDisabledProperty       = new StringProperty("_html_disabled");
+	public static final Property<String> htmlFormProperty           = new StringProperty("_html_form");
+	public static final Property<String> htmlFormActionProperty     = new StringProperty("_html_formaction");
+	public static final Property<String> htmlFormEnctypeProperty    = new StringProperty("_html_formenctype");
+	public static final Property<String> htmlFormMethodProperty     = new StringProperty("_html_formmethod");
+	public static final Property<String> htmlFormNoValidateProperty = new StringProperty("_html_formnovalidate");
+	public static final Property<String> htmlFormTargetProperty     = new StringProperty("_html_formtarget");
+	public static final Property<String> htmlTypeProperty           = new StringProperty("_html_type");
+	public static final Property<String> htmlValueProperty          = new StringProperty("_html_value");
 
-	static class Impl { static {
-
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("Button");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Button"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_autofocus",      PropertyView.Html);
-		type.addStringProperty("_html_disabled",       PropertyView.Html);
-		type.addStringProperty("_html_form",           PropertyView.Html);
-		type.addStringProperty("_html_formaction",     PropertyView.Html);
-		type.addStringProperty("_html_formenctype",    PropertyView.Html);
-		type.addStringProperty("_html_formmethod",     PropertyView.Html);
-		type.addStringProperty("_html_formnovalidate", PropertyView.Html);
-		type.addStringProperty("_html_formtarget",     PropertyView.Html);
-		type.addStringProperty("_html_type",           PropertyView.Html);
-		type.addStringProperty("_html_value",          PropertyView.Html);
-	}}
+	public static final View htmlView = new View(Button.class, PropertyView.Html,
+		htmlAutofocusProperty, htmlDisabledProperty, htmlFormProperty, htmlFormActionProperty, htmlFormEnctypeProperty, htmlFormMethodProperty, htmlFormNoValidateProperty,
+		htmlFormTargetProperty, htmlTypeProperty, htmlValueProperty
+	);
 }

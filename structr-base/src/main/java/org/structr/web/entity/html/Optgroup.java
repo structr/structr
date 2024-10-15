@@ -18,36 +18,19 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Optgroup extends DOMElement {
 
-public interface Optgroup extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Optgroup");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Optgroup"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_disabled", PropertyView.Html);
-		type.addStringProperty("_html_label",    PropertyView.Html);
-	}}
-
-	/*
-	public static final Property<String> _disabled	= new HtmlProperty("disabled");
-	public static final Property<String> _label	= new HtmlProperty("label");
+	public static final Property<String> _disabled	= new HtmlProperty("disabled").partOfBuiltInSchema();
+	public static final Property<String> _label	= new HtmlProperty("label").partOfBuiltInSchema();
 
 	public static final View htmlView = new View(Optgroup.class, PropertyView.Html,
 
 		_disabled, _label
 	);
-	*/
 }

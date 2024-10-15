@@ -31,7 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
@@ -67,7 +67,7 @@ public class LoginCommand extends AbstractCommand {
 		}
 
 		boolean sendSuccess = false;
-		Principal user      = null;
+		PrincipalInterface user      = null;
 		long userId         = -1L;
 
 		try (final Tx tx = app.tx(true, true, true)) {
@@ -173,12 +173,12 @@ public class LoginCommand extends AbstractCommand {
 
 					try {
 
-						final Principal principal       = ex.getUser();
+						final PrincipalInterface principal       = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");
 
-						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(principal), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
+						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(principal.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
 
 						msg.data("qrdata", qrdata);
 

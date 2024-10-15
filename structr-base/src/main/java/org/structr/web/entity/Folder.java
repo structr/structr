@@ -32,14 +32,21 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.relationship.UserHOME_DIRFolder;
+import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
 
 import java.net.URI;
 
-
 public interface Folder extends AbstractFile, ContextAwareEntity {
+
+	public static final Property<User> homeFolderOfUserProperty            = new StartNode<>("homeFolderOfUser", UserHOME_DIRFolder.class).partOfBuiltInSchema();
+	public static final Property<Iterable<User>> workFolderOfUsersProperty = new StartNodes<>("workFolderOfUsers", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
 
 	static class Impl { static {
 

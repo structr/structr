@@ -28,9 +28,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -431,7 +430,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			uuid = test.getUuid();
 
 			// set owner
-			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			final PrincipalInterface tester = app.nodeQuery(PrincipalInterface.class).andName("tester").getFirst();
 			test.setProperty(AbstractNode.owner, tester);
 
 			tx.success();

@@ -18,28 +18,24 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Ol extends DOMElement {
 
-public interface Ol extends DOMElement {
+	public static final Property<String> htmlReversedProperty = new StringProperty("_html_reversed").partOfBuiltInSchema();
+	public static final Property<String> htmlStartProperty    = new StringProperty("_html_start").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Ol.class, PropertyView.Html,
+		htmlReversedProperty, htmlStartProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Ol");
-
-		type.addStringProperty("_html_reversed", PropertyView.Html);
-		type.addStringProperty("_html_start",    PropertyView.Html);
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Ol"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

@@ -20,7 +20,6 @@ package org.structr.test.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.AccessMode;
@@ -54,14 +53,14 @@ public class PermissionResolutionTest extends StructrTest {
 
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
-		Principal user1            = null;
+		PrincipalInterface user1            = null;
 		Class type1                = null;
 		Class type2                = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create a test user
-			user1 = app.create(Principal.class, "user1");
+			user1 = app.create(User.class, "user1");
 
 			// create schema setup with permission propagation
 			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
@@ -260,7 +259,7 @@ public class PermissionResolutionTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "next")
 			).getUuid();
 
-			app.create(Principal.class, "tester");
+			app.create(User.class, "tester");
 
 			tx.success();
 
@@ -274,7 +273,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(Principal.class).getFirst();
+			final PrincipalInterface tester = app.nodeQuery(User.class).getFirst();
 
 			final NodeInterface p1 = app.create(projectType,
 				new NodeAttribute<>(AbstractNode.name, "Project1"),
@@ -350,7 +349,7 @@ public class PermissionResolutionTest extends StructrTest {
 			moo.setProperty(SchemaNode.extendsClass, type);
 			test.setProperty(SchemaNode.extendsClass, type);
 
-			app.create(Principal.class, "tester");
+			app.create(User.class, "tester");
 
 			tx.success();
 
@@ -366,7 +365,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(Principal.class).getFirst();
+			final PrincipalInterface tester = app.nodeQuery(User.class).getFirst();
 
 			final NodeInterface p1 = app.create(mooType,
 				new NodeAttribute<>(AbstractNode.name, "Project1"),
@@ -425,7 +424,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			// create schema setup with permission propagation
 			app.create(SchemaNode.class, "Project");
-			app.create(Principal.class, "tester");
+			app.create(User.class, "tester");
 
 			tx.success();
 
@@ -440,7 +439,7 @@ public class PermissionResolutionTest extends StructrTest {
 			final Group testGroup1 = app.create(Group.class, "Group1");
 			final Group testGroup2 = app.create(Group.class, "Group2");
 			final Group testGroup3 = app.create(Group.class, "Group3");
-			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			final PrincipalInterface tester = app.nodeQuery(User.class).andName("tester").getFirst();
 
 			// create group hierarchy for test user
 			testGroup1.addMember(securityContext, testGroup2);
@@ -463,6 +462,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -470,7 +470,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			final PrincipalInterface tester = app.nodeQuery(User.class).andName("tester").getFirst();
 
 			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(AbstractNode.owner, tester));
 			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"));
@@ -540,7 +540,7 @@ public class PermissionResolutionTest extends StructrTest {
 			group1.addMember(ctx, group2);
 			group2.addMember(ctx, group3);
 
-			final Principal tester = app.create(Principal.class, "tester");
+			final Principal tester = app.create(User.class, "tester");
 
 			group3.addMember(ctx, tester);
 
@@ -553,7 +553,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal user = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			final Principal user = app.nodeQuery(User.class).andName("tester").getFirst();
 
 			assertTrue("Database user doesn't inherit isAdmin flag correctly.", user.isAdmin());
 
@@ -685,7 +685,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester            = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			final PrincipalInterface tester            = app.nodeQuery(User.class).andName("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(AbstractNode.name).getAsList();
 

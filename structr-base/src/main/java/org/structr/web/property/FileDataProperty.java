@@ -40,7 +40,9 @@ import org.structr.web.entity.Image;
 public class FileDataProperty<T> extends StringProperty {
 
 	public FileDataProperty(String name) {
+
 		super(name);
+
 		this.unvalidated = true;
 	}
 

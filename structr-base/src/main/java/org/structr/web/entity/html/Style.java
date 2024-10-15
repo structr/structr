@@ -18,76 +18,25 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Style extends DOMElement {
 
-public interface Style extends DOMElement {
+	public static final Property<String> htmlMediaProperty = new StringProperty("_html_media").partOfBuiltInSchema();
+	public static final Property<String> htmlTypeProperty = new StringProperty("_html_type").partOfBuiltInSchema();
+	public static final Property<String> htmlScopedProperty = new StringProperty("_html_scoped").partOfBuiltInSchema();
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Style");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Style"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_media",  PropertyView.Html);
-		type.addStringProperty("_html_type",   PropertyView.Html);
-		type.addStringProperty("_html_scoped", PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-		//type.overrideMethod("handleNewChild",    false, "error");
-	}}
-
-	/*
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.isValid(errorBuffer)) {
-
-			setProperty(Style._type, "text/css");
-			return true;
-		}
-
-		return false;
-	}
+	public static final View htmlView = new View(Style.class, PropertyView.Html,
+		htmlMediaProperty, htmlTypeProperty, htmlScopedProperty
+	);
 
 	@Override
 	public Property[] getHtmlAttributes() {
-
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-
 	}
-
-	@Override
-	protected void handleNewChild(final Node newChild) {
-
-		if (newChild instanceof Content) {
-
-			final Content content = (Content)newChild;
-
-			try {
-
-				final String childContentType = content.getProperty(Content.contentType);
-				final String thisContentType  = getProperty(_type);
-
-				if (childContentType == null && thisContentType != null) {
-
-					content.setProperties(securityContext, new PropertyMap(Content.contentType, thisContentType));
-				}
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Unable to set property on new child: {}", fex.getMessage());
-
-			}
-		}
-	}
-	*/
 }

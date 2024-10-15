@@ -36,4 +36,5 @@ public interface JsonObjectType extends JsonType {
 	public JsonReferenceType relate(final URI externalTypeReference, final String relationship, final Cardinality cardinality);
 	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
 	public JsonReferenceType relate(final URI externalTypeReference, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
+	public JsonReferenceType relate(final Class type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
 }

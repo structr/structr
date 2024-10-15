@@ -39,10 +39,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
 	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<Principal>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<PrincipalInterface>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
 	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	public static final Property<Iterable<PrincipalInterface>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final long sourceTransactionId);
@@ -97,7 +97,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 		for (final Security security : this.getIncomingRelationships(Security.class)) {
 
 			final Set<Permission> permissions = new HashSet();
-			final Principal principal         = security.getSourceNode();
+			final PrincipalInterface principal         = security.getSourceNode();
 
 			for (final String perm : security.getPermissions()) {
 

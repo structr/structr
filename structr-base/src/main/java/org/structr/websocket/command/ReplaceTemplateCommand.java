@@ -94,9 +94,10 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 
 			// 1: Clone new template into tree			
 			final DOMNode newClonedTemplate = CloneComponentCommand.cloneComponent(newTemplate, templateToBeReplaced.getParent());
+			final DOMNode parent            = templateToBeReplaced.getParent();
 			
 			// 2: Move new template before existing template
-			DOMNode.insertBefore(templateToBeReplaced.getParent(), newClonedTemplate, templateToBeReplaced);
+			parent.insertBefore(newClonedTemplate, templateToBeReplaced);
 
 			// 3: Move child nodes from existing template to new template
 			for (final DOMNode child : templateToBeReplaced.getAllChildNodes()) {
@@ -104,7 +105,7 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 			}
 			
 			// 4: Remove old template node
-			DOMNode.removeChild(templateToBeReplaced.getParent(), templateToBeReplaced);
+			parent.removeChild(templateToBeReplaced);
 			
 			TransactionCommand.registerNodeCallback(newClonedTemplate, callback);
 

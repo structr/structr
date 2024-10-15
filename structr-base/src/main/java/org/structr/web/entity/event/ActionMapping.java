@@ -18,76 +18,64 @@
  */
 package org.structr.web.entity.event;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.relationship.*;
 
-import java.net.URI;
+public class ActionMapping extends AbstractNode {
 
-public interface ActionMapping extends NodeInterface {
+	public static final Property<Iterable<DOMElement>> triggerElements           = new StartNodes<>("triggerElements", DOMElementTRIGGERED_BYActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> successTargets               = new StartNodes<>("successTargets", DOMNodeSUCCESS_TARGETActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> failureTargets               = new StartNodes<>("failureTargets", DOMNodeFAILURE_TARGETActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<ParameterMapping>> parameterMappings   = new EndNodes<>("parameterMappings", ActionMappingPARAMETERParameterMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> successNotificationElements  = new StartNodes<>("successNotificationElements", DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> failureNotificationElements  = new StartNodes<>("failureNotificationElements", DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping.class).partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final Property<String> eventProperty        = new StringProperty("event").hint("DOM event which triggers the action").partOfBuiltInSchema();
+	public static final Property<String> actionProperty       = new StringProperty("action").hint("Action which will be triggered").partOfBuiltInSchema();
+	public static final Property<String> methodProperty       = new StringProperty("method").hint("Name of method to execute when triggered action is 'method'").partOfBuiltInSchema();
+	public static final Property<String> dataTypeProperty     = new StringProperty("dataType").hint("Data type for create action").partOfBuiltInSchema();
+	public static final Property<String> idExpressionProperty = new StringProperty("idExpression").hint("Script expression that evaluates to the id of the object the method should be executed on").partOfBuiltInSchema();
+	public static final Property<String> optionsProperty      = new StringProperty("options").hint("JSON string with that contains configuration options for this action mapping").partOfBuiltInSchema();
 
-		final JsonSchema schema               = SchemaService.getDynamicSchema();
-		final JsonObjectType type             = schema.addType("ActionMapping");
-		final JsonObjectType parameterMapping = schema.addType("ParameterMapping");
-		final JsonObjectType domNode          = schema.addType("DOMNode");
-		final JsonObjectType domElement       = schema.addType("DOMElement");
+	public static final Property<String> dialogTypeProperty  = new StringProperty("dialogType").hint("Type of dialog to confirm a destructive / update action").partOfBuiltInSchema();
+	public static final Property<String> dialogTitleProperty = new StringProperty("dialogTitle").hint("Dialog Title").partOfBuiltInSchema();
+	public static final Property<String> dialogTextProperty  = new StringProperty("dialogText").hint("Dialog Text").partOfBuiltInSchema();
 
-		//type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ActionMapping"));
-		type.setExtends(URI.create("#/definitions/NodeInterface"));
+	public static final Property<String> successNotificationsProperty        = new StringProperty("successNotifications").hint("Notifications after successful execution of action").partOfBuiltInSchema();
+	public static final Property<String> successNotificationsPartialProperty = new StringProperty("successNotificationsPartial").hint("CSS selector for partial to display as success notification").partOfBuiltInSchema();
+	public static final Property<String> successNotificationsEventProperty   = new StringProperty("successNotificationsEvent").hint("Event to raise for success notifications").partOfBuiltInSchema();
 
-		domElement.relate(type,       "TRIGGERED_BY",   Cardinality.ManyToMany,   "triggerElements", "triggeredActions");
-		domNode.relate(type,          "SUCCESS_TARGET", Cardinality.ManyToMany,"successTargets","reloadingActions");
-		domNode.relate(type,          "FAILURE_TARGET", Cardinality.ManyToMany,  "failureTargets","failureActions");
-		type.relate(parameterMapping, "PARAMETER",      Cardinality.OneToMany, "actionMapping",   "parameterMappings");
-		domNode.relate(type,          "SUCCESS_NOTIFICATION_ELEMENT", Cardinality.ManyToMany,   "successNotificationElements","successNotificationActions");
-		domNode.relate(type,          "FAILURE_NOTIFICATION_ELEMENT", Cardinality.ManyToMany, "failureNotificationElements","failureNotificationActions");
+	public static final Property<String> failureNotificationsProperty        = new StringProperty("failureNotifications").hint("Notifications after failed execution of action").partOfBuiltInSchema();
+	public static final Property<String> failureNotificationsPartialProperty = new StringProperty("failureNotificationsPartial").hint("CSS selector for partial to display as failure notification").partOfBuiltInSchema();
+	public static final Property<String> failureNotificationsEventProperty   = new StringProperty("failureNotificationsEvent").hint("Event to raise for failure notifications").partOfBuiltInSchema();
 
-		type.addViewProperty(PropertyView.Ui, "triggerElements");
-		type.addViewProperty(PropertyView.Ui, "successTargets");
-		type.addViewProperty(PropertyView.Ui, "failureTargets");
-		type.addViewProperty(PropertyView.Ui, "parameterMappings");
-		type.addViewProperty(PropertyView.Ui, "successNotificationElements");
-		type.addViewProperty(PropertyView.Ui, "failureNotificationElements");
-
-		type.addStringProperty("event",            PropertyView.Ui).setHint("DOM event which triggers the action");
-		type.addStringProperty("action",           PropertyView.Ui).setHint("Action which will be triggered");
-		type.addStringProperty("method",           PropertyView.Ui).setHint("Name of method to execute when triggered action is 'method'");
-		type.addStringProperty("dataType",         PropertyView.Ui).setHint("Data type for create action");
-		type.addStringProperty("idExpression",     PropertyView.Ui).setHint("Script expression that evaluates to the id of the object the method should be executed on");
-		type.addStringProperty("options",          PropertyView.Ui).setHint("JSON string with that contains configuration options for this action mapping");
-
-		type.addStringProperty("dialogType",        	PropertyView.Ui).setHint("Type of dialog to confirm a destructive / update action");
-		type.addStringProperty("dialogTitle", 		PropertyView.Ui).setHint("Dialog Title");
-		type.addStringProperty("dialogText",   		PropertyView.Ui).setHint("Dialog Text");
-
-		type.addStringProperty("successNotifications",        PropertyView.Ui).setHint("Notifications after successful execution of action");
-		type.addStringProperty("successNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as success notification");
-		type.addStringProperty("successNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for success notifications");
+	public static final Property<String> successBehaviourProperty = new StringProperty("successBehaviour").hint("Behaviour after successful execution of action").partOfBuiltInSchema();
+	public static final Property<String> successPartialProperty   = new StringProperty("successPartial").hint("CSS selector for partial to refresh on success").partOfBuiltInSchema();
+	public static final Property<String> successURLProperty       = new StringProperty("successURL").hint("URL to navigate to on success").partOfBuiltInSchema();
+	public static final Property<String> successEventProperty     = new StringProperty("successEvent").hint("Event to raise on success").partOfBuiltInSchema();
 		type.addIntegerProperty("successNotificationsDelay",  PropertyView.Ui).setHint("Delay before hiding success notifications").setDefaultValue("5000");
 
-		type.addStringProperty("failureNotifications",        PropertyView.Ui).setHint("Notifications after failed execution of action");
-		type.addStringProperty("failureNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as failure notification");
-		type.addStringProperty("failureNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for failure notifications");
+	public static final Property<String> failureBehaviourProperty = new StringProperty("failureBehaviour").hint("Behaviour after failed execution of action").partOfBuiltInSchema();
+	public static final Property<String> failurePartialProperty   = new StringProperty("failurePartial").hint("CSS selector for partial to refresh on failure").partOfBuiltInSchema();
+	public static final Property<String> failureURLProperty       = new StringProperty("failureURL").hint("URL to navigate to on failure").partOfBuiltInSchema();
+	public static final Property<String> failureEventProperty     = new StringProperty("failureEvent").hint("Event to raise on failure").partOfBuiltInSchema();
 		type.addIntegerProperty("failureNotificationsDelay",  PropertyView.Ui).setHint("Delay before hiding failure notifications").setDefaultValue("5000");
 
-		type.addStringProperty("successBehaviour", PropertyView.Ui).setHint("Behaviour after successful execution of action");
-		type.addStringProperty("successPartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on success");
-		type.addStringProperty("successURL",       PropertyView.Ui).setHint("URL to navigate to on success");
-		type.addStringProperty("successEvent",     PropertyView.Ui).setHint("Event to raise on success");
+	public static final View uiView = new View(ActionMapping.class, PropertyView.Ui,
+		eventProperty, actionProperty, methodProperty, dataTypeProperty, idExpressionProperty, optionsProperty, dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
+		successNotificationsProperty, successNotificationsPartialProperty, successNotificationsEventProperty,
+		failureNotificationsProperty, failureNotificationsPartialProperty, failureNotificationsEventProperty,
+		successBehaviourProperty, successPartialProperty, successURLProperty, successEventProperty,
+		failureBehaviourProperty, failurePartialProperty, failureURLProperty, failureEventProperty,
 
-		
-		type.addStringProperty("failureBehaviour", PropertyView.Ui).setHint("Behaviour after failed execution of action");
-		type.addStringProperty("failurePartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on failure");
-		type.addStringProperty("failureURL",       PropertyView.Ui).setHint("URL to navigate to on failure");
-		type.addStringProperty("failureEvent",     PropertyView.Ui).setHint("Event to raise on failure");
-
-	}}
-
-
+		triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings
+	);
 }

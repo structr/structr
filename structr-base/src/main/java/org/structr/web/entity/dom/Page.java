@@ -22,28 +22,29 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.common.ConstantBooleanTrue;
+import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
+import org.structr.web.entity.dom.relationship.DOMNodePAGEPage;
+import org.structr.web.entity.dom.relationship.PageHAS_PATHPagePath;
+import org.structr.web.entity.dom.relationship.SiteCONTAINSPage;
 import org.structr.web.entity.html.Html;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.w3c.dom.*;
@@ -53,173 +54,228 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.structr.web.entity.path.PagePath;
 
 /**
  * Represents a page resource.
  */
-public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
+public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
 
-	static class Impl { static {
+	static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType site = (JsonObjectType)schema.getType("Site");
-		final JsonObjectType type = schema.addType("Page");
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("Page");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
-		type.setImplements(URI.create("#/definitions/Linkable"));
-		type.setExtends(URI.create("#/definitions/DOMNode"));
-		type.setCategory("ui");
-
-		type.addBooleanProperty("isPage", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-
-		// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
-		type.addBooleanProperty("pageCreatesRawData", PropertyView.Public).setDefaultValue("false");
-
-		type.addIntegerProperty("version",         PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true).setDefaultValue("0");
-		type.addIntegerProperty("position",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Public, PropertyView.Ui);
-
-		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("showOnErrorCodes", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("contentType",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
-
-		// category is part of a special view named "category"
-		type.addStringProperty("category", PropertyView.Public, PropertyView.Ui, "category" ).setIndexed(true);
-
-		type.addPropertyGetter("path", String.class);
-		type.addPropertyGetter("elements", Iterable.class);
-		type.addPropertyGetter("cacheForSeconds", Integer.class);
-		type.addPropertyGetter("sites", Iterable.class);
-
-		type.addPropertyGetter("version", Integer.TYPE);
-		type.addPropertySetter("version", Integer.TYPE);
-
-		type.overrideMethod("updateFromNode",     false, "");
-		type.overrideMethod("contentEquals",      false, "return false;");
-		type.overrideMethod("getBasicAuthRealm",  false, "return getProperty(Linkable.basicAuthRealmProperty);");
-		type.overrideMethod("getEnableBasicAuth", false, "return getProperty(Linkable.enableBasicAuthProperty);");
-
-		type.overrideMethod("getLocalName",                false, "return null;");
-		type.overrideMethod("getAttributes",               false, "return null;");
-		type.overrideMethod("contentEquals",               false, "return false;");
-		type.overrideMethod("hasAttributes",               false, "return false;");
-		type.overrideMethod("getNodeName",                 false, "return \"#document\";");
-		type.overrideMethod("setNodeValue",                false, "");
-		type.overrideMethod("getNodeValue",                false, "return null;");
-		type.overrideMethod("getNodeType",                 false, "return DOCUMENT_NODE;");
-		type.overrideMethod("getElementsByTagNameNS",      false, "throw new UnsupportedOperationException(\"Namespaces not supported.\");");
-		type.overrideMethod("getElementsByTagName",        false, "return " + Page.class.getName() + ".getElementsByTagName(this, arg0);");
-		type.overrideMethod("getElementById",              false, "return " + Page.class.getName() + ".getElementById(this, arg0);");
-		type.overrideMethod("getFirstChild",               false, "return " + Page.class.getName() + ".getFirstChild(this);");
-		type.overrideMethod("getChildNodes",               false, "return " + Page.class.getName() + ".getChildNodes(this);");
-
-		type.overrideMethod("render",                      false, Page.class.getName() + ".render(this, arg0, arg1);");
-		type.overrideMethod("normalizeDocument",           false, "normalize();");
-		type.overrideMethod("renderContent",               false, "");
-
-		type.overrideMethod("checkHierarchy",              true,  Page.class.getName() + ".checkHierarchy(this, arg0);");
-		type.overrideMethod("handleNewChild",              false, Page.class.getName() + ".handleNewChild(this, arg0);");
-		type.overrideMethod("renameNode",                  false, "return " + Page.class.getName() + ".renameNode(this, arg0, arg1, arg2);");
-		type.overrideMethod("doAdopt",                     false, "return " + Page.class.getName() + ".doAdopt(this, arg0);");
-		type.overrideMethod("doImport",                    false, "return " + Page.class.getName() + ".doImport(this, arg0);");
-		type.overrideMethod("createDocumentType",          false, "return " + Page.class.getName() + ".createDocumentType(this, arg0, arg1, arg2);");
-		type.overrideMethod("createDocument",              false, "return " + Page.class.getName() + ".createDocument(this, arg0, arg1, arg2);");
-		type.overrideMethod("getContent",                  false, "return " + Page.class.getName() + ".getContent(this, arg0);");
-		type.overrideMethod("createDocumentFragment",      false, "return " + Page.class.getName() + ".createDocumentFragment(this);");
-		type.overrideMethod("createTextNode",              false, "return " + Page.class.getName() + ".createTextNode(this, arg0);");
-		type.overrideMethod("createComment",               false, "return " + Page.class.getName() + ".createComment(this, arg0);");
-		type.overrideMethod("createCDATASection",          false, "return " + Page.class.getName() + ".createCDATASection(this, arg0);");
-		type.overrideMethod("createProcessingInstruction", false, "return " + Page.class.getName() + ".createProcessingInstruction(this, arg0, arg1);");
-		type.overrideMethod("createAttribute",             false, "return " + Page.class.getName() + ".createAttribute(this, arg0);");
-		type.overrideMethod("createEntityReference",       false, "return " + Page.class.getName() + ".createEntityReference(this, arg0);");
-		type.overrideMethod("createElementNS",             false, "return " + Page.class.getName() + ".createElementNS(this, arg0, arg1);");
-		type.overrideMethod("createAttributeNS",           false, "return " + Page.class.getName() + ".createAttributeNS(this, arg0, arg1);");
-		type.overrideMethod("getDocumentElement",          false, "return " + Page.class.getName() + ".getDocumentElement(this);");
-		type.overrideMethod("getImplementation",           false, "return this;");
-		type.overrideMethod("getDoctype",                  false, "return new " + Html5DocumentType.class.getName() + "(this);");
-		type.overrideMethod("hasFeature",                  false, "return false;");
-
-		type.overrideMethod("getDomConfig",                false, "return null;");
-		type.overrideMethod("importNode",                  false, "return " + Page.class.getName() + ".importNode(this, arg0, arg1, true);");
-		type.overrideMethod("adoptNode",                   false, "return " + Page.class.getName() + ".adoptNode(this, arg0, true);");
-		type.overrideMethod("setDocumentURI",              false, "");
-		type.overrideMethod("getDocumentURI",              false, "return null;");
-		type.overrideMethod("getXmlStandalone",            false, "return true;");
-		type.overrideMethod("setXmlStandalone",            false, "");
-		type.overrideMethod("getXmlVersion",               false, "return \"1.0\";");
-		type.overrideMethod("setXmlEncoding",              false, "");
-		type.overrideMethod("getXmlEncoding",              false, "return \"utf-8\";");
-		type.overrideMethod("setXmlVersion",               false, "");
-		type.overrideMethod("getInputEncoding",            false, "return null;");
-		type.overrideMethod("getStrictErrorChecking",      false, "return true;");
-		type.overrideMethod("setStrictErrorChecking",      false, "");
-		type.overrideMethod("getContextName",              false, "return getProperty(name);");
-
-		type.overrideMethod("increaseVersion",             false, Page.class.getName() + ".increaseVersion(this);");
-
-		type.addMethod("setContent")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource(Page.class.getName() + ".setContent(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		final JsonMethod createElement1 = type.addMethod("createElement");
-		createElement1.setReturnType("org.w3c.dom.Element");
-		createElement1.addParameter("tag", "String");
-		createElement1.addParameter("suppressException", "boolean");
-		createElement1.setSource("return " + Page.class.getName() + ".createElement(this, tag, suppressException);");
-
-		final JsonMethod createElement2 = type.addMethod("createElement");
-		createElement2.setReturnType("org.w3c.dom.Element");
-		createElement2.addParameter("tag", "String");
-		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
-
-		site.relate(type, "CONTAINS", Cardinality.ManyToMany, "sites", "pages");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "linkingElements");
-		type.addViewProperty(PropertyView.Public, "enableBasicAuth");
-		type.addViewProperty(PropertyView.Public, "basicAuthRealm");
-		type.addViewProperty(PropertyView.Public, "dontCache");
-		type.addViewProperty(PropertyView.Public, "children");
-		type.addViewProperty(PropertyView.Public, "name");
-		type.addViewProperty(PropertyView.Public, "owner");
-		type.addViewProperty(PropertyView.Public, "sites");
-		type.addViewProperty(PropertyView.Public, "paths");
-
-		type.addViewProperty(PropertyView.Ui, "pageCreatesRawData");
-		type.addViewProperty(PropertyView.Ui, "dontCache");
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "sites");
-		type.addViewProperty(PropertyView.Ui, "paths");
-
-		type.addPropertyGetter("paths", Iterable.class);
-	}}
+		type.setExtends(Page.class);
+	}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
 
-	Element createElement(final String tag, final boolean suppressException);
-	Integer getCacheForSeconds();
+	public static final Property<Iterable<DOMNode>> elementsProperty = new StartNodes<>("elements", DOMNodePAGEPage.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<PagePath>> pathsProperty   = new EndNodes<>("paths", PageHAS_PATHPagePath.class).partOfBuiltInSchema();
+	public static final Property<Iterable<Site>> sitesProperty       = new StartNodes<>("sites", SiteCONTAINSPage.class).partOfBuiltInSchema();
 
-	Iterable<PagePath> getPaths();
-	Iterable<DOMNode> getElements();
-	Iterable<Site> getSites();
+	public static final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true).partOfBuiltInSchema();
+	public static final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false).partOfBuiltInSchema();
 
-	void setVersion(int version) throws FrameworkException;
-	void increaseVersion() throws FrameworkException;
-	int getVersion();
+	public static final Property<Integer> versionProperty         = new IntProperty("version").indexed().readOnly().defaultValue(0).partOfBuiltInSchema();
+	public static final Property<Integer> positionProperty        = new IntProperty("position").indexed().partOfBuiltInSchema();
+	public static final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds").partOfBuiltInSchema();
 
-	public static void setContent(final Page thisPage, final Map<String, Object> parameters, final SecurityContext ctx) throws FrameworkException {
+	public static final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
+	public static final Property<String> showOnErrorCodesProperty = new StringProperty("showOnErrorCodes").indexed().partOfBuiltInSchema();
+	public static final Property<String> contentTypeProperty      = new StringProperty("contentType").indexed().partOfBuiltInSchema();
+	public static final Property<String> categoryProperty         = new StringProperty("category").indexed().partOfBuiltInSchema();
+
+	public static final View defaultView = new View(Page.class, PropertyView.Public,
+		linkingElementsProperty, enableBasicAuthProperty, basicAuthRealmProperty, dontCacheProperty, childrenProperty, name, owner, sitesProperty,
+		isPageProperty, pageCreatesRawDataProperty, versionProperty, positionProperty, cacheForSecondsProperty, pathProperty,
+		showOnErrorCodesProperty, contentTypeProperty, categoryProperty, pathsProperty
+	);
+
+	public static final View uiView = new View(Page.class, PropertyView.Ui,
+		isPageProperty, pageCreatesRawDataProperty, dontCacheProperty, childrenProperty, sitesProperty, versionProperty, positionProperty, cacheForSecondsProperty,
+		pathProperty, showOnErrorCodesProperty, contentTypeProperty, categoryProperty, pathsProperty
+	);
+
+	public static final View categoryView = new View(Page.class, "category",
+		categoryProperty
+	);
+
+	public void setVersion(final int version) throws FrameworkException {
+		setProperty(versionProperty, version);
+	}
+
+	public int getVersion() {
+		return getProperty(versionProperty);
+	}
+
+	public Integer getCacheForSeconds() {
+		return getProperty(cacheForSecondsProperty);
+	}
+
+	public String getPath() {
+		return getProperty(pathProperty);
+	}
+
+	public Iterable<DOMNode> getElements() {
+		return getProperty(elementsProperty);
+	}
+
+	public Iterable<PagePath> getPaths() {
+		return getProperty(pathsProperty);
+	}
+
+	public Iterable<Site> getSites() {
+		return getProperty(sitesProperty);
+	}
+
+	@Override
+	public String getContextName() {
+		return getProperty(name);
+	}
+
+	@Override
+	public String getNodeName() {
+		return "#document";
+	}
+
+	@Override
+	public String getLocalName() {
+		return null;
+	}
+
+	@Override
+	public String getNodeValue() {
+		return null;
+	}
+
+	@Override
+	public void setNodeValue(final String value) {
+	}
+
+	@Override
+	public short getNodeType() {
+		return DOCUMENT_NODE;
+	}
+
+	@Override
+	public NamedNodeMap getAttributes() {
+		return null;
+	}
+
+	@Override
+	public boolean hasAttributes() {
+		return false;
+	}
+
+	public void updateFromNode(final DOMNode otherNode) throws FrameworkException {
+	}
+
+	@Override
+	public boolean isSynced() {
+		return false;
+	}
+
+	@Override
+	public boolean contentEquals(final Node node) {
+		return false;
+	}
+
+	@Override
+	public void normalizeDocument() {
+		normalize();
+	}
+
+	@Override
+	public DocumentType getDoctype() {
+		return new Html5DocumentType(this);
+	}
+
+	@Override
+	public DOMImplementation getImplementation() {
+		return this;
+	}
+
+	@Override
+	public boolean hasFeature(String feature, String version) {
+		return false;
+	}
+
+	@Override
+	public Node importNode(Node importedNode, boolean deep) throws DOMException {
+		return importNode(importedNode, deep, true);
+	}
+
+	@Override
+	public String getInputEncoding() {
+		return null;
+	}
+
+	@Override
+	public String getXmlEncoding() {
+		return "utf-8";
+	}
+
+	@Override
+	public boolean getXmlStandalone() {
+		return true;
+	}
+
+	@Override
+	public void setXmlStandalone(boolean xmlStandalone) throws DOMException {
+	}
+
+	@Override
+	public String getXmlVersion() {
+		return "1.0";
+	}
+
+	@Override
+	public void setXmlVersion(String xmlVersion) throws DOMException {
+	}
+
+	@Override
+	public boolean getStrictErrorChecking() {
+		return true;
+	}
+
+	@Override
+	public void setStrictErrorChecking(boolean strictErrorChecking) {
+
+	}
+
+	@Override
+	public String getDocumentURI() {
+		return null;
+	}
+
+	@Override
+	public void setDocumentURI(String documentURI) {
+	}
+
+	@Override
+	public Node adoptNode(Node source) throws DOMException {
+		return adoptNode(source, true);
+	}
+
+	@Override
+	public DOMConfiguration getDomConfig() {
+		return null;
+	}
+
+	@Override
+	public void renderContent(RenderContext renderContext, int depth) throws FrameworkException {
+	}
+
+	public void setContent(final Map<String, Object> parameters, final SecurityContext ctx) throws FrameworkException {
 
 		final String content = (String)parameters.get("content");
 		if (content == null) {
 
-			throw new FrameworkException(422, "Cannot set content of page " + thisPage.getName() + ", no content provided");
+			throw new FrameworkException(422, "Cannot set content of page " + this.getName() + ", no content provided");
 		}
 
-		final Importer importer = new Importer(thisPage.getSecurityContext(), content, null, null, false, false, false, false);
+		final Importer importer = new Importer(this.getSecurityContext(), content, null, null, false, false, false, false);
 		final App app           = StructrApp.getInstance(ctx);
 
 		importer.setIsDeployment(true);
@@ -227,11 +283,11 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 		if (importer.parse(false)) {
 
-			for (final DOMNode node : thisPage.getAllChildNodes()) {
+			for (final DOMNode node : this.getAllChildNodes()) {
 				app.delete(node);
 			}
 
-			importer.createChildNodesWithHtml(thisPage, thisPage, true);
+			importer.createChildNodesWithHtml(this, this, true);
 		}
 	}
 
@@ -245,7 +301,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	 * @return the new ownerDocument
 	 * @throws FrameworkException
 	 */
-	public static Page createNewPage(SecurityContext securityContext, String name) throws FrameworkException {
+	public static Page createNewPage(final SecurityContext securityContext, final String name) throws FrameworkException {
 		return createNewPage(securityContext, null, name);
 	}
 
@@ -339,7 +395,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return page;
 	}
 
-	static String getContent(final Page page, final RenderContext.EditMode editMode) throws FrameworkException {
+	public String getContent(final Page page, final RenderContext.EditMode editMode) throws FrameworkException {
 
 		DOMNode.prefetchDOMNodes(page.getUuid());
 
@@ -352,11 +408,11 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return buffer.getBuffer().toString();
 	}
 
-	static Element createElement (final Page page, final String tag, final boolean suppressException) {
+	public Element createElement (final String tag, final boolean suppressException) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Logger logger                = LoggerFactory.getLogger(Page.class);
-		final App app                      = StructrApp.getInstance(page.getSecurityContext());
+		final App app                      = StructrApp.getInstance(getSecurityContext());
 		String elementType                 = StringUtils.capitalize(tag);
 
 		// Avoid creating an (invalid) 'Content' DOMElement
@@ -388,7 +444,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 				new NodeAttribute(StructrApp.key(entityClass, "hideOnIndex"),  false)
 			);
 
-			element.doAdopt(page);
+			element.doAdopt(this);
 
 			return element;
 
@@ -403,11 +459,17 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static NodeList getElementsByTagName(final Page thisPage, final String tagName) {
+	@Override
+	public NodeList getElementsByTagNameNS(final String tagName, final String namespaceURI) {
+		throw new UnsupportedOperationException("Namespaces not supported.");
+	}
+
+	@Override
+	public NodeList getElementsByTagName(final String tagName) {
 
 		DOMNodeList results = new DOMNodeList();
 
-		DOMNode.collectNodesByPredicate(thisPage.getSecurityContext(), thisPage, results, new Predicate<Node>() {
+		DOMNode.collectNodesByPredicate(this.getSecurityContext(), this, results, new Predicate<Node>() {
 
 			@Override
 			public boolean accept(Node obj) {
@@ -429,17 +491,18 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return results;
 	}
 
-	public static void render(final Page thisPage, final RenderContext renderContext, final int depth) throws FrameworkException {
+	@Override
+	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		renderContext.setPage(thisPage);
+		renderContext.setPage(this);
 
 		// Skip DOCTYPE node
-		DOMNode subNode = (DOMNode) thisPage.getFirstChild().getNextSibling();
+		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
 
 		if (subNode == null) {
 
-			thisPage.checkReadAccess();
-			subNode = (DOMNode) thisPage.treeGetFirstChild();
+			this.checkReadAccess();
+			subNode = (DOMNode) this.treeGetFirstChild();
 
 
 		} else {
@@ -461,34 +524,34 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	}
 
-	public static Node doAdopt(final Page thisPage, final Page page) throws DOMException {
+	public Node doAdopt(final Page page) throws DOMException {
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC);
 	}
 
-	public static Node doImport(final Page thisPage, final Page newPage) throws DOMException {
+	public Node doImport(final Page newPage) throws DOMException {
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC);
 	}
 
-	public static Node renameNode(final Page thisPage, final Node node, final String string, final String string1) throws DOMException {
+	public Node renameNode(final Node node, final String string, final String string1) throws DOMException {
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_RENAME);
 	}
 
-	public static DocumentType createDocumentType(final Page thisPage, final String string, final String string1, final String string2) throws DOMException {
+	public DocumentType createDocumentType(final String string, final String string1, final String string2) throws DOMException {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
-	public static Document createDocument(final Page thisPage, final String string, final String string1, final DocumentType dt) throws DOMException {
+	public Document createDocument(final String string, final String string1, final DocumentType dt) throws DOMException {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
-	public static Node importNode(final Page thisPage, final Node node, final boolean deep, final boolean removeParentFromSourceNode) throws DOMException {
+	public Node importNode(final Node node, final boolean deep, final boolean removeParentFromSourceNode) throws DOMException {
 
 		if (node instanceof DOMNode) {
 
 			final DOMNode domNode = (DOMNode) node;
 
 			// step 1: use type-specific import impl.
-			Node importedNode = domNode.doImport(thisPage);
+			Node importedNode = domNode.doImport(this);
 
 			// step 2: do recursive import?
 			if (deep && domNode.hasChildNodes()) {
@@ -500,7 +563,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 				while (child != null) {
 
 					// do not remove parent for child nodes
-					Page.importNode(thisPage, child, deep, false);
+					importNode(child, deep, false);
 					child = child.getNextSibling();
 
 					final Logger logger = LoggerFactory.getLogger(Page.class);
@@ -530,7 +593,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static Node adoptNode(final Page thisPage, final Node node, final boolean removeParentFromSourceNode) throws DOMException {
+	public Node adoptNode(final Node node, final boolean removeParentFromSourceNode) throws DOMException {
 
 		if (node instanceof DOMNode) {
 
@@ -543,7 +606,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 				while (child != null) {
 
 					// do not remove parent for child nodes
-					adoptNode(thisPage, child, false);
+					adoptNode(child, false);
 					child = child.getNextSibling();
 				}
 
@@ -564,7 +627,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 			}
 
 			// step 1: use type-specific adopt impl.
-			Node adoptedNode = domNode.doAdopt(thisPage);
+			Node adoptedNode = domNode.doAdopt(this);
 
 			return adoptedNode;
 
@@ -573,11 +636,11 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static Element getElementById(final Page thisPage, final String id) {
+	public Element getElementById(final String id) {
 
 		DOMNodeList results = new DOMNodeList();
 
-		DOMNode.collectNodesByPredicate(thisPage.getSecurityContext(), thisPage, results, new Predicate<Node>() {
+		DOMNode.collectNodesByPredicate(this.getSecurityContext(), this, results, new Predicate<Node>() {
 
 			@Override
 			public boolean accept(Node obj) {
@@ -604,22 +667,22 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static Element createElement(final Page thisPage, final String tag) throws DOMException {
-		return createElement(thisPage, tag, false);
+	public Element createElement(final String tag) throws DOMException {
+		return createElement(tag, false);
 
 	}
 
-	public static void handleNewChild(final Page thisPage, Node node) {
+	public void handleNewChild(final Node node) {
 
 		try {
 
 			final DOMNode newChild = (DOMNode)node;
 
-			newChild.setOwnerDocument(thisPage);
+			newChild.setOwnerDocument(this);
 
 			for (final DOMNode child : (Set<DOMNode>)newChild.getAllChildNodes()) {
 
-					child.setOwnerDocument(thisPage);
+					child.setOwnerDocument(this);
 
 			}
 
@@ -631,16 +694,16 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	}
 
-	public static DocumentFragment createDocumentFragment(final Page thisPage) {
+	public DocumentFragment createDocumentFragment() {
 
-		final App app = StructrApp.getInstance(thisPage.getSecurityContext());
+		final App app = StructrApp.getInstance(this.getSecurityContext());
 
 		try {
 
 			// create new content element
-			org.structr.web.entity.dom.DocumentFragment fragment = app.create(org.structr.web.entity.dom.DocumentFragment.class);
+			final DocumentFragment fragment = app.create(DocumentFragment.class);
 
-			fragment.setOwnerDocument(thisPage);
+			fragment.setOwnerDocument(this);
 
 			return fragment;
 
@@ -655,19 +718,20 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	}
 
-	public static Text createTextNode(final Page thisPage, final String text) {
+	public Text createTextNode(final String text) {
 
 		try {
 
+			final App app = StructrApp.getInstance(getSecurityContext());
+
 			// create new content element
-			Content content = (Content) StructrApp.getInstance(thisPage.getSecurityContext()).command(CreateNodeCommand.class).execute(
-				new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
+			final Content content = app.create(Content.class,
 				new NodeAttribute(StructrApp.key(Content.class, "hideOnDetail"), false),
 				new NodeAttribute(StructrApp.key(Content.class, "hideOnIndex"), false),
 				new NodeAttribute(StructrApp.key(Content.class, "content"), text)
 			);
 
-			content.setOwnerDocument(thisPage);
+			content.setOwnerDocument(this);
 
 			return content;
 
@@ -681,17 +745,16 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static Comment createComment(final Page thisPage, String comment) {
+	public Comment createComment(final String comment) {
 
 		try {
 
-			// create new content element
-			org.structr.web.entity.dom.Comment commentNode = (org.structr.web.entity.dom.Comment) StructrApp.getInstance(thisPage.getSecurityContext()).command(CreateNodeCommand.class).execute(
-				new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName()),
-				new NodeAttribute(StructrApp.key(Content.class, "content"), comment)
-			);
+			final App app = StructrApp.getInstance(getSecurityContext());
 
-			commentNode.setOwnerDocument(thisPage);
+			// create new content element
+			final Comment commentNode = app.create(Comment.class, new NodeAttribute(Content.contentProperty, comment));
+
+			commentNode.setOwnerDocument(this);
 
 			return commentNode;
 
@@ -705,16 +768,16 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static CDATASection createCDATASection(final Page thisPage, String string) throws DOMException {
+	public CDATASection createCDATASection(final String string) throws DOMException {
 
 		try {
 
-			// create new content element
-			Cdata content = (Cdata) StructrApp.getInstance(thisPage.getSecurityContext()).command(CreateNodeCommand.class).execute(
-				new NodeAttribute(AbstractNode.type, Cdata.class.getSimpleName())
-			);
+			final App app = StructrApp.getInstance(getSecurityContext());
 
-			content.setOwnerDocument(thisPage);
+			// create new content element
+			final Cdata content = app.create(Cdata.class);
+
+			content.setOwnerDocument(this);
 
 			return content;
 
@@ -728,36 +791,36 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return null;
 	}
 
-	public static ProcessingInstruction createProcessingInstruction(final Page thisPage, String string, String string1) throws DOMException {
+	public ProcessingInstruction createProcessingInstruction(final String string, final String string1) throws DOMException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public static Attr createAttribute(final Page thisPage, String name) throws DOMException {
-		return new DOMAttribute(thisPage, null, name, null);
+	public Attr createAttribute(final String name) throws DOMException {
+		return new DOMAttribute(this, null, name, null);
 	}
 
-	public static EntityReference createEntityReference(final Page thisPage, String string) throws DOMException {
+	public EntityReference createEntityReference(final String string) throws DOMException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public static Element createElementNS(final Page thisPage, String string, String string1) throws DOMException {
+	public Element createElementNS(final String string, final String string1) throws DOMException {
 		throw new UnsupportedOperationException("Namespaces not supported");
 	}
 
-	public static Attr createAttributeNS(final Page thisPage, String string, String string1) throws DOMException {
+	public Attr createAttributeNS(final String string, final String string1) throws DOMException {
 		throw new UnsupportedOperationException("Namespaces not supported");
 	}
 
-	public static Node getFirstChild(final Page thisPage) {
+	public Node getFirstChild() {
 
-		synchronized (thisPage) {
+		synchronized (this) {
 
-			final Map<String, Object> tmp = thisPage.getTemporaryStorage();
+			final Map<String, Object> tmp = this.getTemporaryStorage();
 			Html5DocumentType docTypeNode = (Html5DocumentType)tmp.get("doctypeNode");
 
 			if (docTypeNode == null) {
 
-				docTypeNode = new Html5DocumentType(thisPage);
+				docTypeNode = new Html5DocumentType(this);
 				tmp.put("doctypeNode", docTypeNode);
 			}
 
@@ -765,9 +828,9 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		}
 	}
 
-	public static Element getDocumentElement(final Page thisPage) {
+	public Element getDocumentElement() {
 
-		Node node = thisPage.treeGetFirstChild();
+		Node node = this.treeGetFirstChild();
 
 		if (node instanceof Element) {
 
@@ -779,10 +842,10 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		}
 	}
 
-	static void checkHierarchy(final Page thisPage, final Node otherNode) throws DOMException {
+	public void checkHierarchy(final Node otherNode) throws DOMException {
 
 		// verify that this document has only one document element
-		if (thisPage.getDocumentElement() != null) {
+		if (this.getDocumentElement() != null) {
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 
@@ -799,28 +862,28 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	}
 	*/
 
-	public static NodeList getChildNodes(final Page thisPage) {
+	public DOMNodeList getChildNodes() {
 
 		DOMNodeList _children = new DOMNodeList();
 
-		_children.add(thisPage.getFirstChild());
-		_children.addAll(thisPage.treeGetChildren());
+		_children.add(this.getFirstChild());
+		_children.addAll(this.treeGetChildren());
 
 		return _children;
 	}
 
-	static void increaseVersion(final Page thisPage) throws FrameworkException {
+	public void increaseVersion() throws FrameworkException {
 
-		final Integer _version = thisPage.getVersion();
+		final Integer _version = this.getVersion();
 
-		thisPage.unlockReadOnlyPropertiesOnce();
+		this.unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
-			thisPage.setVersion(1);
+			this.setVersion(1);
 
 		} else {
 
-			thisPage.setVersion(_version + 1);
+			this.setVersion(_version + 1);
 		}
 	}
 }

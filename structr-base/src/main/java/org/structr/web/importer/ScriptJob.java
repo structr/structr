@@ -26,7 +26,7 @@ import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
@@ -45,7 +45,7 @@ public class ScriptJob extends ScheduledJob {
 	private static final Logger logger = LoggerFactory.getLogger(ScriptJob.class);
 	private Object script              = null;
 
-	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle) {
+	public ScriptJob(final PrincipalInterface user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle) {
 
 		super(jobTitle, user, configuration, ctxStore);
 

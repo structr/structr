@@ -21,152 +21,95 @@ package org.structr.web.entity.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Adapter;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.property.ConstantBooleanProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
-import org.structr.schema.SchemaService;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.converter.ContentConverters;
 import org.structr.web.entity.html.Textarea;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import org.w3c.dom.*;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.Charset;
-
-import static org.structr.web.entity.dom.DOMNode.escapeForHtml;
-import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
  * All methods in the W3C Text interface are based on the raw database content.
  */
-public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
+public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 
-	static class Impl { static {
+	public static final Property<String> contentProperty     = new StringProperty("content").indexed().partOfBuiltInSchema();
+	public static final Property<String> contentTypeProperty = new StringProperty("contentType").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true).partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Content");
+	public static final View defaultView = new View(Content.class, PropertyView.Public,
+		isContentProperty, contentTypeProperty, contentProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, hideConditionsProperty, showConditionsProperty, hideForLocalesProperty,
+		showForLocalesProperty, sharedComponentConfigurationProperty, hideOnIndexProperty, hideOnDetailProperty, dataKeyProperty, cypherQueryProperty, xpathQueryProperty,
+		restQueryProperty, functionQueryProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Content"));
-		type.setImplements(URI.create("#/definitions/Favoritable"));
-		type.setExtends(URI.create("#/definitions/DOMNode"));
-		type.setCategory("ui");
+	public static final View uiView = new View(Content.class, PropertyView.Ui,
+		isContentProperty, contentTypeProperty, contentProperty, hideOnDetailProperty, hideOnIndexProperty, sharedComponentConfigurationProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
+		showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty, xpathQueryProperty, restQueryProperty,
+		functionQueryProperty
+	);
 
-		type.addBooleanProperty("isContent",  PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addStringProperty("contentType", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("content",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+	public String getContent() {
+		return getProperty(contentProperty);
+	}
 
-		type.addPropertyGetter("contentType", String.class);
-		type.addPropertySetter("contentType", String.class);
-		type.addPropertyGetter("content",     String.class);
-		type.addPropertySetter("content",     String.class);
+	public void setContent(final String content) throws FrameworkException {
+		setProperty(contentProperty, content);
+	}
 
-		type.overrideMethod("updateFromNode",             false, Content.class.getName() + ".updateFromNode(this, arg0);");
-		type.overrideMethod("renderContent",              false, Content.class.getName() + ".renderContent(this, arg0, arg1);");
-		type.overrideMethod("contentEquals",              false, "return " + Content.class.getName() + ".contentEquals(this, arg0);");
-		type.overrideMethod("getContextName",             false, "return StringUtils.defaultString(getProperty(AbstractNode.name), \"#text\");");
-		type.overrideMethod("doImport",                   false, "return arg0.createTextNode(getData());");
-		type.overrideMethod("onCreation",                 true,  "if (getContentType() == null) { setContentType(\"text/plain\"); }");
-		type.overrideMethod("onModification",             true,  Content.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+	public String getContentType() {
+		return getProperty(contentTypeProperty);
+	}
 
-		// ----- interface Favoritable -----
-		type.overrideMethod("setFavoriteContent",         false, "setContent(arg0);");
-		type.overrideMethod("getFavoriteContent",         false, "return getContent();");
-		type.overrideMethod("getFavoriteContentType",     false, "return getContentType();");
-		type.overrideMethod("getContext",                 false, "if (StringUtils.isNotBlank(getName())) { return getName(); } else { return getPagePath(); }");
+	public void setContentType(final String contentType) throws FrameworkException {
+		setProperty(contentTypeProperty, contentType);
+	}
 
-		// ----- interface org.w3c.dom.Node -----
-		type.overrideMethod("getTextContent",        false, "return getData();");
-		type.overrideMethod("setTextContent",        false, "setData(arg0);");
-		type.overrideMethod("getLocalName",          false, "return null;");
-		type.overrideMethod("getNodeType",           false, "return TEXT_NODE;");
-		type.overrideMethod("getNodeName",           false, "return \"#text\";");
-		type.overrideMethod("getNodeValue",          false, "return getData();");
-		type.overrideMethod("setNodeValue",          false, "setData(arg0);");
-		type.overrideMethod("getAttributes",         false, "return null;");
-		type.overrideMethod("hasAttributes",         false, "return false;");
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
-		// ----- interface org.w3c.dom.text -----
-		type.overrideMethod("getData",                    false, "checkReadAccess(); return getProperty(contentProperty);");
-		type.overrideMethod("getWholeText",               false, "throw new UnsupportedOperationException(\"Not supported.\");");
-		type.overrideMethod("replaceWholeText",           false, "throw new UnsupportedOperationException(\"Not supported.\");");
-		type.overrideMethod("isElementContentWhitespace", false, "return " + Content.class.getName() + ".isElementContentWhitespace(this);");
-		type.overrideMethod("splitText",                  false, "return " + Content.class.getName() + ".splitText(this, arg0);");
-		type.overrideMethod("getLength",                  false, "return " + Content.class.getName() + ".getLength(this);");
-		type.overrideMethod("substringData",              false, "return " + Content.class.getName() + ".substringData(this, arg0, arg1);");
-		type.overrideMethod("setData",                    false, Content.class.getName() + ".setData(this, arg0);");
-		type.overrideMethod("appendData",                 false, Content.class.getName() + ".appendData(this, arg0);");
-		type.overrideMethod("insertData",                 false, Content.class.getName() + ".insertData(this, arg0, arg1);");
-		type.overrideMethod("deleteData",                 false, Content.class.getName() + ".deleteData(this, arg0, arg1);");
-		type.overrideMethod("replaceData",                false, Content.class.getName() + ".replaceData(this, arg0, arg1, arg2);");
+		if (newNode instanceof Content content) {
 
-		type.addViewProperty(PropertyView.Public, "isDOMNode");
-		type.addViewProperty(PropertyView.Public, "pageId");
-		type.addViewProperty(PropertyView.Public, "parent");
-		type.addViewProperty(PropertyView.Public, "sharedComponentId");
-		type.addViewProperty(PropertyView.Public, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Public, "hideConditions");
-		type.addViewProperty(PropertyView.Public, "showConditions");
-		type.addViewProperty(PropertyView.Public, "hideForLocales");
-		type.addViewProperty(PropertyView.Public, "showForLocales");
-		type.addViewProperty(PropertyView.Public, "sharedComponentConfiguration");
-		type.addViewProperty(PropertyView.Public, "hideOnIndex");
-		type.addViewProperty(PropertyView.Public, "hideOnDetail");
-		type.addViewProperty(PropertyView.Public, "dataKey");
-		type.addViewProperty(PropertyView.Public, "cypherQuery");
-		type.addViewProperty(PropertyView.Public, "xpathQuery");
-		type.addViewProperty(PropertyView.Public, "restQuery");
-		type.addViewProperty(PropertyView.Public, "functionQuery");
+			this.setContent(content.getContent());
+		}
+	}
 
-		type.addViewProperty(PropertyView.Ui, "hideOnDetail");
-		type.addViewProperty(PropertyView.Ui, "hideOnIndex");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentConfiguration");
-		type.addViewProperty(PropertyView.Ui, "isDOMNode");
-		type.addViewProperty(PropertyView.Ui, "pageId");
-		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentId");
-		type.addViewProperty(PropertyView.Ui, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Ui, "showForLocales");
-		type.addViewProperty(PropertyView.Ui, "hideForLocales");
-		type.addViewProperty(PropertyView.Ui, "showConditions");
-		type.addViewProperty(PropertyView.Ui, "hideConditions");
-		type.addViewProperty(PropertyView.Ui, "dataKey");
-		type.addViewProperty(PropertyView.Ui, "cypherQuery");
-		type.addViewProperty(PropertyView.Ui, "xpathQuery");
-		type.addViewProperty(PropertyView.Ui, "restQuery");
-		type.addViewProperty(PropertyView.Ui, "functionQuery");
-		type.addViewProperty(PropertyView.Ui, "flow");
-	}}
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-	String getContentType();
-	String getContent();
-	void setContent(final String content) throws FrameworkException;
-	void setContentType(final String contentType) throws FrameworkException;
+		super.onCreation(securityContext, errorBuffer);
 
-	static void onModification(final Content thisContent, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		if (getContentType() == null) {
+			setContentType("text/plain");
+		}
+	}
 
-		final String uuid = thisContent.getUuid();
+	@Override
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		final String uuid = this.getUuid();
 		if (uuid != null) {
 
 			// acknowledge all events for this node when it is modified
@@ -176,28 +119,29 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		final PropertyMap map = new PropertyMap();
 
 		// sync content only
-		map.put(StructrApp.key(Content.class, "content"),     thisContent.getContent());
-		map.put(StructrApp.key(Content.class, "contentType"), thisContent.getContentType());
-		map.put(StructrApp.key(Content.class, "name"),        thisContent.getProperty(StructrApp.key(Content.class, "name")));
+		map.put(contentProperty,     this.getContent());
+		map.put(contentTypeProperty, this.getContentType());
+		map.put(name,                this.getProperty(name));
 
-		for (final DOMNode syncedNode : thisContent.getSyncedNodes()) {
+		for (final DOMNode syncedNode : this.getSyncedNodes()) {
 
 			syncedNode.setProperties(securityContext, map);
 		}
 
-		final DOMNode sharedComponent = thisContent.getSharedComponent();
+		final DOMNode sharedComponent = this.getSharedComponent();
 		if (sharedComponent != null) {
 
 			sharedComponent.setProperties(sharedComponent.getSecurityContext(), map);
 		}
 	}
 
-	public static boolean contentEquals(final Content thisNode, final DOMNode otherNode) {
+	@Override
+	public boolean contentEquals(final Node otherNode) {
 
-		if (otherNode instanceof Content) {
+		if (otherNode instanceof Content content) {
 
-			final String content1 = thisNode.getTextContent();
-			final String content2 = ((Content) otherNode).getTextContent();
+			final String content1 = this.getTextContent();
+			final String content2 = content.getTextContent();
 
 			if (content1 == null && content2 == null) {
 				return true;
@@ -212,21 +156,9 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		return false;
 	}
 
-	public static void updateFromNode(final Content thisContent, final DOMNode newNode) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (newNode instanceof Content) {
-
-			final PropertyKey<String> contentKey = StructrApp.key(Content.class, "content");
-
-			thisContent.setProperties(thisContent.getSecurityContext(), new PropertyMap(contentKey, newNode.getProperty(contentKey)));
-
-		}
-
-	}
-
-	public static void renderContent(final Content thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		final SecurityContext securityContext = thisNode.getSecurityContext();
+		final SecurityContext securityContext = this.getSecurityContext();
 
 		try {
 
@@ -236,30 +168,30 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				final AsyncBuffer buf = renderContext.getBuffer();
 
 				// output ownership comments
-				DOMNode.renderDeploymentExportComments(thisNode, buf, true);
+				renderDeploymentExportComments(buf, true);
 
 				// EditMode "deployment" means "output raw content, do not interpret in any way
-				buf.append(escapeForHtml(thisNode.getContent()));
+				buf.append(escapeForHtml(this.getContent()));
 
 				return;
 			} else if (EditMode.CONTENT.equals(edit)) {
 
 			}
 
-			if (!thisNode.shouldBeRendered(renderContext)) {
+			if (!this.shouldBeRendered(renderContext)) {
 				return;
 			}
 
-			final RenderContextContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
-			final String id                           = thisNode.getUuid();
+			final RenderContextContentHandler handler = new RenderContextContentHandler(this, renderContext);
+			final String id                           = this.getUuid();
 			final AsyncBuffer out                     = renderContext.getBuffer();
-			final String _contentType                 = thisNode.getContentType();
+			final String _contentType                 = this.getContentType();
 
 			// apply configuration for shared component if present
-			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
+			final String _sharedComponentConfiguration = this.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, thisNode.getUuid());
+				Scripting.evaluate(renderContext, this, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, this.getUuid());
 			}
 
 			// determine some postprocessing flags
@@ -268,23 +200,23 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				handler.setEscapeForHtml(true);
 			}
 
-			if (EditMode.CONTENT.equals(edit) && thisNode.isGranted(Permission.write, securityContext)) {
+			if (EditMode.CONTENT.equals(edit) && this.isGranted(Permission.write, securityContext)) {
 
 				if ("text/javascript".equals(_contentType)) {
 
 					// Javascript will only be given some local vars
-					out.append("// data-structr-type='").append(thisNode.getType()).append("'\n// data-structr-id='").append(id).append("'\n");
+					out.append("// data-structr-type='").append(this.getType()).append("'\n// data-structr-id='").append(id).append("'\n");
 
 				} else if ("text/css".equals(_contentType)) {
 
 					// CSS will only be given some local vars
-					out.append("/* data-structr-type='").append(thisNode.getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
+					out.append("/* data-structr-type='").append(this.getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
 
 				} else {
 
 					// In edit mode, add an artificial comment tag around content nodes within body to make them editable
-					//final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(thisNode.getContent(), "\n", "\\\\n"), "<!--"), "-->");
-					final String cleanedContent = org.apache.commons.lang3.StringUtils.replace(thisNode.getContent(), "\n", "\\\\n");
+					//final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(this.getContent(), "\n", "\\\\n"), "<!--"), "-->");
+					final String cleanedContent = org.apache.commons.lang3.StringUtils.replace(this.getContent(), "\n", "\\\\n");
 					out.append("<!--data-structr-id=\"".concat(id).concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
 				}
 			}
@@ -297,7 +229,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			// replace newlines with <br /> for rendering
 			if (((_contentType == null) || _contentType.equals("text/plain"))) {
 
-				final DOMNode _parent = thisNode.getParent();
+				final DOMNode _parent = this.getParent();
 				if (_parent == null || !(_parent instanceof Textarea)) {
 
 					handler.setReplaceNewlines(true);
@@ -305,7 +237,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			}
 
 			// render content with support for async output
-			Content.renderContentWithScripts(thisNode.getProperty(StructrApp.key(Content.class, "content")), handler);
+			renderContentWithScripts(getContent(), handler);
 
 			// empty content placeholder for Structr UI
 			if (EditMode.CONTENT.equals(edit)) {
@@ -324,27 +256,53 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		} catch (Throwable t) {
 
 			final Logger logger        = LoggerFactory.getLogger(Content.class);
-			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
+			final boolean isShadowPage = this.isSharedComponent();
 
 			// catch exception to prevent status 500 error pages in frontend.
 			if (!isShadowPage) {
 
-				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
-				DOMNode.logScriptingError(logger, t, "Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode.getUuid());
+				final DOMNode ownerDocument = this.getOwnerDocumentAsSuperUser();
+				DOMNode.logScriptingError(logger, t, "Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), this.getUuid());
 
 			} else {
 
-				DOMNode.logScriptingError(logger, t, "Error while evaluating script in shared component, Content[{}]", thisNode.getUuid());
+				DOMNode.logScriptingError(logger, t, "Error while evaluating script in shared component, Content[{}]", this.getUuid());
 			}
 		}
 	}
 
+	// ----- interface Favoritable -----
+	public String getContext() {
+
+		if (StringUtils.isNotBlank(getName())) {
+			return getName();
+		}
+
+		return getPagePath();
+	}
+
+	public String getFavoriteContent() {
+		return getContent();
+	}
+
+	public String getFavoriteContentType() {
+		return getContentType();
+	}
+
+	public void setFavoriteContent(final String content) throws FrameworkException {
+		setContent(content);
+	}
+
 	// ----- interface org.w3c.dom.Text -----
-	public static Text splitText(final Content thisNode, final int offset) throws DOMException {
+	public String getTextContent() throws DOMException {
+		return getData();
+	}
 
-		thisNode.checkWriteAccess();
+	public Text splitText(final int offset) throws DOMException {
 
-		final String text = thisNode.getContent();
+		this.checkWriteAccess();
+
+		final String text = this.getContent();
 		if (text != null) {
 
 			int len = text.length();
@@ -358,15 +316,15 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				final String firstPart  = text.substring(0, offset);
 				final String secondPart = text.substring(offset);
 
-				final Document document  = thisNode.getOwnerDocument();
-				final Node parent        = thisNode.getParentNode();
+				final Document document  = this.getOwnerDocument();
+				final Node parent        = this.getParentNode();
 
 				if (document != null && parent != null) {
 
 					try {
 
 						// first part goes into existing text element
-						thisNode.setContent(firstPart);
+						this.setContent(firstPart);
 
 						// second part goes into new text element
 						final Text newNode = document.createTextNode(secondPart);
@@ -393,11 +351,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
 	}
 
-	public static boolean isElementContentWhitespace(final Content thisNode) {
+	public boolean isElementContentWhitespace() {
 
-		thisNode.checkReadAccess();
+		this.checkReadAccess();
 
-		String text = thisNode.getContent();
+		String text = this.getContent();
 
 		if (text != null) {
 
@@ -407,13 +365,13 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		return false;
 	}
 
-	public static void setData(final Content thisNode, final String data) throws DOMException {
+	public void setData(final String data) throws DOMException {
 
-		thisNode.checkWriteAccess();
+		this.checkWriteAccess();
 
 		try {
 
-			thisNode.setContent(data);
+			this.setContent(data);
 
 		} catch (FrameworkException fex) {
 
@@ -422,9 +380,9 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 	}
 
-	public static int getLength(final Content thisNode) {
+	public int getLength() {
 
-		final String text = thisNode.getContent();
+		final String text = this.getContent();
 		if (text != null) {
 
 			return text.length();
@@ -433,11 +391,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		return 0;
 	}
 
-	public static String substringData(final Content thisNode, int offset, int count) throws DOMException {
+	public String substringData(int offset, int count) throws DOMException {
 
-		thisNode.checkReadAccess();
+		this.checkReadAccess();
 
-		String text = thisNode.getContent();
+		String text = this.getContent();
 		if (text != null) {
 
 			try {
@@ -453,14 +411,14 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		return "";
 	}
 
-	public static void appendData(final Content thisNode, final String data) throws DOMException {
+	public void appendData(final String data) throws DOMException {
 
-		thisNode.checkWriteAccess();
+		this.checkWriteAccess();
 
 		try {
-			final String text = thisNode.getContent();
+			final String text = this.getContent();
 
-			thisNode.setContent(text.concat(data));
+			this.setContent(text.concat(data));
 
 		} catch (FrameworkException fex) {
 
@@ -469,13 +427,13 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 	}
 
-	public static void insertData(final Content thisNode, final int offset, final String data) throws DOMException {
+	public void insertData(final int offset, final String data) throws DOMException {
 
-		thisNode.checkWriteAccess();
+		this.checkWriteAccess();
 
 		try {
 
-			final String text       = thisNode.getContent();
+			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset);
 			final StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
@@ -485,7 +443,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			buf.append(rightPart);
 
 			// finally, set content to concatenated left, data and right parts
-			thisNode.setContent(buf.toString());
+			this.setContent(buf.toString());
 
 		} catch (FrameworkException fex) {
 
@@ -494,18 +452,18 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 	}
 
-	public static void deleteData(final Content thisNode, final int offset, final int count) throws DOMException {
+	public void deleteData(final int offset, final int count) throws DOMException {
 
-		thisNode.checkWriteAccess();
+		this.checkWriteAccess();
 
 		// finally, set content to concatenated left and right parts
 		try {
 
-			final String text      = thisNode.getContent();
+			final String text      = this.getContent();
 			final String leftPart  = text.substring(0, offset);
 			final String rightPart = text.substring(offset + count);
 
-			thisNode.setContent(leftPart.concat(rightPart));
+			this.setContent(leftPart.concat(rightPart));
 
 		} catch (FrameworkException fex) {
 
@@ -514,14 +472,14 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 	}
 
-	public static void replaceData(final Content thisNode, final int offset, final int count, final String data) throws DOMException {
+	public void replaceData(final int offset, final int count, final String data) throws DOMException {
 
-		thisNode.checkWriteAccess();
+		this.checkWriteAccess();
 
 		// finally, set content to concatenated left and right parts
 		try {
 
-			final String text       = thisNode.getContent();
+			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset + count);
 			final StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
@@ -530,7 +488,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			buf.append(data);
 			buf.append(rightPart);
 
-			thisNode.setContent(buf.toString());
+			this.setContent(buf.toString());
 
 		} catch (FrameworkException fex) {
 
@@ -707,7 +665,72 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 	}
 
-	static interface ContentHandler {
+	@Override
+	public String getContextName() {
+		return StringUtils.defaultString(getProperty(AbstractNode.name), "#text");
+	}
+
+	@Override
+	public String getNodeName() {
+		return "#text";
+	}
+
+	@Override
+	public String getNodeValue() {
+		return getData();
+	}
+
+	@Override
+	public void setNodeValue(final String value) {
+		setData(value);
+	}
+
+	@Override
+	public short getNodeType() {
+		return TEXT_NODE;
+	}
+
+	@Override
+	public NamedNodeMap getAttributes() {
+		return null;
+	}
+
+	public boolean hasAttributes() {
+		return false;
+	}
+
+	@Override
+	public String getLocalName() {
+		return null;
+	}
+
+	@Override
+	public void setTextContent(final String value) {
+		setData(value);
+	}
+
+	@Override
+	public Node doImport(final Page page) {
+		return page.createTextNode(getData());
+	}
+
+	@Override
+	public String getWholeText() {
+		throw new UnsupportedOperationException("Not supported");
+	}
+
+	@Override
+	public Text replaceWholeText(final String text) {
+		throw new UnsupportedOperationException("Not supported");
+	}
+
+	@Override
+	public String getData() {
+		checkReadAccess();
+		return getProperty(contentProperty);
+	}
+
+	public interface ContentHandler {
 
 		void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException;
 		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
@@ -715,7 +738,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		void possibleStartOfScript(final int row, final int column);
 	}
 
-	static class RenderContextContentHandler implements ContentHandler {
+	public class RenderContextContentHandler implements ContentHandler {
 
 		private Adapter<String, String> converter = null;
 		private RenderContext renderContext       = null;
@@ -772,9 +795,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 						// Convert binary data to String with charset from response
 						if (value instanceof byte[]) {
-							//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
+
 							content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+
 						} else {
+
 							content = value.toString();
 						}
 
@@ -789,7 +814,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			} catch (Throwable t) {
 
 				final Logger logger = LoggerFactory.getLogger(Content.class);
-				final boolean isShadowPage = DOMNode.isSharedComponent(node);
+				final boolean isShadowPage = node.isSharedComponent();
 
 				// catch exception to prevent status 500 error pages in frontend.
 				if (!isShadowPage) {

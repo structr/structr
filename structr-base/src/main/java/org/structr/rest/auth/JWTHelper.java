@@ -36,7 +36,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.ServicePrincipal;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.PropertyKey;
@@ -60,10 +60,10 @@ public class JWTHelper {
 	public static final String TOKEN_ERROR_MSG = "The given access_token or refresh_token is invalid";
 	private static final Logger logger = LoggerFactory.getLogger(JWTHelper.class.getName());
 
-	public static Principal getPrincipalForAccessToken(final String token, final PropertyKey<String> eMailKey) throws FrameworkException {
+	public static PrincipalInterface getPrincipalForAccessToken(final String token, final PropertyKey<String> eMailKey) throws FrameworkException {
 
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
-		Principal user = null;
+		PrincipalInterface user = null;
 
 		switch (jwtSecretType) {
 			default:
@@ -126,7 +126,7 @@ public class JWTHelper {
 		return user;
 	}
 
-	public static Principal getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
+	public static PrincipalInterface getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
 
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
 		Map<String, Claim> claims = null;
@@ -169,17 +169,18 @@ public class JWTHelper {
 
 		}
 
-		Principal user = AuthHelper.getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{tokenId}, false);
+		PrincipalInterface user = AuthHelper.getPrincipalForCredential(StructrApp.key(PrincipalInterface.class, "refreshTokens"), new String[]{tokenId}, false);
 
 		if (user == null) {
 			return null;
 		}
 
-		Principal.removeRefreshToken(user, tokenId);
+		user.removeRefreshToken(tokenId);
+
 		return user;
 	}
 
-	public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
+	public static Map<String, String> createTokensForUser(final PrincipalInterface user) throws FrameworkException {
 
 		if (user == null) {
 			throw new FrameworkException(500, "Can't create token if no user is given");
@@ -194,7 +195,7 @@ public class JWTHelper {
 		return createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
 	}
 
-	public static Map<String, String> createTokensForUser(final Principal user, final Date accessTokenLifetime, final Date refreshTokenLifetime) throws FrameworkException {
+	public static Map<String, String> createTokensForUser(final PrincipalInterface user, final Date accessTokenLifetime, final Date refreshTokenLifetime) throws FrameworkException {
 
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
 		Map<String, String> tokens = null;
@@ -221,23 +222,23 @@ public class JWTHelper {
 		return tokens;
 	}
 
-	private static boolean validateTokenForUser(String tokenId, Principal user) {
+	private static boolean validateTokenForUser(String tokenId, PrincipalInterface user) {
 
 		// if tokenId is empty, token was created without refresh_token
 		if (StringUtils.isEmpty(tokenId)) {
 			return true;
 		}
 
-		final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+		final PropertyKey<String[]> key = StructrApp.key(PrincipalInterface.class, "refreshTokens");
 		final String[] refreshTokens = user.getProperty(key);
 
 		return Arrays.asList(refreshTokens).contains(tokenId);
 	}
 
-	private static Principal getPrincipalForTokenClaims(Map<String, Claim> claims, PropertyKey<String> eMailKey) throws FrameworkException {
+	private static PrincipalInterface getPrincipalForTokenClaims(Map<String, Claim> claims, PropertyKey<String> eMailKey) throws FrameworkException {
 
 		final String instanceName = Settings.InstanceName.getValue();
-		Principal user = null;
+		PrincipalInterface user = null;
 
 		String instance = claims.getOrDefault("instance", new NullClaim()).asString();
 		String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
@@ -250,11 +251,11 @@ public class JWTHelper {
 		// if the instance is the same that issued the token, we can lookup the user with uuid claim
 		if (StringUtils.equals(instance, instanceName)) {
 
-			user = StructrApp.getInstance().nodeQuery(Principal.class).and().or(NodeInterface.id, uuid).disableSorting().getFirst();
+			user = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).and().or(NodeInterface.id, uuid).disableSorting().getFirst();
 
 		} else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
-			user = StructrApp.getInstance().nodeQuery(Principal.class).and().or(eMailKey, eMail).disableSorting().getFirst();
+			user = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).and().or(eMailKey, eMail).disableSorting().getFirst();
 
 		} else {
 
@@ -349,7 +350,7 @@ public class JWTHelper {
 		return user;
 	}
 
-	private static Principal getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException {
+	private static PrincipalInterface getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException {
 		Key publicKey = getPublicKeyForToken();
 
 		final Algorithm alg = parseAlgorithm(publicKey.getAlgorithm());
@@ -359,7 +360,7 @@ public class JWTHelper {
 			return null;
 		}
 
-		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
+		PrincipalInterface user = getPrincipalForTokenClaims(claims, eMailKey);
 
 		if (user == null) {
 			return null;
@@ -376,7 +377,7 @@ public class JWTHelper {
 		return null;
 	}
 
-	private static Principal getUserForAccessTokenWithSecret(String token, PropertyKey<String> eMailKey) throws FrameworkException {
+	private static PrincipalInterface getUserForAccessTokenWithSecret(String token, PropertyKey<String> eMailKey) throws FrameworkException {
 
 		final String secret = Settings.JWTSecret.getValue();
 
@@ -386,7 +387,7 @@ public class JWTHelper {
 			return null;
 		}
 
-		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
+		PrincipalInterface user = getPrincipalForTokenClaims(claims, eMailKey);
 
 		if (user == null) {
 			return null;
@@ -403,9 +404,9 @@ public class JWTHelper {
 		return null;
 	}
 
-	private static void clearTimedoutRefreshTokens(Principal user) {
+	private static void clearTimedoutRefreshTokens(PrincipalInterface user) {
 
-		final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+		final PropertyKey<String[]> key = StructrApp.key(PrincipalInterface.class, "refreshTokens");
 		final String[] refreshTokens = user.getProperty(key);
 
 		if (refreshTokens != null) {
@@ -443,7 +444,7 @@ public class JWTHelper {
 		return false;
 	}
 
-	private static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+	private static Map<String, String> createTokensForUserWithSecret(PrincipalInterface user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
 		final String secret = Settings.JWTSecret.getValue();
 		final String jwtIssuer = Settings.JWTIssuer.getValue();
@@ -464,7 +465,7 @@ public class JWTHelper {
 		}
 	}
 
-	private static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+	private static Map<String, String> createTokensForUserWithKeystore(PrincipalInterface user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
 		RSAPrivateKey privateKey = getPrivateKeyForToken();
 		RSAPublicKey publicKey = getPublicKeyForToken();
@@ -482,7 +483,7 @@ public class JWTHelper {
 		return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
 	}
 
-	private static Map<String, String> createTokens(Principal user, Algorithm alg, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
+	private static Map<String, String> createTokens(PrincipalInterface user, Algorithm alg, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
 		final Map<String, String> tokens = new HashMap<>();
 
 		String tokenId = null;
@@ -505,7 +506,7 @@ public class JWTHelper {
 				.sign(alg);
 
 
-			Principal.addRefreshToken(user, tokenId);
+			user.addRefreshToken(tokenId);
 			tokens.put("refresh_token", refreshToken);
 		}
 

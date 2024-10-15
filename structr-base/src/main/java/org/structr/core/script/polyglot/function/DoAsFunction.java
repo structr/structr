@@ -26,7 +26,7 @@ import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
@@ -52,7 +52,7 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
             try {
 
-                final Principal user = (Principal) parameters[0];
+                final PrincipalInterface user = (PrincipalInterface) parameters[0];
                 final ProxyExecutable executable = (ProxyExecutable) parameters[1];
 
                 final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);

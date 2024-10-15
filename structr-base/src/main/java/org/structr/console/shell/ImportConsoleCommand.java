@@ -21,7 +21,7 @@ package org.structr.console.shell;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.util.Writable;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -40,7 +40,7 @@ public class ImportConsoleCommand extends AdminConsoleCommand {
 	@Override
 	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
-		final Principal user = securityContext.getUser(false);
+		final PrincipalInterface user = securityContext.getUser(false);
 		if (user != null && user.isAdmin()) {
 
 			final DeployCommand cmd = StructrApp.getInstance(securityContext).command(DeployCommand.class);

@@ -18,26 +18,24 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Label extends DOMElement {
 
-public interface Label extends DOMElement {
+	public static final Property<String> htmlForProperty  = new StringProperty("_html_for").partOfBuiltInSchema();
+	public static final Property<String> htmlFormProperty = new StringProperty("_html_form").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Label.class, PropertyView.Html,
+		htmlForProperty, htmlFormProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Label");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Label"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_for",  PropertyView.Html);
-		type.addStringProperty("_html_form", PropertyView.Html);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

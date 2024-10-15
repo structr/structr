@@ -24,11 +24,10 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import jakarta.servlet.http.HttpSession;
 import java.util.Calendar;
-import java.util.Collection;
+
 import org.eclipse.jetty.server.session.Session;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
@@ -100,7 +99,7 @@ public class PDFFunction extends Function<Object, Object> {
 			baseUrl = ActionContext.getBaseUrl(ctx.getSecurityContext().getRequest()) + "/";
 		}
 
-		Principal currentUser = ctx.getSecurityContext().getUser(false);
+		PrincipalInterface currentUser = ctx.getSecurityContext().getUser(false);
 
 		final List<Param> parameterList = new ArrayList<>();
 

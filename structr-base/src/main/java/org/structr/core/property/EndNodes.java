@@ -328,7 +328,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 				if (destType == null) {
 
 					final Map<String, Class> interfaces = configuration.getInterfaces();
-					destType = interfaces.get(AbstractNode.class.getName());
+					destType = interfaces.get(AbstractNode.class.getSimpleName());
 				}
 			}
 

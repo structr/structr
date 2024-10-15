@@ -18,54 +18,58 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.knowledge.iso25964.relationship.*;
 
-import java.net.URI;
+import java.util.Date;
 
 /**
  * Class as defined in ISO 25964 data model
  */
 
-public interface ThesaurusConcept extends NodeInterface {
+public class ThesaurusConcept extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<Thesaurus> thesaurusProperty                                      = new StartNode<>("thesaurus", ThesauruscontainsThesaurusConcept.class);
+	public static final Property<Iterable<Note>> notesAttributesProperty                           = new StartNodes<>("customConceptAttributesIn", NoterefersToThesaurusConcept.class);
+	public static final Property<Iterable<ConceptGroup>> thesaurusConceptsProperty                 = new StartNodes<>("conceptGroups", ConceptGrouphasAsMemberThesaurusConcept.class);
+	public static final Property<Iterable<ThesaurusConcept>> childConceptsProperty                 = new EndNodes<>("childConcepts", ThesaurusConcepthasTopConceptThesaurusConcept.class);
+	public static final Property<Iterable<ThesaurusConcept>> topmostConceptsProperty               = new StartNodes<>("topmostConcepts", ThesaurusConcepthasTopConceptThesaurusConcept.class);
+	public static final Property<Iterable<ThesaurusConcept>> relatedConceptsOutProperty            = new EndNodes<>("relatedConceptsIn", ThesaurusConcepthasRelatedConceptThesaurusConcept.class);
+	public static final Property<Iterable<ThesaurusConcept>> relatedConceptsInProperty             = new StartNodes<>("relatedConcepts", ThesaurusConcepthasRelatedConceptThesaurusConcept.class);
+	public static final Property<Iterable<SimpleNonPreferredTerm>> simpleNonPreferredTermsProperty = new EndNodes<>("simpleNonPreferredTerms", ThesaurusConcepthasNonPreferredLabelSimpleNonPreferredTerm.class);
+	public static final Property<Iterable<PreferredTerm>> preferredTermsProperty                   = new EndNodes<>("preferredTerms", ThesaurusConcepthasPreferredLabelPreferredTerm.class);
+	public static final Property<Iterable<ThesaurusArray>> subordinateArraysProperty               = new EndNodes<>("subordinateArrays", ThesaurusConcepthasSubordinateArrayThesaurusArray.class);
+	public static final Property<Iterable<ThesaurusConcept>> hierarchicalChildConceptsProperty     = new EndNodes<>("childConceptsIn", ThesaurusConcepthasHierRelConceptThesaurusConcept.class);
+	public static final Property<Iterable<ThesaurusConcept>> hierarchicalParentConceptProperty     = new StartNodes<>("parentConcepts", ThesaurusConcepthasHierRelConceptThesaurusConcept.class);
+	public static final Property<Iterable<CustomConceptAttribute>> customConceptAttributesProperty = new EndNodes<>("customConceptAttributes", ThesaurusConcepthasCustomConceptAttributeCustomConceptAttribute.class);
+	public static final Property<Iterable<CustomNote>> customNotesProperty                         = new EndNodes<>("customNotes", ThesaurusConcepthasCustomNoteCustomNote.class);
+	public static final Property<Iterable<ScopeNote>> scopeNotesProperty                           = new EndNodes<>("scopeNotes", ThesaurusConcepthasScopeNoteScopeNote.class);
+	public static final Property<Iterable<HistoryNote>> historyNotesProperty                       = new EndNodes<>("historyNotes", ThesaurusConcepthasHistoryNoteHistoryNote.class);
+	public static final Property<Iterable<ThesaurusArray>> thesaurusArraysProperty                 = new StartNodes<>("thesaurusArrays", ThesaurusArrayhasMemberConceptThesaurusConcept.class);
 
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
+	public static final Property<String> identifierProperty  = new StringProperty("identifier").indexed().notNull();
+	public static final Property<Date> createdProperty       = new DateProperty("created");
+	public static final Property<Date> modifiedProperty      = new DateProperty("modified");
+	public static final Property<String> statusProperty      = new StringProperty("status");
+	public static final Property<String[]> notationProperty  = new ArrayProperty("notation", String.class);
+	public static final Property<Boolean> topConceptProperty = new BooleanProperty(    "topConcept");
 
-		final JsonObjectType type                   = schema.addType("ThesaurusConcept");
-		final JsonObjectType simpleTerm             = schema.addType("SimpleNonPreferredTerm");
-		final JsonObjectType prefTerm               = schema.addType("PreferredTerm");
-		final JsonObjectType thesArray              = schema.addType("ThesaurusArray");
-		final JsonObjectType customConceptAttribute = schema.addType("CustomConceptAttribute");
-		final JsonObjectType customNote             = schema.addType("CustomNote");
-		final JsonObjectType scopeNote              = schema.addType("ScopeNote");
-		final JsonObjectType historyNote            = schema.addType("HistoryNote");
+	public static final View uiView      = new View(ThesaurusConcept.class, PropertyView.Ui,
+		identifierProperty, createdProperty, modifiedProperty, statusProperty, notationProperty, topConceptProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusConcept"));
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addStringProperty(     "identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty(       "created",    PropertyView.All, PropertyView.Ui);
-		type.addDateProperty(       "modified",   PropertyView.All, PropertyView.Ui);
-		type.addStringProperty(     "status",     PropertyView.All, PropertyView.Ui);
-		type.addStringArrayProperty("notation",   PropertyView.All, PropertyView.Ui);
-		type.addBooleanProperty(    "topConcept", PropertyView.All, PropertyView.Ui);
+		boolean valid = super.isValid(errorBuffer);
 
-		type.relate(type,                   "hasTopConcept",             Cardinality.ManyToMany, "childConcepts",        "topmostConcept");
-		type.relate(type,                   "hasRelatedConcept",         Cardinality.ManyToMany, "relatedConcepts",      "relatedConcepts");
-		type.relate(simpleTerm,             "hasNonPreferredLabel",      Cardinality.OneToMany,  "concepts",             "simpleNonPreferredTerms");
-		type.relate(prefTerm,               "hasPreferredLabel",         Cardinality.OneToMany,  "concepts",             "preferredTerms");
-		type.relate(thesArray,              "hasSubordinateArray",       Cardinality.OneToMany,  "superordinateConcept", "subordinateArrays");
-		final JsonReferenceType hierarchichalRelationship = type.relate(type, "hasHierRelConcept", Cardinality.ManyToMany, "parentConcepts", "childConcepts");
-		hierarchichalRelationship.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.relate(customConceptAttribute, "hasCustomConceptAttribute", Cardinality.OneToMany, "concept", "customConceptAttributes");
-		type.relate(customNote,             "hasCustomNote",             Cardinality.OneToMany, "concept", "customNotes");
-		type.relate(scopeNote,              "hasScopeNote",              Cardinality.OneToMany, "concept", "scopeNotes");
-		type.relate(historyNote,            "hasHistoryNote",            Cardinality.OneToMany, "concept", "historyNotes");
-	}}
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ThesaurusConcept.identifierProperty, errorBuffer);
+
+		return valid;
+	}
 }

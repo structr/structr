@@ -24,7 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 
 
@@ -48,7 +48,7 @@ public class SuperUserAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String userName, final String password) throws AuthenticationException {
+	public PrincipalInterface doLogin(final HttpServletRequest request, final String userName, final String password) throws AuthenticationException {
 		return superUser;
 	}
 
@@ -57,7 +57,7 @@ public class SuperUserAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
+	public PrincipalInterface getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 		return superUser;
 	}
 

@@ -35,12 +35,8 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.StorageConfiguration;
-import org.structr.web.entity.StorageConfigurationEntry;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * The graph/node service.
@@ -54,7 +50,6 @@ public class NodeService implements SingletonService {
 	private Index<Relationship> relIndex    = null;
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
-	private CountResult initialCount        = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -197,19 +192,19 @@ public class NodeService implements SingletonService {
 
 	public CountResult getInitialCounts() {
 
-		if (initialCount == null) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			final CountResult result = databaseService.getNodeAndRelationshipCount();
 
-				initialCount = databaseService.getNodeAndRelationshipCount();
-				tx.success();
+			tx.success();
 
-			} catch (Throwable t) {
-				logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
-			}
+			return result;
+
+		} catch (Throwable t) {
+			logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
 		}
 
-		return initialCount;
+		return null;
 	}
 
 	public CountResult getCurrentCounts() {

@@ -63,105 +63,112 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 		final String id                = webSocketData.getId();
 		final List<GraphObject> result = new LinkedList();
 
-		if (view != null) {
+		try {
 
-			if (id != null) {
+			if (view != null) {
 
-				AbstractNode schemaObject = getNode(id);
-				if (schemaObject != null) {
+				if (id != null) {
 
-					final ConfigurationProvider config = StructrApp.getConfiguration();
-					String typeName              = schemaObject.getProperty(AbstractNode.name);
+					AbstractNode schemaObject = getNode(id);
+					if (schemaObject != null) {
 
-					if (typeName == null && schemaObject instanceof SchemaRelationshipNode) {
-						typeName = ((SchemaRelationshipNode) schemaObject).getClassName();
-					}
+						final ConfigurationProvider config = StructrApp.getConfiguration();
+						String typeName = schemaObject.getProperty(AbstractNode.name);
 
-					Class type = config.getNodeEntityClass(typeName);
-					if (type == null || GenericNode.class.equals(type)) {
+						if (typeName == null && schemaObject instanceof SchemaRelationshipNode) {
+							typeName = ((SchemaRelationshipNode) schemaObject).getClassName();
+						}
 
-						type = config.getRelationshipEntityClass(typeName);
-					}
+						Class type = config.getNodeEntityClass(typeName);
+						if (type == null || GenericNode.class.equals(type)) {
 
-					if (type != null) {
+							type = config.getRelationshipEntityClass(typeName);
+						}
 
-						final Set<PropertyKey> allProperties    = config.getPropertySet(type, PropertyView.All);
-						final Set<PropertyKey> viewProperties   = config.getPropertySet(type, view);
-						final Set<PropertyKey> parentProperties = config.getPropertySet(type.getSuperclass(), view);
+						if (type != null) {
 
-						for (final PropertyKey key : allProperties) {
+							final Set<PropertyKey> allProperties = config.getPropertySet(type, PropertyView.All);
+							final Set<PropertyKey> viewProperties = config.getPropertySet(type, view);
+							final Set<PropertyKey> parentProperties = config.getPropertySet(type.getSuperclass(), view);
 
-							final String declaringClass   = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
-							final String declaringUuid    = key.getSourceUuid();
-							final String propertyName     = key.jsonName();
-							final GraphObjectMap property = new GraphObjectMap();
-							final Class valueType         = key.valueType();
-							String valueTypeName          = "Unknown";
-							boolean _isDisabled           = false;
+							for (final PropertyKey key : allProperties) {
 
-							if (valueType != null) {
-								valueTypeName = valueType.getSimpleName();
-							}
+								final String declaringClass = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
+								final String declaringUuid = key.getSourceUuid();
+								final String propertyName = key.jsonName();
+								final GraphObjectMap property = new GraphObjectMap();
+								final Class valueType = key.valueType();
+								String valueTypeName = "Unknown";
+								boolean _isDisabled = false;
 
-							property.put(AbstractNode.id, key.getSourceUuid());
-							property.put(AbstractNode.name, propertyName);
-							property.put(isSelected, viewProperties.contains(key));
-							property.put(isDisabled, _isDisabled);
-							property.put(SchemaProperty.propertyType, valueTypeName);
-							property.put(SchemaProperty.notNull, key.isNotNull());
-							property.put(SchemaProperty.unique, key.isUnique());
-							property.put(SchemaProperty.isPartOfBuiltInSchema, key.isPartOfBuiltInSchema());
-							property.put(SchemaProperty.isDynamic, key.isDynamic());
-							property.put(SchemaProperty.declaringClass, declaringClass);
-							property.put(SchemaProperty.declaringUuid, declaringUuid);
+								if (valueType != null) {
+									valueTypeName = valueType.getSimpleName();
+								}
 
-							if (declaringUuid != null) {
+								property.put(AbstractNode.id, key.getSourceUuid());
+								property.put(AbstractNode.name, propertyName);
+								property.put(isSelected, viewProperties.contains(key));
+								property.put(isDisabled, _isDisabled);
+								property.put(SchemaProperty.propertyType, valueTypeName);
+								property.put(SchemaProperty.notNull, key.isNotNull());
+								property.put(SchemaProperty.unique, key.isUnique());
+								property.put(SchemaProperty.isPartOfBuiltInSchema, key.isPartOfBuiltInSchema());
+								property.put(SchemaProperty.isDynamic, key.isDynamic());
+								property.put(SchemaProperty.declaringClass, declaringClass);
+								property.put(SchemaProperty.declaringUuid, declaringUuid);
 
-								try {
+								if (declaringUuid != null) {
 
-									final GraphObject declaringEntity = StructrApp.getInstance().get(AbstractNode.class, declaringUuid);
-									if (declaringEntity != null) {
+									try {
 
-										if (declaringEntity instanceof SchemaProperty) {
+										final GraphObject declaringEntity = StructrApp.getInstance().get(AbstractNode.class, declaringUuid);
+										if (declaringEntity != null) {
 
-											final SchemaProperty schemaProperty = (SchemaProperty) declaringEntity;
-											property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
+											if (declaringEntity instanceof SchemaProperty) {
+
+												final SchemaProperty schemaProperty = (SchemaProperty) declaringEntity;
+												property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
+											}
 										}
-									}
 
-								} catch (FrameworkException ignore) {}
+									} catch (FrameworkException ignore) {
+									}
+								}
+
+								// store in result
+								result.add(property);
 							}
 
-							// store in result
-							result.add(property);
+						} else {
+
+							getWebSocket().send(MessageBuilder.status().code(404).message("Type " + typeName + " not found.").build(), true);
 						}
 
 					} else {
 
-						getWebSocket().send(MessageBuilder.status().code(404).message("Type " + typeName + " not found.").build(), true);
+						getWebSocket().send(MessageBuilder.status().code(404).message("Schema node with ID " + id + " not found.").build(), true);
 					}
 
 				} else {
 
-					getWebSocket().send(MessageBuilder.status().code(404).message("Schema node with ID " + id + " not found.").build(), true);
+					getWebSocket().send(MessageBuilder.status().code(422).message("LIST_SCHEMA_PROPERTIES needs an ID.").build(), true);
 				}
 
 			} else {
 
-				getWebSocket().send(MessageBuilder.status().code(422).message("LIST_SCHEMA_PROPERTIES needs an ID.").build(), true);
+				getWebSocket().send(MessageBuilder.status().code(422).message("LIST_SCHEMA_PROPERTIES needs a view name in nodeData.").build(), true);
 			}
 
-		} else {
+			webSocketData.setView(PropertyView.Ui);
+			webSocketData.setResult(result);
+			webSocketData.setRawResultCount(1);
 
-			getWebSocket().send(MessageBuilder.status().code(422).message("LIST_SCHEMA_PROPERTIES needs a view name in nodeData.").build(), true);
+			// send only over local connection
+			getWebSocket().send(webSocketData, true);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
-
-		webSocketData.setView(PropertyView.Ui);
-		webSocketData.setResult(result);
-		webSocketData.setRawResultCount(1);
-
-		// send only over local connection
-		getWebSocket().send(webSocketData, true);
 
 	}
 
