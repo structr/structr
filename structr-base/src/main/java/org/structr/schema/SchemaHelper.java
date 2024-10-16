@@ -557,9 +557,7 @@ public class SchemaHelper {
 								addPropertyToView(PropertyView.Custom, propertyName, views);
 							}
 
-						} catch (Throwable t) {
-							t.printStackTrace();
-						}
+						} catch (Throwable ignore) {}
 					}
 				}
 
