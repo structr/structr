@@ -140,9 +140,9 @@ public class StructrGlobalSchemaMethods {
 
 			for (final Map<String, Object> entry : globalMethods) {
 
-				final PropertyMap schemaMethodProperties = PropertyMap.inputTypeToJavaType(context, SchemaMethod.class, entry);
+				final String name = entry.get(JsonSchema.KEY_NAME).toString();
 
-				for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).andName(schemaMethodProperties.get(SchemaMethod.name)).getAsList()) {
+				for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).andName(name).getAsList()) {
 					app.delete(method);
 				}
 
