@@ -1793,7 +1793,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			field = getFieldOrNull(nodeType, property.getName() + "Property");
 		}
 
-		if (field != null) {
+		if (field != null || property instanceof DeletedPropertyDefinition) {
 
 			StructrApp.getInstance().delete(property.getSchemaProperty());
 		}
