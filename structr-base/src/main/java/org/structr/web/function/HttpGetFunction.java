@@ -25,6 +25,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.*;
 import org.structr.rest.common.HttpHelper;
@@ -56,7 +57,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 4 && sources[0] != null) {
 
@@ -159,20 +160,12 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				}
 
 				return response;
-			} catch (Throwable t) {
+			} catch (IllegalArgumentException e) {
 
-				if (t.getCause() instanceof UnknownHostException) {
-
-					logger.warn("{}", t.getMessage());
-
-				} else {
-
-					logException(caller, t, sources);
-				}
+				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+				return usage(ctx.isJavaScriptContext());
 			}
-
-			return "";
-
+			
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
