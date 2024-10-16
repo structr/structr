@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
@@ -67,18 +68,39 @@ public class StructrGlobalSchemaMethods {
 
 			for (final SchemaMethod schemaMethod : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final Map<String, Object> entry  = new TreeMap<>();
+				final Map<String, Object> params = new LinkedHashMap<>();
 				globalMethods.add(entry);
 
-				entry.put("name",                        schemaMethod.getProperty(SchemaMethod.name));
-				entry.put("source",                      schemaMethod.getProperty(SchemaMethod.source));
+				entry.put(JsonSchema.KEY_NAME,                schemaMethod.getProperty(SchemaMethod.name));
+				entry.put(JsonSchema.KEY_SOURCE,              schemaMethod.getProperty(SchemaMethod.source));
+				entry.put(JsonSchema.KEY_TAGS,                schemaMethod.getProperty(SchemaMethod.tags));
+				entry.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI,  schemaMethod.getProperty(SchemaMethod.includeInOpenAPI));
+				entry.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, schemaMethod.getProperty(SchemaMethod.openAPIReturnType));
+				entry.put(JsonSchema.KEY_SUMMARY,             schemaMethod.getProperty(SchemaMethod.summary));
+				entry.put(JsonSchema.KEY_DESCRIPTION,         schemaMethod.getProperty(SchemaMethod.description));
+				entry.put(JsonSchema.KEY_IS_PRIVATE,          schemaMethod.isPrivateMethod());
+				entry.put(JsonSchema.KEY_RETURN_RAW_RESULT,   schemaMethod.returnRawResult());
+				entry.put(JsonSchema.KEY_HTTP_VERB,           schemaMethod.getHttpVerb());
+
+				// TODO: remove
 				entry.put("virtualFileName",             schemaMethod.getProperty(SchemaMethod.virtualFileName));
 				entry.put("visibleToAuthenticatedUsers", schemaMethod.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers",        schemaMethod.getProperty(SchemaMethod.visibleToPublicUsers));
-				entry.put("tags",                        schemaMethod.getProperty(SchemaMethod.tags));
-				entry.put("includeInOpenAPI",            schemaMethod.getProperty(SchemaMethod.includeInOpenAPI));
-				entry.put("summary",                     schemaMethod.getProperty(SchemaMethod.summary));
-				entry.put("description",                 schemaMethod.getProperty(SchemaMethod.description));
+
+				for (final SchemaMethodParameter param : schemaMethod.getParameters()) {
+
+					final StructrParameterDefinition def = new StructrParameterDefinition(null, schemaMethod.getName());
+
+					def.setType(param.getProperty(SchemaMethodParameter.parameterType));
+					def.setIndex(param.getProperty(SchemaMethodParameter.index));
+					def.setDescription(param.getProperty(SchemaMethodParameter.description));
+					def.setExampleValue(param.getProperty(SchemaMethodParameter.exampleValue));
+
+					params.put(param.getName(), def.serialize());
+				}
+
+				entry.put(JsonSchema.KEY_PARAMETERS, params);
 			}
 
 			tx.success();
@@ -109,8 +131,7 @@ public class StructrGlobalSchemaMethods {
 
 			for (final Map<String, Object> entry : globalMethods) {
 
-				app.create(SchemaMethod.class, PropertyMap.inputTypeToJavaType(context, SchemaMethod.class, entry));
-
+				createMethod(app, context, entry);
 			}
 
 		} else if (JsonSchema.ImportMode.extend.equals(importMode)) {
@@ -119,15 +140,34 @@ public class StructrGlobalSchemaMethods {
 
 			for (final Map<String, Object> entry : globalMethods) {
 
-				final PropertyMap schemaMethodProperties = PropertyMap.inputTypeToJavaType(context, SchemaMethod.class, entry);
+				final String name = entry.get(JsonSchema.KEY_NAME).toString();
 
-				for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).andName(schemaMethodProperties.get(SchemaMethod.name)).getAsList()) {
+				for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).andName(name).getAsList()) {
 					app.delete(method);
 				}
 
-				app.create(SchemaMethod.class, schemaMethodProperties);
-
+				createMethod(app, context, entry);
 			}
+		}
+	}
+
+	void createMethod(final App app, final SecurityContext context, Map<String, Object> entry) throws FrameworkException {
+
+		final Map<String, Map<String, Object>> params;
+		if (entry.containsKey(JsonSchema.KEY_PARAMETERS)) {
+			params = (Map)entry.remove(JsonSchema.KEY_PARAMETERS);
+		} else {
+			params = Map.of();
+		}
+
+		final SchemaMethod method = app.create(SchemaMethod.class, PropertyMap.inputTypeToJavaType(context, SchemaMethod.class, entry));
+
+		for (final Map.Entry<String, Map<String, Object>> paramEntry : params.entrySet()) {
+
+			StructrParameterDefinition pDef = new StructrParameterDefinition(null, paramEntry.getKey());
+			pDef.deserialize(paramEntry.getValue());
+
+			pDef.createDatabaseSchema(app, method, pDef.getIndex());
 		}
 	}
 
