@@ -30,6 +30,9 @@ import org.structr.schema.SchemaService;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Map;
+
+import static org.structr.rest.common.HttpHelper.getAsStream;
 
 /**
  *
@@ -71,7 +74,11 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 		final String remoteUrl = thisDocument.getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			return HttpHelper.getAsStream(remoteUrl);
+			final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+			if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+
+				return (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+			}
 		}
 
 		return null;

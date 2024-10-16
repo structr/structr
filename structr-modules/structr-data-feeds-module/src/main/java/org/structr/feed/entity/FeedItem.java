@@ -36,6 +36,7 @@ import org.structr.schema.SchemaService;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Map;
 
 /**
  * Represents a single item of a data feed.
@@ -115,8 +116,11 @@ public interface FeedItem extends NodeInterface, Indexable {
 			final String remoteUrl = thisItem.getUrl();
 			if (StringUtils.isNotBlank(remoteUrl)) {
 
-				return HttpHelper.getAsStream(remoteUrl);
+				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
 
+					return (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+				}
 			}
 		}
 
