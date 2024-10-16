@@ -21,10 +21,7 @@ package org.structr.web.entity;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.ContextAwareEntity;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -47,6 +44,9 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 	Property<Folder> folderParentProperty              = new StartNode<>("folderParent", FolderCONTAINSFolder.class).partOfBuiltInSchema();
 	Property<User> homeFolderOfUserProperty            = new StartNode<>("homeFolderOfUser", UserHOME_DIRFolder.class).partOfBuiltInSchema();
 	Property<Iterable<User>> workFolderOfUsersProperty = new StartNodes<>("workFolderOfUsers", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
+
+	View defaultView = new View(Folder.class, PropertyView.Public, filesProperty, foldersProperty, parentIdProperty);
+	View uiView      = new View(Folder.class, PropertyView.Ui,     filesProperty, foldersProperty, imagesProperty);
 
 	static class Impl { static {
 

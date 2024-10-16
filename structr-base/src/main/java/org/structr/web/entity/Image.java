@@ -26,10 +26,7 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonSchema.Cascade;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.Permission;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -63,6 +60,9 @@ public interface Image extends File {
 	Property<User> imageOfUser                   = new EndNode<>("imageOfUser", ImagePICTURE_OFUser.class).partOfBuiltInSchema();
 	Property<Iterable<Image>> thumbnailsProperty = new EndNodes<>("thumbnails", ImageTHUMBNAILImage.class).partOfBuiltInSchema();
 	Property<Image> originalImageProperty        = new StartNode<>("originalImage", ImageTHUMBNAILImage.class).partOfBuiltInSchema();
+
+	View publicView = new View(Image.class, PropertyView.Public, parentProperty);
+	View uiView     = new View(Image.class, PropertyView.Ui,     parentProperty);
 
 	final static String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
 

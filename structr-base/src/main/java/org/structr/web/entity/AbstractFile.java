@@ -26,6 +26,7 @@ import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
@@ -60,6 +61,8 @@ public interface AbstractFile extends NodeInterface {
 	Property<StorageConfiguration> storageConfigurationProperty = new EndNode<>("storageConfiguration", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
 	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema();
 	Property<String> parentIdProperty                           = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
+
+	View uiView = new View(AbstractFile.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
 
 	static class Impl { static {
 

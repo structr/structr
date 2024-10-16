@@ -25,6 +25,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.JsonInput;
@@ -52,6 +53,9 @@ public interface VideoFile extends File {
 	Property<Iterable<VideoFile>> convertedVideosProperty = new EndNodes<>("convertedVideos", VideoFileHAS_CONVERTED_VIDEOVideoFile.class).partOfBuiltInSchema();
 	Property<Image> posterImageProperty                   = new EndNode<>("posterImage", VideoFileHAS_POSTER_IMAGEImage.class).partOfBuiltInSchema();
 	Property<VideoFile> originalVideoProperty             = new StartNode<>("originalVideo", VideoFileHAS_CONVERTED_VIDEOVideoFile.class).partOfBuiltInSchema();
+
+	View defaultView = new View(VideoFile.class, PropertyView.Public, convertedVideosProperty, parentProperty, posterImageProperty);
+	View uiView      = new View(VideoFile.class, PropertyView.Ui,     convertedVideosProperty, originalVideoProperty, posterImageProperty);
 
 	static class Impl { static {
 
