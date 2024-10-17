@@ -264,7 +264,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		} else {
 
 			final String extendsClassInternalValue = getProperty(SchemaNode.extendsClassInternal);
-			if (extendsClassInternalValue != null && extendsClassInternalValue.startsWith("org.structr.web.entity.LinkedTreeNodeImpl<")) {
+			if (extendsClassInternalValue != null && extendsClassInternalValue.startsWith("LinkedTreeNodeImpl<")) {
 
 				setProperty(SchemaNode.extendsClassInternal, null);
 			}
@@ -333,6 +333,15 @@ public class SchemaNode extends AbstractSchemaNode {
 
 					setProperty(SchemaNode.implementsInterfaces, implementsInterfaces);
 				}
+			}
+		}
+
+		// remove "all" view since it is internal and shouldn't be updated explicitly
+		for (final SchemaView view : getProperty(SchemaNode.schemaViews)) {
+
+			if ("all".equals(view.getName())) {
+
+				StructrApp.getInstance().delete(view);
 			}
 		}
 	}
