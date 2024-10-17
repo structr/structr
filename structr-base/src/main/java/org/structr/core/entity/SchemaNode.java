@@ -263,6 +263,12 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		} else {
 
+			final String extendsClassInternalValue = getProperty(SchemaNode.extendsClassInternal);
+			if (extendsClassInternalValue != null && extendsClassInternalValue.startsWith("org.structr.web.entity.LinkedTreeNodeImpl<")) {
+
+				setProperty(SchemaNode.extendsClassInternal, null);
+			}
+
 			final String previousExtendsClassValue = (String) this.getNode().getProperty("extendsClass");
 			if (previousExtendsClassValue != null) {
 
