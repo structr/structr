@@ -484,19 +484,6 @@ let Command = {
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**
-	 * Send an APPEND_CONTENT_ITEM command to the server.
-	 */
-	appendContentItem: function(id, parentId, callback) {
-		let obj = {
-			command: 'APPEND_CONTENT_ITEM',
-			id: id,
-			data: {
-				parentId: parentId
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
 	 * Send an UNARCHIVE command to the server.
 	 *
 	 * The server will unarchive the file with the given id in the folder

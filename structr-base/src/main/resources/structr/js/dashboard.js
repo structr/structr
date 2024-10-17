@@ -1253,6 +1253,21 @@ let _Dashboard = {
 					await navigator.clipboard.writeText(textarea.textContent);
 				});
 
+				document.querySelector('#dashboard-server-log-download').addEventListener('click', async () => {
+
+					const file = new File([textarea.textContent], 'structr.log.txt', { type: 'text/plain' });
+					const link = document.createElement('a');
+					const url  = URL.createObjectURL(file);
+
+					link.href = url;
+					link.download = file.name;
+					document.body.appendChild(link);
+					link.click();
+
+					document.body.removeChild(link);
+					window.URL.revokeObjectURL(url);
+				});
+
 				_Dashboard.tabs['server-log'].getManualRefreshButton().addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
 
 				textarea.addEventListener('focus', () => {
@@ -1745,7 +1760,8 @@ let _Dashboard = {
 						</div>
 
 						<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
-						<button id="dashboard-server-log-copy" class="action">Copy</button>
+						<button id="dashboard-server-log-copy" class="action mr-1">Copy</button>
+						<button id="dashboard-server-log-download" class="action">Download</button>
 
 						<span id="dashboard-server-log-feedback"></span>
 					</div>

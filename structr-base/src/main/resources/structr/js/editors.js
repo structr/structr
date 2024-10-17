@@ -16,7 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-require.config({ paths: { 'vs': 'js/lib/monaco-editor/min/vs' }});
+require.config({
+	baseUrl: location.origin + location.pathname,
+	paths: {
+		vs: 'js/lib/monaco-editor/min/vs'
+	}
+});
 require(['vs/editor/editor.main'], () => {
 	_Editors.setupMonacoAutoCompleteOnce();
 
@@ -831,6 +836,26 @@ let _Editors = {
 							<option>full</option>
 							<option>brackets</option>
 							<option>keep</option>
+						</select>
+					</div>
+
+					<div class="editor-setting flex items-center p-1">
+						<label class="flex-grow">Auto-Surround</label>
+						<select name="autoSurround" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>languageDefined</option>
+							<option>never</option>
+							<option>quotes</option>
+							<option>brackets</option>
+						</select>
+					</div>
+
+					<div class="editor-setting flex items-center p-1">
+						<label class="flex-grow">Auto-Closing Quotes</label>
+						<select name="autoClosingQuotes" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>always</option>
+							<option>languageDefined</option>
+							<option>beforeWhitespace</option>
+							<option>never</option>
 						</select>
 					</div>
 

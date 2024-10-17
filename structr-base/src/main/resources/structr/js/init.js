@@ -961,12 +961,15 @@ let Structr = {
 			if (menuConfig) {
 
 				for (let entry of menuConfig.main) {
-					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`))
+					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`));
 				}
 
 				// sort submenu
 				for (let entry of menuConfig.sub) {
-					submenu.querySelector('li:last-of-type').after(menu.querySelector(`li[data-name="${entry}"]`))
+					let element = submenu.querySelector('li:last-of-type');
+					if (element.length > 0) {
+						element.after(menu.querySelector(`li[data-name="${entry}"]`));
+					}
 				}
 			}
 		},
@@ -1929,7 +1932,6 @@ let Structr = {
 							<ul id="submenu">
 								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
-								<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>

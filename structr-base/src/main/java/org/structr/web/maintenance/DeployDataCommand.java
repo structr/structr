@@ -32,6 +32,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -116,8 +118,8 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (StringUtils.isBlank(types)) {
 
-			publishWarningMessage("Data export not started", "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
-			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
+			publishWarningMessage("Data export not started", "Please provide a comma-separated list of type(s) to export.");
+			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export.");
 		}
 
 		final Path target  = Paths.get(path);
@@ -625,16 +627,23 @@ public class DeployDataCommand extends DeployCommand {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<AbstractFile> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
+					final List<AbstractNode> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
 					hasMore = (files.size() == pageSize);
 
-					for (final AbstractFile fileOrFolder : files) {
+					for (final AbstractNode fileOrFolder : files) {
 
-						exportFileOrFolder(fileOrFolder, filesAndFoldersMap, filesDir, true);
+						if (fileOrFolder instanceof GenericNode) {
 
-						exportRelationshipsForNode(context, fileOrFolder, relsDir);
+							logger.info("Not exporting database object because its schema type does not exist anymore: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
 
-						nodeCount++;
+						} else {
+
+							exportFileOrFolder((AbstractFile) fileOrFolder, filesAndFoldersMap, filesDir, true);
+
+							exportRelationshipsForNode(context, fileOrFolder, relsDir);
+
+							nodeCount++;
+						}
 					}
 				}
 
@@ -675,10 +684,25 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportFileOrFolder(final AbstractFile fileOrFolder, final Map<String, Object> filesAndFoldersMap, final Path filesDir, final Boolean isDirectExport) throws IOException {
 
-		if (fileOrFolder.getHasParent()) {
+		if (fileOrFolder instanceof GenericNode) {
 
-			// parents have to be exported, even if the given Folder type is not part of the export set
-			exportFileOrFolder(fileOrFolder.getParent(), filesAndFoldersMap, filesDir, false);
+			logger.info("Not exporting database object because its schema type does not exist anymore: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
+			return;
+		}
+
+		if (Boolean.TRUE.equals(fileOrFolder.getHasParent())) {
+
+			final AbstractFile parent = fileOrFolder.getParent();
+
+			if (parent == null) {
+
+				logger.info("Not exporting parent folder for database object because can not be instantiated. This typically means that the schema type of the parent node does not exist anymore. Current node: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
+
+			} else {
+
+				// parents have to be exported, even if the given Folder type is not part of the export set
+				exportFileOrFolder(parent, filesAndFoldersMap, filesDir, false);
+			}
 		}
 
 		final String path             = fileOrFolder.getPath();
@@ -846,38 +870,43 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (!alreadyExportedRelationships.contains(relUuid)) {
 
-
 				try (final Tx tx = app.tx()) {
 
-					final Map<String, Object> entry = new TreeMap<>();
+					final NodeInterface sourceNode = rel.getSourceNode();
+					final NodeInterface targetNode = rel.getTargetNode();
 
-					final Class sourceNodeClass = rel.getSourceNode().getClass();
-					final Class targetNodeClass = rel.getTargetNode().getClass();
+					if (!(sourceNode instanceof GenericNode) && !(targetNode instanceof GenericNode)) {
 
-					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+						final Map<String, Object> entry = new TreeMap<>();
 
-						missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+						final Class sourceNodeClass = sourceNode.getClass();
+						final Class targetNodeClass = targetNode.getClass();
+
+						if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+
+							missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+						}
+
+						if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
+
+							missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
+						}
+
+						final PropertyContainer pc = rel.getPropertyContainer();
+
+						for (final String key : pc.getPropertyKeys()) {
+
+							putData(entry, key, pc.getProperty(key));
+						}
+
+						entry.put("sourceId", rel.getSourceNodeId());
+						entry.put("targetId", rel.getTargetNodeId());
+						entry.put("relType",  rel.getProperty("relType"));
+
+						exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
+
+						alreadyExportedRelationships.add(relUuid);
 					}
-
-					if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
-
-						missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
-					}
-
-					final PropertyContainer pc = rel.getPropertyContainer();
-
-					for (final String key : pc.getPropertyKeys()) {
-
-						putData(entry, key, pc.getProperty(key));
-					}
-
-					entry.put("sourceId", rel.getSourceNodeId());
-					entry.put("targetId", rel.getTargetNodeId());
-					entry.put("relType",  rel.getProperty("relType"));
-
-					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
-
-					alreadyExportedRelationships.add(relUuid);
 				}
 			}
 		}
