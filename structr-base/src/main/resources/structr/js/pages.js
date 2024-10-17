@@ -1449,7 +1449,7 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,\t\t\tCommand.get(actionMapping.id, \'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText,successNotificationsDelay,failureNotificationsDelay\', (result) => {\n,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText,successNotificationsDelay,failureNotificationsDelay', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
 				console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
