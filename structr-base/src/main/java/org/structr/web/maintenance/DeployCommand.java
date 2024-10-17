@@ -1655,7 +1655,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (!parameterMappings.isEmpty()) {
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
-
 				putData(entry, "event",        				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
 				putData(entry, "action",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
 				putData(entry, "method",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
