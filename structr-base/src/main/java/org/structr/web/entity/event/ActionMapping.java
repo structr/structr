@@ -69,17 +69,19 @@ public interface ActionMapping extends NodeInterface {
 		type.addStringProperty("successNotifications",        PropertyView.Ui).setHint("Notifications after successful execution of action");
 		type.addStringProperty("successNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as success notification");
 		type.addStringProperty("successNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for success notifications");
+		type.addStringProperty("successNotificationsDelay",   PropertyView.Ui).setHint("Delay before hiding success notifications").setDefaultValue("5000");
 
 		type.addStringProperty("failureNotifications",        PropertyView.Ui).setHint("Notifications after failed execution of action");
 		type.addStringProperty("failureNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as failure notification");
 		type.addStringProperty("failureNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for failure notifications");
+		type.addStringProperty("failureNotificationsDelay",   PropertyView.Ui).setHint("Delay before hiding failure notifications").setDefaultValue("5000");
 
 		type.addStringProperty("successBehaviour", PropertyView.Ui).setHint("Behaviour after successful execution of action");
 		type.addStringProperty("successPartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on success");
 		type.addStringProperty("successURL",       PropertyView.Ui).setHint("URL to navigate to on success");
 		type.addStringProperty("successEvent",     PropertyView.Ui).setHint("Event to raise on success");
 
-
+		
 		type.addStringProperty("failureBehaviour", PropertyView.Ui).setHint("Behaviour after failed execution of action");
 		type.addStringProperty("failurePartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on failure");
 		type.addStringProperty("failureURL",       PropertyView.Ui).setHint("URL to navigate to on failure");

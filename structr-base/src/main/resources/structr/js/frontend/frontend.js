@@ -259,7 +259,7 @@ export class Frontend {
 
 	async handleNotifications(element, parameter, status, options) {
 
-		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth;
+		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth, delay;
 		let id = element.dataset.structrId;
 		const success = this.isSuccess(status);
 
@@ -267,6 +267,8 @@ export class Frontend {
 			mode = element.dataset.structrSuccessNotifications;
 			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : ')');
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
+			delay = element.dataset.structrSuccessNotificationsDelay;
+
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
 				elementWithError.style.borderColor = inputElementBorderColor || '';
 				elementWithError.style.borderWidth = inputElementBorderWidth || '';
@@ -275,6 +277,7 @@ export class Frontend {
 			mode = element.dataset.structrFailureNotifications;
 			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : ')');
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
+			delay = element.dataset.structrFailureNotificationsDelay;
 
 			if (parameter?.errors?.length) {
 				for (const error of parameter.errors) {
@@ -308,7 +311,7 @@ export class Frontend {
 				window.setTimeout(() => {
 					let notificationElement = document.getElementById('notification-for-' + id);
 					if (notificationElement) { notificationElement.remove(); }
-				}, 5000);
+				}, delay);
 				break;
 
 			case 'custom-dialog':
