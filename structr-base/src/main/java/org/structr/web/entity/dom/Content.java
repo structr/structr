@@ -60,13 +60,13 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 
 	public static final View defaultView = new View(Content.class, PropertyView.Public,
 		isContentProperty, contentTypeProperty, contentProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, hideConditionsProperty, showConditionsProperty, hideForLocalesProperty,
-		showForLocalesProperty, sharedComponentConfigurationProperty, hideOnIndexProperty, hideOnDetailProperty, dataKeyProperty, cypherQueryProperty, xpathQueryProperty,
+		showForLocalesProperty, sharedComponentConfigurationProperty, dataKeyProperty, cypherQueryProperty,
 		restQueryProperty, functionQueryProperty
 	);
 
 	public static final View uiView = new View(Content.class, PropertyView.Ui,
-		isContentProperty, contentTypeProperty, contentProperty, hideOnDetailProperty, hideOnIndexProperty, sharedComponentConfigurationProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
-		showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty, xpathQueryProperty, restQueryProperty,
+		isContentProperty, contentTypeProperty, contentProperty, sharedComponentConfigurationProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
+		showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty, restQueryProperty,
 		functionQueryProperty
 	);
 
