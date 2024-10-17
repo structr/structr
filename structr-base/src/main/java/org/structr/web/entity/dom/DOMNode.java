@@ -99,7 +99,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 	}));
 
 	public static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+		"dataKey", "restQuery", "cypherQuery", "functionQuery", "selectedValues", "flow", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
 	};
 
 	public static final Property<DOMNode> parentProperty             = new StartNode<>("parent", DOMNodeCONTAINSDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
@@ -128,7 +128,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public static final Property<String> dataKeyProperty       = new StringProperty("dataKey").indexed().category(QUERY_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String> cypherQueryProperty   = new StringProperty("cypherQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> xpathQueryProperty    = new StringProperty("xpathQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String> restQueryProperty     = new StringProperty("restQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String> functionQueryProperty = new StringProperty("functionQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
 
@@ -142,9 +141,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time").category(PAGE_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String> dataStructrHashProperty = new StringProperty("data-structr-hash").category(PAGE_CATEGORY).partOfBuiltInSchema();
 
-	public static final Property<Boolean> renderDetailsProperty = new BooleanProperty("renderDetails").category(QUERY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Boolean> hideOnIndexProperty = new BooleanProperty("hideOnIndex").category(QUERY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Boolean> hideOnDetailProperty = new BooleanProperty("hideOnDetail").category(QUERY_CATEGORY).partOfBuiltInSchema();
 	public static final Property<Boolean> dontCacheProperty = new BooleanProperty("dontCache").defaultValue(false).partOfBuiltInSchema();
 	public static final Property<Boolean> isDOMNodeProperty = new ConstantBooleanProperty("isDOMNode", true).category(PAGE_CATEGORY).partOfBuiltInSchema();
 
@@ -188,10 +184,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		return getProperty(restQueryProperty);
 	}
 
-	public String getXpathQuery() {
-		return getProperty(xpathQueryProperty);
-	}
-
 	public String getFunctionQuery() {
 		return getProperty(functionQueryProperty);
 	}
@@ -218,14 +210,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public String getIdHash() {
 		return getUuid();
-	}
-
-	public boolean hideOnIndex() {
-		return getProperty(hideOnIndexProperty);
-	}
-
-	public boolean hideOnDetail() {
-		return getProperty(hideOnDetailProperty);
 	}
 
 	public DOMNode getParent() {
@@ -353,10 +337,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public boolean inTrash() {
 		return getParent() == null && getOwnerDocumentAsSuperUser() == null;
-	}
-
-	public boolean renderDetails() {
-		return getProperty(renderDetailsProperty);
 	}
 
 	public boolean isSynced() {
@@ -1486,14 +1466,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		final GraphObject details = renderContext.getDetailsDataObject();
 		final boolean detailMode = details != null;
-
-		if (detailMode && this.hideOnDetail()) {
-			return;
-		}
-
-		if (!detailMode && this.hideOnIndex()) {
-			return;
-		}
 
 		if (isAdminOnlyEditMode) {
 

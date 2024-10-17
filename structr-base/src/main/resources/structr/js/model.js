@@ -904,7 +904,7 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.xpathQuery || this.functionQuery
+	return this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.functionQuery
 		//String attributes
 		|| this["data-structr-id"]
 		|| this["eventMapping"]
@@ -917,12 +917,6 @@ StructrElement.prototype.getActiveNodeInfo = function() {
 
 	let list = [];
 
-	if (this.hideOnIndex) {
-		list.push('Hidden on index');
-	}
-	if (this.hideOnDetail) {
-		list.push('Hidden on detail');
-	}
 	if (this.hideConditions) {
 		list.push('Has hide condition');
 	}
@@ -937,9 +931,6 @@ StructrElement.prototype.getActiveNodeInfo = function() {
 	}
 	if (this.cypherQuery) {
 		list.push('Has cypher query in repeater configuration');
-	}
-	if (this.xpathQuery) {
-		list.push('Has XPath query in repeater configuration');
 	}
 	if (this.functionQuery) {
 		list.push('Has function query in repeater configuration');
@@ -1035,19 +1026,13 @@ StructrContent.prototype.exists = function() {
 };
 
 StructrContent.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
+	return this.hideConditions || this.showConditions || this.dataKey;
 };
 
 StructrContent.prototype.getActiveNodeInfo = function() {
 
 	let list = [];
 
-	if (this.hideOnIndex) {
-		list.push('Hidden on index');
-	}
-	if (this.hideOnDetail) {
-		list.push('Hidden on detail');
-	}
 	if (this.hideConditions) {
 		list.push('Has hide condition');
 	}
@@ -1062,9 +1047,6 @@ StructrContent.prototype.getActiveNodeInfo = function() {
 	}
 	if (this.cypherQuery) {
 		list.push('Has cypher query in repeater configuration');
-	}
-	if (this.xpathQuery) {
-		list.push('Has XPath query in repeater configuration');
 	}
 	if (this.functionQuery) {
 		list.push('Has function query in repeater configuration');

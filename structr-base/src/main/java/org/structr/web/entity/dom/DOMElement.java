@@ -201,13 +201,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	public static final View defaultView = new View(DOMElement.class, PropertyView.Public,
 		tagProperty, pathProperty, partialUpdateKeyProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
-		name, childrenProperty, dataKeyProperty, cypherQueryProperty, xpathQueryProperty, restQueryProperty, functionQueryProperty
+		name, childrenProperty, dataKeyProperty, cypherQueryProperty, restQueryProperty, functionQueryProperty
 	);
 
 	public static final View uiView = new View(DOMElement.class, PropertyView.Ui,
-		tagProperty, pathProperty, partialUpdateKeyProperty, htmlClassProperty, htmlIdProperty, hideOnDetailProperty, hideOnIndexProperty, sharedComponentConfigurationProperty,
-		isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, dataStructrIdProperty, renderDetailsProperty, childrenProperty,
-		childrenIdsProperty, showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty, xpathQueryProperty,
+		tagProperty, pathProperty, partialUpdateKeyProperty, htmlClassProperty, htmlIdProperty, sharedComponentConfigurationProperty,
+		isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, dataStructrIdProperty, childrenProperty,
+		childrenIdsProperty, showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty,
 		restQueryProperty, functionQueryProperty, renderingModeProperty, delayOrIntervalProperty, dataInsertProperty, dataFromWidgetProperty, dataTreeChildrenProperty,
 		dataReloadTargetProperty, eventMappingProperty, triggeredActionsProperty, reloadingActionsProperty, failureActionsProperty, successNotificationActionsProperty,
 		failureNotificationActionsProperty, manualReloadTargetProperty

@@ -255,9 +255,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideConditions")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showForLocales")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideForLocales")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnIndex")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnDetail")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "renderDetails")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "sharedComponentConfiguration")));
 
 		if (node instanceof DOMNode) {
@@ -273,7 +270,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "dataKey")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "restQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "cypherQuery")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "xpathQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
 
 		// Content
