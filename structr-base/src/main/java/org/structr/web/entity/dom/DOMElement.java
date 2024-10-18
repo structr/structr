@@ -1511,6 +1511,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append(" data-structr-success-notifications-event=\"").append(triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent"))).append("\"");
 					break;
 
+				case "inline-text-message":
+					final Integer delay = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay"));
+					out.append(" data-structr-success-notifications-delay=\"").append(delay.toString()).append("\"");
+					break;
+
 				default:
 					break;
 
@@ -1543,6 +1548,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case "fire-event":
 					out.append(" data-structr-failure-notifications-event=\"").append(triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent"))).append("\"");
+					break;
+
+				case "inline-text-message":
+					final Integer delay = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsDelay"));
+					out.append(" data-structr-failure-notifications-delay=\"").append(delay.toString()).append("\"");
 					break;
 
 				default:
