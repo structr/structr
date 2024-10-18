@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -234,7 +234,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));
 
 		// include owner in content hash generation!
-		final Principal owner = node.getOwnerNode();
+		final PrincipalInterface owner = node.getOwnerNode();
 		if (owner != null) {
 
 			buf.append(valueOrEmpty(owner, AbstractNode.name));
@@ -255,9 +255,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideConditions")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showForLocales")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideForLocales")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnIndex")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnDetail")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "renderDetails")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "sharedComponentConfiguration")));
 
 		if (node instanceof DOMNode) {
@@ -273,7 +270,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "dataKey")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "restQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "cypherQuery")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "xpathQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
 
 		// Content

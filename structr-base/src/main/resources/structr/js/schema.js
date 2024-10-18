@@ -2853,6 +2853,11 @@ let _Schema = {
 			let relatedNodeId = (out ? rel.targetId : rel.sourceId);
 			let attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
+			// related node ID can be null for relationships between dynamic and static classes
+			if (!relatedNodeId) {
+				return;
+			}
+
 			let renderRemoteProperty = (tplConfig) => {
 
 				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.remoteProperties.templates.remoteProperty(tplConfig));

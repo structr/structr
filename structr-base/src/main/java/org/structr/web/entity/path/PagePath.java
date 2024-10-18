@@ -18,74 +18,71 @@
  */
 package org.structr.web.entity.path;
 
-import java.net.URI;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
-import org.structr.schema.SchemaService;
+import org.structr.core.property.*;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.relationship.PageHAS_PATHPagePath;
+import org.structr.web.entity.dom.relationship.PagePathHAS_PARAMETERPagePathParameter;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
  */
-public interface PagePath extends NodeInterface {
+public class PagePath extends AbstractNode {
 
 	public static final Pattern PATH_COMPONENT_PATTERN = Pattern.compile("\\{([a-z][a-zA-Z0-9]+)\\}");
 
-	static class Impl { static {
+	public static Property<Page> pageProperty                              = new StartNode<>("page", PageHAS_PATHPagePath.class).partOfBuiltInSchema();
+	public static Property<Iterable<PagePathParameter>> parametersProperty = new EndNodes<>("parameters", PagePathHAS_PARAMETERPagePathParameter.class).partOfBuiltInSchema();
+	public static Property<String> nameProperty                            = new StringProperty("name").notNull().partOfBuiltInSchema();
+	public static Property<Integer> priorityProperty                       = new IntProperty("priority").partOfBuiltInSchema();
 
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type  = schema.addType("PagePath");
-		final JsonObjectType param = schema.addType("PagePathParameter");
+	public static final View defaultView = new View(PagePath.class, PropertyView.Public,
+		nameProperty, priorityProperty, parametersProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PagePath"));
+	public static final View uiView = new View(PagePath.class, PropertyView.Ui,
+		nameProperty, priorityProperty, parametersProperty
+	);
 
-		// override name property in AbstractNode to make it required
-		type.addStringProperty("name", PropertyView.Public, PropertyView.Ui).setRequired(true);
-		type.addIntegerProperty("priority", PropertyView.Public, PropertyView.Ui);
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.relate(param, "HAS_PARAMETER", Cardinality.OneToMany, "path", "parameters");
+		boolean valid = super.isValid(errorBuffer);
 
-		type.addViewProperty(PropertyView.Public, "parameters");
-		type.addViewProperty(PropertyView.Ui,     "parameters");
+		valid &= ValidationHelper.isValidPropertyNotNull(this, PagePath.nameProperty, errorBuffer);
 
-		type.addPropertyGetter("page",       Page.class);
-		type.addPropertyGetter("parameters", Iterable.class);
+		return valid;
+	}
 
-		final JsonObjectType page = schema.addType("Page");
-		page.relate(type, "HAS_PATH", Cardinality.OneToMany, "page", "paths");
+	public Page getPage() {
+		return getProperty(pageProperty);
+	}
 
-		//type.overrideMethod("onCreation",     true,  PagePath.class.getName() + ".onCreation(this, arg0, arg1);");
-		//type.overrideMethod("onModification", true,  PagePath.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-	}}
-
-	// implemented by methods created with addPropertyGetter above
-	Page getPage();
-	Iterable<PagePathParameter> getParameters();
+	public Iterable<PagePathParameter> getParameters() {
+		return getProperty(parametersProperty);
+	}
 
 	// ----- default methods -----
 	@Export
-	default Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException {
+	public Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException {
 
 		final Object rawList = arguments.get("names");
 		final Object rawPath = arguments.get("path");
@@ -160,7 +157,7 @@ public interface PagePath extends NodeInterface {
 	}
 
 
-	default Map<String, PagePathParameter> getMappedParameters() {
+	public Map<String, PagePathParameter> getMappedParameters() {
 
 		final Map<String, PagePathParameter> map = new LinkedHashMap<>();
 		final List<PagePathParameter> sorted     = Iterables.asList(getParameters());
@@ -184,7 +181,7 @@ public interface PagePath extends NodeInterface {
 	 * @param requestParts the URL path components
 	 * @return the resolved arguments, or null if the path doesn't match
 	 */
-	default Map<String, Object> tryResolvePath(final String[] requestParts) {
+	public Map<String, Object> tryResolvePath(final String[] requestParts) {
 
 		final Map<String, Object> arguments = new LinkedHashMap<>();
 
@@ -266,7 +263,7 @@ public interface PagePath extends NodeInterface {
 		return arguments;
 	}
 
-	default String[] getValues(final Matcher matcher) {
+	public String[] getValues(final Matcher matcher) {
 
 		if (matcher.find()) {
 
@@ -284,7 +281,7 @@ public interface PagePath extends NodeInterface {
 		return new String[0];
 	}
 
-	default String getValueOrNull(final String[] array, final int index) {
+	public String getValueOrNull(final String[] array, final int index) {
 
 		if (array.length > index) {
 

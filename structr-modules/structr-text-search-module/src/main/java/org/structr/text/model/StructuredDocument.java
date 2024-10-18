@@ -18,39 +18,23 @@
  */
 package org.structr.text.model;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
+import org.structr.text.model.relationship.StructuredDocumentMETADATAMetadataNode;
 
 /**
  *
  */
-public interface StructuredDocument extends StructuredTextNode {
+public class StructuredDocument extends StructuredTextNode {
 
-	static class Impl { static {
+	public static final Property<Iterable<MetadataNode>> metadataProperty = new EndNodes<>("metadata", StructuredDocumentMETADATAMetadataNode.class);
 
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("StructuredDocument");
-		final JsonObjectType meta = schema.addType("MetadataNode");
+	public static final Property<String> titleProperty  = new StringProperty("title");
+	public static final Property<String> authorProperty = new StringProperty("author");
+	public static final Property<String> statusProperty = new StringProperty("status");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/StructuredDocument"));
-		type.setExtends(URI.create("#/definitions/StructuredTextNode"));
-
-		type.addStringProperty("title");
-		type.addStringProperty("author");
-		type.addStringProperty("status");
-
-		type.addPropertyGetter("metadata", Iterable.class);
-
-		final JsonReferenceType rel = type.relate(meta, "METADATA", Cardinality.OneToMany, "document", "metadata");
-
-		// enable cascading delete for metadata nodes
-		rel.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
-	}}
-
-	Iterable<MetadataNode> getMetadata();
+	public Iterable<MetadataNode> getMetadata() {
+		return getProperty(metadataProperty);
+	}
 }

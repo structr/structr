@@ -18,24 +18,20 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
+import org.structr.knowledge.iso25964.relationship.SimpleNonPreferredTermUSEPreferredTerm;
+import org.structr.knowledge.iso25964.relationship.SplitNonPreferredTermUSEPreferredTerm;
+import org.structr.knowledge.iso25964.relationship.ThesaurusConcepthasPreferredLabelPreferredTerm;
 
 /**
  * Class as defined in ISO 25964 data model
  */
 
-public interface PreferredTerm extends ThesaurusTerm {
+public class PreferredTerm extends ThesaurusTerm {
 
-	static class Impl { static {
-
-		final JsonSchema schema      = SchemaService.getDynamicSchema();
-		final JsonObjectType type    = schema.addType("PreferredTerm");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PreferredTerm"));
-		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
-	}}
+	public static final Property<Iterable<SimpleNonPreferredTerm>> simpleNonPreferredTermsProperty = new StartNodes<>("simpleNonPreferredTerms", SimpleNonPreferredTermUSEPreferredTerm.class);
+	public static final Property<Iterable<SplitNonPreferredTerm>> splitNonPreferredTermsProperty   = new StartNodes<>("splitNonPreferredTerms", SplitNonPreferredTermUSEPreferredTerm.class);
+	public static final Property<ThesaurusConcept> conceptsProperty                                = new StartNode<>("concepts", ThesaurusConcepthasPreferredLabelPreferredTerm.class);
 }

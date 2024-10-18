@@ -29,11 +29,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.*;
@@ -51,14 +52,13 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		// don't run tests that depend on Cypher being available in the backend
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-			Principal user1                      = null;
+			PrincipalInterface user1                      = null;
 			Class type1                          = null;
 
 			try (final Tx tx = app.tx()) {
 
 				// create a test user
-				user1 = app.create(principalType, "user1");
+				user1 = app.create(User.class, "user1");
 
 				final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
 
@@ -105,7 +105,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 			try (final Tx tx = userApp.tx()) {
 
 				// query returns always true if user exists
-				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
+				user1.setProperty(StructrApp.key(User.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
 
 				tx.success();
 
@@ -130,7 +130,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 			try (final Tx tx = userApp.tx()) {
 
 				// query returns always false if user exists
-				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
+				user1.setProperty(StructrApp.key(User.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
 
 				tx.success();
 
@@ -159,14 +159,13 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		// don't run tests that depend on Cypher being available in the backend
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-			Principal user1                      = null;
+			PrincipalInterface user1                      = null;
 			Class type1                          = null;
 
 			try (final Tx tx = app.tx()) {
 
 				// create a test user
-				user1 = app.create(principalType, "user1");
+				user1 = app.create(User.class, "user1");
 
 				final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
 
@@ -215,7 +214,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 			try (final Tx tx = userApp.tx()) {
 
 				// query returns always true if user exists
-				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryWrite"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
+				user1.setProperty(StructrApp.key(User.class, "customPermissionQueryWrite"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NOT NULL");
 
 				tx.success();
 
@@ -240,7 +239,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 			try (final Tx tx = userApp.tx()) {
 
 				// query returns always false if user exists
-				user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
+				user1.setProperty(StructrApp.key(User.class, "customPermissionQueryRead"), "MATCH (p:Principal:" + randomTenantId + "{id: $principalUuid}) RETURN p IS NULL");
 
 				tx.success();
 

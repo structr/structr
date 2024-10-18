@@ -18,32 +18,31 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Select extends DOMElement {
 
-public interface Select extends DOMElement {
+	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name").partOfBuiltInSchema();
+	public static final Property<String> htmlDisabledProperty  = new StringProperty("_html_disabled").partOfBuiltInSchema();
+	public static final Property<String> htmlAcceptProperty    = new StringProperty("_html_accept").partOfBuiltInSchema();
+	public static final Property<String> htmlFormProperty      = new StringProperty("_html_form").partOfBuiltInSchema();
+	public static final Property<String> htmlSizeProperty      = new StringProperty("_html_size").partOfBuiltInSchema();
+	public static final Property<String> htmlMultipleProperty  = new StringProperty("_html_multiple").partOfBuiltInSchema();
+	public static final Property<String> htmlAutofocusProperty = new StringProperty("_html_autofocus").partOfBuiltInSchema();
+	public static final Property<String> htmlRequiredProperty  = new StringProperty("_html_required").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Select.class, PropertyView.Html,
+		htmlNameProperty, htmlDisabledProperty, htmlAcceptProperty, htmlFormProperty, htmlSizeProperty,
+		htmlMultipleProperty, htmlAutofocusProperty, htmlRequiredProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Select");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Select"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_name",      PropertyView.Html);
-		type.addStringProperty("_html_disabled",  PropertyView.Html);
-		type.addStringProperty("_html_accept",    PropertyView.Html);
-		type.addStringProperty("_html_form",      PropertyView.Html);
-		type.addStringProperty("_html_size",      PropertyView.Html);
-		type.addStringProperty("_html_multiple",  PropertyView.Html);
-		type.addStringProperty("_html_autofocus", PropertyView.Html);
-		type.addStringProperty("_html_required",  PropertyView.Html);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

@@ -18,37 +18,35 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
 /**
  * The Location entity.
  */
-public interface Location extends NodeInterface {
+public class Location extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<Double> latitudeProperty      = new DoubleProperty("latitude").indexed().partOfBuiltInSchema();
+	public static final Property<Double> longitudeProperty     = new DoubleProperty("longitude").indexed().partOfBuiltInSchema();
+	public static final Property<Double> altitudeProperty      = new DoubleProperty("altitude").indexed().partOfBuiltInSchema();
+	public static final Property<String> countryProperty       = new StringProperty("country").indexed().partOfBuiltInSchema();
+	public static final Property<String> postalCodeProperty    = new StringProperty("postalCode").indexed().partOfBuiltInSchema();
+	public static final Property<String> cityProperty          = new StringProperty("city").indexed().partOfBuiltInSchema();
+	public static final Property<String> streetProperty        = new StringProperty("street").indexed().partOfBuiltInSchema();
+	public static final Property<String> houseNumberProperty   = new StringProperty("houseNumber").indexed().partOfBuiltInSchema();
+	public static final Property<String> stateProperty         = new StringProperty("state").indexed().partOfBuiltInSchema();
+	public static final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed().partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Location");
+	public static final View defaultView = new View(Location.class, PropertyView.Public,
+		latitudeProperty, longitudeProperty, altitudeProperty, countryProperty, postalCodeProperty, cityProperty,
+		streetProperty, houseNumberProperty, stateProperty, stateDistrictProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Location"));
-		type.setCategory("core");
-
-		type.addNumberProperty("latitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addNumberProperty("longitude",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addNumberProperty("altitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("country",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("postalCode",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("city",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("street",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("houseNumber",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("state",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("stateDistrict", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-	}}
-
+	public static final View uiView = new View(Location.class, PropertyView.Ui,
+		latitudeProperty, longitudeProperty, altitudeProperty, countryProperty, postalCodeProperty, cityProperty,
+		streetProperty, houseNumberProperty, stateProperty, stateDistrictProperty
+	);
 }

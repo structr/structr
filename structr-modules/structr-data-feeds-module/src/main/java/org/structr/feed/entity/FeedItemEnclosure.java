@@ -19,75 +19,60 @@
 package org.structr.feed.entity;
 
 import org.apache.commons.io.IOUtils;
-import org.structr.api.config.Settings;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.common.fulltext.Indexable;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.feed.entity.relationship.FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.charset.Charset;
 
 /**
  * Represents feed enclosures
  */
-public interface FeedItemEnclosure extends NodeInterface, Indexable {
+public class FeedItemEnclosure extends AbstractFeedItem {
 
-	static class Impl { static {
+	public static final Property<FeedItem> itemProperty        = new StartNode<>("item", FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure.class);
+	public static final Property<String> urlProperty           = new StringProperty("url");
+	public static final Property<Long> enclosureLengthProperty = new LongProperty("enclosureLength");
+	public static final Property<String> enclosureTypeProperty = new StringProperty("enclosureType");
 
-		final JsonSchema schema        = SchemaService.getDynamicSchema();
-		final JsonObjectType type      = schema.addType("FeedItemEnclosure");
+	public static final View defaultView = new View(FeedItemEnclosure.class, PropertyView.Public,
+		urlProperty, enclosureLengthProperty, enclosureTypeProperty, itemProperty, owner
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItemEnclosure"));
-		type.setImplements(URI.create("#/definitions/Indexable"));
+	public static final View uiView      = new View(FeedItemEnclosure.class, PropertyView.Ui,
+		urlProperty, enclosureLengthProperty, enclosureTypeProperty, itemProperty
+	);
 
- 		type.addStringProperty("url",           PropertyView.Public, PropertyView.Ui);
- 		type.addLongProperty("enclosureLength", PropertyView.Public, PropertyView.Ui);
- 		type.addStringProperty("enclosureType", PropertyView.Public, PropertyView.Ui);
+	@Override
+	public void afterCreation(final SecurityContext securityContext) throws FrameworkException {
 
-		type.addPropertyGetter("url",              String.class);
-		type.addPropertyGetter("contentType",      String.class);
-		type.addPropertyGetter("extractedContent", String.class);
+		super.afterCreation(securityContext);
+		updateIndex(securityContext);
+	}
 
-		// methods shared with FeedItemContent
-		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
-
-		type.overrideMethod("getInputStream",   false, "return " + FeedItemEnclosure.class.getName() + ".getInputStream(this);");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "item");
-		type.addViewProperty(PropertyView.Public, "owner");
-
-		type.addViewProperty(PropertyView.Ui, "item");
-	}}
-
-	String getUrl();
-
-	static InputStream getInputStream(final FeedItemEnclosure thisItem) {
-		return IOUtils.toInputStream(thisItem.getUrl(), Charset.forName("utf-8"));
+	public String getUrl() {
+		return getProperty(urlProperty);
 	}
 
 	@Override
-	default boolean indexingEnabled() {
-		return Settings.FeedItemEnclosureIndexingEnabled.getValue();
+	public InputStream getInputStream() {
+		return IOUtils.toInputStream(getUrl(), Charset.forName("utf-8"));
 	}
 
 	@Override
-	default Integer maximumIndexedWords() {
-		return Settings.FeedItemEnclosureIndexingLimit.getValue();
+	public String getExtractedContent() {
+		return getProperty(extractedContentProperty);
 	}
 
 	@Override
-	default Integer indexedWordMinLength() {
-		return Settings.FeedItemEnclosureIndexingMinLength.getValue();
-	}
-
-	@Override
-	default Integer indexedWordMaxLength() {
-		return Settings.FeedItemEnclosureIndexingMaxLength.getValue();
+	public String getContentType() {
+		return getProperty(contentTypeProperty);
 	}
 }

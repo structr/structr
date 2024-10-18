@@ -18,23 +18,16 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.knowledge.iso25964.relationship.ThesaurusConcepthasHistoryNoteHistoryNote;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasHistoryNoteHistoryNote;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface HistoryNote extends Note {
+public class HistoryNote extends Note {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("HistoryNote");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/HistoryNote"));
-		type.setExtends(URI.create("#/definitions/Note"));
-	}}
+	public static final Property<ThesaurusTerm> termProperty       = new StartNode<>("term", ThesaurusTermhasHistoryNoteHistoryNote.class);
+	public static final Property<ThesaurusConcept> conceptProperty = new StartNode<>("concept", ThesaurusConcepthasHistoryNoteHistoryNote.class);
 }

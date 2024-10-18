@@ -38,7 +38,7 @@ import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
 
@@ -276,7 +276,7 @@ public class TransactionCommand {
 
 	}
 
-	public static void nodeCreated(final Principal user, final NodeInterface node) {
+	public static void nodeCreated(final PrincipalInterface user, final NodeInterface node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -300,7 +300,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeModified(final Principal user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void nodeModified(final PrincipalInterface user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -324,7 +324,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeDeleted(final Principal user, final NodeInterface node) {
+	public static void nodeDeleted(final PrincipalInterface user, final NodeInterface node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -348,7 +348,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipCreated(final Principal user, final RelationshipInterface relationship) {
+	public static void relationshipCreated(final PrincipalInterface user, final RelationshipInterface relationship) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -372,7 +372,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipModified(final Principal user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void relationshipModified(final PrincipalInterface user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -396,7 +396,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipDeleted(final Principal user, final RelationshipInterface relationship, final boolean passive) {
+	public static void relationshipDeleted(final PrincipalInterface user, final RelationshipInterface relationship, final boolean passive) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {

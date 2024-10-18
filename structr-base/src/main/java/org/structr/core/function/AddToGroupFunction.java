@@ -22,7 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
@@ -52,7 +52,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof Principal)) {
+			} else if (!(sources[1] instanceof PrincipalInterface)) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 
@@ -63,7 +63,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 			} else {
 
 				final Group group    = (Group)sources[0];
-				final Principal user = (Principal)sources[1];
+				final PrincipalInterface user = (PrincipalInterface)sources[1];
 
 				group.addMember(ctx.getSecurityContext(), user);
 			}

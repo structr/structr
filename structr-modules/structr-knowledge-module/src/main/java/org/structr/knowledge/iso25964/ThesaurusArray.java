@@ -18,36 +18,42 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.knowledge.iso25964.relationship.*;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface ThesaurusArray extends NodeInterface {
+public class ThesaurusArray extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<Thesaurus> thesaurusProperty                       = new StartNode<>("thesaurus", ThesauruscontainsThesaurusArray.class);
+	public static final Property<ThesaurusConcept> superordinateConceptProperty     = new StartNode<>("superordinateConcept", ThesaurusConcepthasSubordinateArrayThesaurusArray.class);
+	public static final Property<Iterable<NodeLabel>> nodeLabelsProperty            = new EndNodes<>("nodeLabels", ThesaurusArrayhasNodeLabelNodeLabel.class);
+	public static final Property<ThesaurusArray> superordinateArrayProperty         = new StartNode<>("superOrdinateArray", ThesaurusArrayhasMemberArrayThesaurusArray.class);
+	public static final Property<Iterable<ThesaurusArray>> memberArraysProperty     = new EndNodes<>("memberArrays", ThesaurusArrayhasMemberArrayThesaurusArray.class);
+	public static final Property<Iterable<ThesaurusConcept>> memberConceptsProperty = new EndNodes<>("memberConcepts", ThesaurusArrayhasMemberConceptThesaurusConcept.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
+	public static final Property<String> identifierProperty = new StringProperty("identifier").indexed().notNull();
+	public static final Property<Boolean> orderedProperty   = new BooleanProperty("ordered").defaultValue(false).notNull();
+	public static final Property<String[]> notationProperty = new ArrayProperty("notation", String.class);
 
-		final JsonObjectType type    = schema.addType("ThesaurusArray");
-		final JsonObjectType label   = schema.addType("NodeLabel");
-		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+	public static final View uiView      = new View(ThesaurusArray.class, PropertyView.Ui,
+		identifierProperty, orderedProperty, notationProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusArray"));
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addStringProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addBooleanProperty("ordered", PropertyView.All, PropertyView.Ui).setDefaultValue("false").setRequired(true);
-		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui);
+		boolean valid = super.isValid(errorBuffer);
 
-		type.relate(label,   "hasNodeLabel",     Cardinality.OneToMany, "thesaurusArray", "nodeLabels");
-		type.relate(type,    "hasMemberArray",   Cardinality.OneToMany, "superOrdinateArray", "memberArrays");
-		type.relate(concept, "hasMemberConcept", Cardinality.ManyToMany, "thesaurusArrays", "memberConcepts");
-	}}
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ThesaurusArray.orderedProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ThesaurusArray.identifierProperty, errorBuffer);
+
+		return valid;
+	}
 }

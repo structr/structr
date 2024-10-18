@@ -18,48 +18,58 @@
  */
 package org.structr.common.fulltext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.fulltext.relationship.IndexableINDEXED_WORDIndexedWord;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.CollectionNotionProperty;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
 import java.io.InputStream;
-import java.net.URI;
 
 /**
  */
 public interface Indexable extends NodeInterface {
 
-	static class Impl { static {
+	Property<Iterable<IndexedWord>> wordsProperty   = new EndNodes<>("words", IndexableINDEXED_WORDIndexedWord.class).partOfBuiltInSchema();
+	Property<Iterable<String>> indexedWordsProperty = new CollectionNotionProperty<>("indexedWords", wordsProperty, new PropertyNotion(AbstractNode.name, true)).partOfBuiltInSchema();
+	Property<String> contentTypeProperty            = new StringProperty("contentType").partOfBuiltInSchema();
+	Property<String> extractedContentProperty       = new StringProperty("extractedContent").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Indexable");
-		final JsonObjectType word = schema.addType("IndexedWord");
+	View defaultView = new View(Indexable.class, PropertyView.Public,
+		contentTypeProperty
+	);
 
-		type.setIsInterface();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Indexable"));
+	View uiView = new View(Indexable.class, PropertyView.Ui,
+		contentTypeProperty
+	);
 
-		final JsonReferenceType rel = type.relate(word, "INDEXED_WORD", Cardinality.ManyToMany, "indexables", "words").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
-
-		type.addReferenceProperty("indexedWords", rel.getTargetProperty()).setProperties("name", "true");
-
-		type.addStringProperty("contentType",       PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("extractedContent");
-	}}
-
-	String getContentType();
-	String getExtractedContent();
 	InputStream getInputStream();
+	String getExtractedContent();
+	String getContentType();
 
 	@Export
-	GraphObject getSearchContext(final SecurityContext ctx, final String searchTerm, final int contextLength);
+	default GraphObject getSearchContext(final SecurityContext ctx, final String searchTerm, final int contextLength) {
+
+		final String text = getExtractedContent();
+		if (StringUtils.isNotBlank(text)) {
+
+			final FulltextIndexer indexer = StructrApp.getInstance(ctx).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
+		}
+
+		return null;
+	}
 
 	default boolean indexingEnabled() {
 		return Settings.IndexingEnabled.getValue();

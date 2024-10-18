@@ -18,35 +18,34 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Video extends DOMElement {
 
-public interface Video extends DOMElement {
+	public static final Property<String> htmlSrcProperty            = new StringProperty("_html_src").partOfBuiltInSchema();
+	public static final Property<String> htmlCrossoriginProperty    = new StringProperty("_html_crossorigin").partOfBuiltInSchema();
+	public static final Property<String> htmlPosterProperty         = new StringProperty("_html_poster").partOfBuiltInSchema();
+	public static final Property<String> htmlPreloadProperty        = new StringProperty("_html_preload").partOfBuiltInSchema();
+	public static final Property<String> htmlAutoplayProperty       = new StringProperty("_html_autoplay").partOfBuiltInSchema();
+	public static final Property<String> htmlPlaysInlineProperty    = new StringProperty("_html_playsinline").partOfBuiltInSchema();
+	public static final Property<String> htmlLoopProperty           = new StringProperty("_html_loop").partOfBuiltInSchema();
+	public static final Property<String> htmlMutedProperty          = new StringProperty("_html_muted").partOfBuiltInSchema();
+	public static final Property<String> htmlControlsProperty       = new StringProperty("_html_controls").partOfBuiltInSchema();
+	public static final Property<String> htmlWidthProperty          = new StringProperty("_html_width").partOfBuiltInSchema();
+	public static final Property<String> htmlHeightProperty         = new StringProperty("_html_height").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Video.class, PropertyView.Html,
+		htmlSrcProperty, htmlCrossoriginProperty, htmlPosterProperty, htmlPreloadProperty, htmlAutoplayProperty, htmlPlaysInlineProperty, htmlLoopProperty,
+		htmlMutedProperty, htmlControlsProperty, htmlWidthProperty, htmlHeightProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Video");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Video"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_src",         PropertyView.Html);
-		type.addStringProperty("_html_crossorigin", PropertyView.Html);
-		type.addStringProperty("_html_poster",      PropertyView.Html);
-		type.addStringProperty("_html_preload",     PropertyView.Html);
-		type.addStringProperty("_html_autoplay",    PropertyView.Html);
-		type.addStringProperty("_html_playsinline", PropertyView.Html);
-		type.addStringProperty("_html_loop",        PropertyView.Html);
-		type.addStringProperty("_html_muted",       PropertyView.Html);
-		type.addStringProperty("_html_controls",    PropertyView.Html);
-		type.addStringProperty("_html_width",       PropertyView.Html);
-		type.addStringProperty("_html_height",      PropertyView.Html);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

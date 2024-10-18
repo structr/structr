@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -56,6 +57,18 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, effectiveName, packages, flows, parent, scheduledForIndexing);
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainerPackage.class);
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringNotBlank(this, FlowContainerPackage.name, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, FlowContainerPackage.effectiveName, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, FlowContainerPackage.effectiveName, errorBuffer);
+
+		return valid;
+	}
 
 	@Override
 	public Map<String, Object> exportData() {

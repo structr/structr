@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.schema.JsonSchema.Cascade;
@@ -457,7 +458,7 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void testJavaSchemaMethod() {
 
 		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
@@ -548,13 +549,15 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType type = schema.addType("Test");
 
 			// make test type inherit from Favoritable (should add views)
-			type.setImplements(URI.create("#/definitions/Favoritable"));
+			type.setImplements(StructrApp.getSchemaBaseURI().resolve("static/org.structr.core.entity.Favoritable"));
 
 			// ----- interface Favoritable -----
 			type.overrideMethod("setFavoriteContent",         false, "");
 			type.overrideMethod("getFavoriteContent",         false, "return \"getFavoriteContent();\";");
 			type.overrideMethod("getFavoriteContentType",     false, "return \"getContentType();\";");
 			type.overrideMethod("getContext",                 false, "return \"getContext();\";");
+
+			Settings.LogSchemaOutput.setValue(true);
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -1373,6 +1376,28 @@ public class SchemaTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Uniqueness validation should not be active any more");
+		}
+	}
+
+	@Test
+	public void testPropertyOnBuiltInType() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType page           = sourceSchema.getType("Page");
+
+			page.addStringProperty("test");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

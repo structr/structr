@@ -52,7 +52,7 @@ import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
 import org.structr.core.Services;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.rest.api.RESTCallHandler;
@@ -120,7 +120,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				final Principal currentUser = securityContext.getUser(false);
+				final PrincipalInterface currentUser = securityContext.getUser(false);
 
 				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
@@ -339,7 +339,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					final Principal currentUser = securityContext.getUser(false);
+					final PrincipalInterface currentUser = securityContext.getUser(false);
 
 					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
@@ -525,7 +525,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					final Principal currentUser = securityContext.getUser(false);
+					final PrincipalInterface currentUser = securityContext.getUser(false);
 
 					// evaluate constraint chain
 					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
@@ -659,7 +659,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					final Principal currentUser = securityContext.getUser(false);
+					final PrincipalInterface currentUser = securityContext.getUser(false);
 
 					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
@@ -778,7 +778,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			authenticator = config.getAuthenticator();
 			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
-			final Principal currentUser = securityContext.getUser(false);
+			final PrincipalInterface currentUser = securityContext.getUser(false);
 
 			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
 			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());

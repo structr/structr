@@ -18,35 +18,18 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Canvas extends DOMElement {
 
-public interface Canvas extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Canvas");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Canvas"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_width",  PropertyView.Html);
-		type.addStringProperty("_html_height", PropertyView.Html);
-	}}
-
-	/*
-	public static final Property<String> _width       = new HtmlProperty("width");
-	public static final Property<String> _height      = new HtmlProperty("height");
+	public static final Property<String> _width       = new HtmlProperty("width").partOfBuiltInSchema();
+	public static final Property<String> _height      = new HtmlProperty("height").partOfBuiltInSchema();
 
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _width, _height
 	);
-	*/
 }

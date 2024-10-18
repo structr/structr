@@ -19,6 +19,8 @@
 package org.structr.schema.parser;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -37,6 +39,8 @@ import java.util.Set;
  *
  */
 public class IdNotionPropertyParser extends PropertySourceGenerator {
+
+	private static final Logger logger = LoggerFactory.getLogger(IdNotionPropertyParser.class);
 
 	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;

@@ -112,7 +112,6 @@ let _Entities = {
 		let queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
-//			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 

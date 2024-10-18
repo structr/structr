@@ -34,7 +34,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.HttpHelper;
@@ -179,7 +179,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 			if (StringUtils.isBlank(proxyUrl)) {
 
-				final Principal user = securityContext.getCachedUser();
+				final PrincipalInterface user = securityContext.getCachedUser();
 				if (user != null) {
 
 					try (final Tx tx = StructrApp.getInstance().tx()) {

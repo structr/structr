@@ -22,20 +22,21 @@ import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.Property;
+import org.structr.odf.entity.relationship.ODFExporterEXPORTS_TOFile;
+import org.structr.odf.entity.relationship.ODFExporterGETS_TRANSFORMATION_FROMVirtualType;
+import org.structr.odf.entity.relationship.ODFExporterUSES_TEMPLATEFile;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.schema.SchemaService;
 import org.structr.transform.VirtualType;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -44,58 +45,10 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.net.URI;
-
 /**
  * Base class for ODF exporter
  */
-public interface ODFExporter extends NodeInterface {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ODFExporter");
-		final JsonObjectType file = (JsonObjectType)schema.getType("File");
-		final JsonObjectType virt = (JsonObjectType)schema.getType("VirtualType");
-
-		type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ODFExporter"));
-
-		type.addPropertyGetter("resultDocument",         File.class);
-		type.addPropertyGetter("documentTemplate",       File.class);
-		type.addPropertyGetter("transformationProvider", VirtualType.class);
-
-		type.addMethod("setResultDocument")
-			.addParameter("resultDocument", File.class.getName())
-			.setSource("setProperty(resultDocumentProperty, (org.structr.dynamic.File)resultDocument);")
-			.addException(FrameworkException.class.getName());
-
-
-		type.addMethod("createDocumentFromTemplate")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setSource(ODFExporter.class.getName() + ".createDocumentFromTemplate(this, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		type.addMethod("exportImage")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("uuid", String.class.getName())
-			.setSource(ODFExporter.class.getName() + ".exportImage(this, uuid);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		type.relate(file, "EXPORTS_TO",               Cardinality.OneToOne, "resultDocumentForExporter", "resultDocument");
-		type.relate(file, "USES_TEMPLATE",            Cardinality.OneToOne, "documentTemplateForExporter", "documentTemplate");
-		type.relate(virt, "GETS_TRANSFORMATION_FROM", Cardinality.OneToOne, "odfExporter", "transformationProvider");
-
-		type.addViewProperty(PropertyView.Public, "transformationProvider");
-		type.addViewProperty(PropertyView.Public, "documentTemplate");
-		type.addViewProperty(PropertyView.Public, "resultDocument");
-
-		type.addViewProperty(PropertyView.Ui, "transformationProvider");
-		type.addViewProperty(PropertyView.Ui, "documentTemplate");
-		type.addViewProperty(PropertyView.Ui, "resultDocument");
-	}}
+public abstract class ODFExporter extends AbstractNode {
 
 	//General ODF specific constants and field specifiers
 	//Images
@@ -105,30 +58,39 @@ public interface ODFExporter extends NodeInterface {
 	static final String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
 	static final String ODF_IMAGE_DIRECTORY                   = "Pictures/";
 
-	public File getDocumentTemplate();
-	public File getResultDocument();
-	public void setResultDocument(final File resultDocument) throws FrameworkException;
-	public VirtualType getTransformationProvider();
+	public static final Property<File> resultDocumentProperty                = new EndNode<>("resultDocument", ODFExporterEXPORTS_TOFile.class);
+	public static final Property<File> documentTemplateProperty              = new EndNode<>("documentTemplate", ODFExporterUSES_TEMPLATEFile.class);
+	public static final Property<VirtualType> transformationProviderProperty = new EndNode<>("transformationProvider", ODFExporterGETS_TRANSFORMATION_FROMVirtualType.class);
 
-	/*
-	static final Logger logger = LoggerFactory.getLogger(ODTExporter.class.getName());
-
-	public static final Property<VirtualType> transformationProvider = new EndNode("transformationProvider", TransformationRules.class);
-	public static final Property<File> documentTemplate              = new EndNode("documentTemplate", DocumentTemplate.class);
-	public static final Property<File> resultDocument                = new EndNode("resultDocument", DocumentResult.class);
-
-	public static final View defaultView = new View(ODTExporter.class, PropertyView.Public, id, type, transformationProvider, documentTemplate, resultDocument);
-
-	public static final View uiView = new View(ODTExporter.class, PropertyView.Ui,
-		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
-		transformationProvider, documentTemplate, resultDocument
+	public static final View defaultView = new View(ODFExporter.class, PropertyView.Public,
+		transformationProviderProperty, documentTemplateProperty, resultDocumentProperty
 	);
-	*/
 
-	public static void createDocumentFromTemplate(final ODFExporter thisNode, final SecurityContext securityContext) throws FrameworkException {
+	public static final View uiView = new View(ODFExporter.class, PropertyView.Ui,
+		transformationProviderProperty, documentTemplateProperty, resultDocumentProperty
+	);
 
-		final File template                   = thisNode.getDocumentTemplate();
-		File output                           = thisNode.getResultDocument();
+	public File getDocumentTemplate() {
+		return getProperty(documentTemplateProperty);
+	}
+
+	public File getResultDocument() {
+		return getProperty(resultDocumentProperty);
+	}
+
+	public void setResultDocument(final File resultDocument) throws FrameworkException {
+		setProperty(resultDocumentProperty, resultDocument);
+	}
+
+	public VirtualType getTransformationProvider() {
+		return getProperty(transformationProviderProperty);
+	}
+
+	@Export
+	public void createDocumentFromTemplate(final SecurityContext securityContext) throws FrameworkException {
+
+		final File template     = getDocumentTemplate();
+		File output             = getResultDocument();
 		OdfDocument templateOdt;
 
 		try {
@@ -140,14 +102,14 @@ public interface ODFExporter extends NodeInterface {
 			// If no result file is given, create one and set it as result document
 			if (output == null) {
 
-				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), File.class, thisNode.getName().concat("_").concat(template.getName()), false);
+				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), File.class, getName().concat("_").concat(template.getName()), false);
 
 				output.setParent(template.getParent());
 
 				output.unlockSystemPropertiesOnce();
 				output.setProperty(AbstractNode.type, File.class.getSimpleName());
 
-				thisNode.setResultDocument(output);
+				setResultDocument(output);
 			}
 
 			templateOdt = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(template).getInputStream());
@@ -162,17 +124,18 @@ public interface ODFExporter extends NodeInterface {
 		}
 	}
 
-	public static void exportImage(final ODFExporter thisNode, final String uuid) {
+	@Export
+	public void exportImage(final String uuid) {
 
-		final File output = thisNode.getResultDocument();
+		final File output = getResultDocument();
 
 		try {
 
 			final App app      = StructrApp.getInstance();
 			final Image result = app.nodeQuery(Image.class).and(GraphObject.id, uuid).getFirst();
 
-			String imageName = result.getProperty(new StringProperty("name"));
-			String contentType = result.getProperty(new StringProperty("contentType"));
+			String imageName = result.getProperty(Image.name);
+			String contentType = result.getProperty(Image.contentTypeProperty);
 
 			String templateImagePath = null;
 

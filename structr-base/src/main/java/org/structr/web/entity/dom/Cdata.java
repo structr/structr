@@ -18,39 +18,19 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
-import org.structr.schema.SchemaService;
+import org.structr.web.common.RenderContext;
 import org.w3c.dom.CDATASection;
-
-import java.net.URI;
 
 /**
  *
  */
 
-public interface Cdata extends Content, CDATASection, NonIndexed {
+public class Cdata extends Content implements CDATASection, NonIndexed {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Cdata");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Cdata"));
-		type.setExtends(URI.create("#/definitions/Content"));
-		type.setCategory("html");
-
-		type.overrideMethod("render", false,
-			"arg0.getBuffer().append((\"<!CDATA[\"));\n" +
-			"\t\tsuper.render(arg0, arg1);\n" +
-			"arg0.getBuffer().append(\"]]>\");\n"
-		);
-	}}
-
-	/*
 	@Override
-	public void render(RenderContext renderContext, int depth) throws FrameworkException {
+	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		renderContext.getBuffer().append(("<!CDATA["));
 
@@ -58,5 +38,4 @@ public interface Cdata extends Content, CDATASection, NonIndexed {
 
 		renderContext.getBuffer().append("]]>");
 	}
-	*/
 }

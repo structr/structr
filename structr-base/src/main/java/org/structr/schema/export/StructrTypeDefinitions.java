@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.Tx;
@@ -91,6 +90,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	public JsonObjectType addType(final String name) {
+
+		if ("XMPPClient".equals(name)) {
+			Thread.dumpStack();
+		}
 
 		final JsonType type = getType(name, false);
 		if (type != null) {
@@ -250,7 +253,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 					final Map<String, Class> interfaces = configuration.getInterfaces();
 
-					typeClass = interfaces.get("org.structr.dynamic." + type.name);
+					typeClass = interfaces.get(type.name);
 				}
 
 				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
@@ -308,7 +311,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		if (typeClass == null) {
 			Map<String, Class> interfaces = configuration.getInterfaces();
-			typeClass = interfaces.get("org.structr.dynamic." + type.name);
+			typeClass = interfaces.get(type.name);
 		}
 
 		Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
@@ -506,14 +509,20 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return relationships;
 	}
 
-	void diff(final StructrTypeDefinitions other) throws FrameworkException {
+	void diff(final StructrTypeDefinitions staticSchema) throws FrameworkException {
 
 		final Map<String, StructrTypeDefinition> databaseTypes = getMappedTypes();
-		final Map<String, StructrTypeDefinition> structrTypes  = other.getMappedTypes();
+		final Map<String, StructrTypeDefinition> structrTypes  = staticSchema.getMappedTypes();
 		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
 		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
 		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
-		final Set<String> toMigrate                            = Set.of("AbstractMinifiedFileMINIFICATIONFile");
+
+		final Set<String> toMigrate = Set.of(
+			"AbstractMinifiedFileMINIFICATIONFile", "ImagePICTURE_OFUser", "ImageTHUMBNAILImage", "UserHOME_DIRFolder", "UserWORKING_DIRFolder",
+			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", "FolderCONTAINSAbstractFile", "FolderCONTAINSFile", "FolderCONTAINSFolder",
+			"FolderCONTAINSImage", "VideoFileHAS_CONVERTED_VIDEOVideoFile", "VideoFileHAS_POSTER_IMAGEImage",
+			"AbstractFileCONFIGURED_BYStorageConfiguration"
+		);
 
 		typesOnlyInDatabase.removeAll(structrTypes.keySet());
 		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
@@ -538,9 +547,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			final StructrTypeDefinition localType = databaseTypes.get(name);
 			final StructrTypeDefinition otherType = structrTypes.get(name);
+			final Class nodeType                  = getNodeType(name);
 
 			// compare types
-			localType.diff(otherType);
+			localType.diff(nodeType, otherType);
 		}
 	}
 
@@ -558,11 +568,37 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
 
-		logger.warn("Built-in type {} was removed or renamed in the current version of the Structr schema, deleting.", type.getName());
-
 		final AbstractSchemaNode schemaNode = type.getSchemaNode();
+		if (schemaNode != null) {
 
-		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
-		StructrApp.getInstance().delete(schemaNode);
+			StructrApp.getInstance().delete(schemaNode);
+		}
+	}
+
+	private Class getNodeType(final String name) {
+
+		Class type = StructrApp.getConfiguration().getNodeEntityClass(name);
+
+		// core type?
+		if (type == null) {
+			type = classOrNull("org.structr.core.entity." + name);
+		}
+
+		// ui type?
+		if (type == null) {
+			type = classOrNull("org.structr.web.entity." + name);
+		}
+
+		return type;
+	}
+
+	private Class classOrNull(final String fqcn) {
+
+		 try {
+			 return Class.forName(fqcn);
+
+		 } catch (Throwable ignore) {}
+
+		 return null;
 	}
 }

@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.flow.api.FlowElement;
@@ -84,7 +84,7 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 				try (final Tx tx = app.tx()) {
 
-					Principal principal = app.nodeQuery(Principal.class).uuid(secContextUserId).getFirst();
+					PrincipalInterface principal = app.nodeQuery(PrincipalInterface.class).uuid(secContextUserId).getFirst();
 					this.securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
 
 					tx.success();

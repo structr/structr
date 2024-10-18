@@ -18,62 +18,46 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.schema.SchemaService;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.entity.dom.relationship.DOMNodeCONTAINSDOMNode;
 
-import java.net.URI;
 import java.util.List;
 
-public interface Template extends Content {
+public class Template extends Content {
 
-	static class Impl { static {
+	public static final View defaultView = new View(Template.class, PropertyView.Public,
+		contentProperty, contentTypeProperty, childrenProperty, childrenIdsProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Template");
+	public static final View uiView = new View(Template.class, PropertyView.Ui,
+		childrenProperty, childrenIdsProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Template"));
-		type.setExtends(URI.create("#/definitions/Content"));
-		type.setCategory("ui");
+	@Override
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		type.addStringProperty("contentType", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("content",     PropertyView.Public).setIndexed(true);
-
-		type.overrideMethod("renderContent",  false, Template.class.getName() + ".renderContent(this, arg0, arg1);");
-		type.overrideMethod("getContextName", false, "return StringUtils.defaultString(getProperty(AbstractNode.name), \"template\");");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "children");
-		type.addViewProperty(PropertyView.Public, "childrenIds");
-
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "childrenIds");
-
-	}}
-
-	public static void renderContent(final Template thisTemplate, final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		final SecurityContext securityContext = thisTemplate.getSecurityContext();
+		final SecurityContext securityContext = this.getSecurityContext();
 		final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
 
 		if (EditMode.DEPLOYMENT.equals(editMode)) {
 
-			final DOMNode _syncedNode = thisTemplate.getSharedComponent();
+			final DOMNode _syncedNode = this.getSharedComponent();
 			final AsyncBuffer out     = renderContext.getBuffer();
 
 			if (depth > 0) {
 				out.append(DOMNode.indent(depth, renderContext));
 			}
 
-			DOMNode.renderDeploymentExportComments(thisTemplate, out, true);
+			this.renderDeploymentExportComments(out, true);
 
 			out.append("<structr:template src=\"");
 
@@ -86,19 +70,19 @@ public interface Template extends Content {
 			} else {
 
 				// use name of local template
-				final String _name = thisTemplate.getProperty(AbstractNode.name);
-				out.append(_name != null ? _name.concat("-").concat(thisTemplate.getUuid()) : thisTemplate.getUuid());
+				final String _name = this.getProperty(AbstractNode.name);
+				out.append(_name != null ? _name.concat("-").concat(this.getUuid()) : this.getUuid());
 			}
 
 			out.append("\"");
 
-			DOMNode.renderSharedComponentConfiguration(thisTemplate, out, editMode);
-			DOMNode.renderCustomAttributes(thisTemplate, out, securityContext, renderContext); // include custom attributes in templates as well!
+			this.renderSharedComponentConfiguration(out, editMode);
+			this.renderCustomAttributes(out, securityContext, renderContext); // include custom attributes in templates as well!
 
 			out.append(">");
 
 			// fetch children
-			final List<RelationshipInterface> rels = thisTemplate.getChildRelationships();
+			final List<DOMNodeCONTAINSDOMNode> rels = this.getChildRelationships();
 			if (rels.isEmpty()) {
 
 				// No child relationships, maybe this node is in sync with another node
@@ -122,11 +106,11 @@ public interface Template extends Content {
 			final AsyncBuffer out = renderContext.getBuffer();
 
 			out.append("<structr:template data-structr-id=\"");
-			out.append(thisTemplate.getUuid());
+			out.append(this.getUuid());
 			out.append("\">\n");
 
 			// render content
-			Content.renderContent(thisTemplate, renderContext, depth);
+			super.renderContent(renderContext, depth);
 
 			out.append("\n</structr:template>\n");
 
@@ -135,23 +119,28 @@ public interface Template extends Content {
 			final AsyncBuffer out = renderContext.getBuffer();
 
 			out.append("<structr:template data-structr-id=\"");
-			out.append(thisTemplate.getUuid());
+			out.append(this.getUuid());
 			out.append("\">\n");
 
 			// Append preview CSS
 			out.append("<style type=\"text/css\">");
-			out.append(thisTemplate.getProperty("previewCss"));
+			out.append(this.getProperty("previewCss"));
 			out.append("</style>\n");
 
 			// render content
-			Content.renderContent(thisTemplate, renderContext, depth);
+			super.renderContent(renderContext, depth);
 
 			out.append("\n</structr:template>\n");
 
 		} else {
 
 			// "super" call using static method..
-			Content.renderContent(thisTemplate, renderContext, depth);
+			super.renderContent(renderContext, depth);
 		}
+	}
+
+	@Override
+	public String getContextName() {
+		return StringUtils.defaultString(getProperty(AbstractNode.name), "template");
 	}
 }

@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
@@ -52,8 +52,8 @@ public abstract class SSHTest extends StructrFileTestBase {
 
 	protected User createFTPUser(final String username, final String password) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
-		props.put(StructrApp.key(Principal.class, "name"), username);
-		props.put(StructrApp.key(Principal.class, "password"), password);
+		props.put(StructrApp.key(PrincipalInterface.class, "name"), username);
+		props.put(StructrApp.key(PrincipalInterface.class, "password"), password);
 		return (User)createTestNodes(User.class, 1, props).get(0);
 	}
 

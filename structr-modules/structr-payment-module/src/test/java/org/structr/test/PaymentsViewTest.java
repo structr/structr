@@ -22,6 +22,11 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  */
 public class PaymentsViewTest extends StructrUiTest {
@@ -29,6 +34,10 @@ public class PaymentsViewTest extends StructrUiTest {
 	@Test
 	public void testViews() {
 
-		TestHelper.testViews(app, PaymentsViewTest.class.getResourceAsStream("/views.properties"), null);
+		final Map<String, List<String>> additionalRequiredAttributes = new HashMap<>();
+
+		additionalRequiredAttributes.put("PaymentItemNode", Arrays.asList("i:amount", "i:quantity"));
+
+		TestHelper.testViews(app, PaymentsViewTest.class.getResourceAsStream("/views.properties"), additionalRequiredAttributes);
 	}
 }

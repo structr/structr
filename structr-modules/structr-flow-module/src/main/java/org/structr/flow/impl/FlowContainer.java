@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -70,6 +71,18 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	public static final View effectiveNameView = new View(FlowContainer.class, "effectiveNameView", type, id, effectiveName);
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringNotBlank(this, FlowContainer.name, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, FlowContainer.effectiveName, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, FlowContainer.effectiveName, errorBuffer);
+
+		return valid;
+	}
 
 	@Export
 	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {

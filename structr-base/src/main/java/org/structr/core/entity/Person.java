@@ -18,50 +18,47 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
-import java.net.URI;
+import java.util.Date;
 
 /**
  */
-public interface Person extends NodeInterface {
+public class Person extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<String> salutationProperty          = new StringProperty("salutation").partOfBuiltInSchema();
+	public static final Property<String> firstNameProperty           = new StringProperty("firstName").partOfBuiltInSchema();
+	public static final Property<String> middleNameOrInitialProperty = new StringProperty("middleNameOrInitial").partOfBuiltInSchema();
+	public static final Property<String> lastNameProperty            = new StringProperty("lastName").partOfBuiltInSchema();
+	public static final Property<String> eMailProperty               = new StringProperty("eMail").partOfBuiltInSchema();
+	public static final Property<String> eMail2Property              = new StringProperty("eMail2").partOfBuiltInSchema();
+	public static final Property<String> phoneNumber1Property        = new StringProperty("phoneNumber1").partOfBuiltInSchema();
+	public static final Property<String> phoneNumber2Property        = new StringProperty("phoneNumber2").partOfBuiltInSchema();
+	public static final Property<String> faxNumber1Property          = new StringProperty("faxNumber1").partOfBuiltInSchema();
+	public static final Property<String> faxNumber2Property          = new StringProperty("faxNumber2").partOfBuiltInSchema();
+	public static final Property<String> countryProperty             = new StringProperty("country").partOfBuiltInSchema();
+	public static final Property<String> streetProperty              = new StringProperty("street").partOfBuiltInSchema();
+	public static final Property<String> zipCodeProperty             = new StringProperty("zipCode").partOfBuiltInSchema();
+	public static final Property<String> cityProperty                = new StringProperty("city").partOfBuiltInSchema();
+	public static final Property<String> stateProperty               = new StringProperty("state").partOfBuiltInSchema();
+	public static final Property<Date> birthdayProperty              = new DateProperty("birthday").partOfBuiltInSchema();
+	public static final Property<String> genderProperty              = new StringProperty("gender").partOfBuiltInSchema();
+	public static final Property<Boolean> newsletterProperty         = new BooleanProperty("newsletter").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Person");
+	public static final View defaultView = new View(Person.class, PropertyView.Public,
+		salutationProperty, firstNameProperty, middleNameOrInitialProperty, lastNameProperty,
+		eMailProperty, countryProperty, streetProperty, zipCodeProperty, cityProperty, stateProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Person"));
-		type.setCategory("core");
-
-		type.addStringProperty("salutation",          PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("firstName",           PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("middleNameOrInitial", PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("lastName",            PropertyView.Public, PropertyView.Ui);
-
-		type.addStringProperty("eMail",               PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("eMail2",              PropertyView.Ui);
-
-		type.addStringProperty("phoneNumber1",        PropertyView.Ui);
-		type.addStringProperty("phoneNumber2",        PropertyView.Ui);
-		type.addStringProperty("faxNumber1",          PropertyView.Ui);
-		type.addStringProperty("faxNumber2",          PropertyView.Ui);
-
-		type.addStringProperty("country",             PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("street",              PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("zipCode",             PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("city",                PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("state",               PropertyView.Public, PropertyView.Ui);
-
-		type.addDateProperty("birthday",              PropertyView.Ui);
-		type.addStringProperty("gender",              PropertyView.Ui);
-		type.addBooleanProperty("newsletter",         PropertyView.Ui);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
+	public static final View uiView  = new View(Person.class, PropertyView.Ui,
+		salutationProperty, firstNameProperty, middleNameOrInitialProperty, lastNameProperty,
+		eMailProperty, eMail2Property, phoneNumber1Property, phoneNumber2Property, faxNumber1Property, faxNumber2Property,
+		countryProperty, streetProperty, zipCodeProperty, cityProperty, stateProperty,
+		birthdayProperty, genderProperty, newsletterProperty
+	);
 }

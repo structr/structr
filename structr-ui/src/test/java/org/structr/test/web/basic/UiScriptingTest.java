@@ -876,7 +876,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${add_to_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is in the group after the call to add_to_group
-			final List<Principal> members = Iterables.toList(group.getMembers());
+			final List<PrincipalInterface> members = Iterables.toList(group.getMembers());
 			assertTrue("User should be in the test group now", members.contains(tester));
 
 			// check that is_in_group returns the correct result
@@ -1896,7 +1896,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = createTestNode(Principal.class, new NodeAttribute<>(AbstractNode.name, "testuser"));
+			final PrincipalInterface testUser = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "testuser"));
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Backend));
 
 			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
