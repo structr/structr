@@ -1200,9 +1200,6 @@ let _Entities = {
 										if (Structr.isModuleActive(_Pages)) {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
 										}
-										if (Structr.isModuleActive(_Contents)) {
-											_Contents.refreshTree();
-										}
 										if (Structr.isModuleActive(_Files)) {
 											_Files.refreshTree();
 										}
@@ -2277,10 +2274,6 @@ let _Entities = {
 
 //					_Pages.reloadPreviews();
 // 					console.log('reload preview?');
-
-				} else if (Structr.isModuleActive(_Contents)) {
-
-					_Contents.refreshTree();
 
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 

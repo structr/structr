@@ -151,8 +151,8 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
-		final int nodeCount           = 1824;
-		final int relCount            = 2827;
+		final int nodeCount           = 1826;
+		final int relCount            = 2833;
 		final int resourceAccessCount = 0;
 		final int typedNodeCount      = 669;
 
