@@ -21,10 +21,7 @@ package org.structr.web.entity.event;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.relationship.*;
@@ -52,29 +49,29 @@ public class ActionMapping extends AbstractNode {
 	public static final Property<String> successNotificationsProperty        = new StringProperty("successNotifications").hint("Notifications after successful execution of action").partOfBuiltInSchema();
 	public static final Property<String> successNotificationsPartialProperty = new StringProperty("successNotificationsPartial").hint("CSS selector for partial to display as success notification").partOfBuiltInSchema();
 	public static final Property<String> successNotificationsEventProperty   = new StringProperty("successNotificationsEvent").hint("Event to raise for success notifications").partOfBuiltInSchema();
+	public static final Property<Integer> successNotificationsDelayProperty  = new IntProperty("successNotificationsDelay").hint("Delay before hiding success notifications").defaultValue(5000).partOfBuiltInSchema();
 
 	public static final Property<String> failureNotificationsProperty        = new StringProperty("failureNotifications").hint("Notifications after failed execution of action").partOfBuiltInSchema();
 	public static final Property<String> failureNotificationsPartialProperty = new StringProperty("failureNotificationsPartial").hint("CSS selector for partial to display as failure notification").partOfBuiltInSchema();
 	public static final Property<String> failureNotificationsEventProperty   = new StringProperty("failureNotificationsEvent").hint("Event to raise for failure notifications").partOfBuiltInSchema();
+	public static final Property<Integer> failureNotificationsDelayProperty  = new IntProperty("failureNotificationsDelay").hint("Delay before hiding failure notifications").defaultValue(5000).partOfBuiltInSchema();
 
 	public static final Property<String> successBehaviourProperty = new StringProperty("successBehaviour").hint("Behaviour after successful execution of action").partOfBuiltInSchema();
 	public static final Property<String> successPartialProperty   = new StringProperty("successPartial").hint("CSS selector for partial to refresh on success").partOfBuiltInSchema();
 	public static final Property<String> successURLProperty       = new StringProperty("successURL").hint("URL to navigate to on success").partOfBuiltInSchema();
 	public static final Property<String> successEventProperty     = new StringProperty("successEvent").hint("Event to raise on success").partOfBuiltInSchema();
-		type.addIntegerProperty("successNotificationsDelay",  PropertyView.Ui).setHint("Delay before hiding success notifications").setDefaultValue("5000");
 
 	public static final Property<String> failureBehaviourProperty = new StringProperty("failureBehaviour").hint("Behaviour after failed execution of action").partOfBuiltInSchema();
 	public static final Property<String> failurePartialProperty   = new StringProperty("failurePartial").hint("CSS selector for partial to refresh on failure").partOfBuiltInSchema();
 	public static final Property<String> failureURLProperty       = new StringProperty("failureURL").hint("URL to navigate to on failure").partOfBuiltInSchema();
 	public static final Property<String> failureEventProperty     = new StringProperty("failureEvent").hint("Event to raise on failure").partOfBuiltInSchema();
-		type.addIntegerProperty("failureNotificationsDelay",  PropertyView.Ui).setHint("Delay before hiding failure notifications").setDefaultValue("5000");
 
 	public static final View uiView = new View(ActionMapping.class, PropertyView.Ui,
 		eventProperty, actionProperty, methodProperty, dataTypeProperty, idExpressionProperty, optionsProperty, dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
 		successNotificationsProperty, successNotificationsPartialProperty, successNotificationsEventProperty,
 		failureNotificationsProperty, failureNotificationsPartialProperty, failureNotificationsEventProperty,
-		successBehaviourProperty, successPartialProperty, successURLProperty, successEventProperty,
-		failureBehaviourProperty, failurePartialProperty, failureURLProperty, failureEventProperty,
+		successBehaviourProperty, successPartialProperty, successURLProperty, successEventProperty, successNotificationsDelayProperty,
+		failureBehaviourProperty, failurePartialProperty, failureURLProperty, failureEventProperty, failureNotificationsDelayProperty,
 
 		triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings
 	);
