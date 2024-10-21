@@ -38,10 +38,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
@@ -136,7 +133,8 @@ public class HttpHelper {
 		final HttpClientBuilder clientBuilder = HttpClients.custom()
 				.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
 				.setUserAgent(Settings.HttpUserAgent.getValue())
-				.setDefaultCredentialsProvider(credsProvider);
+				.setDefaultCredentialsProvider(credsProvider)
+				.setRedirectStrategy(new LaxRedirectStrategy());
 
 		if (Boolean.FALSE.equals(validateCertificates)) {
 
