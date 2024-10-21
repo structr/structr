@@ -334,6 +334,8 @@ public class SchemaNode extends AbstractSchemaNode {
 					setProperty(SchemaNode.implementsInterfaces, implementsInterfaces);
 				}
 			}
+
+			// migrate extendsClass relationship from dynamic to static
 		}
 
 		// remove "all" view since it is internal and shouldn't be updated explicitly
