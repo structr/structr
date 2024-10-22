@@ -463,13 +463,13 @@ let _Files = {
 						let files = [...selectedElements].map(el => Structr.entityFromElement(el));
 
 						_Entities.deleteNodes(files, true, () => {
-							_Files.refreshTree();
+							// refresh handled via model
 						});
 
 					} else {
 
 						_Entities.deleteNode(entity, true, () => {
-							_Files.refreshTree();
+							// refresh handled via model
 						});
 					}
 				}
@@ -941,28 +941,23 @@ let _Files = {
 	fileOrFolderDeletionNotificationTimeout: undefined,
 	fileOrFolderDeletionNotification: (deletedFileOrFolder) => {
 
-		// this should only run for inactive windows (the active window should be the originator)
-		// it would be even better to only NOT run for the originator - an active window could be another user on another machine...
-		if (document.hasFocus() === false) {
+		// this can have been called after multi-deleting files/folders, schedule it to probably only run once.
+		window.clearTimeout(_Files.fileOrFolderDeletionNotificationTimeout);
 
-			// this can have been called after multi-deleting files/folders, schedule it to probably only run once.
-			window.clearTimeout(_Files.fileOrFolderDeletionNotificationTimeout);
+		_Files.fileOrFolderDeletionNotificationTimeout = window.setTimeout(() => {
 
-			_Files.fileOrFolderDeletionNotificationTimeout = window.setTimeout(() => {
+			if (deletedFileOrFolder.isFile) {
 
-				if (deletedFileOrFolder.isFile) {
+				// optimistically we should get away with only reloading the tree if a folder was deleted...
+				// ...but that would be a bit more bookkeeping because we are trying to only run once
+				_Files.refreshTree();
 
-					// optimistically we should get away with only reloading the tree if a folder was deleted...
-					// ...but that would be a bit more bookkeeping because we are trying to only run once
-					_Files.refreshTree();
+			} else if (deletedFileOrFolder.isFolder) {
 
-				} else if (deletedFileOrFolder.isFolder) {
+				_Files.refreshTree();
+			}
 
-					_Files.refreshTree();
-				}
-
-			}, 200);
-		}
+		}, 200);
 	},
 	getFormattedDate: (date) => {
 		return _Files.dateFormat.format(new Date(date));
