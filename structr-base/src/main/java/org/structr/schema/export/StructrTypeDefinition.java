@@ -630,6 +630,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonCountProperty addCountProperty(final String name, final String... views) {
+
+		final StructrCountProperty countProperty = new StructrCountProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(countProperty);
+
+		return countProperty;
+	}
+
+	@Override
 	public JsonScriptProperty addScriptProperty(final String name, final String... views) {
 
 		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);
