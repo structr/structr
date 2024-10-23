@@ -4537,7 +4537,7 @@ let _Pages = {
 					</div>
 
 					<div class="hidden em-parameter-value parameter-constant-value">
-						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
+						<label class="block mb-2" data-comment="Enter a constant value. By default it is interpreted as a string.<br><br>To pass a proper JS object, <code>json({ key: &quot;value&quot;})</code> can be used.<br>To pass the complete dataTransfer object from the mouse event, <code>data()</code> can be used.">Value (constant)</label>
 						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
 					</div>
 

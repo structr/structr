@@ -209,7 +209,7 @@ let StructrModel = {
 		}
 
 		let node = Structr.node(id);
-		if (node && node.remove && !node.hasClass("schema")) {
+		if (node && node.remove && !node.hasClass("schema") && !node.hasClass("file") && !node.hasClass("folder")) {
 			_Helpers.fastRemoveElement(node[0]);
 		}
 
