@@ -57,6 +57,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
+import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.web.entity.User;
 
 /**
@@ -813,7 +814,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-					processResult(securityContext, request, response, result, handler.getRequestedView(), depth, handler.isCollection());
+					boolean returnRawResult = handler instanceof RESTMethodCallHandler && ((RESTMethodCallHandler) handler).shouldReturnRawResult();
+
+					processResult(securityContext, request, response, result, handler.getRequestedView(), depth, handler.isCollection(), returnRawResult);
 				}
 			}
 

@@ -79,6 +79,11 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean returnRawResult() {
+		return returnRawResult;
+	}
+
+	@Override
 	public boolean isStatic() {
 		return isStaticMethod;
 	}

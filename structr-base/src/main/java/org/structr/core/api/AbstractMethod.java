@@ -60,6 +60,7 @@ public abstract class AbstractMethod {
 
 	public abstract boolean isStatic();
 	public abstract boolean isPrivate();
+	public abstract boolean returnRawResult();
 	public abstract Snippet getSnippet();
 	public abstract HttpVerb getHttpVerb();
 	public abstract Parameters getParameters();

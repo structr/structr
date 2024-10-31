@@ -59,6 +59,11 @@ public class ReflectiveMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean returnRawResult() {
+		return false;
+	}
+
+	@Override
 	public boolean isStatic() {
 		return Modifier.isStatic(method.getModifiers());
 	}

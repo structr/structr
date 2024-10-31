@@ -60,4 +60,9 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 			return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 		}
 	}
+
+	public boolean shouldReturnRawResult() {
+
+		return this.method.returnRawResult();
+	}
 }

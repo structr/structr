@@ -105,7 +105,7 @@ public class FlowServlet extends JsonRestServlet {
 						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-						processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
+						processResult(securityContext, request, response, result, PropertyView.Public, depth, false, false);
 					}
 
 					response.setStatus(HttpServletResponse.SC_OK);
@@ -230,7 +230,7 @@ public class FlowServlet extends JsonRestServlet {
 					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-					processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
+					processResult(securityContext, request, response, result, PropertyView.Public, depth, false, false);
 
 					response.setStatus(HttpServletResponse.SC_OK);
 

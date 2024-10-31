@@ -144,7 +144,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final String view, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {
+	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final String view, final int outputDepth, final boolean wrapSingleResultInArray, final boolean returnRawResult) throws ServletException, IOException {
 
 		final String serializeNullsSrc = request.getParameter(RequestKeywords.SerializeNulls.keyword());
 		final boolean serializeNulls   = Services.parseBoolean(serializeNullsSrc, true);
@@ -154,7 +154,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 			final String accept = request.getHeader("Accept");
 
-			if (accept != null && accept.contains("text/html")) {
+			if (returnRawResult == false && accept != null && accept.contains("text/html")) {
 
 				writeHtml(securityContext, response, result, baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 
