@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
@@ -42,18 +43,20 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final Map<String, GraphQueryPart> parts = new LinkedHashMap<>();
 	private final StringBuilder buffer              = new StringBuilder();
+	private AbstractCypherIndex<?> index            = null;
+	private QueryContext queryContext               = null;
 	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
 	private boolean hasOptionalParts                = false;
 	private String currentGraphPartIdentifier       = "n";
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
-	private AbstractCypherIndex<?> index            = null;
+	private String relationshipType                 = null;
+	private String type                             = null;
+	private boolean outgoing                        = false;
 	private SortOrder sortOrder                     = null;
 	private int fetchPage                           = 0;
 	private int count                               = 0;
-	private QueryContext queryContext               = null;
-	private boolean timeoutViolated                 = false;
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index, final int requestedPageSize, final int requestedPage) {
 
@@ -83,7 +86,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public String toString() {
-		return getStatement(false);
+		return getStatement();
 	}
 
 	@Override
@@ -104,20 +107,12 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return buffer.length() > 0;
 	}
 
-	public boolean hasRelationshipPredicates() {
-		return !currentGraphPartIdentifier.equals("n");
-	}
-
-	public String getTypeLabel() {
-		return getTypeQueryLabel(null);
-	}
-
 	public boolean getHasOptionalParts() {
 		return hasOptionalParts;
 	}
 
 	@Override
-	public String getStatement(final boolean paged) {
+	public String getStatement() {
 
 		final boolean hasPredicates = hasPredicates();
 		final StringBuilder buf     = new StringBuilder();
@@ -201,13 +196,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 		}
 
-		if (paged) {
-
-			buf.append(" SKIP ");
-			buf.append(fetchPage * fetchSize);
-			//buf.append(" LIMIT ");
-			//buf.append(fetchSize);
-		}
+		buf.append(" SKIP ");
+		buf.append(fetchPage * fetchSize);
 
 		return buf.toString();
 	}
@@ -501,6 +491,25 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return queryTimer;
 	}
 
+	public void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction) {
+
+		this.type             = type;
+		this.relationshipType = relationshipType.name();
+		this.outgoing         = Direction.OUTGOING.equals(direction);
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String getRelationshipType() {
+		return relationshipType;
+	}
+
+	public boolean isOutgoing() {
+		return outgoing;
+	}
+
 	// ----- private methods -----
 	private String getTypeQueryLabel(final String mainType) {
 
@@ -585,13 +594,5 @@ public class AdvancedCypherQuery implements CypherQuery {
 		currentGraphPartIdentifier = Character.toString(currentGraphPartIdentifier.charAt(0) + 1);
 
 		return currentGraphPartIdentifier;
-	}
-
-	public void setTimeoutViolated () {
-		this.timeoutViolated = true;
-	}
-
-	public boolean timeoutViolated() {
-		return this.timeoutViolated;
 	}
 }

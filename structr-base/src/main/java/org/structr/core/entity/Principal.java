@@ -40,10 +40,7 @@ import org.structr.core.property.PropertyMap;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Principal extends AbstractNode implements PrincipalInterface, AccessControllable {
 
@@ -149,7 +146,7 @@ public abstract class Principal extends AbstractNode implements PrincipalInterfa
 			final App app                       = StructrApp.getInstance();
 			final Principal privilegedPrincipal = app.get(Principal.class, getUuid());
 
-			return privilegedPrincipal.getProperty(StructrApp.key(Principal.class, "groups"));
+			return (Iterable)privilegedPrincipal.getProperty(Principal.groupsProperty);
 
 		} catch (FrameworkException fex) {
 

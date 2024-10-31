@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.apache.commons.collections4.SetUtils;
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
@@ -27,6 +28,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public interface PrincipalInterface extends NodeInterface, AccessControllable {
 
@@ -99,4 +102,24 @@ public interface PrincipalInterface extends NodeInterface, AccessControllable {
 	String getTwoFactorUrl();
 
 	default void onAuthenticate() {}
+
+
+	default Set<String> getOwnAndRecursiveParentsUuids() {
+
+		final Set<String> uuids = new LinkedHashSet<>();
+
+		recursiveCollectParentUuids(this, uuids);
+
+		return uuids;
+	}
+
+	default void recursiveCollectParentUuids(final PrincipalInterface principal, final Set<String> uuids) {
+
+		uuids.add(principal.getUuid());
+
+		for (final PrincipalInterface parent : principal.getParentsPrivileged()) {
+
+			recursiveCollectParentUuids(parent, uuids);
+		}
+	}
 }

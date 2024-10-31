@@ -42,6 +42,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
 	private boolean doNotifications         = true;
+	private String prefetchHint             = null;
 
 	public Tx(final SecurityContext securityContext) {
 		this(securityContext, true, true);
@@ -68,6 +69,12 @@ public class Tx implements AutoCloseable, Prefetcher {
 
 	public void success() throws FrameworkException {
 		TransactionCommand.commitTx(securityContext, doValidation);
+	}
+
+	@Override
+	public void prefetchHint(final String hint) {
+		TransactionCommand.getCurrentTransaction().prefetchHint(hint);
+		this.prefetchHint = hint;
 	}
 
 	@Override
@@ -111,6 +118,9 @@ public class Tx implements AutoCloseable, Prefetcher {
 
 				// experimental
 				try (final Tx tx = begin()) {
+
+					// copy prefetch hint to callback transaction
+					tx.prefetchHint(this.prefetchHint);
 
 					if (doCallbacks && modificationQueue != null) {
 

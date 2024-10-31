@@ -18,46 +18,50 @@
  */
 package org.structr.bolt;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.*;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Path.Segment;
 import org.neo4j.driver.types.Relationship;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.*;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
-import org.structr.api.util.Iterables;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
  */
 abstract class SessionTransaction implements org.structr.api.Transaction {
 
-	private static final Logger logger                  = LoggerFactory.getLogger(SessionTransaction.class);
-	protected static final AtomicLong ID_SOURCE         = new AtomicLong();
+	private static final Logger logger                                  = LoggerFactory.getLogger(SessionTransaction.class);
+	private static final Set<String> relationshipTypeBlacklist          = Set.of("SECURITY", "OWNS");
+	protected static final AtomicLong ID_SOURCE                         = new AtomicLong();
+
+	protected static final Map<String, Map<String, PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
+	protected static final Map<String, Boolean> prefetchBlacklist               = new ConcurrentHashMap<>();
+
+	protected final Map<String, PrefetchInfo> histogram = new LinkedHashMap<>();
 	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
 	protected final Set<Long> deletedNodes              = new LinkedHashSet<>();
 	protected final Set<Long> deletedRels               = new LinkedHashSet<>();
-	protected final Set<String> prefetched              = new LinkedHashSet<>();
+	protected final Set<String> prefetchedOutgoing      = new LinkedHashSet<>();
+	protected final Set<String> prefetchedIncoming      = new LinkedHashSet<>();
+	protected final Set<String> prefetchedQueries       = new LinkedHashSet<>();
 	protected final Object transactionKey               = new Object();
 	protected BoltDatabaseService db                    = null;
+	protected String prefetchHint                       = null;
 	protected long transactionId                        = 0L;
 	protected boolean success                           = false;
 	protected boolean isPing                            = false;
@@ -69,18 +73,16 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public abstract boolean isClosed();
-	protected abstract Boolean getBoolean(final String statement);
-	protected abstract Boolean getBoolean(final String statement, final Map<String, Object> map);
-	protected abstract Long getLong(final String statement);
-	protected abstract Long getLong(final String statement, final Map<String, Object> map);
-	protected abstract Node getNode(final String statement, final Map<String, Object> map);
-	protected abstract Relationship getRelationship(final String statement, final Map<String, Object> map);
-	protected abstract Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer);
-	protected abstract Iterable<String> getStrings(final String statement, final Map<String, Object> map);
-	protected abstract Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map);
+	protected abstract Boolean getBoolean(final CypherQuery query);
+	protected abstract Long getLong(final CypherQuery query);
+	protected abstract Node getNode(final CypherQuery query);
+	protected abstract Relationship getRelationship(final CypherQuery query);
+	protected abstract Iterable<Record> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer consumer);
+	protected abstract Iterable<Map<String, Object>> run(final CypherQuery query);
+
 	protected abstract void set(final String statement, final Map<String, Object> map);
 
-	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query);
+	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query);
 
 	public void delete(final NodeWrapper wrapper) {
 		deletedNodes.add(wrapper.getId().getId());
@@ -94,14 +96,18 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		this.isPing = isPing;
 	}
 
+	public int level() {
+		return 0;
+	}
+
 	@Override
 	public long getTransactionId() {
 		return this.transactionId;
 	}
 
-	public Object getTransactionKey() {
-		// we need a simple object that can be used in a weak hash map
-		return transactionKey;
+	public static void flushCaches() {
+		prefetchInfos.clear();
+		prefetchBlacklist.clear();
 	}
 
 	public NodeWrapper getNodeWrapper(final org.neo4j.driver.types.Node node) {
@@ -151,7 +157,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
 
-		final Node entity = getNode("MATCH (n" + tenantIdentifier + ") WHERE ID(n) = $id RETURN n", Map.of("id", id));
+		final Node entity = getNode(new SimpleCypherQuery("MATCH (n" + tenantIdentifier + ") WHERE ID(n) = $id RETURN n", Map.of("id", id)));
 		if (entity != null) {
 
 			node = new NodeWrapper(db, entity);
@@ -163,29 +169,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		throw new NotFoundException("Node with ID " + id + " not found.");
 	}
-
-	/*
-	public NodeWrapper getNodeWrapper(final long id) {
-
-		NodeWrapper node = nodes.get(id);
-		if (node != null) {
-
-			return node;
-		}
-
-		final String rawTenantIdentifier             = db.getTenantIdentifier();
-		final String tenantIdentifier                = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
-		final Iterable<Record> records               = collectRecords("MATCH (n" + tenantIdentifier + ") WHERE ID(n) = $id WITH n OPTIONAL MATCH (n)-[r]-(m" + tenantIdentifier + ") RETURN DISTINCT n, collect(distinct r) AS rels, collect(distinct m) AS nodes", Map.of("id", id), null);
-		final List<org.structr.api.graph.Node> nodes = Iterables.toList(Iterables.map(new PrefetchNodeMapper(db), records));
-
-		if (!nodes.isEmpty()) {
-
-			return (NodeWrapper)nodes.get(0);
-		}
-
-		throw new NotFoundException("Node with ID " + id + " not found.");
-	}
-	*/
 
 	public RelationshipWrapper getRelationshipWrapper(final long id) {
 
@@ -215,7 +198,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		buf.append(") WHERE ID(n) = $id RETURN n");
 
-		final Relationship entity = tx.getRelationship(buf.toString(), Map.of("id", id));
+		final Relationship entity = tx.getRelationship(new SimpleCypherQuery(buf, Map.of("id", id)));
 		if (entity != null) {
 
 			rel = new RelationshipWrapper(db, entity);
@@ -246,6 +229,66 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public boolean isRelationshipDeleted(final long id) {
 		return deletedRels.contains(id);
+	}
+
+	@Override
+	public void close() {
+
+		if (db.logQueries()) {
+
+			if (!histogram.isEmpty()) {
+
+				logger.info("Query count histogram for transaction {}:", getTransactionId());
+
+				for (final String key : histogram.keySet()) {
+
+					logger.info("{}", histogram.get(key));
+
+				}
+			}
+		}
+	}
+
+	@Override
+	public void prefetchHint(final String hint) {
+
+		if (this.prefetchHint == null) {
+			this.prefetchHint = hint;
+		}
+
+		if (hint != null && hint.equals(this.prefetchHint)) {
+
+			final Map<String, PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+			if (infos != null) {
+
+				for (final PrefetchInfo prefetch : infos.values()) {
+
+					final Set<String> outgoingSet = Set.of(prefetch.getType() + "/all/OUTGOING/" + prefetch.relType);
+					final Set<String> incomingSet = Set.of(prefetch.getType() + "/all/INCOMING/" + prefetch.relType);
+
+					final long t0        = System.currentTimeMillis();
+					final String pattern = prefetch.getPattern();
+
+					if (!prefetchBlacklist.containsKey(pattern)) {
+
+						prefetch(pattern, outgoingSet, incomingSet);
+
+						final long t = System.currentTimeMillis() - t0;
+
+						if (t > Settings.PrefetchingMaxDuration.getValue(500)) {
+
+							if (db.logQueries()) {
+
+								// blacklist prefetching calls that take too long
+								logger.info("Blacklisting prefetching pattern {} because it takes {} ms, {} is {}", pattern, t, Settings.PrefetchingMaxDuration.getKey(), Settings.PrefetchingMaxDuration.getValue(500));
+							}
+
+							prefetchBlacklist.put(pattern, true);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -290,14 +333,14 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
 
-		if (prefetched.containsAll(outgoingKeys) && prefetched.containsAll(incomingKeys) && prefetched.contains(query)) {
+		if (prefetchedOutgoing.containsAll(outgoingKeys) && prefetchedIncoming.containsAll(incomingKeys) && prefetchedQueries.contains(query)) {
 
 			return;
 		}
 
-		prefetched.addAll(outgoingKeys);
-		prefetched.addAll(incomingKeys);
-		prefetched.add(query);
+		prefetchedOutgoing.addAll(outgoingKeys);
+		prefetchedIncoming.addAll(incomingKeys);
+		prefetchedQueries.add(query);
 
 		final long t0             = System.currentTimeMillis();
 		final StringBuilder buf   = new StringBuilder();
@@ -308,7 +351,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		buf.append(query);
 		buf.append(" RETURN p");
 
-		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
+		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(buf), null)) {
 
 			final Path p        = r.get("p").asPath();
 			NodeWrapper current = null;
@@ -353,20 +396,21 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		if (db.logQueries()) {
 
-			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+			logger.info(transactionId + ": prefetched {} entities in {} ms with {}", count, (System.currentTimeMillis() - t0), buf);
 		}
 	}
 
 	@Override
 	public void prefetch(final String query, final Set<String> keys) {
 
-		if (prefetched.containsAll(keys) && prefetched.contains(query)) {
+		if (prefetchedOutgoing.containsAll(keys) && prefetchedIncoming.containsAll(keys) && prefetchedQueries.contains(query)) {
 
 			return;
 		}
 
-		prefetched.addAll(keys);
-		prefetched.add(query);
+		prefetchedOutgoing.addAll(keys);
+		prefetchedIncoming.addAll(keys);
+		prefetchedQueries.add(query);
 
 		final long t0             = System.currentTimeMillis();
 		final StringBuilder buf   = new StringBuilder();
@@ -377,7 +421,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		buf.append(query);
 		buf.append(" RETURN p");
 
-		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
+		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(buf), null)) {
 
 			final Path p        = r.get("p").asPath();
 			NodeWrapper current = null;
@@ -422,25 +466,25 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		if (db.logQueries()) {
 
-			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+			logger.info(transactionId + ": prefetched {} entities in {} ms with {}", count, (System.currentTimeMillis() - t0), buf);
 		}
 	}
 
 	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
 
-		if (prefetched.containsAll(outgoingKeys) && prefetched.containsAll(incomingKeys) && prefetched.contains(query + id)) {
+		if (prefetchedOutgoing.containsAll(outgoingKeys) && prefetchedIncoming.containsAll(incomingKeys) && prefetchedQueries.contains(query + id)) {
 
 			return;
 		}
 
-		prefetched.addAll(outgoingKeys);
-		prefetched.addAll(incomingKeys);
-		prefetched.add(query + id);
+		prefetchedOutgoing.addAll(outgoingKeys);
+		prefetchedIncoming.addAll(incomingKeys);
+		prefetchedQueries.add(query + id);
 
 		final long t0             = System.currentTimeMillis();
 		long count                = 0L;
 
-		for (final org.neo4j.driver.Record r : collectRecords(query, Map.of("id", id), null)) {
+		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(query, Map.of("id", id)), null)) {
 
 			final List<org.neo4j.driver.types.Node> nodes        = (List)r.get("nodes").asList();
 			final List<org.neo4j.driver.types.Relationship> rels = (List)r.get("rels").asList();
@@ -468,7 +512,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		if (db.logQueries()) {
 
-			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+			logger.info(transactionId + ": prefetched {} entities in {} ms with {}", count, (System.currentTimeMillis() - t0), query);
 		}
 	}
 
@@ -506,11 +550,62 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	// ----- protected methods -----
-	protected void logQuery(final String statement) {
-		logQuery(statement, null);
+	protected void logQuery(final CypherQuery query) {
+
+		if (prefetchHint != null && query.getType() != null && query.getRelationshipType() != null) {
+
+			if (!relationshipTypeBlacklist.contains(query.getRelationshipType())) {
+
+				final String statement = query.getStatement();
+
+				final PrefetchInfo info = histogram.get(statement);
+				if (info != null) {
+
+					final int count     = info.incrementAndGetCount();
+					final int threshold = Settings.PrefetchingThreshold.getValue(100);
+
+					if (count > threshold && !prefetchBlacklist.containsKey(info.getPattern())) {
+
+						final Map<String, PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new LinkedHashMap<>());
+
+						// store prefetching info and log info message
+						if (infos.put(statement, info) == null) {
+
+							final String pattern = info.getPattern();
+
+							final long prefetchResultCount = getLong(new SimpleCypherQuery("MATCH p = " + pattern + " RETURN count(p)"));
+							if (prefetchResultCount < Settings.PrefetchingMaxCount.getValue(100_000)) {
+
+								if (db.logQueries()) {
+
+									logger.info("Activating prefetching for {} because it runs more than {} times in a single transaction", pattern, threshold);
+								}
+
+							} else {
+
+								if (db.logQueries()) {
+
+									logger.info("NOT activating prefetching for {} because it returns more than {} results", pattern, prefetchResultCount);
+								}
+
+								prefetchBlacklist.put(pattern, true);
+							}
+						}
+					}
+
+				} else {
+
+					final String pattern = getPattern(query);
+
+					histogram.put(statement, new PrefetchInfo(pattern, query, prefetchHint));
+				}
+			}
+		}
+
+		logQuery(query.getStatement(), query.getParameters());
 	}
 
-	protected void logQuery(final String statement, final Map<String, Object> map) {
+	protected void logQuery(final String query, final Map<String, Object> map) {
 
 		if (db.logQueries()) {
 
@@ -518,15 +613,15 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				if (map != null && !map.isEmpty()) {
 
-					if (statement.contains("extractedContent")) {
-						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
+					if (query.contains("extractedContent")) {
+						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
 					} else {
-						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), statement, map.toString());
+						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, map.toString());
 					}
 
 				} else {
 
-					logger.info("{}: {} - {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), statement);
+					logger.info("{}: {} - {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query);
 				}
 			}
 		}
@@ -560,5 +655,94 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		nodes.clear();
 		rels.clear();
+	}
+
+	private String getPattern(final CypherQuery query) {
+
+		final String type        = query.getType();
+		final String relType     = query.getRelationshipType();
+		final boolean isOutgoing = query.isOutgoing();
+
+		if (type != null && relType != null) {
+
+			String pattern = "-[r:" + relType + "]-";
+
+			if (isOutgoing) {
+
+				pattern = pattern + ">(m)";
+
+			} else {
+
+				pattern = "<" + pattern + "(m)";
+			}
+
+			pattern = "(n:" + type + ")" + pattern;
+
+			return pattern;
+		}
+
+		return null;
+	}
+
+	private class PrefetchInfo {
+
+		private String type      = null;
+		private String pattern   = null;
+		private String relType   = null;
+		private boolean outgoing = false;
+		private String hash      = null;
+		private int count        = 1;
+
+		public PrefetchInfo(final String pattern, final CypherQuery query, final String hash) {
+
+			this.pattern  = pattern;
+			this.type     = query.getType();
+			this.relType  = query.getRelationshipType();
+			this.outgoing = query.isOutgoing();
+			this.hash     = hash;
+		}
+
+		@Override
+		public String toString() {
+			return StringUtils.leftPad(Integer.toString(count), 8, " ") + ": " + pattern;
+		}
+
+		public int getCount() {
+			return count;
+		}
+
+		public int incrementAndGetCount() {
+			return ++count;
+		}
+
+		public String getHash() {
+			return hash;
+		}
+
+		public String getType() {
+			return type;
+		}
+
+		public String getPattern() {
+			return pattern;
+		}
+
+		public String getRelType() {
+			return relType;
+		}
+
+		public boolean isOutgoing() {
+			return outgoing;
+		}
+
+		@Override
+		public int hashCode() {
+			return pattern.hashCode();
+		}
+
+		@Override
+		public boolean equals(final Object other) {
+			return ((PrefetchInfo)other).hashCode() == this.hashCode();
+		}
 	}
 }

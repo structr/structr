@@ -26,4 +26,6 @@ public interface Prefetcher {
 	void prefetch(final String query, final Set<String> keys);
 	void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys);
 	void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id);
+
+	void prefetchHint(final String hint);
 }

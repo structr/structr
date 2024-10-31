@@ -663,16 +663,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	/**
-	 * Return statistical information on all relationships of this node
-	 *
-	 * @param dir
-	 * @return number of relationships
-	 */
-	public final Map<String, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
-		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
-	}
-
-	/**
 	 * Returns the owner node of this node, following an INCOMING OWNS
 	 * relationship.
 	 *
@@ -777,12 +767,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 
-		// use quick checks for maximum performance
-		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(getOwnerNode()) ) ) {
-
-			return true;
-		}
-
 		if (accessingUser != null) {
 
 			// this includes SuperUser
@@ -798,14 +782,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 		}
 
+		final PrincipalInterface _owner = getOwnerNode();
+		final boolean hasOwner          = (_owner != null);
+
+		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(_owner) ) ) {
+			return true;
+		}
+
 		// allow accessingUser to access itself, but not parents etc.
 		if (this.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
 			return true;
 		}
-
-		// check owner
-		final PrincipalInterface _owner = getOwnerNode();
-		final boolean hasOwner = (_owner != null);
 
 		// node has an owner, deny anonymous access
 		if (hasOwner && accessingUser == null) {
@@ -825,6 +812,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			if (security != null && security.isAllowed(permission)) {
 				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
+			}
+
+			for (PrincipalInterface parent : accessingUser.getParentsPrivileged()) {
+
+				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships, isCreation)) {
+					return true;
+				}
 			}
 
 			// new experimental custom permission resultion based on query
@@ -907,14 +901,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				// do backtracking
 				backtrack(root, accessingUser.getUuid(), permission, false, 0, doLog);
 			}
-
-			// Last: recursively check possible parent principals
-			for (PrincipalInterface parent : accessingUser.getParentsPrivileged()) {
-
-				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships, isCreation)) {
-					return true;
-				}
-			}
 		}
 
 		return false;
@@ -964,53 +950,60 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, principal != null ? principal.getName() : null); }
 
-		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
+		final Node node                = getNode();
+		final Map<String, Long> degree = node.getDegree();
 
-			// iterate over list of relationships
-			final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
-			final int count           = list.size();
-			final int threshold       = 1000;
+		for (final String type : degree.keySet()) {
 
-			if (count < threshold) {
+			final Class propagatingType = StructrApp.getConfiguration().getRelationshipEntityClass(type);
 
-				for (final Relation source : list) {
+			if (propagatingType != null && PermissionPropagation.class.isAssignableFrom(propagatingType)) {
 
-					if (source instanceof PermissionPropagation) {
+				// iterate over list of relationships
+				final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
+				final int count = list.size();
+				final int threshold = 1000;
 
-						final PermissionPropagation perm = (PermissionPropagation)source;
-						final RelationshipInterface rel  = (RelationshipInterface)source;
+				if (count < threshold) {
 
-						if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
+					for (final Relation source : list) {
 
-						// check propagation direction vs. evaluation direction
-						if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
+						if (source instanceof PermissionPropagation perm) {
 
-							applyCurrentStep(perm, mask);
+							if (doLog) {
+								logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, source.getRelType().name(), principal != null ? principal.getName() : null);
+							}
 
-							if (mask.allowsPermission(permission)) {
+							// check propagation direction vs. evaluation direction
+							if (propagationAllowed(this, source, perm.getPropagationDirection(), doLog)) {
 
-								final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
+								applyCurrentStep(perm, mask);
 
-								if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
+								if (mask.allowsPermission(permission)) {
 
-									otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+									final AbstractNode otherNode = (AbstractNode) source.getOtherNode(this);
 
-									// break early
-									return true;
+									if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-								} else {
+										otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
 
-									// add node to BFS queue
-									bfsNodes.add(new BFSInfo(parent, otherNode));
+										// break early
+										return true;
+
+									} else {
+
+										// add node to BFS queue
+										bfsNodes.add(new BFSInfo(parent, otherNode));
+									}
 								}
 							}
 						}
 					}
+
+				} else if (doLog) {
+
+					logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 				}
-
-			} else if (doLog) {
-
-				logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 			}
 		}
 

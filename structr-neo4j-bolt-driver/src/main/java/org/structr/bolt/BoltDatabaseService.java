@@ -247,7 +247,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		properties.put("type", type);
 
 		final SessionTransaction tx            = getCurrentTransaction();
-		final org.neo4j.driver.types.Node node = tx.getNode(buf.toString(), map);
+		final org.neo4j.driver.types.Node node = tx.getNode(new SimpleCypherQuery(buf, map));
 
 		return tx.getNodeWrapper(node);
 	}
@@ -557,7 +557,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
-		return getCurrentTransaction().run(nativeQuery, parameters);
+		return getCurrentTransaction().run(new SimpleCypherQuery(nativeQuery, parameters));
 	}
 
 	TransactionConfig getTransactionConfig(final long id) {
@@ -661,6 +661,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
 		return Map.of();
+	}
+
+	@Override
+	public void flushCaches() {
+		SessionTransaction.flushCaches();
 	}
 
 	// ----- private methods -----

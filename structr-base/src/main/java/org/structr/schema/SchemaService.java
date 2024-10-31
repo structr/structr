@@ -124,6 +124,8 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					tx.prefetchHint("Diff schema");
+
 					SchemaService.prefetchSchemaNodes(tx);
 
 					final JsonSchema databaseSchema = StructrSchema.createFromDatabase(app);
@@ -162,6 +164,8 @@ public class SchemaService implements Service {
 				try (final Tx tx = app.tx()) {
 
 					SchemaService.prefetchSchemaNodes(tx);
+
+					tx.prefetchHint("Reload schema");
 
 					while (retryCount-- > 0) {
 
@@ -521,6 +525,7 @@ public class SchemaService implements Service {
 
 	public static void prefetchSchemaNodes(final Prefetcher tx) {
 
+		/*
 		tx.prefetch("SchemaReloadingNode", (String)null, Set.of(
 
 			"all/INCOMING/OWNS",
@@ -544,6 +549,8 @@ public class SchemaService implements Service {
 			"all/OUTGOING/IS_RELATED_TO"
 
 		));
+
+		 */
 	}
 
 	// ----- interface Feature -----

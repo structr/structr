@@ -294,6 +294,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		return Map.of();
 	}
 
+	@Override
+	public void flushCaches() {
+	}
+
 	// ----- graph repository methods -----
 	public Relationship createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
 

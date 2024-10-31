@@ -16,19 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.common;
+package org.structr.api.util;
 
-import org.structr.api.graph.RelationshipType;
+import java.util.Iterator;
 
-/**
- *
- *
- */
-public enum TestRestRelType implements RelationshipType {
-
-	MANY_TO_MANY,
-	ONE_TO_MANY,
-	ONE_TO_ONE,
-
-	HAS
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 }
