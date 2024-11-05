@@ -91,8 +91,8 @@ let _Files = {
 
 		let initFunctionBar = async () => {
 
-			let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
-			let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
+			let fileTypes   = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('File'), ['CsvFile']);
+			let folderTypes = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('Folder'), ['Trash']);
 
 			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
 

@@ -3034,15 +3034,15 @@ type: ${node.type}`;
 		LSWrapper.setItem(_Crud.crudSortedColumnsKey + type, JSON.stringify(order));
 	},
 	isPrincipalType: (typeDef) => {
-		let cls = 'org.structr.dynamic.Principal';
+		let cls = Structr.getFQCNForDynamicTypeName('Principal');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isFileType: (typeDef) => {
-		let cls = 'org.structr.dynamic.AbstractFile';
+		let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isImageType: (typeDef) => {
-		let cls = 'org.structr.dynamic.Image';
+		let cls = Structr.getFQCNForDynamicTypeName('Image');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
