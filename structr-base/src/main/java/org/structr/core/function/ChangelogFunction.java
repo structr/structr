@@ -34,7 +34,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -486,9 +486,9 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 		private Object resolveTarget(final String targetId) throws FrameworkException {
 
-			if (Principal.SUPERUSER_ID.equals(targetId)) {
+			if (PrincipalInterface.SUPERUSER_ID.equals(targetId)) {
 				return null;
-			} else if (Principal.ANONYMOUS.equals(targetId)) {
+			} else if (PrincipalInterface.ANONYMOUS.equals(targetId)) {
 				return null;
 			}
 

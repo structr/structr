@@ -58,34 +58,34 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		GET, PUT, POST, PATCH, DELETE
 	}
 
-	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
-	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
-	public static final Property<String>             signature               = new StringProperty("signature").indexed();
-	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
-	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
-	public static final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
-	public static final Property<String>             source                  = new StringProperty("source");
-	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
-	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
-	public static final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
-	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
-	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
-	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
-	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
-	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
-	public static final Property<String>             summary                 = new StringProperty("summary");
-	public static final Property<String>             description             = new StringProperty("description");
-	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);
-	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty();
-	public static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false);
-	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST);
+	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class).partOfBuiltInSchema();
+	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType)).partOfBuiltInSchema();
+	public static final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
+	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
+	public static final Property<String>             returnType              = new StringProperty("returnType").indexed().partOfBuiltInSchema();
+	public static final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed().partOfBuiltInSchema();
+	public static final Property<String>             source                  = new StringProperty("source").partOfBuiltInSchema();
+	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed().partOfBuiltInSchema();
+	public static final Property<String>             codeType                = new StringProperty("codeType").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed().partOfBuiltInSchema();
+	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed().partOfBuiltInSchema();
+	public static final Property<String>             summary                 = new StringProperty("summary").partOfBuiltInSchema();
+	public static final Property<String>             description             = new StringProperty("description").partOfBuiltInSchema();
+	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false).partOfBuiltInSchema();
+	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty().partOfBuiltInSchema();
+	public static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false).partOfBuiltInSchema();
+	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST).partOfBuiltInSchema();
 	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
 	// property which is only used to mark a schema method as "will be deleted"
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
+		name, schemaNode, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,

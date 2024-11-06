@@ -17,6 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 module structr.base {
+
     requires java.desktop;
     requires java.logging;
     requires java.management;
@@ -104,6 +105,8 @@ module structr.base {
     requires zero.allocation.hashing;
     requires zip4j;
     requires commons.collections4;
+    requires ch.qos.logback.core;
+    requires jakarta.activation;
 
     exports org.structr;
     exports org.structr.agent;

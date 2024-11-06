@@ -21,84 +21,96 @@ package org.structr.ldap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
 /**
  */
-public interface LDAPGroup extends Group {
+public class LDAPGroup extends Group {
 
 	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
 
-	static class Impl { static {
+	public static final Property<String> distinguishedNameProperty = new StringProperty("distinguishedName").unique().indexed();
+	public static final Property<String> pathProperty              = new StringProperty("path");
+	public static final Property<String> filterProperty            = new StringProperty("filter");
+	public static final Property<String> scopeProperty             = new StringProperty("scope");
 
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type  = schema.addType("LDAPGroup");
+	public static final View defaultView = new View(LDAPGroup.class, PropertyView.Public,
+		distinguishedNameProperty, pathProperty, filterProperty, scopeProperty
+	);
 
-		type.setExtends(schema.getType("Group"));
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPGroup"));
+	public static final View uiView      = new View(LDAPGroup.class, PropertyView.Ui,
+		distinguishedNameProperty, pathProperty, filterProperty, scopeProperty
+	);
 
-		type.addStringProperty("distinguishedName", PropertyView.Public, PropertyView.Ui).setUnique(true).setIndexed(true);
-		type.addStringProperty("path",              PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("filter",            PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("scope",             PropertyView.Public, PropertyView.Ui);
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addPropertyGetter("distinguishedName", String.class);
-		type.addPropertySetter("distinguishedName", String.class);
-		type.addPropertyGetter("path",              String.class);
-		type.addPropertySetter("path",              String.class);
-		type.addPropertyGetter("filter",            String.class);
-		type.addPropertySetter("filter",            String.class);
-		type.addPropertyGetter("scope",             String.class);
-		type.addPropertySetter("scope",             String.class);
+		boolean valid = super.isValid(errorBuffer);
 
-		type.addMethod("update")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setSource(LDAPGroup.class.getName() + ".update(ctx, this);")
-			.setDoExport(true);
+		valid &= ValidationHelper.isValidUniqueProperty(this, LDAPGroup.distinguishedNameProperty, errorBuffer);
 
-		type.overrideMethod("onCreation",     true,  LDAPGroup.class.getName() + ".onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification", true,  LDAPGroup.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-	}}
-
-	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
-	String getDistinguishedName();
-	String getPath();
-	String getFilter();
-	String getScope();
-
-	// ----- static methods -----
-	static void onCreation(final LDAPGroup thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		update(securityContext, thisNode);
+		return valid;
 	}
 
-	static void onModification(final LDAPGroup thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		update(securityContext, thisNode);
+	public void setDistinguishedName(final String distinguishedName) throws FrameworkException {
+		setProperty(distinguishedNameProperty, distinguishedName);
 	}
 
-	static void update(final SecurityContext securityContext, final LDAPGroup thisGroup) {
+	public String getDistinguishedName() {
+		return getProperty(distinguishedNameProperty);
+	}
+
+	public String getPath() {
+		return getProperty(pathProperty);
+	}
+
+	public String getFilter() {
+		return getProperty(filterProperty);
+	}
+
+	public String getScope() {
+		return getProperty(scopeProperty);
+	}
+
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+		update(securityContext);
+	}
+
+	@Override
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+		update(securityContext);
+	}
+
+	@Export
+	public void update(final SecurityContext securityContext) {
 
 		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
 		if (ldapService != null) {
 
 			try {
 
-				ldapService.synchronizeGroup(thisGroup);
+				ldapService.synchronizeGroup(this);
 
 			} catch (Throwable t) {
 
-				logger.warn("Unable to sync group " + thisGroup.getName(), t.getMessage());
+				logger.warn("Unable to sync group " + this.getName(), t.getMessage());
 			}
 
 		} else {

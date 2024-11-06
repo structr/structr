@@ -18,49 +18,55 @@
  */
 package org.structr.web.entity.path;
 
-import java.net.URI;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
 import org.structr.schema.parser.DatePropertyParser;
+import org.structr.web.entity.dom.relationship.PagePathHAS_PARAMETERPagePathParameter;
 
 /**
  *
  */
-public interface PagePathParameter extends NodeInterface {
+public class PagePathParameter extends AbstractNode {
 
-	static class Impl { static {
+	public static Property<PagePath> pathProperty             = new StartNode<>("path", PagePathHAS_PARAMETERPagePathParameter.class).partOfBuiltInSchema();
+	public static final Property<Integer> positionProperty    = new IntProperty("position").indexed().partOfBuiltInSchema();
+	public static final Property<String> valueTypeProperty    = new StringProperty("valueType").partOfBuiltInSchema();
+	public static final Property<String> defaultValueProperty = new StringProperty("defaultValue").partOfBuiltInSchema();
+	public static final Property<Boolean> isOptionalProperty  = new BooleanProperty("isOptional").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("PagePathParameter");
+	public static final View defaultView = new View(PagePathParameter.class, PropertyView.Public,
+		positionProperty, valueTypeProperty, defaultValueProperty, isOptionalProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PagePathParameter"));
+	public static final View uiView = new View(PagePathParameter.class, PropertyView.Ui,
+		positionProperty, valueTypeProperty, defaultValueProperty, isOptionalProperty
+	);
 
-		type.addIntegerProperty("position",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("valueType",    PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("defaultValue", PropertyView.Public, PropertyView.Ui);
-		type.addBooleanProperty("isOptional",  PropertyView.Public, PropertyView.Ui);
+	public Integer getPosition() {
+		return getProperty(positionProperty);
+	}
 
-		type.addPropertyGetter("position",      Integer.class);
-		type.addPropertyGetter("valueType",     String.class);
-		type.addPropertyGetter("defaultValue",  String.class);
-		type.addPropertyGetter("isOptional",    Boolean.TYPE);
+	public void setPosition(final Integer position) throws FrameworkException {
+		setProperty(positionProperty, position);
+	}
 
-		type.addPropertySetter("position", Integer.class);
-	}}
+	public String getValueType() {
+		return getProperty(valueTypeProperty);
+	}
 
-	Integer getPosition();
-	void setPosition(final Integer position) throws FrameworkException;
+	public String getDefaultValue() {
+		return getProperty(defaultValueProperty);
+	}
 
-	String getValueType();
-	String getDefaultValue();
-	boolean getIsOptional();
+	public boolean getIsOptional() {
+		return getProperty(isOptionalProperty);
+	}
 
-	default Object convert(final String src) {
+	public Object convert(final String src) {
 
 		try {
 

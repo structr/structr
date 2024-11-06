@@ -28,6 +28,9 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -50,6 +53,7 @@ public class MigrationService {
 
 		if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
 
+			migratePrincipalToPrincipalInterface();
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
 			updateSharedComponentFlag();
@@ -58,6 +62,27 @@ public class MigrationService {
 	}
 
 	// ----- private methods -----
+	private static void migratePrincipalToPrincipalInterface() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// check (and fix) principal nodes
+			logger.info("Checking if principal nodes need migration..");
+
+			for (final Principal p : app.nodeQuery(Principal.class).getResultStream()) {
+				p.getNode().addLabel(PrincipalInterface.class.getSimpleName());
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			logger.warn("Unable to migrate principal nodes: {}", fex.getMessage());
+			fex.printStackTrace();
+		}
+	}
+
 	private static void migrateEventActionMapping() {
 
 		final App app         = StructrApp.getInstance();
@@ -499,6 +524,12 @@ public class MigrationService {
 
 			// check (and fix) event action mapping relationships
 			logger.info("Checking hasSharedComponent flag..");
+
+			// prefetch dom nodes with sync rels
+			tx.prefetch("DOMElement", "DOMElement",
+				Set.of("all/INCOMING/SYNC",
+					"all/OUTGOING/SYNC")
+			);
 
 			for (final DOMElement elem : app.nodeQuery(DOMElement.class).getResultStream()) {
 

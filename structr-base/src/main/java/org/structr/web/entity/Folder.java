@@ -18,35 +18,42 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.graph.Cardinality;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.ContextAwareEntity;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.relationship.*;
 
 import java.net.URI;
 
-
 public interface Folder extends AbstractFile, ContextAwareEntity {
+
+	Property<Iterable<AbstractFile>> childrenProperty  = new EndNodes<>("children", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema();
+	Property<Iterable<File>> filesProperty             = new EndNodes<>("files", FolderCONTAINSFile.class).partOfBuiltInSchema();
+	Property<Iterable<Folder>> foldersProperty         = new EndNodes<>("folders", FolderCONTAINSFolder.class).partOfBuiltInSchema();
+	Property<Iterable<Image>> imagesProperty           = new EndNodes<>("images", FolderCONTAINSImage.class).partOfBuiltInSchema();
+	Property<Folder> folderParentProperty              = new StartNode<>("folderParent", FolderCONTAINSFolder.class).partOfBuiltInSchema();
+	Property<User> homeFolderOfUserProperty            = new StartNode<>("homeFolderOfUser", UserHOME_DIRFolder.class).partOfBuiltInSchema();
+	Property<Iterable<User>> workFolderOfUsersProperty = new StartNodes<>("workFolderOfUsers", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
+
+	View defaultView = new View(Folder.class, PropertyView.Public, filesProperty, foldersProperty, parentIdProperty);
+	View uiView      = new View(Folder.class, PropertyView.Ui,     filesProperty, foldersProperty, imagesProperty);
 
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Folder");
-		final JsonObjectType img  = schema.addType("Image");
-		final JsonObjectType file = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Folder"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
@@ -85,13 +92,8 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 		type.overrideMethod("isMounted",      false, "return " + Folder.class.getName() + ".isMounted(this);");
 
 		// ContextAwareEntity
-		type.overrideMethod("getEntityContextPath",  false, "return getPath();");
-
+		type.overrideMethod("getEntityContextPath",false, "return getPath();");
 		type.overrideMethod("getPath",             false, "return getProperty(pathProperty);");
-
-		type.relate(type, "CONTAINS", Cardinality.OneToMany, "folderParent", "folders");
-		type.relate(file, "CONTAINS", Cardinality.OneToMany, "fileParent",   "files");
-		type.relate(img,  "CONTAINS", Cardinality.OneToMany, "imageParent",  "images");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "parentId");
@@ -196,5 +198,24 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 				}
 			}
 		}
+	}
+
+	static Set<AbstractFile> getAllChildNodes(final Folder node) {
+
+		final Set<AbstractFile> allChildren = new LinkedHashSet<>();
+
+		for (AbstractFile child : getFiles(node)) {
+
+			allChildren.add(child);
+		}
+
+		for (Folder child : getFolders(node)) {
+
+			allChildren.add(child);
+
+			allChildren.addAll(getAllChildNodes(child));
+		}
+
+		return allChildren;
 	}
 }

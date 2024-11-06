@@ -42,7 +42,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -51,6 +51,7 @@ import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -559,7 +560,7 @@ public class CypherTest extends StructrTest {
 
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			Principal tester = null;
+			PrincipalInterface tester = null;
 
 			try (final Tx tx = app.tx()) {
 
@@ -567,7 +568,7 @@ public class CypherTest extends StructrTest {
 				final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
 				int count                    = 0;
 
-				tester = app.create(Principal.class, "tester");
+				tester = app.create(User.class, "tester");
 
 				for (final TestSix testSix : testSixs) {
 					testSix.grant(Permission.read, tester);

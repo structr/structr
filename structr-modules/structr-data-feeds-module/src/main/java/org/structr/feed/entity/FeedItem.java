@@ -20,99 +20,91 @@ package org.structr.feed.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.property.*;
+import org.structr.feed.entity.relationship.DataFeedHAS_FEED_ITEMSFeedItem;
+import org.structr.feed.entity.relationship.FeedItemFEED_ITEM_CONTENTSFeedItemContent;
+import org.structr.feed.entity.relationship.FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure;
 import org.structr.rest.common.HttpHelper;
-import org.structr.schema.SchemaService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URI;
+import java.util.Date;
 
 /**
  * Represents a single item of a data feed.
  *
  */
-public interface FeedItem extends NodeInterface, Indexable {
+public class FeedItem extends AbstractFeedItem {
 
-	static class Impl { static {
+	public static final Property<Iterable<FeedItemContent>> contentsProperty     = new EndNodes<>("contents", FeedItemFEED_ITEM_CONTENTSFeedItemContent.class);
+	public static final Property<Iterable<FeedItemEnclosure>> enclosuresProperty = new EndNodes<>("enclosures", FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure.class);
+	public static final Property<DataFeed> feedProperty                          = new StartNode<>("feed", DataFeedHAS_FEED_ITEMSFeedItem.class);
 
-		final JsonSchema schema        = SchemaService.getDynamicSchema();
-		final JsonObjectType type      = schema.addType("FeedItem");
-		final JsonObjectType content   = schema.addType("FeedItemContent");
-		final JsonObjectType enclosure = schema.addType("FeedItemEnclosure");
+	public static final Property<String> urlProperty              = new StringProperty("url").indexed().notNull();
+	public static final Property<String> authorProperty           = new StringProperty("author");
+	public static final Property<String> commentsProperty         = new StringProperty("comments");
+	public static final Property<String> descriptionProperty      = new StringProperty("description");
+	public static final Property<Date> pubDateProperty            = new DateProperty("pubDate");
+	public static final Property<Date> updatedDateProperty        = new DateProperty("updatedDate");
+	public static final Property<Long> checksumProperty           = new LongProperty("checksum").readOnly();
+	public static final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
+	public static final Property<Integer> versionProperty         = new IntProperty("version").readOnly();
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItem"));
-		type.setImplements(URI.create("#/definitions/Indexable"));
+	public static final View defaultView = new View(FeedItem.class, PropertyView.Public,
+		owner, name, urlProperty, authorProperty, commentsProperty, descriptionProperty, pubDateProperty,
+		updatedDateProperty, contentsProperty, enclosuresProperty
+	);
 
-		type.addStringProperty("url",              PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
-		type.addStringProperty("author",           PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("comments",         PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("description",      PropertyView.Public, PropertyView.Ui);
-		type.addDateProperty("pubDate",            PropertyView.Public, PropertyView.Ui);
-		type.addDateProperty("updatedDate",        PropertyView.Public, PropertyView.Ui);
-		type.addLongProperty("checksum",           PropertyView.Ui).setReadOnly(true);
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
-		type.addIntegerProperty("version",         PropertyView.Ui).setReadOnly(true);
+	public static final View uiView = new View(FeedItem.class, PropertyView.Ui,
+		urlProperty, authorProperty, commentsProperty, descriptionProperty, pubDateProperty,
+		updatedDateProperty, checksumProperty, cacheForSecondsProperty, versionProperty,
+		contentsProperty, enclosuresProperty, feedProperty
+	);
 
-		type.addPropertyGetter("url",              String.class);
-		type.addPropertyGetter("contentType",      String.class);
-		type.addPropertyGetter("extractedContent", String.class);
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.overrideMethod("getInputStream",   false, "return " + FeedItem.class.getName() + ".getInputStream(this);");
+		boolean valid = super.isValid(errorBuffer);
 
-		// methods shared with FeedItemContent
-		type.overrideMethod("onCreation",       true,              FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
-		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);").setDoExport(true);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, FeedItem.urlProperty, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, FeedItem.urlProperty, errorBuffer);
 
-		type.relate(content,   "FEED_ITEM_CONTENTS",   Cardinality.OneToMany, "item", "contents").setCascadingDelete(Cascade.sourceToTarget);
-		type.relate(enclosure, "FEED_ITEM_ENCLOSURES", Cardinality.OneToMany, "item", "enclosures").setCascadingDelete(Cascade.sourceToTarget);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "enclosures");
-		type.addViewProperty(PropertyView.Public, "contents");
-		type.addViewProperty(PropertyView.Public, "owner");
-		type.addViewProperty(PropertyView.Public, "name");
-
-		type.addViewProperty(PropertyView.Ui, "enclosures");
-		type.addViewProperty(PropertyView.Ui, "contents");
-		type.addViewProperty(PropertyView.Ui, "feed");
-	}}
-
-	String getUrl();
-
-	static void increaseVersion(final FeedItem thisItem) throws FrameworkException {
-
-		final PropertyKey<Integer> versionKey = StructrApp.key(FeedItem.class, "version");
-		final Integer _version = thisItem.getProperty(versionKey);
-
-		thisItem.unlockSystemPropertiesOnce();
-		if (_version == null) {
-
-			thisItem.setProperty(versionKey, 1);
-
-		} else {
-
-			thisItem.setProperty(versionKey, _version + 1);
-		}
+		return valid;
 	}
 
-	static InputStream getInputStream(final FeedItem thisItem) {
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+		updateIndex(securityContext);
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+
+		super.afterCreation(securityContext);
+		updateIndex(securityContext);
+	}
+
+	public String getUrl() {
+		return getProperty(urlProperty);
+	}
+
+	@Override
+	public InputStream getInputStream() {
 
 		final boolean indexRemoteDocument = Settings.FeedItemIndexRemoteDocument.getValue();
 
 		if (indexRemoteDocument) {
 
-			final String remoteUrl = thisItem.getUrl();
+			final String remoteUrl = getUrl();
 			if (StringUtils.isNotBlank(remoteUrl)) {
 
 				return HttpHelper.getAsStream(remoteUrl);
@@ -120,27 +112,17 @@ public interface FeedItem extends NodeInterface, Indexable {
 			}
 		}
 
-		final String description = thisItem.getProperty(StructrApp.key(FeedItem.class, "description"));
+		final String description = getProperty(StructrApp.key(FeedItem.class, "description"));
 		return new ByteArrayInputStream(description.getBytes());
 	}
 
 	@Override
-	default boolean indexingEnabled() {
-		return Settings.FeedItemIndexingEnabled.getValue();
+	public String getExtractedContent() {
+		return getProperty(extractedContentProperty);
 	}
 
 	@Override
-	default Integer maximumIndexedWords() {
-		return Settings.FeedItemIndexingLimit.getValue();
-	}
-
-	@Override
-	default Integer indexedWordMinLength() {
-		return Settings.FeedItemIndexingMinLength.getValue();
-	}
-
-	@Override
-	default Integer indexedWordMaxLength() {
-		return Settings.FeedItemIndexingMaxLength.getValue();
+	public String getContentType() {
+		return getProperty(contentTypeProperty);
 	}
 }

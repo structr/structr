@@ -53,8 +53,8 @@ public class Deployment2Test extends DeploymentTestBase {
 	@Test
 	public void test21ExportGrants() {
 
-		Principal user1 = null;
-		Principal user2 = null;
+		PrincipalInterface user1 = null;
+		PrincipalInterface user2 = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -105,8 +105,8 @@ public class Deployment2Test extends DeploymentTestBase {
 	@Test
 	public void test22TemplateOwnershipAndGrants() {
 
-		Principal user1 = null;
-		Principal user2 = null;
+		PrincipalInterface user1 = null;
+		PrincipalInterface user2 = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -185,8 +185,8 @@ public class Deployment2Test extends DeploymentTestBase {
 	@Test
 	public void test23FileOwnershipAndGrants() {
 
-		Principal user1 = null;
-		Principal user2 = null;
+		PrincipalInterface user1 = null;
+		PrincipalInterface user2 = null;
 
 		try (final Tx tx = app.tx()) {
 

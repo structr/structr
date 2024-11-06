@@ -25,7 +25,7 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
@@ -252,6 +252,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	}
 
 	private boolean isIdentifying(final Class actualType, final PropertyKey key) {
-		return (Principal.class.isAssignableFrom(actualType) && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
+		return (PrincipalInterface.class.isAssignableFrom(actualType) && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
 	}
 }

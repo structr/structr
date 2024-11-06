@@ -29,6 +29,7 @@ import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -1672,6 +1673,8 @@ public class DocumentTest extends StructrRestTestBase {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
+
+			type.setExtends(GroupCONTAINSPrincipal.class);
 
 			type.addStringProperty("test", PropertyView.Public);
 

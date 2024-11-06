@@ -18,26 +18,23 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasDefinitionDefinition;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface Definition extends Note {
+public class Definition extends Note {
 
-	static class Impl { static {
+	public static final Property<ThesaurusTerm> termProperty = new StartNode<>("term", ThesaurusTermhasDefinitionDefinition.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Definition");
+	public static final Property<String> sourceProperty = new StringProperty("source");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Definition"));
-		type.setExtends(URI.create("#/definitions/Note"));
-
-		type.addStringProperty("source", PropertyView.All, PropertyView.Ui);
-	}}
+	public static final View uiView = new View(Definition.class, PropertyView.Ui,
+		sourceProperty
+	);
 }

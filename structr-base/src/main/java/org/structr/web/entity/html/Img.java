@@ -18,36 +18,40 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Img extends DOMElement implements LinkSource {
 
-public interface Img extends LinkSource {
+	public static final Property<String> htmlAltProperty         = new StringProperty("_html_alt").partOfBuiltInSchema();
+	public static final Property<String> htmlSrcProperty         = new StringProperty("_html_src").partOfBuiltInSchema();
+	public static final Property<String> htmlCrossoriginProperty = new StringProperty("_html_crossorigin").partOfBuiltInSchema();
+	public static final Property<String> htmlUsemapProperty      = new StringProperty("_html_usemap").partOfBuiltInSchema();
+	public static final Property<String> htmlIsmapProperty       = new StringProperty("_html_ismap").partOfBuiltInSchema();
+	public static final Property<String> htmlWidthProperty       = new StringProperty("_html_width").partOfBuiltInSchema();
+	public static final Property<String> htmlHeightProperty      = new StringProperty("_html_height").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Img.class, PropertyView.Html,
+		htmlAltProperty, htmlSrcProperty, htmlCrossoriginProperty, htmlUsemapProperty, htmlIsmapProperty, htmlWidthProperty, htmlHeightProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Img");
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	}
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Img"));
-		type.setExtends(URI.create("#/definitions/LinkSource"));
-		type.setCategory("html");
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
 
-		type.addStringProperty("_html_alt",         PropertyView.Html);
-		type.addStringProperty("_html_src",         PropertyView.Html);
-		type.addStringProperty("_html_crossorigin", PropertyView.Html);
-		type.addStringProperty("_html_usemap",      PropertyView.Html);
-		type.addStringProperty("_html_ismap",       PropertyView.Html);
-		type.addStringProperty("_html_width",       PropertyView.Html);
-		type.addStringProperty("_html_height",      PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-		type.overrideMethod("avoidWhitespace",   false, "return true;");
-		type.overrideMethod("isVoidElement",     false, "return true;");
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

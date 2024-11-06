@@ -18,7 +18,7 @@
  */
 package org.structr.agent;
 
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 
 import java.util.Date;
 import java.util.List;
@@ -34,7 +34,7 @@ public interface Task<T> extends Delayed, StatusInfo {
 	 *
 	 * @return user
 	 */
-	Principal getUser();
+	PrincipalInterface getUser();
 
 	/**
 	 * Returns the objects this task should operate on.

@@ -48,7 +48,7 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 		if (reloadSchemaOnCreate()) {
 
 			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 		}
 	}
 
@@ -62,7 +62,7 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 		if (reloadSchemaOnModify(modificationQueue)) {
 
 			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 		}
 	}
 

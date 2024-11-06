@@ -529,12 +529,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			relationshipEntityClassCache.put(simpleName, type);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
+
+			// this was previously done by generated code
+			if (PermissionPropagation.class.isAssignableFrom(type)) {
+				SchemaRelationshipNode.registerPropagatingRelationshipType(type, fqcn.startsWith("org.structr.dynamic."));
+			}
 		}
 
 		// interface that extends NodeInterface, must be stored
 		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
 
-			reverseInterfaceMap.putIfAbsent(type.getName(), type);
+			reverseInterfaceMap.putIfAbsent(type.getSimpleName(), type);
 		}
 
 		for (final Class interfaceClass : type.getInterfaces()) {

@@ -1418,10 +1418,13 @@ let _Pages = {
 		let successNotificationsSelect       = container.querySelector('#success-notifications-select');
 		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
 		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input');
+		let successNotificationsDelayInput   = container.querySelector('#success-inline-message-delay-input');
 
 		let failureNotificationsSelect       = container.querySelector('#failure-notifications-select');
 		let failureNotificationsPartialInput = container.querySelector('#failure-notifications-custom-dialog-input');
 		let failureNotificationsEventInput   = container.querySelector('#failure-notifications-fire-event-input');
+		let failureNotificationsDelayInput   = container.querySelector('#failure-inline-message-delay-input');
+
 
 		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
@@ -1446,7 +1449,7 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
 				console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
@@ -1683,10 +1686,12 @@ let _Pages = {
 			successNotificationsSelect.value       = actionMapping.successNotifications;
 			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
 			successNotificationsEventInput.value   = actionMapping.successNotificationsEvent;
+			successNotificationsDelayInput.value   = actionMapping.successNotificationsDelay;
 
 			failureNotificationsSelect.value       = actionMapping.failureNotifications;
 			failureNotificationsPartialInput.value = actionMapping.failureNotificationsPartial;
 			failureNotificationsEventInput.value   = actionMapping.failureNotificationsEvent;
+			failureNotificationsDelayInput.value   = actionMapping.failureNotificationsDelay;
 
 			successBehaviourSelect.value           = actionMapping.successBehaviour;
 			successPartialRefreshInput.value       = actionMapping.successPartial;
@@ -2092,9 +2097,11 @@ let _Pages = {
 				successNotifications:        successNotificationsSelect.value,
 				successNotificationsPartial: successNotificationsPartialInput.value,
 				successNotificationsEvent:   successNotificationsEventInput.value,
+				successNotificationsDelay:	 successNotificationsDelayInput.value === '' ? '5000' : successNotificationsDelayInput.value,
 				failureNotifications:        failureNotificationsSelect.value,
 				failureNotificationsPartial: failureNotificationsPartialInput.value,
 				failureNotificationsEvent:   failureNotificationsEventInput.value,
+				failureNotificationsDelay:   failureNotificationsDelayInput.value === '' ? '5000' : failureNotificationsDelayInput.value,
 				successBehaviour:            successBehaviourSelect?.value,
 				successPartial:              successPartialRefreshInput?.value,
 				successURL:                  successNavigateToURLInput?.value,
@@ -4336,6 +4343,11 @@ let _Pages = {
 										<option value="fire-event">Raise a custom event</option>
 									</select>
 								</div>
+								
+								<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
+									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
+								</div>
 
 								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
 									<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
@@ -4372,6 +4384,11 @@ let _Pages = {
 										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
 										<option value="fire-event">Raise a custom event</option>
 									</select>
+								</div>
+								
+								<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
+									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
 								</div>
 
 								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
@@ -4520,7 +4537,7 @@ let _Pages = {
 					</div>
 
 					<div class="hidden em-parameter-value parameter-constant-value">
-						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
+						<label class="block mb-2" data-comment="Enter a constant value. By default it is interpreted as a string.<br><br>To pass a proper JS object, <code>json({ key: &quot;value&quot;})</code> can be used.<br>To pass the complete dataTransfer object from the mouse event, <code>data()</code> can be used.">Value (constant)</label>
 						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
 					</div>
 

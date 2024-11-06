@@ -181,9 +181,6 @@ public abstract class AbstractCommand {
 	 *
 	 * This avoids the performance issues of getRelationshipById due to missing index support.
 	 *
-	 * If nodeId is null, the method falls back to {@link getRelationship(id)}.
-	 *
-	 *
 	 * @param id
 	 * @param nodeId
 	 * @return the node

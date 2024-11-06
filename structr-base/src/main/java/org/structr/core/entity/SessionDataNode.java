@@ -53,11 +53,15 @@ public class SessionDataNode extends AbstractNode {
 
 	@Override
 	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
 		incrementVersion();
 	}
 
 	@Override
 	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 		incrementVersion();
 	}
 

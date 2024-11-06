@@ -1326,7 +1326,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export owner
 		final Map<String, Object> map = new HashMap<>();
-		final Principal owner         = node.getOwnerNode();
+		final PrincipalInterface owner         = node.getOwnerNode();
 
 		if (owner != null) {
 
@@ -1377,7 +1377,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
 				final String ownerName           = (String) ((Map)entry.get("owner")).get("name");
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getAsList();
+				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1407,7 +1407,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final Map<String, Object> grantee : grantees) {
 
 				final String granteeName         = (String) grantee.get("name");
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getAsList();
+				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1655,27 +1655,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (!parameterMappings.isEmpty()) {
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
+				putData(entry, "event",        				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
+				putData(entry, "action",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
+				putData(entry, "method",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
+				putData(entry, "dataType",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
+				putData(entry, "idExpression",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
 
-				putData(entry, "event",        actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
-				putData(entry, "action",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
-				putData(entry, "method",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
-				putData(entry, "dataType",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
-				putData(entry, "idExpression", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
+				putData(entry, "dialogType",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogType")));
+				putData(entry, "dialogTitle",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogTitle")));
+				putData(entry, "dialogText",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogText")));
 
-				putData(entry, "dialogType",  actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogType")));
-				putData(entry, "dialogTitle", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogTitle")));
-				putData(entry, "dialogText",  actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogText")));
+				putData(entry, "successBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
+				putData(entry, "successEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
+				putData(entry, "successNotifications",   		actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotifications")));
+				putData(entry, "successNotificationsEvent",   	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent")));
+				putData(entry, "successNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial")));
+				putData(entry, "successNotificationsDelay", 	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay")));
+				putData(entry, "successPartial",   			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
+				putData(entry, "successURL",       			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
 
-				putData(entry, "successBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
-				putData(entry, "successPartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
-				putData(entry, "successURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
-				putData(entry, "successEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
-
-				putData(entry, "failureBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
-				putData(entry, "failurePartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
-				putData(entry, "failureURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
-				putData(entry, "failureEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
+				putData(entry, "failureBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
+				putData(entry, "failureEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
+				putData(entry, "failureNotifications",     	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications")));
+				putData(entry, "failureNotificationsEvent",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent")));
+				putData(entry, "failureNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial")));
+				putData(entry, "failureNotificationsDelay",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsDelay")));
+				putData(entry, "failurePartial",				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
+				putData(entry, "failureURL",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
 			}
+
+			tx.success();
 		}
 
 		writeJsonToFile(target, actionMappings);
@@ -2400,7 +2409,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
 						// detect tree-based export (absence of folder "File")
-						final boolean isTreeBasedExport = Files.exists(schemaFolder.resolve("File"));
+						final boolean isTreeBasedExport = true; //Files.exists(schemaFolder.resolve("File"));
 
 						final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
 

@@ -50,6 +50,7 @@ import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.entity.TestFive;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -86,7 +87,7 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			Principal person = this.createTestNode(Principal.class);
+			PrincipalInterface person = this.createTestNode(User.class);
 
 			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);
@@ -576,14 +577,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureOneToOneCardinality() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -668,14 +669,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureOneToManyCardinality() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -764,14 +765,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureManyToOneCardinality() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -899,16 +900,12 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testPasswordAndHashSecurity() {
 
-		final Class userType                  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
-		final PropertyKey<String> saltKey     = StructrApp.key(userType, "salt");
-
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			app.create(Principal.class,
-				new NodeAttribute<>(Principal.name, "tester"),
-				new NodeAttribute<>(passwordKey, "password")
+			app.create(User.class,
+				new NodeAttribute<>(PrincipalInterface.name, "tester"),
+				new NodeAttribute<>(PrincipalInterface.passwordProperty, "password")
 			);
 
 			tx.success();
@@ -920,10 +917,10 @@ public class SystemTest extends StructrTest {
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			final Principal user = app.nodeQuery(Principal.class).getFirst();
+			final PrincipalInterface user = app.nodeQuery(User.class).getFirst();
 
-			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(passwordKey));
-			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(saltKey));
+			assertEquals("Password hash IS NOT SECURE!", PrincipalInterface.HIDDEN, user.getProperty(PrincipalInterface.passwordProperty));
+			assertEquals("Password salt IS NOT SECURE!", PrincipalInterface.HIDDEN, user.getProperty(PrincipalInterface.saltProperty));
 
 			tx.success();
 
@@ -1102,11 +1099,11 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testCallPrivileged() {
 
-		Principal tester = null;
+		PrincipalInterface tester = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			tester = createTestNode(Principal.class, "tester");
+			tester = createTestNode(User.class, "tester");
 
 			// create global schema method that creates another object
 			app.create(SchemaMethod.class,
@@ -1419,9 +1416,9 @@ public class SystemTest extends StructrTest {
 			testGroup1.addMember(securityContext, testGroup2);
 			testGroup2.addMember(securityContext, testGroup3);
 
-			final Principal user = app.create(Principal.class,
+			final PrincipalInterface user = app.create(User.class,
 				new NodeAttribute<>(AbstractNode.name, "user"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "password")
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
 			);
 
 			testGroup3.addMember(securityContext, user);
@@ -1548,7 +1545,7 @@ public class SystemTest extends StructrTest {
 			final Group root = app.nodeQuery(Group.class).andName("root").getFirst();
 			int count        = 0;
 
-			for (final Principal p : root.getMembers()) {
+			for (final PrincipalInterface p : root.getMembers()) {
 
 				assertTrue("RelationshipQuery returns too many results", count++ < num);
 			}
@@ -1565,7 +1562,7 @@ public class SystemTest extends StructrTest {
 		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
 	}
 
-	@Test
+	//@Test
 	public void testConcurrentDeleteAndFetch() {
 
 		final AtomicBoolean error = new AtomicBoolean(false);

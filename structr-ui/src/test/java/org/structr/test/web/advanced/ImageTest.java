@@ -27,8 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -37,6 +36,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -57,16 +57,16 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testThumbnailGeneration() {
 
-		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
-		Principal tester1             = null;
-		Principal tester2             = null;
-		Principal tester3             = null;
+		final PropertyKey passwordKey = StructrApp.key(PrincipalInterface.class, "password");
+		PrincipalInterface tester1             = null;
+		PrincipalInterface tester2             = null;
+		PrincipalInterface tester3             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create(User.class, new NodeAttribute<>(PrincipalInterface.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
+			tester2 = app.create(User.class, new NodeAttribute<>(PrincipalInterface.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
+			tester3 = app.create(User.class, new NodeAttribute<>(PrincipalInterface.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			final Folder folder1 = FileHelper.createFolderPath(securityContext, "/Test1");
 			folder1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);

@@ -18,81 +18,96 @@
  */
 package org.structr.mail.entity;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.mail.entity.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public interface Mailbox extends NodeInterface {
+public class Mailbox extends AbstractNode {
 
-	class Impl { static {
+	public enum Protocol {
+		pop3, imaps
+	}
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Mailbox");
-		final JsonObjectType mail = schema.addType("EMailMessage");
+	public static final Property<Iterable<EMailMessage>> emailsProperty   = new EndNodes<>("emails", MailboxCONTAINS_EMAILMESSAGESEMailMessage.class);
+	public static final Property<String> hostProperty                     = new StringProperty("host").indexed().notNull();
+	public static final Property<String> userProperty                     = new StringProperty("user").indexed().notNull();
+	public static final Property<String> overrideMailEntityTypeProperty   = new StringProperty("overrideMailEntityType").indexed();
+	public static final Property<String> passwordProperty                 = new EncryptedStringProperty("password").indexed();
+	public static final Property<String[]> foldersProperty                = new ArrayProperty("folders", String.class).indexed();
+	public static final Property<String> mailProtocolProperty             = new EnumProperty("mailProtocol", Protocol.class).indexed().notNull();
+	public static final Property<Integer> portProperty                    = new IntProperty("port").indexed();
+	public static final Property<Object> availableFoldersOnServerProperty = new FunctionProperty("availableFoldersOnServer").readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Mailbox"));
+	public static final View defaultView = new View(Mailbox.class, PropertyView.Public,
+		id, type, name
+	);
 
-		type.addStringProperty("host",                           PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("user",                           PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("overrideMailEntityType",         PropertyView.Ui).setIndexed(true);
-		type.addEncryptedProperty("password",                    PropertyView.Ui).setIndexed(true).setRequired(false);
-		type.addStringArrayProperty("folders",                   PropertyView.Ui).setIndexed(true);
-		type.addEnumProperty("mailProtocol",                     PropertyView.Ui).setEnums("pop3,imaps").setIndexed(true).setRequired(true);
-		type.addIntegerProperty("port",                          PropertyView.Ui).setIndexed(true);
-		type.addFunctionProperty("availableFoldersOnServer",     PropertyView.Ui).setReadFunction("{return Structr.this.getAvailableFoldersOnServer()}").setIndexed(false);
+	public static final View uiView      = new View(Mailbox.class, PropertyView.Ui,
+		hostProperty, userProperty, overrideMailEntityTypeProperty, passwordProperty, foldersProperty, mailProtocolProperty, portProperty, availableFoldersOnServerProperty
+	);
 
-		type.addPropertyGetter("host",                     String.class);
-		type.addPropertyGetter("user",                     String.class);
-		type.addPropertyGetter("password",                 String.class);
-		type.addPropertyGetter("overrideMailEntityType",   String.class);
-		type.addPropertyGetter("mailProtocol",             Object.class);
-		type.addPropertyGetter("port",      		       Integer.class);
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addMethod("getFolders")
-				.setReturnType("String[]")
-				.setSource("return getProperty(foldersProperty);");
+		boolean valid = super.isValid(errorBuffer);
 
-		type.addMethod("getAvailableFoldersOnServer")
-				.setReturnType("List<String>")
-				.setSource("return org.structr.mail.entity.Mailbox.getAvailableFoldersOnServerImpl(this, securityContext);")
-				.setDoExport(true);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Mailbox.foldersProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Mailbox.hostProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Mailbox.userProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Mailbox.mailProtocolProperty, errorBuffer);
 
+		return valid;
+	}
 
-		type.relate(mail, "CONTAINS_EMAILMESSAGES", Cardinality.OneToMany, "mailbox", "emails").setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
+	public String getHost() {
+		return getProperty(hostProperty);
+	}
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "id,type,name");
-		type.addViewProperty(PropertyView.Ui,     "id,type,name,host,user,password,mailProtocol,emails,folders,overrideMailEntityType");
-	}}
+	public String getUser() {
+		return getProperty(userProperty);
+	}
 
-	String getHost();
-	String getUser();
-	String getPassword();
-	String getOverrideMailEntityType();
-	String[] getFolders();
-	Object getMailProtocol();
-	Integer getPort();
+	public String getPassword() {
+		return getProperty(passwordProperty);
+	}
 
-	static List<String> getAvailableFoldersOnServerImpl(final Mailbox mailbox, final SecurityContext securityContext) {
-		Iterable<String> result = StructrApp.getInstance(securityContext).command(org.structr.mail.service.FetchFoldersCommand.class).execute(mailbox);
+	public String getOverrideMailEntityType() {
+		return getProperty(overrideMailEntityTypeProperty);
+	}
+
+	public String[] getFolders() {
+		return getProperty(foldersProperty);
+	}
+
+	public Object getMailProtocol() {
+		return getProperty(mailProtocolProperty);
+	}
+
+	public Integer getPort() {
+		return getProperty(portProperty);
+	}
+
+	public List<String> getAvailableFoldersOnServerImpl(final SecurityContext securityContext) {
+
+		final Iterable<String> result = StructrApp.getInstance(securityContext).command(org.structr.mail.service.FetchFoldersCommand.class).execute(this);
 		if (result != null) {
 
 			return StreamSupport.stream(result.spliterator(), false).collect(Collectors.toList());
+
 		} else {
 
 			return new ArrayList<>();
 		}
 	}
-
 }

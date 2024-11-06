@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -82,7 +82,7 @@ public class AppendMemberCommand extends AbstractCommand {
 
 			Group group = (Group) parentNode;
 
-			Principal principal = (Principal) getNode(id);
+			PrincipalInterface principal = (PrincipalInterface) getNode(id);
 			if (principal != null) {
 
 				try {

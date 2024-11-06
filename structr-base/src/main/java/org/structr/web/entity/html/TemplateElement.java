@@ -34,26 +34,13 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Map.Entry;
 
-public interface TemplateElement extends DOMElement {
+public class TemplateElement extends DOMElement {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("TemplateElement");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/TemplateElement"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.overrideMethod("renderContent", false, TemplateElement.class.getName() + ".renderContent(this, arg0, arg1);");
-	}}
-
-	@Override
-	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
-
+	public void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 	}
 
-	static void renderContent(final TemplateElement thisElement, final RenderContext renderContext, final int depth) throws FrameworkException {
+	@Override
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		if (renderContext.isPartialRendering()) {
 
@@ -61,14 +48,14 @@ public interface TemplateElement extends DOMElement {
 			TemplateElement.handleRequestData(renderContext);
 
 			// Skip the enclosing template element and render the first child instead
-			final Node node = thisElement.getFirstChild();
+			final Node node = this.getFirstChild();
 			if (node != null && node instanceof DOMElement) {
 
 				final DOMElement element = (DOMElement) node;
 
 				// mark template root so it can render its UUID into the HTML
 				renderContext.setTemplateRootId(element.getUuid());
-				renderContext.setTemplateId(thisElement.getUuid());
+				renderContext.setTemplateId(this.getUuid());
 
 				element.renderContent(renderContext, depth);
 			}
@@ -76,7 +63,7 @@ public interface TemplateElement extends DOMElement {
 		} else {
 
 			// super.renderContent() for static methods
-			DOMElement.renderContent(thisElement, renderContext, depth);
+			this.renderContent(renderContext, depth);
 		}
 	}
 

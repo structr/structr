@@ -18,36 +18,49 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.knowledge.iso25964.relationship.ConceptGrouphasAsMemberThesaurusConcept;
+import org.structr.knowledge.iso25964.relationship.ConceptGrouphasConceptGroupLabelConceptGroupLabel;
+import org.structr.knowledge.iso25964.relationship.ConceptGrouphasSubGroupConceptGroup;
+import org.structr.knowledge.iso25964.relationship.ThesauruscontainsConceptGroup;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface ConceptGroup extends NodeInterface {
+public class ConceptGroup extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<Iterable<Thesaurus>> thesaurusProperty = new StartNodes<>("thesaurus", ThesauruscontainsConceptGroup.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
+	public static final Property<Iterable<ConceptGroup>> subGroupsProperty   = new EndNodes<>("subGroups", ConceptGrouphasSubGroupConceptGroup.class);
+	public static final Property<Iterable<ConceptGroup>> superGroupsProperty = new StartNodes<>("superGroups", ConceptGrouphasSubGroupConceptGroup.class);
 
-		final JsonObjectType type    = schema.addType("ConceptGroup");
-		final JsonObjectType concept = schema.addType("ThesaurusConcept");
-		final JsonObjectType label   = schema.addType("ConceptGroupLabel");
+	public static final Property<Iterable<ThesaurusConcept>> thesaurusConceptsProperty   = new EndNodes<>("thesaurusConcepts", ConceptGrouphasAsMemberThesaurusConcept.class);
+	public static final Property<Iterable<ConceptGroupLabel>> conceptGroupLabelsProperty = new EndNodes<>("conceptGroupLabels", ConceptGrouphasConceptGroupLabelConceptGroupLabel.class);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroup"));
+	public static final Property<String[]> identifierProperty       = new ArrayProperty("identifier", String.class).indexed().notNull();
+	public static final Property<String[]> conceptGroupTypeProperty = new ArrayProperty("conceptGroupType", String.class).indexed().notNull();
+	public static final Property<String[]> notationProperty         = new ArrayProperty("notation", String.class);
 
-		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringArrayProperty("conceptGroupType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringArrayProperty("notation", PropertyView.All, PropertyView.Ui);
+	public static final View uiView = new View(ConceptGroup.class, PropertyView.Ui,
+		identifierProperty, conceptGroupTypeProperty, notationProperty
+	);
 
-		type.relate(type, "hasSubGroup", Cardinality.ManyToMany, "superGroups", "subGroups");
-		type.relate(concept, "hasAsMember", Cardinality.ManyToMany, "conceptGroups", "thesaurusConcepts");
-		type.relate(label, "hasConceptGroupLabel", Cardinality.OneToMany, "conceptGroup", "conceptGroupLabels");
-	}}
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ConceptGroup.conceptGroupTypeProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ConceptGroup.identifierProperty, errorBuffer);
+
+		return valid;
+	}
 }

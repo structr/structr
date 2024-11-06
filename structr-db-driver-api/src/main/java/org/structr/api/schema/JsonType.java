@@ -65,9 +65,11 @@ public interface JsonType extends Comparable<JsonType> {
 
 	JsonType setExtends(final JsonType superType);
 	JsonType setExtends(final URI externalReference);
+	JsonType setExtends(final Class staticType);
 	URI getExtends();
 
 	JsonType setImplements(final URI externalReference);
+	JsonType setImplements(final Class staticReference);
 	Set<URI> getImplements();
 
 	Set<JsonProperty> getProperties();

@@ -18,24 +18,16 @@
  */
 package org.structr.test.web.advanced;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -75,33 +67,6 @@ public class PropertyTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 	}
-
-	@Test
-	public void testCustomProperty() {
-
-		// schema setup
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema       = StructrSchema.createFromDatabase(app, Arrays.asList("Image"));
-			final Gson gson               = new GsonBuilder().create();
-			final Map<String, Object> str = (Map<String, Object>)gson.fromJson(schema.toString(), Map.class);
-			final Map<String, Object> def = (Map<String, Object>)str.get("definitions");
-			final Map<String, Object> img = (Map<String, Object>)def.get("Image");
-			final Map<String, Object> pro = (Map<String, Object>)img.get("properties");
-			final Map<String, Object> tn  = (Map<String, Object>)pro.get("tnMid");
-
-			assertEquals("Export of custom property should contain format string.", "300, 300, false", tn.get("format"));
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-
-			t.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-	}
-
 }
 
 

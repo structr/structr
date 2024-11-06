@@ -108,7 +108,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
-		final Principal user         = securityContext.getUser(false);
+		final PrincipalInterface user         = securityContext.getUser(false);
 		final SearchConfig config    = new SearchConfig();
 
 		if (user == null) {

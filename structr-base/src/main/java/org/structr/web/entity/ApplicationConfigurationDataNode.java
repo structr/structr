@@ -18,30 +18,21 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
 /**
  * Storage object for configuration data.
  */
+public class ApplicationConfigurationDataNode extends AbstractNode {
 
-public interface ApplicationConfigurationDataNode extends NodeInterface {
+	public static final Property<String> configTypeProperty = new StringProperty("configType").indexed().partOfBuiltInSchema();
+	public static final Property<String> contentProperty    = new StringProperty("content").partOfBuiltInSchema();
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ApplicationConfigurationDataNode");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ApplicationConfigurationDataNode"));
-		type.setExtends(URI.create("#/definitions/AbstractNode"));
-		type.setCategory("core");
-
-		type.addStringProperty("configType", PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("content",    PropertyView.Ui);
-	}}
+	public static final View uiView = new View(ApplicationConfigurationDataNode.class, PropertyView.Ui,
+		configTypeProperty, contentProperty
+	);
 }

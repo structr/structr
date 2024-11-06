@@ -968,7 +968,12 @@ public class SchemaResourceTest extends StructrRestTestBase {
 		final String uuid2 = createEntity("/SchemaNode", "{ name: TestBase2, ___test: \"find('Test2')\" }");
 
 		createEntity("/SchemaNode", "{ name: Test1, __public: \"name, type\", extendsClass: \"" + uuid1 + "\" }");
+
 		final String test11 = createEntity("Test1", "{ name: Test1 }");
+
+		// wait a little bit so the sort order is correct when fetching nodes
+		try { Thread.sleep(10); } catch (Throwable t) {}
+
 		final String test12 = createEntity("Test1", "{ name: Test2 }");
 
 		createEntity("/SchemaNode", "{ name: Test2, __public: \"name, type\", extendsClass: \"" + uuid2 + "\" }");
@@ -1103,7 +1108,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[0].url",                      equalTo("/Group"))
 				.body("result[0].type",                     equalTo("Group"))
 				.body("result[0].className",                equalTo("org.structr.dynamic.Group"))
-				.body("result[0].extendsClass",             equalTo("org.structr.dynamic.Principal"))
+				.body("result[0].extendsClass",             equalTo("org.structr.core.entity.Group"))
 				.body("result[0].isRel",                    equalTo(false))
 				.body("result[0].flags",                    equalTo(0))
 

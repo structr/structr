@@ -24,7 +24,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
@@ -57,7 +57,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof Principal)) {
+			} else if (!(sources[1] instanceof PrincipalInterface)) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 
@@ -71,7 +71,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 				final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
 				final Group group           = (Group)sources[0];
-				final Principal principal   = (Principal)sources[1];
+				final PrincipalInterface principal   = (PrincipalInterface)sources[1];
 
 				return principalInGroup(new HashSet<>(), group, principal, type, checkHierarchy);
 			}
@@ -88,7 +88,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 		return false;
 	}
 
-	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final Principal principal, final RelationshipType relType, final boolean checkHierarchy) {
+	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final PrincipalInterface principal, final RelationshipType relType, final boolean checkHierarchy) {
 
 		boolean isInGroup = group.hasRelationshipTo(relType, principal);
 

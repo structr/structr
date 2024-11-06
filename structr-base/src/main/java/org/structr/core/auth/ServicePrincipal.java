@@ -42,7 +42,7 @@ import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
-public class ServicePrincipal implements Principal, AccessControllable, NonIndexed {
+public class ServicePrincipal implements PrincipalInterface, AccessControllable, NonIndexed {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
 	private SecurityContext securityContext = null;
@@ -84,12 +84,12 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public Iterable<Principal> getParents() {
+	public Iterable<PrincipalInterface> getParents() {
 		return Collections.EMPTY_LIST;
 	}
 
 	@Override
-	public Iterable<Principal> getParentsPrivileged() {
+	public Iterable<PrincipalInterface> getParentsPrivileged() {
 
 		// if the list of reference IDs is set, we search for groups with the given IDs and associate this principal with them
 		if (jwksReferenceIds != null) {
@@ -125,13 +125,32 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
+	public String getEncryptedPassword() {
+		return null;
+	}
+
+	@Override
+	public String getSalt() {
+		return null;
+	}
+
+	@Override
+	public String getTwoFactorSecret() {
+		return null;
+	}
+
+	@Override
+	public String getTwoFactorUrl() {
+		return null;
+	}
+
+	@Override
 	public boolean addSessionId(String sessionId) {
 		return false;
 	}
 
 	@Override
 	public void removeSessionId(String sessionId) {
-
 	}
 
 	@Override
@@ -141,6 +160,10 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public void removeRefreshToken(String refreshToken) {
+	}
+
+	@Override
+	public void clearTokens() {
 	}
 
 	@Override
@@ -325,7 +348,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public Principal getOwnerNode() {
+	public PrincipalInterface getOwnerNode() {
 		return null;
 	}
 
@@ -335,39 +358,39 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public void grant(Permission permission, Principal principal) throws FrameworkException {
+	public void grant(Permission permission, PrincipalInterface principal) throws FrameworkException {
 	}
 
 	@Override
-	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	public void grant(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
 	}
 
 	@Override
-	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public void grant(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
 	}
 
 	@Override
-	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+	public void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
 	}
 
 	@Override
-	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
 	}
 
 	@Override
-	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
 	}
 
 	@Override
-	public void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	public void setAllowed(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
 	}
 
 	@Override
-	public void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public void setAllowed(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
 	}
 
 	@Override
-	public Security getSecurityRelationship(Principal principal) {
+	public Security getSecurityRelationship(PrincipalInterface principal) {
 		return null;
 	}
 
@@ -570,9 +593,9 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	// ----- private methods -----
-	private boolean recursivelyCheckForAdminPermissions(final Iterable<Principal> parents) {
+	private boolean recursivelyCheckForAdminPermissions(final Iterable<PrincipalInterface> parents) {
 
-		for (final Principal parent : parents) {
+		for (final PrincipalInterface parent : parents) {
 
 			if (parent.isAdmin()) {
 				return true;
