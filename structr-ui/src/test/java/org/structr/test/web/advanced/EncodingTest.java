@@ -28,7 +28,10 @@ import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -78,8 +81,8 @@ public class EncodingTest extends StructrUiTest {
 			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${GET('http://localhost:" + port + "/')}", "test");
 
 			assertNotNull("Result should not be null", result);
-			assertTrue("Result should be a string", result instanceof String);
-			assertEquals(testString, result.toString());
+			assertTrue("Result should be a map", result instanceof GraphObjectMap);
+			assertEquals(testString, ((GraphObjectMap)result).get(new GenericProperty<>(HttpHelper.FIELD_BODY)).toString());
 
 		} catch (FrameworkException fex) {
 

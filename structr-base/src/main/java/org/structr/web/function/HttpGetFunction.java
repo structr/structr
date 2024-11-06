@@ -154,9 +154,9 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
 				response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
 
-				if (responseData.containsKey(HttpHelper.FIELD_HEADERS)) {
+				if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
 
-					response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), responseData.get(HttpHelper.FIELD_HEADERS));
+					response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
 				}
 
 				return response;
