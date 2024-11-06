@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
@@ -211,11 +211,11 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		final Class testUserType              = createTestUserType();
 		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
-		Principal tester                      = null;
+		PrincipalInterface tester                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = (Principal)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = (PrincipalInterface)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -260,12 +260,12 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		final Class testUserType              = createTestUserType();
 		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
-		Principal tester                      = null;
+		PrincipalInterface tester                      = null;
 		String uuid                           = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = (Principal)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = (PrincipalInterface)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 
 			uuid = tester.getUuid();
 

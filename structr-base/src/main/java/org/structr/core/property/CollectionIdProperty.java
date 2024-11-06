@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 
 /**
@@ -28,7 +28,7 @@ import org.structr.core.notion.PropertyNotion;
  *
  * @param <T>
  */
-public class CollectionIdProperty<T extends AbstractNode> extends CollectionNotionProperty<T, String> {
+public class CollectionIdProperty<T extends NodeInterface> extends CollectionNotionProperty<T, String> {
 
 	public CollectionIdProperty(String name, Property<Iterable<T>> base) {
 		this(name, base, false);

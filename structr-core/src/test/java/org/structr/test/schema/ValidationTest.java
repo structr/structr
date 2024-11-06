@@ -36,10 +36,7 @@ import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestTwelve;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -1818,10 +1815,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
-			);
+			app.create(SchemaRelationshipNode.class);
 
 			tx.success();
 
@@ -1831,12 +1825,14 @@ public class ValidationTest extends StructrTest {
 
 			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
 
-			assertEquals("Invalid SchemaRelationshipNode validation result", 3, tokens.size());
+			assertEquals("Invalid SchemaRelationshipNode validation result", 5, tokens.size());
 			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
 
 			final ErrorToken token1 = tokens.get(0);
 			final ErrorToken token2 = tokens.get(1);
 			final ErrorToken token3 = tokens.get(2);
+			final ErrorToken token4 = tokens.get(3);
+			final ErrorToken token5 = tokens.get(4);
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token1.getType());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "relationshipType", token1.getProperty());
@@ -1847,8 +1843,16 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token3.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token3.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token3.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token3.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token4.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token4.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token4.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token5.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token5.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token5.getToken());
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -1867,19 +1871,29 @@ public class ValidationTest extends StructrTest {
 
 			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
 
-			assertEquals("Invalid SchemaRelationshipNode validation result", 2, tokens.size());
+			assertEquals("Invalid SchemaRelationshipNode validation result", 4, tokens.size());
 			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
 
 			final ErrorToken token1 = tokens.get(0);
 			final ErrorToken token2 = tokens.get(1);
+			final ErrorToken token3 = tokens.get(2);
+			final ErrorToken token4 = tokens.get(3);
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token1.getType());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token1.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token2.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token2.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token3.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token3.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token3.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token4.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token4.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token4.getToken());
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -1897,14 +1911,19 @@ public class ValidationTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
-			final ErrorToken token = tokens.get(0);
+			final ErrorToken token1 = tokens.get(0);
+			final ErrorToken token2 = tokens.get(1);
 
-			assertEquals("Invalid SchemaRelationshipNode validation result", 1, tokens.size());
-
+			assertEquals("Invalid SchemaRelationshipNode validation result", 2, tokens.size());
 			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token.getProperty());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token1.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetNode", token1.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token2.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 		}
 
 
@@ -1923,14 +1942,19 @@ public class ValidationTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			final List<ErrorToken> tokens = fex.getErrorBuffer().getErrorTokens();
-			final ErrorToken token = tokens.get(0);
+			final ErrorToken token1 = tokens.get(0);
+			final ErrorToken token2 = tokens.get(1);
 
-			assertEquals("Invalid SchemaRelationshipNode validation result", 1, tokens.size());
-
+			assertEquals("Invalid SchemaRelationshipNode validation result", 2, tokens.size());
 			assertEquals("Invalid SchemaRelationshipNode validation result", 422, fex.getStatus());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token.getProperty());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token1.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token1.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
+
+			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token2.getType());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 		}
 	}
 
@@ -2049,7 +2073,17 @@ public class ValidationTest extends StructrTest {
 		// test that two identical SchemaGrant objects (identical SchemaNode and Principal) throw an error
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
+			app.create(SchemaNode.class, new NodeAttribute<>(AbstractNode.name, "Project"));
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
 			final Group group           = app.create(Group.class, "Group1");
 
 			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));

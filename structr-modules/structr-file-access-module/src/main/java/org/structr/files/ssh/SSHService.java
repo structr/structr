@@ -49,7 +49,7 @@ import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
@@ -203,7 +203,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				try {
 
-					Principal principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+					PrincipalInterface principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
 
 					if (principal != null) {
 
@@ -262,7 +262,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			try {
 
-				final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
+				final PrincipalInterface principal = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(username).getFirst();
 				if (principal != null) {
 
 					if (principal.isAdmin()) {
@@ -270,7 +270,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
 						// check single (main) pubkey
-						final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
+						final String pubKeyData = principal.getProperty(StructrApp.key(PrincipalInterface.class, "publicKey"));
 						if (pubKeyData != null) {
 
 							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
@@ -279,7 +279,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						}
 
 						// check array of pubkeys for this user
-						final String[] pubKeysData = principal.getProperty(StructrApp.key(Principal.class, "publicKeys"));
+						final String[] pubKeysData = principal.getProperty(StructrApp.key(PrincipalInterface.class, "publicKeys"));
 						if (pubKeysData != null) {
 
 							for (final String k : pubKeysData) {

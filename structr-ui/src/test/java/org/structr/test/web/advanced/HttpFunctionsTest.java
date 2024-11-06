@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
@@ -53,9 +53,9 @@ public class HttpFunctionsTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
 			);
 
 			tx.success();

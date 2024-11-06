@@ -32,7 +32,7 @@ import org.structr.common.helper.MailHelper;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -87,7 +87,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final Principal user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
+			final PrincipalInterface user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
@@ -115,7 +115,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		}
 	}
 
-	private boolean sendResetPasswordLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
+	private boolean sendResetPasswordLink(final SecurityContext securityContext, final PrincipalInterface user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
 
 		final String userEmail  = user.getProperty("eMail");
 		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));

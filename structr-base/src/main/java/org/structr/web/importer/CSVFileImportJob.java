@@ -30,7 +30,7 @@ import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -54,7 +54,7 @@ public class CSVFileImportJob extends FileImportJob {
 		NODE, REL
 	}
 
-	public CSVFileImportJob(File file, Principal user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+	public CSVFileImportJob(File file, PrincipalInterface user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
 		super(file, user, configuration, ctxStore);
 	}
 

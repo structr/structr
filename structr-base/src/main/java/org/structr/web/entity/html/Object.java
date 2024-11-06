@@ -18,30 +18,28 @@
  */
 package org.structr.web.entity.html;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
 
 import java.net.URI;
 
-public interface Object extends DOMElement {
+public class Object extends DOMElement {
 
-	static class Impl { static {
+	public static final Property<String> htmlTypeProperty          = new StringProperty("_html_type").partOfBuiltInSchema();
+	public static final Property<String> htmlTypeMustMatchProperty = new StringProperty("_html_typemustmatch").partOfBuiltInSchema();
+	public static final Property<String> htmlUsemapProperty        = new StringProperty("_html_usemap").partOfBuiltInSchema();
+	public static final Property<String> htmlFormProperty          = new StringProperty("_html_form").partOfBuiltInSchema();
+	public static final Property<String> htmlWidthProperty         = new StringProperty("_html_width").partOfBuiltInSchema();
+	public static final Property<String> htmlHeightProperty        = new StringProperty("_html_height").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Object");
-
-		type.addStringProperty("_html_type",          PropertyView.Html);
-		type.addStringProperty("_html_typemustmatch", PropertyView.Html);
-		type.addStringProperty("_html_usemap",        PropertyView.Html);
-		type.addStringProperty("_html_form",          PropertyView.Html);
-		type.addStringProperty("_html_width",         PropertyView.Html);
-		type.addStringProperty("_html_height",        PropertyView.Html);
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Object"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-	}}
+	public static final View htmlView = new View(Object.class, PropertyView.Html,
+		htmlTypeProperty, htmlTypeMustMatchProperty, htmlUsemapProperty, htmlFormProperty, htmlWidthProperty, htmlHeightProperty
+	);
 }

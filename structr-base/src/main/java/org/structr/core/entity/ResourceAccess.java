@@ -68,9 +68,9 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();
 	private static final Logger logger                                = LoggerFactory.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>               signature          = new StringProperty("signature").indexed();
-	public static final Property<Long>                 flags              = new LongProperty("flags").indexed();
-	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
+	public static final Property<String>               signature          = new StringProperty("signature").indexed().partOfBuiltInSchema();
+	public static final Property<Long>                 flags              = new LongProperty("flags").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true).partOfBuiltInSchema();
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, isResourceAccess

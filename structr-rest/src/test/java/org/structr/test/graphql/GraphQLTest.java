@@ -38,6 +38,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrGraphQLTest;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -72,7 +73,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final PropertyKey<List> membersKey = StructrApp.key(Group.class, "members");
 
-			tester = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester"));
+			tester = app.create(User.class, new NodeAttribute<>(User.name, "tester"));
 			group  = app.create(Group.class,
 				new NodeAttribute<>(Group.name, "TestGroup"),
 				new NodeAttribute<>(membersKey, Arrays.asList(tester))
@@ -106,7 +107,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 				.body("Group[0].type",            equalTo("Group"))
 				.body("Group[0].name",            equalTo("TestGroup"))
 				.body("Group[0].members[0].id",   equalTo(testerId))
-				.body("Group[0].members[0].type", equalTo("Principal"))
+				.body("Group[0].members[0].type", equalTo("User"))
 				.body("Group[0].members[0].name", equalTo("tester"))
 				.body("Principal[0].id",          equalTo(groupId))
 				.body("Principal[0].type",        equalTo("Group"))
@@ -162,15 +163,15 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final PropertyKey<List> membersKey = StructrApp.key(Group.class, "members");
 
-			final Principal christian2 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Christian"));
-			final Principal susanne    = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Susanne"));
-			final Principal lukas      = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Lukas"));
-			final Principal kai        = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Kai"));
-			final Principal michael    = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Michael"));
-			final Principal ines       = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Inès"));
-			final Principal axel       = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Axel"));
-			final Principal christian1 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Christian"));
-			final Principal tobias     = app.create(Principal.class, new NodeAttribute<>(Principal.name, "Tobias"));
+			final Principal christian2 = app.create(User.class, new NodeAttribute<>(User.name, "Christian"));
+			final Principal susanne    = app.create(User.class, new NodeAttribute<>(User.name, "Susanne"));
+			final Principal lukas      = app.create(User.class, new NodeAttribute<>(User.name, "Lukas"));
+			final Principal kai        = app.create(User.class, new NodeAttribute<>(User.name, "Kai"));
+			final Principal michael    = app.create(User.class, new NodeAttribute<>(User.name, "Michael"));
+			final Principal ines       = app.create(User.class, new NodeAttribute<>(User.name, "Inès"));
+			final Principal axel       = app.create(User.class, new NodeAttribute<>(User.name, "Axel"));
+			final Principal christian1 = app.create(User.class, new NodeAttribute<>(User.name, "Christian"));
+			final Principal tobias     = app.create(User.class, new NodeAttribute<>(User.name, "Tobias"));
 
 			team.add(axel);
 			team.add(christian1);
@@ -238,7 +239,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 				templateIds.add(t.getUuid());
 			}
 
-			for (final Principal t : team) {
+			for (final PrincipalInterface t : team) {
 				teamIds.add(t.getUuid());
 			}
 
@@ -259,7 +260,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ Principal(id: \"" + teamIds.get(0) + "\") { id, type, name } }");
 			assertMapPathValueIs(result, "Principal.#",      1);
 			assertMapPathValueIs(result, "Principal.0.id",   teamIds.get(0));
-			assertMapPathValueIs(result, "Principal.0.type", "Principal");
+			assertMapPathValueIs(result, "Principal.0.type", "User");
 			assertMapPathValueIs(result, "Principal.0.name", "Axel");
 		}
 
@@ -666,8 +667,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.create(Principal.class, "p1");
-			final Principal p2 = app.create(Principal.class, "p2");
+			final Principal p1 = app.create(User.class, "p1");
+			final Principal p2 = app.create(User.class, "p2");
 			final MailTemplate m1 = app.create(MailTemplate.class, "m1");
 			final MailTemplate m2 = app.create(MailTemplate.class, "m2");
 			final MailTemplate m3 = app.create(MailTemplate.class, "m3");
@@ -699,8 +700,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final Principal p2 = app.create(Principal.class, "Second Tester");
-			final Principal p1 = app.create(Principal.class, "First Tester");
+			final Principal p2 = app.create(User.class, "Second Tester");
+			final Principal p1 = app.create(User.class, "First Tester");
 			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
 			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
 			final MailTemplate m5 = app.create(MailTemplate.class, "Fifth Template");
@@ -952,10 +953,10 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members @ 'Group/members'"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type PrincipalInterface of field members @ 'Group/members'"))
 				.body("errors[0].locations[0].line",   equalTo(2))
 				.body("errors[0].locations[0].column", equalTo(27))
-				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field members"))
+				.body("errors[0].description",         equalTo("Sub selection required for type PrincipalInterface of field members"))
 				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
 
 			.when()
@@ -969,10 +970,10 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner @ 'Group/owner'"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type PrincipalInterface of field owner @ 'Group/owner'"))
 				.body("errors[0].locations[0].line",   equalTo(2))
 				.body("errors[0].locations[0].column", equalTo(27))
-				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field owner"))
+				.body("errors[0].description",         equalTo("Sub selection required for type PrincipalInterface of field owner"))
 				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
 
 			.when()
@@ -1020,7 +1021,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// create test node
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(Principal.class, "tester");
+			user = app.create(User.class, "tester");
 
 			userId = user.getUuid();
 
@@ -1057,7 +1058,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		assertMapPathValueIs(result, "Test.0.test4",        12.34);
 		assertMapPathValueIs(result, "Test.0.test5",        7.465423674522E12);
 		assertMapPathValueIs(result, "Test.0.test6.id",     userId);
-		assertMapPathValueIs(result, "Test.0.test6.type",   "Principal");
+		assertMapPathValueIs(result, "Test.0.test6.type",   "User");
 		assertMapPathValueIs(result, "Test.0.test6.name",   "tester");
 		assertMapPathValueIs(result, "Test.0.test7.#",      10);
 
@@ -1424,7 +1425,6 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
 
 			final JsonObjectType project = schema.addType("Project");
@@ -1537,7 +1537,6 @@ public class GraphQLTest extends StructrGraphQLTest {
 	public void testRemotePropertiesForCorrectInputType() {
 
 		try (final Tx tx = app.tx()) {
-
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
 
@@ -1661,7 +1660,6 @@ public class GraphQLTest extends StructrGraphQLTest {
 	public void testRemotePropertiesWithMultipleInstances() {
 
 		try (final Tx tx = app.tx()) {
-
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
 

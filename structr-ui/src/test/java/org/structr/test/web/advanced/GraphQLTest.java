@@ -97,6 +97,7 @@ public class GraphQLTest extends StructrUiTest {
 				.header("X-User", "admin")
 				.header("X-Password", "admin")
 				.contentType("application/json; charset=UTF-8")
+			//.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")
 				.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")
 
 			.expect()

@@ -33,7 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -130,23 +130,6 @@ public class StructrTest {
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	public void startSystem(@Optional String testDatabaseConnection) {
-
-		final Set<String> htmlTypes = Set.of(
-			"A", "Abbr", "Address", "Area", "Article", "Aside", "Audio", "B", "Base", "Bdi", "Bdo", "Blockquote", "Body", "Br", "Button", "Canvas", "Caption", "Cdata", "Cite", "Code",
-			"Col", "Colgroup", "Command", "Comment", "Component", "Content", "ContentContainer", "ContentItem", "CssDeclaration", "CssRule", "CssSelector", "CssSemanticClass","Data",
-			"Datalist", "Dd", "Del", "Details", "Dfn", "Dialog", "Div", "Dl", "Dt", "Em", "Embed", "Fieldset", "Figcaption", "Figure", "Footer", "Form", "G", "H1", "H2", "H3", "H4",
-			"H5", "H6", "Head", "Header", "Hgroup", "Hr", "Html", "I", "Iframe", "Img", "Input", "Ins", "Kbd", "Keygen", "Label", "Legend", "Li", "Link", "Main", "Map", "Mark", "Menu",
-			"Meta", "Meter", "Nav", "Noscript", "Object", "Ol", "Optgroup", "Option", "Output", "P", "Param", "Person", "Picture", "Pre", "Progress", "Q", "Rp", "Rt", "Ruby", "S","Samp",
-			"Script", "Section", "Select", "Slot", "Small", "Source", "Span", "Strong", "Style", "Sub", "Summary", "Sup", "Table", "Tbody", "Td", "Template", "TemplateElement", "Textarea",
-			"Tfoot", "Th", "Thead", "Time", "Title", "Tr", "Track", "U", "Ul", "Var", "Video", "Wbr", "Widget"
-		);
-		final Set<String> uiTypes = Set.of(
-			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
-			"JavaScriptSource", "LinkSource", "Linkable", "Page", "PagePath", "PagePathParameter", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
-		);
-
-		SchemaService.getBlacklist().addAll(htmlTypes);
-		SchemaService.getBlacklist().addAll(uiTypes);
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
@@ -313,11 +296,11 @@ public class StructrTest {
 		}
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal owner) throws FrameworkException {
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PrincipalInterface owner) throws FrameworkException {
 		return (T)createTestNode(type, new PropertyMap(), owner);
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal owner) throws FrameworkException {
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final PrincipalInterface owner) throws FrameworkException {
 
 		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
 

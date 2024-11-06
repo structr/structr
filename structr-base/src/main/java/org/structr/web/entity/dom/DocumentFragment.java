@@ -18,67 +18,88 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
-import org.structr.schema.SchemaService;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.net.URI;
-
 /**
- *
- *
  */
 
-public interface DocumentFragment extends DOMNode, org.w3c.dom.DocumentFragment, NonIndexed {
+public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment, NonIndexed {
 
-	static class Impl { static {
+	@Override
+	public String getContextName() {
+		return "DocumentFragment";
+	}
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("DocumentFragment");
+	@Override
+	public String getNodeName() {
+		return "#document-fragment";
+	}
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DocumentFragment"));
-		type.setExtends(URI.create("#/definitions/DOMNode"));
-		type.setCategory("html");
+	@Override
+	public String getLocalName() {
+		return null;
+	}
 
-		// ----- interface org.w3c.dom.Node -----
-		type.overrideMethod("getNodeName",   false, "return \"#document-fragment\";");
-		type.overrideMethod("getLocalName",  false, "return null;");
-		type.overrideMethod("getNodeValue",  false, "return null;");
-		type.overrideMethod("hasAttributes", false, "return false;");
-		type.overrideMethod("getAttributes", false, "return null;");
-		type.overrideMethod("getNodeType",   false, "return DOCUMENT_FRAGMENT_NODE;");
-		type.overrideMethod("setNodeValue",  false, "");
+	@Override
+	public String getNodeValue() {
+		return null;
+	}
 
-		// ----- interface DOMNode -----
-		type.overrideMethod("getContextName", false, "return \"DocumentFragment\";");
-		type.overrideMethod("isSynced",       false, "return false;");
-		type.overrideMethod("contentEquals",  false, "return false;");
-		type.overrideMethod("updateFromNode", false, "");
-		type.overrideMethod("render",         false, DocumentFragment.class.getName() + ".render(this, arg0, arg1);");
-		type.overrideMethod("renderContent",  false, "");
-		type.overrideMethod("updateFromNode", false, "");
-		type.overrideMethod("doAdopt",        false, "return null;");
-		type.overrideMethod("doImport",       false, "return arg0.createDocumentFragment();");
+	@Override
+	public void setNodeValue(final String value) {
+	}
 
-		// ----- interface org.w3c.dom.Node -----
-		type.overrideMethod("getLocalName",          false, "return null;");
-		type.overrideMethod("getNodeType",           false, "return DOCUMENT_FRAGMENT_NODE;");
-		type.overrideMethod("getNodeName",           false, "return \"#document-fragment\";");
-		type.overrideMethod("getNodeValue",          false, "return null;");
-		type.overrideMethod("setNodeValue",          false, "");
-		type.overrideMethod("getAttributes",         false, "return null;");
-		type.overrideMethod("hasAttributes",         false, "return false;");
-	}}
+	@Override
+	public short getNodeType() {
+		return DOCUMENT_FRAGMENT_NODE;
+	}
 
-	public static void render(final DocumentFragment thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	@Override
+	public NamedNodeMap getAttributes() {
+		return null;
+	}
 
-		NodeList _children = thisNode.getChildNodes();
+	public boolean hasAttributes() {
+		return false;
+	}
+
+	@Override
+	public boolean isSynced() {
+		return false;
+	}
+
+	@Override
+	public boolean contentEquals(final Node node) {
+		return false;
+	}
+
+	public void updateFromNode(final DOMNode otherNode) throws FrameworkException {
+	}
+
+	public void renderContent(RenderContext renderContext, int depth) throws FrameworkException {
+	}
+
+	@Override
+	public Node doAdopt(Page page) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public Node doImport(Page page) throws DOMException {
+		return page.createDocumentFragment();
+	}
+
+	@Override
+	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		NodeList _children = getChildNodes();
 		int len            = _children.getLength();
 
 		for (int i=0; i<len; i++) {

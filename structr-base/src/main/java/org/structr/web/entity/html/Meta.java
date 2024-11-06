@@ -18,31 +18,31 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Meta extends DOMElement {
 
-public interface Meta extends DOMElement {
+	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name").partOfBuiltInSchema();
+	public static final Property<String> htmlHttpEquivProperty = new StringProperty("_html_http-equiv").partOfBuiltInSchema();
+	public static final Property<String> htmlContentProperty   = new StringProperty("_html_content").partOfBuiltInSchema();
+	public static final Property<String> htmlCharsetProperty   = new StringProperty("_html_charset").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Meta.class, PropertyView.Html,
+		htmlNameProperty, htmlHttpEquivProperty, htmlContentProperty, htmlCharsetProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Meta");
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Meta"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_name",       PropertyView.Html);
-		type.addStringProperty("_html_http-equiv", PropertyView.Html);
-		type.addStringProperty("_html_content",    PropertyView.Html);
-		type.addStringProperty("_html_charset",    PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-		type.overrideMethod("isVoidElement",     false, "return true;");
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

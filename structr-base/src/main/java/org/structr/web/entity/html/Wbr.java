@@ -18,25 +18,17 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Wbr extends DOMElement {
 
-public interface Wbr extends DOMElement {
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	}
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Wbr");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Wbr"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.overrideMethod("avoidWhitespace", false, "return true;");
-		type.overrideMethod("isVoidElement",   false, "return true;");
-	}}
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
 }

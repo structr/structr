@@ -141,6 +141,25 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
+	public JsonReferenceType relate(final Class type, String relationship, Cardinality cardinality, String sourceAttributeName, String targetAttributeName) {
+
+		final String relationshipTypeName           = getName() + relationship + type.getSimpleName();
+		final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, relationshipTypeName);
+
+		// initialize
+		def.setSourcePropertyName(sourceAttributeName);
+		def.setTargetPropertyName(targetAttributeName);
+		def.setRelationship(relationship);
+		def.setCardinality(cardinality);
+		def.setSourceType(getId());
+		def.setTargetType(StructrApp.getSchemaBaseURI().resolve(getStaticTypeReference(type)));
+
+		root.addType(def);
+
+		return def;
+	}
+
+	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();

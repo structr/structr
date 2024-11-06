@@ -18,7 +18,7 @@
  */
 package org.structr.agent;
 
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 
 import java.util.*;
 import java.util.concurrent.Delayed;
@@ -32,7 +32,7 @@ public class AbstractTask<T> implements Task<T> {
 
 	private final Map<String, Object> statusProperties = new LinkedHashMap<>();
 	private final List<T> objects                      = new LinkedList<>();
-	private Principal user                             = null;
+	private PrincipalInterface user                             = null;
 	private int priority                               = 0;
 	private Date scheduledTime                         = null;
 	private Date creationTime                          = null;
@@ -40,11 +40,11 @@ public class AbstractTask<T> implements Task<T> {
 	private long delay                                 = 0L;
 	private int retryCount                             = 0;
 
-	public AbstractTask(final String type, final Principal user) {
+	public AbstractTask(final String type, final PrincipalInterface user) {
 		this(type, user, null);
 	}
 	
-	public AbstractTask(final String type, final Principal user, final T node) {
+	public AbstractTask(final String type, final PrincipalInterface user, final T node) {
 
 		this.type = type;
 		this.user = user;
@@ -55,7 +55,7 @@ public class AbstractTask<T> implements Task<T> {
 	}
 
 	@Override
-	public Principal getUser() {
+	public PrincipalInterface getUser() {
 		return user;
 	}
 
@@ -107,7 +107,7 @@ public class AbstractTask<T> implements Task<T> {
 		this.objects.add(node);
 	}
 
-	public void setUser(final Principal user) {
+	public void setUser(final PrincipalInterface user) {
 		this.user = user;
 	}
 

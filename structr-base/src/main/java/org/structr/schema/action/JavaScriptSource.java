@@ -18,36 +18,23 @@
  */
 package org.structr.schema.action;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.Property;
 
 /**
- *
  *
  */
 public interface JavaScriptSource extends NodeInterface {
 
-	static class Impl { static {
+	Property<Boolean> useAsJavascriptLibrary = new BooleanProperty("useAsJavascriptLibrary").indexed();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("JavaScriptSource");
+	View uiView = new View(JavaScriptSource.class, PropertyView.Ui,
+		useAsJavascriptLibrary
+	);
 
-		type.setIsInterface();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/JavaScriptSource"));
-
-		type.addBooleanProperty("useAsJavascriptLibrary", PropertyView.Ui).setIndexed(true);
-	}}
-
-	/*
-	public static final Property<Boolean> useAsJavascriptLibrary = new BooleanProperty("useAsJavascriptLibrary").indexed();
-	public static final View uiView = new View(JavaScriptSource.class, PropertyView.Ui, useAsJavascriptLibrary);
-	*/
-
-	public String getJavascriptLibraryCode();
-	public String getContentType();
+	String getJavascriptLibraryCode();
+	String getContentType();
 }

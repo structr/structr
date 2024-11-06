@@ -18,50 +18,24 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Embed extends DOMElement {
 
-public interface Embed extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Embed");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Embed"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_src",    PropertyView.Html);
-		type.addStringProperty("_html_type",   PropertyView.Html);
-		type.addStringProperty("_html_width",  PropertyView.Html);
-		type.addStringProperty("_html_height", PropertyView.Html);
-
-		type.overrideMethod("isVoidElement", false, "return true;");
-	}}
-
-	/*
-	public static final Property<String> _src		= new HtmlProperty("src");
-	public static final Property<String> _type		= new HtmlProperty("type");
-	public static final Property<String> _width		= new HtmlProperty("width");
-	public static final Property<String> _height		= new HtmlProperty("height");
+	public static final Property<String> _src		= new HtmlProperty("src").partOfBuiltInSchema();
+	public static final Property<String> _type		= new HtmlProperty("type").partOfBuiltInSchema();
+	public static final Property<String> _width		= new HtmlProperty("width").partOfBuiltInSchema();
+	public static final Property<String> _height		= new HtmlProperty("height").partOfBuiltInSchema();
 
 	public static final org.structr.common.View htmlView	= new org.structr.common.View(Embed.class, PropertyView.Html,
 		_src, _type, _width, _height
 	);
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public boolean isVoidElement() {
-
 		return true;
-
 	}
-	*/
 }

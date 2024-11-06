@@ -18,50 +18,71 @@
  */
 package org.structr.payment.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.payment.api.PaymentItem;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.payment.entity.relationship.PaymentNodepaymentItemPaymentItem;
 
 /**
  *
  */
-public interface PaymentItemNode extends NodeInterface, PaymentItem {
+public class PaymentItemNode extends AbstractNode implements PaymentItem {
 
+	public static final Property<PaymentNode> paymentProperty = new StartNode<>("payment", PaymentNodepaymentItemPaymentItem.class);
+	public static final Property<Integer> amountProperty      = new IntProperty("amount").indexed();
+	public static final Property<Integer> quantityProperty    = new IntProperty("quantity").indexed();
+	public static final Property<String> descriptionProperty  = new StringProperty("description");
+	public static final Property<String> numberProperty       = new StringProperty("number");
+	public static final Property<String> urlProperty          = new StringProperty("url");
 
-	static class Impl { static {
+	public static final View defaultView = new View(PaymentItemNode.class, PropertyView.Public,
+		name, amountProperty, quantityProperty, descriptionProperty, numberProperty, urlProperty
+	);
 
-		final JsonSchema schema      = SchemaService.getDynamicSchema();
-		final JsonObjectType type    = schema.addType("PaymentItemNode");
+	public static final View uiView = new View(PaymentItemNode.class, PropertyView.Ui,
+		amountProperty, quantityProperty, descriptionProperty, numberProperty, urlProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PaymentItemNode"));
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addIntegerProperty("amount",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("quantity",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("description", PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("number",      PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("url",         PropertyView.Public, PropertyView.Ui);
+		boolean valid = super.isValid(errorBuffer);
 
-		type.addPropertyGetter("amount",      Integer.TYPE);
-		type.addPropertyGetter("quantity",    Integer.TYPE);
-		type.addPropertyGetter("description", String.class);
-		type.addPropertyGetter("number",      String.class);
-		type.addPropertyGetter("url",         String.class);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, PaymentItemNode.amountProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, PaymentItemNode.quantityProperty, errorBuffer);
 
-		type.addPropertySetter("amount",      Integer.TYPE);
-		type.addPropertySetter("quantity",    Integer.TYPE);
-		type.addPropertySetter("description", String.class);
-		type.addPropertySetter("number",      String.class);
-		type.addPropertySetter("url",         String.class);
+		return valid;
+	}
 
-		type.addMethod("getItemNumber").setSource("return getProperty(numberProperty);").setReturnType(String.class.getName());
-		type.addMethod("getItemUrl").setSource("return getProperty(urlProperty);").setReturnType(String.class.getName());
+	@Override
+	public int getAmount() {
+		return getProperty(amountProperty);
+	}
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
+	@Override
+	public int getQuantity() {
+		return getProperty(quantityProperty);
+	}
+
+	@Override
+	public String getDescription() {
+		return getProperty(descriptionProperty);
+	}
+
+	@Override
+	public String getItemNumber() {
+		return getProperty(numberProperty);
+	}
+
+	@Override
+	public String getItemUrl() {
+		return getProperty(urlProperty);
+	}
 }

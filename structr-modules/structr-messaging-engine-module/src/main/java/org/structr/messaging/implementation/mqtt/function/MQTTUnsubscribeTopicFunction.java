@@ -39,6 +39,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
 			MQTTClient client = null;
@@ -52,7 +53,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			MQTTClient.unsubscribeTopic(client, sources[1].toString());
+			client.unsubscribeTopic(ctx.getSecurityContext(), sources[1].toString());
 
 		} else {
 

@@ -770,8 +770,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			folder2.treeRemoveChild(file2);
-			folder1.treeAppendChild(file2);
+			file2.setParent(folder1);
 
 			assertEquals("Testfolder 1 should have exactly two children", 2, Iterables.count(folder1.getChildren()));
 			assertEquals("Testfolder 2 should have no children", 0, Iterables.count(folder2.getChildren()));

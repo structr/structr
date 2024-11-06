@@ -18,39 +18,40 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Textarea extends DOMElement {
 
-public interface Textarea extends DOMElement {
+	public static final Property<String> htmlNameProperty        = new StringProperty("_html_name").partOfBuiltInSchema();
+	public static final Property<String> htmlDisabledProperty    = new StringProperty("_html_disabled").partOfBuiltInSchema();
+	public static final Property<String> htmlFormProperty        = new StringProperty("_html_form").partOfBuiltInSchema();
+	public static final Property<String> htmlReadonlyProperty    = new StringProperty("_html_readonly").partOfBuiltInSchema();
+	public static final Property<String> htmlMaxlengthProperty   = new StringProperty("_html_maxlenght").partOfBuiltInSchema();
+	public static final Property<String> htmlAutofocusProperty   = new StringProperty("_html_autofocus").partOfBuiltInSchema();
+	public static final Property<String> htmlRequiredProperty    = new StringProperty("_html_required").partOfBuiltInSchema();
+	public static final Property<String> htmlPlaceholderProperty = new StringProperty("_html_placeholder").partOfBuiltInSchema();
+	public static final Property<String> htmlDirnameProperty     = new StringProperty("_html_dirname").partOfBuiltInSchema();
+	public static final Property<String> htmlRowsProperty        = new StringProperty("_html_rows").partOfBuiltInSchema();
+	public static final Property<String> htmlWrapProperty        = new StringProperty("_html_wrap").partOfBuiltInSchema();
+	public static final Property<String> htmlColsProperty        = new StringProperty("_html_cols").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Textarea.class, PropertyView.Html,
+		htmlNameProperty, htmlDisabledProperty, htmlFormProperty, htmlReadonlyProperty, htmlMaxlengthProperty, htmlAutofocusProperty,
+		htmlRequiredProperty, htmlPlaceholderProperty, htmlDirnameProperty, htmlRowsProperty, htmlWrapProperty, htmlColsProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Textarea");
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	}
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Textarea"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_name",        PropertyView.Html);
-		type.addStringProperty("_html_disabled",    PropertyView.Html);
-		type.addStringProperty("_html_form",        PropertyView.Html);
-		type.addStringProperty("_html_readonly",    PropertyView.Html);
-		type.addStringProperty("_html_maxlenght",   PropertyView.Html);
-		type.addStringProperty("_html_autofocus",   PropertyView.Html);
-		type.addStringProperty("_html_required",    PropertyView.Html);
-		type.addStringProperty("_html_placeholder", PropertyView.Html);
-		type.addStringProperty("_html_dirname",     PropertyView.Html);
-		type.addStringProperty("_html_rows",        PropertyView.Html);
-		type.addStringProperty("_html_wrap",        PropertyView.Html);
-		type.addStringProperty("_html_cols",        PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-		type.overrideMethod("avoidWhitespace",   false, "return true;");
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

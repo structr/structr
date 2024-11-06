@@ -39,28 +39,34 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.relationship.FolderCONTAINSFile;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
@@ -75,9 +81,6 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
-import org.structr.core.api.Arguments;
 
 /**
  *
@@ -85,16 +88,19 @@ import org.structr.core.api.Arguments;
  */
 public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, Favoritable, DataSource {
 
+	Property<Folder> fileParentProperty = new StartNode<>("fileParent", FolderCONTAINSFile.class).partOfBuiltInSchema();
+
+
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
-		type.setImplements(URI.create("#/definitions/Indexable"));
-		type.setImplements(URI.create("#/definitions/Linkable"));
-		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
-		type.setImplements(URI.create("#/definitions/Favoritable"));
+		type.setImplements(Indexable.class);
+		type.setImplements(Linkable.class);
+		type.setImplements(JavaScriptSource.class);
+		type.setImplements(Favoritable.class);
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
 		type.setCategory("ui");
 
@@ -297,6 +303,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}
 
 	static void OnSetProperties(final File thisFile, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+
 		if (isCreation) {
 			return;
 		}
@@ -658,7 +665,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		final Map<String, Object> mixedMappings  = (Map<String, Object>)parameters.get("mixedMappings");
 		final ContextStore contextStore          = securityContext.getContextStore();
-		final Principal user                     = securityContext.getUser(false);
+		final PrincipalInterface user            = securityContext.getUser(false);
 		final Object onFinishScript              = parameters.get("onFinish");
 
 		if (mixedMappings != null) {
@@ -727,8 +734,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	 */
 	static Folder getCurrentWorkingDir(final File thisFile) {
 
-		final Principal _owner  = thisFile.getProperty(owner);
-		Folder workingOrHomeDir = null;
+		final PrincipalInterface _owner = thisFile.getProperty(owner);
+		Folder workingOrHomeDir         = null;
 
 		if (_owner != null && _owner instanceof User) {
 
@@ -919,7 +926,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static boolean isImmutable(final File thisFile) {
 
-		final Principal _owner = thisFile.getOwnerNode();
+		final PrincipalInterface _owner = thisFile.getOwnerNode();
 		if (_owner != null) {
 
 			return !_owner.isGranted(Permission.write, thisFile.getSecurityContext());

@@ -18,25 +18,15 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Details extends DOMElement {
 
-public interface Details extends DOMElement {
+	public static final Property<String> htmlOpenProperty = new StringProperty("_html_open").partOfBuiltInSchema();
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Details");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Details"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_open", PropertyView.Html);
-	}}
+	public static final View htmlView = new View(Details.class, PropertyView.Html, htmlOpenProperty);
 }

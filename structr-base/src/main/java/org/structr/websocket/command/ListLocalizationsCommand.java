@@ -112,7 +112,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 					}
 				}
 
-				Page.render(page, rCtx, 0);
+				page.render(rCtx, 0);
 
 				final List<GraphObjectMap> result = rCtx.getContextStore().getRequestedLocalizations();
 
