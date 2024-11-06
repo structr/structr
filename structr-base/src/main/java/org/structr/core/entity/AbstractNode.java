@@ -496,6 +496,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public final Node getNode() {
+		Thread.dumpStack();
 		return TransactionCommand.getCurrentTransaction().getNode(nodeId);
 	}
 

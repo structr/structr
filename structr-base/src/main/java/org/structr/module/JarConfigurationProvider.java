@@ -822,10 +822,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
+		Set<PropertyKey> properties = new LinkedHashSet<>();
 
-		if (properties == null) {
-			properties = new LinkedHashSet<>();
+		if ("custom".equals(propertyView)) {
+
+			properties.add(AbstractNode.id);
+			properties.add(AbstractNode.type);
+			properties.add(getPropertyKeyForJSONName(type, "name"));
+		}
+
+		final Set<PropertyKey> keys = propertyViewMap.get(propertyView);
+		if (keys != null) {
+
+			properties.addAll(keys);
 		}
 
 		// read-only
