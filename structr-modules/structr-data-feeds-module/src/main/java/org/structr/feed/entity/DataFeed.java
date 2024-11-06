@@ -201,7 +201,7 @@ public class DataFeed extends AbstractNode {
 				}
 
 				if (inputStream == null) {
-					throw new FrameworkException(422, "Could not get input stream for feed " + thisFeed.getUuid());
+					throw new FrameworkException(422, "Could not get input stream for feed " + getUuid());
 				}
 
 				try (final Reader reader = new XmlReader(inputStream)) {
