@@ -39,8 +39,8 @@ interface CypherQuery extends DatabaseQuery {
 	QueryContext getQueryContext();
 	QueryTimer getQueryTimer();
 
-	void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction);
-	String getType();
+	void storeRelationshipInfo(final Class type, final RelationshipType relationshipType, final Direction direction);
+	Class getType();
 	String getRelationshipType();
 	boolean isOutgoing();
 }

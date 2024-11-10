@@ -321,7 +321,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		if (relType != null) {
 
-			final String type = Direction.OUTGOING.equals(direction) ? relType.getSourceType().getSimpleName() : relType.getTargetType().getSimpleName();
+			final Class type = Direction.OUTGOING.equals(direction) ? relType.getSourceType() : relType.getTargetType();
 
 			// store relationship infos for statistics
 			query.storeRelationshipInfo(type, relType, direction);
@@ -381,10 +381,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			if (type != null) {
 
 				if (outgoing && db.getCurrentTransaction().prefetchedOutgoing.contains(type + "/" + key)) {
+
 					return List.of();
 				}
 
 				if (!outgoing && db.getCurrentTransaction().prefetchedIncoming.contains(type + "/" + key)) {
+
 					return List.of();
 				}
 			}

@@ -426,8 +426,6 @@ public class SchemaService implements Service {
 
 				} catch (FrameworkException fex) {
 
-					FlushCachesCommand.flushAll();
-
 					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
 					logger.error(ExceptionUtils.getStackTrace(fex));
 					success = false;
@@ -437,8 +435,6 @@ public class SchemaService implements Service {
 					fex.printStackTrace();
 
 				} catch (Throwable t) {
-
-					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					logger.error(ExceptionUtils.getStackTrace(t));
