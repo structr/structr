@@ -65,10 +65,6 @@ public interface PrincipalInterface extends NodeInterface, AccessControllable {
 	Property<String> proxyUsernameProperty                      = new StringProperty("proxyUsername");
 	Property<String> proxyPasswordProperty                      = new StringProperty("proxyPassword");
 	Property<String> publicKeysProperty                         = new ArrayProperty("publicKeys", String.class);
-	Property<String> customPermissionQueryReadProperty          = new StringProperty("customPermissionQueryRead");
-	Property<String> customPermissionQueryWriteProperty         = new StringProperty("customPermissionQueryWrite");
-	Property<String> customPermissionQueryDeleteProperty        = new StringProperty("customPermissionQueryDelete");
-	Property<String> customPermissionQueryAccessControlProperty = new StringProperty("customPermissionQueryAccessControl");
 
 	View uiView = new View(PrincipalInterface.class, PropertyView.Ui,
 		blockedProperty

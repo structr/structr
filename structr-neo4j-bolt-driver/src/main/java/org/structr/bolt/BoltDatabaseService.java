@@ -606,9 +606,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		final String tenantId = getTenantIdentifier();
 		final String part     = tenantId != null ? ":" + tenantId : "";
-		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
-		final long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
+		final Long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+		final Long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
+		final Long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
+
+		if (nodeCount == null || relCount == null || userCount == null) {
+			throw new RuntimeException("Unable to fetch database counts.");
+		}
 
 		return new CountResult(nodeCount, relCount, userCount);
 	}
@@ -671,29 +675,23 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	// ----- private methods -----
 	private String getNeo4jVersion() {
 
-		try {
+		try (final Session session = driver.session()) {
 
-			try (final Session session = driver.session()) {
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
 
-				try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+				final Result result     = tx.run("CALL dbms.components() YIELD versions UNWIND versions AS version RETURN version");
+				final List<Record> list = result.list();
 
-					final Result result     = tx.run("CALL dbms.components() YIELD versions UNWIND versions AS version RETURN version");
-					final List<Record> list = result.list();
+				for (final Record record : list) {
 
-					for (final Record record : list) {
+					final Value version = record.get("version");
+					if (!version.isNull() && !version.isEmpty()) {
 
-						final Value version = record.get("version");
-						if (!version.isNull() && !version.isEmpty()) {
-
-							return version.asString();
-						}
+						return version.asString();
 					}
-
 				}
-			}
 
-		} catch (Throwable t) {
-			t.printStackTrace();
+			}
 		}
 
 		return "0.0.0";

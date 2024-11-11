@@ -119,9 +119,6 @@ public class Tx implements AutoCloseable, Prefetcher {
 				// experimental
 				try (final Tx tx = begin()) {
 
-					// copy prefetch hint to callback transaction
-					tx.prefetchHint(this.prefetchHint);
-
 					if (doCallbacks && modificationQueue != null) {
 
 						modificationQueue.doOuterCallbacks(securityContext);

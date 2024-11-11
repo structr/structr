@@ -59,8 +59,7 @@ public class Group extends Principal {
 	);
 
 	public static final View uiView = new View(Group.class, PropertyView.Ui,
-		isGroupProperty, jwksReferenceIdProperty, membersProperty, customPermissionQueryReadProperty, customPermissionQueryWriteProperty,
-		customPermissionQueryDeleteProperty, customPermissionQueryAccessControlProperty
+		isGroupProperty, jwksReferenceIdProperty, membersProperty
 	);
 
 	public Iterable<PrincipalInterface> getMembers() {

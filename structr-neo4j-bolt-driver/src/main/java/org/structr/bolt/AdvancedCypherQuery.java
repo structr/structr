@@ -52,7 +52,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private String relationshipType                 = null;
-	private String type                             = null;
+	private Class type                              = null;
 	private boolean outgoing                        = false;
 	private SortOrder sortOrder                     = null;
 	private int fetchPage                           = 0;
@@ -491,14 +491,14 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return queryTimer;
 	}
 
-	public void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction) {
+	public void storeRelationshipInfo(final Class type, final RelationshipType relationshipType, final Direction direction) {
 
 		this.type             = type;
 		this.relationshipType = relationshipType.name();
 		this.outgoing         = Direction.OUTGOING.equals(direction);
 	}
 
-	public String getType() {
+	public Class getType() {
 		return type;
 	}
 
