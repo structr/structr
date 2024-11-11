@@ -575,6 +575,10 @@ let Structr = {
 			if (additionalParameters.overrideText) {
 				messageBuilder.text(additionalParameters.overrideText);
 			}
+
+			if (additionalParameters.delayDuration) {
+				messageBuilder.delayDuration(additionalParameters.delayDuration);
+			}
 		}
 
 		messageBuilder.show();

@@ -345,15 +345,24 @@ let _UsersAndGroups = {
 		let userTypeSelect = document.querySelector('select#user-type');
 		let addUserButton  = document.getElementById('add-user-button');
 
-		addUserButton.addEventListener('click', (e) => {
-			Command.create({ type: userTypeSelect.value }, (user) => {
-				let userModelObj = StructrModel.create(user);
-				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
-			});
+		addUserButton.addEventListener('click', async e => {
+
+			let nodeData = {
+				type: userTypeSelect.value,
+				name: _Helpers.createRandomName(userTypeSelect.value)
+			};
+
+			_Crud.createDialogWithErrorHandling.create(nodeData.type, nodeData, (type, newNodeId) => {
+
+				Command.get(newNodeId, null, userData => {
+					let userModelObj = StructrModel.create(userData);
+					_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
+				});
+			})
 		});
 
 		userTypeSelect.addEventListener('change', () => {
-			addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
+			addUserButton.querySelector('span').textContent = `Add ${userTypeSelect.value}`;
 		});
 
 		let userPager = _Pager.addPager(_Security.usersPagerId, userControls, true, 'User', 'public', (users) => {

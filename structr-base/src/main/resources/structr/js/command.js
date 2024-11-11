@@ -929,7 +929,7 @@ let Command = {
 			data: nodeData
 		};
 		if (!obj.data.name) {
-			obj.data.name = `New ${obj.data.type} ${Math.floor(Math.random() * (999999 - 1))}`;
+			obj.data.name = _Helpers.createRandomName(nodeData.type);
 		}
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
