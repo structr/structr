@@ -46,9 +46,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 abstract class SessionTransaction implements org.structr.api.Transaction {
 
-	private static final Logger logger                                  = LoggerFactory.getLogger(SessionTransaction.class);
-	private static final Set<String> relationshipTypeBlacklist          = Set.of(); //Set.of("SECURITY", "OWNS");
-	protected static final AtomicLong ID_SOURCE                         = new AtomicLong();
+	private static final Logger logger                         = LoggerFactory.getLogger(SessionTransaction.class);
+	private static final Set<String> nodeTypeBlacklist         = Set.of("NodeInterface", "AbstractNode", "AbstractFile", "DOMNode", "Page");
+	private static final Set<String> relationshipTypeBlacklist = Set.of(); //Set.of("SECURITY", "OWNS");
+	protected static final AtomicLong ID_SOURCE                = new AtomicLong();
 
 	protected static final Map<String, Map<String, PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
 	protected static final Map<String, Boolean> prefetchBlacklist               = new ConcurrentHashMap<>();
@@ -257,8 +258,9 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				for (final String key : histogram.keySet()) {
 
-					logger.info("{}", histogram.get(key));
+					final PrefetchInfo info = histogram.get(key);
 
+					logger.info("        {}: {}", info.getCount(), info);
 				}
 			}
 		}
@@ -274,7 +276,13 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				for (final PrefetchInfo info : infos.values()) {
 
-					System.out.println("        " + info.getPattern());
+					final boolean blacklisted = prefetchBlacklist.containsKey(info.getPattern());
+
+					if (blacklisted) {
+						System.out.println("  XXXX  " + info.getPattern());
+					} else {
+						System.out.println("        " + info.getPattern());
+					}
 
 					for (final String rel : info.getOutgoingSet()) {
 
@@ -311,14 +319,18 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 						prefetch(pattern, prefetch.getOutgoingSet(), prefetch.getIncomingSet());
 
-						final long t = System.currentTimeMillis() - t0;
+						final long dt = System.currentTimeMillis() - t0;
 
-						if (t > Settings.PrefetchingMaxDuration.getValue(500)) {
+						if (logPrefetching || db.logQueries()) {
+							logger.info("Automatic prefetching for {} took {} ms", pattern, dt);
+						}
+
+						if (dt > Settings.PrefetchingMaxDuration.getValue(500)) {
 
 							if (logPrefetching || db.logQueries()) {
 
 								// blacklist prefetching calls that take too long
-								logger.info("Blacklisting prefetching pattern {} because it takes {} ms, {} is {}", pattern, t, Settings.PrefetchingMaxDuration.getKey(), Settings.PrefetchingMaxDuration.getValue(500));
+								logger.info("Blacklisting prefetching pattern {} because it takes {} ms, {} is {}", pattern, dt, Settings.PrefetchingMaxDuration.getKey(), Settings.PrefetchingMaxDuration.getValue(500));
 							}
 
 							prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
@@ -633,7 +645,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				} else {
 
-					histogram.put(statement, new PrefetchInfo(query));
+					final PrefetchInfo newInfo = new PrefetchInfo(query);
+
+					if (!nodeTypeBlacklist.contains(newInfo.getType().getSimpleName())) {
+
+						histogram.put(statement, newInfo);
+					}
 				}
 			}
 		}
@@ -693,7 +710,36 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		rels.clear();
 	}
 
-	private String getPattern(final CypherQuery query) {
+	private String createPatternFromDetails(final Class type, final Set<String> relTypes, final boolean outgoing) {
+
+		final String rawTenantIdentifier = db.getTenantIdentifier();
+		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
+		final StringBuilder pattern      = new StringBuilder();
+
+		pattern.append("(n:");
+		pattern.append(type.getSimpleName());
+		pattern.append(tenantIdentifier);
+		pattern.append(")");
+
+		if (!outgoing) {
+			pattern.append("<");
+		}
+
+		pattern.append("-[r:");
+		pattern.append(StringUtils.join(relTypes, "|"));
+		pattern.append("]-");
+
+		if (outgoing) {
+			pattern.append(">");
+		}
+
+		pattern.append("(m)");
+
+		return pattern.toString();
+
+	}
+
+	private String createPatternFromQuery(final CypherQuery query) {
 
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
@@ -737,8 +783,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final Map<String, PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				final String rawTenantIdentifier = db.getTenantIdentifier();
-				final String tenantIdentifier = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
 				final Map<Class, Set<String>> typesOutgoing = new LinkedHashMap<>();
 				final Map<Class, Set<String>> typesIncoming = new LinkedHashMap<>();
 
@@ -783,7 +827,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 								prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
 							}
 
-							final String pattern = "(n:" + type.getSimpleName() + tenantIdentifier + ")-[r:" + StringUtils.join(relTypes, "|") + "]->(m)";
+							final String pattern       = createPatternFromDetails(type, relTypes, true);
 							final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, true, combinedOutgoing, combinedIncoming, relTypes);
 
 							infos.put(pattern, newInfo);
@@ -811,7 +855,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 								prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
 							}
 
-							final String pattern = "(n:" + type.getSimpleName() + tenantIdentifier + ")<-[r:" + StringUtils.join(relTypes, "|") + "]-(m)";
+							final String pattern       = createPatternFromDetails(type, relTypes, false);
 							final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, false, combinedOutgoing, combinedIncoming, relTypes);
 
 							infos.put(pattern, newInfo);
@@ -854,9 +898,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private void handleOutgoing(final Map<String, PrefetchInfo> infos, final Queue<String> keyQueue) {
 
-		final String rawTenantIdentifier = db.getTenantIdentifier();
-		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
-
 		boolean hasChanges = true;
 
 		while (keyQueue.size() > 1 && hasChanges) {
@@ -882,8 +923,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					final Set<String> rels = SetUtils.union(info1.getRelationshipTypes(), info2.getRelationshipTypes());
 					final Set<String> set1 = SetUtils.union(info1.getOutgoingSet(), info2.getOutgoingSet());
 					final Set<String> set2 = SetUtils.union(info1.getIncomingSet(), info2.getIncomingSet());
-
-					final String pattern = "(n:" + commonBaseType.getSimpleName() + tenantIdentifier + ")-[r:" + StringUtils.join(rels, "|") + "]->(m)";
+					final String pattern   = createPatternFromDetails(commonBaseType, rels, true);
 
 					// add new key to the key queue
 					keyQueue.add(pattern);
@@ -904,9 +944,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private void handleIncoming(final Map<String, PrefetchInfo> infos, final Queue<String> keyQueue) {
 
-		final String rawTenantIdentifier = db.getTenantIdentifier();
-		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
-
 		boolean hasChanges = true;
 
 		while (keyQueue.size() > 1 && hasChanges) {
@@ -932,8 +969,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					final Set<String> rels = SetUtils.union(info1.getRelationshipTypes(), info2.getRelationshipTypes());
 					final Set<String> set1 = SetUtils.union(info1.getOutgoingSet(), info2.getOutgoingSet());
 					final Set<String> set2 = SetUtils.union(info1.getIncomingSet(), info2.getIncomingSet());
-
-					final String pattern = "(n:" + commonBaseType.getSimpleName() + tenantIdentifier + ")<-[r:" + StringUtils.join(rels, "|") + "]->(m)";
+					final String pattern   = createPatternFromDetails(commonBaseType, rels, false);
 
 					// add new key to the key queue
 					keyQueue.add(pattern);
@@ -964,7 +1000,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private Set<Class> getBaseTypes(final Class type) {
 
-		final Set<String> blacklist = Set.of("NodeInterface", "AbstractNode");
 		final Set<Class> baseTypes = new LinkedHashSet<>();
 		final Queue<Class> queue   = new LinkedList<>();
 
@@ -977,7 +1012,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			baseTypes.add(c);
 
 			final Class superClass = c.getSuperclass();
-			if (superClass != null && Object.class != superClass && !blacklist.contains(superClass.getSimpleName())) {
+			if (superClass != null && Object.class != superClass && !nodeTypeBlacklist.contains(superClass.getSimpleName())) {
 
 				queue.add(superClass);
 			}
@@ -985,7 +1020,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			// add interfaces as well
 			for (final Class iface : c.getInterfaces()) {
 
-				if (!blacklist.contains(iface.getSimpleName())) {
+				if (!nodeTypeBlacklist.contains(iface.getSimpleName())) {
 
 					queue.add(iface);
 				}
@@ -1007,7 +1042,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		public PrefetchInfo(final CypherQuery query) {
 
-			this.pattern  = SessionTransaction.this.getPattern(query);
+			this.pattern  = SessionTransaction.this.createPatternFromQuery(query);
 			this.type     = query.getType();
 			this.outgoing = query.isOutgoing();
 
@@ -1043,6 +1078,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		public int incrementAndGetCount() {
 			return ++count;
+		}
+
+		public int getCount() {
+			return count;
 		}
 
 		public Class getType() {
