@@ -94,7 +94,8 @@
 	--input-background: #f0f0f0;
 	--header-bg-dark: #1f242d;
 	--warning-bg: #feefb3;
-	--input-invalid: #fee;
+	--input-invalid-bg-color: #fee;
+	--input-invalid-border-color: #935;
 
 	--structr-green:                   #84ba39;
 	--config-structr-green:            #81ce25;
@@ -3683,6 +3684,11 @@ ul.combined-input-select-field li:hover {
 	top: 0;
 	bottom: 0;
 	z-index: 12000;
+}
+
+.form-input.input-invalid {
+	border: 1px solid var(--input-invalid-border-color);
+	background-color: var(--input-invalid-bg-color);
 }
 
 /**

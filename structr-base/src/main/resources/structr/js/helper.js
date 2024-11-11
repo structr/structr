@@ -643,7 +643,11 @@ let _Helpers = {
 			e.stopPropagation();
 			e.preventDefault();
 		});
-	}
+	},
+	createRandomName: (type = 'object') => `New ${type} ${Math.floor(Math.random() * (999999 - 1))}`,
+	getCSSClassForKey: (key) => {
+		return '___' + key.replace(/\s/g, '_whitespace_');
+	},
 };
 
 /**
