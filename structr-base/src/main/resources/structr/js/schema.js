@@ -559,7 +559,7 @@ let _Schema = {
 
 						let data = await response.json();
 
-						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll('org.structr.dynamic.', '')));
+						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll(Structr.dynamicClassPrefix, '')));
 
 						if (errors.size > 0) {
 
@@ -603,7 +603,7 @@ let _Schema = {
 				let x = 0, y = 0;
 
 				if (_Schema.hiddenSchemaNodes === null) {
-					_Schema.hiddenSchemaNodes = data.result.filter((entity) => entity.isBuiltinType).map((entity) => entity.name);
+					_Schema.hiddenSchemaNodes = data.result.filter(entity => entity.isBuiltinType).map(entity => entity.name);
 					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 				}
 
@@ -985,11 +985,11 @@ let _Schema = {
 			} else {
 			}
 
-			if (entity.extendsClass || entity.isBuiltinType === false) {
+			if (entity.extendsClass || entity.extendsClassInternal || entity.isBuiltinType === false) {
 
 				let select = container.querySelector('[data-property="extendsClass"]');
 				if (entity.isBuiltinType === true) {
-					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass.name}</option>`);
+					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass?.name ?? entity.extendsClassInternal}</option>`);
 					delete select.dataset['property'];
 					select.disabled = true;
 					select.classList.add('disabled');
@@ -1000,6 +1000,7 @@ let _Schema = {
 				}
 
 			} else {
+
 				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
 			}
 
@@ -1011,23 +1012,20 @@ let _Schema = {
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
-			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(async (response) => {
+			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(response => response.json()).then(schemaNodeData => {
 
-				let data         = await response.json();
-				let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
-				let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
+				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
+				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
 
-				let getOptionsForList = (list) => {
-					return list.map(cls => `<option ${((entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
-				};
+				let getOptionsForListOfSchemaNodes = (list) => list.map(cls => `<option ${((entity.extendsClass?.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
 
 				let classSelect = container.querySelector('.extends-class-select');
 				classSelect.insertAdjacentHTML('beforeend', `
 					<optgroup label="Default Type">
 						<option value="">AbstractNode - Structr default base type</option>
 					</optgroup>
-					${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForList(customTypes)}</optgroup>` : ''}
-					${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForList(builtinTypes)}</optgroup>` : ''}
+					${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForListOfSchemaNodes(customTypes)}</optgroup>` : ''}
+					${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForListOfSchemaNodes(builtinTypes)}</optgroup>` : ''}
 				`);
 
 				$(classSelect).select2({
@@ -1236,6 +1234,7 @@ let _Schema = {
 				let shouldDelete = (entity[key] === newData[key]);
 
 				if (key === 'tags') {
+
 					let prevTags = entity[key] ?? [];
 					let newTags  = newData[key];
 					if (!prevTags && newTags.length === 0) {
@@ -1244,7 +1243,9 @@ let _Schema = {
 						let difference = prevTags.filter(t => !newTags.includes(t));
 						shouldDelete = (difference.length === 0);
 					}
+
 				} else if (key === 'extendsClass') {
+
 					shouldDelete = (entity.extendsClass && entity.extendsClass.id === newData.extendsClass) || (!entity.extendsClass && newData.extendsClass === '');
 				}
 
@@ -5218,7 +5219,7 @@ let _Schema = {
 
 					if (n.extendsClass === type) {
 
-						fileTypes.push(`org.structr.dynamic.${n.name}`);
+						fileTypes.push(Structr.getFQCNForDynamicTypeName(n.name));
 
 						if (!n.isAbstract && !blacklist.includes(n.name)) {
 							types[n.name] = 1;

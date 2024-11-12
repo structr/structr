@@ -37,8 +37,8 @@
 }
 
 #localization-detail input.invalid {
-	border: 1px solid red;
-	background-color: var(--input-invalid);
+	border: 1px solid var(--input-invalid-border-color);
+	background-color: var(--input-invalid-bg-color);
 }
 
 #localization-table th {

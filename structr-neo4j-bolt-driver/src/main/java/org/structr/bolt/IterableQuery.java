@@ -31,6 +31,6 @@ public class IterableQuery extends AbstractNativeQuery<Iterable<Map<String, Obje
 
 	@Override
 	Iterable<Map<String, Object>> execute(final SessionTransaction tx) {
-		return tx.run(query, parameters);
+		return tx.run(new SimpleCypherQuery(query, parameters));
 	}
 }

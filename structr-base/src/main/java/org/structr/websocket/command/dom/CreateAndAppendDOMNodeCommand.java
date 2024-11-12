@@ -101,6 +101,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 				try (final Tx tx = StructrApp.getInstance(getWebSocket().getSecurityContext()).tx(true, true, true)) {
 
+					tx.prefetchHint("Websocket CreateAndAppendOMNodeCommand");
+
 					final boolean isShadowPage = document.equals(CreateComponentCommand.getOrCreateHiddenDocument());
 					final boolean isTemplate   = (parentNode instanceof Template);
 

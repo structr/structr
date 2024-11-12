@@ -122,7 +122,6 @@ let _Crud = {
 				_Crud.crudCache.addObject(node, node.id);
 			}
 		}
-
 	}),
 	crudListFetchAbortMechanism: {
 		abortController: undefined,
@@ -159,6 +158,7 @@ let _Crud = {
 				if (data && data.result && data.result[0]) {
 
 					_Crud.availableViews[type] = data.result[0].views;
+					_Crud.types[type]          = data.result[0];
 
 					let properties = {};
 
@@ -443,12 +443,12 @@ let _Crud = {
 				}
 			});
 
+			_Crud.determinePagerData(type);
+
 			// fall back to public view if saved view does not exist (anymore)
 			if (!Object.keys(_Crud.availableViews[type]).includes(_Crud.view[type])) {
 				_Crud.view[type] = 'public';
 			}
-
-			_Crud.determinePagerData(type);
 
 			let pagerNode = _Crud.addPager(type, crudRight);
 
@@ -457,7 +457,7 @@ let _Crud = {
 			_Crud.updateCrudTableHeader(type);
 
 			document.querySelector('#create' + type).addEventListener('click', () => {
-				_Crud.crudCreate(type);
+				_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.crudCreateSuccess);
 			});
 
 			document.querySelector('#export' + type).addEventListener('click', () => {
@@ -518,7 +518,7 @@ let _Crud = {
 
 		let newHeaderHTML = `
 			<th class="___action_header" data-key="action_header">Actions</th>
-			${_Crud.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Crud.cssClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
+			${_Crud.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Helpers.getCSSClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
 		`;
 
 		tableHeaderRow.insertAdjacentHTML('beforeend', newHeaderHTML);
@@ -713,34 +713,15 @@ let _Crud = {
 			let data = await response.json();
 
 			for (let typeObj of data.result) {
-				_Crud.types[typeObj.type] = typeObj;
+
 				processRelInfo(typeObj.relatedTo);
 				processRelInfo(typeObj.relatedFrom);
+
+				delete typeObj.relatedFrom;
+				delete typeObj.relatedTo;
+
+				_Crud.types[typeObj.type] = typeObj;
 			}
-		}
-	},
-	determinePagerData: (type) => {
-
-		// Priority: JS vars -> Local Storage -> URL -> Default
-
-		if (!_Crud.view[type]) {
-			_Crud.view[type]     = _Helpers.urlParam('view');
-			_Crud.sort[type]     = _Helpers.urlParam('sort');
-			_Crud.order[type]    = _Helpers.urlParam('order');
-			_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
-			_Crud.page[type]     = _Helpers.urlParam('page');
-		}
-
-		if (!_Crud.view[type]) {
-			_Crud.restorePagerData();
-		}
-
-		if (!_Crud.view[type]) {
-			_Crud.view[type]     = _Crud.defaultView;
-			_Crud.sort[type]     = _Crud.defaultSort;
-			_Crud.order[type]    = _Crud.defaultOrder;
-			_Crud.pageSize[type] = _Crud.defaultPageSize;
-			_Crud.page[type]     = _Crud.defaultPage;
 		}
 	},
 	/**
@@ -886,8 +867,7 @@ let _Crud = {
 		let pagerData = `${_Crud.view[type]},${_Crud.sort[type]},${_Crud.order[type]},${_Crud.page[type]},${_Crud.pageSize[type]}`;
 		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
-	restorePagerData: () => {
-		let type = _Crud.type;
+	restorePagerData: (type) => {
 		let val  = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
 		if (val) {
@@ -899,17 +879,41 @@ let _Crud = {
 			_Crud.pageSize[type] = pagerData[4];
 		}
 	},
+	determinePagerData: (type) => {
+
+		// Priority: JS vars -> Local Storage -> URL -> Default
+
+		if (!_Crud.view[type]) {
+			_Crud.view[type]     = _Helpers.urlParam('view');
+			_Crud.sort[type]     = _Helpers.urlParam('sort');
+			_Crud.order[type]    = _Helpers.urlParam('order');
+			_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
+			_Crud.page[type]     = _Helpers.urlParam('page');
+		}
+
+		if (!_Crud.view[type]) {
+			_Crud.restorePagerData(type);
+		}
+
+		if (!_Crud.view[type]) {
+			_Crud.view[type]     = _Crud.defaultView;
+			_Crud.sort[type]     = _Crud.defaultSort;
+			_Crud.order[type]    = _Crud.defaultOrder;
+			_Crud.pageSize[type] = _Crud.defaultPageSize;
+			_Crud.page[type]     = _Crud.defaultPage;
+		}
+	},
 	setCollectionPageSize: (type, key, value) => {
-		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Crud.cssClassForKey(key)}`, value);
+		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`, value);
 	},
 	getCollectionPageSize: (type, key) => {
-		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Crud.cssClassForKey(key)}`);
+		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`);
 	},
-	setCollectionPage: (type, key, value) => {
-		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Crud.cssClassForKey(key)}`, value);
-	},
+	// setCollectionPage: (type, key, value) => {
+	// 	LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Helpers.getCSSClassForKey(key)}`, value);
+	// },
 	getCollectionPage: (type, key) => {
-		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Crud.cssClassForKey(key)}`);
+		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Helpers.getCSSClassForKey(key)}`);
 	},
 	replaceSortHeader: (type) => {
 
@@ -1034,8 +1038,7 @@ let _Crud = {
 	appendPerCollectionPager: (el, type, key, callback) => {
 		el.append(`<input type="text" class="collection-page-size" size="1" value="${_Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize}">`);
 
-		$('.collection-page-size', el).on('blur', function() {
-			var newPageSize = $(this).val();
+		let update = (newPageSize) => {
 			if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
 				_Crud.setCollectionPageSize(type, key, newPageSize);
 				if (callback) {
@@ -1044,19 +1047,15 @@ let _Crud = {
 					_Crud.refreshList(type);
 				}
 			}
+		};
+
+		$('.collection-page-size', el).on('blur', function() {
+			update($(this).val());
 		});
 
 		$('.collection-page-size', el).on('keypress', function(e) {
 			if (e.keyCode === 13) {
-				var newPageSize = $(this).val();
-				if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
-					_Crud.setCollectionPageSize(type, key, newPageSize);
-					if (callback) {
-						callback();
-					} else {
-						_Crud.refreshList(type);
-					}
-				}
+				update($(this).val());
 			}
 		});
 	},
@@ -1590,88 +1589,63 @@ let _Crud = {
 		$('.pageLeft', pagerNode).off('click');
 		$('.pageRight', pagerNode).off('click');
 	},
-	crudCreate: (type, json, onError) => {
+	createDialogWithErrorHandling: {
+		create: (type, nodeData = {}, onSuccess) => {
 
-		let url = Structr.rootUrl + type;
+			let url = Structr.rootUrl + type;
 
-		fetch(url, {
-			method: 'POST',
-			body: json
-		}).then(async response => {
+			fetch(url, {
+				method: 'POST',
+				body: JSON.stringify(nodeData)
+			}).then(async response => {
 
-			let data = await response.json();
+				let responseData = await response.json();
 
-			if (response.ok) {
+				if (response.ok) {
 
-				let properties = _Crud.getCurrentProperties(type);
+					onSuccess?.(type, responseData.result[0]);
 
-				let newNodeResponse = await fetch(`${Structr.rootUrl}${data.result[0]}/all`, {
-					headers: {
-						Accept: 'application/json; charset=utf-8; properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',')
-					}
-				});
-
-				if (newNodeResponse.ok) {
-
-					let newNodeResult = await newNodeResponse.json();
-					let newNode       = newNodeResult.result;
-					_Crud.appendRow(type, properties, newNode);
-
-					_Helpers.blinkGreen(_Crud.row(newNode.id));
+					_Dialogs.custom.getCloseDialogButton().click();
 
 				} else {
 
-					_Crud.refreshList(type);
+					if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
+						Structr.errorFromResponse(responseData, url, { statusCode: response.status, delayDuration: 5000 });
+					}
+
+					_Dialogs.custom.enableSaveButton();
+
+					_Crud.getTypeInfo(type, () => {
+
+						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
+					});
 				}
-
-			} else {
-
-				if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
-					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-				}
-				_Crud.showCreateError(type, data, onError);
-			}
-		});
-	},
-	showCreateError: (type, data, onError) => {
-
-		if (onError) {
-
-			onError();
-
-		} else {
+			});
+		},
+		showCreateError: (type, nodeData, responseData, onSuccess) => {
 
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
 			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.showCreate(type);
+				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
 				dialogText = elements.dialogText;
 			}
 
-			$('.props input', $(dialogText)).css({
-				backgroundColor: '#fff',
-				borderColor: '#a5a5a5'
-			});
+			// remove "invalid" highlight from elements
+			for (let el of dialogText.querySelectorAll('.props input, .props textarea, .props td.value')) {
+				el.classList.remove('form-input', 'input-invalid');
+			}
 
-			$('.props textarea', $(dialogText)).css({
-				backgroundColor: '#fff',
-				borderColor: '#a5a5a5'
-			});
-
-			$('.props td.value', $(dialogText)).css({
-				backgroundColor: '#fff',
-				borderColor: '#b5b5b5'
-			});
-
+			// delay only used to further highlight the input elements (slight blink)
 			window.setTimeout(() => {
 
-				for (let error of data.errors) {
+				for (let error of responseData.errors) {
 
 					let key      = error.property;
 					let errorMsg = error.token;
 
-					let input = $(`td [name="${key}"]`, $(dialogText));
-					if (input.length) {
+					let input = dialogText.querySelector(`td [name="${key}"]`);
+					if (input) {
 
 						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
 
@@ -1679,17 +1653,89 @@ let _Crud = {
 							errorText += ` ${error.detail}`;
 						}
 
-						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
+						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
 
-						input.css({
-							backgroundColor: '#fee',
-							borderColor: '#933'
-						});
+						// add "invalid" highlight from elements
+						input.classList.add('form-input', 'input-invalid');
 
 						input.focus();
 					}
 				}
 			}, 100);
+		},
+		showCreateDialog: (type, initialData = {}, onSuccess) => {
+
+			if (!type) {
+				Structr.error('Missing type');
+				return;
+			}
+
+			let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
+			_Dialogs.custom.noConfirmOnEscape();
+
+			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
+
+			let table = dialog.dialogText.querySelector('table');
+
+			for (let key in _Crud.keys[type]) {
+
+				let readOnly     = _Crud.readOnly(key, type);
+				let isCollection = _Crud.isCollection(key, type);
+				let relatedType  = _Crud.relatedType(key, type);
+				let isRelType    = _Crud.relInfo[type];
+
+				if (!readOnly && !isCollection && (!relatedType || isRelType)) {
+
+					let cssClassForKey = _Helpers.getCSSClassForKey(key);
+
+					let row = _Helpers.createSingleDOMElementFromHTML(`
+						<tr>
+							<td class="key"><label for="${key}">${key}</label></td>
+							<td class="__value ${cssClassForKey}"></td>
+						</tr>
+					`);
+					table.appendChild(row);
+
+					let cell = row.querySelector(`.${cssClassForKey}`);
+
+					_Crud.populateCell(null, key, type, initialData[key], $(cell));
+				}
+			}
+
+			let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+			_Helpers.enableElement(dialogSaveButton);
+
+			dialogSaveButton.addEventListener('click', () => {
+
+				_Helpers.disableElement(dialogSaveButton);
+				let nodeData = _Crud.serializeObject($('#entityForm'));
+				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
+			});
+
+			return dialog;
+		},
+	},
+	crudCreateSuccess: async (type, newNodeId) => {
+
+		let properties = _Crud.getCurrentProperties(type);
+
+		let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',')
+			}
+		});
+
+		if (newNodeResponse.ok) {
+
+			let newNodeResult = await newNodeResponse.json();
+			let newNode       = newNodeResult.result;
+			_Crud.appendRow(type, properties, newNode);
+
+			_Helpers.blinkGreen(_Crud.row(newNode.id));
+
+		} else {
+
+			_Crud.refreshList(type);
 		}
 	},
 	crudRefresh: (id, key, oldValue) => {
@@ -1854,8 +1900,8 @@ let _Crud = {
 
 		let row = _Crud.row(id);
 
-		let cellInMainTable    = $('.' + _Crud.cssClassForKey(key), row);
-		let cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), $('#details_' + id));
+		let cellInMainTable    = $('.' + _Helpers.getCSSClassForKey(key), row);
+		let cellInDetailsTable = $('.' + _Helpers.getCSSClassForKey(key), $('#details_' + id));
 
 		let result = [];
 
@@ -1970,7 +2016,7 @@ let _Crud = {
 
 			for (let key of filterKeys) {
 
-				row.append(`<td class="value ${_Crud.cssClassForKey(key)}"></td>`);
+				row.append(`<td class="value ${_Helpers.getCSSClassForKey(key)}"></td>`);
 				let cells = _Crud.cells(id, key);
 
 				for (let cell of cells) {
@@ -2213,6 +2259,9 @@ let _Crud = {
 				let values = value || [];
 
 				if (!id) {
+					/**
+					 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
+					 */
 
 					let focusAndActivateField = function (el) {
 						$(el).focus().on('keydown', function (e) {
@@ -2226,21 +2275,17 @@ let _Crud = {
 						return false;
 					};
 
-					// create dialog
-					_Schema.getTypeInfo(type, function (typeInfo) {
-						cell.append(`<input name="${key}" size="4">`);
-						focusAndActivateField(cell.find(`[name="${key}"]`).last());
-					});
+					cell.append(`<input name="${key}" size="4">`);
+					focusAndActivateField(cell.find(`[name="${key}"]`).last());
 
 				} else {
 
 					// update existing object
-					_Schema.getTypeInfo(type, function (typeInfo) {
-						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, id, null, typeInfo, function () {
-								_Crud.crudRefresh(id, key);
-							});
+					let typeInfo = _Crud.keys[type];
+					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+					cell.find(`[name="${key}"]`).each(function (i, el) {
+						_Entities.activateInput(el, id, null, typeInfo, function () {
+							_Crud.crudRefresh(id, key);
 						});
 					});
 				}
@@ -2758,71 +2803,6 @@ type: ${node.type}`;
 		});
 
 	},
-	removeStringFromArray: (type, id, key, obj, pos, callback) => {
-
-		fetch(`${Structr.rootUrl}${type}/${id}/public`).then(async response => {
-
-			if (response.ok) {
-
-				let data = await response.json();
-
-				obj = unescape(obj);
-				let newData = {};
-				let curVal = data.result[key];
-
-				if (curVal[pos] === obj) {
-
-					// string is at expected position => just remove that position/element
-					curVal.splice(pos, 1);
-					newData[key] = curVal;
-
-				} else {
-
-					// obj is not at position. it seems the crud is not up to date => remove the first occurence of the string (if any)
-					let newVal = [];
-					let found = false;
-					for (let v of curVal) {
-						if (v === obj && !found) {
-							found = true;
-						} else {
-							newVal.push(v);
-						}
-					}
-					newData[key] = newVal;
-				}
-
-				_Crud.crudUpdateObj(id, JSON.stringify(newData), () => {
-					_Crud.crudRefresh(id, key);
-					callback?.();
-				});
-			}
-		});
-
-	},
-	addStringToArray: (type, id, key, obj, callback) => {
-
-		fetch(`${Structr.rootUrl}${type}/${id}/all`).then(async response => {
-
-			if (response.ok) {
-
-				let data   = await response.json();
-				let curVal = data.result[key];
-				if (curVal === null) {
-					curVal = [obj];
-				} else {
-					curVal.push(obj);
-				}
-
-				let newData = {};
-				newData[key] = curVal;
-				_Crud.crudUpdateObj(id, JSON.stringify(newData), () => {
-					_Crud.crudRefresh(id, key);
-					callback?.();
-				});
-			}
-		});
-
-	},
 	extractIds: (result) => {
 
 		return result.map(obj => {
@@ -2867,7 +2847,6 @@ type: ${node.type}`;
 			}
 		}).then(async response => {
 
-
 			let data = await response.json();
 			if (!data)
 				return;
@@ -2882,7 +2861,7 @@ type: ${node.type}`;
 
 			for (let key of visibleKeys) {
 
-				let cssClassForKey = _Crud.cssClassForKey(key);
+				let cssClassForKey = _Helpers.getCSSClassForKey(key);
 
 				let row = _Helpers.createSingleDOMElementFromHTML(`
 					<tr>
@@ -2907,56 +2886,6 @@ type: ${node.type}`;
 				dialogText.insertAdjacentHTML('beforeend', `<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/${node.id}"></div></div>`);
 			}
 		});
-	},
-	showCreate: (type) => {
-
-		if (!type) {
-			Structr.error('Missing type');
-			return;
-		}
-		let typeDef = _Crud.types[type];
-
-		let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
-
-		dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
-
-		let table = dialog.dialogText.querySelector('table');
-
-		for (let key in _Crud.keys[type]) {
-
-			let readOnly     = _Crud.readOnly(key, type);
-			let isCollection = _Crud.isCollection(key, type);
-			let relatedType  = _Crud.relatedType(key, type);
-
-			if (!readOnly && !isCollection && (!relatedType || _Crud.relInfo[type])) {
-
-				let cssClassForKey = _Crud.cssClassForKey(key);
-
-				let row = _Helpers.createSingleDOMElementFromHTML(`
-					<tr>
-						<td class="key"><label for="${key}">${key}</label></td>
-						<td class="__value ${cssClassForKey}"></td>
-					</tr>
-				`);
-				table.appendChild(row);
-
-				let cell = $(`.${cssClassForKey}`, $(row));
-
-				_Crud.populateCell(null, key, type, null, cell);
-			}
-
-		}
-
-		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
-		_Helpers.enableElement(dialogSaveButton);
-
-		dialogSaveButton.addEventListener('click', () => {
-			_Helpers.disableElement(dialogSaveButton);
-			let json = JSON.stringify(_Crud.serializeObject($('#entityForm')));
-			_Crud.crudCreate(type, json, () => { _Helpers.enableElement(dialogSaveButton); });
-		});
-
-		return dialog;
 	},
 	getHiddenKeys: (type) => {
 
@@ -3034,15 +2963,15 @@ type: ${node.type}`;
 		LSWrapper.setItem(_Crud.crudSortedColumnsKey + type, JSON.stringify(order));
 	},
 	isPrincipalType: (typeDef) => {
-		let cls = 'org.structr.dynamic.Principal';
+		let cls = Structr.getFQCNForDynamicTypeName('Principal');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isFileType: (typeDef) => {
-		let cls = 'org.structr.dynamic.AbstractFile';
+		let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isImageType: (typeDef) => {
-		let cls = 'org.structr.dynamic.Image';
+		let cls = Structr.getFQCNForDynamicTypeName('Image');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
@@ -3112,8 +3041,8 @@ type: ${node.type}`;
 			let table = $('#crud-type-detail table');
 
 			// remove column(s) from table
-			$(`th.${_Crud.cssClassForKey(key)}`, table).remove();
-			$(`td.${_Crud.cssClassForKey(key)}`, table).each(function(i, t) {
+			$(`th.${_Helpers.getCSSClassForKey(key)}`, table).remove();
+			$(`td.${_Helpers.getCSSClassForKey(key)}`, table).each(function(i, t) {
 				t.remove();
 			});
 		}
@@ -3146,9 +3075,6 @@ type: ${node.type}`;
 	},
 	showActualResultCount: (el, pageSize) => {
 		el.attr('title', 'Result count = ' + pageSize);
-	},
-	cssClassForKey: (key) => {
-		return '___' + key.replace(/\s/g,  '_whitespace_');
 	},
 
 	templates: {

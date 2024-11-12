@@ -24,6 +24,8 @@ package org.structr.api.graph;
 public interface RelationshipType {
 
 	String name();
+	Class<?> getSourceType();
+	Class<?> getTargetType();
 
 	public static RelationshipType forName(final String name) {
 
@@ -32,6 +34,16 @@ public interface RelationshipType {
 			@Override
 			public String name() {
 				return name;
+			}
+
+			@Override
+			public Class<?> getSourceType() {
+				return null;
+			}
+
+			@Override
+			public Class<?> getTargetType() {
+				return null;
 			}
 		};
 	}

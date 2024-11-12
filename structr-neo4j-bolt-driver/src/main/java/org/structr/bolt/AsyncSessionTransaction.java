@@ -32,7 +32,6 @@ import org.neo4j.driver.types.Relationship;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
-import org.structr.api.graph.Identity;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 
@@ -160,33 +159,14 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Boolean getBoolean(final String statement) {
+	protected Boolean getBoolean(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement);
-			return getBoolean(statement, Collections.EMPTY_MAP);
+			logQuery(query);
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	protected Boolean getBoolean(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final boolean value       = resolveImmediately(cursor.peekAsync()).get(0).asBoolean();
@@ -210,33 +190,14 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Long getLong(final String statement) {
+	protected Long getLong(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement);
-			return getLong(statement, Collections.EMPTY_MAP);
+			logQuery(query);
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	protected Long getLong(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final long value          = resolveImmediately(cursor.peekAsync()).get(0).asLong();
@@ -260,11 +221,14 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Node getNode(final String statement, final Map<String, Object> map) {
+	protected Node getNode(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
+
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor          = resolveImmediately(tx.runAsync(statement, map));
 			final CompletionStage<Record> peek = cursor.peekAsync();
@@ -294,11 +258,14 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Relationship getRelationship(final String statement, final Map<String, Object> map) {
+	protected Relationship getRelationship(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
+
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final CompletionStage<Record> peek = cursor.peekAsync();
@@ -328,9 +295,12 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer) {
+	protected Iterable<Record> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer consumer) {
 
-		logQuery(statement, map);
+		final String statement        = query.getStatement();
+		final Map<String, Object> map = query.getParameters();
+
+		logQuery(query);
 
 		tx.runAsync(statement, map)
 			.thenCompose(cursor -> consumer.start(cursor))
@@ -342,39 +312,14 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
+	protected Iterable<Map<String, Object>> run(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
-			final ResultCursor cursor    = resolveImmediately(tx.runAsync(statement, map));
-			final List<String> immutable = resolveImmediately(cursor.peekAsync()).get(0).asList(Values.ofString());
-
-			logSummary(resolveImmediately(cursor.consumeAsync()));
-
-			return new LinkedList<>(immutable);
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	protected Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
+			logQuery(query);
 
 			final ResultCursor cursor  = resolveImmediately(tx.runAsync(statement, map));
 			final List<Record> records = resolveImmediately(cursor.listAsync());
@@ -422,7 +367,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query) {
 
 		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
 		final QueryContext context                    = query.getQueryContext();

@@ -219,6 +219,8 @@ let Structr = {
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
+	dynamicClassPrefix: 'org.structr.dynamic.',
+	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
@@ -572,6 +574,10 @@ let Structr = {
 
 			if (additionalParameters.overrideText) {
 				messageBuilder.text(additionalParameters.overrideText);
+			}
+
+			if (additionalParameters.delayDuration) {
+				messageBuilder.delayDuration(additionalParameters.delayDuration);
 			}
 		}
 

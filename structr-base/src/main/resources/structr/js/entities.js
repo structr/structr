@@ -3094,8 +3094,8 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="selected-values-input">Selected Values Expression</label>
-							<input type="text" id="selected-values-input" name="selectedValues">
+							<label class="block mb-2" for="selected-values-input" data-comment="This is a shortcut to automatically select options based on their appearance in the collection returned by this script expression and is mutually exclusive with the <code>selected</code> attribute. It is mainly intended for database objects. Should the repeater use custom objects, use a scripting expression in the <code>selected</code> attribute like so: <code>\${is(logicStatement, 'selected')}</code>">Selected Values Expression</label>
+							${Structr.templates.autoScriptInput({ inputAttributeString: 'id="selected-values-input" name="selectedValues"', wrapperClassString: 'w-full'})}
 						</div>
 
 						<div>

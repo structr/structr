@@ -1217,7 +1217,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 								out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
 							}
 
-							if (key.equals("event")) {
+							if (key.equals(ActionMapping.eventProperty)) {
 
 								eventsString = (String) value;
 							}
