@@ -99,11 +99,7 @@ let _Crud = {
 		'isTwoFactorUser',
 		'twoFactorConfirmed',
 		'ownedNodes',
-		'localStorage',
-		'customPermissionQueryAccessControl',
-		'customPermissionQueryDelete',
-		'customPermissionQueryRead',
-		'customPermissionQueryWrite'
+		'localStorage'
 	],
 	crudCache: new AsyncObjectCache(async (obj) => {
 
@@ -730,6 +726,21 @@ let _Crud = {
 	 */
 	isCollection: (key, type) => {
 		return (key && type && _Crud.keys[type]?.[key]?.isCollection === true);
+	},
+	/* returns if given type is supported (in create dialog) */
+	isSupportedArrayType: (key, type) => {
+		return (
+			_Crud.keys[type]?.[key]?.type === 'String[]' ||
+			_Crud.keys[type]?.[key]?.type === 'Integer[]' ||
+			_Crud.keys[type]?.[key]?.type === 'Long[]' ||
+			_Crud.keys[type]?.[key]?.type === 'Double[]'
+		);
+	},
+	isBaseProperty: (key, type) => {
+		return ('base' === _Crud.keys[type]?.[key]?.jsonName && 'GraphObject' === _Crud.keys[type]?.[key]?.declaringClass);
+	},
+	isHiddenProperty: (key, type) => {
+		return ('hidden' === _Crud.keys[type]?.[key]?.jsonName && 'NodeInterface' === _Crud.keys[type]?.[key]?.declaringClass);
 	},
 	isFunctionProperty: (key, type) => {
 		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type]?.[key]?.className);
@@ -1644,8 +1655,8 @@ let _Crud = {
 					let key      = error.property;
 					let errorMsg = error.token;
 
-					let input = dialogText.querySelector(`td [name="${key}"]`);
-					if (input) {
+					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (inputs.length > 0) {
 
 						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
 
@@ -1655,10 +1666,13 @@ let _Crud = {
 
 						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
 
-						// add "invalid" highlight from elements
-						input.classList.add('form-input', 'input-invalid');
 
-						input.focus();
+						// add "invalid" highlight from elements
+						for (let input of inputs) {
+							input.classList.add('form-input', 'input-invalid');
+						}
+
+						inputs[0].focus();
 					}
 				}
 			}, 100);
@@ -1679,12 +1693,15 @@ let _Crud = {
 
 			for (let key in _Crud.keys[type]) {
 
-				let readOnly     = _Crud.readOnly(key, type);
-				let isCollection = _Crud.isCollection(key, type);
-				let relatedType  = _Crud.relatedType(key, type);
-				let isRelType    = _Crud.relInfo[type];
+				let isBuiltinBaseProperty   = _Crud.isBaseProperty(key, type);
+				let isBuiltinHiddenProperty = _Crud.isHiddenProperty(key, type);
+				let readOnly                = _Crud.readOnly(key, type);
+				let isCollection            = _Crud.isCollection(key, type);
+				let isAllowedCollection     = _Crud.isSupportedArrayType(key, type);
+				let relatedType             = _Crud.relatedType(key, type);
+				let isRelType               = _Crud.relInfo[type];
 
-				if (!readOnly && !isCollection && (!relatedType || isRelType)) {
+				if (!isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || isAllowedCollection) && (!relatedType || isRelType)) {
 
 					let cssClassForKey = _Helpers.getCSSClassForKey(key);
 
@@ -2031,12 +2048,17 @@ let _Crud = {
 			});
 
 			row[0].querySelector('.actions .delete').addEventListener('click', async (e) => {
-				let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
-				if (confirm === true) {
-					_Crud.crudDelete(type, id);
-				}
+				await _Crud.crudAskDelete(type, id);
 			});
 		}
+	},
+	crudAskDelete: async (type, id) => {
+		let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+		if (confirm === true) {
+			_Crud.crudDelete(type, id);
+		}
+
+		return confirm;
 	},
 	populateCell: (id, key, type, value, cell) => {
 
@@ -2256,31 +2278,23 @@ let _Crud = {
 
 			} else if (isCollection) { // Array types
 
-				let values = value || [];
+				let values = value ?? [];
 
 				if (!id) {
 					/**
 					 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
 					 */
 
-					let focusAndActivateField = function (el) {
-						$(el).focus().on('keydown', function (e) {
-							if (e.which === 9) { // tab key
-								e.stopPropagation();
-								cell.append(`<input name="${key}" size="4">`);
-								focusAndActivateField(cell.find(`[name="${key}"]`).last());
-								return false;
-							}
+					let typeInfo = _Crud.keys[type];
+					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+					cell.find(`[name="${key}"]`).each(function (i, el) {
+						_Entities.activateInput(el, null, null, typeInfo, function () {
 						});
-						return false;
-					};
-
-					cell.append(`<input name="${key}" size="4">`);
-					focusAndActivateField(cell.find(`[name="${key}"]`).last());
+					});
 
 				} else {
 
-					// update existing object
+					// existing object
 					let typeInfo = _Crud.keys[type];
 					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
 					cell.find(`[name="${key}"]`).each(function (i, el) {
@@ -2854,6 +2868,20 @@ type: ${node.type}`;
 			let node = data.result;
 
 			let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
+
+			let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
+				<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+				</button>
+			`);
+
+			deleteBtn.addEventListener('click', async (e) => {
+				let deleted = await _Crud.crudAskDelete(type, id);
+
+				if (deleted) {
+					_Dialogs.custom.getCloseDialogButton().click();
+				}
+			});
 
 			dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
 
