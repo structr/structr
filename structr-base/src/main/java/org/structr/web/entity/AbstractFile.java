@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
@@ -52,6 +53,9 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for filesystem objects in structr.
@@ -306,20 +310,24 @@ public interface AbstractFile extends NodeInterface {
 
 	static String getFolderPath(final AbstractFile thisFile) {
 
-		Folder parentFolder = thisFile.getParent();
-		String folderPath   = thisFile.getProperty(AbstractFile.name);
-
+		String folderPath = thisFile.getProperty(AbstractFile.name);
 		if (folderPath == null) {
 			folderPath = thisFile.getUuid();
 		}
 
-		while (parentFolder != null) {
+		if (thisFile.getHasParent()) {
 
-			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getParent();
+			Folder parentFolder = thisFile.getParent();
+			while (parentFolder != null) {
+
+				folderPath = parentFolder.getName().concat("/").concat(folderPath);
+				parentFolder = parentFolder.getParent();
+			}
 		}
 
-		return "/".concat(folderPath);
+		final String path = "/".concat(folderPath);
+
+		return path;
 	}
 
 	static boolean includeInFrontendExport(final AbstractFile thisFile) {
