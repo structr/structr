@@ -1810,29 +1810,6 @@ let Structr = {
 		let reconnectMessage = document.getElementById('reconnect-dialog');
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	ensureShadowPageExists: () => {
-
-		return new Promise((resolve, reject) => {
-
-			if (_Pages.shadowPage) {
-
-				resolve(_Pages.shadowPage);
-
-			} else {
-
-				// wrap getter for shadow document in listComponents so we're sure that shadow document has been created
-				Command.listComponents(1, 1, 'name', 'asc', (result) => {
-
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
-
-						_Pages.shadowPage = entities[0];
-
-						resolve(_Pages.shadowPage);
-					});
-				});
-			}
-		});
-	},
 	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
 

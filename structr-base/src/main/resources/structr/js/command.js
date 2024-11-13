@@ -79,6 +79,14 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	getOrCreateShadowPage: async () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_OR_CREATE_SHADOW_PAGE' };
+			StructrWS.sendObj(obj, (list) => {
+				resolve(list[0]);
+			});
+		});
+	},
 	getPromise: (id, properties, view) => {
 		return new Promise((resolve, reject) => {
 			Command.get(id, properties, resolve, view);
