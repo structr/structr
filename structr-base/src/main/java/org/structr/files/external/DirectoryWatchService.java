@@ -238,6 +238,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
 
+				tx.prefetchHint("DirectoryWatchService main loop");
+
 				// handle all watch events that are older than 2 seconds
 				for (final Iterator<WatchEventItem> it = eventQueue.values().iterator(); it.hasNext();) {
 

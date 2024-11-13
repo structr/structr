@@ -68,9 +68,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				case "id":
 					return this.node.getUuid();
 
-				case "name":
-					return ((AbstractNode)this.node).getName();
-
 				case "owner":
 					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
 

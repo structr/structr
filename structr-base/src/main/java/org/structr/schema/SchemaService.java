@@ -124,6 +124,8 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					tx.prefetchHint("Diff schema");
+
 					SchemaService.prefetchSchemaNodes(tx);
 
 					final JsonSchema databaseSchema = StructrSchema.createFromDatabase(app);
@@ -162,6 +164,8 @@ public class SchemaService implements Service {
 				try (final Tx tx = app.tx()) {
 
 					SchemaService.prefetchSchemaNodes(tx);
+
+					tx.prefetchHint("Reload schema");
 
 					while (retryCount-- > 0) {
 
@@ -422,8 +426,6 @@ public class SchemaService implements Service {
 
 				} catch (FrameworkException fex) {
 
-					FlushCachesCommand.flushAll();
-
 					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
 					logger.error(ExceptionUtils.getStackTrace(fex));
 					success = false;
@@ -433,8 +435,6 @@ public class SchemaService implements Service {
 					fex.printStackTrace();
 
 				} catch (Throwable t) {
-
-					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					logger.error(ExceptionUtils.getStackTrace(t));
@@ -521,6 +521,7 @@ public class SchemaService implements Service {
 
 	public static void prefetchSchemaNodes(final Prefetcher tx) {
 
+		/*
 		tx.prefetch("SchemaReloadingNode", (String)null, Set.of(
 
 			"all/INCOMING/OWNS",
@@ -544,6 +545,8 @@ public class SchemaService implements Service {
 			"all/OUTGOING/IS_RELATED_TO"
 
 		));
+
+		 */
 	}
 
 	// ----- interface Feature -----

@@ -29,6 +29,6 @@ public class StringQuery extends AbstractNativeQuery<Boolean> {
 
 	@Override
 	Boolean execute(final SessionTransaction tx) {
-		return tx.getBoolean(query, parameters);
+		return tx.getBoolean(new SimpleCypherQuery(query, parameters));
 	}
 }

@@ -22,8 +22,6 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 
-import java.util.Set;
-
 /**
  *
  */
@@ -43,4 +41,5 @@ public interface Transaction extends AutoCloseable, Prefetcher {
 	Relationship getRelationship(final Identity id);
 
 	void setIsPing(final boolean isPing);
+	int level();
 }

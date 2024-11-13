@@ -22,7 +22,9 @@ import com.github.scribejava.core.model.OAuth2AccessToken;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.HashMap;
+
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -54,10 +56,6 @@ import org.structr.web.servlet.HtmlServlet;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.structr.common.helper.PathHelper;
 import org.structr.web.resource.RegistrationResourceHandler;
@@ -123,6 +121,13 @@ public class UiAuthenticator implements Authenticator {
 	 */
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
+
+		// prefetch
+		TransactionCommand.getCurrentTransaction().prefetch(
+			"(p1:PrincipalInterface)-[r:CONTAINS]-(p2:PrincipalInterface)",
+			Set.of("PrincipalInterface/all/OUTGOING/CONTAINS", "Group/all/OUTGOING/CONTAINS"),
+			Set.of("PrincipalInterface/all/INCOMING/CONTAINS", "Group/all/INCOMING/CONTAINS")
+		);
 
 		PrincipalInterface user = checkExternalAuthentication(request, response);
 		SecurityContext securityContext;

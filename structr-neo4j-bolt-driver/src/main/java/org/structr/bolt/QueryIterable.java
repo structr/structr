@@ -26,10 +26,10 @@ import java.util.Iterator;
  */
 public class QueryIterable implements Iterable<Record> {
 
-	private BoltDatabaseService db    = null;
-	private AdvancedCypherQuery query = null;
+	private BoltDatabaseService db = null;
+	private CypherQuery query      = null;
 
-	public QueryIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public QueryIterable(final BoltDatabaseService db, final CypherQuery query) {
 		this.query = query;
 		this.db    = db;
 	}
@@ -41,6 +41,6 @@ public class QueryIterable implements Iterable<Record> {
 
 		tx.setIsPing(query.getQueryContext().isPing());
 
-		return tx.collectRecords(query.getStatement(true), query.getParameters(), null).iterator();
+		return tx.collectRecords(query, null).iterator();
 	}
 }

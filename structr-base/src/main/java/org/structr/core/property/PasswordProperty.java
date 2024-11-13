@@ -156,6 +156,7 @@ public class PasswordProperty extends StringProperty {
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {

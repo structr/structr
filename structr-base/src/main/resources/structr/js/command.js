@@ -79,6 +79,14 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	getOrCreateShadowPage: async () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_OR_CREATE_SHADOW_PAGE' };
+			StructrWS.sendObj(obj, (list) => {
+				resolve(list[0]);
+			});
+		});
+	},
 	getPromise: (id, properties, view) => {
 		return new Promise((resolve, reject) => {
 			Command.get(id, properties, resolve, view);
@@ -929,7 +937,7 @@ let Command = {
 			data: nodeData
 		};
 		if (!obj.data.name) {
-			obj.data.name = `New ${obj.data.type} ${Math.floor(Math.random() * (999999 - 1))}`;
+			obj.data.name = _Helpers.createRandomName(nodeData.type);
 		}
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;

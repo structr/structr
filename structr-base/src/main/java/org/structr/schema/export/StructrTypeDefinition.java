@@ -1763,6 +1763,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	private void handleRemovedMethod(final Class nodeType, final StructrMethodDefinition method) throws FrameworkException {
 
 		final Set<String> deleteWhitelist = Set.of(
+			"Mailbox.getAvailableFoldersOnServer",
 			"File.getFileOnDisk",
 			"File.getMinificationTargets",
 			"Group.addMember",
