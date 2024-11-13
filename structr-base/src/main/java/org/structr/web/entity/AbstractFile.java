@@ -31,6 +31,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -63,7 +64,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface AbstractFile extends NodeInterface {
 
 	Property<StorageConfiguration> storageConfigurationProperty = new EndNode<>("storageConfiguration", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
-	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema();
+	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema().updateCallback(AbstractFile::updateHasParent);
 	Property<String> parentIdProperty                           = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
 
 	View uiView = new View(AbstractFile.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
@@ -136,16 +137,12 @@ public interface AbstractFile extends NodeInterface {
 
 	static void onCreation(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		thisFile.setHasParent(thisFile.getParent() != null);
-
 		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
 			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
 		}
 	}
 
 	static void onModification(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		thisFile.setHasParent(thisFile.getParent() != null);
 
 		if (thisFile.isExternal()) {
 
@@ -402,5 +399,9 @@ public interface AbstractFile extends NodeInterface {
 			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
 			: null;
 
+	}
+
+	static void updateHasParent(final GraphObject obj, final Folder value) throws FrameworkException {
+		obj.setProperty(StructrApp.key(AbstractFile.class, "hasParent"), value != null);
 	}
 }

@@ -124,7 +124,7 @@ public class UiAuthenticator implements Authenticator {
 
 		// prefetch
 		TransactionCommand.getCurrentTransaction().prefetch(
-			"(p1:PrincipalInterface)-[r:CONTAINS]-(p2:PrincipalInterface)",
+			"(p1:PrincipalInterface)-[r:CONTAINS*0..1]-(p2:PrincipalInterface)",
 			Set.of("PrincipalInterface/all/OUTGOING/CONTAINS", "Group/all/OUTGOING/CONTAINS"),
 			Set.of("PrincipalInterface/all/INCOMING/CONTAINS", "Group/all/INCOMING/CONTAINS")
 		);

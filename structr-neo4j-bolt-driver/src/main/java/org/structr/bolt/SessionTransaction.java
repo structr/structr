@@ -395,6 +395,16 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final Path p        = r.get("p").asPath();
 			NodeWrapper current = null;
 
+			if (p.length() == 0) {
+
+				// iterate individual nodes as well
+				for (final Node n : p.nodes()) {
+
+					getNodeWrapper(n);
+					count++;
+				}
+			}
+
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
@@ -534,7 +544,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final List<org.neo4j.driver.types.Relationship> rels = (List)r.get("rels").asList();
 
 			for (final org.neo4j.driver.types.Node n : nodes) {
-				getNodeWrapper(n);
+
+				final NodeWrapper nodeWrapper = getNodeWrapper(n);
+				nodeWrapper.storePrefetchInfo(outgoingKeys);
+
 				count++;
 			}
 

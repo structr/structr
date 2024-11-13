@@ -151,6 +151,10 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		try {
 
+			if (updateCallback != null) {
+				updateCallback.notifyUpdated(obj, value);
+			}
+
 			return endpoint.set(securityContext, (NodeInterface)obj, value);
 
 		} catch (RuntimeException r) {

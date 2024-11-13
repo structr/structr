@@ -3846,7 +3846,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
-
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t2)); }}", "testFindNewSyntax")).size());
@@ -4219,8 +4218,6 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-
-
 
 			List<GraphObject> result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
 

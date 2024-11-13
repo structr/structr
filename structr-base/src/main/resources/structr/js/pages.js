@@ -4547,7 +4547,7 @@ let _Pages = {
 							<option value="page-param">Request parameter for page</option>
 							<option value="pagesize-param">Request parameter for page size</option>
 							<option value="constant-value">Constant value</option>
-							<option value="script-expression">Script expression</option>
+							<option value="script-expression">Evaluated expression (mixed-content)</option>
 							<option value="method-result">Result of method call</option>
 							<option value="flow-result">Result of flow</option>
 						</select>
@@ -4559,7 +4559,7 @@ let _Pages = {
 					</div>
 
 					<div class="hidden em-parameter-value parameter-script-expression">
-						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
+						<label class="block mb-2" data-comment="This is mixed-mode content. Plain text and scripting expression can be mixed. The content will be evaluated and scripts will be processed. The result is passed as parameter value.<br><br>Examples:<br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>\${me.isAdmin}</code> <br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>Hello \${me.name}!</code>">Value expression</label>
 						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
 					</div>
 

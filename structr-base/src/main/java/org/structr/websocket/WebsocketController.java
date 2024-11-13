@@ -314,7 +314,7 @@ public class WebsocketController implements StructrTransactionListener {
 						return null;
 					}
 
-					message.setResult(Arrays.asList(new GraphObject[]{endNode}));
+					message.setResult(Arrays.asList(endNode));
 					message.setId(endNode.getUuid());
 					message.setNodeData("parentId", startNode.getUuid());
 
