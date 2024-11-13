@@ -137,12 +137,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 					case OUTGOING -> {
 						outgoingKeys.add("all/OUTGOING/" + relType);
-						outgoingKeys.add("all/INCOMING/" + relType);
 						outgoingRelTypes.add(relType);
 					}
 
 					case INCOMING -> {
-						incomingKeys.add("all/OUTGOING/" + relType);
 						incomingKeys.add("all/INCOMING/" + relType);
 						incomingRelTypes.add(relType);
 					}
