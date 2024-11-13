@@ -238,12 +238,15 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		} else {
 
-			if (!sortOrder.isEmpty()) {
+			// default sort order is applied at database level
+			if (!(sortOrder instanceof DefaultSortOrder)) {
 
 				final List<T> finalResult = new LinkedList<>(Iterables.toList(indexHits));
 				Collections.sort(finalResult, sortOrder);
+
 				return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
 			}
+
 			// no filtering
 			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
 		}

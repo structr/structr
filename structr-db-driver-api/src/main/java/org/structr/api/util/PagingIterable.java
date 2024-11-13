@@ -29,9 +29,14 @@ import java.util.Iterator;
 public class PagingIterable<T> implements ResultStream<T> {
 
 	private static final Logger logger    = LoggerFactory.getLogger(PagingIterable.class);
-	private PagingIterator<T> source      = null;
+	private PagingIterator<T> iterator    = null;
+	private Iterable<T> source            = null;
 	private String queryTimeFormatted     = null;
 	private Integer overriddenResultCount = null;
+	private String description            = null;
+	private int page                      = 1;
+	private int pageSize                  = Integer.MAX_VALUE;
+	private int skipped                   = 0;
 
 	public PagingIterable(final String description, final Iterable<T> source) {
 		this(description, source, Integer.MAX_VALUE, 1);
@@ -42,7 +47,12 @@ public class PagingIterable<T> implements ResultStream<T> {
 	}
 
 	public PagingIterable(final String description, final Iterable<T> source, final int pageSize, final int page, final int skipped) {
-		this.source = new PagingIterator<>(description, source.iterator(), page, pageSize, skipped);
+
+		this.description = description;
+		this.source      = source;
+		this.pageSize    = pageSize;
+		this.page        = page;
+		this.skipped    = skipped;
 	}
 
 	@Override
@@ -53,27 +63,27 @@ public class PagingIterable<T> implements ResultStream<T> {
 			logger.error("PagingIterable already consumed, please use Iterables.toList() to be able to iterate a streaming result more than once.");
 		}
 
-		return source;
+		return getIterator();
 	}
 
 	@Override
 	public int calculateTotalResultCount(final ProgressWatcher progressConsumer, final int softLimit) {
-		return overriddenResultCount != null ? overriddenResultCount : source.getResultCount(progressConsumer, softLimit);
+		return overriddenResultCount != null ? overriddenResultCount : getIterator().getResultCount(progressConsumer, softLimit);
 	}
 
 	@Override
 	public int calculatePageCount(final ProgressWatcher progressConsumer, final int softLimit) {
-		return overriddenResultCount != null && this.getPageSize() != 0 ? (int)Math.ceil( ((double)overriddenResultCount) / ((double)this.getPageSize())) : source.getPageCount(progressConsumer, softLimit);
+		return overriddenResultCount != null && this.getPageSize() != 0 ? (int)Math.ceil( ((double)overriddenResultCount) / ((double)this.getPageSize())) : getIterator().getPageCount(progressConsumer, softLimit);
 	}
 
 	@Override
 	public int getPageSize() {
-		return source.getPageSize();
+		return pageSize;
 	}
 
 	@Override
 	public int getPage() {
-		return source.getPage();
+		return page;
 	}
 
 	@Override
@@ -101,7 +111,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 	}, Integer.MAX_VALUE, 1, 0);
 
 	public boolean isConsumed() {
-		return source != null && source.isConsumed();
+		return getIterator().isConsumed();
 	}
 
 	@Override
@@ -120,5 +130,14 @@ public class PagingIterable<T> implements ResultStream<T> {
 
 	public void setOverriddenResultCount(final int resultCount) {
 		this.overriddenResultCount = resultCount;
+	}
+
+	private PagingIterator<T> getIterator() {
+
+		if (this.iterator == null) {
+			this.iterator = new PagingIterator<>(description, source.iterator(), page, pageSize, skipped);
+		}
+
+		return this.iterator;
 	}
 }

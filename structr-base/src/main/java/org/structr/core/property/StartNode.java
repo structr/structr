@@ -147,6 +147,10 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 		try {
 
+			if (updateCallback != null) {
+				updateCallback.notifyUpdated(obj, value);
+			}
+
 			return startpoint.set(securityContext, (NodeInterface)obj, value);
 
 		} catch (RuntimeException r) {
