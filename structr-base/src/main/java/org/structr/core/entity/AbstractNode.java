@@ -1354,8 +1354,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
-		final PrincipalInterface currentUser = securityContext.getUser(false);
-
 		if (!isGranted(Permission.write, securityContext, isCreation)) {
 
 			internalSystemPropertiesUnlocked = false;

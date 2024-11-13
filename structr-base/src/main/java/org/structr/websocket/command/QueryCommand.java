@@ -97,6 +97,7 @@ public class QueryCommand extends AbstractCommand {
 			.pageSize(pageSize);
 
 		if (sortKey != null) {
+
 			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
 			final String sortOrder         = webSocketData.getSortOrder();
 
@@ -137,13 +138,8 @@ public class QueryCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			final ResultStream<AbstractNode> result = query.getResultStream();
-			final List<AbstractNode> list           = Iterables.toList(result);
-
 			// set full result list
-			webSocketData.setResult(list);
-			webSocketData.setRawResultCount(result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize)));
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

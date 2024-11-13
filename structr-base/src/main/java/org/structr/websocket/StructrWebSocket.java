@@ -269,6 +269,7 @@ public class StructrWebSocket implements WebSocketListener {
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						abstractCommand.processMessage(webSocketData);
 
@@ -285,6 +286,7 @@ public class StructrWebSocket implements WebSocketListener {
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						// commit transaction
 						tx.success();
