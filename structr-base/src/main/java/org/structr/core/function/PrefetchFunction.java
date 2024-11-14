@@ -40,7 +40,7 @@ public class PrefetchFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "type1, type2, listOfKeys";
+		return "query, listOfKeys";
 	}
 
 	@Override
@@ -61,11 +61,11 @@ public class PrefetchFunction extends CoreFunction {
 
 		if (inJavaScriptContext) {
 
-			return "$.prefetch('Customer', 'Task', ['', ''])";
+			return "$.prefetch('(:Customer)-[]->(:Task)', ['', ''])";
 
 		} else {
 
-			return "prefetch('Customer', 'Task', merge('...'))";
+			return "prefetch('(:Customer)-[]->(:Task)', merge('', ''))";
 		}
 	}
 }

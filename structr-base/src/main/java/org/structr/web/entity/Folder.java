@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relationship.*;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.net.URI;
 
@@ -133,6 +134,7 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 		SearchCommand.prefetch(Folder.class, thisFolder.getUuid());
 
 		Folder.setHasParent(thisFolder);
+		HtmlServlet.clearPathCache();
 
 		// only update watch service for root folder of mounted hierarchy
 		if (thisFolder.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null || !thisFolder.isMounted()) {

@@ -148,7 +148,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 			}
 		}
 
-		if (!outgoingRelTypes.isEmpty()) {
+		if (outgoingRelTypes.size() > 1) {
 
 			TransactionCommand.getCurrentTransaction().prefetch2(
 				"MATCH (n:NodeInterface { id: $id })-[r:" + StringUtils.join(outgoingRelTypes, "|") + "*0..1]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
@@ -159,7 +159,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 		}
 
-		if (!incomingRelTypes.isEmpty()) {
+		if (incomingRelTypes.size() > 1) {
 
 			TransactionCommand.getCurrentTransaction().prefetch2(
 				"MATCH (n:NodeInterface { id: $id })<-[r:" + StringUtils.join(incomingRelTypes, "|") + "*0..1]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
