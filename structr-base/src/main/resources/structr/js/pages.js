@@ -65,8 +65,6 @@ let _Pages = {
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
-
-		Structr.ensureShadowPageExists();
 	},
 	handleNodeRefresh: (node) => {
 
@@ -108,9 +106,9 @@ let _Pages = {
 			window.location.hash       = urlHash;
 		}
 
-		Structr.setMainContainerHTML(_Pages.templates.main());
-
 		_Pages.init();
+
+		Structr.setMainContainerHTML(_Pages.templates.main());
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('pages'));
 
@@ -126,118 +124,121 @@ let _Pages = {
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
 		_Pages.previewSlideout         = $('#previewSlideout');
 
-		let pagesTab = document.getElementById('pagesTab');
-		let pagesTabSlideoutAction = (e) => {
-			Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
-				Structr.resize();
-				_Entities.highlightSelectedElementOnSlideoutOpen();
-			}, _Pages.leftSlideoutClosedCallback);
-		};
+		_Pages.ensureShadowPageExists().then(() => {
 
-		pagesTab.addEventListener('click', pagesTabSlideoutAction);
+			let pagesTab = document.getElementById('pagesTab');
+			let pagesTabSlideoutAction = (e) => {
+				Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
+					Structr.resize();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
+				}, _Pages.leftSlideoutClosedCallback);
+			};
 
-		$(pagesTab).droppable({
-			tolerance: 'touch',
-			//over: pagesTabSlideoutAction
-		});
+			pagesTab.addEventListener('click', pagesTabSlideoutAction);
 
-		let localizationsTab = document.getElementById('localizationsTab');
-		localizationsTab.addEventListener('click', () => {
-			Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
-				_Pages.localizations.refreshPagesForLocalizationPreview();
-				Structr.resize();
-				_Entities.highlightSelectedElementOnSlideoutOpen();
-			}, _Pages.leftSlideoutClosedCallback);
-		});
-
-		document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
-			if (e.which === 13) {
-				_Pages.localizations.refreshLocalizations();
-			}
-		});
-
-		let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
-		refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
-
-		_Helpers.appendInfoTextToElement({
-			element: refreshLocalizationsButton,
-			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
-			insertAfter: true,
-			helpElementCss: { width: "300px" },
-			offsetX: -20,
-			offsetY: 10
-		});
-
-		let widgetsTab = document.getElementById('widgetsTab');
-		widgetsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
-				_Widgets.reloadWidgets();
-				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
-		});
-
-		let paletteTab = document.getElementById('paletteTab');
-		paletteTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
-				_Pages.designTools.reload();
-				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
-		});
-
-		let componentsTab = document.getElementById('componentsTab');
-		let componentsTabSlideoutAction = (isDragOpen = false) => {
-			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
-				_Pages.sharedComponents.reload(isDragOpen);
-				Structr.resize();
-			}, () => {
-				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
-				_Pages.rightSlideoutClosedCallback();
+			$(pagesTab).droppable({
+				tolerance: 'touch',
+				//over: pagesTabSlideoutAction
 			});
-		};
-		componentsTab.addEventListener('click', componentsTabSlideoutAction);
 
-		$(componentsTab).droppable({
-			tolerance: 'touch',
-			over: (e, ui) => {
+			let localizationsTab = document.getElementById('localizationsTab');
+			localizationsTab.addEventListener('click', () => {
+				Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
+					_Pages.localizations.refreshPagesForLocalizationPreview();
+					Structr.resize();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
+				}, _Pages.leftSlideoutClosedCallback);
+			});
 
-				let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
-				let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
-
-				if (!isComponentsSlideoutOpen && !isColumnResizer) {
-					componentsTabSlideoutAction(true);
+			document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
+				if (e.which === 13) {
+					_Pages.localizations.refreshLocalizations();
 				}
-			}
-		});
-
-		let elementsTab = document.getElementById('elementsTab');
-		elementsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
-				_Pages.unattachedNodes.reload();
-				Structr.resize();
-			}, () => {
-				_Pages.unattachedNodes.removeElementsFromUI();
-				_Pages.rightSlideoutClosedCallback();
 			});
-		});
 
-		let previewTab = document.getElementById('previewTab');
-		previewTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
-				_Pages.previews.updatePreviewSlideout();
-				Structr.resize();
-			}, () => {
-				_Pages.rightSlideoutClosedCallback();
+			let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
+			refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
+
+			_Helpers.appendInfoTextToElement({
+				element: refreshLocalizationsButton,
+				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+				insertAfter: true,
+				helpElementCss: { width: "300px" },
+				offsetX: -20,
+				offsetY: 10
 			});
-		});
 
-		_Pages.refresh();
+			let widgetsTab = document.getElementById('widgetsTab');
+			widgetsTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
+					_Widgets.reloadWidgets();
+					Structr.resize();
+				}, _Pages.rightSlideoutClosedCallback);
+			});
+
+			let paletteTab = document.getElementById('paletteTab');
+			paletteTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
+					_Pages.designTools.reload();
+					Structr.resize();
+				}, _Pages.rightSlideoutClosedCallback);
+			});
+
+			let componentsTab = document.getElementById('componentsTab');
+			let componentsTabSlideoutAction = (isDragOpen = false) => {
+				Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
+					_Pages.sharedComponents.reload(isDragOpen);
+					Structr.resize();
+				}, () => {
+					_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+					_Pages.rightSlideoutClosedCallback();
+				});
+			};
+			componentsTab.addEventListener('click', componentsTabSlideoutAction);
+
+			$(componentsTab).droppable({
+				tolerance: 'touch',
+				over: (e, ui) => {
+
+					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
+					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
+
+					if (!isComponentsSlideoutOpen && !isColumnResizer) {
+						componentsTabSlideoutAction(true);
+					}
+				}
+			});
+
+			let elementsTab = document.getElementById('elementsTab');
+			elementsTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
+					_Pages.unattachedNodes.reload();
+					Structr.resize();
+				}, () => {
+					_Pages.unattachedNodes.removeElementsFromUI();
+					_Pages.rightSlideoutClosedCallback();
+				});
+			});
+
+			let previewTab = document.getElementById('previewTab');
+			previewTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
+					_Pages.previews.updatePreviewSlideout();
+					Structr.resize();
+				}, () => {
+					_Pages.rightSlideoutClosedCallback();
+				});
+			});
+
+			_Pages.refresh();
+		});
 	},
 	getContextMenuElements: (div, entity) => {
 
@@ -946,16 +947,14 @@ let _Pages = {
 				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
 			}
 
-			// Create shadow page if not existing
-			Structr.ensureShadowPageExists().then(() => {
-				let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
-				let isEntityInTrash = (!entity.isPage && !entity.pageId);
-				if (isEntityInSharedComponents || isEntityInTrash) {
-					document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
-				}
-			});
+			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
+			let isEntityInTrash = (!entity.isPage && !entity.pageId);
+			if (isEntityInSharedComponents || isEntityInTrash) {
+				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+			}
 
 		} else {
+
 			_Pages.hideAllFunctionBarTabs();
 		}
 	},
@@ -3875,7 +3874,25 @@ let _Pages = {
 
 		_Helpers.activateCommentsInElement(container);
 	},
+	ensureShadowPageExists: () => {
 
+		return new Promise((resolve, reject) => {
+
+			if (_Pages.shadowPage) {
+
+				resolve(_Pages.shadowPage);
+
+			} else {
+
+				Command.getOrCreateShadowPage().then(shadowPage => {
+
+					_Pages.shadowPage = shadowPage;
+
+					resolve(_Pages.shadowPage);
+				});
+			}
+		});
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
@@ -4530,7 +4547,7 @@ let _Pages = {
 							<option value="page-param">Request parameter for page</option>
 							<option value="pagesize-param">Request parameter for page size</option>
 							<option value="constant-value">Constant value</option>
-							<option value="script-expression">Script expression</option>
+							<option value="script-expression">Evaluated expression (mixed-content)</option>
 							<option value="method-result">Result of method call</option>
 							<option value="flow-result">Result of flow</option>
 						</select>
@@ -4542,7 +4559,7 @@ let _Pages = {
 					</div>
 
 					<div class="hidden em-parameter-value parameter-script-expression">
-						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
+						<label class="block mb-2" data-comment="This is mixed-mode content. Plain text and scripting expression can be mixed. The content will be evaluated and scripts will be processed. The result is passed as parameter value.<br><br>Examples:<br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>\${me.isAdmin}</code> <br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>Hello \${me.name}!</code>">Value expression</label>
 						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
 					</div>
 

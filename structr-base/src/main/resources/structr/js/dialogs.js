@@ -641,17 +641,31 @@ let _Dialogs = {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
+		enableSaveButton: () => {
+			if (_Dialogs.custom.elements.dialogSaveButton) {
+				_Helpers.enableElement(_Dialogs.custom.elements.dialogSaveButton);
+			}
+		},
+		disableSaveButton: () => {
+			if (_Dialogs.custom.elements.dialogSaveButton) {
+				_Helpers.disableElement(_Dialogs.custom.elements.dialogSaveButton);
+			}
+		},
 		clickSaveAndCloseButton: () => {
 
 			if (_Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled) {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
+		noConfirmOnEscape: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add('no-confirm-on-escape');
+		},
+		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains('no-confirm-on-escape') ?? false,
 		checkSaveOrCloseOnEscape: () => {
 
-			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled) {
+			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled && !_Dialogs.custom.isNoConfirmOnEscape()) {
 
-				let saveBeforeExit = confirm('Save changes?');
+				let saveBeforeExit = confirm('Save changes before closing?');
 				if (saveBeforeExit) {
 					_Dialogs.custom.clickSaveButton();
 

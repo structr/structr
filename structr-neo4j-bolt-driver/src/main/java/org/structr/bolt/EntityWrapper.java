@@ -207,11 +207,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 		// execute query
 		if (isNode()) {
 
-			this.updateEntity((T)tx.getNode(query, map));
+			this.updateEntity((T)tx.getNode(new SimpleCypherQuery(query, map)));
 
 		} else {
 
-			updateEntity((T)tx.getRelationship(query, map));
+			updateEntity((T)tx.getRelationship(new SimpleCypherQuery(query, map)));
 		}
 	}
 

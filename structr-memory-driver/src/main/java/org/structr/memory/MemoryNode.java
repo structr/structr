@@ -28,6 +28,7 @@ import org.structr.memory.index.filter.MemoryLabelFilter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -105,6 +106,28 @@ public class MemoryNode extends MemoryEntity implements Node {
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 		return db.getRelationships(this, direction, relationshipType);
+	}
+
+	@Override
+	public Map<String, Long> getDegree() {
+
+		final Map<String, Long> degree = new LinkedHashMap<>();
+
+		for (final Relationship rel : db.getRelationships(this)) {
+
+			final String type = rel.getType().name();
+			final Long count  = degree.get(type);
+
+			if (count == null) {
+
+				degree.put(type, 1L);
+
+			} else {
+				degree.put(type, count + 1);
+			}
+		}
+
+		return degree;
 	}
 
 	@Override

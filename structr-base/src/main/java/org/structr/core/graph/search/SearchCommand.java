@@ -18,9 +18,11 @@
  */
 package org.structr.core.graph.search;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.Transaction;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
@@ -57,9 +59,6 @@ import org.structr.schema.SchemaService;
 public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
-
-	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
-	protected static final boolean PUBLIC_ONLY		  = false;
 
 	private static final Set<PropertyKey> indexedWarningDisabled    = new LinkedHashSet<>(Arrays.asList(SchemaMethod.source, SchemaProperty.readFunction, SchemaProperty.writeFunction));
 	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
@@ -107,9 +106,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 		}
 
-		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
-		final PrincipalInterface user         = securityContext.getUser(false);
-		final SearchConfig config    = new SearchConfig();
+		final Factory<S, T> factory   = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
+		final PrincipalInterface user = securityContext.getUser(false);
+		final SearchConfig config     = new SearchConfig();
 
 		if (user == null) {
 
@@ -239,12 +238,15 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		} else {
 
-			if (!sortOrder.isEmpty()) {
+			// default sort order is applied at database level
+			if (!(sortOrder instanceof DefaultSortOrder)) {
 
 				final List<T> finalResult = new LinkedList<>(Iterables.toList(indexHits));
 				Collections.sort(finalResult, sortOrder);
+
 				return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
 			}
+
 			// no filtering
 			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
 		}

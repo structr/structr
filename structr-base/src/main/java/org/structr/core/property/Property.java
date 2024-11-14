@@ -47,7 +47,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
 
-	protected List<String> transformators                  = new LinkedList<>();
+	protected final List<String> transformators            = new LinkedList<>();
+	protected UpdateCallback<T> updateCallback             = null;
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -402,10 +403,23 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	/**
+	 * Register a callback that gets notified when this property is set.
+	 * Note that this is currently only implemented in the StartNode,
+	 * EndNode, StartNodes and EndNodes properties!
+	 *
+	 * @param callback
+	 * @return
+	 */
+	public Property<T> updateCallback(final UpdateCallback<T> callback) {
+		this.updateCallback = callback;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 
-		// make hashCode funtion work for subtypes that override jsonName() etc. as well
+		// make hashCode function work for subtypes that override jsonName() etc. as well
 		if (dbName() != null && jsonName() != null) {
 			return (dbName().hashCode() * 31) + jsonName().hashCode();
 		}

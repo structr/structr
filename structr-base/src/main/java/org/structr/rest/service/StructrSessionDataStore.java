@@ -65,6 +65,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx()) {
 
+			tx.prefetchHint("StructrSessionDataStore store");
+
 			final PropertyKey<String[]> key = StructrApp.key(PrincipalInterface.class, "sessionIds");
 			final String[] value            = new String[] { id };
 			final PrincipalInterface user            = app.nodeQuery(PrincipalInterface.class).and(key, value).disableSorting().getFirst();
@@ -114,6 +116,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx()) {
 
+			tx.prefetchHint("StructrSessionDataStore exists");
+
 			final SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
 
 			tx.success();
@@ -141,6 +145,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		SessionData result = null;
 
 		try (final Tx tx = app.tx()) {
+
+			tx.prefetchHint("StructrSessionDataStore load");
 
 			final SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
 			if (node != null) {
@@ -179,6 +185,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		final App app = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
+
+			tx.prefetchHint("StructrSessionDataStore delete");
 
 			// delete nodes
 			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getAsList()) {
@@ -222,6 +230,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx()) {
 
+			tx.prefetchHint("StructrSessionDataStore doCheckExpired");
+
 			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
 
 				candidates.add(node.getProperty(SessionDataNode.sessionId));
@@ -258,6 +268,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx()) {
 
+			tx.prefetchHint("StructrSessionDataStore doGetExpired");
+
 			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
 
 				candidates.add(node.getProperty(SessionDataNode.sessionId));
@@ -287,42 +299,6 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			}
 		}
 	}
-
-	public Set<String> doGetExpired(final Set<String> candidates) {
-
-		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
-		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
-
-		assertInitialized();
-
-		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
-
-			SessionData data = entry.getValue();
-			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
-
-				candidates.add(entry.getKey());
-			}
-		}
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
-
-				candidates.add(node.getProperty(SessionDataNode.sessionId));
-			}
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			logger.info("Unable to determine list of expired session candidates.");
-		}
-
-		return candidates;
-	}
-
 
 	// ----- private methods -----
 	private void assertInitialized() {

@@ -985,11 +985,11 @@ let _Schema = {
 			} else {
 			}
 
-			if (entity.extendsClass || entity.isBuiltinType === false) {
+			if (entity.extendsClass || entity.extendsClassInternal || entity.isBuiltinType === false) {
 
 				let select = container.querySelector('[data-property="extendsClass"]');
 				if (entity.isBuiltinType === true) {
-					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass.name}</option>`);
+					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass?.name ?? entity.extendsClassInternal}</option>`);
 					delete select.dataset['property'];
 					select.disabled = true;
 					select.classList.add('disabled');
@@ -1000,6 +1000,7 @@ let _Schema = {
 				}
 
 			} else {
+
 				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
 			}
 
@@ -1011,30 +1012,12 @@ let _Schema = {
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
-			Promise.all([
-				fetch(`${Structr.rootUrl}_schema`).then(response => response.json()),
-				fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(response => response.json())
-			]).then(values => {
-
-				let schemaResourceData = values[0];
-				let schemaNodeData     = values[1];
+			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(response => response.json()).then(schemaNodeData => {
 
 				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
 				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
 
-				let internalTypes = schemaResourceData.result.filter(t => !t.className.startsWith(Structr.dynamicClassPrefix) && t.className !== 'org.structr.core.entity.AbstractNode' && t.isRel !== true).sort((a, b) => (a.name.localeCompare(b.name)));
-				let thisType      = schemaResourceData.result.filter(t => t.className === (Structr.getFQCNForDynamicTypeName(entity.name)))?.[0];
-
-				let extendsClass     = entity.extendsClass;
-				let extendsClassFQCN = thisType?.extendsClass;
-
-				let getOptionsForListOfSchemaNodes = (list) => {
-					return list.map(cls => `<option ${((extendsClass?.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
-				};
-
-				let getOptionsForListOfFQCNs = (list) => {
-					return list.map(cls => `<option ${((extendsClassFQCN === cls.className) ? 'selected' : '')} value="${cls.className}">${cls.name}</option>`).join('');
-				};
+				let getOptionsForListOfSchemaNodes = (list) => list.map(cls => `<option ${((entity.extendsClass?.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
 
 				let classSelect = container.querySelector('.extends-class-select');
 				classSelect.insertAdjacentHTML('beforeend', `
@@ -1043,7 +1026,6 @@ let _Schema = {
 					</optgroup>
 					${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForListOfSchemaNodes(customTypes)}</optgroup>` : ''}
 					${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForListOfSchemaNodes(builtinTypes)}</optgroup>` : ''}
-					${(internalTypes.length > 0) ? `<optgroup id="for-internal-types" label="Internal Types">${getOptionsForListOfFQCNs(internalTypes)}</optgroup>` : ''}
 				`);
 
 				$(classSelect).select2({
@@ -1265,12 +1247,6 @@ let _Schema = {
 				} else if (key === 'extendsClass') {
 
 					shouldDelete = (entity.extendsClass && entity.extendsClass.id === newData.extendsClass) || (!entity.extendsClass && newData.extendsClass === '');
-
-					// handle case where a FQCN must be transferred as "extendsClassInternal" rather than "extendsClass"
-					if (newData.extendsClass.indexOf('.') > -1) {
-						shouldDelete = true;
-						newData.extendsClassInternal = newData.extendsClass;
-					}
 				}
 
 				if (shouldDelete) {

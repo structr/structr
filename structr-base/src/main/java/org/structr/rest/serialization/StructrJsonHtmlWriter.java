@@ -105,9 +105,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		final Tag body = doc.block("body");
 		final Tag left = body.block("div").id("left");
 
-		left.inline("button").attr(new Css("collapse right")).text("-");
-		left.inline("button").attr(new Css("expand right")).text("+");
-
 		// baseUrl ist not really a baseUrl, it is the full path. it also does not (necessarily) contain the ApplicationRootPath
 		// to be safe, try to remove both (restPath already contains ApplicationRootPath)
 		// currentType is also a misnomer - it can also be "<type>/<uuid>"
@@ -115,7 +112,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
 				.replace("/" + propertyView, "");																// remove current view
 
-		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
+		final Class typeClass   = StructrApp.getConfiguration().getNodeEntityClass(currentType);
+		final Set<String> views = (typeClass != null) ? StructrApp.getConfiguration().getPropertyViewsForType(typeClass) : StructrApp.getConfiguration().getPropertyViews();
+
+		for (String view : views.stream().sorted().toList()) {
 
 			if (!hiddenViews.contains(view)) {
 
