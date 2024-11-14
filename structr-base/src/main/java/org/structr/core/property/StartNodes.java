@@ -164,6 +164,10 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		final ManyStartpoint<S> startpoint = relation.getSource();
 
+		if (updateCallback != null) {
+			updateCallback.notifyUpdated(obj, collection);
+		}
+
 		return startpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 

@@ -18,8 +18,11 @@
  */
 package org.structr.bolt;
 
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.DatabaseQuery;
 import org.structr.api.search.QueryContext;
+import org.structr.api.util.QueryTimer;
 
 import java.util.Map;
 
@@ -30,8 +33,14 @@ interface CypherQuery extends DatabaseQuery {
 	int pageSize();
 	void nextPage();
 
-	String getStatement(final boolean paged);
+	String getStatement();
 	Map<String, Object> getParameters();
 
 	QueryContext getQueryContext();
+	QueryTimer getQueryTimer();
+
+	void storeRelationshipInfo(final Class type, final RelationshipType relationshipType, final Direction direction);
+	Class getType();
+	String getRelationshipType();
+	boolean isOutgoing();
 }

@@ -112,11 +112,8 @@ public class ListCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			final List<AbstractNode> result = query.getAsList();
-
 			// set full result list
-			webSocketData.setResult(result);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

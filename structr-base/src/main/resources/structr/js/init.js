@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj);
+					_Entities.showProperties(obj, null, true);
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -574,6 +574,10 @@ let Structr = {
 
 			if (additionalParameters.overrideText) {
 				messageBuilder.text(additionalParameters.overrideText);
+			}
+
+			if (additionalParameters.delayDuration) {
+				messageBuilder.delayDuration(additionalParameters.delayDuration);
 			}
 		}
 
@@ -1805,29 +1809,6 @@ let Structr = {
 		// remove reconnect dialog
 		let reconnectMessage = document.getElementById('reconnect-dialog');
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
-	},
-	ensureShadowPageExists: () => {
-
-		return new Promise((resolve, reject) => {
-
-			if (_Pages.shadowPage) {
-
-				resolve(_Pages.shadowPage);
-
-			} else {
-
-				// wrap getter for shadow document in listComponents so we're sure that shadow document has been created
-				Command.listComponents(1, 1, 'name', 'asc', (result) => {
-
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
-
-						_Pages.shadowPage = entities[0];
-
-						resolve(_Pages.shadowPage);
-					});
-				});
-			}
-		});
 	},
 	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {

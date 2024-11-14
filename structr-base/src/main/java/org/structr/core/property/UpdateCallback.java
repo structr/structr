@@ -16,14 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.core.property;
 
-import org.structr.api.graph.RelationshipType;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
-/**
- *
- */
-public enum RelType implements RelationshipType {
-
-	OWNS, SECURITY
+@FunctionalInterface
+public interface UpdateCallback<V> {
+	void notifyUpdated(final GraphObject obj, final V value) throws FrameworkException;
 }

@@ -165,6 +165,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 		final ManyEndpoint<T> endpoint = relation.getTarget();
 
+		if (updateCallback != null) {
+			updateCallback.notifyUpdated(obj, collection);
+		}
+
 		return endpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 

@@ -89,7 +89,6 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 							final Set<PropertyKey> allProperties = config.getPropertySet(type, PropertyView.All);
 							final Set<PropertyKey> viewProperties = config.getPropertySet(type, view);
-							final Set<PropertyKey> parentProperties = config.getPropertySet(type.getSuperclass(), view);
 
 							for (final PropertyKey key : allProperties) {
 

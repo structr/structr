@@ -68,6 +68,10 @@ a.id, a.id:visited {
 	color: #00a;
 }
 
+span {
+	color: #000;
+}
+
 span.type {
 	font-weight: 400;
 	color: #080;
@@ -96,10 +100,6 @@ span.null {
 	color: #999;
 }
 
-span.comma {
-	color: #000;
-}
-
 li {
 	list-style: none;
 }
@@ -120,7 +120,6 @@ li.collapsibleListClosed {
 
 button.collapse, button.expand {
 	font-family: "Liberation Mono","DejaVu Sans Mono",Consolas,Monaco,"Vera Sans Mono","Lucida Console","Courier New",monospace ! important;
-	float: right;
 	margin: -.3em 1em 0 0;
 	cursor: pointer;
 }
@@ -150,4 +149,17 @@ li.collapsibleListClosed > ul.collapsibleList {
 	margin-left: -5px;
 	margin-right: -5px;
 	font-family: initial;
+}
+
+.flex {
+	display: flex;
+}
+.items-center {
+	align-items: center;
+}
+.mr-2 {
+	margin-right: .5rem;
+}
+.mr-4 {
+	margin-right: 1rem;
 }

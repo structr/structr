@@ -16,30 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.structr.websocket.command;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
+import java.util.Arrays;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.rest.resource.SchemaResource;
-import org.structr.rest.resource.SchemaTypeResource;
+import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
-/**
- * Websocket command to retrieve type information from the schema.
- */
-public class GetSchemaInfoCommand extends AbstractCommand {
-
-	private static final Logger logger = LoggerFactory.getLogger(GetSchemaInfoCommand.class.getName());
+public class GetOrCreateShadowPageCommand extends AbstractCommand {
 
 	static {
 
-		StructrWebSocket.addCommand(GetSchemaInfoCommand.class);
+		StructrWebSocket.addCommand(GetOrCreateShadowPageCommand.class);
 	}
 
 	@Override
@@ -49,35 +41,22 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 
 		try {
 
-			final String type = webSocketData.getNodeDataStringValue("type");
+			final ShadowDocument hiddenDoc = CreateComponentCommand.getOrCreateHiddenDocument();
 
-			if (type != null) {
-
-				Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
-				if (typeClass == null) {
-
-					typeClass = StructrApp.getConfiguration().getRelationshipEntityClass(type);
-				}
-
-				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, typeClass, PropertyView.All));
-
-			} else {
-
-				webSocketData.setResult(SchemaResource.getSchemaOverviewResult());
-			}
+			webSocketData.setResult(Arrays.asList(hiddenDoc));
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);
 
-		} catch (FrameworkException ex) {
+		} catch (DOMException | FrameworkException ex) {
 
-			logger.error("", ex);
-			getWebSocket().send(MessageBuilder.status().code(500).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 		}
 	}
 
 	@Override
 	public String getCommand() {
-		return "GET_SCHEMA_INFO";
+
+		return "GET_OR_CREATE_SHADOW_PAGE";
 	}
 }

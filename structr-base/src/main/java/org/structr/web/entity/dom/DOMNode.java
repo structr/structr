@@ -2188,11 +2188,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 			id
 		);
-
-		//TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + id + "\" })-[:CONTAINS*]->(m)",
-			//Set.of("all/OUTGOING/CONTAINS"),
-			//Set.of("all/INCOMING/CONTAINS")
-		//);
 	}
 
 	// ----- nested classes -----

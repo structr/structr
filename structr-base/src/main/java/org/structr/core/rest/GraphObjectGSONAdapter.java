@@ -30,6 +30,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -287,6 +288,11 @@ public class GraphObjectGSONAdapter {
 					// speciality for the Ui view: limit recursive rendering to (id, name)
 					if (compactNestedProperties && depth > 0 && ((PropertyView.Ui.equals(localPropertyView) && !securityContext.isSuperUserSecurityContext()) || PropertyView.All.equals(localPropertyView))) {
 						keys = idTypeNameOnly;
+					}
+
+					// prefetching hook
+					if (source instanceof NodeInterface n) {
+						n.prefetchPropertySet(keys);
 					}
 
 					for (PropertyKey key : keys) {

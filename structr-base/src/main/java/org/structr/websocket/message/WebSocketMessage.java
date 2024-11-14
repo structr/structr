@@ -42,8 +42,8 @@ public class WebSocketMessage {
 	private String pageId                          = null;
 	private String message                         = null;
 	private Map<String, Object> nodeData           = new LinkedHashMap();
-	private int page                               = 0;
-	private int pageSize                           = 0;
+	private int page                               = 1;
+	private int pageSize                           = Integer.MAX_VALUE;
 	private String parent                          = null;
 	private Map<String, Object> relData            = new LinkedHashMap();
 	private Set<PropertyKey> modifiedProperties    = new LinkedHashSet();

@@ -25,7 +25,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -530,18 +529,16 @@ public class ModificationQueue {
 
 			final RelationshipType relType = rel.getRelType();
 
-			if (RelType.OWNS.equals(relType)) {
+			if ("OWNS".equals(relType.name())) {
 
 				modifyOwner(startNode);
 				modifyOwner(endNode);
-				return;
 			}
 
-			if (RelType.SECURITY.equals(relType)) {
+			if ("SECURITY".equals(relType.name())) {
 
 				modifySecurity(startNode);
 				modifySecurity(endNode);
-				return;
 			}
 
 			final Relation relation  = Relation.getInstance((Class)rel.getClass());

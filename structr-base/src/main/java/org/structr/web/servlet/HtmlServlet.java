@@ -52,8 +52,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.auth.AuthHelper;
@@ -98,11 +97,11 @@ import org.structr.web.common.PagePaths;
  */
 public class HtmlServlet extends AbstractServletBase implements HttpServiceServlet {
 
-	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
+	private static final Logger logger                          = LoggerFactory.getLogger(HtmlServlet.class.getName());
+	private static final Property<String> pathPropertyForSearch = new StringProperty("path").indexed();
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
-	public static final String POSSIBLE_ENTRY_POINTS_KEY = "possibleEntryPoints";
 	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
 	public static final String RANGE_KEY                 = "range";
 	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
@@ -175,6 +174,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				tx.prefetchHint("HTTP GET auth " + path);
+
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 
@@ -198,6 +199,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
+
+				tx.prefetchHint("HTTP GET " + path);
 
 				// Ensure access mode is frontend
 				securityContext.setAccessMode(AccessMode.Frontend);
@@ -595,6 +598,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				tx.prefetchHint("HTTP POST auth " + path);
+
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -602,6 +608,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
+
+				tx.prefetchHint("HTTP POST " + path);
 
 				// Ensure access mode is frontend
 				securityContext.setAccessMode(AccessMode.Frontend);
@@ -693,11 +701,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 					if (dataNode != null && !(dataNode instanceof Linkable)) {
-
-						// Last path part matches a data node
-						// Remove last path part and try again searching for a page
-						// clear possible entry points
-						request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
 						rootElement = findPage(securityContext, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
@@ -888,6 +891,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					name = rootNode.getName();
 
+					tx.prefetchHint("Render page " + name);
+
 					// render
 					rootNode.render(renderContext, 0);
 					finished.set(true);
@@ -1058,13 +1063,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				query.parent();
 			}
 
-
-			final List<AbstractNode> results = query.getAsList();
-
-			logger.debug("{} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results);
-
-			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
+			return (AbstractNode) query.getFirst();
 		}
 
 		return null;
@@ -1101,18 +1100,21 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private File findFile(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<Linkable> entryPoints = findPossibleEntryPoints(securityContext, request, path);
+		List<Linkable> entryPoints = findFiles(securityContext, request, path);
 
 		// If no results were found, try to replace whitespace by '+' or '%20'
 		if (entryPoints.isEmpty()) {
-			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.replaceWhitespaceByPlus(path));
+			entryPoints = findFiles(securityContext, request, PathHelper.replaceWhitespaceByPlus(path));
 		}
 
 		if (entryPoints.isEmpty()) {
-			entryPoints = findPossibleEntryPoints(securityContext, request, PathHelper.replaceWhitespaceByPercentTwenty(path));
+			entryPoints = findFiles(securityContext, request, PathHelper.replaceWhitespaceByPercentTwenty(path));
 		}
 
 		for (Linkable node : entryPoints) {
+
+			// prefetch file data
+			FileHelper.prefetchFileData(node.getUuid());
 
 			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (File) node;
@@ -1408,15 +1410,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private List<Linkable> findPossibleEntryPointsByUuid(final SecurityContext securityContext, final HttpServletRequest request, final String uuid) throws FrameworkException {
 
-		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
-
-		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
-			return possibleEntryPoints;
-		}
-
-		if (uuid.length() > 0) {
-
-			logger.debug("Requested id: {}", uuid);
+		if (!uuid.isEmpty()) {
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
@@ -1428,60 +1422,25 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					.parent()
 				.and(GraphObject.id, uuid);
 
-			// Searching for pages needs super user context anyway
-			List<Linkable> results = query.getAsList();
-
-			logger.debug("{} results", results.size());
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, results);
-
-			return (List<Linkable>) results;
+			return query.getAsList();
 		}
 
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPointsByPath(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
+	private List<Linkable> findFilesByPath(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
-		final List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
-
-		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
-			return possibleEntryPoints;
-		}
-
-		if (path.length() > 0) {
+		if (!path.isEmpty()) {
 
 			logger.debug("Requested path: {}", path);
 
-			final Query pageQuery = StructrApp.getInstance(securityContext).nodeQuery();
-
-			pageQuery.and(StructrApp.key(Page.class, "path"), path).andType(Page.class);
-			final List<Linkable> pages = pageQuery.getAsList();
-
-			final Query fileQuery = StructrApp.getInstance(securityContext).nodeQuery();
-			fileQuery.and(StructrApp.key(AbstractFile.class, "path"), path).andTypes(File.class);
-
-			final List<Linkable> files = fileQuery.getAsList();
-
-			logger.debug("Found {} pages and {} files/folders", new Object[] { pages.size(), files.size() });
-
-			final List<Linkable> linkables = (List<Linkable>) pages;
-			linkables.addAll(files);
-
-			request.setAttribute(POSSIBLE_ENTRY_POINTS_KEY, linkables);
-
-			return linkables;
+			return StructrApp.getInstance(securityContext).nodeQuery(Linkable.class).and(pathPropertyForSearch, path).getAsList();
 		}
 
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<Linkable> findPossibleEntryPoints(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
-
-		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS_KEY);
-
-		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
-			return possibleEntryPoints;
-		}
+	private List<Linkable> findFiles(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		final int numberOfParts = PathHelper.getParts(path).length;
 
@@ -1489,7 +1448,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested name {}", path);
 
-			possibleEntryPoints = findPossibleEntryPointsByPath(securityContext, request, path);
+			List<Linkable> possibleEntryPoints = findFilesByPath(securityContext, request, path);
 
 			if (possibleEntryPoints.isEmpty() && numberOfParts == 1) {
 				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));

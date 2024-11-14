@@ -357,6 +357,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						try (final Tx tx = app.tx()) {
 
+							tx.prefetchHint("REST POST " + handler.getURL());
+
 							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
 								results.add(handler.doPost(securityContext, convertPropertySetToMap(propertySet)));
@@ -390,6 +392,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					if (!results.isEmpty()) {
+
+						tx.prefetchHint("REST POST RESULTS " + handler.getURL());
 
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
@@ -542,6 +546,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					try (final Tx tx = app.tx()) {
 
+						tx.prefetchHint("REST PUT " + handler.getURL());
+
 						result = handler.doPut(securityContext, convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
@@ -553,6 +559,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
+
+					tx.prefetchHint("REST PUT RESULTS " + handler.getURL());
 
 					commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					tx.success();
@@ -682,6 +690,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					try (final Tx tx = app.tx()) {
 
+						tx.prefetchHint("REST PATCH " + handler.getURL());
+
 						result = handler.doPatch(securityContext, inputs);
 						tx.success();
 						retry = false;
@@ -695,6 +705,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					if (result != null) {
+
+						tx.prefetchHint("REST PATCH RESULTS " + handler.getURL());
 
 						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					}
@@ -784,6 +796,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), currentUser);
+
+			tx.prefetchHint("REST GET " + handler.getURL());
 
 			// add sorting && pagination
 			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
