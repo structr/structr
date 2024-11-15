@@ -118,6 +118,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	default void prefetchPropertySet(final Iterable<PropertyKey> keys) {
 
+		/* disabled because it's buggy and doesn't improve the performance much
 		final Set<String> outgoingKeys     = new LinkedHashSet<>();
 		final Set<String> incomingKeys     = new LinkedHashSet<>();
 		final Set<String> outgoingRelTypes = new LinkedHashSet<>();
@@ -169,5 +170,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 			);
 
 		}
+		*/
 	}
 }

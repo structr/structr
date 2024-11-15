@@ -293,7 +293,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			final List<String> interfaces = new LinkedList<>();
 			String extendsClass           = null;
 
-			if (StringUtils.isNotBlank(ifaces)) {
+			if (StringUtils.isNotBlank(ifaces) && !getProperty(isBuiltinType)) {
 
 				final String[] parts = ifaces.split("[, ]+");
 				for (final String part : parts) {
