@@ -4559,8 +4559,8 @@ let _Pages = {
 					</div>
 
 					<div class="hidden em-parameter-value parameter-script-expression">
-						<label class="block mb-2" data-comment="This is mixed-mode content. Plain text and scripting expression can be mixed. The content will be evaluated and scripts will be processed. The result is passed as parameter value.<br><br>Examples:<br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>\${me.isAdmin}</code> <br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>Hello \${me.name}!</code>">Eval. expression</label>
-						<input type="text" class="parameter-script-expression-input" placeholder="Eval. expression (Ex.: 'Hello \${$.me.name}!')" value="${config.value || ''}">
+						<label class="block mb-2" data-comment="This is mixed-mode content. Plain text and scripting expressions can be mixed. The content will be evaluated and scripts will be processed. The result is passed as parameter value.<br><br>Examples:<br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>\${me.isAdmin}</code> <br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>Hello \${me.name}!</code>">Value expression</label>
+						<input type="text" class="parameter-script-expression-input" placeholder="Eval. expression (Ex.: 'Hello \${me.name}!')" value="${config.value || ''}">
 					</div>
 
 					<div class="hidden em-parameter-value parameter-user-input">
