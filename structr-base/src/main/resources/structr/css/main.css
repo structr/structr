@@ -2820,7 +2820,7 @@ i.fa-sitemap {
 }
 
 #context-menu-dialog .danger:hover {
-	background: var(--medium-red);
+	background: var(--medium-red) !important;
 }
 
 #context-menu-dialog ul ul {
