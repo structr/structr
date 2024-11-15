@@ -1203,9 +1203,14 @@ let _Dashboard = {
 			onHide: async () => {}
 		},
 		'server-log': {
+			isInitialized: false,
 			refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
 			numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
 			truncateLinesAfterKey: 'dashboardTruncateLinesAfter' + location.port,
+			selectedLogFileKey: 'dashboardSelectedLogFile' + location.port,
+			defaultRefreshTimeIntervalMs: 1000,
+			defaultNumberOfLines: 1000,
+			defaultTruncateLinesAfter: -1,
 			intervalID: undefined,
 			textAreaHasFocus: false,
 			scrollEnabled: true,
@@ -1216,10 +1221,15 @@ let _Dashboard = {
 				_Dashboard.tabs['server-log'].stop();
 			},
 			getTimeIntervalSelect: () => document.querySelector('#dashboard-server-log-refresh-interval'),
-			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-truncate-lines'),
+			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-log-truncate-lines'),
+			getLogFileSelect: () => document.querySelector('#dashboard-server-log-file'),
 			getNumberOfLinesInput: () => document.querySelector('#dashboard-server-log-lines'),
 			getServerLogTextarea: () => document.querySelector('#dashboard-server-log textarea'),
 			getManualRefreshButton: () => document.querySelector('#dashboard-server-log-manual-refresh'),
+			getRefreshInterval: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].defaultRefreshTimeIntervalMs),
+			getNumberOfLines: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].numberOfLinesKey, _Dashboard.tabs['server-log'].defaultNumberOfLines),
+			getTruncateLinesAfter: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].truncateLinesAfterKey, _Dashboard.tabs['server-log'].defaultTruncateLinesAfter),
+			getSelectedLogFile: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].selectedLogFileKey),
 			setFeedback: (message) => {
 				let el = document.querySelector('#dashboard-server-log-feedback');
 				if (el) {
@@ -1231,23 +1241,27 @@ let _Dashboard = {
 
 				let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
 
-				let initServerLogInput = (element, lsKey, defaultValue, successFn) => {
+				let initServerLogInput = (element, lsKey, defaultValue) => {
 
 					element.value = LSWrapper.getItem(lsKey, defaultValue);
+
+					if (element.tagName === 'SELECT' && element.selectedIndex < 0) {
+						element.selectedIndex = 0;
+					}
 
 					element.addEventListener('change', (e) => {
 
 						LSWrapper.setItem(lsKey, e.target.value);
 
-						successFn?.();
+						_Dashboard.tabs['server-log'].updateSettings();
 
 						_Helpers.blinkGreen(e.target);
 					});
 				};
 
-				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(), _Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000, _Dashboard.tabs['server-log'].updateRefreshInterval);
-				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(), _Dashboard.tabs['server-log'].numberOfLinesKey, 1000);
-				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey, -1);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(),      _Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].defaultRefreshTimeIntervalMs);
+				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(),      _Dashboard.tabs['server-log'].numberOfLinesKey,       _Dashboard.tabs['server-log'].defaultNumberOfLines);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey,  _Dashboard.tabs['server-log'].defaultTruncateLinesAfter);
 
 				document.querySelector('#dashboard-server-log-copy').addEventListener('click', async () => {
 					await navigator.clipboard.writeText(textarea.textContent);
@@ -1291,6 +1305,19 @@ let _Dashboard = {
 
 					_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.toggle('textarea-is-scrolled', isScrolled);
 				});
+
+				Command.getAvailableServerLogs().then(data => {
+
+					let logfiles = data.result;
+					let logFileSelect = _Dashboard.tabs['server-log'].getLogFileSelect();
+					for (let log of logfiles) {
+						logFileSelect.insertAdjacentHTML('beforeend', `<option>${log}</option>`);
+					}
+
+					initServerLogInput(_Dashboard.tabs['server-log'].getLogFileSelect(), _Dashboard.tabs['server-log'].selectedLogFileKey);
+
+					_Dashboard.tabs['server-log'].isInitialized = true;
+				});
 			},
 			updateLog: () => {
 
@@ -1298,7 +1325,11 @@ let _Dashboard = {
 
 					_Dashboard.tabs['server-log'].setFeedback('Refreshing server log...');
 
-					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].getNumberOfLinesInput().value, _Dashboard.tabs['server-log'].getTruncateLinesAfterInput().value).then(log => {
+					let noOfLines     = _Dashboard.tabs['server-log'].getNumberOfLines();
+					let truncateAfter = _Dashboard.tabs['server-log'].getTruncateLinesAfter();
+					let logFile       = _Dashboard.tabs['server-log'].getSelectedLogFile();
+
+					Command.getServerLogSnapshot(noOfLines, truncateAfter, logFile).then(log => {
 
 						let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
 						textarea.textContent = log[0].result;
@@ -1313,23 +1344,45 @@ let _Dashboard = {
 					});
 				}
 			},
-			updateRefreshInterval: () => {
+			updateSettings: () => {
 
 				_Dashboard.tabs['server-log'].stop();
 
-				let timeInMs            = _Dashboard.tabs['server-log'].getTimeIntervalSelect().value;
-				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
-				let hasInterval         = (timeInMs > 0);
+				let intervalMs    = _Dashboard.tabs['server-log'].getRefreshInterval();
+				let hasInterval   = (intervalMs > 0);
 
+				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
 				manualRefreshButton.classList.toggle('hidden', hasInterval);
 
+				// update once with the new settings
+				_Dashboard.tabs['server-log'].updateLog();
+
+				// initialize the interval
 				if (hasInterval) {
-					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, timeInMs);
+					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, intervalMs);
 				}
 			},
+			waitUntilInitialized: () => {
+
+				return new Promise(resolve => {
+
+					let fn = () => {
+						if (_Dashboard.tabs['server-log'].isInitialized) {
+							resolve();
+						} else {
+							window.setTimeout(fn, 100);
+						}
+					};
+
+					fn();
+				})
+			},
 			start: () => {
-				_Dashboard.tabs['server-log'].updateLog();
-				_Dashboard.tabs['server-log'].updateRefreshInterval();
+
+				_Dashboard.tabs['server-log'].waitUntilInitialized().then(() => {
+
+					_Dashboard.tabs['server-log'].updateSettings();
+				});
 			},
 			stop: () => {
 				window.clearInterval(_Dashboard.tabs['server-log'].intervalID);
@@ -1754,7 +1807,13 @@ let _Dashboard = {
 
 								<div class="editor-setting flex items-center p-1">
 									<label class="flex-grow">Truncate lines at</label>
-									<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+									<input id="dashboard-server-log-truncate-lines" type="number" class="w-16">
+								</div>
+
+								<div class="editor-setting flex items-center p-1">
+									<label class="flex-grow">Log File</label>
+									<select id="dashboard-server-log-file">
+									</select>
 								</div>
 							</div>
 						</div>
