@@ -27,11 +27,12 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
@@ -47,9 +48,9 @@ import org.structr.web.entity.html.Html;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
+import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -127,6 +128,24 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	public Iterable<Site> getSites() {
 		return getProperty(sitesProperty);
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		HtmlServlet.clearPathCache();
+		super.onCreation(securityContext, errorBuffer);
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+		HtmlServlet.clearPathCache();
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		HtmlServlet.clearPathCache();
+		super.onDeletion(securityContext, errorBuffer, properties);
 	}
 
 	@Override

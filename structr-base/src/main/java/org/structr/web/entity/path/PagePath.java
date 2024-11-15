@@ -31,12 +31,14 @@ import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.*;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.PageHAS_PATHPagePath;
 import org.structr.web.entity.dom.relationship.PagePathHAS_PARAMETERPagePathParameter;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -70,6 +72,24 @@ public class PagePath extends AbstractNode {
 		valid &= ValidationHelper.isValidPropertyNotNull(this, PagePath.nameProperty, errorBuffer);
 
 		return valid;
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		HtmlServlet.clearPathCache();
+		super.onCreation(securityContext, errorBuffer);
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+		HtmlServlet.clearPathCache();
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		HtmlServlet.clearPathCache();
+		super.onDeletion(securityContext, errorBuffer, properties);
 	}
 
 	public Page getPage() {

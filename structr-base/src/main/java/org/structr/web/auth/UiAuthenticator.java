@@ -123,11 +123,14 @@ public class UiAuthenticator implements Authenticator {
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		// prefetch
+		/*
 		TransactionCommand.getCurrentTransaction().prefetch(
 			"(p1:PrincipalInterface)-[r:CONTAINS*0..1]-(p2:PrincipalInterface)",
 			Set.of("PrincipalInterface/all/OUTGOING/CONTAINS", "Group/all/OUTGOING/CONTAINS"),
 			Set.of("PrincipalInterface/all/INCOMING/CONTAINS", "Group/all/INCOMING/CONTAINS")
 		);
+
+		 */
 
 		PrincipalInterface user = checkExternalAuthentication(request, response);
 		SecurityContext securityContext;
@@ -460,7 +463,7 @@ public class UiAuthenticator implements Authenticator {
 
 		final PropertyKey<String> confKey  = StructrApp.key(User.class, "confirmationKey");
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final PrincipalInterface user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+		final PrincipalInterface user      = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
 

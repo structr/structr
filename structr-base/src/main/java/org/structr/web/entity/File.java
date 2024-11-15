@@ -71,6 +71,7 @@ import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
+import org.structr.web.servlet.HtmlServlet;
 
 import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;
@@ -348,6 +349,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void onModification(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		HtmlServlet.clearPathCache();
+
 		synchronized (thisFile) {
 
 			SearchCommand.prefetch(File.class, thisFile.getUuid());
@@ -373,6 +376,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}
 
 	static void onNodeDeletion(final File thisFile) {
+
+		HtmlServlet.clearPathCache();
 
 		// only delete mounted files
 		if (!thisFile.isExternal()) {
@@ -480,6 +485,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final Logger logger = LoggerFactory.getLogger(File.class);
 
 		try {
+
+			FileHelper.prefetchFileData(thisFile.getUuid());
 
 			final InputStream is = StorageProviderFactory.getStorageProvider(thisFile).getInputStream();
 			final SecurityContext securityContext = thisFile.getSecurityContext();

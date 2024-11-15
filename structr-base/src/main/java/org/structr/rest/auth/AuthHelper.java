@@ -19,6 +19,7 @@
 package org.structr.rest.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.math.BigInteger;
 import java.net.Inet4Address;
@@ -254,11 +256,14 @@ public class AuthHelper {
 		SessionHelper.clearInvalidSessions(user);
 
 		// We need a session to login a user
-		if (request.getSession(false) != null) {
+		final HttpSession session = request.getSession(false);
+		if (session != null) {
 
-			final String sessionId = request.getSession(false).getId();
+			final String sessionId = session.getId();
 
 			SessionHelper.clearSession(sessionId);
+
+			HtmlServlet.clearPathCache(session);
 
 			if (user.addSessionId(sessionId)) {
 
@@ -277,6 +282,8 @@ public class AuthHelper {
 	}
 
 	public static void doLogout(final HttpServletRequest request, final PrincipalInterface user) throws FrameworkException {
+
+		HtmlServlet.clearPathCache(request.getSession(false));
 
 		final String sessionId = SessionHelper.getShortSessionId(request.getRequestedSessionId());
 
