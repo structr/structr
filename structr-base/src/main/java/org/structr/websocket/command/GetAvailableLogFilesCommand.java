@@ -21,43 +21,34 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.function.ServerLogFunction;
+import org.structr.core.function.GetAvailableServerLogsFunction;
 import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Websocket command to retrieve a snapshot of the server log.
  */
-public class ServerLogCommand extends AbstractCommand {
+public class GetAvailableLogFilesCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(ServerLogCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GetAvailableLogFilesCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(ServerLogCommand.class);
+		StructrWebSocket.addCommand(GetAvailableLogFilesCommand.class);
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		int numberOfLines      = webSocketData.getNodeDataIntegerValue("numberOfLines") != null ? webSocketData.getNodeDataIntegerValue("numberOfLines") : 20;
-		int truncateLinesAfter = webSocketData.getNodeDataIntegerValue("truncateLinesAfter") != null ? webSocketData.getNodeDataIntegerValue("truncateLinesAfter") : -1;
-		final String fileName  = webSocketData.getNodeDataStringValue("logFileName");	// null is allowed (uses default/first available log file)
-
-		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter, fileName);
-
 		try {
 
-			GraphObjectMap result = new GraphObjectMap();
-			result.setProperty(new StringProperty("result"), log);
+			final GraphObjectMap result = new GraphObjectMap();
+			result.setProperty(new ArrayProperty("result", String.class), GetAvailableServerLogsFunction.getListOfServerlogFileNames().toArray());
 
 			webSocketData.setResult(List.of(result));
 
@@ -77,7 +68,7 @@ public class ServerLogCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "SERVER_LOG";
+		return "GET_AVAILABLE_SERVER_LOGS";
 	}
 
 }

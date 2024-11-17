@@ -47,6 +47,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new ChangelogFunction());
 		Functions.put(licenseManager, new UserChangelogFunction());
 		Functions.put(licenseManager, new ServerLogFunction());
+		Functions.put(licenseManager, new GetAvailableServerLogsFunction());
 
 		Functions.put(licenseManager, new GrantFunction());
 		Functions.put(licenseManager, new RevokeFunction());
