@@ -2408,12 +2408,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
-						// detect tree-based export (absence of folder "File")
-						final boolean isTreeBasedExport = true; //Files.exists(schemaFolder.resolve("File"));
+						final StructrSchemaDefinition schema   = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						final boolean shouldLoadSourceFromFile = schema.hasMethodSourceCodeInFiles();
 
-						final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						// The following block takes the relative file name in the source property of a schema method
+						// and loads the actual source code from a file on disk.
 
-						if (isTreeBasedExport) {
+						if (shouldLoadSourceFromFile) {
 
 							final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
 
