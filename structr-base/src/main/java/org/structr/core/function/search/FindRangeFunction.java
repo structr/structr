@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.function.search.RangePredicate;
 import org.structr.schema.action.ActionContext;
 
-public class RangeFunction extends AdvancedScriptingFunction {
+public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_RANGE = "Usage: ${range(start, end)}. Example: ${find(\"Event\", \"date\", range(\"2018-12-31\", \"2019-01-01\"))}";
 
