@@ -661,7 +661,7 @@ public class ScriptingTest extends StructrTest {
 
 			// set calendar to 2018-01-01T00:00:00+0000
 			cal.set(2018, 0, 1, 0, 0, 0);
-
+			cal.set(Calendar.MILLISECOND, 0);
 
 			for (final TestSix testSix : testSixs) {
 
@@ -1513,8 +1513,8 @@ public class ScriptingTest extends StructrTest {
 			// find with date range
 			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
-			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, true))}", "range test")).size());
 
@@ -1527,20 +1527,33 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, false))}", "range test")).size());
 
 			// find with date range
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 10, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
 			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, true))}", "range test")).size());
 
 			// find with date range
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 10, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
 			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, false))}", "range test")).size());
+
+			// find with lt,lte,gte,gt
+			assertEquals("Invalid find lt result",    5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index',  lt(5))}", "find lt test")).size());
+			assertEquals("Invalid find lte result",   6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', lte(5))}", "find lte test")).size());
+			assertEquals("Invalid find gte result",  15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', gte(5))}", "find gte test")).size());
+			assertEquals("Invalid find gt result",   14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index',  gt(5))}", "find gt test")).size());
+
+			// find with lt,lte,gte,gt (date range)
+			// starts with 01.01.2018... +3 per TestSix. second object has date "04.01.2018 00:00:00"
+			assertEquals("Invalid find lt date result",    1, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  lt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find lt date test")).size());
+			assertEquals("Invalid find lte date result",   2, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', lte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find lte date test")).size());
+			assertEquals("Invalid find gte date result",  19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', gte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gte date test")).size());
+			assertEquals("Invalid find gt date result",   18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  gt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gt date test")).size());
 
 			// slice with find
 			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  0,  5)}", "slice test");
