@@ -103,7 +103,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new EncryptFunction());
 		Functions.put(licenseManager, new DecryptFunction());
 
-		Functions.put(licenseManager, new RangeFunction());
+		Functions.put(licenseManager, new FindRangeFunction());
 		Functions.put(licenseManager, new FindWithinDistanceFunction());
 		Functions.put(licenseManager, new FindEmptyFunction());
 		Functions.put(licenseManager, new FindEqualsFunction());
@@ -115,6 +115,10 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindPageFunction());
 		Functions.put(licenseManager, new FindStartsWithFunction());
 		Functions.put(licenseManager, new FindEndsWithFunction());
+		Functions.put(licenseManager, new FindLtFunction());
+		Functions.put(licenseManager, new FindLteFunction());
+		Functions.put(licenseManager, new FindGteFunction());
+		Functions.put(licenseManager, new FindGtFunction());
 	}
 
 	@Override
