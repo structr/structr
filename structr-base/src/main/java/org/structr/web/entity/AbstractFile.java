@@ -69,7 +69,7 @@ public interface AbstractFile extends NodeInterface {
 
 	View uiView = new View(AbstractFile.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
 
-	static class Impl { static {
+	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("AbstractFile");

@@ -123,6 +123,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 			t.printStackTrace();
 
+			fail("Unexpected exception: " + t.getMessage());
+
 		} finally {
 
 			if (deleteTestDirectory) {

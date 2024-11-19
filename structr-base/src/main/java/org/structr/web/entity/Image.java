@@ -64,9 +64,9 @@ public interface Image extends File {
 	View publicView = new View(Image.class, PropertyView.Public, parentProperty);
 	View uiView     = new View(Image.class, PropertyView.Ui,     parentProperty);
 
-	final static String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
+	String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
 
-	static class Impl { static {
+	class Impl { static {
 
 		final JsonSchema schema    = SchemaService.getDynamicSchema();
 		final JsonObjectType image = schema.addType("Image");

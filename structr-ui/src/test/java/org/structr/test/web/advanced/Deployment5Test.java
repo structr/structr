@@ -77,11 +77,11 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			// create schema grant object
 			app.create(SchemaGrant.class,
-				new NodeAttribute<>(SchemaGrant.schemaNode,  schemaNode),
-				new NodeAttribute<>(SchemaGrant.principal,   group),
-				new NodeAttribute<>(SchemaGrant.allowRead,   true),
-				new NodeAttribute<>(SchemaGrant.allowWrite,  true),
-				new NodeAttribute<>(SchemaGrant.allowDelete, true)
+				new NodeAttribute<>(SchemaGrant.staticSchemaNodeName, "org.structr.core.entity.MailTemplate"),
+				new NodeAttribute<>(SchemaGrant.principal,            group),
+				new NodeAttribute<>(SchemaGrant.allowRead,            true),
+				new NodeAttribute<>(SchemaGrant.allowWrite,           true),
+				new NodeAttribute<>(SchemaGrant.allowDelete,          true)
 			);
 
 			// create MailTemplate instances

@@ -1431,8 +1431,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result",	                         hasSize(1))
 				.body("result[0].url",                      equalTo("/Group"))
 				.body("result[0].type",                     equalTo("Group"))
-				.body("result[0].className",                equalTo("org.structr.dynamic.Group"))
-				.body("result[0].extendsClass",             equalTo("org.structr.core.entity.Group"))
+				.body("result[0].className",                equalTo("org.structr.core.entity.Group"))
+				.body("result[0].extendsClass",             equalTo("org.structr.core.entity.Principal"))
 				.body("result[0].isRel",                    equalTo(false))
 				.body("result[0].flags",                    equalTo(0))
 

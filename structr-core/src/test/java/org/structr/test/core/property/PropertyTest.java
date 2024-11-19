@@ -1897,18 +1897,16 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode group = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
 			final SchemaNode test  = app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "Test"),
 				new NodeAttribute<>(new StringProperty("_testFunction"), "Function(this.group.name)")
 			);
 
-			assertNotNull("Invalid schema setup result", group);
 			assertNotNull("Invalid schema setup result", test);
 
 			app.create(SchemaRelationshipNode.class,
 				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, test),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, group),
+				new NodeAttribute<>(SchemaRelationshipNode.targetType, "org.structr.core.entity.Group"),
 				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
 				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
 				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "tests"),
