@@ -18,8 +18,6 @@
  */
 package org.structr.mail.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -30,7 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
 import org.structr.mail.entity.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
-import org.structr.schema.SchemaService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,13 +111,5 @@ public class Mailbox extends AbstractNode {
 
 			return new ArrayList<>();
 		}
-	}
-
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Mailbox");
-
-		type.setExtends(Mailbox.class);
 	}
 }

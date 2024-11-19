@@ -18,25 +18,25 @@
  */
 package org.structr.core.entity;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
+import org.structr.common.error.*;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalSchemaGrantRelationship;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import org.structr.core.property.*;
+import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -47,25 +47,26 @@ public class SchemaGrant extends SchemaReloadingNode {
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaGrant.class.getName());
 	public static final Property<PrincipalInterface>  principal     = new StartNode<>("principal", PrincipalSchemaGrantRelationship.class).partOfBuiltInSchema();
 	public static final Property<SchemaNode> schemaNode             = new EndNode<>("schemaNode", SchemaGrantSchemaNodeRelationship.class).partOfBuiltInSchema();
+	public static final Property<String> staticSchemaNodeName       = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
 	public static final Property<Boolean> allowRead                 = new BooleanProperty("allowRead").partOfBuiltInSchema();
 	public static final Property<Boolean> allowWrite                = new BooleanProperty("allowWrite").partOfBuiltInSchema();
 	public static final Property<Boolean> allowDelete               = new BooleanProperty("allowDelete").partOfBuiltInSchema();
 	public static final Property<Boolean> allowAccessControl        = new BooleanProperty("allowAccessControl").partOfBuiltInSchema();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
+		principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
+		principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
+		id, principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
-		principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
+		principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
 	);
 
 	public String getPrincipalId() {
@@ -114,7 +115,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 		boolean valid = super.isValid(errorBuffer);
 
 		// only one SchemaGrant may exist for a given principal/schemaNode pair
-		valid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, principal, schemaNode);
+		valid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, principal, schemaNode, staticSchemaNodeName);
 
 		return valid;
 	}
@@ -124,19 +125,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 
 		super.onCreation(securityContext, errorBuffer);
 
-		final PrincipalInterface p = getProperty(principal);
-		if (p == null) {
-
-			// no principal => delete
-			logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", getUuid());
-			StructrApp.getInstance().delete(this);
-		}
-
-		// delete this node if principal or schema node are missing
-		if (!TransactionCommand.isDeleted(getNode()) && getProperty(schemaNode) == null) {
-			logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
-			StructrApp.getInstance().delete(this);
-		}
+		createDynamicTypeOrDeleteSelf(true);
 	}
 
 	@Override
@@ -144,25 +133,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		final Node dbNode = getNode();
-		final PrincipalInterface p = getProperty(principal);
-		if (p == null) {
-
-			// no principal => delete
-			logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", getUuid());
-			StructrApp.getInstance().delete(this);
-		}
-
-		// delete this node if principal or schema node are missing
-		if (!TransactionCommand.isDeleted(dbNode) && getProperty(schemaNode) == null) {
-			logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
-			StructrApp.getInstance().delete(this);
-		}
-
-		// silently delete this node if all settings are set to false
-		if (!TransactionCommand.isDeleted(dbNode) && (!getProperty(allowRead) && !getProperty(allowWrite) && !getProperty(allowDelete) && !getProperty(allowAccessControl))) {
-			StructrApp.getInstance().delete(this);
-		}
+		createDynamicTypeOrDeleteSelf(false);
 	}
 
 	@Override
@@ -179,4 +150,74 @@ public class SchemaGrant extends SchemaReloadingNode {
 	public boolean reloadSchemaOnDelete() {
 		return true;
 	}
+
+	// ----- private methods -----
+	private void createDynamicTypeOrDeleteSelf(final boolean allowAllFalse) throws FrameworkException {
+
+		final Node dbNode = getNode();
+		final PrincipalInterface p = getProperty(principal);
+		if (p == null) {
+
+			// no principal => delete
+			logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", getUuid());
+			StructrApp.getInstance().delete(this);
+		}
+
+
+		// silently delete this node if all settings are set to false
+		if (!TransactionCommand.isDeleted(dbNode) && (!getProperty(allowRead) && !getProperty(allowWrite) && !getProperty(allowDelete) && !getProperty(allowAccessControl))) {
+
+			if (!allowAllFalse) {
+
+				StructrApp.getInstance().delete(this);
+			}
+
+		} else {
+
+			// delete this node if principal or schema node are missing
+			if (!TransactionCommand.isDeleted(dbNode) && getProperty(schemaNode) == null) {
+
+				// schema grant can be associated with a static type as well
+				if (getProperty(staticSchemaNodeName) != null) {
+
+					final String fqcn = getProperty(SchemaGrant.staticSchemaNodeName);
+					if (fqcn != null) {
+
+						logger.info("Creating dynamic schema node for {}", fqcn);
+						setProperty(SchemaGrant.schemaNode, SchemaHelper.getOrCreateDynamicSchemaNodeForFQCN(fqcn));
+					}
+
+				} else {
+
+					logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
+					StructrApp.getInstance().delete(this);
+				}
+			}
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

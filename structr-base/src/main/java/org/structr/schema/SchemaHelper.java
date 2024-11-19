@@ -18,10 +18,6 @@
  */
 package org.structr.schema;
 
-import graphql.Scalars;
-import graphql.schema.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +26,9 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.ServiceResult;
 import org.structr.api.util.Iterables;
 import org.structr.common.*;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.common.error.UnlicensedTypeException;
+import org.structr.common.error.*;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -42,8 +37,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.*;
-import org.structr.core.graph.*;
-import org.structr.core.graphql.GraphQLListType;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.SchemaResource;
@@ -52,14 +49,11 @@ import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
+import org.structr.web.entity.User;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static graphql.schema.GraphQLTypeReference.typeRef;
-import org.structr.common.helper.CaseHelper;
-import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaMethod.source;
 import static org.structr.core.entity.SchemaNode.defaultSortKey;
 import static org.structr.core.entity.SchemaNode.defaultSortOrder;
@@ -263,7 +257,7 @@ public class SchemaHelper {
 			normalizedEntityNameCache.put(rawType, type.getSimpleName());
 		}
 
-		// fallback to support generic queries on all types
+		// fallback to support queries on internal types
 		if (type == null) {
 
 			if (AbstractNode.class.getSimpleName().equals(rawType)) {
@@ -1264,6 +1258,28 @@ public class SchemaHelper {
 		action.getSource(src, action.isStatic() ? "null" :"this", true, false);
 
 		src.end();
+	}
+
+	public static SchemaNode getOrCreateDynamicSchemaNodeForFQCN(final String fqcn) throws FrameworkException {
+
+		// we expect the static schema node name to be a fully-qualified class name
+		if (!fqcn.contains(".")) {
+			throw new FrameworkException(422, "", new SemanticErrorToken("SchemaGrant", "staticSchemaNodeName", "must_be_fully_qualified_class_name").withDetail(fqcn));
+		}
+
+		final App app = StructrApp.getInstance();
+		final String name = org.apache.commons.lang.StringUtils.substringAfterLast(fqcn, ".");
+
+		SchemaNode node = app.nodeQuery(SchemaNode.class).andName(fqcn).getFirst();
+		if (node == null) {
+
+			node = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, name),
+				new NodeAttribute<>(SchemaNode.extendsClassInternal, fqcn)
+			);
+		}
+
+		return node;
 	}
 
 	private static void formatSchemaGrants(final SourceFile src, final AbstractSchemaNode schemaNode) {

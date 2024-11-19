@@ -51,7 +51,7 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 	View defaultView = new View(Folder.class, PropertyView.Public, filesProperty, foldersProperty, parentIdProperty);
 	View uiView      = new View(Folder.class, PropertyView.Ui,     filesProperty, foldersProperty, imagesProperty);
 
-	static class Impl { static {
+	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Folder");

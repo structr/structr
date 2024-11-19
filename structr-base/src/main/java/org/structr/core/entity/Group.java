@@ -46,14 +46,6 @@ public class Group extends Principal {
 	public static final Property<String> nameProperty                 = new StringProperty("name").indexed().notNull().unique().partOfBuiltInSchema();
 	public static final Property<Boolean> isGroupProperty             = new ConstantBooleanProperty("isGroup", true).partOfBuiltInSchema();
 
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Group");
-
-		type.setExtends(Group.class);
-	}
-
 	public static final View defaultView = new View(Group.class, PropertyView.Public,
 		nameProperty, isGroupProperty, membersProperty, blockedProperty
 	);

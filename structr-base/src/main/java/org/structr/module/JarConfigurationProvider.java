@@ -66,6 +66,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
 
 	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(1000);
+	private final Map<String, Class<? extends NodeInterface>> nodeEntityBackupClassCache           = new ConcurrentHashMap(1000);
 	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(1000);
 	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
 
@@ -167,7 +168,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 								if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-									nodeEntityClassCache.put(simpleName, nodeClass);
+									final Class prev = nodeEntityClassCache.put(simpleName, nodeClass);
+									if (prev != null) {
+
+										// if a static type is overwritten and then removed,
+										// the previous entry must be restored
+										nodeEntityBackupClassCache.put(simpleName, prev);
+									}
+
 									nodeEntityClass = nodeClass;
 
 									// first match wins
@@ -479,7 +487,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			final String simpleName = oldType.getSimpleName();
 			final String fqcn       = oldType.getName();
 
-			nodeEntityClassCache.remove(simpleName);
+			if (nodeEntityBackupClassCache.containsKey(simpleName)) {
+
+				nodeEntityClassCache.put(simpleName, nodeEntityBackupClassCache.get(simpleName));
+
+			} else {
+
+				nodeEntityClassCache.remove(simpleName);
+			}
+
 			relationshipEntityClassCache.remove(simpleName);
 
 			nodeEntityPackages.remove(fqcn);
@@ -519,7 +535,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		if (AbstractNode.class.isAssignableFrom(type)) {
 
-			nodeEntityClassCache.put(simpleName, type);
+			final Class prev = nodeEntityClassCache.put(simpleName, type);
+			if (prev != null) {
+
+				// if a static type is overwritten and then removed,
+				// the previous entry must be restored
+				nodeEntityBackupClassCache.put(simpleName, prev);
+			}
+
 			nodeEntityPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
 		}

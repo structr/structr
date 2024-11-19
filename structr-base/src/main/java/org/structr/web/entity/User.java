@@ -22,8 +22,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -40,7 +38,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
 import org.structr.web.entity.relationship.UserHOME_DIRFolder;
 import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
@@ -64,14 +61,6 @@ public class User extends Principal {
 		proxyUrlProperty, proxyUsernameProperty, publicKeyProperty, sessionIdsProperty, refreshTokensProperty, workingDirectoryProperty, twoFactorTokenProperty, isTwoFactorUserProperty,
 		twoFactorConfirmedProperty, passwordAttemptsProperty, passwordChangeDateProperty, lastLoginDateProperty, skipSecurityRelationshipsProperty, imgProperty
 	);
-
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("User");
-
-		type.setExtends(User.class);
-	}
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {

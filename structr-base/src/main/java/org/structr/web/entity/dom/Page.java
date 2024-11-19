@@ -61,16 +61,6 @@ import java.util.Set;
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
 
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Page");
-
-		type.setExtends(Page.class);
-	}
-
-	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
-
 	public static final Property<Iterable<DOMNode>> elementsProperty = new StartNodes<>("elements", DOMNodePAGEPage.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
 	public static final Property<Iterable<PagePath>> pathsProperty   = new EndNodes<>("paths", PageHAS_PATHPagePath.class).partOfBuiltInSchema();
 	public static final Property<Iterable<Site>> sitesProperty       = new StartNodes<>("sites", SiteCONTAINSPage.class).partOfBuiltInSchema();

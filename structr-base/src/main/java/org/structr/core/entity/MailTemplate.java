@@ -18,14 +18,11 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaService;
 
 /**
  *
@@ -43,14 +40,6 @@ public class MailTemplate extends AbstractNode {
 	public static final View uiView      = new View(MailTemplate.class, PropertyView.Ui,
 		name, textProperty, localeProperty
 	);
-
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("MailTemplate");
-
-		type.setExtends(MailTemplate.class);
-	}
 
 	public String getText() {
 		return getProperty(textProperty);

@@ -60,6 +60,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class).partOfBuiltInSchema();
 	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType)).partOfBuiltInSchema();
+	public static final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
 	public static final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed().partOfBuiltInSchema();
@@ -85,23 +86,23 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, schemaNode, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
+		name, schemaNode, staticSchemaNodeName, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, returnRawResult, httpVerb
+		name, schemaNode, staticSchemaNodeName, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
+		name, schemaNode, staticSchemaNodeName, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
+		id, type, schemaNode, staticSchemaNodeName, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
+		id, type, schemaNode, staticSchemaNodeName, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public Iterable<SchemaMethodParameter> getParameters() {
@@ -272,7 +273,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	private void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final boolean isLifeCycleMethod = isLifecycleMethod();
-		final boolean isTypeMethod      = (getProperty(SchemaMethod.schemaNode) != null);
+		final boolean isTypeMethod      = (getProperty(SchemaMethod.schemaNode) != null || StringUtils.isNotBlank(getProperty(staticSchemaNodeName)));
 
 		// - lifecycle methods can never be static
 		// - user-defined functions can also not be static (? or should always be static?)

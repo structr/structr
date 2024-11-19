@@ -18,16 +18,12 @@
  */
 package org.structr.mail.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.MailTemplate;
 import org.structr.core.property.*;
 import org.structr.mail.entity.relationship.EMailMessageHAS_ATTACHMENTFile;
 import org.structr.mail.entity.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.File;
 
 import java.util.Date;
@@ -65,12 +61,4 @@ public class EMailMessage extends AbstractNode {
 		contentProperty, htmlContentProperty, folderProperty, headerProperty, messageIdProperty, inReplyToProperty,
 		receivedDateProperty, sentDateProperty, attachedFilesProperty
 	);
-
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("EMailMessage");
-
-		type.setExtends(EMailMessage.class);
-	}
 }

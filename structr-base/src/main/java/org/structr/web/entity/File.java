@@ -91,8 +91,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	Property<Folder> fileParentProperty = new StartNode<>("fileParent", FolderCONTAINSFile.class).partOfBuiltInSchema();
 
-
-	static class Impl { static {
+	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("File");
