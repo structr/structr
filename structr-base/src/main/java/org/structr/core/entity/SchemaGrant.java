@@ -170,27 +170,27 @@ public class SchemaGrant extends SchemaReloadingNode {
 			if (!allowAllFalse) {
 
 				StructrApp.getInstance().delete(this);
-			}
 
-		} else {
+			} else {
 
-			// delete this node if principal or schema node are missing
-			if (!TransactionCommand.isDeleted(dbNode) && getProperty(schemaNode) == null) {
+				// delete this node if principal or schema node are missing
+				if (!TransactionCommand.isDeleted(dbNode) && getProperty(schemaNode) == null) {
 
-				// schema grant can be associated with a static type as well
-				if (getProperty(staticSchemaNodeName) != null) {
+					// schema grant can be associated with a static type as well
+					if (getProperty(staticSchemaNodeName) != null) {
 
-					final String fqcn = getProperty(SchemaGrant.staticSchemaNodeName);
-					if (fqcn != null) {
+						final String fqcn = getProperty(SchemaGrant.staticSchemaNodeName);
+						if (fqcn != null) {
 
-						logger.info("Creating dynamic schema node for {}", fqcn);
-						setProperty(SchemaGrant.schemaNode, SchemaHelper.getOrCreateDynamicSchemaNodeForFQCN(fqcn));
+							logger.info("Creating dynamic schema node for {}", fqcn);
+							setProperty(SchemaGrant.schemaNode, SchemaHelper.getOrCreateDynamicSchemaNodeForFQCN(fqcn));
+						}
+
+					} else {
+
+						logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
+						StructrApp.getInstance().delete(this);
 					}
-
-				} else {
-
-					logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
-					StructrApp.getInstance().delete(this);
 				}
 			}
 		}
