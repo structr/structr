@@ -266,7 +266,7 @@ public class ScriptingTest extends StructrTest {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class sourceType             = config.getNodeEntityClass("TestSource");
-		PrincipalInterface testUser                 = null;
+		Principal testUser                 = null;
 
 		// create test node as superuser
 		try (final Tx tx = app.tx()) {
@@ -284,7 +284,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			testUser = app.create(User.class,
-				new NodeAttribute<>(PrincipalInterface.name,     "test"),
+				new NodeAttribute<>(Principal.name,     "test"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
 			);
 
@@ -478,10 +478,10 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final PropertyKey<Iterable<PrincipalInterface>> members = StructrApp.key(Group.class, "members");
+		final PropertyKey<Iterable<Principal>> members = StructrApp.key(Group.class, "members");
 		Group group                                    = null;
-		PrincipalInterface user1                                = null;
-		PrincipalInterface user2                                = null;
+		Principal user1                                = null;
+		Principal user2                                = null;
 		TestOne testOne                                = null;
 
 		// setup phase
@@ -523,7 +523,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
-			group.setProperty(members, Arrays.asList(new PrincipalInterface[] { user1 } ));
+			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
@@ -2053,7 +2053,7 @@ public class ScriptingTest extends StructrTest {
 	public void testSystemProperties () {
 		try {
 
-			final PrincipalInterface user  = createTestNode(User.class);
+			final Principal user  = createTestNode(User.class);
 
 			// create new node
 			TestOne t1 = createTestNode(TestOne.class, user);
@@ -2732,7 +2732,7 @@ public class ScriptingTest extends StructrTest {
 		// Create first object
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
+			final Principal testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2748,7 +2748,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this works because the cache is empty
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
+			final Principal testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
@@ -2764,7 +2764,7 @@ public class ScriptingTest extends StructrTest {
 		// create second object
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
+			final Principal testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2780,7 +2780,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this does not work because there is a cache entry already and it was not invalidated after creating the last relationship to it
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
+			final Principal testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
@@ -2890,7 +2890,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface tester    = app.create(User.class, "modifications-tester");
+			final Principal tester    = app.create(User.class, "modifications-tester");
 			final GraphObject c       = app.nodeQuery(customer).getFirst();
 			final GraphObject p       = app.nodeQuery(project).getFirst();
 			final List<GraphObject> t = app.nodeQuery(task).getAsList();
@@ -2913,7 +2913,7 @@ public class ScriptingTest extends StructrTest {
 		// test modifications
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface tester = app.nodeQuery(User.class).andName("modifications-tester").getFirst();
+			final Principal tester = app.nodeQuery(User.class).andName("modifications-tester").getFirst();
 			final GraphObject c = app.nodeQuery(customer).getFirst();
 			final GraphObject p = app.nodeQuery(project).getFirst();
 			final GraphObject t = app.nodeQuery(task).getFirst();

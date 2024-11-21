@@ -32,7 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
@@ -57,7 +57,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	protected StatsCallback stats                                       = null;
 
 	static PropertyKey<String[]> sessionIdsPropertyKey = null;
-	static PropertyKey<Iterable<PrincipalInterface>> membersKey = null;
+	static PropertyKey<Iterable<Principal>> membersKey = null;
 
 	private SecurityContext securityContext;
 
@@ -150,7 +150,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 				if (shouldReceive == null) {
 
-					final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
+					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 					if (user == null) {
 						checkedSessionIds.put(sessionId, true);
@@ -177,7 +177,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 				if (shouldReceive == null) {
 
-					final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
+					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 					if (user != null) {
 						checkedSessionIds.put(sessionId, true);
@@ -194,12 +194,12 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		}
 	}
 
-	public static boolean sendEvent(final String name, final String data, final Set<PrincipalInterface> targets) {
+	public static boolean sendEvent(final String name, final String data, final Set<Principal> targets) {
 
 		final Set<User> uniqueUsers = new HashSet<>();
-		final Set<PrincipalInterface> seenGroups  = new HashSet<>();
+		final Set<Principal> seenGroups  = new HashSet<>();
 
-		for (PrincipalInterface principal : targets) {
+		for (Principal principal : targets) {
 
 			if (principal instanceof User) {
 //			if (User.class.isAssignableFrom(principal.getClass())) {
@@ -219,7 +219,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		return oneTargetSeen;
 	}
 
-	private static Set<User> getUniqueUsersForGroup(final PrincipalInterface group, final Set<PrincipalInterface> seenGroups, final boolean recurse) {
+	private static Set<User> getUniqueUsersForGroup(final Principal group, final Set<Principal> seenGroups, final boolean recurse) {
 
 		seenGroups.add(group);
 
@@ -229,7 +229,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 			membersKey = StructrApp.key(Group.class, "members");
 		}
 
-		for (PrincipalInterface member : group.getProperty(membersKey)) {
+		for (Principal member : group.getProperty(membersKey)) {
 
 //			if (User.class.isAssignableFrom(member.getClass())) {
 			if (member instanceof User) {
@@ -270,7 +270,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	private static boolean shouldReceiveMessage(final StructrEventSource es, final User target) {
 
 		if (sessionIdsPropertyKey == null) {
-			sessionIdsPropertyKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
+			sessionIdsPropertyKey = StructrApp.key(Principal.class, "sessionIds");
 		}
 
 		final String[] ids = target.getProperty(sessionIdsPropertyKey);

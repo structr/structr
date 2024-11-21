@@ -27,7 +27,7 @@ import java.util.Calendar;
 
 import org.eclipse.jetty.server.session.Session;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
@@ -99,7 +99,7 @@ public class PDFFunction extends Function<Object, Object> {
 			baseUrl = ActionContext.getBaseUrl(ctx.getSecurityContext().getRequest()) + "/";
 		}
 
-		PrincipalInterface currentUser = ctx.getSecurityContext().getUser(false);
+		Principal currentUser = ctx.getSecurityContext().getUser(false);
 
 		final List<Param> parameterList = new ArrayList<>();
 

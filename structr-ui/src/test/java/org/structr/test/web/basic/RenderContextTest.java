@@ -718,7 +718,7 @@ public class RenderContextTest extends StructrUiTest {
 	public void testAnyAllAndNoneFunctions1() {
 
 		final ActionContext ctx = new ActionContext(securityContext, null);
-		PrincipalInterface user          = null;
+		Principal user          = null;
 		TestOne test            = null;
 
 		try (final Tx tx = app.tx()) {
@@ -728,17 +728,17 @@ public class RenderContextTest extends StructrUiTest {
 
 			app.create(Group.class,
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group1"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new PrincipalInterface[] { user } ))
+				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			final Group group2 = app.create(Group.class,
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group2"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new PrincipalInterface[] { user } ))
+				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			app.create(Group.class,
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group3"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new PrincipalInterface[] { user } ))
+				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			test.setProperty(AbstractNode.owner, group2);

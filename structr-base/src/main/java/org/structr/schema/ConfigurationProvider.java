@@ -19,6 +19,7 @@
 package org.structr.schema;
 
 import org.structr.agent.Agent;
+import org.structr.api.Traits;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -44,9 +45,9 @@ public interface ConfigurationProvider {
 	public void initialize(final LicenseManager licenseManager);
 	public void shutdown();
 
-	public void unregisterEntityType(final Class oldType);
-	public void registerEntityType(final Class newType);
-	public void registerEntityCreationTransformation(final Class type, final Transformation<GraphObject> transformation);
+	public void unregisterEntityType(final Traits oldType);
+	public void registerEntityType(final Traits newType);
+	public void registerEntityCreationTransformation(final Traits traits, final Transformation<GraphObject> transformation);
 
 	public Map<String, Class<? extends Agent>> getAgents();
 	public Map<String, Class<? extends NodeInterface>> getNodeEntities();
@@ -55,44 +56,44 @@ public interface ConfigurationProvider {
 
 	public Set<Class> getClassesForInterface(final String simpleName);
 
-	public void registerPropertyGroup(final Class entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
+	public void registerPropertyGroup(final Traits entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
 	public void registerConvertedProperty(final PropertyKey property);
 
 	public Class getNodeEntityClass(final String name);
 	public Class getRelationshipEntityClass(final String name);
 
-	public void setRelationClassForCombinedType(final String combinedType, final Class clazz);
-	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Class clazz);
+	public void setRelationClassForCombinedType(final String combinedType, final Traits clazz);
+	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Traits clazz);
 	public Class getRelationClassForCombinedType(final String sourceType, final String relType, final String targetType);
 
-	public Set<Transformation<GraphObject>> getEntityCreationTransformations(final Class type);
+	public Set<Transformation<GraphObject>> getEntityCreationTransformations(final Traits traits);
 
-	public PropertyGroup getPropertyGroup(final Class type, final PropertyKey key);
+	public PropertyGroup getPropertyGroup(final Traits traits, final PropertyKey key);
 
-	public PropertyGroup getPropertyGroup(final Class type, final String key);
+	public PropertyGroup getPropertyGroup(final Traits traits, final String key);
 
 	public Set<String> getPropertyViews();
-	public Set<String> getPropertyViewsForType(final Class type);
+	public Set<String> getPropertyViewsForType(final Traits traits);
 	public void registerDynamicViews(final Set<String> dynamicViews);
-	public boolean hasView(final Class type, final String propertyView);
+	public boolean hasView(final Traits traits, final String propertyView);
 
-	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);
-	public void registerPropertySet(final Class type, final String propertyView, final String propertyName);
-	public Set<PropertyKey> getPropertySet(final Class type, final String propertyView);
+	public void registerPropertySet(final Traits traits, final String propertyView, final PropertyKey... propertyKey);
+	public void registerPropertySet(final Traits traits, final String propertyView, final String propertyName);
+	public Set<PropertyKey> getPropertySet(final Traits traits, final String propertyView);
 
-	public PropertyKey getPropertyKeyForDatabaseName(final Class type, final String dbName);
-	public PropertyKey getPropertyKeyForDatabaseName(final Class type, final String dbName, final boolean createGeneric);
+	public PropertyKey getPropertyKeyForDatabaseName(final Traits traits, final String dbName);
+	public PropertyKey getPropertyKeyForDatabaseName(final Traits traits, final String dbName, final boolean createGeneric);
 
-	public PropertyKey getPropertyKeyForJSONName(final Class type, final String jsonName);
-	public PropertyKey getPropertyKeyForJSONName(final Class type, final String jsonName, final boolean createIfNotFound);
+	public PropertyKey getPropertyKeyForJSONName(final Traits traits, final String jsonName);
+	public PropertyKey getPropertyKeyForJSONName(final Traits traits, final String jsonName, final boolean createIfNotFound);
 
-	public void setPropertyKeyForJSONName(final Class type, final String jsonName, final PropertyKey key);
+	public void setPropertyKeyForJSONName(final Traits traits, final String jsonName, final PropertyKey key);
 
-	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey);
+	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, final Traits traits, final PropertyKey propertyKey);
 
-	public Set<Class> getInterfacesForType(final Class type);
+	public Set<Class> getInterfacesForType(final Traits traits);
 
-	public Map<String, Method> getExportedMethodsForType(final Class type);
+	public Map<String, Method> getExportedMethodsForType(final Traits traits);
 
 	public boolean isKnownProperty(final PropertyKey key);
 
@@ -100,7 +101,7 @@ public interface ConfigurationProvider {
 
 	public void registerFactoryDefinition(final FactoryDefinition factory);
 
-	public Map<String, Method> getAnnotatedMethods(final Class entityType, final Class annotationType);
+	public Map<String, Method> getAnnotatedMethods(final Traits entityType, final Class annotationType);
 
 	/**
 	 * Registers the given property with the given type.
@@ -108,7 +109,7 @@ public interface ConfigurationProvider {
 	 * @param type
 	 * @param propertyKey
 	 */
-	public void registerProperty(final Class type, final PropertyKey propertyKey);
+	public void registerProperty(final Traits traits, final PropertyKey propertyKey);
 
 	/**
 	 * Unregisters the given property with the given type.
@@ -116,7 +117,7 @@ public interface ConfigurationProvider {
 	 * @param type
 	 * @param propertyKey
 	 */
-	public void unregisterProperty(final Class type, final PropertyKey propertyKey);
+	public void unregisterProperty(final Traits traits, final PropertyKey propertyKey);
 
 	/**
 	 * Registers the given property with the given type AND ALL SUPERTYPES.
@@ -124,7 +125,7 @@ public interface ConfigurationProvider {
 	 * @param type
 	 * @param propertyKey
 	 */
-	public void registerDynamicProperty(final Class type, final PropertyKey propertyKey);
+	public void registerDynamicProperty(final Traits traits, final PropertyKey propertyKey);
 
 	Map<String, StructrModule> getModules();
 	Map<String, Map<String, PropertyKey>> getTypeAndPropertyMapping();

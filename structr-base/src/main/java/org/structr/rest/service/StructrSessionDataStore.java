@@ -22,13 +22,12 @@ import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -67,9 +66,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore store");
 
-			final PropertyKey<String[]> key = StructrApp.key(PrincipalInterface.class, "sessionIds");
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] value            = new String[] { id };
-			final PrincipalInterface user            = app.nodeQuery(PrincipalInterface.class).and(key, value).disableSorting().getFirst();
+			final Principal user            = app.nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
 
 			if (user != null) {
 

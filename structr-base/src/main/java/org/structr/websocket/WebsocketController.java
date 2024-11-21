@@ -34,7 +34,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -62,7 +62,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private Gson gson                           = null;
 
 	private static final Set<String> BroadcastBlacklistForNodeTypes           = new HashSet<>(Arrays.asList("IndexedWord"));
-	private static final Set<PropertyKey> BroadcastBlacklistForNodeProperties = new HashSet<>(Arrays.asList(PrincipalInterface.grantedNodes, PrincipalInterface.ownedNodes));
+	private static final Set<PropertyKey> BroadcastBlacklistForNodeProperties = new HashSet<>(Arrays.asList(Principal.grantedNodes, Principal.ownedNodes));
 	private static final Set<String> BroadcastBlacklistForRelTypes            = new HashSet<>(Arrays.asList("INDEXED_WORD"));
 
 	public WebsocketController(final Gson gson) {

@@ -26,7 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
@@ -52,7 +52,7 @@ abstract class FileImportJob extends ScheduledJob {
 	protected Integer processedChunks  = 0;
 	protected Integer processedObjects = 0;
 
-	public FileImportJob (final File file, final PrincipalInterface user, final Map<String, Object> configuration, final ContextStore ctxStore) {
+	public FileImportJob (final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
 		super(file.getUuid(), user, configuration, ctxStore);
 

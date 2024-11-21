@@ -42,7 +42,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -107,7 +107,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 				ctx.disableInnerCallbacks();
 			}
 
-			PrincipalInterface user = null;
+			Principal user = null;
 
 			try (final Tx tx = app.tx(true, true, true)) {
 
@@ -183,7 +183,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		}
 	}
 
-	private void sendInvitationLink(final SecurityContext securityContext, final PrincipalInterface user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
+	private void sendInvitationLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
 
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
 		final String userEmail             = user.getProperty(eMailKey);
@@ -284,7 +284,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public PrincipalInterface createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) throws FrameworkException {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, confKey);
 	}
@@ -302,7 +302,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public PrincipalInterface createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) throws FrameworkException {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, false, confKey);
 	}
@@ -320,7 +320,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public PrincipalInterface createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) throws FrameworkException {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, confKey);
 	}
@@ -339,7 +339,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public static PrincipalInterface createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass, confKey);
 	}
@@ -358,7 +358,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public PrincipalInterface createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) throws FrameworkException {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class, confKey);
 	}
@@ -366,7 +366,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link PrincipalInterface} is found, convert that object to a {@link PrincipalInterface} object.
+	 * If a {@link Principal} is found, convert that object to a {@link Principal} object.
 	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
 	 *
 	 * @param securityContext
@@ -378,17 +378,17 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public static PrincipalInterface createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		PrincipalInterface user = null;
+		Principal user = null;
 
 		// First, search for a person with that e-mail address
 		user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 
 		if (user != null) {
 
-			user = new NodeFactory<PrincipalInterface>(securityContext).instantiate(user.getNode());
+			user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
 
 			// convert to user
 			user.unlockSystemPropertiesOnce();
@@ -427,7 +427,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			props.put(credentialKey, credentialValue);
 			props.put(confirmationKeyKey, confKey);
 
-			user = (PrincipalInterface) app.create(userClass, props);
+			user = (Principal) app.create(userClass, props);
 
 		} else {
 

@@ -30,7 +30,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -50,7 +50,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(MixedCSVFileImportJob.class.getName());
 
-	public MixedCSVFileImportJob(File file, PrincipalInterface user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+	public MixedCSVFileImportJob(File file, Principal user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
 		super(file, user, configuration, ctxStore);
 	}
 

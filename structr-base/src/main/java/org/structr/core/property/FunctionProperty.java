@@ -370,7 +370,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	public SchemaProperty getCodeSource() throws FrameworkException {
-		return StructrApp.getInstance().get(SchemaProperty.class, sourceUuid);
+		return StructrApp.getInstance().getNodeById(SchemaProperty.class, sourceUuid);
 	}
 
 	// ----- OpenAPI -----

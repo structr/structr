@@ -40,7 +40,7 @@ import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -89,7 +89,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
 			final App app = StructrApp.getInstance(ctx);
-			PrincipalInterface user = null;
+			Principal user = null;
 
 			if (Settings.CallbacksOnLogin.getValue() == false) {
 				ctx.disableInnerCallbacks();
@@ -179,14 +179,14 @@ public class LoginResourceHandler extends RESTCallHandler {
 	}
 
 	// ----- protected methods -----
-	protected PrincipalInterface getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
+	protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {
 			throw new AuthenticationException("login with superuser not supported.");
 		}
 
-		PrincipalInterface user = null;
+		Principal user = null;
 
 		user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
@@ -202,9 +202,9 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	protected PrincipalInterface getUserForTwoFactorTokenOrEmailOrUsername(final SecurityContext securityContext, final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
+	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(final SecurityContext securityContext, final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
 
-		PrincipalInterface user = null;
+		Principal user = null;
 
 		if (StringUtils.isNotEmpty(twoFactorToken)) {
 
@@ -218,7 +218,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return user;
 	}
 
-	protected RestMethodResult doLogin(final SecurityContext securityContext, final PrincipalInterface user) throws FrameworkException {
+	protected RestMethodResult doLogin(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 		AuthHelper.doLogin(securityContext.getRequest(), user);
 
@@ -234,7 +234,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return createRestMethodResult(user);
 	}
 
-	protected RestMethodResult createRestMethodResult(final PrincipalInterface user) {
+	protected RestMethodResult createRestMethodResult(final Principal user) {
 
 		RestMethodResult  returnedMethodResult = new RestMethodResult(200);
 		returnedMethodResult.addContent(user);

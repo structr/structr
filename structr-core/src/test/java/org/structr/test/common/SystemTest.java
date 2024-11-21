@@ -87,7 +87,7 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			PrincipalInterface person = this.createTestNode(User.class);
+			Principal person = this.createTestNode(User.class);
 
 			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);
@@ -577,8 +577,8 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureOneToOneCardinality() {
 
-		PrincipalInterface tester1 = null;
-		PrincipalInterface tester2 = null;
+		Principal tester1 = null;
+		Principal tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -669,8 +669,8 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureOneToManyCardinality() {
 
-		PrincipalInterface tester1 = null;
-		PrincipalInterface tester2 = null;
+		Principal tester1 = null;
+		Principal tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -765,8 +765,8 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureManyToOneCardinality() {
 
-		PrincipalInterface tester1 = null;
-		PrincipalInterface tester2 = null;
+		Principal tester1 = null;
+		Principal tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -904,8 +904,8 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-				new NodeAttribute<>(PrincipalInterface.name, "tester"),
-				new NodeAttribute<>(PrincipalInterface.passwordProperty, "password")
+				new NodeAttribute<>(Principal.name, "tester"),
+				new NodeAttribute<>(Principal.passwordProperty, "password")
 			);
 
 			tx.success();
@@ -917,10 +917,10 @@ public class SystemTest extends StructrTest {
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface user = app.nodeQuery(User.class).getFirst();
+			final Principal user = app.nodeQuery(User.class).getFirst();
 
-			assertEquals("Password hash IS NOT SECURE!", PrincipalInterface.HIDDEN, user.getProperty(PrincipalInterface.passwordProperty));
-			assertEquals("Password salt IS NOT SECURE!", PrincipalInterface.HIDDEN, user.getProperty(PrincipalInterface.saltProperty));
+			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Principal.passwordProperty));
+			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Principal.saltProperty));
 
 			tx.success();
 
@@ -1099,7 +1099,7 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testCallPrivileged() {
 
-		PrincipalInterface tester = null;
+		Principal tester = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -1416,7 +1416,7 @@ public class SystemTest extends StructrTest {
 			testGroup1.addMember(securityContext, testGroup2);
 			testGroup2.addMember(securityContext, testGroup3);
 
-			final PrincipalInterface user = app.create(User.class,
+			final Principal user = app.create(User.class,
 				new NodeAttribute<>(AbstractNode.name, "user"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
 			);
@@ -1545,7 +1545,7 @@ public class SystemTest extends StructrTest {
 			final Group root = app.nodeQuery(Group.class).andName("root").getFirst();
 			int count        = 0;
 
-			for (final PrincipalInterface p : root.getMembers()) {
+			for (final Principal p : root.getMembers()) {
 
 				assertTrue("RelationshipQuery returns too many results", count++ < num);
 			}

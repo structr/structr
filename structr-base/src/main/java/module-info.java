@@ -107,8 +107,9 @@ module structr.base {
     requires commons.collections4;
     requires ch.qos.logback.core;
     requires jakarta.activation;
+        requires org.apache.groovy;
 
-    exports org.structr;
+        exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;

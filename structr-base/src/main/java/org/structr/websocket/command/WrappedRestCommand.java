@@ -35,7 +35,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -71,7 +71,7 @@ public class WrappedRestCommand extends AbstractCommand {
 		final StructrWebSocket socket         = this.getWebSocket();
 		final SecurityContext securityContext = socket.getSecurityContext();
 		final String url                      = webSocketData.getNodeDataStringValue("url");
-		final PrincipalInterface currentUser           = securityContext.getUser(false);
+		final Principal currentUser           = securityContext.getUser(false);
 
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest(), url);

@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.PropertyMap;
@@ -149,7 +149,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<PrincipalInterface> principals        = app.nodeQuery(PrincipalInterface.class).andName(principalName).getAsList();
+		final List<Principal> principals        = app.nodeQuery(Principal.class).andName(principalName).getAsList();
 
 		if (principals.isEmpty()) {
 

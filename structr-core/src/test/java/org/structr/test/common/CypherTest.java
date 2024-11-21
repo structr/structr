@@ -42,7 +42,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -560,7 +560,7 @@ public class CypherTest extends StructrTest {
 
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			PrincipalInterface tester = null;
+			Principal tester = null;
 
 			try (final Tx tx = app.tx()) {
 

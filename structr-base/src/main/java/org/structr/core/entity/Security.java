@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Relationship type class for SECURITY relationships.
  */
-public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
+public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public static final SourceId           principalId          = new SourceId("principalId");
 	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
@@ -60,7 +60,7 @@ public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
-				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
+				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(traits, key));
 			}
 		}
 
@@ -101,8 +101,8 @@ public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
 
 	// ----- class Relation -----
 	@Override
-	public Class<PrincipalInterface> getSourceType() {
-		return PrincipalInterface.class;
+	public Class<Principal> getSourceType() {
+		return Principal.class;
 	}
 
 	@Override

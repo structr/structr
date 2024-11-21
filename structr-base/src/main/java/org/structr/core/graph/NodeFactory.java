@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 
-import java.lang.reflect.InvocationTargetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
@@ -27,11 +26,10 @@ import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.NodeWithTraits;
 
 /**
  * A factory for Structr nodes.
- *
- * @param <T>
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
@@ -66,43 +64,26 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		}
 
 		if (TransactionCommand.isDeleted(node)) {
-			return (T)instantiateWithType(node, null, pathSegmentId, false);
-		}
-
-		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), pathSegmentId, false);
-	}
-
-	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Identity pathSegmentId, boolean isCreation) {
-
-		// cannot instantiate node without type
-		if (nodeClass == null) {
 			return null;
 		}
 
-		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		T newNode                       = null;
+		return instantiate(node, pathSegmentId, false);
+	}
 
-		try {
-			newNode = nodeClass.getDeclaredConstructor().newInstance();
+	@Override
+	public T instantiate(final Node node, final Identity pathSegmentId, boolean isCreation) {
 
-		} catch (NoSuchMethodException|NoClassDefFoundError|InvocationTargetException|InstantiationException|IllegalAccessException itex) {
-			itex.printStackTrace();
-			newNode = null;
-		}
+		final SecurityContext securityContext = factoryProfile.getSecurityContext();
+		final NodeWithTraits newNode          = new NodeWithTraits();
 
-		if (newNode == null) {
-			newNode = (T)factoryDefinition.createGenericNode();
-		}
-
-		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, TransactionCommand.getCurrentTransactionId());
+		newNode.init(factoryProfile.getSecurityContext(), node, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
 
 		// check access
 		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeHidden(), factoryProfile.publicOnly())) {
 
-			return newNode;
+			return (T) newNode;
 		}
 
 		return null;

@@ -23,7 +23,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 
 public class ConfigFunction extends AdvancedScriptingFunction {
@@ -62,7 +62,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 				if (setting.equals(Settings.SuperUserPassword)) {
 
-					return PrincipalInterface.HIDDEN;
+					return Principal.HIDDEN;
 
 				} else {
 

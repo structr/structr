@@ -53,7 +53,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
-		PrincipalInterface user1            = null;
+		Principal user1            = null;
 		Class type1                = null;
 		Class type2                = null;
 
@@ -273,7 +273,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface tester = app.nodeQuery(User.class).getFirst();
+			final Principal tester = app.nodeQuery(User.class).getFirst();
 
 			final NodeInterface p1 = app.create(projectType,
 				new NodeAttribute<>(AbstractNode.name, "Project1"),
@@ -365,7 +365,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface tester = app.nodeQuery(User.class).getFirst();
+			final Principal tester = app.nodeQuery(User.class).getFirst();
 
 			final NodeInterface p1 = app.create(mooType,
 				new NodeAttribute<>(AbstractNode.name, "Project1"),
@@ -439,7 +439,7 @@ public class PermissionResolutionTest extends StructrTest {
 			final Group testGroup1 = app.create(Group.class, "Group1");
 			final Group testGroup2 = app.create(Group.class, "Group2");
 			final Group testGroup3 = app.create(Group.class, "Group3");
-			final PrincipalInterface tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			final Principal tester = app.nodeQuery(User.class).andName("tester").getFirst();
 
 			// create group hierarchy for test user
 			testGroup1.addMember(securityContext, testGroup2);
@@ -470,7 +470,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			final Principal tester = app.nodeQuery(User.class).andName("tester").getFirst();
 
 			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(AbstractNode.owner, tester));
 			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"));
@@ -685,7 +685,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface tester            = app.nodeQuery(User.class).andName("tester").getFirst();
+			final Principal tester            = app.nodeQuery(User.class).andName("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(AbstractNode.name).getAsList();
 

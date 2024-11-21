@@ -24,7 +24,7 @@ import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.LinkSource;
@@ -129,7 +129,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
 
-			final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(parameters).getAsList();
+			final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(parameters).getAsList();
 
 			if (principals.isEmpty()) {
 
@@ -152,7 +152,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(parts[0]).getAsList();
+				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -166,7 +166,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				} else {
 
-					final PrincipalInterface grantee = principals.get(0);
+					final Principal grantee = principals.get(0);
 
 					for (final char c : parts[1].toCharArray()) {
 

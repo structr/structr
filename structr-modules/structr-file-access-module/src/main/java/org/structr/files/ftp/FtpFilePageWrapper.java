@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.RenderContext;
 import org.structr.web.diff.InvertibleModificationOperation;
@@ -101,11 +101,11 @@ public class FtpFilePageWrapper implements FtpFile {
 		return true;
 	}
 
-	private PrincipalInterface getOwner() {
+	private Principal getOwner() {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			PrincipalInterface owner = page.getProperty(File.owner);
+			Principal owner = page.getProperty(File.owner);
 			tx.success();
 
 			return owner;
@@ -123,10 +123,10 @@ public class FtpFilePageWrapper implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			PrincipalInterface owner = getOwner();
+			Principal owner = getOwner();
 			if (owner != null) {
 
-				name = owner.getProperty(PrincipalInterface.name);
+				name = owner.getProperty(Principal.name);
 			}
 			tx.success();
 
@@ -144,10 +144,10 @@ public class FtpFilePageWrapper implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			PrincipalInterface owner = getOwner();
+			Principal owner = getOwner();
 
 			if (owner != null) {
-				List<PrincipalInterface> parents = Iterables.toList(owner.getParents());
+				List<Principal> parents = Iterables.toList(owner.getParents());
 				if (!parents.isEmpty()) {
 
 					name = parents.get(0).getProperty(AbstractNode.name);

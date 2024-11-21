@@ -18,6 +18,7 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.api.Traits;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
@@ -27,5 +28,5 @@ import org.structr.core.property.PropertyKey;
  */
 public interface SearchFunctionPredicate {
 
-	void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
+	void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException;
 }

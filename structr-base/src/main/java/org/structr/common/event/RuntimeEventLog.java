@@ -19,7 +19,7 @@
 package org.structr.common.event;
 
 import org.structr.api.Predicate;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -88,7 +88,7 @@ public class RuntimeEventLog {
 		add(EventType.Maintenance, command, data);
 	}
 
-	public static void rest(final String method, final String path, final PrincipalInterface user) {
+	public static void rest(final String method, final String path, final Principal user) {
 
 		if (user != null) {
 
@@ -100,7 +100,7 @@ public class RuntimeEventLog {
 		}
 	}
 
-	public static void csv(final String method, final String path, final PrincipalInterface user) {
+	public static void csv(final String method, final String path, final Principal user) {
 
 		if (user != null) {
 
@@ -112,7 +112,7 @@ public class RuntimeEventLog {
 		}
 	}
 
-	public static void graphQL(final String query, final PrincipalInterface user) {
+	public static void graphQL(final String query, final Principal user) {
 
 		if (user != null) {
 
@@ -124,7 +124,7 @@ public class RuntimeEventLog {
 		}
 	}
 
-	public static void http(final String path, final PrincipalInterface user) {
+	public static void http(final String path, final Principal user) {
 
 		if (user != null) {
 

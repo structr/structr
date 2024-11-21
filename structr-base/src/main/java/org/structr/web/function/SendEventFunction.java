@@ -19,7 +19,7 @@
 package org.structr.web.function;
 
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
@@ -66,12 +66,12 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 			} else if (sources[2] instanceof Iterable) {
 
-				final Set<PrincipalInterface> targets = new HashSet<>();
+				final Set<Principal> targets = new HashSet<>();
 
 				for (Object obj : (Iterable)sources[2]) {
 
-					if (PrincipalInterface.class.isAssignableFrom(obj.getClass())) {
-						targets.add((PrincipalInterface)obj);
+					if (Principal.class.isAssignableFrom(obj.getClass())) {
+						targets.add((Principal)obj);
 					} else {
 						logger.warn("{}: Ignoring non-principal {}", getName(), obj);
 					}

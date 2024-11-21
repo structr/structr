@@ -33,7 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -296,11 +296,11 @@ public class StructrTest {
 		}
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PrincipalInterface owner) throws FrameworkException {
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal owner) throws FrameworkException {
 		return (T)createTestNode(type, new PropertyMap(), owner);
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final PrincipalInterface owner) throws FrameworkException {
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal owner) throws FrameworkException {
 
 		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
 

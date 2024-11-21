@@ -44,7 +44,7 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
@@ -667,7 +667,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		final Map<String, Object> mixedMappings  = (Map<String, Object>)parameters.get("mixedMappings");
 		final ContextStore contextStore          = securityContext.getContextStore();
-		final PrincipalInterface user            = securityContext.getUser(false);
+		final Principal user            = securityContext.getUser(false);
 		final Object onFinishScript              = parameters.get("onFinish");
 
 		if (mixedMappings != null) {
@@ -736,7 +736,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	 */
 	static Folder getCurrentWorkingDir(final File thisFile) {
 
-		final PrincipalInterface _owner = thisFile.getProperty(owner);
+		final Principal _owner = thisFile.getProperty(owner);
 		Folder workingOrHomeDir         = null;
 
 		if (_owner != null && _owner instanceof User) {
@@ -928,7 +928,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static boolean isImmutable(final File thisFile) {
 
-		final PrincipalInterface _owner = thisFile.getOwnerNode();
+		final Principal _owner = thisFile.getOwnerNode();
 		if (_owner != null) {
 
 			return !_owner.isGranted(Permission.write, thisFile.getSecurityContext());

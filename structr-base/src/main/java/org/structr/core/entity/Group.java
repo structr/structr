@@ -18,8 +18,6 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -33,15 +31,20 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaService;
 
 import java.util.List;
 
 /**
  */
-public class Group extends Principal {
+public interface Group extends Principal {
 
-	public static final Property<Iterable<PrincipalInterface>> membersProperty = new EndNodes<>("members", GroupCONTAINSPrincipal.class).partOfBuiltInSchema();
+	void addMember(final SecurityContext securityContext, final Principal user) throws FrameworkException;
+	void removeMember(final SecurityContext securityContext, final Principal member) throws FrameworkException;
+	Iterable<Principal> getMembers();
+
+	/*
+
+	public static final Property<Iterable<Principal>> membersProperty = new EndNodes<>("members", GroupCONTAINSPrincipal.class).partOfBuiltInSchema();
 	public static final Property<String> jwksReferenceIdProperty      = new StringProperty("jwksReferenceId").indexed().unique().partOfBuiltInSchema();
 	public static final Property<String> nameProperty                 = new StringProperty("name").indexed().notNull().unique().partOfBuiltInSchema();
 	public static final Property<Boolean> isGroupProperty             = new ConstantBooleanProperty("isGroup", true).partOfBuiltInSchema();
@@ -54,7 +57,7 @@ public class Group extends Principal {
 		isGroupProperty, jwksReferenceIdProperty, membersProperty
 	);
 
-	public Iterable<PrincipalInterface> getMembers() {
+	public Iterable<Principal> getMembers() {
 		return getProperty(membersProperty);
 	}
 
@@ -71,13 +74,13 @@ public class Group extends Principal {
 	}
 
 	@Export
-	public void addMember(final SecurityContext securityContext, final PrincipalInterface user) throws FrameworkException {
+	public void addMember(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 		if (user == null) {
 			throw new FrameworkException(422, "Unable to add user " + user + " to group " + this);
 		}
 
-		final List<PrincipalInterface> _users = Iterables.toList(getProperty(membersProperty));
+		final List<Principal> _users = Iterables.toList(getProperty(membersProperty));
 
 		_users.add(user);
 
@@ -85,13 +88,13 @@ public class Group extends Principal {
 	}
 
 	@Export
-	public void removeMember(final SecurityContext securityContext, final PrincipalInterface member) throws FrameworkException {
+	public void removeMember(final SecurityContext securityContext, final Principal member) throws FrameworkException {
 
 		if (member == null) {
 			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + this);
 		}
 
-		final List<PrincipalInterface> _users = Iterables.toList(getProperty(membersProperty));
+		final List<Principal> _users = Iterables.toList(getProperty(membersProperty));
 
 		_users.remove(member);
 
@@ -102,4 +105,5 @@ public class Group extends Principal {
 	public boolean shouldSkipSecurityRelationships() {
 		return isAdmin();
 	}
+	*/
 }

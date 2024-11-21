@@ -239,7 +239,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 				templateIds.add(t.getUuid());
 			}
 
-			for (final PrincipalInterface t : team) {
+			for (final Principal t : team) {
 				teamIds.add(t.getUuid());
 			}
 

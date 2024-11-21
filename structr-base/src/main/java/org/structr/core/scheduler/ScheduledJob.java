@@ -25,7 +25,7 @@ import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
@@ -59,7 +59,7 @@ public abstract class ScheduledJob {
 	private Long jobId       = null;
 
 	protected Map<String, Object> configuration;
-	protected PrincipalInterface user;
+	protected Principal user;
 	protected String username;
 	protected String jobName;
 	protected JobStatus currentStatus;
@@ -67,7 +67,7 @@ public abstract class ScheduledJob {
 
 	private Object onFinishScript = null;
 
-	public ScheduledJob (final String jobName, final PrincipalInterface user, final Map<String, Object> configuration, final ContextStore ctxStore) {
+	public ScheduledJob (final String jobName, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
 		this.user          = user;
 		this.jobName       = jobName;

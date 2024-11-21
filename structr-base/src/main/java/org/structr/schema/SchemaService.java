@@ -519,36 +519,6 @@ public class SchemaService implements Service {
 		return compiling.get();
 	}
 
-	public static void prefetchSchemaNodes(final Prefetcher tx) {
-
-		/*
-		tx.prefetch("SchemaReloadingNode", (String)null, Set.of(
-
-			"all/INCOMING/OWNS",
-			"all/INCOMING/EXTENDS",
-			"all/INCOMING/HAS_METHOD",
-			"all/INCOMING/HAS_PARAMETER",
-			"all/INCOMING/HAS_PROPERTY",
-			"all/INCOMING/HAS_VIEW",
-			"all/INCOMING/HAS_VIEW_PROPERTY",
-			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
-			"all/INCOMING/IS_RELATED_TO",
-			"all/INCOMING/SCHEMA_GRANT",
-
-			"all/OUTGOING/OWNS",
-			"all/OUTGOING/EXTENDS",
-			"all/OUTGOING/HAS_PROPERTY",
-			"all/OUTGOING/HAS_VIEW_PROPERTY",
-			"all/OUTGOING/HAS_METHOD",
-			"all/OUTGOING/HAS_PARAMETER",
-			"all/OUTGOING/HAS_VIEW",
-			"all/OUTGOING/IS_RELATED_TO"
-
-		));
-
-		 */
-	}
-
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {

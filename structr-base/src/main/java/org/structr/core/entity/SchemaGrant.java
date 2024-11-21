@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
@@ -27,12 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.*;
 import org.structr.common.helper.ValidationHelper;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalSchemaGrantRelationship;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
@@ -45,7 +42,7 @@ import org.structr.schema.SchemaHelper;
 public class SchemaGrant extends SchemaReloadingNode {
 
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaGrant.class.getName());
-	public static final Property<PrincipalInterface>  principal     = new StartNode<>("principal", PrincipalSchemaGrantRelationship.class).partOfBuiltInSchema();
+	public static final Property<Principal>  principal     = new StartNode<>("principal", PrincipalSchemaGrantRelationship.class).partOfBuiltInSchema();
 	public static final Property<SchemaNode> schemaNode             = new EndNode<>("schemaNode", SchemaGrantSchemaNodeRelationship.class).partOfBuiltInSchema();
 	public static final Property<String> staticSchemaNodeName       = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
 	public static final Property<Boolean> allowRead                 = new BooleanProperty("allowRead").partOfBuiltInSchema();
@@ -155,7 +152,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 	private void createDynamicTypeOrDeleteSelf(final boolean allowAllFalse) throws FrameworkException {
 
 		final Node dbNode = getNode();
-		final PrincipalInterface p = getProperty(principal);
+		final Principal p = getProperty(principal);
 		if (p == null) {
 
 			// no principal => delete

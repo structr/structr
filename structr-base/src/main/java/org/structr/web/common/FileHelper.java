@@ -756,7 +756,7 @@ public class FileHelper {
 		logger.debug("Search for file with uuid: {}", uuid);
 
 		try {
-			return StructrApp.getInstance(securityContext).get(AbstractFile.class, uuid);
+			return StructrApp.getInstance(securityContext).getNodeById(AbstractFile.class, uuid);
 
 		} catch (FrameworkException fex) {
 
@@ -896,7 +896,7 @@ public class FileHelper {
 			try (final Tx tx = app.tx(true, true, true)) {
 
 				// search for existing parent folder
-				existingParentFolder = app.get(Folder.class, parentFolderId);
+				existingParentFolder = app.getNodeById(Folder.class, parentFolderId);
 				String parentFolderName = null;
 
 				String msgString = "Unarchiving file {}";

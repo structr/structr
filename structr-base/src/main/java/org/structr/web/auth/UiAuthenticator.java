@@ -132,7 +132,7 @@ public class UiAuthenticator implements Authenticator {
 
 		 */
 
-		PrincipalInterface user = checkExternalAuthentication(request, response);
+		Principal user = checkExternalAuthentication(request, response);
 		SecurityContext securityContext;
 
 		String authorizationToken = getAuthorizationToken(request);
@@ -284,7 +284,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
 
-		final PrincipalInterface user             = securityContext.getUser(false);
+		final Principal user             = securityContext.getUser(false);
 		final boolean validUser          = (user != null);
 
 		// super user is always authenticated
@@ -459,11 +459,11 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public PrincipalInterface doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
 		final PropertyKey<String> confKey  = StructrApp.key(User.class, "confirmationKey");
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final PrincipalInterface user      = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+		final Principal user      = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
 
@@ -483,7 +483,7 @@ public class UiAuthenticator implements Authenticator {
 	public void doLogout(final HttpServletRequest request) {
 
 		try {
-			final PrincipalInterface user = getUser(request, false);
+			final Principal user = getUser(request, false);
 			if (user != null) {
 
 				Services.getInstance().broadcastLogout(user.getNode().getId().getId());
@@ -561,7 +561,7 @@ public class UiAuthenticator implements Authenticator {
 	 * @param response
 	 * @return user
 	 */
-	protected PrincipalInterface checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
+	protected Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		final String path = PathHelper.clean(request.getPathInfo());
 		final String[] uriParts = PathHelper.getParts(path);
@@ -668,7 +668,7 @@ public class UiAuthenticator implements Authenticator {
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
 					// first try: literal, unchanged value from oauth provider
-					PrincipalInterface user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
 					if (user == null) {
 
 						// since e-mail addresses are stored in lower case, we need
@@ -830,9 +830,9 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public PrincipalInterface getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
-		PrincipalInterface user = null;
+		Principal user = null;
 
 		String authorizationToken = getAuthorizationToken(request);
 

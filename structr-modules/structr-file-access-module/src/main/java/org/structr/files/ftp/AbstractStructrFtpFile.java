@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -167,7 +167,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final PrincipalInterface owner = getOwner();
+			final Principal owner = getOwner();
 
 			String name = "";
 
@@ -191,12 +191,12 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final PrincipalInterface owner = getOwner();
+			final Principal owner = getOwner();
 			String name = "";
 
 			if (owner != null) {
 
-				final List<PrincipalInterface> parents = Iterables.toList(owner.getParents());
+				final List<Principal> parents = Iterables.toList(owner.getParents());
 				if (!parents.isEmpty()) {
 
 					name = parents.get(0).getProperty(AbstractNode.name);
@@ -322,11 +322,11 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		return false;
 	}
 
-	private PrincipalInterface getOwner() {
+	private Principal getOwner() {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			PrincipalInterface owner = structrFile.getProperty(File.owner);
+			Principal owner = structrFile.getProperty(File.owner);
 
 			tx.success();
 

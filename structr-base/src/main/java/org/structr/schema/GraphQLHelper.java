@@ -125,7 +125,7 @@ public class GraphQLHelper {
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(AbstractNode.name)).build());
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).arguments(getGraphQLArgumentsForRelatedType(PrincipalInterface.class)).build());
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());
@@ -322,7 +322,7 @@ public class GraphQLHelper {
 			// manual registration for built-in relationships that are not dynamic
 			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 				.name(ownerTypeName)
-				.fields(getGraphQLInputFieldsForType(selectionTypes, PrincipalInterface.class))
+				.fields(getGraphQLInputFieldsForType(selectionTypes, Principal.class))
 				.build()
 			).build());
 

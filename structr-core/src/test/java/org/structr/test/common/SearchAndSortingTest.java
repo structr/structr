@@ -40,7 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -1682,8 +1682,8 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void test06PagingVisibility() {
 
-		PrincipalInterface tester1 = null;
-		PrincipalInterface tester2 = null;
+		Principal tester1 = null;
+		Principal tester2 = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -1861,7 +1861,7 @@ public class SearchAndSortingTest extends StructrTest {
 	public void testManyToManyReverseNodeSearch() {
 
 		final Class<Group> groupType                     = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<Iterable<PrincipalInterface>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
+		final PropertyKey<Iterable<Principal>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
 		final List<Group> groups                         = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
@@ -2009,7 +2009,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		final Class<Group> groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
 		final PropertyKey<String> nameKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
-		final PropertyKey<PrincipalInterface> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
+		final PropertyKey<Principal> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
 
 		try (final Tx tx = app.tx()) {
 
@@ -2536,10 +2536,10 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface ownerC = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "C"));
-			final PrincipalInterface ownerD = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "D"));
-			final PrincipalInterface ownerA = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "A"));
-			final PrincipalInterface ownerE = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "E"));
+			final Principal ownerC = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "C"));
+			final Principal ownerD = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "D"));
+			final Principal ownerA = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "A"));
+			final Principal ownerE = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "E"));
 
 			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "zzz"));
 			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));

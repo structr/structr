@@ -16,35 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity.relationship;
+package org.structr.core.entity;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 
-/**
- *
- *
- */
-public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> implements Ownership {
+public class RelationshipWithTraits<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> {
 
-	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
-	}
+        public <T> T as(final Class<T> type) {
 
-	@Override
-	public String name() {
-		return "OWNS";
-	}
+                return null;
+        }
 
-	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
-	}
+        @Override
+        public int getCascadingDeleteFlag() {
+                return 0;
+        }
 
-	@Override
-	public boolean isInternal() {
-		return true;
-	}
+        @Override
+        public boolean isInternal() {
+                return false;
+        }
 }

@@ -20,13 +20,13 @@ package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 
-public class PrincipalFAVORITEFavoritable extends ManyToMany<PrincipalInterface, Favoritable> {
+public class PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favoritable> {
 
 	@Override
-	public Class<PrincipalInterface> getSourceType() {
-		return PrincipalInterface.class;
+	public Class<Principal> getSourceType() {
+		return Principal.class;
 	}
 
 	@Override

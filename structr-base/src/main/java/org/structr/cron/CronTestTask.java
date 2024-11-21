@@ -19,7 +19,7 @@
 package org.structr.cron;
 
 import org.structr.agent.AbstractTask;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 
 /**
  * A task for testing the CRON service.
@@ -28,7 +28,7 @@ import org.structr.core.entity.PrincipalInterface;
  */
 public class CronTestTask<T> extends AbstractTask<T> {
 
-	public CronTestTask(final String type, final PrincipalInterface user, final T node) {
+	public CronTestTask(final String type, final Principal user, final T node) {
 		super(type, user, node);
 	}
 }

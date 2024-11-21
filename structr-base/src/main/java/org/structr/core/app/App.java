@@ -56,13 +56,11 @@ public interface App extends Closeable {
 
 	void delete(final RelationshipInterface relationship);
 
-	NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException;
+	<T extends NodeInterface> T getNodeById(final Class<T> type, final String uuid) throws FrameworkException;
 	NodeInterface getNodeById(final String uuid) throws FrameworkException;
-	RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
+	<R extends RelationshipInterface> R getRelationshipById(final Class<R> type, final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
-	<T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
-	Query<? extends NodeInterface> nodeQuery();
 	<T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
 
 	Query<? extends RelationshipInterface> relationshipQuery();

@@ -18,7 +18,7 @@
  */
 package org.structr.core.entity.relationship;
 
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -27,6 +27,6 @@ import org.structr.core.graph.NodeInterface;
  */
 public interface Ownership {
 
-	public PrincipalInterface getSourceNode();
+	public Principal getSourceNode();
 	public NodeInterface getTargetNode();
 }

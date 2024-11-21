@@ -317,7 +317,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public Class getEntityType() {
+	public Class getTraits() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
