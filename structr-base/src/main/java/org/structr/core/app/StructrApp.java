@@ -24,6 +24,7 @@ import org.structr.agent.AgentService;
 import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
+import org.structr.api.Traits;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
@@ -64,16 +65,16 @@ public class StructrApp implements App {
 	private static final String INSTANCE_ID = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
-	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
-	private static final Map<URI, Class> schemaIdMap            = new LinkedHashMap<>();
-	private static final Map<Class, URI> typeIdMap              = new LinkedHashMap<>();
-	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
-	private static FixedSizeCache<String, Identity> relUuidMap  = null;
-	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
-	private RelationshipFactory relFactory                      = null;
-	private NodeFactory nodeFactory                             = null;
-	private DatabaseService graphDb                             = null;
-	private SecurityContext securityContext                     = null;
+	private static final URI schemaBaseURI                                  = URI.create("https://structr.org/v1.1/#");
+	private static final Map<URI, Class> schemaIdMap                        = new LinkedHashMap<>();
+	private static final Map<Class, URI> typeIdMap                          = new LinkedHashMap<>();
+	private static FixedSizeCache<String, Identity> nodeUuidMap             = null;
+	private static FixedSizeCache<String, Identity> relUuidMap              = null;
+	private final Map<String, Object> appContextStore                       = new LinkedHashMap<>();
+	private RelationshipFactory<? extends RelationshipInterface> relFactory = null;
+	private NodeFactory<? extends NodeInterface> nodeFactory                = null;
+	private DatabaseService graphDb                                         = null;
+	private SecurityContext securityContext                                 = null;
 
 	private StructrApp(final SecurityContext securityContext) {
 
@@ -85,7 +86,7 @@ public class StructrApp implements App {
 	// ----- public methods -----
 	@Override
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException {
-		return create(type, new NodeAttribute(key(type, "name"), name));
+		return create(type, new NodeAttribute(StructrApp.key(Traits.of(type), "name"), name));
 	}
 
 	@Override
@@ -182,7 +183,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException {
+	public <T extends NodeInterface> T getNodeById(final Class<T> type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
 			return null;
@@ -191,26 +192,26 @@ public class StructrApp implements App {
 		final Identity nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
-			final Query query = nodeQuery().uuid(uuid);
+			final Query<T> query = nodeQuery(type).uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
 				query.andType(type);
 			}
 
-			final GraphObject entity = query.getFirst();
+			final T entity = query.getFirst();
 			if (entity != null) {
 
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				nodeUuidMap.put(uuid, container.getId());
-				return (NodeInterface)entity;
+				return entity;
 			}
 
 		} else {
 
 			try {
-				return nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+				return (T)nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
 
 			} catch (NotFoundException ignore) {
 				nodeUuidMap.remove(uuid);
@@ -226,7 +227,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException {
+	public <T extends RelationshipInterface> T getRelationshipById(final Class<T> type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
 			return null;
@@ -235,7 +236,7 @@ public class StructrApp implements App {
 		final Identity id = getRelFromCache(uuid);
 		if (id == null) {
 
-			final Query query = relationshipQuery().uuid(uuid);
+			final Query<T> query = relationshipQuery(type).uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
@@ -248,19 +249,19 @@ public class StructrApp implements App {
 				Thread.dumpStack();
 			}
 
-			final GraphObject entity = query.getFirst();
+			final T entity = query.getFirst();
 			if (entity != null) {
 
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				relUuidMap.put(uuid, container.getId());
-				return (RelationshipInterface)entity;
+				return entity;
 			}
 
 		} else {
 
 			try {
-				return relFactory.instantiate(getDatabaseService().getRelationshipById(id));
+				return (T)relFactory.instantiate(getDatabaseService().getRelationshipById(id));
 
 			} catch (NotFoundException ignore) {
 				relUuidMap.remove(uuid);
@@ -268,33 +269,6 @@ public class StructrApp implements App {
 		}
 
 		return null;
-	}
-
-	@Override
-	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
-
-		if (type != null) {
-
-			if (NodeInterface.class.isAssignableFrom(type)) {
-
-				return (T)getNodeById(type, uuid);
-
-			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
-
-				return (T)getRelationshipById(type, uuid);
-
-			} else {
-
-				throw new IllegalStateException("Invalid type ‛" + type + "‛, cannot be used in query");
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public Query<NodeInterface> nodeQuery() {
-		return command(SearchNodeCommand.class);
 	}
 
 	@Override
@@ -469,26 +443,26 @@ public class StructrApp implements App {
 		}
 	}
 
-	public static <T> PropertyKey<T> key(final Class type, final String name) {
-		return StructrApp.key(type, name, true);
+	public static <T> PropertyKey<T> key(final Traits traits, final String name) {
+		return StructrApp.key(traits, name, true);
 	}
 
-	public static <T> PropertyKey<T> key(final Class type, final String name, final boolean logMissing) {
+	public static <T> PropertyKey<T> key(final Traits traits, final String name, final boolean logMissing) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		PropertyKey<T> key                 = config.getPropertyKeyForJSONName(type, name, false);
+		PropertyKey<T> key                 = config.getPropertyKeyForJSONName(traits, name, false);
 
 		if (key == null) {
 
 			// not found, next try: dynamic type
-			final Class dynamicType = config.getNodeEntityClass(type.getSimpleName());
+			final Class dynamicType = config.getNodeEntityClass(traits);
 			if (dynamicType != null) {
 
 				key = config.getPropertyKeyForJSONName(dynamicType, name, false);
 
 			} else {
 
-				final Class iface = config.getInterfaces().get(type.getSimpleName());
+				final Class iface = config.getInterfaces().get(traits.getSimpleName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
@@ -498,7 +472,7 @@ public class StructrApp implements App {
 			// store key in cache
 			if (key != null) {
 
-				config.setPropertyKeyForJSONName(type, name, key);
+				config.setPropertyKeyForJSONName(traits, name, key);
 			}
 		}
 
@@ -506,9 +480,9 @@ public class StructrApp implements App {
 
 			key = new GenericProperty(name);
 
-			if (logMissing && !type.equals(GraphObjectMap.class)) {
+			if (logMissing && !traits.equals(GraphObjectMap.class)) {
 
-				logger.warn("Unknown property key {}.{}! Using generic property key. This may lead to conversion problems. If you encounter problems please report the following source of the call.", type.getSimpleName(), name);
+				logger.warn("Unknown property key {}.{}! Using generic property key. This may lead to conversion problems. If you encounter problems please report the following source of the call.", traits.getSimpleName(), name);
 
 				try {
 

@@ -59,7 +59,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.web.entity.User;
@@ -120,7 +120,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
 
-			final PrincipalInterface currentUser = securityContext.getUser(false);
+			final Principal currentUser = securityContext.getUser(false);
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
@@ -263,7 +263,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			if (securityContext != null) {
 
-				final PrincipalInterface currentUser = securityContext.getUser(false);
+				final Principal currentUser = securityContext.getUser(false);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {

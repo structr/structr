@@ -68,7 +68,7 @@ public class SetFunction extends CoreFunction {
 			if (sources[0] instanceof GraphObject) {
 
 				final GraphObject source = (GraphObject) sources[0];
-				type = source.getEntityType();
+				type = source.getTraits();
 			}
 
 			if (type == null) {

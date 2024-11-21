@@ -588,8 +588,13 @@ public abstract class RESTCallHandler {
 
 						if (idSource instanceof String) {
 
-							final String id       = (String)idSource;
-							final GraphObject obj = app.get(localType, id);
+							final String id = (String)idSource;
+
+							GraphObject obj = app.getNodeById(localType, id);
+							if (obj != null) {
+
+								obj = app.getRelationshipById(localType, id);
+							}
 
 							if (obj != null) {
 

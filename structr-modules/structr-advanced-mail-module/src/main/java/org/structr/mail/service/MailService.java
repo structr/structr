@@ -35,7 +35,7 @@ import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
@@ -294,7 +294,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 			file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), ds.getInputStream(), ds.getContentType(), fileClass, dma.getName(), fileFolder);
 
-			final PrincipalInterface owner = securityContext.getUser(false);
+			final Principal owner = securityContext.getUser(false);
 			if (owner != null) {
 				file.setProperty(AbstractNode.owner, securityContext.getUser(false));
 			}

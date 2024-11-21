@@ -31,7 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
@@ -67,7 +67,7 @@ public class LoginCommand extends AbstractCommand {
 		}
 
 		boolean sendSuccess = false;
-		PrincipalInterface user      = null;
+		Principal user      = null;
 		long userId         = -1L;
 
 		try (final Tx tx = app.tx(true, true, true)) {
@@ -173,7 +173,7 @@ public class LoginCommand extends AbstractCommand {
 
 					try {
 
-						final PrincipalInterface principal       = ex.getUser();
+						final Principal principal       = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");

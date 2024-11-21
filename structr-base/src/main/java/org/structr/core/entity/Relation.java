@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Traits;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
@@ -91,7 +92,7 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 
 	public Class getOtherType(final Class type);
 
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type);
+	public Direction getDirectionForType(final Traits type);
 
 	public Multiplicity getSourceMultiplicity();
 	public Multiplicity getTargetMultiplicity();

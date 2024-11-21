@@ -25,7 +25,7 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.entity.RelationshipWithTraits;
 
 /**
  * A factory for structr relationships. This class exists because we need a fast
@@ -66,44 +66,18 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			return null;
 		}
 
-		final Class relationshipType = factoryDefinition.determineRelationshipType(relationship);
-		if (relationshipType == null) {
-			return null;
-		}
-
-		return (T) instantiateWithType(relationship, relationshipType, pathSegmentId, false);
+		return (T) instantiate(relationship, pathSegmentId, false);
 	}
 
 	@Override
-	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final Identity pathSegmentId, final boolean isCreation) {
-
-		// cannot instantiate relationship without type
-		if (relClass == null) {
-			return null;
-		}
-
-		logger.debug("Instantiate relationship with type {}", relClass.getName());
+	public T instantiate(final Relationship relationship, final Identity pathSegmentId, final boolean isCreation) {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		T newRel          = null;
+		RelationshipWithTraits newRel   = new RelationshipWithTraits();
 
-		try {
+		newRel.init(securityContext, relationship, TransactionCommand.getCurrentTransactionId());
 
-			newRel = relClass.getDeclaredConstructor().newInstance();
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-			newRel = null;
-		}
-
-		if (newRel == null) {
-			logger.warn("newRel was null, using generic relationship for {}", relationship);
-			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
-		}
-
-		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
-
-		return newRel;
+		return (T)newRel;
 	}
 
 	@Override

@@ -33,7 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -468,7 +468,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					final long t0 = System.currentTimeMillis();
 
-					final PrincipalInterface user = app.nodeQuery(PrincipalInterface.class).getFirst();
+					final Principal user = app.nodeQuery(Principal.class).getFirst();
 
 					user.getGroups();
 

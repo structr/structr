@@ -28,9 +28,8 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.PrincipalTmp;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -71,8 +70,8 @@ public class MigrationService {
 			// check (and fix) principal nodes
 			logger.info("Checking if principal nodes need migration..");
 
-			for (final Principal p : app.nodeQuery(Principal.class).getResultStream()) {
-				p.getNode().addLabel(PrincipalInterface.class.getSimpleName());
+			for (final PrincipalTmp p : app.nodeQuery(PrincipalTmp.class).getResultStream()) {
+				p.getNode().addLabel(Principal.class.getSimpleName());
 			}
 
 			tx.success();

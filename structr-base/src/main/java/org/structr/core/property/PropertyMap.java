@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Traits;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -331,7 +332,7 @@ public class PropertyMap {
 		return fallbackPropertyMap(source);
 	}
 
-	public static PropertyMap inputTypeToJavaType(final SecurityContext securityContext, Class<? extends GraphObject> entity, final Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap inputTypeToJavaType(final SecurityContext securityContext, final Traits traits, final Map<String, Object> source) throws FrameworkException {
 
 		final PropertyMap resultMap = new PropertyMap();
 
@@ -373,19 +374,19 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey = StructrApp.key(entity, key, false);
+					PropertyKey propertyKey = StructrApp.key(traits, key, false);
 					if (propertyKey == null) {
 
-						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
+						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(traits, key);
 					}
 
 					if (propertyKey instanceof GenericProperty) {
 
-						if (!(StructrApp.key(entity, "isDOMNode", false) instanceof GenericProperty)) {
+						if (!(StructrApp.key(traits, "isDOMNode", false) instanceof GenericProperty)) {
 
 							// allow custom attributes on DOMNode
 
-						} else if ("PrincipalInterface".equals(entity.getSimpleName()) && "allowed".equals(key)) {
+						} else if ("PrincipalInterface".equals(traits.getName()) && "allowed".equals(key)) {
 
 							// allow "allowed" property for grantees
 
@@ -395,18 +396,18 @@ public class PropertyMap {
 							switch (Settings.InputValidationMode.getValue()) {
 
 								case "reject_warn":
-									logger.warn("Rejecting input with unknown JSON key for type {}: \"{}\" = \"{}\"", entity.getSimpleName(), key, value);
+									logger.warn("Rejecting input with unknown JSON key for type {}: \"{}\" = \"{}\"", traits.getName(), key, value);
 								case "reject":
-									throw new FrameworkException(422, "Rejecting input with unknown JSON key for type " + entity.getSimpleName() + ": \"" + key + "\" with value \"" + value + "\".");
+									throw new FrameworkException(422, "Rejecting input with unknown JSON key for type " + traits.getName() + ": \"" + key + "\" with value \"" + value + "\".");
 
 								case "ignore_warn":
-									logger.warn("Ignoring unknown JSON key for type {}: \"{}\" = \"{}\"", entity.getSimpleName(), key, value);
+									logger.warn("Ignoring unknown JSON key for type {}: \"{}\" = \"{}\"", traits.getName(), key, value);
 								case "ignore":
 									// move on to the next key/value pair
 									continue;
 
 								case "accept_warn":
-									logger.warn("Accepting unknown JSON key for type {}: \"{}\" = \"{}\"", entity.getSimpleName(), key, value);
+									logger.warn("Accepting unknown JSON key for type {}: \"{}\" = \"{}\"", traits.getName(), key, value);
 								case "accept":
 									// allow the key/value pair to be read
 							}

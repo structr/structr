@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.test.web.StructrUiTest;
@@ -64,8 +64,8 @@ public class ConsoleTest extends StructrUiTest {
 	public void testUserCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		PrincipalInterface admin = null;
-		String uuid              = null;
+		Principal admin       = null;
+		String uuid           = null;
 
 		try {
 

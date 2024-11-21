@@ -21,7 +21,7 @@ package org.structr.web.auth;
 
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 
 public interface OAuth2Client {
 
@@ -34,11 +34,11 @@ public interface OAuth2Client {
 
     String getErrorURI();
 
-    void invokeOnLoginMethod(PrincipalInterface user) throws FrameworkException;
+    void invokeOnLoginMethod(Principal user) throws FrameworkException;
 
     String getCredentialKey();
 
-    void initializeAutoCreatedUser(PrincipalInterface user);
+    void initializeAutoCreatedUser(Principal user);
 
     String getLogoutURI();
 }

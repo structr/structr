@@ -19,6 +19,7 @@
 package org.structr.core.graph.search;
 
 
+import org.structr.api.Traits;
 import org.structr.api.graph.Node;
 import org.structr.api.index.Index;
 import org.structr.common.SecurityContext;
@@ -48,7 +49,7 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 
 	@Override
 	public Factory<Node, T> getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
-		return new NodeFactory(securityContext, includeHidden, publicOnly, pageSize, page);
+		return new NodeFactory<T>(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 	}
 
 	@Override
-	public boolean isRelationshipSearch() {
+	public boolean isRelationshipSearch(){
 		return false;
 	}
 }

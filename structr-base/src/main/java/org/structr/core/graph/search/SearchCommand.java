@@ -18,11 +18,10 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Transaction;
+import org.structr.api.Traits;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
@@ -73,15 +72,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+	private final Traits traits                  = new Traits();
 	private SortOrder sortOrder                  = new DefaultSortOrder();
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
 	private Comparator comparator                = null;
 	private boolean publicOnly                   = false;
 	private boolean includeHidden                = true;
-	private boolean prefetchingEnabled           = true;
 	private boolean doNotSort                    = false;
-	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
 
@@ -96,19 +94,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return PagingIterable.EMPTY_ITERABLE;
 		}
 
-		// automatic prefetching
-		if (prefetchingEnabled && type != null) {
-
-			final Set<Class> schemaTypes = Set.of(SchemaNode.class, SchemaMethod.class, SchemaProperty.class, SchemaView.class);
-			if (schemaTypes.contains(type)) {
-
-				SchemaService.prefetchSchemaNodes(TransactionCommand.getCurrentTransaction());
-			}
-		}
-
-		final Factory<S, T> factory   = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
-		final PrincipalInterface user = securityContext.getUser(false);
-		final SearchConfig config     = new SearchConfig();
+		final Factory<S, T> factory = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
+		final Principal user        = securityContext.getUser(false);
+		final SearchConfig config   = new SearchConfig();
 
 		if (user == null) {
 
@@ -448,27 +436,27 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andType(final Class type) {
+	public org.structr.core.app.Query<T> andType(final Class<? extends T> type) {
 
-		this.type = type;
+		this.traits.add(type);
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> orType(final Class type) {
+	public org.structr.core.app.Query<T> orType(final Class<? extends T> type) {
 
-		this.type = type;
+		this.traits.add(type);
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andTypes(final Class type) {
+	public org.structr.core.app.Query<T> andTypes(final Class<? extends T> type) {
 
-		this.type = type;
+		this.traits.add(type);
 
 		andType(type);
 
@@ -476,9 +464,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> orTypes(final Class type) {
+	public org.structr.core.app.Query<T> orTypes(final Class<? extends T> type) {
 
-		this.type = type;
+		this.traits.add(type);
 
 		orType(type);
 
@@ -486,8 +474,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public Class getType() {
-		return this.type;
+	public Traits getTraits() {
+		return this.traits;
 	}
 
 	@Override
@@ -766,18 +754,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public SearchAttributeGroup getRootAttributeGroup() {
-		return rootGroup;
-	}
-
-	@Override
 	public Occurrence getCurrentOccurrence() {
 		return currentGroup.getOccurrence();
-	}
-
-	@Override
-	public void setQueryContext(final QueryContext queryContext) {
-		this.queryContext = queryContext;
 	}
 
 	@Override
@@ -789,16 +767,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> isPing(final boolean isPing) {
 
 		getQueryContext().isPing(isPing);
-		return this;
-	}
-
-	@Override
-	public void overrideFetchSize(final int fetchSizeForThisRequest) {
-		queryContext.overrideFetchSize(fetchSizeForThisRequest);
-	}
-
-	public org.structr.core.app.Query<T> disablePrefetching() {
-		prefetchingEnabled = false;
 		return this;
 	}
 
@@ -975,9 +943,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private String getQueryDescription() {
 
-		if (type != null) {
+		if (traits != null) {
 
-			return "(" + type.getSimpleName() + ")";
+			return "(" + traits.toString() + ")";
 		}
 
 		return null;

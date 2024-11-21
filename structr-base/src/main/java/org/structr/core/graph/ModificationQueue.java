@@ -30,7 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.GenericProperty;
@@ -241,7 +241,7 @@ public class ModificationQueue {
 		ids.clear();
 	}
 
-	public void create(final PrincipalInterface user, final NodeInterface node) {
+	public void create(final Principal user, final NodeInterface node) {
 
 		this.hasChanges = true;
 
@@ -253,7 +253,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public <S extends NodeInterface, T extends NodeInterface> void create(final PrincipalInterface user, final RelationshipInterface relationship) {
+	public <S extends NodeInterface, T extends NodeInterface> void create(final Principal user, final RelationshipInterface relationship) {
 
 		this.hasChanges = true;
 
@@ -293,7 +293,7 @@ public class ModificationQueue {
 		getState(node).modifySecurity();
 	}
 
-	public void modify(final PrincipalInterface user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -305,7 +305,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void modify(final PrincipalInterface user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+	public void modify(final Principal user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
 
 		this.ids.add(relationship.getRelationship().getId().getId());
 		this.hasChanges = true;
@@ -317,7 +317,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void delete(final PrincipalInterface user, final NodeInterface node) {
+	public void delete(final Principal user, final NodeInterface node) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -330,7 +330,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void delete(final PrincipalInterface user, final RelationshipInterface relationship, final boolean passive) {
+	public void delete(final Principal user, final RelationshipInterface relationship, final boolean passive) {
 
 		this.ids.add(relationship.getRelationship().getId().getId());
 		this.hasChanges = true;
@@ -522,7 +522,7 @@ public class ModificationQueue {
 	}
 
 	// ----- private methods -----
-	private void modifyEndNodes(final PrincipalInterface user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
+	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
 
 		// only modify if nodes are accessible
 		if (startNode != null && endNode != null) {

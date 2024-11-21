@@ -53,7 +53,7 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.Property;
@@ -229,7 +229,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					return;
 				}
 
-				final PrincipalInterface user = securityContext.getUser(false);
+				final Principal user = securityContext.getUser(false);
 				if (user != null) {
 
 					// Don't cache if a user is logged in
@@ -389,7 +389,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 								if (dataNode == null) {
-									dataNode = findFirstNodeByName(securityContext, request, path);
+									dataNode = findFirstNodeByName(securityContext, path);
 								}
 
 								renderContext.setDetailsDataObject(dataNode);
@@ -402,7 +402,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								} else {
 
-									dataNode = findFirstNodeByName(securityContext, request, path);
+									dataNode = findFirstNodeByName(securityContext, path);
 								}
 
 								renderContext.setDetailsDataObject(dataNode);
@@ -645,7 +645,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					return;
 				}
 
-				final PrincipalInterface user = securityContext.getUser(false);
+				final Principal user = securityContext.getUser(false);
 				if (user != null) {
 
 					// Don't cache if a user is logged in
@@ -700,7 +700,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					if (!requestUriContainsUuids) {
 
 						// Try to find a data node by name
-						dataNode = findFirstNodeByName(securityContext, request, path);
+						dataNode = findFirstNodeByName(securityContext, path);
 
 					} else {
 
@@ -1048,12 +1048,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * Find first node whose name matches the last part of the given path
 	 *
 	 * @param securityContext
-	 * @param request
 	 * @param path
 	 * @return node
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
+	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, final String path) throws FrameworkException {
 
 		final String name = PathHelper.getName(path);
 
@@ -1061,7 +1060,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested name: {}", name);
 
-			final Query query                  = StructrApp.getInstance(securityContext).nodeQuery();
+			final Query<AbstractNode> query    = StructrApp.getInstance(securityContext).nodeQuery(AbstractNode.class);
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
@@ -1071,7 +1070,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				query.parent();
 			}
 
-			return (AbstractNode) query.getFirst();
+			return query.getFirst();
 		}
 
 		return null;
@@ -1262,17 +1261,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final App app = StructrApp.getInstance();
 
-			List<PrincipalInterface> results;
+			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(PrincipalInterface.class).and(confirmationKey, key).getAsList();
+				results = app.nodeQuery(Principal.class).and(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
 
 			if (!results.isEmpty()) {
 
-				final PrincipalInterface user = results.get(0);
+				final Principal user = results.get(0);
 				long userId;
 
 				try (final Tx tx = app.tx()) {
@@ -1356,17 +1355,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final App app = StructrApp.getInstance();
 
-			List<PrincipalInterface> results;
+			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(PrincipalInterface.class).and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
 
 			if (!results.isEmpty()) {
 
-				final PrincipalInterface user = results.get(0);
+				final Principal user = results.get(0);
 				long userId;
 
 				try (final Tx tx = app.tx()) {
@@ -1420,7 +1419,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (!uuid.isEmpty()) {
 
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+			final Query<Linkable> query = StructrApp.getInstance(securityContext).nodeQuery(Linkable.class);
 
 			query
 				.and()
@@ -1701,7 +1700,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				final AbstractMethod method = Methods.resolveMethod(file.getClass(), "onDownload");
+				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), "onDownload");
 				if (method != null) {
 
 					method.execute(securityContext, file, Arguments.fromMap(callbackMap), new EvaluationHints());
@@ -1848,7 +1847,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			// check Http Basic Authentication headers
-			final PrincipalInterface principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
+			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
 			if (principal != null) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
@@ -1881,7 +1880,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return HttpBasicAuthResult.NO_BASIC_AUTH;
 	}
 
-	private PrincipalInterface getPrincipalForAuthorizationHeader(final String authHeader) {
+	private Principal getPrincipalForAuthorizationHeader(final String authHeader) {
 
 		if (authHeader != null) {
 
@@ -1908,7 +1907,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (StringUtils.isNoneBlank(username, password)) {
 
 					try {
-						return AuthHelper.getPrincipalForPassword(PrincipalInterface.name, username, password);
+						return AuthHelper.getPrincipalForPassword(Principal.name, username, password);
 
 					} catch (Throwable t) {
 						// ignore

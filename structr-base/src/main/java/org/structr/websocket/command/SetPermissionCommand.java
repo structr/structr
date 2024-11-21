@@ -31,7 +31,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
@@ -80,7 +80,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
 
-		PrincipalInterface principal = (PrincipalInterface) getNode(principalId);
+		Principal principal = (Principal) getNode(principalId);
 		if (principal == null) {
 
 			logger.error("No principal found with id {}", principalId);
@@ -180,7 +180,7 @@ public class SetPermissionCommand extends AbstractCommand {
 		return "SET_PERMISSION";
 	}
 
-	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final PrincipalInterface principal, final String action, final Set<Permission> permissions, final boolean recursive) throws FrameworkException {
+	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final Principal principal, final String action, final Set<Permission> permissions, final boolean rec) throws FrameworkException {
 
 		// create new transaction if not already present
 		Tx tx = transaction.get(null);

@@ -18,31 +18,18 @@
  */
 package org.structr.web.entity;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.api.config.Settings;
-import org.structr.api.service.LicenseManager;
-import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.*;
-import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
-import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
-import org.structr.web.entity.relationship.UserHOME_DIRFolder;
-import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
 
-public class User extends Principal {
+public interface User extends Principal {
+
+        Folder getHomeDirectory();
+        void setWorkingDirectory(final Folder workDir) throws FrameworkException;
+        Folder getWorkingDirectory();
+        void setLocalStorage(final String localStorage) throws FrameworkException;
+        String getLocalStorage();
+
+	/*
 
 	public static final Property<Folder> homeDirectoryProperty              = new EndNode<>("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema();
 	public static final Property<Folder> workingDirectoryProperty           = new EndNode<>("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
@@ -219,4 +206,5 @@ public class User extends Principal {
 
 		}
 	}
+	*/
 }

@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.Traits;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.*;
@@ -640,7 +641,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 			final LinkSource linkSourceElement = (LinkSource)sourceNode;
 
-			properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
+			properties.put(StructrApp.key(Traits.of(LinkSource.class), "linkable"), linkSourceElement.getLinkable());
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
@@ -1252,7 +1253,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public void getSecurityInstructions(final Set<String> instructions) {
 
-		final PrincipalInterface _owner = this.getOwnerNode();
+		final Principal _owner = this.getOwnerNode();
 		if (_owner != null) {
 
 			instructions.add("@structr:owner(" + _owner.getProperty(AbstractNode.name) + ")");
@@ -1260,7 +1261,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		this.getSecurityRelationships().stream().filter(Objects::nonNull).sorted(Comparator.comparing(security -> security.getSourceNode().getProperty(AbstractNode.name))).forEach(security -> {
 
-			final PrincipalInterface grantee = security.getSourceNode();
+			final Principal grantee = security.getSourceNode();
 			final Set<String> perms = security.getPermissions();
 			final StringBuilder shortPerms = new StringBuilder();
 
@@ -1349,7 +1350,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 			for (final String p : rawProps) {
 
 				final String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
-				final PropertyKey key = StructrApp.key(DOMNode.class, p, false);
+				final PropertyKey key = StructrApp.key(Traits.of(DOMNode.class), p, false);
 
 				if (key != null) {
 
@@ -1376,7 +1377,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		for (final String key : props) {
 
-			PropertyKey propertyKey = StructrApp.key(this.getClass(), key, false);
+			PropertyKey propertyKey = StructrApp.key(traits, key, false);
 			if (propertyKey == null) {
 
 				// support arbitrary data-* attributes
@@ -1415,7 +1416,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		try {
 
-			final Page page            = (Page)this.getOwnerDocument();
+			final Page page            = this.getOwnerDocument();
 			final DOMNode newChildNode = (DOMNode)newChild;
 
 			newChildNode.setOwnerDocument(page);
@@ -1447,7 +1448,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		}
 
 		// special handling for tree items that explicitly opt-in to be controlled automatically, configured with the toggle-tree-item event.
-		final String treeItemDataKey = this.getProperty(StructrApp.key(DOMElement.class, "data-structr-tree-children"));
+		final String treeItemDataKey = this.getProperty(StructrApp.key(Traits.of(DOMElement.class), "data-structr-tree-children"));
 		if (treeItemDataKey != null) {
 
 			final GraphObject treeItem = renderContext.getDataNode(treeItemDataKey);
@@ -1529,7 +1530,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 						} else {
 
-							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getTraits(), subKey, false);
 							renderContext.setRelatedProperty(propertyKey);
 
 							if (propertyKey != null) {
@@ -1736,7 +1737,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 				final LinkSource linkSourceElement = (LinkSource)this;
 
-				properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
+				properties.put(StructrApp.key(Traits.of(LinkSource.class), "linkable"), linkSourceElement.getLinkable());
 			}
 
 			final App app = StructrApp.getInstance(securityContext);

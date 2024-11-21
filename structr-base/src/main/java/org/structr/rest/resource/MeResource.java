@@ -23,7 +23,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 
@@ -62,7 +62,7 @@ public class MeResource extends ExactMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			PrincipalInterface user = securityContext.getUser(true);
+			Principal user = securityContext.getUser(true);
 			if (user != null) {
 
 				return new PagingIterable<>(getURL(), Arrays.asList(user));

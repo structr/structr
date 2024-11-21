@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
@@ -65,7 +65,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final PrincipalInterface fileOwner = file.getOwnerNode();
+			final Principal fileOwner = file.getOwnerNode();
 			if (fileOwner == null) {
 
 				owner = securityContext.getUser(false)::getName;
@@ -92,7 +92,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final PrincipalInterface owner = file.getOwnerNode();
+			final Principal owner = file.getOwnerNode();
 			if (owner != null) {
 
 				groups.addAll(Iterables.toList(owner.getGroups()));

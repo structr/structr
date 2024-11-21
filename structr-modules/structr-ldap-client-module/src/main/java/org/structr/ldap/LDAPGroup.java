@@ -37,7 +37,14 @@ import org.structr.core.property.StringProperty;
 
 /**
  */
-public class LDAPGroup extends Group {
+public interface LDAPGroup extends Group {
+
+	String getDistinguishedName();
+	String getPath();
+	String getFilter();
+	String getScope();
+
+	/*
 
 	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
 
@@ -122,4 +129,5 @@ public class LDAPGroup extends Group {
 			logger.warn(message);
 		}
 	}
+	*/
 }

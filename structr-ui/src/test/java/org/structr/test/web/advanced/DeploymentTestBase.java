@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -236,7 +236,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));
 
 		// include owner in content hash generation!
-		final PrincipalInterface owner = node.getOwnerNode();
+		final Principal owner = node.getOwnerNode();
 		if (owner != null) {
 
 			buf.append(valueOrEmpty(owner, AbstractNode.name));

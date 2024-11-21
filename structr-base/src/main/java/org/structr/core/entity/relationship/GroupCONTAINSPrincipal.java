@@ -20,9 +20,9 @@ package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.Group;
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 
-public class GroupCONTAINSPrincipal extends ManyToMany<Group, PrincipalInterface> {
+public class GroupCONTAINSPrincipal extends ManyToMany<Group, Principal> {
 
 	@Override
 	public Class<Group> getSourceType() {
@@ -30,8 +30,8 @@ public class GroupCONTAINSPrincipal extends ManyToMany<Group, PrincipalInterface
 	}
 
 	@Override
-	public Class<PrincipalInterface> getTargetType() {
-		return PrincipalInterface.class;
+	public Class<Principal> getTargetType() {
+		return Principal.class;
 	}
 
 	@Override

@@ -42,7 +42,7 @@ import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
-public class ServicePrincipal implements PrincipalInterface, AccessControllable, NonIndexed {
+public class ServicePrincipal implements Principal, AccessControllable, NonIndexed {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
 	private SecurityContext securityContext = null;
@@ -84,12 +84,12 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public Iterable<PrincipalInterface> getParents() {
+	public Iterable<Principal> getParents() {
 		return Collections.EMPTY_LIST;
 	}
 
 	@Override
-	public Iterable<PrincipalInterface> getParentsPrivileged() {
+	public Iterable<Principal> getParentsPrivileged() {
 
 		// if the list of reference IDs is set, we search for groups with the given IDs and associate this principal with them
 		if (jwksReferenceIds != null) {
@@ -348,7 +348,7 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public PrincipalInterface getOwnerNode() {
+	public Principal getOwnerNode() {
 		return null;
 	}
 
@@ -358,39 +358,39 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public void grant(Permission permission, PrincipalInterface principal) throws FrameworkException {
+	public void grant(Permission permission, Principal principal) throws FrameworkException {
 	}
 
 	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
 	}
 
 	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 	}
 
 	@Override
-	public void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
+	public void revoke(Permission permission, Principal principal) throws FrameworkException {
 	}
 
 	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
 	}
 
 	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 	}
 
 	@Override
-	public void setAllowed(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
 	}
 
 	@Override
-	public void setAllowed(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 	}
 
 	@Override
-	public Security getSecurityRelationship(PrincipalInterface principal) {
+	public Security getSecurityRelationship(Principal principal) {
 		return null;
 	}
 
@@ -553,7 +553,7 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public Class getEntityType() {
+	public Class getTraits() {
 		return this.getClass();
 	}
 
@@ -593,9 +593,9 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	// ----- private methods -----
-	private boolean recursivelyCheckForAdminPermissions(final Iterable<PrincipalInterface> parents) {
+	private boolean recursivelyCheckForAdminPermissions(final Iterable<Principal> parents) {
 
-		for (final PrincipalInterface parent : parents) {
+		for (final Principal parent : parents) {
 
 			if (parent.isAdmin()) {
 				return true;

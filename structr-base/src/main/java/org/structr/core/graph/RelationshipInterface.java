@@ -32,7 +32,7 @@ import org.structr.schema.NonIndexed;
  */
 public interface RelationshipInterface extends GraphObject, NonIndexed {
 
-	public void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId);
+	public void init(final SecurityContext securityContext, final Relationship dbRel, final long transactionId);
 
 	public NodeInterface getSourceNode();
 	public NodeInterface getTargetNode();

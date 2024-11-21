@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
@@ -213,7 +213,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void invokeOnLoginMethod(PrincipalInterface user) throws FrameworkException {
+	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), "onOAuthLogin");
 		if (method != null) {
@@ -228,7 +228,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void initializeAutoCreatedUser(PrincipalInterface user) {
+	public void initializeAutoCreatedUser(Principal user) {
 
 	}
 }

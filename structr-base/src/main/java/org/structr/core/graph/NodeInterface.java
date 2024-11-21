@@ -18,13 +18,9 @@
  */
 package org.structr.core.graph;
 
-import org.apache.commons.lang.StringUtils;
-import org.structr.api.Transaction;
-import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.util.Iterables;
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -40,13 +36,13 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
 	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<PrincipalInterface>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
+	public static final Property<Principal>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<String>              ownerId      = new EntityIdProperty<>("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<Iterable<PrincipalInterface>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
-	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final long sourceTransactionId);
+	void init(final SecurityContext securityContext, final Node dbNode, final long sourceTransactionId);
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
@@ -98,7 +94,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 		for (final Security security : this.getIncomingRelationships(Security.class)) {
 
 			final Set<Permission> permissions = new HashSet();
-			final PrincipalInterface principal         = security.getSourceNode();
+			final Principal principal         = security.getSourceNode();
 
 			for (final String perm : security.getPermissions()) {
 

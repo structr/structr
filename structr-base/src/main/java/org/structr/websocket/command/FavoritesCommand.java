@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -53,7 +53,7 @@ public class FavoritesCommand extends AbstractCommand {
 
 		final String mode                     = webSocketData.getNodeDataStringValue("mode");
 		final String favoritableId            = webSocketData.getNodeDataStringValue("id");
-		final PrincipalInterface currentUser           = webSocket.getCurrentUser();
+		final Principal currentUser           = webSocket.getCurrentUser();
 
 		if (mode == null) {
 

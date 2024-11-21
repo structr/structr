@@ -835,7 +835,7 @@ public abstract class ImageHelper extends FileHelper {
 		try {
 
 			// Get new instance with superuser context to be able to update EXIF data
-			final File image = StructrApp.getInstance().get(File.class, originalImage.getUuid());
+			final File image = StructrApp.getInstance().getNodeById(File.class, originalImage.getUuid());
 
 			if (image != null) {
 

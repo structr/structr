@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.api.Traits;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -39,11 +40,16 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 		if (entityClass != null) {
 
 			// we fetch the entity here, but only to find out the runtime type, and we don't throw errors here!
-			final GraphObject entity = StructrApp.getInstance().get(entityClass, uuid);
+			GraphObject entity = StructrApp.getInstance().getNodeById(entityClass, uuid);
+			if (entity == null) {
+
+				entity = StructrApp.getInstance().getRelationshipById(entityClass, uuid);
+			}
+
 			if (entity != null) {
 
 				// use actual type of entity returned to support inheritance
-				final AbstractMethod method = Methods.resolveMethod(entity.getClass(), name);
+				final AbstractMethod method = Methods.resolveMethod(entity.getTraits(), name);
 				if (method != null && !method.isPrivate()) {
 
 					return new InstanceMethodResourceHandler(call, entityClass, typeName, uuid, method);
@@ -52,7 +58,7 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 			} else {
 
 				// entity does not exist, so we cannot know the runtime type
-				final AbstractMethod method = Methods.resolveMethod(entityClass, name);
+				final AbstractMethod method = Methods.resolveMethod(Traits.of(entityClass), name);
 				if (method != null && !method.isPrivate()) {
 
 					return new Error404DummyInstanceMethodResourceHandler(call, entityClass, typeName, uuid, method);

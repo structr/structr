@@ -48,7 +48,11 @@ import java.util.Map;
 /**
  *
  */
-public class LDAPUser extends User {
+public interface LDAPUser extends User {
+
+        void initializeFrom(final Entry entry) throws FrameworkException;
+
+	/*
 
 	static final Logger logger = LoggerFactory.getLogger(LDAPUser.class);
 
@@ -188,4 +192,5 @@ public class LDAPUser extends User {
 
 		return null;
 	}
+	*/
 }

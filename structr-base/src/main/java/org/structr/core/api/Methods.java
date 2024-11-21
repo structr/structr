@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.structr.api.Traits;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -44,13 +45,13 @@ public class Methods {
 
 	private static final Map<String, CacheEntry> methodCache              = new LinkedHashMap<>();
 
-	public static Map<String, AbstractMethod> getAllMethods(final Class type) {
+	public static Map<String, AbstractMethod> getAllMethods(final Traits traits) {
 
 		final Map<String, AbstractMethod> allMethods = new LinkedHashMap<>();
 
-		if (type != null) {
+		if (traits != null) {
 
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
+			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(traits);
 
 			for (final Method method : methods.values()) {
 
@@ -79,7 +80,7 @@ public class Methods {
 		return allMethods;
 	}
 
-	public static AbstractMethod resolveMethod(final Class type, final String methodName) {
+	public static AbstractMethod resolveMethod(final Traits type, final String methodName) {
 
 		// A method can either be a Java method, which we need to call with Method.invoke() via reflection,
 		// OR a scripting method which will in turn call Actions.execute(), so we want do differentiate
@@ -154,7 +155,7 @@ public class Methods {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
+					final SchemaMethod schemaMethod = StructrApp.getInstance().getNodeById(SchemaMethod.class, id);
 					if (schemaMethod != null) {
 
 						cacheEntry.method = new ScriptMethod(schemaMethod);

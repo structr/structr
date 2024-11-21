@@ -213,9 +213,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface p1 = app.create(User.class, "user1");
-			final PrincipalInterface p2 = app.create(User.class, "user2");
-			final PrincipalInterface p3 = app.create(User.class, "user3");
+			final Principal p1 = app.create(User.class, "user1");
+			final Principal p2 = app.create(User.class, "user2");
+			final Principal p3 = app.create(User.class, "user3");
 
 			final File test1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
 			final File test2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
@@ -279,9 +279,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		// modify permissions of files that were exported
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface p1 = app.nodeQuery(PrincipalInterface.class).andName("user1").getFirst();
-			final PrincipalInterface p2 = app.nodeQuery(PrincipalInterface.class).andName("user2").getFirst();
-			final PrincipalInterface p3 = app.nodeQuery(PrincipalInterface.class).andName("user3").getFirst();
+			final Principal p1 = app.nodeQuery(Principal.class).andName("user1").getFirst();
+			final Principal p2 = app.nodeQuery(Principal.class).andName("user2").getFirst();
+			final Principal p3 = app.nodeQuery(Principal.class).andName("user3").getFirst();
 
 			for (final File test : app.nodeQuery(File.class).getResultStream()) {
 
@@ -328,8 +328,8 @@ public class Deployment4Test extends DeploymentTestBase {
 		// check files
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface p1 = app.nodeQuery(PrincipalInterface.class).andName("user1").getFirst();
-			final PrincipalInterface p2 = app.nodeQuery(PrincipalInterface.class).andName("user2").getFirst();
+			final Principal p1 = app.nodeQuery(Principal.class).andName("user1").getFirst();
+			final Principal p2 = app.nodeQuery(Principal.class).andName("user2").getFirst();
 			final File test1   = app.nodeQuery(File.class).andName("test1.txt").getFirst();
 			final File test2   = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 			final File test3   = app.nodeQuery(File.class).andName("test3.txt").getFirst();
@@ -432,9 +432,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
+				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
 			tx.success();
@@ -489,9 +489,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
+				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
 			tx.success();
@@ -750,9 +750,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
+				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
 			tx.success();
@@ -838,7 +838,7 @@ public class Deployment4Test extends DeploymentTestBase {
 	}
 
 	// ----- private methods -----
-	private boolean isAllowedByGrant(final AccessControllable entity, final Permission permission, final PrincipalInterface user) {
+	private boolean isAllowedByGrant(final AccessControllable entity, final Permission permission, final Principal user) {
 
 		final Security security = entity.getSecurityRelationship(user);
 		if (security != null) {

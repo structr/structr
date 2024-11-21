@@ -40,7 +40,7 @@ import org.structr.common.fulltext.IndexedWord;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.storage.StorageProviderFactory;
@@ -175,7 +175,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 							tokenizer.write(getName());
 
 							// tokenize owner name
-							final PrincipalInterface _owner = indexable.getOwnerNode();
+							final Principal _owner = indexable.getOwnerNode();
 							if (_owner != null) {
 
 								final String ownerName = _owner.getName();

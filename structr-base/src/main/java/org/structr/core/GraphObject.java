@@ -21,6 +21,7 @@ package org.structr.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.Traits;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
@@ -103,7 +104,7 @@ public interface GraphObject extends CodeSource {
 	 * @param propertyView
 	 * @return the property set for the given view
 	 */
-	public Set<PropertyKey> getPropertyKeys(String propertyView);
+	public Set<PropertyKey> getPropertyKeys(final String propertyView);
 
 	/**
 	 * Returns the ID of the transaction in which this object was instantiated.
@@ -221,7 +222,7 @@ public interface GraphObject extends CodeSource {
 
 		final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
 
-		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getEntityType(), PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getTraits(), PropertyView.All)) {
 
 			if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
 
@@ -236,7 +237,7 @@ public interface GraphObject extends CodeSource {
 
 		final Set<PropertyKey> indexKeys = new LinkedHashSet<>();
 
-		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getEntityType(), PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getTraits(), PropertyView.All)) {
 
 			if (key.isIndexed()) {
 
@@ -331,7 +332,7 @@ public interface GraphObject extends CodeSource {
 	 */
 	default public <T> T getProperty(final String propertyName) {
 
-		final PropertyKey<T> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), propertyName, false);
+		final PropertyKey<T> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getTraits(), propertyName, false);
 		if (key != null) {
 
 			return getProperty(key);
@@ -494,7 +495,7 @@ public interface GraphObject extends CodeSource {
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
 
-	Class getEntityType();
+	Traits getTraits();
 
 	// ----- Cloud synchronization and replication -----
 	/**

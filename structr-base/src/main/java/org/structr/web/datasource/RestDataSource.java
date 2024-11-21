@@ -43,7 +43,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -84,7 +84,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final Value<String> propertyView      = new ThreadLocalPropertyView();
-		final PrincipalInterface currentUser           = securityContext.getUser(false);
+		final Principal currentUser           = securityContext.getUser(false);
 
 		propertyView.set(securityContext, PropertyView.Ui);
 

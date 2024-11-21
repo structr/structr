@@ -187,7 +187,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Class getEntityType() {
+	public Class getTraits() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

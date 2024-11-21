@@ -625,7 +625,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		// this method is called from generated Java code in ActionEntry.java line 242
 
-		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
+		final SchemaMethod method = StructrApp.getInstance().getNodeById(SchemaMethod.class, uuid);
 		if (method != null) {
 
 			final String source = method.getProperty(SchemaMethod.source);

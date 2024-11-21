@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.Traits;
 import org.structr.api.config.Settings;
 import org.structr.api.search.Occurrence;
 import org.structr.autocomplete.AbstractHint;
@@ -61,7 +62,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		return hints;
 	}
 
-	public void applyQueryParameters(final SecurityContext securityContext, final Query query) {
+	public void applyQueryParameters(final SecurityContext securityContext, final Query<?> query) {
 
 		final ContextStore contextStore = securityContext.getContextStore();
 		final String sortKey            = contextStore.getSortKey();
@@ -84,10 +85,10 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 		if (sortKey != null) {
 
-			final Class type = query.getType();
-			if (type != null) {
+			final Traits traits = query.getTraits();
+			if (traits != null) {
 
-				final PropertyKey key = StructrApp.key(type, sortKey);
+				final PropertyKey<?> key = StructrApp.key(traits, sortKey);
 				if (key != null) {
 
 					query.sort(key, contextStore.getSortDescending());
@@ -108,7 +109,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		contextStore.resetQueryParameters();
 	}
 
-	protected boolean isAdvancedSearch(final SecurityContext securityContext, final Class type, final PropertyKey key, final Object value, final Query query, final boolean exact) throws FrameworkException {
+	protected boolean isAdvancedSearch(final SecurityContext securityContext, final Traits type, final PropertyKey key, final Object value, final Query query, final boolean exact) throws FrameworkException {
 
 		if (value instanceof Map) {
 
@@ -139,7 +140,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		return false;
 	}
 
-	protected Object handleQuerySources(final SecurityContext securityContext, final Class type, final Query query, final Object[] sources, final boolean exact, final String errorMessage) throws FrameworkException {
+	protected Object handleQuerySources(final SecurityContext securityContext, final Traits type, final Query query, final Object[] sources, final boolean exact, final String errorMessage) throws FrameworkException {
 
 		// extension for native javascript objects
 		if (sources.length == 2) {
@@ -224,7 +225,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 	}
 
 	// ----- private methods -----
-	private void handleObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+	private void handleObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
 
 		if (source instanceof Map) {
 
@@ -289,21 +290,21 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		}
 	}
 
-	private void handleAndObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+	private void handleAndObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
 
 		query.and();
 		handleObject(securityContext, type, query, source, exact);
 		query.parent();
 	}
 
-	private void handleOrObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+	private void handleOrObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
 
 		query.or();
 		handleObject(securityContext, type, query, source, exact);
 		query.parent();
 	}
 
-	private void handleNotObject(final SecurityContext securityContext, final Class type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+	private void handleNotObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
 
 		query.not();
 		handleObject(securityContext, type, query, source, exact);

@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.Traits;
 import org.structr.api.graph.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -82,21 +83,21 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private PropertyKey targetProperty         = null;
 
 	protected SecurityContext securityContext  = null;
-	protected Class entityType                 = null;
+	protected Traits traits                    = null;
 	protected Identity relationshipId          = null;
 
 	public AbstractRelationship() {}
 
-	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
-		init(securityContext, dbRel, entityType, transactionId);
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final long transactionId) {
+		init(securityContext, dbRel, transactionId);
 	}
 
 	@Override
-	public final void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
+	public final void init(final SecurityContext securityContext, final Relationship dbRel, final long transactionId) {
 
 		this.transactionId   = transactionId;
 		this.relationshipId  = dbRel.getId();
-		this.entityType      = entityType;
+		this.traits = traits;
 		this.securityContext = securityContext;
 	}
 
@@ -109,8 +110,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public Class getEntityType() {
-		return entityType;
+	public Traits getTraits() {
+		return traits;
 	}
 
 	@Override
@@ -342,7 +343,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		if (securityContext != null && securityContext.hasCustomView()) {
 
 			final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, view));
+			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(traits, view));
 			final Set<String> customView = securityContext.getCustomView();
 
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
@@ -356,7 +357,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		// this is the default if no application/json; properties=[...] content-type header is present on the request
-		return StructrApp.getConfiguration().getPropertySet(entityType, propertyView);
+		return StructrApp.getConfiguration().getPropertySet(traits, propertyView);
 	}
 
 	public final Map<String, Long> getRelationshipInfo(Direction direction) {
@@ -620,7 +621,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			default:
 
 				// evaluate object value or return default
-				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
+				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(traits, key), actionContext.getPredicate());
 				if (value == null) {
 
 					return Function.numberOrString(defaultValue);

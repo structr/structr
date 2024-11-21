@@ -70,7 +70,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	public abstract T instantiate(final S obj);
 	public abstract T instantiate(final S obj, final Identity pathSegmentId);
-	public abstract T instantiateWithType(final S obj, final Class<T> type, final Identity pathSegmentId, boolean isCreation) throws FrameworkException;
+	public abstract T instantiate(final S obj, final Identity pathSegmentId, boolean isCreation) throws FrameworkException;
 	public abstract T instantiate(final S obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException;
 
 	/**

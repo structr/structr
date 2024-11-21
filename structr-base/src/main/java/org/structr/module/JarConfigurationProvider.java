@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
+import org.structr.api.Traits;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.common.*;
@@ -284,13 +285,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public void setRelationClassForCombinedType(final String combinedType, final Class clazz) {
-		combinedTypeRelationClassCache.put(combinedType, clazz);
+	public void setRelationClassForCombinedType(final String combinedType, final Traits traits) {
+		combinedTypeRelationClassCache.put(combinedType, traits);
 	}
 
 	@Override
-	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Class clazz) {
-		combinedTypeRelationClassCache.put(getCombinedType(sourceType, relType, targetType), clazz);
+	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Traits traits) {
+		combinedTypeRelationClassCache.put(getCombinedType(sourceType, relType, targetType), traits);
 	}
 
 	private Class getRelationClassForCombinedType(final String combinedType) {
@@ -399,7 +400,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 	}
 
-	private int getDistance(final Class candidateType, final Class type, int distance) {
+	private int getDistance(final Class candidateType, final Traits traits, int distance) {
 
 		if (distance >= 1000) {
 			return distance;
@@ -480,7 +481,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public void unregisterEntityType(final Class oldType) {
+	public void unregisterEntityType(final Traits oldType) {
 
 		synchronized (SchemaService.class) {
 
@@ -521,21 +522,21 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public void registerEntityType(final Class type) {
+	public void registerEntityType(final Traits traits) {
 
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
-		final String simpleName = type.getSimpleName();
-		final String fqcn       = type.getName();
+		final String simpleName = traits.getSimpleName();
+		final String fqcn       = traits.getName();
 
 		// do not register types that match org.structr.*Mixin (helpers)
 		if (fqcn.startsWith("org.structr.") && simpleName.endsWith("Mixin")) {
 			return;
 		}
 
-		if (AbstractNode.class.isAssignableFrom(type)) {
+		if (AbstractNode.class.isAssignableFrom(traits)) {
 
-			final Class prev = nodeEntityClassCache.put(simpleName, type);
+			final Class prev = nodeEntityClassCache.put(simpleName, traits);
 			if (prev != null) {
 
 				// if a static type is overwritten and then removed,
@@ -547,25 +548,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			globalPropertyViewMap.remove(fqcn);
 		}
 
-		if (AbstractRelationship.class.isAssignableFrom(type)) {
+		if (AbstractRelationship.class.isAssignableFrom(traits)) {
 
-			relationshipEntityClassCache.put(simpleName, type);
+			relationshipEntityClassCache.put(simpleName, traits);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
 
 			// this was previously done by generated code
-			if (PermissionPropagation.class.isAssignableFrom(type)) {
-				SchemaRelationshipNode.registerPropagatingRelationshipType(type, fqcn.startsWith("org.structr.dynamic."));
+			if (PermissionPropagation.class.isAssignableFrom(traits)) {
+				SchemaRelationshipNode.registerPropagatingRelationshipType(traits, fqcn.startsWith("org.structr.dynamic."));
 			}
 		}
 
 		// interface that extends NodeInterface, must be stored
-		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
+		if (traits.isInterface() && GraphObject.class.isAssignableFrom(traits)) {
 
-			reverseInterfaceMap.putIfAbsent(type.getSimpleName(), type);
+			reverseInterfaceMap.putIfAbsent(traits.getSimpleName(), traits);
 		}
 
-		for (final Class interfaceClass : type.getInterfaces()) {
+		for (final Class interfaceClass : traits.getInterfaces()) {
 
 			final String interfaceName     = interfaceClass.getSimpleName();
 			Set<Class> classesForInterface = interfaceCache.get(interfaceName);
@@ -577,7 +578,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				interfaceCache.put(interfaceName, classesForInterface);
 			}
 
-			classesForInterface.add(type);
+			classesForInterface.add(traits);
 
 			// recurse for interfaces
 			registerEntityType(interfaceClass);
@@ -585,8 +586,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		try {
 
-			final Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, type);
-			final Map<Field, View> views = getFieldValuesOfType(View.class, type);
+			final Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, traits);
+			final Map<Field, View> views = getFieldValuesOfType(View.class, traits);
 
 			for (final Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
@@ -600,7 +601,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					registerProperty(declaringClass, propertyKey);
 				}
 
-				registerProperty(type, propertyKey);
+				registerProperty(traits, propertyKey);
 			}
 
 			for (final Map.Entry<Field, View> entry : views.entrySet()) {
@@ -612,7 +613,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				// Register views and properties
 				// Overwrite the view definition of superclasses for non-builtin views
-				final boolean overwrite = type.equals(declaringClass)
+				final boolean overwrite = traits.equals(declaringClass)
 					&& !( view.name().equals(PropertyView.All)
 					|| view.name().equals(PropertyView.Custom)
 					|| view.name().equals(PropertyView.Html)
@@ -624,7 +625,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					|| view.name().equals(SchemaRelationshipNode.schemaView.name())
 				);
 
-				registerPropertySet(type, view.name(), overwrite, keys);
+				registerPropertySet(traits, view.name(), overwrite, keys);
 
 				for (final PropertyKey propertyKey : keys) {
 
@@ -633,7 +634,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 						final View otherView = other.getValue();
 
-						final Set<PropertyKey> otherKeys = getPropertyViewMapForType(type).get(otherView.name());
+						final Set<PropertyKey> otherKeys = getPropertyViewMapForType(traits).get(otherView.name());
 						if (otherKeys != null && otherKeys.contains(propertyKey)) {
 
 							replaceKeyInSet(otherKeys, propertyKey);
@@ -644,11 +645,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (Throwable t) {
 
-			logger.warn("Unable to register type {}, missing module?", type.getSimpleName());
+			logger.warn("Unable to register type {}, missing module?", traits.getName());
 			logger.debug("Unable to register type.", t);
 
 			// remove already registered types in case of error
-			unregisterEntityType(type);
+			unregisterEntityType(traits);
 		}
 
 		Map<String, Method> typeMethods = exportedMethodMap.get(fqcn);
@@ -658,10 +659,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			exportedMethodMap.put(fqcn, typeMethods);
 		}
 
-		typeMethods.putAll(getAnnotatedMethods(type, Export.class));
+		typeMethods.putAll(getAnnotatedMethods(traits, Export.class));
 
 		// extract interfaces for later use
-		getInterfacesForType(type);
+		getInterfacesForType(traits);
 	}
 
 	/**
@@ -673,7 +674,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param transformation the transformation to apply on every entity
 	 */
 	@Override
-	public void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
+	public void registerEntityCreationTransformation(final Traits traits, Transformation<GraphObject> transformation) {
 
 		final Set<Transformation<GraphObject>> transformations = getEntityCreationTransformationsForType(type);
 		if (!transformations.contains(transformation)) {
@@ -683,7 +684,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Set<Class> getInterfacesForType(Class type) {
+	public Set<Class> getInterfacesForType(final Traits traits) {
 
 		Set<Class> interfaces = interfaceMap.get(type);
 		if (interfaces == null) {
@@ -701,8 +702,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Map<String, Method> getExportedMethodsForType(Class type) {
-		return exportedMethodMap.get(type.getName());
+	public Map<String, Method> getExportedMethodsForType(final Traits traits) {
+		return exportedMethodMap.get(traits.getName());
 	}
 
 	@Override
@@ -732,17 +733,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param propertyGroup the property group
 	 */
 	@Override
-	public void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
-		getPropertyGroupMapForType(type).put(key.dbName(), propertyGroup);
+	public void registerPropertyGroup(final Traits traits, final PropertyKey key, final PropertyGroup propertyGroup) {
+		getPropertyGroupMapForType(traits).put(key.dbName(), propertyGroup);
 	}
 
 	@Override
-	public void registerConvertedProperty(PropertyKey propertyKey) {
+	public void registerConvertedProperty(final PropertyKey propertyKey) {
 		globalKnownPropertyKeys.add(propertyKey);
 	}
 
 	@Override
-	public synchronized Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
+	public synchronized Set<Transformation<GraphObject>> getEntityCreationTransformations(final Traits traits) {
 
 		Set<Transformation<GraphObject>> transformations = new TreeSet<>();
 		Class localType = type;
@@ -760,12 +761,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public PropertyGroup getPropertyGroup(Class type, PropertyKey key) {
+	public PropertyGroup getPropertyGroup(final Traits type, PropertyKey key) {
 		return getPropertyGroup(type, key.dbName());
 	}
 
 	@Override
-	public PropertyGroup getPropertyGroup(Class type, String key) {
+	public PropertyGroup getPropertyGroup(final Traits type, String key) {
 
 		PropertyGroup group = getAggregatedPropertyGroupMapForType(type).get(key);
 		if (group == null) {
@@ -815,9 +816,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Set<String> getPropertyViewsForType(final Class type) {
+	public Set<String> getPropertyViewsForType(final Traits traits) {
 
-		final Map<String, Set<PropertyKey>> map = getPropertyViewMapForType(type);
+		final Map<String, Set<PropertyKey>> map = getPropertyViewMapForType(traits);
 		if (map != null) {
 
 			return map.keySet();
@@ -833,16 +834,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public boolean hasView(final Class type, final String propertyView) {
+	public boolean hasView(final Traits traits, final String propertyView) {
 
-		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(traits);
 		final Set<PropertyKey> properties = propertyViewMap.get(propertyView);
 
 		return (properties != null);
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
+	public Set<PropertyKey> getPropertySet(final Traits type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
 		Set<PropertyKey> properties = new LinkedHashSet<>();
@@ -878,9 +879,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param forceOverwrite if true, remove properties from existing views
 	 * that are not contained in the new property set
 	 */
-	public void registerPropertySet(final Class type, final String propertyView, final boolean forceOverwrite, PropertyKey... propertySet) {
+	public void registerPropertySet(final Traits traits, final String propertyView, final boolean forceOverwrite, final PropertyKey... propertySet) {
 
-		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(traits);
 		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
 
 		if (forceOverwrite || properties == null) {
@@ -917,24 +918,24 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * view
 	 */
 	@Override
-	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertySet) {
-		registerPropertySet(type, propertyView, false, propertySet);
+	public void registerPropertySet(final Traits traits, final String propertyView, final PropertyKey... propertySet) {
+		registerPropertySet(traits, propertyView, false, propertySet);
 	}
 
 	@Override
-	public void registerPropertySet(final Class type, final String propertyView, final String propertyName) {
-		this.registerPropertySet(type, propertyView, this.getPropertyKeyForJSONName(type, propertyName));
+	public void registerPropertySet(final Traits traits, final String propertyView, final String propertyName) {
+		this.registerPropertySet(traits, propertyView, this.getPropertyKeyForJSONName(traits, propertyName));
 	}
 
 	@Override
-	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
-		return getPropertyKeyForDatabaseName(type, dbName, true);
+	public PropertyKey getPropertyKeyForDatabaseName(final Traits traits, final String dbName) {
+		return getPropertyKeyForDatabaseName(traits, dbName, true);
 	}
 
 	@Override
-	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName, boolean createGeneric) {
+	public PropertyKey getPropertyKeyForDatabaseName(final Traits traits, final String dbName, final boolean createGeneric) {
 
-		final Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
+		final Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(traits);
 		PropertyKey key = classDBNamePropertyMap.get(dbName);
 
 		if (key == null) {
@@ -953,18 +954,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public PropertyKey getPropertyKeyForJSONName(Class type, String jsonName) {
-		return getPropertyKeyForJSONName(type, jsonName, true);
+	public PropertyKey getPropertyKeyForJSONName(final Traits traits, String jsonName) {
+		return getPropertyKeyForJSONName(traits, jsonName, true);
 	}
 
 	@Override
-	public PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createIfNotFound) {
+	public PropertyKey getPropertyKeyForJSONName(final Traits traits, String jsonName, boolean createIfNotFound) {
 
 		if (jsonName == null) {
 			return null;
 		}
 
-		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
+		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(traits);
 		PropertyKey key = classJSNamePropertyMap.get(jsonName);
 
 		if (key == null) {
@@ -985,19 +986,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public void setPropertyKeyForJSONName(final Class type, final String jsonName, final PropertyKey key) {
+	public void setPropertyKeyForJSONName(final Traits traits, final String jsonName, final PropertyKey key) {
 
-		final Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
+		final Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(traits);
 
 		classJSNamePropertyMap.put(jsonName, key);
 	}
 
 	@Override
-	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
+	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, final Traits traits, final PropertyKey propertyKey) {
 
 		Set<PropertyValidator> validators = new LinkedHashSet<>();
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = null;
-		Class localType = type;
+		Class localType = traits;
 
 		// try all superclasses
 		while (localType != null && !localType.equals(Object.class)) {
@@ -1026,65 +1027,65 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public void registerProperty(Class type, PropertyKey propertyKey) {
+	public void registerProperty(final Traits traits, final PropertyKey propertyKey) {
 
-		final Map<String, PropertyKey> dbNamePropertyMap = getClassDBNamePropertyMapForType(type);
+		final Map<String, PropertyKey> dbNamePropertyMap = getClassDBNamePropertyMapForType(traits);
 
 		// backup key (if present and either not dynamic or part of builtin schema)
 		final PropertyKey existingDBNamePropertyKey = dbNamePropertyMap.get(propertyKey.dbName());
 
 		if (existingDBNamePropertyKey != null && (!existingDBNamePropertyKey.isDynamic() || existingDBNamePropertyKey.isPartOfBuiltInSchema())) {
-			getBuiltinClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), existingDBNamePropertyKey);
+			getBuiltinClassDBNamePropertyMapForType(traits).put(propertyKey.dbName(), existingDBNamePropertyKey);
 		}
 
 		dbNamePropertyMap.put(propertyKey.dbName(), propertyKey);
 
 
-		final Map<String, PropertyKey> jsonNamePropertyMap = getClassJSNamePropertyMapForType(type);
+		final Map<String, PropertyKey> jsonNamePropertyMap = getClassJSNamePropertyMapForType(traits);
 
 		// backup key (if present and either not dynamic or part of builtin schema)
 		final PropertyKey existingJSONNamePropertyKey = jsonNamePropertyMap.get(propertyKey.jsonName());
 
 		if (existingJSONNamePropertyKey != null && (!existingJSONNamePropertyKey.isDynamic() || existingJSONNamePropertyKey.isPartOfBuiltInSchema())) {
-			getBuiltinClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), existingJSONNamePropertyKey);
+			getBuiltinClassJSNamePropertyMapForType(traits).put(propertyKey.jsonName(), existingJSONNamePropertyKey);
 		}
 
 		jsonNamePropertyMap.put(propertyKey.jsonName(), propertyKey);
 
-		registerPropertySet(type, PropertyView.All, propertyKey);
+		registerPropertySet(traits, PropertyView.All, propertyKey);
 
 		// inform property key of its registration
-		propertyKey.registrationCallback(type);
+		propertyKey.registrationCallback(traits);
 	}
 
 	@Override
-	public void unregisterProperty(Class type, PropertyKey propertyKey) {
+	public void unregisterProperty(final Traits traits, PropertyKey propertyKey) {
 
-		getClassDBNamePropertyMapForType(type).remove(propertyKey.dbName());
+		getClassDBNamePropertyMapForType(traits).remove(propertyKey.dbName());
 
-		Map<String, PropertyKey> backupdbNamePropertyMap = getBuiltinClassDBNamePropertyMapForType(type);
+		Map<String, PropertyKey> backupdbNamePropertyMap = getBuiltinClassDBNamePropertyMapForType(traits);
 		if (backupdbNamePropertyMap.containsKey(propertyKey.dbName())) {
 			// restore builtin property
-			getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), backupdbNamePropertyMap.get(propertyKey.dbName()));
+			getClassDBNamePropertyMapForType(traits).put(propertyKey.dbName(), backupdbNamePropertyMap.get(propertyKey.dbName()));
 		}
 
-		getClassJSNamePropertyMapForType(type).remove(propertyKey.jsonName());
+		getClassJSNamePropertyMapForType(traits).remove(propertyKey.jsonName());
 
-		Map<String, PropertyKey> backupjsonNamePropertyMap = getBuiltinClassDBNamePropertyMapForType(type);
+		Map<String, PropertyKey> backupjsonNamePropertyMap = getBuiltinClassDBNamePropertyMapForType(traits);
 		if (backupjsonNamePropertyMap.containsKey(propertyKey.jsonName())) {
 			// restore builtin property
-			getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), backupjsonNamePropertyMap.get(propertyKey.jsonName()));
+			getClassJSNamePropertyMapForType(traits).put(propertyKey.jsonName(), backupjsonNamePropertyMap.get(propertyKey.jsonName()));
 		}
 	}
 
 	@Override
-	public void registerDynamicProperty(Class type, PropertyKey propertyKey) {
+	public void registerDynamicProperty(final Traits traits, final PropertyKey propertyKey) {
 
 		synchronized (SchemaService.class) {
 
-			final String typeName = type.getName();
+			final String typeName = traits.getName();
 
-			registerProperty(type, propertyKey);
+			registerProperty(traits, propertyKey);
 
 			// scan all existing classes and find all classes that have the given type as a supertype
 			for (final Class possibleSubclass : nodeEntityClassCache.values()) {
@@ -1521,121 +1522,121 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 	}
 
-	private Map<String, Set<PropertyKey>> getPropertyViewMapForType(final Class type) {
+	private Map<String, Set<PropertyKey>> getPropertyViewMapForType(final Traits traits) {
 
-		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type.getName());
+		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(traits.getName());
 		if (propertyViewMap == null) {
 
 			propertyViewMap = new LinkedHashMap<>();
 
-			globalPropertyViewMap.put(type.getName(), propertyViewMap);
+			globalPropertyViewMap.put(traits.getName(), propertyViewMap);
 
 		}
 
 		return propertyViewMap;
 	}
 
-	private Map<String, PropertyKey> getClassDBNamePropertyMapForType(final Class type) {
+	private Map<String, PropertyKey> getClassDBNamePropertyMapForType(final Traits traits) {
 
-		Map<String, PropertyKey> classDBNamePropertyMap = globalClassDBNamePropertyMap.get(type.getName());
+		Map<String, PropertyKey> classDBNamePropertyMap = globalClassDBNamePropertyMap.get(traits.getName());
 		if (classDBNamePropertyMap == null) {
 
 			classDBNamePropertyMap = new LinkedHashMap<>();
 
-			globalClassDBNamePropertyMap.put(type.getName(), classDBNamePropertyMap);
+			globalClassDBNamePropertyMap.put(traits.getName(), classDBNamePropertyMap);
 
 		}
 
 		return classDBNamePropertyMap;
 	}
 
-	private Map<String, PropertyKey> getBuiltinClassDBNamePropertyMapForType(final Class type) {
+	private Map<String, PropertyKey> getBuiltinClassDBNamePropertyMapForType(final Traits traits) {
 
-		Map<String, PropertyKey> classDBNamePropertyMap = globalBuiltinClassDBNamePropertyMap.get(type.getName());
+		Map<String, PropertyKey> classDBNamePropertyMap = globalBuiltinClassDBNamePropertyMap.get(traits.getName());
 		if (classDBNamePropertyMap == null) {
 
 			classDBNamePropertyMap = new LinkedHashMap<>();
 
-			globalBuiltinClassDBNamePropertyMap.put(type.getName(), classDBNamePropertyMap);
+			globalBuiltinClassDBNamePropertyMap.put(traits.getName(), classDBNamePropertyMap);
 
 		}
 
 		return classDBNamePropertyMap;
 	}
 
-	private Map<String, PropertyKey> getClassJSNamePropertyMapForType(final Class type) {
+	private Map<String, PropertyKey> getClassJSNamePropertyMapForType(final Traits traits) {
 
-		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(type.getName());
+		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(traits.getName());
 		if (classJSNamePropertyMap == null) {
 
 			classJSNamePropertyMap = new LinkedHashMap<>();
 
-			globalClassJSNamePropertyMap.put(type.getName(), classJSNamePropertyMap);
+			globalClassJSNamePropertyMap.put(traits.getName(), classJSNamePropertyMap);
 
 		}
 
 		return classJSNamePropertyMap;
 	}
 
-	private Map<String, PropertyKey> getBuiltinClassJSNamePropertyMapForType(final Class type) {
+	private Map<String, PropertyKey> getBuiltinClassJSNamePropertyMapForType(final Traits traits) {
 
-		Map<String, PropertyKey> classJSNamePropertyMap = globalBuiltinClassJSNamePropertyMap.get(type.getName());
+		Map<String, PropertyKey> classJSNamePropertyMap = globalBuiltinClassJSNamePropertyMap.get(traits.getName());
 		if (classJSNamePropertyMap == null) {
 
 			classJSNamePropertyMap = new LinkedHashMap<>();
 
-			globalBuiltinClassJSNamePropertyMap.put(type.getName(), classJSNamePropertyMap);
+			globalBuiltinClassJSNamePropertyMap.put(traits.getName(), classJSNamePropertyMap);
 
 		}
 
 		return classJSNamePropertyMap;
 	}
 
-	private Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(final Class type) {
+	private Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(final Traits traits) {
 
-		Map<PropertyKey, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type.getName());
+		Map<PropertyKey, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(traits.getName());
 		if (validatorMap == null) {
 
 			validatorMap = new LinkedHashMap<>();
 
-			globalValidatorMap.put(type.getName(), validatorMap);
+			globalValidatorMap.put(traits.getName(), validatorMap);
 
 		}
 
 		return validatorMap;
 	}
 
-	private Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(final Class type) {
+	private Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(final Traits traits) {
 
-		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(type.getName());
+		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(traits.getName());
 		if (groupMap == null) {
 
 			groupMap = new LinkedHashMap<>();
 
-			globalAggregatedPropertyGroupMap.put(type.getName(), groupMap);
+			globalAggregatedPropertyGroupMap.put(traits.getName(), groupMap);
 
 		}
 
 		return groupMap;
 	}
 
-	private Map<String, PropertyGroup> getPropertyGroupMapForType(final Class type) {
+	private Map<String, PropertyGroup> getPropertyGroupMapForType(final Traits traits) {
 
-		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(type.getName());
+		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(traits.getName());
 		if (groupMap == null) {
 
 			groupMap = new LinkedHashMap<>();
 
-			globalPropertyGroupMap.put(type.getName(), groupMap);
+			globalPropertyGroupMap.put(traits.getName(), groupMap);
 
 		}
 
 		return groupMap;
 	}
 
-	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(final Class type) {
+	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(final Traits traits) {
 
-		final String name = type.getName();
+		final String name = traits.getName();
 
 		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(name);
 		if (transformations == null) {
