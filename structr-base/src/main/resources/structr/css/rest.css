@@ -35,7 +35,7 @@ div#top a {
 	color: #fff;
 	text-decoration: none;
 	font-weight: 700;
-	margin-right: 1em;
+	margin-right: 2em;
 }
 
 div#left {
@@ -47,7 +47,7 @@ div#left a {
 	color: #666;
 	text-decoration: none;
 	font-weight: 700;
-	margin-right: 1em;
+	margin-right: 2rem;
 }
 
 div#right {
@@ -62,6 +62,7 @@ ul {
 b {
 	font-weight: 700;
 	color: #444;
+	margin-right: .75rem;
 }
 
 a.id, a.id:visited {
@@ -146,8 +147,8 @@ li.collapsibleListClosed > ul.collapsibleList {
 	cursor: pointer;
 	background-color: #ddd;
 	padding-right: 3px;
-	margin-left: -5px;
-	margin-right: -5px;
+	margin-left: 3px;
+	margin-right: -2px;
 	font-family: initial;
 }
 

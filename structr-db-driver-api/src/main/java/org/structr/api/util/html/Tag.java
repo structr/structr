@@ -57,7 +57,7 @@ public abstract class Tag {
 		this.parent  = parent;
 		this.tag     = tagName;
 		this.empty   = isEmpty;
-		this.newline = StringUtils.isNotEmpty(indent) && newline;
+		this.newline = newline;
 	}
 
 	public Tag block(String tagName) {
@@ -94,6 +94,14 @@ public abstract class Tag {
 		this.text = buf.toString();
 
 		return this;
+	}
+
+	public Tag textNode(String text) {
+
+		Tag tag = new TextNode(this, text);
+		add(tag);
+
+		return tag;
 	}
 
 	public void setIndent(final String indent) {
@@ -136,23 +144,25 @@ public abstract class Tag {
 
 		} else if (this.text != null) {
 
-			this.inline("span").text(",");
+			this.parent.textNode(",");
 		}
 	}
 
 	// ----- protected methods -----
 	protected void render(final PrintWriter writer, final int level) throws IOException {
 
-		beginTag(writer, tag, empty, attrs, level, indent);
+		boolean newLine = false;
+
+		for (Tag child : children) {
+			newLine = newLine || (child instanceof Block);
+		}
+
+		beginTag(writer, tag, newLine, attrs, level, indent);
 
 		if (!empty) {
 
 			if (text != null) {
 				writer.print(text);
-			}
-
-			if (newline) {
-				writer.println();
 			}
 
 			for (Tag child : children) {
@@ -225,6 +235,13 @@ public abstract class Tag {
 			}
 		}
 
-		writer.println("</" + tagName + ">");
+		if (hasNewline) {
+
+			writer.println("</" + tagName + ">");
+
+		} else {
+
+			writer.print("</" + tagName + ">");
+		}
 	}
 }

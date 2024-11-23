@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		el.classList.toggle(expandedClass);
 		el.classList.toggle(collapsedClass);
 	};
+	let canToggle = (el) => {
+		return el.classList.contains(expandedClass) || el.classList.contains(collapsedClass);
+	};
 	let isObject = (el) => {
 		return (el.previousElementSibling.textContent === '{');
 	};
@@ -98,7 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
 				expandedElement.addEventListener('click', (e) => {
 					e.stopPropagation();
 
-					toggleElement(e.target.closest('li'));
+					let closestLi = e.target.closest('li');
+
+					if (canToggle(closestLi)) {
+
+						toggleElement(closestLi);
+					}
 				});
 			}
 		}

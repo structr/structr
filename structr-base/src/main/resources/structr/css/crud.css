@@ -48,6 +48,12 @@
 	overflow-y: scroll;
 }
 
+#crud-types-list:not(:has(:not(.hidden))):before {
+	content: 'No types matching filters. Adjust the filters above.';
+	padding-left: .75rem;
+	padding-right: .75rem;
+}
+
 #crud-left .crud-type {
 	border-bottom: 1px solid var(--light-gray-bg-f7);
 	border-top: 1px solid var(--light-gray-bg-f7);
@@ -175,6 +181,10 @@
 	position: absolute;
 	top: .25rem;
 	right: .3rem;
+}
+
+.crud-table tr td.boolean-attr {
+	text-align: center;
 }
 
 .resourceBox th i {
