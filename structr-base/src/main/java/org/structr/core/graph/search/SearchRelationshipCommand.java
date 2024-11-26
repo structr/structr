@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import org.structr.api.Traits;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.common.SecurityContext;
@@ -33,8 +34,8 @@ import org.structr.core.graph.RelationshipInterface;
 public class SearchRelationshipCommand<T extends RelationshipInterface> extends SearchCommand<Relationship, T> {
 
 	@Override
-	public Factory<Relationship, T> getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
-		return new RelationshipFactory(securityContext, includeHidden, publicOnly, pageSize, page);
+	public Factory<Relationship, T> getFactory(final SecurityContext securityContext, final Traits traits, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+		return new RelationshipFactory(securityContext, traits, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override

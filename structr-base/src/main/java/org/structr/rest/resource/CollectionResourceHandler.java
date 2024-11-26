@@ -41,6 +41,10 @@ import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -54,11 +58,11 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeResource.class.getName());
 
-	private Class entityClass = null;
-	private String typeName   = null;
-	private boolean isNode    = true;
+	private Traits entityClass = null;
+	private String typeName    = null;
+	private boolean isNode     = true;
 
-	public CollectionResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final boolean isNode) {
+	public CollectionResourceHandler(final RESTCall call, final Traits entityClass, final String typeName, final boolean isNode) {
 
 		super(call);
 
@@ -124,17 +128,17 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			if (template != null) {
 
-				final NodeInterface sourceNode        = identifyStartNode(securityContext, template, propertySet);
-				final NodeInterface targetNode        = identifyEndNode(securityContext, template, propertySet);
+				final NodeTrait sourceNode        = identifyStartNode(securityContext, template, propertySet);
+				final NodeTrait targetNode        = identifyEndNode(securityContext, template, propertySet);
 				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 				RelationshipInterface newRelationship = null;
 
 				if (sourceNode == null) {
-					errorBuffer.add(new EmptyPropertyToken(entityClass.getSimpleName(), template.getSourceIdProperty().jsonName()));
+					errorBuffer.add(new EmptyPropertyToken(entityClass.getName(), template.getSourceIdProperty().jsonName()));
 				}
 
 				if (targetNode == null) {
-					errorBuffer.add(new EmptyPropertyToken(entityClass.getSimpleName(), template.getTargetIdProperty().jsonName()));
+					errorBuffer.add(new EmptyPropertyToken(entityClass.getName(), template.getTargetIdProperty().jsonName()));
 				}
 
 				if (errorBuffer.hasError()) {
@@ -206,10 +210,10 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	private NodeInterface identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
+	private NodeTrait identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> sourceIdProperty = template.getSourceIdProperty();
-		final Class sourceType                  = template.getSourceType();
+		final Trait<?> sourceType               = template.getSourceType();
 		final Notion notion                     = template.getStartNodeNotion();
 
 		notion.setType(sourceType);
@@ -222,17 +226,17 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			properties.remove(sourceIdProperty.dbName());
 
-			return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
+			return (NodeTrait)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
 		}
 
 		return null;
 	}
 
-	private NodeInterface identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
+	private NodeTrait identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> targetIdProperty = template.getTargetIdProperty();
-		final Class targetType                  = template.getTargetType();
+		final Trait<?> targetType               = template.getTargetType();
 		final Notion notion                     = template.getEndNodeNotion();
 
 		notion.setType(targetType);
@@ -244,7 +248,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			properties.remove(targetIdProperty.dbName());
 
-			return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
+			return (NodeTrait)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
 		}
 
@@ -266,7 +270,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return defaultValue;
 	}
 
-	private Query createQuery(final App app, final Class type, final boolean isNode) {
+	private <T extends GraphTrait> Query<T> createQuery(final App app, final Traits type, final boolean isNode) {
 
 		if (isNode) {
 

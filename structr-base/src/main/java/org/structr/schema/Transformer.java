@@ -19,14 +19,14 @@
 package org.structr.schema;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.GraphTrait;
 
 /**
  */
 
 public interface Transformer<T> {
 
-	T getProperty(final GraphObject entity, final PropertyKey<T> key, final T value);
-	T setProperty(final GraphObject entity, final PropertyKey<T> key, final T value) throws FrameworkException;
+	T getProperty(final GraphTrait entity, final PropertyKey<T> key, final T value);
+	T setProperty(final GraphTrait entity, final PropertyKey<T> key, final T value) throws FrameworkException;
 }

@@ -22,7 +22,9 @@ import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Principal;
 
-public class PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favoritable> {
+public interface PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favoritable> {
+
+	/*
 
 	@Override
 	public Class<Principal> getSourceType() {
@@ -38,4 +40,5 @@ public class PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favorita
 	public String name() {
 		return "FAVORITE";
 	}
+	*/
 }

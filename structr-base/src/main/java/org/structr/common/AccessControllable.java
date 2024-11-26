@@ -21,6 +21,7 @@ package org.structr.common;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
+import org.structr.core.traits.NodeTrait;
 
 import java.util.Date;
 import java.util.Set;
@@ -31,7 +32,7 @@ import java.util.Set;
  *
  *
  */
-public interface AccessControllable {
+public interface AccessControllable extends NodeTrait  {
 
 	/**
 	 * Return owner node
@@ -48,8 +49,8 @@ public interface AccessControllable {
 	 *
 	 * @return whether the security context has the given permissions on this node
 	 */
-	public boolean isGranted(final Permission permission, final SecurityContext securityContext);
-
+	boolean isGranted(final Permission permission, final SecurityContext securityContext);
+	boolean isGranted(final Permission permission, final SecurityContext context, final boolean isCreation);
 	/**
 	 * Grant given permission to given principal.
 	 *
@@ -139,7 +140,6 @@ public interface AccessControllable {
 	// visibility
 	public boolean isVisibleToPublicUsers();
 	public boolean isVisibleToAuthenticatedUsers();
-	public boolean isNotHidden();
 	public boolean isHidden();
 
 	// access

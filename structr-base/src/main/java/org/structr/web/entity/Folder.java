@@ -131,8 +131,6 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 
 	static void onModification(final Folder thisFolder, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		SearchCommand.prefetch(Folder.class, thisFolder.getUuid());
-
 		Folder.setHasParent(thisFolder);
 
 		// only update watch service for root folder of mounted hierarchy

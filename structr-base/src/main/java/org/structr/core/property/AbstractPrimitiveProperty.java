@@ -35,6 +35,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Trait;
 import org.structr.schema.Transformer;
 
 import java.util.HashMap;
@@ -69,12 +73,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter, final Predicate<GraphTrait> predicate) {
 
 		Object value = null;
 
@@ -131,7 +135,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphTrait obj, final T value) throws FrameworkException {
 
 		final PropertyConverter converter = databaseConverter(securityContext, PropertyMap.unwrap(obj));
 		Object convertedValue             = value;
@@ -172,14 +176,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					TransactionCommand.nodeModified(
 						securityContext.getCachedUser(),
-						(AbstractNode)obj,
+						(NodeTrait)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
 					);
 				}
 
-				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
+				internalSystemPropertiesUnlocked = ((GraphTrait) obj).internalSystemPropertiesUnlocked;
 
 			} else if (obj instanceof AbstractRelationship) {
 
@@ -187,7 +191,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					TransactionCommand.relationshipModified(
 						securityContext.getCachedUser(),
-						(AbstractRelationship)obj,
+						(RelationshipTrait)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
@@ -239,7 +243,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public Trait<?> relatedType() {
 		return null;
 	}
 

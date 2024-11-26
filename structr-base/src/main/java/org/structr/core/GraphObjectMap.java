@@ -19,18 +19,21 @@
 package org.structr.core;
 
 import org.structr.api.Predicate;
+import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -42,11 +45,16 @@ import java.util.Map.Entry;
  *
  *
  */
-public class GraphObjectMap extends PropertyMap implements GraphObject {
+public class GraphObjectMap extends PropertyMap implements GraphTrait {
 
 	@Override
 	public String getUuid() {
 		return getProperty(GraphObject.id);
+	}
+
+	@Override
+	public Identity getIdentity() {
+		return null;
 	}
 
 	@Override
@@ -55,12 +63,12 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey<?>> getPropertyKeys(final String propertyView) {
 		return properties.keySet();
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey, Predicate<GraphTrait> filter) {
 		return (T)properties.get(propertyKey);
 	}
 
@@ -88,11 +96,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 		properties.putAll(properties);
-	}
-
-	@Override
-	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
-		return (Comparable)getProperty(key);
 	}
 
 	@Override
@@ -187,7 +190,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Class getTraits() {
+	public Traits getTraits() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -233,14 +236,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void addToIndex() {
-	}
-
-	@Override
-	public void indexPassiveProperties() {
-	}
-
-	@Override
 	public void setSecurityContext(SecurityContext securityContext) {
 	}
 
@@ -270,7 +265,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	// ----- Cloud synchronization and replication -----
 	@Override
-	public List<GraphObject> getSyncData() {
+	public List<GraphTrait> getSyncData() {
 		return Collections.EMPTY_LIST;
 	}
 
@@ -285,12 +280,12 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public NodeInterface getSyncNode() {
+	public NodeTrait getSyncNode() {
 		return null;
 	}
 
 	@Override
-	public RelationshipInterface getSyncRelationship() {
+	public RelationshipTrait getSyncRelationship() {
 		return null;
 	}
 

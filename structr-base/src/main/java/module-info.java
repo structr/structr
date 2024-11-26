@@ -108,8 +108,10 @@ module structr.base {
     requires ch.qos.logback.core;
     requires jakarta.activation;
         requires org.apache.groovy;
+	requires org.apache.poi.poi;
+	requires org.glassfish.jaxb.runtime;
 
-        exports org.structr;
+	exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;
@@ -217,5 +219,6 @@ module structr.base {
     exports org.structr.websocket.command.dom;
     exports org.structr.websocket.message;
     exports org.structr.websocket.servlet;
+	exports org.structr.core.traits;
 
 }

@@ -23,6 +23,7 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -31,10 +32,10 @@ import java.util.Arrays;
 public class FunctionWrapper<T,R> implements ProxyExecutable {
 
 	private final ActionContext actionContext;
-	private final GraphObject entity;
+	private final GraphTrait entity;
 	private final Function<T,R> func;
 
-	public FunctionWrapper(final ActionContext actionContext, final GraphObject entity, final Function<T, R> func) {
+	public FunctionWrapper(final ActionContext actionContext, final GraphTrait entity, final Function<T, R> func) {
 
 		this.actionContext = actionContext;
 		this.entity        = entity;

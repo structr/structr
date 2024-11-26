@@ -21,20 +21,19 @@ package org.structr.common;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.Validator;
 
 /**
  */
-public class EMailValidator implements Validator {
+public class EMailValidator implements Validator<Principal> {
 
 	@Override
-	public boolean isValid(final NodeInterface node, final ErrorBuffer errorBuffer) {
+	public boolean isValid(final Principal node, final ErrorBuffer errorBuffer) {
 
 		final Class type                = node.getClass();
-		final PropertyKey<String> eMail = StructrApp.key(type, "eMail");
+		final PropertyKey<String> eMail = node.key(type, "eMail");
 		boolean valid                   = true;
 
 		valid &= ValidationHelper.isValidUniqueProperty(node, eMail, errorBuffer);

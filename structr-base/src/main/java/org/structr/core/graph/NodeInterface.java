@@ -21,16 +21,25 @@ package org.structr.core.graph;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.*;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
+import org.structr.common.Permissions;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.*;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Trait;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
+public interface NodeInterface extends GraphObject, Comparable {
 
 	// properties
 	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
@@ -54,29 +63,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	String getName();
 
-	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
-	<R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
-
-	<R extends AbstractRelationship> Iterable<R> getRelationships();
-	<R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
-
-	<R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
-	<R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
-
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type);
-
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
-
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type);
-
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
-
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
 	List<Security> getSecurityRelationships();
@@ -89,7 +75,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 		data.put("type", getClass().getSimpleName());
 	}
 
-	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
+	default void copyPermissionsTo(final SecurityContext ctx, final NodeTrait targetNode, final boolean overwrite) throws FrameworkException {
 
 		for (final Security security : this.getIncomingRelationships(Security.class)) {
 

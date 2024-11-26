@@ -92,7 +92,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 							for (final PropertyKey key : allProperties) {
 
-								final String declaringClass = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
+								final String declaringClass = key.getDeclaringTrait() != null ? key.getDeclaringTrait().getSimpleName() : "GraphObject";
 								final String declaringUuid = key.getSourceUuid();
 								final String propertyName = key.jsonName();
 								final GraphObjectMap property = new GraphObjectMap();

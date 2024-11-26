@@ -108,7 +108,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
 					);
 				}
 			}
@@ -153,7 +153,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
 					);
 				}
 			}

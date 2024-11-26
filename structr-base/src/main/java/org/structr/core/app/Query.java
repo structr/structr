@@ -19,7 +19,6 @@
 package org.structr.core.app;
 
 import org.structr.api.Predicate;
-import org.structr.api.Traits;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
@@ -27,9 +26,10 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 import java.util.Comparator;
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.List;
  *
  * @param <T>
  */
-public interface Query<T extends GraphObject> {
+public interface Query<T> {
 
 	QueryContext getQueryContext();
 	Query<T> isPing(final boolean isPing);
@@ -61,11 +61,8 @@ public interface Query<T extends GraphObject> {
 	Query<T> publicOnly(final boolean publicOnly);
 	Query<T> includeHidden(final boolean includeHidden);
 	Query<T> uuid(final String uuid);
-	Query<T> andType(final Class<? extends T> type);
-	Query<T> orType(final Class<? extends T> type);
-	Query<T> andTypes(final Class<? extends T> type);
-	Query<T> orTypes(final Class<? extends T> type);
-	Traits getTraits();
+	Query<T> andType(final Trait<? extends T> type);
+	Query<T> orType(final Trait<? extends T> type);
 
 	Query<T> andName(final String name);
 	Query<T> orName(final String name);

@@ -18,19 +18,26 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.graph.Relationship;
-import org.structr.common.*;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.common.Permission;
+import org.structr.core.traits.NodeTrait;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Relationship type class for SECURITY relationships.
  */
-public class Security extends ManyToMany<Principal, NodeInterface> {
+public interface Security extends ManyToMany<Principal, NodeTrait> {
+
+	boolean isAllowed(final Permission permission);
+	void setAllowed(final Set<String> allowed);
+	void setAllowed(final Permission... allowed);
+	Set<String> getPermissions();
+	void addPermission(final Permission permission);
+	void addPermissions(final Set<Permission> permissions);
+	void removePermission(final Permission permission);
+	void removePermissions(final Set<Permission> permissions);
+
+	/*
 
 	public static final SourceId           principalId          = new SourceId("principalId");
 	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
@@ -129,4 +136,5 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	public boolean isInternal() {
 		return true;
 	}
+	*/
 }

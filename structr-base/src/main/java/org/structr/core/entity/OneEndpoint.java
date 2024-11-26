@@ -29,21 +29,31 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint implements Target<Relationship, T> {
+public class OneEndpoint<T extends NodeTrait> extends AbstractEndpoint implements Target<Relationship, T> {
 
+
+	private final Trait<? extends Relation<?, T, ?, OneEndpoint<T>>> trait;
 	private Relation<?, T, ?, OneEndpoint<T>> relation = null;
+	private final Traits traits;
 
 	public OneEndpoint(final Relation<?, T, ?, OneEndpoint<T>> relation) {
+
 		this.relation = relation;
+		this.trait    = relation.getTrait();
+		this.traits   = relation.getTraits();
 	}
 
 	@Override
-	public T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public T get(final SecurityContext securityContext, final NodeTrait node, final Predicate<GraphTrait> predicate) {
 
 		final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
@@ -56,11 +66,11 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final T targetNode) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeTrait sourceNode, final T targetNode) throws FrameworkException {
 
-		final PropertyMap properties         = new PropertyMap();
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
-		final T actualSourceNode             = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
+		final PropertyMap properties     = new PropertyMap();
+		final NodeTrait actualTargetNode = (NodeTrait)unwrap(securityContext, traits, targetNode, properties);
+		final T actualSourceNode         = (T)unwrap(securityContext, traits, sourceNode, properties);
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
@@ -68,7 +78,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 		if (actualSourceNode != null && actualTargetNode != null) {
 
 			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
-			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), storageKey);
+			final PropertyMap notionProperties = getNotionProperties(securityContext, traits, storageKey);
 
 			if (notionProperties != null) {
 
@@ -76,19 +86,19 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 			}
 
 			// create new relationship
-			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getClass(), properties);
+			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, traits, properties);
 		}
 
 		return null;
 	}
 
 	@Override
-	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphTrait> predicate) {
 		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphTrait> predicate) {
 		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

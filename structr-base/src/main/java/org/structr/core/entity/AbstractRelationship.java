@@ -21,7 +21,6 @@ package org.structr.core.entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Traits;
 import org.structr.api.graph.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -37,6 +36,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -53,7 +54,7 @@ import org.structr.core.graph.TransactionCommand;
  * @param <S>
  * @param <T>
  */
-public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> implements Comparable<AbstractRelationship>, RelationshipInterface {
+public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTrait> implements Comparable<AbstractRelationship>, RelationshipInterface {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
@@ -107,11 +108,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public Property<String> getTargetIdProperty() {
 		return targetId;
-	}
-
-	@Override
-	public Traits getTraits() {
-		return traits;
 	}
 
 	@Override
@@ -263,68 +259,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	/**
-	 * Return database relationship
-	 *
-	 * @return database relationship
-	 */
-	@Override
-	public Relationship getRelationship() {
-		return TransactionCommand.getCurrentTransaction().getRelationship(relationshipId);
-	}
-
-	@Override
-	public boolean isDeleted() {
-		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(relationshipId.getId());
-	}
-
-	@Override
-	public final T getTargetNode() {
-		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-		return nodeFactory.instantiate(getRelationship().getEndNode());
-	}
-
-	@Override
-	public final T getTargetNodeAsSuperUser() {
-		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(getRelationship().getEndNode());
-	}
-
-	@Override
-	public final S getSourceNode() {
-		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
-		return nodeFactory.instantiate(getRelationship().getStartNode());
-	}
-
-	@Override
-	public final S getSourceNodeAsSuperUser() {
-		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(getRelationship().getStartNode());
-	}
-
-	@Override
-	public final NodeInterface getOtherNode(final NodeInterface node) {
-		NodeFactory nodeFactory = new NodeFactory(securityContext);
-		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
-	}
-
-	public final NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
-		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
-	}
-
-	@Override
-	public final RelationshipType getRelType() {
-
-		final Relationship dbRelationship = getRelationship();
-		if (dbRelationship != null) {
-
-			return dbRelationship.getType();
-		}
-
-		return null;
-	}
-
-	/**
 	 * Return all property keys.
 	 *
 	 * If a custom view is set via header, this can only include properties that are also included in the current view!
@@ -406,7 +340,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return cachedEndNodeId;
 	}
 
-	public final String getOtherNodeId(final AbstractNode node) {
+	public final String getOtherNodeId(final NodeTrait node) {
 		return getOtherNode(node).getProperty(AbstractRelationship.id);
 	}
 
@@ -558,11 +492,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newStartNode = app.getNodeById(sourceNodeId);
-		final NodeInterface endNode      = getTargetNode();
-		final Class relationType         = getClass();
-		final PropertyMap _props         = getProperties();
-		final String type                = this.getClass().getSimpleName();
+		final NodeTrait newStartNode = app.getNodeById(sourceNodeId);
+		final NodeTrait endNode      = getTargetNode();
+		final Class relationType     = getClass();
+		final PropertyMap _props     = getProperties();
+		final String type            = this.getClass().getSimpleName();
 
 		if (newStartNode == null) {
 			throw new FrameworkException(404, "Node with ID " + sourceNodeId + " not found", new IdNotFoundToken(type, sourceNodeId));
@@ -585,11 +519,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeInterface newTargetNode = app.getNodeById(targetNodeId);
-		final NodeInterface startNode     = getSourceNode();
-		final Class relationType          = getClass();
-		final PropertyMap _props          = getProperties();
-		final String type                 = this.getClass().getSimpleName();
+		final NodeTrait newTargetNode = app.getNodeById(targetNodeId);
+		final NodeTrait startNode     = getSourceNode();
+		final Class relationType      = getClass();
+		final PropertyMap _props      = getProperties();
+		final String type             = this.getClass().getSimpleName();
 
 		if (newTargetNode == null) {
 			throw new FrameworkException(404, "Node with ID " + targetNodeId + " not found", new IdNotFoundToken(type, targetNodeId));

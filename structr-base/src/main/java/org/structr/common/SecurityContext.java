@@ -23,6 +23,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.openhft.hashing.Access;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
@@ -39,6 +40,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.JavaScriptSource;
 
@@ -288,24 +292,20 @@ public class SecurityContext {
 		return new SecurityContext(user, request, accessMode);
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
+	public void removeForbiddenNodes(List<? extends GraphTrait> nodes, final boolean includeHidden, final boolean publicOnly) {
 
-		boolean readableByUser = false;
+		final Trait<AccessControllable> trait = Trait.of(AccessControllable.class);
+		boolean readableByUser                = false;
 
-		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
+		for (Iterator<? extends GraphTrait> it = nodes.iterator(); it.hasNext();) {
 
-			GraphObject obj = it.next();
+			final AccessControllable accessControllable = it.next().as(trait);
 
-			if (obj instanceof AbstractNode) {
+			readableByUser = accessControllable.isGranted(Permission.read, this);
 
-				AbstractNode n = (AbstractNode) obj;
+			if (!(readableByUser && includeHidden && (accessControllable.isVisibleToPublicUsers() || !publicOnly))) {
 
-				readableByUser = n.isGranted(Permission.read, this);
-
-				if (!(readableByUser && includeHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
-
-					it.remove();
-				}
+				it.remove();
 			}
 		}
 	}
@@ -483,7 +483,7 @@ public class SecurityContext {
 		}
 	}
 
-	public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
+	public boolean isReadable(final AccessControllable node, final boolean includeHidden, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split for
@@ -562,9 +562,6 @@ public class SecurityContext {
 	 *
 	 * It should *not* be used to check accessibility of child nodes because
 	 * it might send a 401 along with a request for basic authentication.
-	 *
-	 * For those, use
-	 * {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
 	 *
 	 * @param node
 	 * @return isVisible
@@ -1038,7 +1035,7 @@ public class SecurityContext {
 
 		private static final SuperUser superUser = new SuperUser();
 
-		public SuperUserSecurityContext(HttpServletRequest request) {
+		public SuperUserSecurityContext(final HttpServletRequest request) {
 			super(request);
 		}
 
@@ -1073,12 +1070,12 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
+		public boolean isReadable(final AccessControllable node, final boolean includeHidden, final boolean publicOnly) {
 			return true;
 		}
 
 		@Override
-		public boolean isVisible(AccessControllable node) {
+		public boolean isVisible(final AccessControllable node) {
 
 			return true;
 		}

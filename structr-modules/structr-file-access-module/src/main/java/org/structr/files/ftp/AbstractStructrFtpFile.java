@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
@@ -196,7 +197,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 			if (owner != null) {
 
-				final List<Principal> parents = Iterables.toList(owner.getParents());
+				final List<Group> parents = Iterables.toList(owner.getParents());
 				if (!parents.isEmpty()) {
 
 					name = parents.get(0).getProperty(AbstractNode.name);

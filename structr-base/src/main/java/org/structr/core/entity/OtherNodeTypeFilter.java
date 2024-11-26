@@ -22,10 +22,11 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
 
 import java.util.Set;
 
@@ -36,26 +37,26 @@ import java.util.Set;
 public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 	private Set<String> subtypes                 = null;
-	private Predicate<GraphObject> nodePredicate = null;
+	private Predicate<GraphTrait> nodePredicate = null;
 	private NodeFactory nodeFactory              = null;
 	private Node thisNode                        = null;
 
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType) {
-		this(securityContext, thisNode, desiredType, null);
+	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Trait<?> trait) {
+		this(securityContext, thisNode, trait, null);
 	}
 
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType, final Predicate<GraphObject> nodePredicate) {
+	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Trait<?> trait, final Predicate<GraphTrait> nodePredicate) {
 
 		this.nodePredicate = nodePredicate;
 		this.nodeFactory   = new NodeFactory(securityContext);
 		this.thisNode      = thisNode;
-		this.subtypes      = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName());
+		this.subtypes      = SearchCommand.getAllSubtypesAsStringSet(trait.getName());
 	}
 
 	@Override
 	public boolean accept(final Relationship item) {
 
-		final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), null);
+		final NodeTrait otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode), null);
 
 		// check predicate if exists
 		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {

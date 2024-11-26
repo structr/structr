@@ -26,12 +26,14 @@ import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.NodeWithTraits;
+import org.structr.core.traits.*;
 
 /**
  * A factory for Structr nodes.
+ *
+ * @param <T>
  */
-public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
+public class NodeFactory<T extends NodeTrait> extends Factory<Node, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeFactory.class.getName());
 
@@ -67,23 +69,31 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			return null;
 		}
 
-		return instantiate(node, pathSegmentId, false);
+		return (T) instantiate(node, pathSegmentId, false);
 	}
 
 	@Override
 	public T instantiate(final Node node, final Identity pathSegmentId, boolean isCreation) {
 
-		final SecurityContext securityContext = factoryProfile.getSecurityContext();
-		final NodeWithTraits newNode          = new NodeWithTraits();
+		/*
+		final NodeWithTraits newNode = new NodeWithTraits();
 
-		newNode.init(factoryProfile.getSecurityContext(), node, TransactionCommand.getCurrentTransactionId());
+		newNode.init(securityContext, node, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
+		*/
+
+		// AccessControllable is the base interface here because we use isReadable
+		final Trait<AccessControllable> nodeTrait = Trait.of(AccessControllable.class);
+		final AccessControllable newNode          = nodeTrait.getImplementation(node);
 
 		// check access
-		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeHidden(), factoryProfile.publicOnly())) {
+		if (isCreation || securityContext.isReadable(newNode, includeHidden, publicOnly)) {
 
-			return (T) newNode;
+			final Traits traits      = newNode.getTraits();
+			final Trait<T> typeTrait = (Trait<T>) traits.get(newNode.getType());
+
+			return typeTrait.getImplementation(node);
 		}
 
 		return null;
@@ -92,8 +102,8 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	@Override
 	public T instantiate(final Node node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
 
-		factoryProfile.setIncludeHidden(includeHidden);
-		factoryProfile.setPublicOnly(publicOnly);
+		this.includeHidden = includeHidden;
+		this.publicOnly    = publicOnly;
 
 		return instantiate(node);
 	}

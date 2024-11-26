@@ -18,22 +18,15 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.graph.Direction;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.traits.NodeTrait;
 
 /**
  *
  *
  */
-public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
+public interface OneToMany<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
 
+	/*
 	@Override
 	public Multiplicity getSourceMultiplicity() {
 		return Multiplicity.One;
@@ -65,10 +58,10 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
+	public void ensureCardinality(final SecurityContext securityContext, final NodeTrait sourceNode, final NodeTrait targetNode) throws FrameworkException {
 
 		final App app                          = StructrApp.getInstance();
-		final Class<? extends OneToMany> clazz = this.getClass();
+		final Trait<? extends OneToMany> clazz = this.trait;
 		final Class<S> sourceType              = getSourceType();
 
 		if (targetNode != null) {
@@ -94,12 +87,12 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+	public Direction getDirectionForType(final Trait<? extends RelationshipTrait> type) {
 		return super.getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 
 	@Override
-	public Class getOtherType(final Class type) {
+	public Trait<?> getOtherType(final Trait<?> type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -120,4 +113,5 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	public boolean isInternal() {
 		return false;
 	}
+	*/
 }

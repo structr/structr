@@ -40,6 +40,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -196,7 +198,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 		if (modificationEvent.isNode()) {
 
-			final NodeInterface node = (NodeInterface) modificationEvent.getGraphObject();
+			final NodeTrait node = (NodeTrait) modificationEvent.getGraphObject();
 
 			if (modificationEvent.isDeleted()) {
 
@@ -281,7 +283,7 @@ public class WebsocketController implements StructrTransactionListener {
 		} else {
 
 			// handle relationship
-			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
+			final RelationshipTrait relationship = (RelationshipTrait) modificationEvent.getGraphObject();
 			final RelationshipType relType = modificationEvent.getRelationshipType();
 
 			if (BroadcastBlacklistForRelTypes.contains(relType.name())) {
@@ -305,8 +307,8 @@ public class WebsocketController implements StructrTransactionListener {
 				if (modificationEvent.isCreated()) {
 
 					final WebSocketMessage message = new WebSocketMessage();
-					final NodeInterface startNode = relationship.getSourceNode();
-					final NodeInterface endNode = relationship.getTargetNode();
+					final NodeTrait startNode      = relationship.getSourceNode();
+					final NodeTrait endNode        = relationship.getTargetNode();
 
 					// If either start or end node are not visible for the user to be notified,
 					// don't send a notification
@@ -373,7 +375,7 @@ public class WebsocketController implements StructrTransactionListener {
 				//relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
 				//relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
-				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getTrait(), relProperties);
 
 				message.setRelData(properties);
 

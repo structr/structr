@@ -18,21 +18,8 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
-import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-
-import java.util.List;
 
 /**
  */

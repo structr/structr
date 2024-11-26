@@ -25,9 +25,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
 
 import java.util.*;
 
@@ -49,11 +50,11 @@ public class TypeProperty extends StringProperty {
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, final GraphTrait obj, String value) throws FrameworkException {
 
 		super.setProperty(securityContext, obj, value);
 
-		if (obj instanceof NodeInterface) {
+		if (obj instanceof NodeTrait) {
 
 			final Class type = StructrApp.getConfiguration().getNodeEntityClass(value);
 
@@ -80,14 +81,13 @@ public class TypeProperty extends StringProperty {
 		return result;
 	}
 
-	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class inputType, final boolean removeUnused) {
+	public static void updateLabels(final DatabaseService graphDb, final NodeTrait node, final boolean removeUnused) {
 
 		final Set<String> intersection = new LinkedHashSet<>();
 		final Set<String> toRemove     = new LinkedHashSet<>();
 		final Set<String> toAdd        = new LinkedHashSet<>();
 		final Node dbNode              = node.getNode();
 		final List<String> labels      = Iterables.toList(dbNode.getLabels());
-		Class singleLabelType          = inputType;
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();

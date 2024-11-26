@@ -112,7 +112,7 @@ public class ISO8601DateProperty extends DateProperty {
 
 							throw new PropertyInputParsingException(
 									jsonName(),
-									new DateFormatToken(declaringClass.getSimpleName(), jsonName())
+									new DateFormatToken(declaringTrait.getSimpleName(), jsonName())
 							);
 						}
 					}

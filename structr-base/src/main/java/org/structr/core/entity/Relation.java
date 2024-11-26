@@ -20,7 +20,6 @@ package org.structr.core.entity;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Traits;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
@@ -31,6 +30,10 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -45,39 +48,39 @@ import java.util.Map;
  *
  *
  */
-public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface, RelationshipType {
+public interface Relation<A extends NodeTrait, B extends NodeTrait, S extends Source, T extends Target> extends RelationshipTrait<A, B>, RelationshipType {
 
 	/**
 	 * No cascading delete / autocreate.
 	 */
-	public static final int NONE              = 0;
+	final int NONE              = 0;
 
 	/**
 	 * Target node will be deleted if source node
 	 * gets deleted.
 	 */
-	public static final int SOURCE_TO_TARGET  = 1;
+	static final int SOURCE_TO_TARGET  = 1;
 
 	/**
 	 * Source node will be deleted if target node
 	 * gets deleted.
 	 */
-	public static final int TARGET_TO_SOURCE  = 2;
+	static final int TARGET_TO_SOURCE  = 2;
 
 	/**
 	 * Both nodes will be deleted whenever one of
 	 * the two nodes gets deleted.
 	 *
 	 */
-	public static final int ALWAYS            = 3;
+	static final int ALWAYS            = 3;
 
 	/**
 	 * Source and/or target nodes will be deleted
 	 * if they become invalid.
 	 */
-	public static final int CONSTRAINT_BASED  = 4;
+	static final int CONSTRAINT_BASED  = 4;
 
-	public static final String[] CASCADING_DESCRIPTIONS = {
+	static final String[] CASCADING_DESCRIPTIONS = {
 		"NONE",
 		"SOURCE_TO_TARGET",
 		"TARGET_TO_SOURCE",
@@ -85,42 +88,44 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 		"CONSTRAINT_BASED"
 	};
 
-	public enum Multiplicity { One, Many }
+	enum Multiplicity { One, Many }
 
-	public Class<A> getSourceType();
-	public Class<B> getTargetType();
+	Trait<A> getSourceType();
+	Trait<B> getTargetType();
 
-	public Class getOtherType(final Class type);
+	Trait<Relation<A, B, S, T>> getTrait();
 
-	public Direction getDirectionForType(final Traits type);
+	Trait<?> getOtherType(final Trait<?> type);
 
-	public Multiplicity getSourceMultiplicity();
-	public Multiplicity getTargetMultiplicity();
+	Direction getDirectionForType(final Trait<?> type);
 
-	public S getSource();
-	public T getTarget();
+	Multiplicity getSourceMultiplicity();
+	Multiplicity getTargetMultiplicity();
 
-	public Property<String> getSourceIdProperty();
-	public Property<String> getTargetIdProperty();
-	public Notion getEndNodeNotion();
-	public Notion getStartNodeNotion();
+	S getSource();
+	T getTarget();
 
-	public int getCascadingDeleteFlag();
-	public int getAutocreationFlag();
+	Property<String> getSourceIdProperty();
+	Property<String> getTargetIdProperty();
+	Notion getEndNodeNotion();
+	Notion getStartNodeNotion();
 
-	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
+	int getCascadingDeleteFlag();
+	int getAutocreationFlag();
 
-	public boolean isHidden();
+	void ensureCardinality(final SecurityContext securityContext, final NodeTrait sourceNode, final NodeTrait targetNode) throws FrameworkException;
 
-	public void setSourceProperty(final PropertyKey source);
-	public void setTargetProperty(final PropertyKey target);
+	boolean isHidden();
 
-	public PropertyKey getSourceProperty();
-	public PropertyKey getTargetProperty();
+	void setSourceProperty(final PropertyKey source);
+	void setTargetProperty(final PropertyKey target);
 
-	public static final Map<Class, Relation> relationCache = new LinkedHashMap<>();
+	PropertyKey getSourceProperty();
+	PropertyKey getTargetProperty();
 
-	public static Relation getInstance(final Class<? extends Relation> type) {
+	static final Map<Class, Relation> relationCache = new LinkedHashMap<>();
+
+	static Relation getInstance(final Class<? extends Relation> type) {
 
 		Relation instance = relationCache.get(type);
 		if (instance == null) {
@@ -139,7 +144,7 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 		return instance;
 	}
 
-	public static Cardinality getCardinality(final Relation relation) {
+	static Cardinality getCardinality(final Relation relation) {
 
 		final Multiplicity sm = relation.getSourceMultiplicity();
 		final Multiplicity tm = relation.getTargetMultiplicity();
