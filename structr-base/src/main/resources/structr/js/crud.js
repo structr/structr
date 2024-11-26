@@ -2013,7 +2013,7 @@ let _Crud = {
 			return;
 		}
 
-		let typeDef = _Crud.types[type].views.all;
+		let typeDef = _Crud.types[type]?.views?.all;
 
 		if (!typeDef) {
 			_Crud.getProperties(type, () => {
