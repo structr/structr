@@ -27,13 +27,15 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.traits.NodeTrait;
 
 /**
  *
  *
  */
-public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, ManyStartpoint<S>, OneEndpoint<T>> {
+public interface ManyToOne<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, ManyStartpoint<S>, OneEndpoint<T>> {
 
+	/*
 	@Override
 	public Multiplicity getSourceMultiplicity() {
 		return Multiplicity.Many;
@@ -65,7 +67,7 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
+	public void ensureCardinality(final SecurityContext securityContext, final NodeTrait sourceNode, final NodeTrait targetNode) throws FrameworkException {
 
 		final App app                          = StructrApp.getInstance();
 		final Class<? extends ManyToOne> clazz = this.getClass();
@@ -120,4 +122,5 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	public boolean isInternal() {
 		return false;
 	}
+	*/
 }

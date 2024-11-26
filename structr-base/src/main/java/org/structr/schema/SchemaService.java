@@ -25,7 +25,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.Prefetcher;
 import org.structr.api.config.Settings;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
@@ -583,7 +582,7 @@ public class SchemaService implements Service {
 							for (final PropertyKey key : entry.getValue().values()) {
 
 								boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
-								final Class declaringClass = key.getDeclaringClass();
+								final Class declaringClass = key.getDeclaringTrait();
 
 								if (isRelationship) {
 

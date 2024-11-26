@@ -20,16 +20,17 @@ package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.NodeTrait;
 
 /**
  *
  *
  */
-public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> implements Ownership {
+public interface PrincipalOwnsNode extends OneToMany<Principal, NodeTrait>, Ownership {
 
+	/*
 	@Override
-	public Class<Principal> getSourceType() {
+	public Trait<Principal> getSourceType() {
 		return Principal.class;
 	}
 
@@ -39,12 +40,14 @@ public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> imple
 	}
 
 	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
+	public Trait<NodeTrait> getTargetType() {
+		return NodeTrait.class;
 	}
 
 	@Override
 	public boolean isInternal() {
 		return true;
 	}
+
+	 */
 }

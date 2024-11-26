@@ -22,9 +22,10 @@ import org.structr.api.graph.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Trait;
 
 /**
  * Abstract base class for a multi-dimensional linked list data structure.
@@ -32,9 +33,9 @@ import org.structr.core.property.PropertyMap;
  *
  * @param <T>
  */
-public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
+public interface LinkedListNode<T extends NodeTrait> extends NodeTrait {
 
-	<R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> Class<R> getSiblingLinkType();
+	<R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> Trait<R> getSiblingLinkType();
 
 	/**
 	 * Returns the predecessor of the given element in the list structure
@@ -188,7 +189,7 @@ public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
 
 		final App app = StructrApp.getInstance(getSecurityContext());
 
-		for (RelationshipInterface rel : startNode.getRelationships(getSiblingLinkType())) {
+		for (RelationshipTrait rel : startNode.getRelationships(getSiblingLinkType())) {
 
 			if (rel != null && rel.getTargetNode().equals(endNode)) {
 				app.delete(rel);

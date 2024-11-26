@@ -25,6 +25,8 @@ import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.Trait;
 
 import java.util.Set;
 
@@ -33,7 +35,7 @@ import java.util.Set;
  *
  * @param <S>
  */
-public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> implements TypeQuery {
+public class TypeSearchAttribute<S extends GraphTrait> extends PropertySearchAttribute<String> implements TypeQuery {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
@@ -41,7 +43,8 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	private Class sourceType  = null;
 	private Class targetType  = null;
 
-	public TypeSearchAttribute(final Class<S> type, final Occurrence occur, final boolean isExactMatch) {
+	public TypeSearchAttribute(final Trait<S> type, final Occurrence occur, final boolean isExactMatch) {
+
 		super(AbstractNode.type, null, occur, isExactMatch);
 
 		if (Relation.class.isAssignableFrom(type)) {
@@ -61,10 +64,10 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 		} else {
 
 			// node types
-			setValue(type.getSimpleName());
+			setValue(type.getName());
 		}
 
-		this.types  = SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName());
+		this.types  = SearchCommand.getAllSubtypesAsStringSet(type.getName());
 	}
 
 	@Override
@@ -78,7 +81,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	}
 
 	@Override
-	public boolean includeInResult(final GraphObject entity) {
+	public boolean includeInResult(final GraphTrait entity) {
 
 		final String nodeValue   = entity.getProperty(getKey());
 		final Occurrence occur   = getOccurrence();

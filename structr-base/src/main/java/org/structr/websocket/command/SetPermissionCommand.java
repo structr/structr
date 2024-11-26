@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import net.openhft.hashing.Access;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
 import org.structr.api.util.Iterables;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -152,6 +154,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 					value.set(null, null);
 				}
+
 				webSocketData.setResult(Arrays.asList(principal));
 
 				// send only over local connection (no broadcast)
@@ -180,7 +183,7 @@ public class SetPermissionCommand extends AbstractCommand {
 		return "SET_PERMISSION";
 	}
 
-	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final Principal principal, final String action, final Set<Permission> permissions, final boolean rec) throws FrameworkException {
+	private void setPermission(final Value<Tx> transaction, final App app, final AccessControllable obj, final Principal principal, final String action, final Set<Permission> permissions, final boolean rec) throws FrameworkException {
 
 		// create new transaction if not already present
 		Tx tx = transaction.get(null);

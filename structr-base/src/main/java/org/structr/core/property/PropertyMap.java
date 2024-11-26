@@ -20,7 +20,6 @@ package org.structr.core.property;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Traits;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -30,6 +29,9 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
 import java.util.*;
@@ -75,11 +77,11 @@ public class PropertyMap {
 		return properties.isEmpty();
 	}
 
-	public <T> boolean containsKey(PropertyKey<T> key) {
+	public <T> boolean containsKey(final PropertyKey<T> key) {
 		return properties.containsKey(key);
 	}
 
-	public boolean containsValue(Object value) {
+	public boolean containsValue(final Object value) {
 		return properties.containsValue(value);
 	}
 
@@ -150,10 +152,10 @@ public class PropertyMap {
 	 * @param includeSystemProperties whether to include system properties in the calculation
 	 * @return hash code
 	 */
-	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
+	public int contentHashCode(final Set<PropertyKey> comparableKeys, final boolean includeSystemProperties) {
 
-		Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
-		int hashCode                       = 42;
+		final Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
+		int hashCode                             = 42;
 
 		sortedMap.putAll(properties);
 
@@ -189,10 +191,10 @@ public class PropertyMap {
 	}
 
 	// ----- static methods -----
-	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject wrapped, Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap javaTypeToDatabaseType(final SecurityContext securityContext, final GraphTrait wrapped, final Map<String, Object> source) throws FrameworkException {
 
 		final PropertyMap resultMap = new PropertyMap();
-		final GraphObject entity    = unwrap(wrapped);
+		final GraphTrait entity     = unwrap(wrapped);
 
 		if (source != null) {
 
@@ -203,7 +205,8 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entity.getClass(), key);
+					final Traits traits               = entity.getTraits();
+					final PropertyKey propertyKey  = traits.key(key);
 					final PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -228,11 +231,11 @@ public class PropertyMap {
 		return resultMap;
 	}
 
-	public static PropertyMap databaseTypeToJavaType(final SecurityContext securityContext, final GraphObject wrapped, final Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap databaseTypeToJavaType(final SecurityContext securityContext, final GraphTrait wrapped, final Map<String, Object> source) throws FrameworkException {
 
 		final PropertyMap resultMap = new PropertyMap();
-		final GraphObject entity    = unwrap(wrapped);
-		final Class entityType      = entity.getClass();
+		final GraphTrait entity     = unwrap(wrapped);
+		final Traits traits         = entity.getTraits();
 
 		if (source != null) {
 
@@ -243,7 +246,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
+					final PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(traits, key);
 					final PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -268,7 +271,7 @@ public class PropertyMap {
 		return resultMap;
 	}
 
-	public static PropertyMap databaseTypeToJavaType(SecurityContext securityContext, Class<? extends GraphObject> entityType, Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap databaseTypeToJavaType(final SecurityContext securityContext, final Traits traits, final Map<String, Object> source) throws FrameworkException {
 
 		PropertyMap resultMap = new PropertyMap();
 
@@ -281,7 +284,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(traits, key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext);
 
 					if (converter != null) {
@@ -306,17 +309,17 @@ public class PropertyMap {
 		return resultMap;
 	}
 
-	public static PropertyMap inputTypeToJavaType(SecurityContext securityContext, Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap inputTypeToJavaType(final SecurityContext securityContext, final Map<String, Object> source) throws FrameworkException {
 
 		if (source != null) {
 
-			Object typeName = source.get(AbstractNode.type.jsonName());
+			Object typeName = source.get("type");
 			if (typeName != null) {
 
-				Class<? extends GraphObject> type = SchemaHelper.getEntityClassForRawType(typeName.toString());
-				if (type != null) {
+				final Traits traits = Traits.of(typeName.toString());
+				if (traits != null) {
 
-					return inputTypeToJavaType(securityContext, type, source);
+					return inputTypeToJavaType(securityContext, traits, source);
 
 				} else {
 
@@ -374,7 +377,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey = StructrApp.key(traits, key, false);
+					PropertyKey propertyKey = traits.key(key);
 					if (propertyKey == null) {
 
 						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(traits, key);
@@ -445,13 +448,13 @@ public class PropertyMap {
 		return resultMap;
 	}
 
-	public static Map<String, Object> javaTypeToDatabaseType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
+	public static Map<String, Object> javaTypeToDatabaseType(final SecurityContext securityContext, Trait<? extends GraphTrait> entity, final PropertyMap properties) throws FrameworkException {
 
 		Map<String, Object> databaseTypedProperties = new LinkedHashMap<>();
 
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			PropertyKey propertyKey     = entry.getKey();
+			PropertyKey propertyKey  = entry.getKey();
 			PropertyConverter converter = propertyKey.databaseConverter(securityContext);
 
 			if (converter != null) {
@@ -474,13 +477,13 @@ public class PropertyMap {
 		return databaseTypedProperties;
 	}
 
-	public static Map<String, Object> javaTypeToInputType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
+	public static Map<String, Object> javaTypeToInputType(final SecurityContext securityContext, final Trait<? extends GraphTrait> entity, final PropertyMap properties) throws FrameworkException {
 
 		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
 
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			PropertyKey propertyKey     = entry.getKey();
+			PropertyKey propertyKey  = entry.getKey();
 			PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 			if (converter != null) {
@@ -502,6 +505,7 @@ public class PropertyMap {
 
 		return inputTypedProperties;
 	}
+
 	private static PropertyMap fallbackPropertyMap(Map<String, Object> source) {
 
 		PropertyMap map = new PropertyMap();
@@ -530,12 +534,12 @@ public class PropertyMap {
 	private static class PropertyKeyComparator implements Comparator<PropertyKey> {
 
 		@Override
-		public int compare(PropertyKey o1, PropertyKey o2) {
+		public int compare(final PropertyKey o1, final PropertyKey o2) {
 			return o1.jsonName().compareTo(o2.jsonName());
 		}
 	}
 
-	public static GraphObject unwrap(final GraphObject source) {
+	public static GraphTrait unwrap(final GraphTrait source) {
 
 		if (source instanceof CreationContainer) {
 

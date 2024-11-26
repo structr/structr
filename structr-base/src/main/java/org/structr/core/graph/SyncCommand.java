@@ -37,6 +37,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
@@ -164,11 +167,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeFactory nodeFactory         = new NodeFactory(SecurityContext.getSuperUserInstance());
-			final RelationshipFactory relFactory  = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-			final Set<AbstractNode> nodes         = new HashSet<>();
-			final Set<AbstractRelationship> rels  = new HashSet<>();
-			boolean conditionalIncludeFiles = includeFiles;
+			final NodeFactory<?> nodeFactory         = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+			final RelationshipFactory <?>relFactory  = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+			final Set<NodeTrait> nodes               = new HashSet<>();
+			final Set<RelationshipTrait> rels        = new HashSet<>();
+			boolean conditionalIncludeFiles          = includeFiles;
 
 			if (query != null) {
 
@@ -176,12 +179,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
+				for (final GraphTrait obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
-						nodes.add((AbstractNode)obj.getSyncNode());
+						nodes.add((NodeTrait)obj.getSyncNode());
 					} else {
-						rels.add((AbstractRelationship)obj.getSyncRelationship());
+						rels.add((RelationshipTrait)obj.getSyncRelationship());
 					}
 				}
 
@@ -218,7 +221,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(final String fileName, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToFile(final String fileName, final Iterable<? extends NodeTrait> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -245,7 +248,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeTrait> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try (final ZipOutputStream zos = new ZipOutputStream(outputStream)) {
 
@@ -338,7 +341,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * string value of the given object and a space character for human readability.
 	 *
 	 * @param outputStream
-	 * @param obj
 	 */
 	public static void serializeData(DataOutputStream outputStream, byte[] data) throws IOException {
 
@@ -494,18 +496,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream,  final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream,  final Iterable<? extends NodeTrait> nodes, final Iterable<? extends RelationshipTrait> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
 		final DataOutputStream dos    = new DataOutputStream(outputStream);
-		final String uuidPropertyName = GraphObject.id.dbName();
+		final String uuidPropertyName = "id";
 		int nodeCount                 = 0;
 		int relCount                  = 0;
 
 		zos.putNextEntry(dbEntry);
 
-		for (NodeInterface nodeObject : nodes) {
+		for (NodeTrait nodeObject : nodes) {
 
 			// skip schema
 			if (nodeObject instanceof SchemaReloadingNode) {
@@ -515,7 +517,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			final Node node = nodeObject.getNode();
 
 			// ignore non-structr nodes
-			if (node.hasProperty(GraphObject.id.dbName())) {
+			if (node.hasProperty(uuidPropertyName)) {
 
 				outputStream.write('N');
 
@@ -534,12 +536,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		dos.flush();
 
-		for (RelationshipInterface relObject : relationships) {
+		for (RelationshipTrait relObject : relationships) {
 
 			final Relationship rel = relObject.getRelationship();
 
 			// ignore non-structr nodes
-			if (rel.hasProperty(GraphObject.id.dbName())) {
+			if (rel.hasProperty(uuidPropertyName)) {
 
 				final Node startNode = rel.getStartNode();
 				final Node endNode   = rel.getEndNode();
@@ -622,7 +624,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final Set<String> labels                  = new LinkedHashSet<>();
 		final DataInputStream dis                 = new DataInputStream(new BufferedInputStream(zis));
 		final long internalBatchSize              = batchSize != null ? batchSize : 200;
-		final String uuidPropertyName             = GraphObject.id.dbName();
+		final String uuidPropertyName             = "id";
 		double t0                                 = System.nanoTime();
 		EntityCreation currentObject              = null;
 		String currentKey                         = null;

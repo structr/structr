@@ -19,20 +19,16 @@
 package org.structr.core.entity;
 
 import org.structr.api.Predicate;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.CreationContainer;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.NodeTrait;
 
-public interface Favoritable extends NodeInterface {
+public interface Favoritable extends NodeTrait {
 
+	/*
 	Property<Boolean> isFavoritableProperty      = new ConstantBooleanProperty("isFavoritable", true).partOfBuiltInSchema();
 	Property<String> favoriteContentTypeProperty = new FavoriteContentTypeProperty("favoriteContentType").typeHint("String").partOfBuiltInSchema();
 	Property<String> favoriteContentProperty     = new FavoriteContentProperty("favoriteContent").typeHint("String").partOfBuiltInSchema();
@@ -45,6 +41,7 @@ public interface Favoritable extends NodeInterface {
 	View favView     = new View(Favoritable.class, "fav",
 		id, type, name, favoriteContentTypeProperty, favoriteContentProperty, favoriteContextProperty, relationshipIdProperty
 	);
+	*/
 
 	String getContext();
 	String getFavoriteContent();

@@ -149,7 +149,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
 					);
 				}
 			}

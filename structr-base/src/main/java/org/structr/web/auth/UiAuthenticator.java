@@ -46,6 +46,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Trait;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -221,7 +222,7 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
+			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(Trait.of(CorsSetting.class)).and(CorsSetting.requestUri, requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
 				acceptedOriginsString = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.acceptedOrigins,  acceptedOriginsString);
@@ -461,9 +462,9 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final PropertyKey<String> confKey  = StructrApp.key(User.class, "confirmationKey");
-		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final Principal user      = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+		final PropertyKey<String> confKey  = Trait.of(User.class).key("confirmationKey");
+		final PropertyKey<String> eMailKey = Trait.of(User.class).key("eMail");
+		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
 
@@ -663,7 +664,7 @@ public class UiAuthenticator implements Authenticator {
 
 				if (value != null) {
 
-					final PropertyKey credentialKey = StructrApp.key(User.class, "eMail");
+					final PropertyKey credentialKey = Trait.of(User.class).key("eMail");
 
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
@@ -846,7 +847,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if (authorizationToken != null) {
 
-			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+			final PropertyKey<String> eMailKey = Trait.of(User.class).key("eMail");
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
@@ -872,7 +873,7 @@ public class UiAuthenticator implements Authenticator {
 
 					} catch (AuthenticationException ex) {
 
-						final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+						final PropertyKey<String> eMailKey = Trait.of(User.class).key("eMail");
 						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
 					}
 				}

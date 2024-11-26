@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ZonedDateTimeFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.ZonedDateTimePropertyParser;
 
 import java.time.ZonedDateTime;
@@ -155,7 +154,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
                 } else {
 
-                    throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringClass.getSimpleName(), ZonedDateTimeProperty.this));
+                    throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getSimpleName(), ZonedDateTimeProperty.this));
 
                 }
             }

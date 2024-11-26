@@ -16,72 +16,184 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits;
 
-import org.structr.common.AccessControllable;
-import org.structr.core.graph.NodeInterface;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.common.EMailValidator;
+import org.structr.common.LowercaseTransformator;
+import org.structr.common.SecurityContext;
+import org.structr.common.TrimTransformator;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.HashHelper;
+import org.structr.core.entity.*;
+import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
+import org.structr.core.entity.relationship.PrincipalFAVORITEFavoritable;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.property.*;
 
-public interface PrincipalTmp extends NodeInterface, Principal, AccessControllable {
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
-	/*
+public class PrincipalTrait extends NodeTraitImpl<Principal> implements Principal {
+
+	static {
+
+		final Trait<Principal> trait = Trait.create(Principal.class, n -> new PrincipalTrait(n));
+
+		trait.registerProperty(new EndNodes<>("favorites", Trait.of(PrincipalFAVORITEFavoritable.class)));
+		trait.registerProperty(new StartNodes<>("groups", Trait.of(GroupCONTAINSPrincipal.class)));
+
+		trait.registerProperty(new EndNodes<>("ownedNodes", Trait.of(PrincipalOwnsNode.class)).partOfBuiltInSchema());
+		trait.registerProperty(new EndNodes<>("grantedNodes", Trait.of(Security.class)).partOfBuiltInSchema());
+
+		trait.registerProperty(new BooleanProperty("isAdmin").indexed().readOnly());
+		trait.registerProperty(new BooleanProperty("blocked"));
+		trait.registerProperty(new ArrayProperty("sessionIds", String.class).indexed());
+		trait.registerProperty(new ArrayProperty("refreshTokens", String.class).indexed());
+		trait.registerProperty(new StringProperty("sessionData"));
+		trait.registerProperty(new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName()));
+		trait.registerProperty(new PasswordProperty("password"));
+		trait.registerProperty(new DateProperty("passwordChangeDate"));
+		trait.registerProperty(new IntProperty("passwordAttempts"));
+		trait.registerProperty(new DateProperty("lastLoginDate"));
+		trait.registerProperty(new StringProperty("twoFactorSecret"));
+		trait.registerProperty(new StringProperty("twoFactorToken").indexed());
+		trait.registerProperty(new BooleanProperty("isTwoFactorUser"));
+		trait.registerProperty(new BooleanProperty("twoFactorConfirmed"));
+		trait.registerProperty(new StringProperty("salt"));
+		trait.registerProperty(new StringProperty("locale"));
+		trait.registerProperty(new StringProperty("publicKey"));
+		trait.registerProperty(new StringProperty("proxyUrl"));
+		trait.registerProperty(new StringProperty("proxyUsername"));
+		trait.registerProperty(new StringProperty("proxyPassword"));
+		trait.registerProperty(new ArrayProperty("publicKeys", String.class));
+	}
+
+	public PrincipalTrait(final PropertyContainer obj) {
+		super(obj);
+	}
+
+	@Override
+	public void onAuthenticate() {
+	}
 
 	public Iterable<Favoritable> getFavorites() {
-		return getProperty(favoritesProperty);
+		return getProperty(traits.key("favorites"));
 	}
 
 	public Iterable<Group> getGroups() {
-		return getProperty(groupsProperty);
+		return getProperty(key("groups"));
 	}
 
 	public String getSessionData() {
-		return getProperty(sessionDataProperty);
+		return getProperty(key("sessionDataProperty"));
 	}
 
 	public String getEMail() {
-		return getProperty(eMailProperty);
+		return getProperty(key("eMail"));
 	}
 
 	public void setSessionData(final String sessionData) throws FrameworkException {
-		setProperty(sessionDataProperty, sessionData);
+		setProperty(key("sessionData"), sessionData);
 	}
 
 	public boolean isAdmin() {
-		return getProperty(isAdminProperty);
+		return getProperty(key("isAdmin"));
 	}
 
 	public boolean isBlocked() {
-		return getProperty(blockedProperty);
+		return getProperty(key("blocked"));
 	}
 
 	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
-		setProperty(favoritesProperty, favorites);
+		setProperty(key("favorites"), favorites);
 	}
 
 	public void setIsAdmin(final boolean isAdmin) throws FrameworkException {
-		setProperty(isAdminProperty, isAdmin);
+		setProperty(key("isAdmin"), isAdmin);
 	}
 
 	public void setPassword(final String password) throws FrameworkException {
-		setProperty(passwordProperty, password);
+		setProperty(key("password"), password);
 	}
 
 	public void setEMail(final String eMail) throws FrameworkException {
-		setProperty(eMailProperty, eMail);
+		setProperty(key("eMail"), eMail);
 	}
 
 	public void setSalt(final String salt) throws FrameworkException {
-		setProperty(saltProperty, salt);
+		setProperty(key("salt"), salt);
 	}
 
 	public String getLocale() {
-		return getProperty(localeProperty);
+		return getProperty(key("locale"));
 	}
 
-	public boolean shouldSkipSecurityRelationship() {
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
 		return false;
 	}
 
-	public void onAuthenticate() {
+	@Override
+	public void setTwoFactorConfirmed(final boolean b) throws FrameworkException {
+		setProperty(key("twoFactorConfirmed"), b);
+	}
+
+	@Override
+	public void setTwoFactorToken(final String token) throws FrameworkException {
+		setProperty(key("twoFactorToken"), token);
+	}
+
+	@Override
+	public boolean isTwoFactorUser() {
+		return getProperty(key("isTwoFactorUser"));
+	}
+
+	@Override
+	public void setIsTwoFactorUser(final boolean b) throws FrameworkException {
+		setProperty(key("isTwoFactorUser"), b);
+
+	}
+
+	@Override
+	public boolean isTwoFactorConfirmed() {
+		return getProperty(key("isTwoFactorConfirmed"));
+	}
+
+	@Override
+	public Integer getPasswordAttempts() {
+		return getProperty(key("passwordAttempts"));
+	}
+
+	@Override
+	public Date getPasswordChangeDate() {
+		return getProperty(key("passwordChangeDate"));
+	}
+
+	@Override
+	public void setPasswordAttempts(int num) throws FrameworkException {
+		setProperty(key("passwordAttempts"), num);
+	}
+
+	@Override
+	public void setLastLoginDate(final Date date) throws FrameworkException {
+		setProperty(key("lastLoginDate"), date);
+	}
+
+	@Override
+	public String[] getSessionIds() {
+		return getProperty(key("sessionIds"));
 	}
 
 	@Override
@@ -89,45 +201,24 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 
 		boolean valid = super.isValid(errorBuffer);
 
-		valid &= ValidationHelper.isValidUniqueProperty(this, Principal.eMailProperty, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, key("eMail"), errorBuffer);
 		valid &= new EMailValidator().isValid(this, errorBuffer);
 
 		return valid;
 	}
 
-	@Override
-	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
-
-		if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) {
-
-			return (T) Principal.HIDDEN;
-
-		} else {
-
-			return super.getProperty(key, predicate);
-		}
+	public Iterable<Group> getParents() {
+		return getProperty(key("groups"));
 	}
 
-	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
-
-		AbstractNode.clearCaches();
-
-		return super.setProperty(key, value);
-	}
-
-	public Iterable<PrincipalInterface> getParents() {
-		return (Iterable)getProperty(Principal.groupsProperty);
-	}
-
-	public Iterable<PrincipalInterface> getParentsPrivileged() {
+	public Iterable<Group> getParentsPrivileged() {
 
 		try {
 
 			final App app                       = StructrApp.getInstance();
-			final Principal privilegedPrincipal = app.get(Principal.class, getUuid());
+			final Principal privilegedPrincipal = app.getNodeById(Trait.of(Principal.class), getUuid());
 
-			return (Iterable)privilegedPrincipal.getProperty(Principal.groupsProperty);
+			return privilegedPrincipal.getGroups();
 
 		} catch (FrameworkException fex) {
 
@@ -144,8 +235,8 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
-			final String[] ids              = getProperty(key);
+			final PropertyKey<String[]> key = traits.key("sessionIds");
+			final String[] ids              = getSessionIds();
 
 			if (ids != null) {
 
@@ -184,7 +275,7 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+			final PropertyKey<String[]> key = key("refreshTokens");
 			final String[] refreshTokens    = getProperty(key);
 
 			if (refreshTokens != null) {
@@ -224,7 +315,7 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
+			final PropertyKey<String[]> key = key("sessionIds");
 			final String[] ids              = getProperty(key);
 
 			if (ids != null) {
@@ -247,7 +338,7 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+			final PropertyKey<String[]> key = key("refreshTokens");
 			final String[] refreshTokens    = getProperty(key);
 
 			if (refreshTokens != null) {
@@ -271,7 +362,7 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 		try {
 
 			PropertyMap properties = new PropertyMap();
-			final PropertyKey<String[]> refreshTokensKey = StructrApp.key(Principal.class, "refreshTokens");
+			final PropertyKey<String[]> refreshTokensKey = key("refreshTokens");
 
 			properties.put(refreshTokensKey, new String[0]);
 
@@ -341,7 +432,7 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 
 		final StringBuilder path = new StringBuilder("/").append(twoFactorIssuer);
 
-		final String eMail = getProperty(StructrApp.key(Principal.class, "eMail"));
+		final String eMail = getProperty(key("eMail"));
 		if (eMail != null) {
 			path.append(":").append(eMail);
 		} else {
@@ -366,5 +457,4 @@ public interface PrincipalTmp extends NodeInterface, Principal, AccessControllab
 			return "URISyntaxException for " + path + "?" + query;
 		}
 	}
-	*/
 }

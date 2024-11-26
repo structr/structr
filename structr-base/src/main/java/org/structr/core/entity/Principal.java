@@ -18,56 +18,27 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
-import org.structr.core.entity.relationship.PrincipalFAVORITEFavoritable;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.traits.NodeTrait;
 
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public interface Principal extends NodeInterface, AccessControllable {
+public interface Principal extends NodeTrait {
 
 	Object HIDDEN                            = "****** HIDDEN ******";
 	String SUPERUSER_ID                      = "00000000000000000000000000000000";
 	String ANONYMOUS                         = "anonymous";
-	String ANYONE                            = "anyone";
 
-	Property<Iterable<Favoritable>> favoritesProperty = new EndNodes<>("favorites", PrincipalFAVORITEFavoritable.class);
-	Property<Iterable<Group>> groupsProperty          = new StartNodes<>("groups", GroupCONTAINSPrincipal.class);
-
-	Property<Iterable<NodeInterface>> ownedNodes   = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	Property<Iterable<NodeInterface>> grantedNodes = new EndNodes<>("grantedNodes", Security.class).partOfBuiltInSchema();
-
-	Property<Boolean> isAdminProperty                           = new BooleanProperty("isAdmin").indexed().readOnly();
-	Property<Boolean> blockedProperty                           = new BooleanProperty("blocked");
-	Property<String> sessionIdsProperty                         = new ArrayProperty("sessionIds", String.class).indexed();
-	Property<String> refreshTokensProperty                      = new ArrayProperty("refreshTokens", String.class).indexed();
-	Property<String> sessionDataProperty                        = new StringProperty("sessionData");
-	Property<String> eMailProperty                              = new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName());
-	Property<String> passwordProperty                           = new PasswordProperty("password");
-	Property<Date> passwordChangeDateProperty                   = new DateProperty("passwordChangeDate");
-	Property<Integer> passwordAttemptsProperty                  = new IntProperty("passwordAttempts");
-	Property<Date> lastLoginDateProperty                        = new DateProperty("lastLoginDate");
-	Property<String> twoFactorSecretProperty                    = new StringProperty("twoFactorSecret");
-	Property<String> twoFactorTokenProperty                     = new StringProperty("twoFactorToken").indexed();
-	Property<Boolean> isTwoFactorUserProperty                   = new BooleanProperty("isTwoFactorUser");
-	Property<Boolean> twoFactorConfirmedProperty                = new BooleanProperty("twoFactorConfirmed");
-	Property<String> saltProperty                               = new StringProperty("salt");
-	Property<String> localeProperty                             = new StringProperty("locale");
-	Property<String> publicKeyProperty                          = new StringProperty("publicKey");
-	Property<String> proxyUrlProperty                           = new StringProperty("proxyUrl");
-	Property<String> proxyUsernameProperty                      = new StringProperty("proxyUsername");
-	Property<String> proxyPasswordProperty                      = new StringProperty("proxyPassword");
-	Property<String> publicKeysProperty                         = new ArrayProperty("publicKeys", String.class);
+	/*
 
 	View uiView = new View(Principal.class, PropertyView.Ui,
 		blockedProperty
 	);
+	*/
+
+	void onAuthenticate();
 
 	Iterable<Favoritable> getFavorites();
 	Iterable<Group> getGroups();
@@ -83,8 +54,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 	void setSalt(final String salt) throws FrameworkException;
 	String getLocale();
 	boolean shouldSkipSecurityRelationships();
-	Iterable<Principal> getParents();
-	Iterable<Principal> getParentsPrivileged();
+	Iterable<Group> getParents();
+	Iterable<Group> getParentsPrivileged();
+	String[] getSessionIds();
 	boolean addSessionId(final String sessionId);
 	boolean addRefreshToken(final String refreshToken);
 	void removeSessionId(final String sessionId);
@@ -95,9 +67,16 @@ public interface Principal extends NodeInterface, AccessControllable {
 	String getSalt();
 	String getTwoFactorSecret();
 	String getTwoFactorUrl();
+	void setIsTwoFactorUser(final boolean b) throws FrameworkException;
 
-	default void onAuthenticate() {}
-
+	void setTwoFactorConfirmed(final boolean b) throws FrameworkException;
+	void setTwoFactorToken(final String token) throws FrameworkException;
+	boolean isTwoFactorUser();
+	boolean isTwoFactorConfirmed();
+	Integer getPasswordAttempts();
+	Date getPasswordChangeDate();
+	void setPasswordAttempts(final int i) throws FrameworkException;
+	void setLastLoginDate(final Date date) throws FrameworkException;
 
 	default Set<String> getOwnAndRecursiveParentsUuids() {
 

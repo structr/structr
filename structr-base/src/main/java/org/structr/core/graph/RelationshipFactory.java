@@ -19,13 +19,13 @@
 package org.structr.core.graph;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.RelationshipWithTraits;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 /**
  * A factory for structr relationships. This class exists because we need a fast
@@ -34,9 +34,7 @@ import org.structr.core.entity.RelationshipWithTraits;
  *
  * @param <T>
  */
-public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(RelationshipFactory.class.getName());
+public class RelationshipFactory<T extends RelationshipTrait> extends Factory<Relationship, T> {
 
 	public RelationshipFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -72,12 +70,13 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiate(final Relationship relationship, final Identity pathSegmentId, final boolean isCreation) {
 
-		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		RelationshipWithTraits newRel   = new RelationshipWithTraits();
+		final Trait<RelationshipTrait> trait = Trait.of(RelationshipTrait.class);
+		final RelationshipTrait base         = trait.getImplementation(relationship);
 
-		newRel.init(securityContext, relationship, TransactionCommand.getCurrentTransactionId());
+		final Traits traits      = base.getTraits();
+		final Trait<T> typeTrait = (Trait<T>) traits.get(base.getType());
 
-		return (T)newRel;
+		return typeTrait.getImplementation(relationship);
 	}
 
 	@Override
@@ -88,8 +87,8 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiate(final Relationship obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
 
-		factoryProfile.setIncludeHidden(includeHidden);
-		factoryProfile.setPublicOnly(publicOnly);
+		this.includeHidden = includeHidden;
+		this.publicOnly    = publicOnly;
 
 		return instantiate(obj);
 	}

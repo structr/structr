@@ -21,17 +21,15 @@ package org.structr.core.graph.search;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Traits;
-import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
+import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
@@ -44,18 +42,17 @@ import org.structr.core.graph.*;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.Trait;
 import org.structr.schema.ConfigurationProvider;
 
 import java.util.*;
-import org.structr.api.search.ComparisonQuery;
-import org.structr.schema.SchemaService;
 
 /**
  *
  *
  */
-public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
+public abstract class SearchCommand<S extends PropertyContainer, T extends GraphTrait> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
 
@@ -72,7 +69,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
-	private final Traits traits                  = new Traits();
 	private SortOrder sortOrder                  = new DefaultSortOrder();
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
@@ -436,46 +432,17 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andType(final Class<? extends T> type) {
-
-		this.traits.add(type);
+	public org.structr.core.app.Query<T> andType(final Trait<? extends T> type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> orType(final Class<? extends T> type) {
-
-		this.traits.add(type);
+	public org.structr.core.app.Query<T> orType(final Trait<? extends T> type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> andTypes(final Class<? extends T> type) {
-
-		this.traits.add(type);
-
-		andType(type);
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> orTypes(final Class<? extends T> type) {
-
-		this.traits.add(type);
-
-		orType(type);
-
-		return this;
-	}
-
-	@Override
-	public Traits getTraits() {
-		return this.traits;
 	}
 
 	@Override
@@ -837,7 +804,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return Collections.unmodifiableSet(allSubtypes);
 	}
 
-	public static boolean isTypeAssignableFromOtherType (Class type, Class otherType) {
+	public static boolean isTypeAssignableFromOtherType(final Class type, final Class otherType) {
 
 		return getAllSubtypesAsStringSet(type.getSimpleName()).contains(otherType.getSimpleName());
 	}
@@ -863,73 +830,17 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return allSupertypes;
 	}
 
-	public static void prefetch(final Class type, final String uuid) {
-
-		final Set<String> keys    = new LinkedHashSet<>();
-		final Set<String> types1  = new LinkedHashSet<>();
-		final Set<String> types2  = new LinkedHashSet<>();
-
-		final Set<PropertyKey> all = StructrApp.getConfiguration().getPropertySet(type, PropertyView.All);
-
-		for (final PropertyKey<?> key : all) {
-
-			if (key instanceof RelationProperty relationProperty) {
-
-				final Relation relation   = relationProperty.getRelation();
-				final Direction direction = relation.getDirectionForType(type);
-				final String name         = relation.name();
-
-				for (final Class s : SearchCommand.typeAndAllSupertypes(relation.getSourceType())) {
-
-					if (!s.isInterface()) {
-
-						types1.add(s.getSimpleName());
-					}
-				}
-
-				for (final Class s : SearchCommand.typeAndAllSupertypes(relation.getTargetType())) {
-
-					if (!s.isInterface()) {
-
-						types2.add(s.getSimpleName());
-					}
-				}
-
-				switch (direction) {
-
-					case INCOMING -> keys.add("all/INCOMING/" + name);
-					case OUTGOING -> keys.add("all/OUTGOING/" + name);
-				}
-			}
-		}
-
-		// intersect
-		types1.retainAll(types2);
-
-		types1.remove(AbstractNode.class.getSimpleName());
-		types1.remove(NodeInterface.class.getSimpleName());
-		types1.remove(type.getSimpleName());
-
-		if (!types1.isEmpty()) {
-
-			final List<String> list      = Iterables.toList(types1);
-			final String commonBaseClass = list.get(0);
-
-			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, (String)null, keys);
-		}
-	}
-
 	// ----- private methods ----
 	private void assertPropertyIsIndexed(final PropertyKey key) {
 
 		if (key != null && !key.isIndexed() && key instanceof AbstractPrimitiveProperty) {
 
-			final Class declaringClass = key.getDeclaringClass();
+			final Trait<?> declaringClass = key.getDeclaringTrait();
 			String className           = "";
 
 			if (declaringClass != null) {
 
-				className = declaringClass.getSimpleName() + ".";
+				className = declaringClass.getName() + ".";
 			}
 
 			// disable logging for keys we know are not indexed and cannot
@@ -942,12 +853,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private String getQueryDescription() {
-
-		if (traits != null) {
-
-			return "(" + traits.toString() + ")";
-		}
-
 		return null;
 	}
 

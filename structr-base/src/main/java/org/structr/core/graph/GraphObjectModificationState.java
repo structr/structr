@@ -28,11 +28,14 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.BaseTrait;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
 
 import java.util.*;
 
@@ -63,7 +66,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private RelationshipType relType                          = null;
 	private boolean isNode                                    = false;
 	private boolean modified                                  = false;
-	private GraphObject object                                = null;
+	private GraphTrait object                                  = null;
 	private String type                                       = null;
 	private String uuid                                       = null;
 	private int status                                        = 0;
@@ -89,17 +92,17 @@ public class GraphObjectModificationState implements ModificationEvent {
 		in, out
 	}
 
-	public GraphObjectModificationState(GraphObject object) {
+	public GraphObjectModificationState(final GraphTrait object) {
 
 		this.object = object;
-		this.isNode = (object instanceof NodeInterface);
+		this.isNode = (object instanceof NodeTrait);
 
 		if (!isNode) {
-			this.relType = ((RelationshipInterface)object).getRelType();
+			this.relType = ((RelationshipTrait)object).getRelType();
 		}
 
 		// store UUID and type for later use
-		this.uuid     = object.getUuid();
+		this.uuid = object.getUuid();
 		this.type = object.getType();
 
 		if (Settings.ChangelogEnabled.getValue()) {
@@ -522,7 +525,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	// Update changelog for Verb.create and Verb.delete
-	public void updateChangeLog(final Principal user, final Verb verb, final NodeInterface node) {
+	public void updateChangeLog(final Principal user, final Verb verb, final NodeTrait node) {
 
 		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
@@ -653,8 +656,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	private Object unwrap(final Object src) {
 
-		if (src instanceof GraphObject) {
-			return ((GraphObject)src).getUuid();
+		if (src instanceof GraphTrait) {
+			return ((GraphTrait)src).getUuid();
 		}
 
 		return src;
@@ -683,7 +686,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	@Override
-	public GraphObject getGraphObject() {
+	public GraphTrait getGraphObject() {
 		return object;
 	}
 

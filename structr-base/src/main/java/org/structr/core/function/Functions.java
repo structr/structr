@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.StructrScriptException;
+import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -112,7 +113,7 @@ public class Functions {
 		}
 	}
 
-	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
+	public static Expression parse(final ActionContext actionContext, final GraphTrait entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();
 		final String expression                 = snippet.getSource();
@@ -253,7 +254,7 @@ public class Functions {
 		return root;
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphTrait entity, final Snippet snippet, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		final Expression root = parse(actionContext, entity, snippet, new ParseResult());
 

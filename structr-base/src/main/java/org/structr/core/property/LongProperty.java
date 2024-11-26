@@ -116,7 +116,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
 					);
 				}
 			}

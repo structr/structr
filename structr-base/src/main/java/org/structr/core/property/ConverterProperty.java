@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.traits.GraphTrait;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
@@ -88,7 +89,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphTrait entity) {
 		return createConverter(securityContext, entity);
 	}
 
@@ -97,7 +98,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 		return null;
 	}
 
-	private PropertyConverter createConverter(SecurityContext securityContext, GraphObject entity) {
+	private PropertyConverter createConverter(SecurityContext securityContext, GraphTrait entity) {
 
 		try {
 

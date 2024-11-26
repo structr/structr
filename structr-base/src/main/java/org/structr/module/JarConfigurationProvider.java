@@ -461,7 +461,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Map<String, Method> getAnnotatedMethods(Class entityType, Class annotationType) {
+	public Map<String, Method> getAnnotatedMethods(final Traits entityType, Class annotationType) {
 
 		final Map<String, Method> methods = new HashMap<>();
 		final Set<Class<?>> allTypes      = getAllTypes(entityType);
@@ -1490,7 +1490,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return fields;
 	}
 
-	private Set<Class<?>> getAllTypes(final Class<?> type) {
+	private Set<Class<?>> getAllTypes(final Traits type) {
 
 		final List<Class<?>> types = new LinkedList<>();
 		Class localType = type;
@@ -1509,7 +1509,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return new LinkedHashSet<>(types);
 	}
 
-	private void collectAllInterfaces(final Class<?> type, final List<Class<?>> interfaces) {
+	private void collectAllInterfaces(final Traits type, final List<Class<?>> interfaces) {
 
 		if (interfaces.contains(type)) {
 			return;

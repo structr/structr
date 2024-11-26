@@ -38,6 +38,9 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
@@ -50,13 +53,13 @@ import java.util.Map;
  *
  *
  */
-public class StartNode<S extends NodeInterface, T extends NodeInterface> extends Property<S> implements RelationProperty<S> {
+public class StartNode<S extends NodeTrait, T extends NodeTrait> extends Property<S> implements RelationProperty<S> {
 
 	private static final Logger logger = LoggerFactory.getLogger(StartNode.class.getName());
 
 	// relationship members
 	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
-	private Class<S> destType                                           = null;
+	private Trait<S> destType                                           = null;
 	private Notion notion                                               = null;
 
 	/**
@@ -67,7 +70,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	 * @param name
 	 * @param relationClass
 	 */
-	public StartNode(String name, Class<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass) {
+	public StartNode(String name, Trait<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -81,11 +84,11 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	 * @param relationClass
 	 * @param notion
 	 */
-	public StartNode(String name, Class<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass, Notion notion) {
+	public StartNode(String name, Trait<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass, Notion notion) {
 
 		super(name);
 
-		this.relation = Relation.getInstance(relationClass);
+		this.relation = relationClass.getImplementation();
 		this.notion   = notion;
 		this.destType = relation.getSourceType();
 
@@ -104,7 +107,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return relatedType().getClass();
 	}
 
 	@Override
@@ -118,7 +121,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public PropertyConverter<S, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<S, ?> databaseConverter(SecurityContext securityContext, GraphTrait entity) {
 		return null;
 	}
 
@@ -128,20 +131,20 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public S getProperty(SecurityContext securityContext, GraphTrait obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public S getProperty(SecurityContext securityContext, GraphTrait obj, boolean applyConverter, final Predicate<GraphTrait> predicate) {
 
 		final OneStartpoint<? extends S> startpoint = relation.getSource();
 
-		return startpoint.get(securityContext, (NodeInterface)obj, predicate);
+		return startpoint.get(securityContext, (NodeTrait)obj, predicate);
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, S value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphTrait obj, S value) throws FrameworkException {
 
 		final OneStartpoint<S> startpoint = relation.getSource();
 
@@ -151,7 +154,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 				updateCallback.notifyUpdated(obj, value);
 			}
 
-			return startpoint.set(securityContext, (NodeInterface)obj, value);
+			return startpoint.set(securityContext, (NodeTrait)obj, value);
 
 		} catch (RuntimeException r) {
 
@@ -166,7 +169,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public Class relatedType() {
+	public Trait<?> relatedType() {
 		return destType;
 	}
 
@@ -207,12 +210,12 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final GraphTrait obj, final S s) throws FrameworkException {
 		setProperty(securityContext, obj, s);
 	}
 
 	@Override
-	public Class<? extends S> getTargetType() {
+	public Trait<? extends S> getTargetType() {
 		return destType;
 	}
 

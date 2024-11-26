@@ -41,6 +41,8 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
@@ -2275,8 +2277,8 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		final Class<AbstractNode> projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
-		final PropertyKey<String> encrypted         = StructrApp.key(projectType, "encrypted");
+		final Traits<NodeTrait> projectType = Traits.of("Project");
+		final PropertyKey<String> encrypted = projectType.key("encrypted");
 
 		// test initial error when no key is set
 		try (final Tx tx = app.tx()) {
@@ -2353,7 +2355,7 @@ public class PropertyTest extends StructrTest {
 		// compare result (decrypt does not throw an exception, it only returns null)
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+			final NodeTrait node = app.nodeQuery(projectType).getFirst();
 
 			assertNull("Invalid getProperty() result of encrypted string property with no key", node.getProperty(encrypted));
 
@@ -2371,7 +2373,7 @@ public class PropertyTest extends StructrTest {
 		// test encryption with wrong key (global)
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+			final NodeTrait node = app.nodeQuery(projectType).getFirst();
 
 			assertNull("Invalid getProperty() result of encrypted string property with wrong key", node.getProperty(encrypted));
 

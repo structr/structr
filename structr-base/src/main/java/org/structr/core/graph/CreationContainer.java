@@ -28,6 +28,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -40,22 +44,22 @@ import java.util.Set;
 /**
  *
  */
-public class CreationContainer<T extends Comparable> implements GraphObject, PropertyContainer {
+public class CreationContainer<T extends Comparable> implements GraphTrait, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
-	private GraphObject         wrappedObj = null;
+	private GraphTrait wrappedObj = null;
 	private boolean isNode                 = true;
 
 	public CreationContainer(final boolean isNode) {
 		this.isNode = isNode;
 	}
 
-	public CreationContainer(final GraphObject obj) {
+	public CreationContainer(final GraphTrait obj) {
 		this.wrappedObj = obj;
 		this.isNode     = obj.isNode();
 	}
 
-	public GraphObject getWrappedObject() {
+	public GraphTrait getWrappedObject() {
 		return wrappedObj;
 	}
 
@@ -65,7 +69,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	// ----- interface GraphObject -----
 	@Override
-	public Identity getId() {
+	public Identity getIdentity() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -132,12 +136,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
+	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphTrait> filter) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -212,16 +211,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public void addToIndex() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void indexPassiveProperties() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -239,7 +228,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
+	public List<GraphTrait> getSyncData() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -254,12 +243,12 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public NodeInterface getSyncNode() {
+	public NodeTrait getSyncNode() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public RelationshipInterface getSyncRelationship() {
+	public RelationshipTrait getSyncRelationship() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -317,7 +306,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public Class getTraits() {
+	public Traits getTraits() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

@@ -16,12 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits;
 
-public class NodeWithTraits extends AbstractNode {
+import org.structr.api.graph.PropertyContainer;
 
-        public <T> T as(final Class<T> type) {
+public class DynamicTypeTrait<T extends NodeTrait> extends NodeTraitImpl<T> {
 
-                return null;
-        }
+	protected DynamicTypeTrait(final PropertyContainer node) {
+		super(node);
+	}
+
+
+
 }

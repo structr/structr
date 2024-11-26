@@ -28,6 +28,8 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -45,7 +47,7 @@ import java.util.List;
  * @param <S>
  * @param <T>
  */
-public abstract class Notion<S extends NodeInterface, T> {
+public abstract class Notion<S extends NodeTrait, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(Notion.class.getName());
 
@@ -53,7 +55,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	protected SerializationStrategy<S, T> serializationStrategy     = null;
 	protected SecurityContext securityContext                       = null;
 	protected String idProperty                                     = null;
-	protected Class<S> type                                         = null;
+	protected Trait<S> type                                         = null;
 
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
 
@@ -198,7 +200,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	}
 
-	public void setType(Class<S> type) {
+	public void setType(final Trait<S> type) {
 		this.type = type;
 	}
 

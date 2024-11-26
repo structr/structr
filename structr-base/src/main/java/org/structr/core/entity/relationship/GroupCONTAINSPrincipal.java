@@ -22,7 +22,9 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Principal;
 
-public class GroupCONTAINSPrincipal extends ManyToMany<Group, Principal> {
+public interface GroupCONTAINSPrincipal extends ManyToMany<Group, Principal> {
+
+	/*
 
 	@Override
 	public Class<Group> getSourceType() {
@@ -38,4 +40,5 @@ public class GroupCONTAINSPrincipal extends ManyToMany<Group, Principal> {
 	public String name() {
 		return "CONTAINS";
 	}
+	*/
 }

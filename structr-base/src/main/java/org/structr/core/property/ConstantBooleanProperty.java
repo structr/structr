@@ -55,7 +55,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (declaringClass.isAssignableFrom(obj.getClass())) {
+		if (declaringTrait.isAssignableFrom(obj.getClass())) {
 			return this.constantValue;
 		}
 

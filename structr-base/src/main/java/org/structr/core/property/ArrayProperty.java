@@ -319,7 +319,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
 					);
 				}
 

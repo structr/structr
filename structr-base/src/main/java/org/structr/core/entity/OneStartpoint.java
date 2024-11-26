@@ -29,21 +29,30 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Relationship, S> {
+public class OneStartpoint<S extends NodeTrait> extends AbstractEndpoint implements Source<Relationship, S> {
 
+	private final Trait<? extends Relation<S, ?, OneStartpoint<S>, ?>> trait;
 	private Relation<S, ?, OneStartpoint<S>, ?> relation = null;
+	private final Traits traits;
 
 	public OneStartpoint(final Relation<S, ?, OneStartpoint<S>, ?> relation) {
+
 		this.relation = relation;
+		this.trait    = relation.getTrait();
+		this.traits   = relation.getTraits();
 	}
 
 	@Override
-	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public S get(final SecurityContext securityContext, final NodeTrait node, final Predicate<GraphTrait> predicate) {
 
 		final NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
@@ -56,11 +65,11 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeTrait targetNode, final S sourceNode) throws FrameworkException {
 
-		final PropertyMap properties         = new PropertyMap();
-		final S actualSourceNode             = (S)unwrap(securityContext, relation.getClass(), sourceNode, properties);
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
+		final PropertyMap properties     = new PropertyMap();
+		final S actualSourceNode         = (S)unwrap(securityContext, traits, sourceNode, properties);
+		final NodeTrait actualTargetNode = (NodeTrait)unwrap(securityContext, traits, targetNode, properties);
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
@@ -68,26 +77,26 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 		if (actualSourceNode != null && actualTargetNode != null) {
 
 			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
-			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), storageKey);
+			final PropertyMap notionProperties = getNotionProperties(securityContext, traits, storageKey);
 
 			if (notionProperties != null) {
 
 				properties.putAll(notionProperties);
 			}
 
-			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getClass(), properties);
+			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, traits, properties);
 		}
 
 		return null;
 	}
 
 	@Override
-	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphTrait> predicate) {
 		return getSingle(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType());
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphTrait> predicate) {
 		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

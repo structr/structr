@@ -23,14 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.PropertyInputParsingException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -227,7 +224,7 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 
                 } catch (Throwable t) {
 
-                    throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringClass.getSimpleName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
+                    throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringTrait.getSimpleName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
                 }
             }
 

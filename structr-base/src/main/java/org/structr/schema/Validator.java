@@ -19,11 +19,11 @@
 package org.structr.schema;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.GraphTrait;
 
 /**
  */
-public interface Validator {
+public interface Validator<T extends GraphTrait> {
 
-	boolean isValid(final NodeInterface node, final ErrorBuffer errorBuffer);
+	boolean isValid(final T obj, final ErrorBuffer errorBuffer);
 }

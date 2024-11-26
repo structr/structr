@@ -22,12 +22,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
@@ -35,7 +38,6 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 
 import java.util.*;
-import org.structr.rest.resource.MaintenanceResource;
 
 /**
  *
@@ -163,11 +165,11 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void collectDataRecursively(final App app, final GraphObject root, final Set<NodeInterface> nodes, final Set<RelationshipInterface> rels, final Set<String> files) throws FrameworkException {
+	private void collectDataRecursively(final App app, final GraphTrait root, final Set<NodeTrait> nodes, final Set<RelationshipTrait> rels, final Set<String> files) throws FrameworkException {
 
 		if (root.isNode()) {
 
-			final NodeInterface node = root.getSyncNode();
+			final NodeTrait node = root.getSyncNode();
 			if (node instanceof File) {
 
 				final String fileUuid = node.getUuid();
@@ -177,10 +179,10 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			// add node to set, recurse if not already present
 			if (nodes.add(node)) {
 
-				final List<GraphObject> syncData = node.getSyncData();
+				final List<GraphTrait> syncData = node.getSyncData();
 				if (syncData != null) {
 
-					for (final GraphObject obj : syncData) {
+					for (final GraphTrait obj : syncData) {
 
 						// syncData can contain null objects!
 						if (obj != null) {
@@ -198,15 +200,15 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} else if (root.isRelationship()) {
 
-			final RelationshipInterface rel = root.getSyncRelationship();
+			final RelationshipTrait rel = root.getSyncRelationship();
 
 			// add node to set, recurse if not already present
 			if (rels.add(rel)) {
 
-				final List<GraphObject> syncData = rel.getSyncData();
+				final List<GraphTrait> syncData = rel.getSyncData();
 				if (syncData != null) {
 
-					for (final GraphObject obj : syncData) {
+					for (final GraphTrait obj : syncData) {
 
 						// syncData can contain null objects!
 						if (obj != null) {

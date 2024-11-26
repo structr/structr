@@ -22,6 +22,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.Trait;
 
 /**
  * Defines a strategy for serializing a {@link GraphObject} into an output
@@ -29,9 +31,9 @@ import org.structr.core.property.RelationProperty;
  *
  *
  */
-public interface SerializationStrategy<S extends GraphObject, T> {
+public interface SerializationStrategy<S extends GraphTrait, T> {
 
-	public T serialize(SecurityContext securityContext, Class<S> type, S source) throws FrameworkException;
+	public T serialize(SecurityContext securityContext, Trait<S> type, S source) throws FrameworkException;
 
 	public void setRelationProperty(final RelationProperty<T> parentProperty);
 }

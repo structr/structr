@@ -55,6 +55,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.*;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -67,9 +68,9 @@ public abstract class RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(RESTCallHandler.class.getName());
 
-	private GraphObject cachedEntity = null;
-	protected String requestedView   = null;
-	protected RESTCall call          = null;
+	private GraphTrait cachedEntity = null;
+	protected String requestedView  = null;
+	protected RESTCall call         = null;
 
 	public RESTCallHandler(final RESTCall call) {
 		this.call = call;
@@ -120,7 +121,7 @@ public abstract class RESTCallHandler {
 	 * @return
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
+	public <T> ResultStream<T> doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
 		throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -219,24 +220,24 @@ public abstract class RESTCallHandler {
 		return AbstractNode.class;
 	}
 
-	public NodeInterface createNode(final SecurityContext securityContext, final Class entityClass, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
+	public NodeInterface createNode(final SecurityContext securityContext, final Traits traits, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (entityClass != null) {
+		if (traits != null) {
 
 			// experimental: instruct deserialization strategies to set properties on related nodes
 			securityContext.setAttribute("setNestedProperties", true);
 
 			final App app                = StructrApp.getInstance(securityContext);
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, traits, propertySet);
 
-			return app.create(entityClass, properties);
+			return app.create(traits, properties);
 		}
 
 		throw new NotFoundException("Type " + typeName + " does not exist");
 	}
 
 	// ----- protected methods -----
-	protected GraphObject getEntity(final SecurityContext securityContext, final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
+	protected GraphTrait getEntity(final SecurityContext securityContext, final Traits entityClass, final String typeName, final String uuid) throws FrameworkException {
 
 		if (cachedEntity != null) {
 			return cachedEntity;
@@ -256,9 +257,10 @@ public abstract class RESTCallHandler {
 			}
 		}
 
-		if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
-			final GraphObject entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
+		if (entityClass.isNodeType()) {
+
+			final NodeTrait entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -268,7 +270,7 @@ public abstract class RESTCallHandler {
 
 		} else {
 
-			final GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+			final RelationshipTrait entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -303,7 +305,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void collectSearchAttributes(final SecurityContext securityContext, final Class entityClass, final Query query) throws FrameworkException {
+	protected void collectSearchAttributes(final SecurityContext securityContext, final Traits entityClass, final Query query) throws FrameworkException {
 
 		final HttpServletRequest request = securityContext.getRequest();
 
@@ -379,7 +381,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final Query query) throws FrameworkException {
+	protected void extractSearchableAttributes(final SecurityContext securityContext, final Traits type, final HttpServletRequest request, final Query query) throws FrameworkException {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
@@ -453,7 +455,7 @@ public abstract class RESTCallHandler {
 
 	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<GraphTrait> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
@@ -464,11 +466,11 @@ public abstract class RESTCallHandler {
 
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-			for (final GraphObject obj : results) {
+			for (final GraphTrait obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					throw new FrameworkException(403, AbstractNode.getModificationNotPermittedExceptionString(obj, securityContext));
+					throw new FrameworkException(403, GraphTraitImpl.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);
@@ -498,13 +500,13 @@ public abstract class RESTCallHandler {
 				chunk++;
 
 				// always fetch the first page
-				try (final ResultStream<GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
+				try (final ResultStream<GraphTrait> result = doGet(securityContext, null, pageSize, 1)) {
 
-					for (final GraphObject obj : result) {
+					for (final GraphTrait obj : result) {
 
 						if (obj.isNode()) {
 
-							final NodeInterface node = (NodeInterface)obj;
+							final NodeTrait node = (NodeTrait)obj;
 
 							if (!TransactionCommand.isDeleted(node.getNode())) {
 
@@ -514,7 +516,7 @@ public abstract class RESTCallHandler {
 
 						} else {
 
-							final RelationshipInterface relationship = (RelationshipInterface)obj;
+							final RelationshipTrait relationship = (RelationshipTrait)obj;
 
 							if (!TransactionCommand.isDeleted(relationship.getRelationship())) {
 
@@ -548,7 +550,7 @@ public abstract class RESTCallHandler {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final Class entityClass, final String typeName) throws FrameworkException {
+	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final Traits entityClass, final String typeName) throws FrameworkException {
 
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
@@ -565,7 +567,7 @@ public abstract class RESTCallHandler {
 				while (iterator.hasNext() && count++ < batchSize) {
 
 					final Map<String, Object> propertySet = iterator.next();
-					Class localType                       = entityClass;
+					Traits localType                      = entityClass;
 
 					overallCount++;
 
@@ -590,7 +592,7 @@ public abstract class RESTCallHandler {
 
 							final String id = (String)idSource;
 
-							GraphObject obj = app.getNodeById(localType, id);
+							GraphTrait obj = app.getNodeById(localType, id);
 							if (obj != null) {
 
 								obj = app.getRelationshipById(localType, id);

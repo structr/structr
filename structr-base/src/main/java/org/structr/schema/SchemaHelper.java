@@ -49,7 +49,6 @@ import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
-import org.structr.web.entity.User;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -1459,7 +1458,7 @@ public class SchemaHelper {
 		map.put("jsonName", property.jsonName());
 		map.put("className", property.getClass().getName());
 
-		final Class declaringClass = property.getDeclaringClass();
+		final Class declaringClass = property.getDeclaringTrait();
 		if (declaringClass != null) {
 
 			map.put("declaringClass", declaringClass.getSimpleName());

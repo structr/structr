@@ -49,6 +49,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Trait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
@@ -250,12 +251,12 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	// ----- abstract method implementations -----
 	@Override
-	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, ManyEndpoint<DOMNode>>> Class<R> getChildLinkType() {
+	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, ManyEndpoint<DOMNode>>> Trait<R> getChildLinkType() {
 		return (Class<R>)DOMNodeCONTAINSDOMNode.class;
 	}
 
 	@Override
-	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, OneEndpoint<DOMNode>>> Class<R> getSiblingLinkType() {
+	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, OneEndpoint<DOMNode>>> Trait<R> getSiblingLinkType() {
 		return (Class<R>)DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;
 	}
 

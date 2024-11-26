@@ -580,6 +580,12 @@
             <version>5.6.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value</artifactId>
+            <version>1.4.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

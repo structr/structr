@@ -224,8 +224,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Class<? extends GraphObject> getDeclaringClass() {
-		return propertyKey.getDeclaringClass();
+	public Class<? extends GraphObject> getDeclaringTrait() {
+		return propertyKey.getDeclaringTrait();
 	}
 
 	@Override

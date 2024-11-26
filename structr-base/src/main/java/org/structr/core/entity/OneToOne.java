@@ -27,13 +27,15 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.traits.NodeTrait;
 
 /**
  *
  *
  */
-public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, OneStartpoint<S>, OneEndpoint<T>> {
+public interface OneToOne<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, OneStartpoint<S>, OneEndpoint<T>> {
 
+	/*
 	@Override
 	public Multiplicity getSourceMultiplicity() {
 		return Multiplicity.One;
@@ -132,4 +134,5 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	public boolean isInternal() {
 		return false;
 	}
+	*/
 }

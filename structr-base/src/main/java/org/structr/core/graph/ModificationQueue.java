@@ -37,6 +37,9 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
 
 import java.io.IOException;
 import java.util.*;
@@ -194,8 +197,8 @@ public class ModificationQueue {
 
 					if (objectChangelog) {
 
-						final GraphObject obj = ev.getGraphObject();
-						final String newLog   = ev.getChangeLog();
+						final GraphTrait obj = ev.getGraphObject();
+						final String newLog = ev.getChangeLog();
 
 						if (obj != null && obj.changelogEnabled()) {
 
@@ -241,7 +244,7 @@ public class ModificationQueue {
 		ids.clear();
 	}
 
-	public void create(final Principal user, final NodeInterface node) {
+	public void create(final Principal user, final NodeTrait node) {
 
 		this.hasChanges = true;
 
@@ -253,14 +256,14 @@ public class ModificationQueue {
 		}
 	}
 
-	public <S extends NodeInterface, T extends NodeInterface> void create(final Principal user, final RelationshipInterface relationship) {
+	public <S extends NodeTrait, T extends NodeTrait> void create(final Principal user, final RelationshipTrait relationship) {
 
 		this.hasChanges = true;
 
 		getState(relationship).create();
 
-		final NodeInterface sourceNode = relationship.getSourceNode();
-		final NodeInterface targetNode = relationship.getTargetNode();
+		final NodeTrait sourceNode = relationship.getSourceNode();
+		final NodeTrait targetNode = relationship.getTargetNode();
 
 		if (sourceNode != null && targetNode != null) {
 
@@ -277,7 +280,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void modifyOwner(NodeInterface node) {
+	public void modifyOwner(NodeTrait node) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -285,7 +288,7 @@ public class ModificationQueue {
 		getState(node).modifyOwner();
 	}
 
-	public void modifySecurity(NodeInterface node) {
+	public void modifySecurity(NodeTrait node) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -293,7 +296,7 @@ public class ModificationQueue {
 		getState(node).modifySecurity();
 	}
 
-	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public void modify(final Principal user, final NodeTrait node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -305,7 +308,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void modify(final Principal user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+	public void modify(final Principal user, RelationshipTrait relationship, PropertyKey key, Object previousValue, Object newValue) {
 
 		this.ids.add(relationship.getRelationship().getId().getId());
 		this.hasChanges = true;
@@ -317,9 +320,9 @@ public class ModificationQueue {
 		}
 	}
 
-	public void delete(final Principal user, final NodeInterface node) {
+	public void delete(final Principal user, final NodeTrait node) {
 
-		this.ids.add(node.getNode().getId().getId());
+		this.ids.add(node.getIdentity().getId());
 		this.hasChanges = true;
 
 		getState(node).delete(false);
@@ -330,15 +333,15 @@ public class ModificationQueue {
 		}
 	}
 
-	public void delete(final Principal user, final RelationshipInterface relationship, final boolean passive) {
+	public void delete(final Principal user, final RelationshipTrait relationship, final boolean passive) {
 
 		this.ids.add(relationship.getRelationship().getId().getId());
 		this.hasChanges = true;
 
 		getState(relationship).delete(passive);
 
-		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
-		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
+		final NodeTrait sourceNode = relationship.getSourceNodeAsSuperUser();
+		final NodeTrait targetNode = relationship.getTargetNodeAsSuperUser();
 
 		modifyEndNodes(user, sourceNode, targetNode, relationship, true);
 
@@ -386,11 +389,11 @@ public class ModificationQueue {
 		return false;
 	}
 
-	public void registerNodeCallback(final NodeInterface node, final String callbackId) {
+	public void registerNodeCallback(final NodeTrait node, final String callbackId) {
 		getState(node).setCallbackId(callbackId);
 	}
 
-	public void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+	public void registerRelCallback(final RelationshipTrait rel, final String callbackId) {
 		getState(rel).setCallbackId(callbackId);
 	}
 
@@ -461,11 +464,11 @@ public class ModificationQueue {
 
 		if (forObject.isNode()) {
 
-			state = getState((NodeInterface)forObject);
+			state = getState((NodeTrait)forObject);
 
 		} else {
 
-			state = getState((RelationshipInterface)forObject);
+			state = getState((RelationshipTrait)forObject);
 		}
 
 		final GraphObjectMap before = new GraphObjectMap();
@@ -522,7 +525,7 @@ public class ModificationQueue {
 	}
 
 	// ----- private methods -----
-	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
+	private void modifyEndNodes(final Principal user, final NodeTrait startNode, final NodeTrait endNode, final RelationshipTrait rel, final boolean isDeletion) {
 
 		// only modify if nodes are accessible
 		if (startNode != null && endNode != null) {
@@ -574,11 +577,11 @@ public class ModificationQueue {
 		}
 	}
 
-	private GraphObjectModificationState getState(final NodeInterface node) {
+	private GraphObjectModificationState getState(final NodeTrait node) {
 		return getState(node, false);
 	}
 
-	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
+	private GraphObjectModificationState getState(final NodeTrait node, final boolean checkPropagation) {
 
 		String hash = hash(node.getNode());
 		GraphObjectModificationState state = modifications.get(hash);
@@ -593,11 +596,11 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private GraphObjectModificationState getState(final RelationshipInterface rel) {
+	private GraphObjectModificationState getState(final RelationshipTrait rel) {
 		return getState(rel, true);
 	}
 
-	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
+	private GraphObjectModificationState getState(final RelationshipTrait rel, final boolean create) {
 
 		String hash = hash(rel.getRelationship());
 		GraphObjectModificationState state = modifications.get(hash);

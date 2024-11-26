@@ -48,8 +48,8 @@ import org.structr.core.graph.NodeInterface;
 public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<Node, T> {
 
 	@Override
-	public Factory<Node, T> getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
-		return new NodeFactory<T>(securityContext, includeHidden, publicOnly, pageSize, page);
+	public Factory<Node, T> getFactory(SecurityContext securityContext, final Traits traits, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+		return new NodeFactory<T>(securityContext, traits, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override

@@ -42,6 +42,9 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
@@ -54,13 +57,13 @@ import java.util.*;
  *
  *
  */
-public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<T>> implements RelationProperty<T> {
+public class EndNodes<S extends NodeTrait, T extends NodeTrait> extends Property<Iterable<T>> implements RelationProperty<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNodes.class.getName());
 
 	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
 	private Notion notion                                              = null;
-	private Class<T> destType                                          = null;
+	private Trait<T> destType                                          = null;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
@@ -68,7 +71,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	 * @param name
 	 * @param relationClass
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass) {
+	public EndNodes(final String name, final Trait<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -79,11 +82,11 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	 * @param relationClass
 	 * @param notion
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
+	public EndNodes(final String name, final Trait<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
 
 		super(name);
 
-		this.relation = Relation.getInstance(relationClass);
+		this.relation = relationClass.getImplementation();
 		this.notion   = notion;
 		this.destType = relation.getTargetType();
 
@@ -126,42 +129,42 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<T>, ?> databaseConverter(final SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<T>, ?> databaseConverter(final SecurityContext securityContext, final GraphTrait entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(final SecurityContext securityContext) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter, final Predicate<GraphTrait> predicate) {
 
 		ManyEndpoint<T> endpoint = relation.getTarget();
 
 		if (predicate != null) {
 
-			return Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator()))));
+			return Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeTrait)obj, new TruePredicate(predicate.comparator()))));
 
 		} else {
 
-			return Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, null));
+			return Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeTrait)obj, null));
 		}
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> collection) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphTrait obj, final Iterable<T> collection) throws FrameworkException {
 
 		final ManyEndpoint<T> endpoint = relation.getTarget();
 
@@ -169,17 +172,17 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 			updateCallback.notifyUpdated(obj, collection);
 		}
 
-		return endpoint.set(securityContext, (NodeInterface)obj, collection);
+		return endpoint.set(securityContext, (NodeTrait)obj, collection);
 	}
 
 	@Override
-	public Class relatedType() {
+	public Trait<?> relatedType() {
 		return destType;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return relatedType().getClass();
 	}
 
 	@Override
@@ -219,7 +222,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final GraphTrait obj, final T t) throws FrameworkException {
 
 		final List<T> list = Iterables.toList(getProperty(securityContext, obj, false));
 
@@ -229,7 +232,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Class<T> getTargetType() {
+	public Trait<T> getTargetType() {
 		return destType;
 	}
 

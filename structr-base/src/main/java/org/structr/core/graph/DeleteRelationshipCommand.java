@@ -25,6 +25,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.traits.RelationshipTrait;
 
 /**
  * Deletes the relationship supplied as a parameter.
@@ -36,19 +37,19 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	public Object execute(final Relationship rel) throws FrameworkException {
 
-		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
+		RelationshipFactory<? extends RelationshipTrait> relFactory = new RelationshipFactory<>(securityContext);
 
 		// default is active deletion!
 		return execute(relFactory.instantiate(rel), false);
 	}
 
-	public Object execute(final RelationshipInterface rel) {
+	public Object execute(final RelationshipTrait rel) {
 
 		// default is active deletion!
 		return execute(rel, false);
 	}
 
-	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) {
+	public Object execute(final RelationshipTrait rel, final boolean passiveDeletion) {
 
 		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 
@@ -63,7 +64,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			}
 
 			final Relationship relToDelete = rel.getRelationship();
-			final RelationshipInterface finalRel = rel;
+			final RelationshipTrait finalRel = rel;
 
 			TransactionCommand.relationshipDeleted(securityContext.getCachedUser(), finalRel, passiveDeletion);
 

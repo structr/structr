@@ -33,11 +33,9 @@ import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
@@ -47,6 +45,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.Transaction;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
 
 /**
  * Graph service command for database operations that need to be wrapped in
@@ -276,7 +277,7 @@ public class TransactionCommand {
 
 	}
 
-	public static void nodeCreated(final Principal user, final NodeInterface node) {
+	public static void nodeCreated(final Principal user, final NodeTrait node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -302,7 +303,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeModified(final Principal user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void nodeModified(final Principal user, final NodeTrait node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -326,7 +327,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeDeleted(final Principal user, final NodeInterface node) {
+	public static void nodeDeleted(final Principal user, final NodeTrait node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -350,7 +351,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipCreated(final Principal user, final RelationshipInterface relationship) {
+	public static void relationshipCreated(final Principal user, final RelationshipTrait relationship) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -374,7 +375,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipModified(final Principal user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void relationshipModified(final Principal user, final RelationshipTrait relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -398,7 +399,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipDeleted(final Principal user, final RelationshipInterface relationship, final boolean passive) {
+	public static void relationshipDeleted(final Principal user, final RelationshipTrait relationship, final boolean passive) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -552,7 +553,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void registerNodeCallback(final NodeInterface node, final String callbackId) {
+	public static void registerNodeCallback(final NodeTrait node, final String callbackId) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -574,7 +575,7 @@ public class TransactionCommand {
 
 	}
 
-	public static void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+	public static void registerRelCallback(final RelationshipTrait rel, final String callbackId) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -610,7 +611,7 @@ public class TransactionCommand {
 		graphDb.flushCaches();
 	}
 
-	private static void assertSameTransaction(final GraphObject obj, final long currentTransactionId) {
+	private static void assertSameTransaction(final GraphTrait obj, final long currentTransactionId) {
 
 		final long nodeTransactionId = obj.getSourceTransactionId();
 		if (!Services.isTesting() && currentTransactionId != nodeTransactionId) {

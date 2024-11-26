@@ -26,15 +26,18 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.RelationshipTrait;
+import org.structr.core.traits.Trait;
 
 import java.util.*;
 
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
-public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface> extends LinkedListNode<T> {
+public interface LinkedTreeNode<S extends NodeTrait, T extends NodeTrait> extends LinkedListNode<T> {
 
-	<R extends Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>>> Class<R> getChildLinkType();
+	<R extends Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>>> Trait<R> getChildLinkType();
 	Property<Integer> getPositionProperty();
 
 	default T treeGetParent() {
@@ -307,7 +310,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 		final List<R> list = Iterables.toList(startNode.getRelationships(getChildLinkType()));
 		final App app      = StructrApp.getInstance(getSecurityContext());
 
-		for (RelationshipInterface rel : list) {
+		for (RelationshipTrait rel : list) {
 
 			if (rel != null && rel.getTargetNode().equals(endNode)) {
 				app.delete(rel);

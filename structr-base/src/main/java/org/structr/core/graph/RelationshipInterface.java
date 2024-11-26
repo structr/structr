@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
 import org.structr.schema.NonIndexed;
 
 /**
@@ -32,27 +33,27 @@ import org.structr.schema.NonIndexed;
  */
 public interface RelationshipInterface extends GraphObject, NonIndexed {
 
-	public void init(final SecurityContext securityContext, final Relationship dbRel, final long transactionId);
+	void init(final SecurityContext securityContext, final Relationship dbRel, final long transactionId);
 
-	public NodeInterface getSourceNode();
-	public NodeInterface getTargetNode();
-	public NodeInterface getSourceNodeAsSuperUser();
-	public NodeInterface getTargetNodeAsSuperUser();
-	public NodeInterface getOtherNode(final NodeInterface thisNode);
-	public RelationshipType getRelType();
+	NodeTrait getSourceNode();
+	NodeTrait getTargetNode();
+	NodeTrait getSourceNodeAsSuperUser();
+	NodeTrait getTargetNodeAsSuperUser();
+	NodeTrait getOtherNode(final NodeTrait thisNode);
+	RelationshipType getRelType();
 
-	public Relationship getRelationship();
+	Relationship getRelationship();
 
-	public PropertyMap getProperties() throws FrameworkException;
+	PropertyMap getProperties() throws FrameworkException;
 
-	public String getSourceNodeId();
-	public void setSourceNodeId(final String startNodeId) throws FrameworkException;
+	String getSourceNodeId();
+	void setSourceNodeId(final String startNodeId) throws FrameworkException;
 
-	public String getTargetNodeId();
-	public void setTargetNodeId(final String targetIdNode) throws FrameworkException;
+	String getTargetNodeId();
+	void setTargetNodeId(final String targetIdNode) throws FrameworkException;
 
-	public int getCascadingDeleteFlag();
+	int getCascadingDeleteFlag();
 
-	public boolean isInternal();
-	public boolean isDeleted();
+	boolean isInternal();
+	boolean isDeleted();
 }

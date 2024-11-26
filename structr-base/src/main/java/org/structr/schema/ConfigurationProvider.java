@@ -19,7 +19,6 @@
 package org.structr.schema;
 
 import org.structr.agent.Agent;
-import org.structr.api.Traits;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -30,6 +29,9 @@ import org.structr.core.Transformation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 
 import java.lang.reflect.Method;
@@ -59,14 +61,14 @@ public interface ConfigurationProvider {
 	public void registerPropertyGroup(final Traits entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
 	public void registerConvertedProperty(final PropertyKey property);
 
-	public Class getNodeEntityClass(final String name);
-	public Class getRelationshipEntityClass(final String name);
+	public Trait<?> getNodeEntityClass(final String name);
+	public Trait<?> getRelationshipEntityClass(final String name);
 
 	public void setRelationClassForCombinedType(final String combinedType, final Traits clazz);
 	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Traits clazz);
 	public Class getRelationClassForCombinedType(final String sourceType, final String relType, final String targetType);
 
-	public Set<Transformation<GraphObject>> getEntityCreationTransformations(final Traits traits);
+	public <T extends GraphTrait> Set<Transformation<T>> getEntityCreationTransformations(final Traits<T> traits);
 
 	public PropertyGroup getPropertyGroup(final Traits traits, final PropertyKey key);
 

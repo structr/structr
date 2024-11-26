@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.GraphTrait;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -38,16 +39,16 @@ import java.util.Set;
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
+public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphTrait>, QueryPredicate {
 
 	public static final String WILDCARD = "*";
 
-	private Comparator<GraphObject> comparator = null;
- 	private Set<GraphObject> result            = new LinkedHashSet<>();
-	private Occurrence occur                   = null;
-	private SortOrder sortOrder                = null;
+	private Comparator<GraphTrait> comparator = null;
+ 	private Set<GraphObject> result          = new LinkedHashSet<>();
+	private Occurrence occur                 = null;
+	private SortOrder sortOrder              = null;
 
-	public abstract boolean includeInResult(GraphObject entity);
+	public abstract boolean includeInResult(final GraphTrait entity);
 
 	public SearchAttribute() {
 		this(null, null);
@@ -86,7 +87,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	public void setExactMatch(final boolean exact) {
 	};
 
-	public void setComparator(final Comparator<GraphObject> comparator) {
+	public void setComparator(final Comparator<GraphTrait> comparator) {
 		this.comparator = comparator;
 	}
 
@@ -101,12 +102,12 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
-	public boolean accept(final GraphObject obj) {
+	public boolean accept(final GraphTrait obj) {
 		return includeInResult(obj);
 	}
 
 	@Override
-	public Comparator<GraphObject> comparator() {
+	public Comparator<GraphTrait> comparator() {
 		return comparator;
 	}
 
@@ -139,7 +140,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		final PropertyKey key = getKey();
 		if (key != null) {
 
-			final Class declaringClass = key.getDeclaringClass();
+			final Class declaringClass = key.getDeclaringTrait();
 			if (declaringClass != null && !GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
 
 				return declaringClass.getSimpleName();

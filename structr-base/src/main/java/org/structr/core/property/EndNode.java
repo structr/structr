@@ -40,6 +40,9 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Trait;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
@@ -53,13 +56,13 @@ import java.util.Map;
  *
  *
  */
-public class EndNode<S extends NodeInterface, T extends NodeInterface> extends Property<T> implements RelationProperty<T> {
+public class EndNode<S extends NodeTrait, T extends NodeTrait> extends Property<T> implements RelationProperty<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNode.class.getName());
 
 	private Relation<S, T, ? extends Source, OneEndpoint<T>> relation = null;
 	private Notion notion                                             = null;
-	private Class<T> destType                                         = null;
+	private Trait<T> destType                                         = null;
 
 	/**
 	 * Constructs an entity property with the given name.
@@ -122,7 +125,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphTrait entity) {
 		return null;
 	}
 
@@ -132,20 +135,20 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(SecurityContext securityContext, GraphTrait obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(SecurityContext securityContext, GraphTrait obj, boolean applyConverter, final Predicate<GraphTrait> predicate) {
 
 		OneEndpoint<T> endpoint  = relation.getTarget();
 
-		return endpoint.get(securityContext, (NodeInterface)obj, predicate);
+		return endpoint.get(securityContext, (NodeTrait)obj, predicate);
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphTrait obj, T value) throws FrameworkException {
 
 		final OneEndpoint<T> endpoint = relation.getTarget();
 
@@ -155,7 +158,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 				updateCallback.notifyUpdated(obj, value);
 			}
 
-			return endpoint.set(securityContext, (NodeInterface)obj, value);
+			return endpoint.set(securityContext, (NodeTrait)obj, value);
 
 		} catch (RuntimeException r) {
 
@@ -170,13 +173,13 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public Class relatedType() {
+	public Trait relatedType() {
 		return destType;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return relatedType().getClass();
 	}
 
 	@Override
@@ -216,12 +219,12 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final GraphTrait obj, final T t) throws FrameworkException {
 		setProperty(securityContext, obj, t);
 	}
 
 	@Override
-	public Class<T> getTargetType() {
+	public Trait<T> getTargetType() {
 		return destType;
 	}
 

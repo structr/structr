@@ -36,7 +36,7 @@ public class ConstantBooleanTrue implements Transformer<Boolean> {
 	@Override
 	public Boolean setProperty(final GraphObject entity, final PropertyKey<Boolean> key, final Boolean value) throws FrameworkException {
 
-		final Class declaringClass = key.getDeclaringClass();
+		final Class declaringClass = key.getDeclaringTrait();
 		String typeName            = GraphObject.class.getSimpleName();
 
 		if (declaringClass != null) {

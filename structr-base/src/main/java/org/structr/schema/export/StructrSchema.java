@@ -30,6 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Trait;
 import org.structr.schema.SchemaService;
 
 import java.io.Reader;
@@ -153,13 +154,13 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			app.deleteAllNodesOfType(SchemaRelationshipNode.class);
-			app.deleteAllNodesOfType(SchemaNode.class);
-			app.deleteAllNodesOfType(SchemaMethod.class);
-			app.deleteAllNodesOfType(SchemaMethodParameter.class);
-			app.deleteAllNodesOfType(SchemaProperty.class);
-			app.deleteAllNodesOfType(SchemaView.class);
-			app.deleteAllNodesOfType(SchemaGrant.class);
+			app.deleteAllNodesOfType(Trait.of(SchemaRelationshipNode.class));
+			app.deleteAllNodesOfType(Trait.of(SchemaNode.class));
+			app.deleteAllNodesOfType(Trait.of(SchemaMethod.class));
+			app.deleteAllNodesOfType(Trait.of(SchemaMethodParameter.class));
+			app.deleteAllNodesOfType(Trait.of(SchemaProperty.class));
+			app.deleteAllNodesOfType(Trait.of(SchemaView.class));
+			app.deleteAllNodesOfType(Trait.of(SchemaGrant.class));
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 
@@ -194,8 +195,6 @@ public class StructrSchema {
 	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
-
-			SchemaService.prefetchSchemaNodes(tx);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.extend);
 
