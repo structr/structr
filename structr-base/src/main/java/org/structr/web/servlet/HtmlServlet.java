@@ -122,7 +122,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
 
-	private static boolean clearPathCache = false;
 	private boolean isAsync = false;
 
 	public HtmlServlet() {
@@ -154,7 +153,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final Map<String, UuidCacheEntry> pathUuidCache = getPathCache(request.getSession());
 		final long t0                                   = System.currentTimeMillis();
 		final Authenticator auth                        = getConfig().getAuthenticator();
 		boolean requestUriContainsUuids                 = false;
@@ -247,33 +245,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				DOMNode rootElement               = null;
 				AbstractNode dataNode             = null;
 				File file                         = null;
-
-				final UuidCacheEntry cacheEntry = pathUuidCache.get(cacheKey);
-				if (cacheEntry != null) {
-
-					final NodeInterface domNode = StructrApp.getInstance(securityContext).getNodeById(cacheEntry.domUuid);
-					if (domNode != null) {
-
-						if (domNode instanceof DOMNode n) {
-
-							rootElement = n;
-
-						}
-					}
-
-					final NodeInterface fileNode = StructrApp.getInstance(securityContext).getNodeById(cacheEntry.fileUuid);
-					if (fileNode != null) {
-
-						if (fileNode instanceof File f) {
-
-							file = f;
-						}
-					}
-
-					dataNode = (AbstractNode)StructrApp.getInstance(securityContext).getNodeById(cacheEntry.dataUuid);
-
-					renderContext.setDetailsDataObject(dataNode);
-				}
 
 				if (response.getStatus() != HttpServletResponse.SC_OK) {
 
@@ -494,11 +465,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						case NoBasicAuth:
 							break;
 					}
-				}
-
-				if (!isDynamicPath) {
-
-					pathUuidCache.put(cacheKey, new UuidCacheEntry(rootElement, file, dataNode));
 				}
 
 				if (file != null && securityContext.isVisible(file)) {
@@ -1980,31 +1946,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		return null;
-	}
-
-	public static void clearPathCache() {
-		clearPathCache = true;
-	}
-
-	private Map<String, UuidCacheEntry> getPathCache(final HttpSession session) {
-
-		Map<String, UuidCacheEntry> map = (Map)session.getAttribute("UUID_PATH_CACHE");
-		if (clearPathCache || map == null) {
-
-			clearPathCache = false;
-
-			map = new ConcurrentHashMap<>();
-			session.setAttribute("UUID_PATH_CACHE", map);
-		}
-
-		return map;
-	}
-
-	public static void clearPathCache(final HttpSession session) {
-
-		if (session != null) {
-			session.removeAttribute("UUID_PATH_CACHE");
-		}
 	}
 
 	// ----- nested classes -----

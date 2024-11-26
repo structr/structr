@@ -55,7 +55,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		LocalizeFunction.invalidateCache();
 		AbstractSchemaNode.clearCachedSchemaMethods();
 		TransactionCommand.flushCaches();
-		HtmlServlet.clearPathCache();
 
 		StructrApp.getInstance().invalidateCache();
 	}

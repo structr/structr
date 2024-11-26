@@ -134,7 +134,6 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 		SearchCommand.prefetch(Folder.class, thisFolder.getUuid());
 
 		Folder.setHasParent(thisFolder);
-		HtmlServlet.clearPathCache();
 
 		// only update watch service for root folder of mounted hierarchy
 		if (thisFolder.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null || !thisFolder.isMounted()) {

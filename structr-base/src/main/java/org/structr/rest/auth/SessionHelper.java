@@ -99,8 +99,6 @@ public class SessionHelper {
 		final HttpSession session = request.getSession(false);
 		if (session != null) {
 
-			HtmlServlet.clearPathCache(session);
-
 			logger.debug("Created new session " + session.getId());
 
 		} else {

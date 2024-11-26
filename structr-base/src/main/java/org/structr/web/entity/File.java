@@ -349,8 +349,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void onModification(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		HtmlServlet.clearPathCache();
-
 		synchronized (thisFile) {
 
 			SearchCommand.prefetch(File.class, thisFile.getUuid());
@@ -376,8 +374,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}
 
 	static void onNodeDeletion(final File thisFile) {
-
-		HtmlServlet.clearPathCache();
 
 		// only delete mounted files
 		if (!thisFile.isExternal()) {

@@ -263,8 +263,6 @@ public class AuthHelper {
 
 			SessionHelper.clearSession(sessionId);
 
-			HtmlServlet.clearPathCache(session);
-
 			if (user.addSessionId(sessionId)) {
 
 				AuthHelper.updateLastLoginDate(user);
@@ -282,8 +280,6 @@ public class AuthHelper {
 	}
 
 	public static void doLogout(final HttpServletRequest request, final PrincipalInterface user) throws FrameworkException {
-
-		HtmlServlet.clearPathCache(request.getSession(false));
 
 		final String sessionId = SessionHelper.getShortSessionId(request.getRequestedSessionId());
 

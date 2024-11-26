@@ -132,19 +132,16 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		HtmlServlet.clearPathCache();
 		super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-		HtmlServlet.clearPathCache();
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		HtmlServlet.clearPathCache();
 		super.onDeletion(securityContext, errorBuffer, properties);
 	}
 
