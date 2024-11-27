@@ -1447,10 +1447,18 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
+	getAvailableServerLogs: () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_AVAILABLE_SERVER_LOGS' };
+			StructrWS.sendObj(obj, (data) => {
+				resolve(data[0]);
+			});
+		});
+	},
 	/**
      * Requests log snapshot from the server.
      */
-    getServerLogSnapshot: (numberOfLines, truncateLinesAfter) => {
+    getServerLogSnapshot: (numberOfLines, truncateLinesAfter, logFileName) => {
 
 		return new Promise((resolve, reject) => {
 
@@ -1458,7 +1466,8 @@ let Command = {
 				command: 'SERVER_LOG',
 				data: {
 					numberOfLines:      numberOfLines,
-					truncateLinesAfter: truncateLinesAfter
+					truncateLinesAfter: truncateLinesAfter,
+					logFileName:        logFileName
 				}
 			};
 

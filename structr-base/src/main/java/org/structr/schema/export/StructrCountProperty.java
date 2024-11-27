@@ -18,6 +18,7 @@
  */
 package org.structr.schema.export;
 
+import org.structr.api.schema.JsonCountProperty;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -29,7 +30,7 @@ import org.structr.schema.SchemaHelper;
 
 
 
-public class StructrCountProperty extends StructrStringProperty {
+public class StructrCountProperty extends StructrLongProperty implements JsonCountProperty {
 
 	public StructrCountProperty(StructrTypeDefinition parent, String name) {
 		super(parent, name);

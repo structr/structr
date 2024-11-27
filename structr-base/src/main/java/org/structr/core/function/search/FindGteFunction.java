@@ -16,56 +16,58 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+public class FindGteFunction extends AdvancedScriptingFunction {
 
-public class PrefetchFunction extends CoreFunction {
+	public static final String ERROR_MESSAGE_GTE = "Usage: ${gte(start, end)}. Example: ${find(\"User\", \"age\", gte(\"42\"))}";
 
 	@Override
 	public String getName() {
-		return "prefetch";
-	}
-
-	@Override
-	public String shortDescription() {
-		return "Prefetches a subgraph.";
+		return "find.gte";
 	}
 
 	@Override
 	public String getSignature() {
-		return "query, listOfKeys";
+		return null;
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		assertArrayHasMinLengthAndTypes(sources, 2, String.class, List.class);
+		try {
 
-		final String query     = (String)sources[0];
-		final Set<String> keys = new LinkedHashSet<>((List)sources[1]);
+			if (sources == null || sources.length > 1) {
 
-		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
+				throw new IllegalArgumentException();
+			}
 
-		return null;
+			return new RangePredicate(sources[0], null, true, false);
+
+		} catch (final IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
+		}
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
+		return ERROR_MESSAGE_GTE;
+	}
 
-		if (inJavaScriptContext) {
+	@Override
+	public String shortDescription() {
+		return "Returns a gte predicate that can be used in find() function calls";
+	}
 
-			return "$.prefetch('(:Customer)-[]->(:Task)', ['', ''])";
-
-		} else {
-
-			return "prefetch('(:Customer)-[]->(:Task)', merge('', ''))";
-		}
+	@Override
+	public boolean isHidden() {
+		return true;
 	}
 }

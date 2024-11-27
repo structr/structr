@@ -49,10 +49,14 @@ public class PredicateBinding implements ProxyObject {
 		Map.entry("and",             Functions.get("find.and")),
 		Map.entry("contains",        Functions.get("find.contains")),
 		Map.entry("starts_with",     Functions.get("find.starts_with")),
-		Map.entry("ends_with",       Functions.get("find.ends_with")),
 		Map.entry("startsWith",      Functions.get("find.starts_with")),
+		Map.entry("ends_with",       Functions.get("find.ends_with")),
 		Map.entry("endsWith",        Functions.get("find.ends_with")),
-		Map.entry("range",           Functions.get("find.range"))
+		Map.entry("range",           Functions.get("find.range")),
+		Map.entry("lt",              Functions.get("find.lt")),
+		Map.entry("lte",             Functions.get("find.lte")),
+		Map.entry("gte",             Functions.get("find.gte")),
+		Map.entry("gt",              Functions.get("find.gt"))
 	);
 
 	public PredicateBinding(final ActionContext actionContext, final GraphObject entity) {

@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relationship.*;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.net.URI;
 

@@ -435,7 +435,7 @@ let _Entities = {
 			}
 		});
 	},
-	showProperties: (obj, activeViewOverride, showDeleteBtn = false) => {
+	showProperties: (obj, activeViewOverride, showDeleteBtn = Structr.isModuleActive(_Crud)) => {
 
 		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 

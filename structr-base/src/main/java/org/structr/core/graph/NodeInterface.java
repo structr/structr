@@ -118,6 +118,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	default void prefetchPropertySet(final Iterable<PropertyKey> keys) {
 
+		/* disabled because it's buggy and doesn't improve the performance much
 		final Set<String> outgoingKeys     = new LinkedHashSet<>();
 		final Set<String> incomingKeys     = new LinkedHashSet<>();
 		final Set<String> outgoingRelTypes = new LinkedHashSet<>();
@@ -148,7 +149,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 			}
 		}
 
-		if (!outgoingRelTypes.isEmpty()) {
+		if (outgoingRelTypes.size() > 1) {
 
 			TransactionCommand.getCurrentTransaction().prefetch2(
 				"MATCH (n:NodeInterface { id: $id })-[r:" + StringUtils.join(outgoingRelTypes, "|") + "*0..1]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
@@ -159,7 +160,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 		}
 
-		if (!incomingRelTypes.isEmpty()) {
+		if (incomingRelTypes.size() > 1) {
 
 			TransactionCommand.getCurrentTransaction().prefetch2(
 				"MATCH (n:NodeInterface { id: $id })<-[r:" + StringUtils.join(incomingRelTypes, "|") + "*0..1]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
@@ -169,5 +170,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 			);
 
 		}
+		*/
 	}
 }

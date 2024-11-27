@@ -288,7 +288,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 			// migrate dynamic classes that extend static types (that were dynamic before)
-			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.");
+			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.", "org.structr.mail.entity.");
 			final String ifaces           = getProperty(SchemaNode.implementsInterfaces);
 			final List<String> interfaces = new LinkedList<>();
 			String extendsClass           = null;
