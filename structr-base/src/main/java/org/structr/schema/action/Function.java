@@ -511,50 +511,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
-	protected static File getServerlogFile() {
-
-		final String basePath = Settings.getBasePath();
-
-		if (!basePath.isEmpty()) {
-
-			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
-
-			File logFile;
-
-			// log file name from env
-			final String envLogFile = System.getenv("LOG_FILE");
-			if (envLogFile != null) {
-
-				logFile = new File(envLogFile);
-				if (logFile.exists()) {
-
-					return logFile;
-				}
-			}
-
-			// logs/server.log
-			logFile = new File(logPath.concat("server.log"));
-			if (logFile.exists()) {
-
-				return logFile;
-			}
-
-			// special handling for .deb installation
-			logFile = new File("/var/log/structr.log");
-			if (logFile.exists()) {
-				return logFile;
-			}
-
-			logger.warn("Could not locate logfile");
-
-		} else {
-
-			logger.warn("Unable to determine base.path from structr.conf, no data input/output possible.");
-		}
-
-		return null;
-	}
-
 	protected static String serialize(final Gson gson, final Map<String, Object> map) {
 		return gson.toJson(map, new TypeToken<Map<String, String>>() {
 		}.getType());

@@ -630,6 +630,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonCountProperty addCountProperty(final String name, final String... views) {
+
+		final StructrCountProperty countProperty = new StructrCountProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(countProperty);
+
+		return countProperty;
+	}
+
+	@Override
 	public JsonScriptProperty addScriptProperty(final String name, final String... views) {
 
 		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);
@@ -1192,7 +1204,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		for (final StructrMethodDefinition method : methods) {
-			method.createDatabaseSchema(app, newSchemaNode);
+
+			// FIXME: this is migration code for ancient imports
+			if ("getQoS".equals(method.getName()) && "java".equals(method.getCodeType())) {
+
+				logger.warn("Preventing creation of duplicate getQoS / getQos method pair from legacy import.");
+
+			} else {
+
+				method.createDatabaseSchema(app, newSchemaNode);
+			}
 		}
 
 		for (final StructrGrantDefinition grant : grants) {
@@ -1752,6 +1773,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		final Set<String> deleteWhitelist = Set.of(
 			"Mailbox.getAvailableFoldersOnServer",
+			"DOMElement.renderStructrAppLib",
+			"MQTTClient.getQoS",
 			"File.getFileOnDisk",
 			"File.getMinificationTargets",
 			"Group.addMember",
