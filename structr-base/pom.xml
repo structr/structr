@@ -586,6 +586,12 @@
             <version>1.4.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.andrewoma.dexx</groupId>
+            <artifactId>collection</artifactId>
+            <version>0.7</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

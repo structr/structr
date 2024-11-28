@@ -453,7 +453,7 @@ public abstract class RESTCallHandler {
 
 	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<GraphObjectTraits> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
@@ -464,11 +464,11 @@ public abstract class RESTCallHandler {
 
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-			for (final GraphObjectTraits obj : results) {
+			for (final GraphObject obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					throw new FrameworkException(403, GraphTraitImpl.getModificationNotPermittedExceptionString(obj, securityContext));
+					throw new FrameworkException(403, GraphObjectTraitImplementation.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);
@@ -498,9 +498,9 @@ public abstract class RESTCallHandler {
 				chunk++;
 
 				// always fetch the first page
-				try (final ResultStream<GraphObjectTraits> result = doGet(securityContext, null, pageSize, 1)) {
+				try (final ResultStream<GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
 
-					for (final GraphObjectTraits obj : result) {
+					for (final GraphObject obj : result) {
 
 						if (obj.isNode()) {
 
@@ -590,7 +590,7 @@ public abstract class RESTCallHandler {
 
 							final String id = (String)idSource;
 
-							GraphObjectTraits obj = app.getNodeById(localType, id);
+							GraphObject obj = app.getNodeById(localType, id);
 							if (obj != null) {
 
 								obj = app.getRelationshipById(localType, id);

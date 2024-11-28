@@ -50,12 +50,10 @@ public interface AccessControllable {
 	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
-	public RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface principal);
 
 	// visibility
 	public boolean isVisibleToPublicUsers();
 	public boolean isVisibleToAuthenticatedUsers();
-	public boolean isNotHidden();
 	public boolean isHidden();
 
 	// access

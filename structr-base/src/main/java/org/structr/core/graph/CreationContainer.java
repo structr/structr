@@ -27,21 +27,20 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
  */
-public class CreationContainer<T extends Comparable> implements GraphObject<PropertyContainer>, PropertyContainer {
+public class CreationContainer<T extends Comparable> implements GraphObject {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
@@ -64,10 +63,9 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 		return data;
 	}
 
-	// ----- interface GraphObject -----
 	@Override
 	public String getUuid() {
-		return wrappedObj.getUuid();
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
@@ -75,8 +73,8 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 	}
 
 	@Override
-	public Identity getId() {
-		return null;
+	public Traits getTraits() {
+		return wrappedObj.getTraits();
 	}
 
 	@Override
@@ -100,7 +98,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
-		return this;
+		return wrappedObj.getPropertyContainer();
 	}
 
 	@Override
@@ -132,11 +130,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
-		return false;
-	}
-
-	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -152,8 +145,23 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 	}
 
 	@Override
+	public boolean systemPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
 	public void unlockSystemPropertiesOnce() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
 	}
 
 	@Override
@@ -162,7 +170,67 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 	}
 
 	@Override
-	public void addToIndex() {
+	public void lockReadOnlyProperties() {
+
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -213,59 +281,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
-	// ----- interface PropertyContainer -----
-	@Override
-	public boolean hasProperty(String name) {
-		return data.containsKey(name);
-	}
-
-	@Override
-	public Object getProperty(String name) {
-		return data.get(name);
-	}
-
-	@Override
-	public Object getProperty(String name, Object defaultValue) {
-
-		final Object value = getProperty(name);
-		if (value != null) {
-
-			return value;
-		}
-
-		return defaultValue;
-	}
-
-	@Override
-	public void setProperty(String name, Object value) {
-		data.put(name, value);
-	}
-
-	@Override
-	public void setProperties(Map<String, Object> values) {
-		data.putAll(values);
-	}
-
-	@Override
-	public void removeProperty(String name) {
-		data.remove(name);
-	}
-
-	@Override
-	public Iterable<String> getPropertyKeys() {
-		return data.keySet();
-	}
-
-	@Override
-	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public boolean isDeleted() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
 	@Override
 	public long getSourceTransactionId() {
 
@@ -284,5 +299,29 @@ public class CreationContainer<T extends Comparable> implements GraphObject<Prop
 		}
 
 		return true;
+	}
+
+	public void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {
+
+		for (final Iterator<Map.Entry<PropertyKey, Object>> iterator = src.entrySet().iterator(); iterator.hasNext();) {
+
+			final Map.Entry<PropertyKey, Object> attr = iterator.next();
+			final PropertyKey key                 = attr.getKey();
+			final Object value                    = attr.getValue();
+
+			if (key instanceof FunctionProperty) {
+				continue;
+			}
+
+			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+
+				// value can be set directly, move to creation container
+				key.setProperty(securityContext, indexable, value);
+				iterator.remove();
+
+				// store value to do notifications later
+				filtered.put(key, value);
+			}
+		}
 	}
 }

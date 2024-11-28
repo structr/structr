@@ -31,6 +31,12 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitImplementation.class);
 
+	protected Traits traits = null;
+
+	public PropertyContainerTraitImplementation(final Traits traits) {
+		this.traits = traits;
+	}
+
 	@Override
 	public PropertyContainer getPropertyContainer(final GraphObject graphObject) {
 		return graphObject.getPropertyContainer();
@@ -73,7 +79,7 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 
 	@Override
 	public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey) {
-		return null;
+		return getProperty(graphObject, propertyKey, null);
 	}
 
 	@Override
@@ -346,112 +352,6 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 			}
 		}
 	}
-
-	/*
-	private void indexPassiveProperties() {
-
-		final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
-
-		for (PropertyKey key : getTraits().getPropertySet(PropertyView.All)) {
-
-			if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
-
-				passiveIndexingKeys.add(key);
-			}
-		}
-
-		addToIndex(passiveIndexingKeys);
-	}
-
-	default void addToIndex() {
-
-		final Set<PropertyKey> indexKeys = new LinkedHashSet<>();
-
-		for (PropertyKey key : getTraits().getPropertySet(PropertyView.All)) {
-
-			if (key.isIndexed()) {
-
-				indexKeys.add(key);
-			}
-		}
-
-		addToIndex(indexKeys);
-	}
-
-	default void addToIndex(final Set<PropertyKey> indexKeys) {
-
-		final Map<String, Object> values = new LinkedHashMap<>();
-
-		for (PropertyKey key : indexKeys) {
-
-			final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
-
-			if (converter != null) {
-
-				try {
-
-					final Object value = converter.convert(this.getProperty(key));
-					if (key.isPropertyValueIndexable(value)) {
-
-						values.put(key.dbName(), value);
-					}
-
-				} catch (FrameworkException ex) {
-
-					final Logger logger = LoggerFactory.getLogger(GraphObject.class);
-					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
-					logger.warn("Exception", ex);
-				}
-
-
-			} else {
-
-				final Object value = this.getProperty(key);
-				if (key.isPropertyValueIndexable(value)) {
-
-					// index unconverted value
-					values.put(key.dbName(), value);
-				}
-			}
-		}
-
-		try {
-
-			// use "internal" setProperty for "indexing"
-			getPropertyContainer().setProperties(values);
-
-		} catch (UnknownClientException | UnknownDatabaseException e) {
-
-			final Logger logger = LoggerFactory.getLogger(GraphObject.class);
-			logger.warn("Unable to index properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
-			logger.warn("Properties: {}", values);
-		}
-	}
-
-	default void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {
-
-		for (final Iterator<Map.Entry<PropertyKey, Object>> iterator = src.entrySet().iterator(); iterator.hasNext();) {
-
-			final Map.Entry<PropertyKey, Object> attr = iterator.next();
-			final PropertyKey key                 = attr.getKey();
-			final Object value                    = attr.getValue();
-
-			if (key instanceof FunctionProperty) {
-				continue;
-			}
-
-			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
-
-				// value can be set directly, move to creation container
-				key.setProperty(securityContext, indexable, value);
-				iterator.remove();
-
-				// store value to do notifications later
-				filtered.put(key, value);
-			}
-		}
-	}
-	*/
 
 	protected String getCurrentUserString (final SecurityContext ctx) {
 

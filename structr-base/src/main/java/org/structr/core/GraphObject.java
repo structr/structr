@@ -28,6 +28,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -49,7 +50,7 @@ import java.util.Map.Entry;
  *
  *
  */
-public interface GraphObject<T extends PropertyContainer> {
+public interface GraphObject {
 
 
 	/*
@@ -73,18 +74,18 @@ public interface GraphObject<T extends PropertyContainer> {
 
 	String getType();
 	String getUuid();
-	void init(final SecurityContext securityContext, final T dbObject, final Class type, final long sourceTransactionId);
+	void init(final SecurityContext securityContext, final PropertyContainer dbObject, final Class type, final long sourceTransactionId);
 	void setSecurityContext(final SecurityContext securityContext);
 	SecurityContext getSecurityContext();
 
-	T getPropertyContainer();
+	// property container methods
+	PropertyContainer getPropertyContainer();
 	Set<PropertyKey> getPropertyKeys(String propertyView);
 	long getSourceTransactionId();
 	<T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
 	<T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
 	void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
 	void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
-	boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation);
 
 	boolean isNode();
 	boolean isRelationship();
@@ -101,6 +102,25 @@ public interface GraphObject<T extends PropertyContainer> {
 	void unlockReadOnlyPropertiesOnce();
 	void lockReadOnlyProperties();
 
+
+	// callbacks
+	boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation);
+	boolean isValid(final ErrorBuffer errorBuffer);
+
+	void indexPassiveProperties();
+
+	void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;
+	void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException;
+	void afterCreation(final SecurityContext securityContext) throws FrameworkException;
+	void afterModification(final SecurityContext securityContext) throws FrameworkException;
+	void afterDeletion(final SecurityContext securityContext, final PropertyMap properties);
+	void ownerModified(final SecurityContext securityContext);
+	void securityModified(final SecurityContext securityContext);
+	void locationModified(final SecurityContext securityContext);
+	void propagatedModification(final SecurityContext securityContext);
+
+	// misc. methods
 	String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
 	List<GraphObject> getSyncData() throws FrameworkException;
@@ -118,6 +138,7 @@ public interface GraphObject<T extends PropertyContainer> {
 	default boolean isFrontendNode() {
 		return false;
 	}
+
 
 	/*
 

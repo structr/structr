@@ -20,16 +20,26 @@ package org.structr.core.traits;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.UnknownClientException;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 
-public abstract class GraphTraitImpl implements GraphObjectTrait {
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+public final class GraphObjectTraitImplementation implements GraphObjectTrait {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTrait.class);
 
@@ -59,11 +69,9 @@ public abstract class GraphTraitImpl implements GraphObjectTrait {
 		 */
 	}
 
-	protected GraphTraitImpl(final PropertyContainer obj) {
+	protected GraphObjectTraitImplementation(final Traits traits) {
 
-		this.obj = obj;
-
-		traits = Traits.of(obj.getType());
+		this.traits = traits;
 
 		typeProperty = traits.get("GraphTrait").key("type");
 		idProperty   = traits.get("GraphTrait").key("id");
@@ -143,5 +151,71 @@ public abstract class GraphTraitImpl implements GraphObjectTrait {
 
 	@Override
 	public void propagatedModification(final GraphObject graphObject, final SecurityContext securityContext) {
+	}
+
+	@Override
+	public void indexPassiveProperties(final GraphObject obj) {
+
+		final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
+
+		for (PropertyKey key : obj.getPropertyKeys(PropertyView.All)) {
+
+			if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
+
+				passiveIndexingKeys.add(key);
+			}
+		}
+
+		addToIndex(obj, passiveIndexingKeys);
+	}
+
+	private void addToIndex(final GraphObject obj, final Set<PropertyKey> indexKeys) {
+
+		final Map<String, Object> values = new LinkedHashMap<>();
+
+		for (PropertyKey key : indexKeys) {
+
+			final PropertyConverter converter = key.databaseConverter(obj.getSecurityContext(), obj);
+
+			if (converter != null) {
+
+				try {
+
+					final Object value = converter.convert(obj.getProperty(key));
+					if (key.isPropertyValueIndexable(value)) {
+
+						values.put(key.dbName(), value);
+					}
+
+				} catch (FrameworkException ex) {
+
+					final Logger logger = LoggerFactory.getLogger(GraphObject.class);
+					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
+					logger.warn("Exception", ex);
+				}
+
+
+			} else {
+
+				final Object value = obj.getProperty(key);
+				if (key.isPropertyValueIndexable(value)) {
+
+					// index unconverted value
+					values.put(key.dbName(), value);
+				}
+			}
+		}
+
+		try {
+
+			// use "internal" setProperty for "indexing"
+			obj.getPropertyContainer().setProperties(values);
+
+		} catch (UnknownClientException | UnknownDatabaseException e) {
+
+			final Logger logger = LoggerFactory.getLogger(GraphObject.class);
+			logger.warn("Unable to index properties of {} with UUID {}: {}", obj.getType(), obj.getUuid(), e.getMessage());
+			logger.warn("Properties: {}", values);
+		}
 	}
 }

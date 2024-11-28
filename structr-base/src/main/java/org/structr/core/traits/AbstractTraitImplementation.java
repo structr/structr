@@ -18,12 +18,11 @@
  */
 package org.structr.core.traits;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
+public class AbstractTraitImplementation {
 
-public interface NodeTrait extends GraphObjectTrait {
+	protected final Traits traits;
 
-	void onNodeCreation(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException;
-	void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException;
+	public AbstractTraitImplementation(Traits traits) {
+		this.traits = traits;
+	}
 }

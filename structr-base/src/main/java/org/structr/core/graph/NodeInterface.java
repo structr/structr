@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.Predicate;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
@@ -34,7 +35,7 @@ import org.structr.core.property.*;
 
 import java.util.*;
 
-public interface NodeInterface extends GraphObject<Node>, Comparable, AccessControllable {
+public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	// properties
 	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
@@ -75,6 +76,7 @@ public interface NodeInterface extends GraphObject<Node>, Comparable, AccessCont
 	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<NodeInterface> predicate);
 
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(final Class<R> type);
@@ -83,6 +85,7 @@ public interface NodeInterface extends GraphObject<Node>, Comparable, AccessCont
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
 	List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships();
+	RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface principal);
 
 	Map<String, Object> getTemporaryStorage();
 
