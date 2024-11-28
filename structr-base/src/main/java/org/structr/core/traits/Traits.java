@@ -230,7 +230,7 @@ public class Traits implements GraphObjectTrait {
 	}
 
 	@Override
-	public void removeProperty(final PropertyKey key) throws FrameworkException {
+	public void removeProperty(GraphObject graphObject, PropertyKey key) throws FrameworkException {
 	}
 
 	// ----- static methods -----

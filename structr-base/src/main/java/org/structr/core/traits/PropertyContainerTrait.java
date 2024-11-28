@@ -42,5 +42,5 @@ public interface PropertyContainerTrait {
 	void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
 	void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
 
-	void removeProperty(final PropertyKey key) throws FrameworkException;
+	void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException;
 }
