@@ -242,18 +242,24 @@ let _Pages = {
 	},
 	getContextMenuElements: (div, entity) => {
 
-		let elements      = [];
-		const isPage      = (entity.type === 'Page');
-		const isContent   = (entity.type === 'Content');
-		const hasChildren = (entity.children && entity.children.length > 0);
+		let elements                      = [];
+		const isPage                      = (entity.isPage === true    || entity.type === 'Page');
+		const isActualContentElement      = (entity.isContent === true && entity.type === 'Content');
+		const hasChildren                 = (entity.children && entity.children.length > 0);
+		const parentId                    = entity.parent?.id ?? null;
+		const hasParent                   = (parentId !== null);
+		const hasParentAndParentIsNotPage = (hasParent && !isPage);
+		const parentIsShadowPage          = (!hasParent && entity.pageId === _Pages.shadowPage.id);
+		const entityTypeisDivType         = (entity.type === 'Div');  // does not work for subclasses of Div... but who would do that?
+		const anyElementIsSelected        = !!_Elements.selectedEntity;
+		const currentElementIsSelected    = (_Elements.selectedEntity?.id === entity.id);
 
-		let handleInsertHTMLAction = (itemText) => {
+		let handleInsertHTMLAction   = (itemText) => {
 			let pageId  = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
-
 		let handleInsertBeforeAction = (itemText) => {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
@@ -262,7 +268,9 @@ let _Pages = {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
-		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
+		let handleReplaceWithAction  = (itemText) => {
+			Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id));
+		};
 		let handleWrapInHTMLAction   = (itemText) => {
 
 			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
@@ -272,21 +280,22 @@ let _Pages = {
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
 
-		if (!isContent) {
+		if (!isActualContentElement) {
 
 			elements.push({
 				name: 'Insert HTML element',
-				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
+				elements: isPage ? ['html'] : _Elements.sortedElementGroups,
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
 			elements.push({
 				name: 'Insert content element',
-				elements: !isPage ? ['#content', '#template'] : ['#template'],
+				elements: isPage ? ['#template'] : ['#content', '#template'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
 			if (_Elements.suggestedElements[entity.tag]) {
+
 				elements.push({
 					name: 'Suggested HTML element',
 					elements: _Elements.suggestedElements[entity.tag],
@@ -295,7 +304,8 @@ let _Pages = {
 			}
 		}
 
-		if (!isPage && !isContent) {
+		if (!isPage && !isActualContentElement) {
+
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: () => {
@@ -306,7 +316,7 @@ let _Pages = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+		if (!isPage && hasParentAndParentIsNotPage) {
 
 			elements.push({
 				name: 'Insert before...',
@@ -355,7 +365,7 @@ let _Pages = {
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
-		if (entity.type === 'Div' && !hasChildren) {
+		if (entityTypeisDivType && !hasChildren) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
@@ -366,16 +376,13 @@ let _Pages = {
 			});
 		}
 
-		let hasParentAndParentIsNotPage = (entity.parent && entity.parent.type !== 'Page');
-		let parentIsShadowPage          = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
-
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone',
 				clickHandler: () => {
-					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+					Command.cloneNode(entity.id, parentId, true);
 				}
 			});
 
@@ -447,14 +454,17 @@ let _Pages = {
 
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+			if (currentElementIsSelected) {
+
 				elements.push({
 					name: 'Deselect element',
 					clickHandler: () => {
 						_Elements.unselectEntity();
 					}
 				});
+
 			} else {
+
 				elements.push({
 					name: 'Select element',
 					clickHandler: () => {
@@ -463,8 +473,9 @@ let _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && !parentIsShadowPage;
 			if (canConvertToSharedComponent) {
+
 				_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 				elements.push({
@@ -476,14 +487,14 @@ let _Pages = {
 			}
 		}
 
-		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
+		if (!isActualContentElement && anyElementIsSelected && !currentElementIsSelected) {
 
-			let isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			let isSamePage                               = _Elements.selectedEntity.pageId === entity.pageId;
 			let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			let isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
-			let isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+			let isSelectedEntityInShadowPage             = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
+			let isSelectedEntitySharedComponent          = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
 
-			let isDescendantOfSelectedEntity = function (possibleDescendant) {
+			let isDescendantOfSelectedEntity = (possibleDescendant) => {
 				if (possibleDescendant.parent) {
 					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
 						return true;
@@ -526,46 +537,39 @@ let _Pages = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (!isContent && hasChildren) {
+		if (!isActualContentElement && hasChildren) {
+
+			let toggleChildrenExpandedState = (isCurrentlyExpanded) => {
+
+				// we reverse, because we want collapse to work from the deepest level backwards (for expand it does not make a difference)
+				let nodeDescendants = [...div.closest('.node').querySelectorAll('.node')].toReversed();
+
+				for (let childNode of nodeDescendants) {
+					if (_Entities.isExpanded(childNode) === isCurrentlyExpanded) {
+						let id = Structr.getId(childNode);
+						_Entities.toggleElement(id, childNode);
+					}
+				}
+
+				if (_Entities.isExpanded(div) === isCurrentlyExpanded) {
+					_Entities.toggleElement(entity.id, div);
+				}
+			};
 
 			elements.push({
 				name: 'Expand / Collapse',
 				elements: [
 					{
 						name: 'Expand subtree',
-						clickHandler: () => {
-
-							$(div).find('.node').each(function(i, el) {
-								if (!_Entities.isExpanded(el)) {
-									_Entities.toggleElement(entity.id, el);
-								}
-							});
-
-							if (!_Entities.isExpanded(div)) {
-								_Entities.toggleElement(entity.id, div);
-							}
-						}
+						clickHandler: () => toggleChildrenExpandedState(false)
 					},
 					{
 						name: 'Expand subtree recursively',
-						clickHandler: () => {
-							_Entities.expandRecursively([entity.id]);
-						}
+						clickHandler: () => _Entities.expandRecursively([entity.id])
 					},
 					{
 						name: 'Collapse subtree',
-						clickHandler: () => {
-
-							$(div).find('.node').each(function(i, el) {
-								if (_Entities.isExpanded(el)) {
-									_Entities.toggleElement(entity.id, el);
-								}
-							});
-
-							if (_Entities.isExpanded(div)) {
-								_Entities.toggleElement(entity.id, div);
-							}
-						}
+						clickHandler: () => toggleChildrenExpandedState(true)
 					}
 				]
 			});
@@ -575,7 +579,7 @@ let _Pages = {
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
-		if (!isPage && entity.parent !== null) {
+		if (!isPage && hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -590,15 +594,15 @@ let _Pages = {
 			});
 		}
 
-		// should only be visible for type===Page
-		if (isPage || !entity.parent) {
+		if (isPage || !hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
-					_Entities.deleteNode(entity, (isContent === false));
+					let recursive = (isActualContentElement === false);
+					_Entities.deleteNode(entity, recursive);
 				}
 			});
 		}
