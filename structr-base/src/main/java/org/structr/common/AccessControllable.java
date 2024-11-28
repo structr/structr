@@ -35,107 +35,21 @@ import java.util.Set;
  */
 public interface AccessControllable {
 
-	/**
-	 * Return owner node
-	 *
-	 * @return owner
-	 */
 	public PrincipalInterface getOwnerNode();
 
-	/**
-	 * Return true if principal has the given permission on this object.
-	 *
-	 * @param permission
-	 * @param securityContext
-	 *
-	 * @return whether the security context has the given permissions on this node
-	 */
 	public boolean isGranted(final Permission permission, final SecurityContext securityContext);
 
-	/**
-	 * Grant given permission to given principal.
-	 *
-	 * @param permission
-	 * @param principal
-	 * @throws FrameworkException
-	 */
 	public void grant(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
-
-	/**
-	 * Grant given permissions to given principal.
-	 *
-	 * @param permissions
-	 * @param principal
-	 * @throws FrameworkException
-	 */
 	public void grant(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
-
-	/**
-	 * Grant given permissions to given principal.
-	 *
-	 * @param permissions
-	 * @param principal
-	 * @param ctx
-	 * @throws FrameworkException
-	 */
 	public void grant(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
-	/**
-	 * Revoke given permission from given principal.
-	 *
-	 * @param permission
-	 * @param principal
-	 * @throws FrameworkException
-	 */
 	public void revoke(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
-
-	/**
-	 * Revoke given permissions from given principal.
-	 *
-	 * @param permissions
-	 * @param principal
-	 * @throws FrameworkException
-	 */
 	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
-
-	/**
-	 * Revoke given permissions from given principal.
-	 *
-	 * @param permissions
-	 * @param principal
-	 * @param ctx
-	 * @throws FrameworkException
-	 */
 	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
-	/**
-	 * Applies the given permissions to the given principal.
-	 * Permissions not in the set of permissions will be removed if already set
-	 *
-	 * @param permissions
-	 * @param principal
-	 * @throws FrameworkException
-	 */
 	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
-
-	/**
-	 * Applies the given permissions to the given principal.
-	 * Permissions not in the set of permissions will be removed if already set
-	 *
-	 * @param permissions
-	 * @param principal
-	 * @param ctx
-	 * @throws FrameworkException
-	 */
 	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
-	/**
-	 * Return the (cached) incoming relationship between this node and the
-	 * given principal which holds the security information.
-	 *
-	 * @param principal
-	 * @return incoming security relationship
-	 */
 	public RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface principal);
 
 	// visibility

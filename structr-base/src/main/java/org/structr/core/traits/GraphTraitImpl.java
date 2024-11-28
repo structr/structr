@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 
@@ -37,8 +38,6 @@ public abstract class GraphTraitImpl implements GraphObjectTrait {
 
 	protected final PropertyKey<String> typeProperty;
 	protected final PropertyKey<String> idProperty;
-	protected boolean internalSystemPropertiesUnlocked;
-	protected boolean readOnlyPropertiesUnlocked;
 	protected SecurityContext securityContext;
 	protected PropertyContainer obj;
 	protected Traits traits;
@@ -88,61 +87,61 @@ public abstract class GraphTraitImpl implements GraphObjectTrait {
 	}
 
 	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
+	public boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
 
 		boolean valid = true;
 
 		// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
-		valid &= ValidationHelper.isValidStringNotBlank(this, idProperty, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
 
 		if (securityContext != null && securityContext.uuidWasSetManually()) {
-			valid &= ValidationHelper.isValidGloballyUniqueProperty(this, idProperty, errorBuffer);
+			valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
 		}
 
-		valid &= ValidationHelper.isValidUuid(this, idProperty, errorBuffer);
-		valid &= ValidationHelper.isValidStringNotBlank(this, typeProperty, errorBuffer);
+		valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
+		valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
 
 		return valid;
 
 	}
 
 	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 	}
 
 	@Override
-	public void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+	public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 	}
 
 	@Override
-	public void afterCreation(final SecurityContext securityContext) throws FrameworkException {
+	public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override
-	public void afterModification(final SecurityContext securityContext) throws FrameworkException {
+	public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override
-	public void afterDeletion(final SecurityContext securityContext, final PropertyMap properties) {
+	public void afterDeletion(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) {
 	}
 
 	@Override
-	public void ownerModified(final SecurityContext securityContext) {
+	public void ownerModified(final GraphObject graphObject, final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void securityModified(final SecurityContext securityContext) {
+	public void securityModified(final GraphObject graphObject, final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void locationModified(final SecurityContext securityContext) {
+	public void locationModified(final GraphObject graphObject, final SecurityContext securityContext) {
 	}
 
 	@Override
-	public void propagatedModification(final SecurityContext securityContext) {
+	public void propagatedModification(final GraphObject graphObject, final SecurityContext securityContext) {
 	}
 }

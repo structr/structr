@@ -62,7 +62,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private StringBuilder changeLog                           = null;
 	private Map<String, StringBuilder> userChangeLogs         = null;
 	private RelationshipType relType                          = null;
-	private Traits<GraphObject> traits                        = null;
+	private Traits traits                                     = null;
 	private boolean isNode                                    = false;
 	private boolean modified                                  = false;
 	private GraphObject<?> object                             = null;
@@ -91,7 +91,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		in, out
 	}
 
-	public GraphObjectModificationState(GraphObject object) {
+	public GraphObjectModificationState(final GraphObject object) {
 
 		this.object = object;
 		this.traits = object.getTraits();
