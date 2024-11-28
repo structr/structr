@@ -28,12 +28,10 @@ import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.Traits;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -46,9 +44,9 @@ import java.util.Set;
  */
 public abstract class AbstractEndpoint {
 
-	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Trait<?> trait) {
+	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
 
-		final Iterable<Relationship> rels     = getMultiple(securityContext, dbNode, relationshipType, direction, trait, null);
+		final Iterable<Relationship> rels     = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType, null);
 		final Iterator<Relationship> iterator = rels.iterator();
 
 		// FIXME: this returns only the first relationship that matches, i.e. there is NO check for multiple relationships
@@ -59,8 +57,8 @@ public abstract class AbstractEndpoint {
 		return null;
 	}
 
-	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Trait<?> trait, final Predicate<GraphTrait> predicate) {
-		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, trait, predicate), dbNode.getRelationships(direction, relationshipType));
+	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType, final Predicate<GraphObject> predicate) {
+		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
 	}
 
 	// ----- protected methods -----
@@ -69,17 +67,17 @@ public abstract class AbstractEndpoint {
 	 * there by one of the Notions that was executed before this relationship creation.
 
 	 * @param securityContext the security context
-	 * @param traits the entity type
+	 * @param type the entity type
 	 * @param storageKey the key for which the PropertyMap was stored
 	 *
 	 * @return a PropertyMap or null
 	 */
-	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Traits traits, final String storageKey) {
+	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type, final String storageKey) {
 
 		final Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
 		if (notionPropertyMap != null) {
 
-			final Set<PropertyKey> keySet      = Services.getInstance().getConfigurationProvider().getPropertySet(traits, PropertyView.Public);
+			final Set<PropertyKey> keySet      = Services.getInstance().getConfigurationProvider().getPropertySet(type, PropertyView.Public);
 			final PropertyMap notionProperties = notionPropertyMap.get(storageKey);
 
 			if (notionProperties != null) {
@@ -100,11 +98,11 @@ public abstract class AbstractEndpoint {
 		return null;
 	}
 
-	protected GraphTrait unwrap(final GraphTrait node) throws FrameworkException {
+	protected GraphObject unwrap(final GraphObject node) throws FrameworkException {
 		return unwrap(null, null, node, null);
 	}
 
-	protected GraphTrait unwrap(final SecurityContext securityContext, final Traits actualType, final GraphTrait node, final PropertyMap properties) throws FrameworkException {
+	protected GraphObject unwrap(final SecurityContext securityContext, final Class actualType, final GraphObject node, final PropertyMap properties) throws FrameworkException {
 
 		if (node != null && node instanceof EntityAndPropertiesContainer) {
 

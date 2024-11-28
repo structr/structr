@@ -18,25 +18,17 @@
  */
 package org.structr.core.api;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.structr.api.Traits;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.Scripting;
-import org.structr.core.script.Snippet;
-import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.core.traits.Traits;
+
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

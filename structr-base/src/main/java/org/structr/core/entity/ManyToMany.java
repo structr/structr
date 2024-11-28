@@ -18,11 +18,94 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.api.graph.Direction;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.DuplicateRelationshipToken;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
  *
  */
-public interface ManyToMany<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, ManyStartpoint<S>, ManyEndpoint<T>> {
+public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, ManyStartpoint<S>, ManyEndpoint<T>> {
+
+	@Override
+	public Multiplicity getSourceMultiplicity() {
+		return Multiplicity.Many;
+	}
+
+	@Override
+	public Multiplicity getTargetMultiplicity() {
+		return Multiplicity.Many;
+	}
+
+	@Override
+	public ManyStartpoint<S> getSource() {
+		return new ManyStartpoint<>(this);
+	}
+
+	@Override
+	public ManyEndpoint<T> getTarget() {
+		return new ManyEndpoint<>(this);
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
+
+		// The following code has nothing to do with cardinality, although it is implemented in the ensureCardinality method.
+		// It checks for and prevents duplicate relationships (between exactly the same two nodes, which we don't want).
+
+		if (securityContext.preventDuplicateRelationships() && targetNode != null && sourceNode.hasRelationshipTo(this, targetNode)) {
+
+			final String message = "Relationship already exists from " + sourceNode.getType() + "(" + sourceNode.getUuid() + ") " + sourceNode.getName() + " to " + targetNode.getType() + " (" + targetNode.getUuid() + ") " + targetNode.getName();
+
+			throw new FrameworkException(422, message, new DuplicateRelationshipToken(
+				getClass().getSimpleName(),
+				message
+			));
+		}
+	}
+
+	@Override
+	public Notion getEndNodeNotion() {
+		return new RelationshipNotion(getTargetIdProperty());
+
+	}
+
+	@Override
+	public Notion getStartNodeNotion() {
+		return new RelationshipNotion(getSourceIdProperty());
+	}
+
+	@Override
+	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
+		return null;
+	}
+
+	@Override
+	public Class getOtherType(final Class type) {
+
+		switch (getDirectionForType(type)) {
+
+			case INCOMING: return getSourceType();
+			case OUTGOING: return getTargetType();
+			case BOTH:     return getSourceType();	// don't know...
+		}
+
+		return null;
+	}
 }

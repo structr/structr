@@ -19,13 +19,13 @@
 package org.structr.core.graph;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.Traits;
+import org.structr.core.app.StructrApp;
 
 /**
  * A factory for structr relationships. This class exists because we need a fast
@@ -34,7 +34,9 @@ import org.structr.core.traits.Traits;
  *
  * @param <T>
  */
-public class RelationshipFactory<T extends RelationshipTrait> extends Factory<Relationship, T> {
+public class RelationshipFactory<A extends NodeInterface, B extends NodeInterface, T extends RelationshipInterface<A, B>> extends Factory<Relationship, T> {
+
+	private static final Logger logger = LoggerFactory.getLogger(RelationshipFactory.class.getName());
 
 	public RelationshipFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -64,19 +66,44 @@ public class RelationshipFactory<T extends RelationshipTrait> extends Factory<Re
 			return null;
 		}
 
-		return (T) instantiate(relationship, pathSegmentId, false);
+		final Class relationshipType = factoryDefinition.determineRelationshipType(relationship);
+		if (relationshipType == null) {
+			return null;
+		}
+
+		return (T) instantiateWithType(relationship, relationshipType, pathSegmentId, false);
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship, final Identity pathSegmentId, final boolean isCreation) {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final Identity pathSegmentId, final boolean isCreation) {
 
-		final Trait<RelationshipTrait> trait = Trait.of(RelationshipTrait.class);
-		final RelationshipTrait base         = trait.getImplementation(relationship);
+		// cannot instantiate relationship without type
+		if (relClass == null) {
+			return null;
+		}
 
-		final Traits traits      = base.getTraits();
-		final Trait<T> typeTrait = (Trait<T>) traits.get(base.getType());
+		logger.debug("Instantiate relationship with type {}", relClass.getName());
 
-		return typeTrait.getImplementation(relationship);
+		SecurityContext securityContext = factoryProfile.getSecurityContext();
+		T newRel          = null;
+
+		try {
+
+			newRel = relClass.getDeclaredConstructor().newInstance();
+
+		} catch (Throwable t) {
+			logger.warn("", t);
+			newRel = null;
+		}
+
+		if (newRel == null) {
+			logger.warn("newRel was null, using generic relationship for {}", relationship);
+			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
+		}
+
+		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
+
+		return newRel;
 	}
 
 	@Override
@@ -87,8 +114,8 @@ public class RelationshipFactory<T extends RelationshipTrait> extends Factory<Re
 	@Override
 	public T instantiate(final Relationship obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
 
-		this.includeHidden = includeHidden;
-		this.publicOnly    = publicOnly;
+		factoryProfile.setIncludeHidden(includeHidden);
+		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(obj);
 	}

@@ -20,31 +20,33 @@ package org.structr.core.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.api.graph.*;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.common.error.*;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
-import org.structr.core.script.Scripting;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.*;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.graph.TransactionCommand;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -54,7 +56,7 @@ import org.structr.core.graph.TransactionCommand;
  * @param <S>
  * @param <T>
  */
-public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTrait> implements Comparable<AbstractRelationship>, RelationshipInterface {
+public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> extends AbstractGraphObject<Relationship> implements Comparable<AbstractRelationship>, RelationshipInterface<S, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
@@ -84,22 +86,13 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 	private PropertyKey targetProperty         = null;
 
 	protected SecurityContext securityContext  = null;
-	protected Traits traits                    = null;
+	protected Class entityType                 = null;
 	protected Identity relationshipId          = null;
 
 	public AbstractRelationship() {}
 
-	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final long transactionId) {
-		init(securityContext, dbRel, transactionId);
-	}
-
-	@Override
-	public final void init(final SecurityContext securityContext, final Relationship dbRel, final long transactionId) {
-
-		this.transactionId   = transactionId;
-		this.relationshipId  = dbRel.getId();
-		this.traits = traits;
-		this.securityContext = securityContext;
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
+		init(securityContext, dbRel, entityType, transactionId);
 	}
 
 	public Property<String> getSourceIdProperty() {
@@ -113,32 +106,6 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 	@Override
 	public long getSourceTransactionId() {
 		return transactionId;
-	}
-
-	@Override
-	public final void setSecurityContext(final SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
-
-	@Override
-	public final SecurityContext getSecurityContext() {
-		return this.securityContext;
-	}
-
-	@Override
-	public final void unlockSystemPropertiesOnce() {
-		this.internalSystemPropertiesUnlocked = true;
-		unlockReadOnlyPropertiesOnce();
-	}
-
-	@Override
-	public final void unlockReadOnlyPropertiesOnce() {
-		this.readOnlyPropertiesUnlocked = true;
-	}
-
-	@Override
-	public final void removeProperty(final PropertyKey key) throws FrameworkException {
-		getRelationship().removeProperty(key.dbName());
 	}
 
 	@Override
@@ -182,11 +149,6 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 	}
 
 	@Override
-	public final String getUuid() {
-		return getProperty(AbstractRelationship.id);
-	}
-
-	@Override
 	public final PropertyMap getProperties() throws FrameworkException {
 
 		Map<String, Object> properties = new LinkedHashMap<>();
@@ -201,97 +163,66 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 
 	}
 
+	/**
+	 * Return database relationship
+	 *
+	 * @return database relationship
+	 */
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key) {
-		return getProperty(key, true, null);
+	public Relationship getRelationship() {
+		return TransactionCommand.getCurrentTransaction().getRelationship(relationshipId);
 	}
 
 	@Override
-	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
-		return getProperty(key, true, predicate);
-	}
-
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-		// early null check, this should not happen...
-		if (key == null || key.dbName() == null) {
-			return null;
-		}
-
-		return key.getProperty(securityContext, this, applyConverter, predicate);
+	public boolean isDeleted() {
+		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(relationshipId.getId());
 	}
 
 	@Override
-	public final <T> Comparable getComparableProperty(final PropertyKey<T> key) {
+	public final T getTargetNode() {
+		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+		return nodeFactory.instantiate(getRelationship().getEndNode());
+	}
 
-		if (key != null) {
+	@Override
+	public final T getTargetNodeAsSuperUser() {
+		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(getRelationship().getEndNode());
+	}
 
-			final T propertyValue = getProperty(key, false, null);	// get "raw" property without converter
+	@Override
+	public final S getSourceNode() {
+		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
+		return nodeFactory.instantiate(getRelationship().getStartNode());
+	}
 
-			// check property converter
-			PropertyConverter converter = key.databaseConverter(securityContext, this);
-			if (converter != null) {
+	@Override
+	public final S getSourceNodeAsSuperUser() {
+		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(getRelationship().getStartNode());
+	}
 
-				try {
-					return converter.convertForSorting(propertyValue);
+	@Override
+	public final NodeInterface getOtherNode(final NodeInterface node) {
+		NodeFactory nodeFactory = new NodeFactory(securityContext);
+		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
+	}
 
-				} catch(FrameworkException fex) {
-					logger.warn("Unable to convert property {} of type {}: {}", new Object[] {
-						key.dbName(),
-						getClass().getSimpleName(),
-						fex.getMessage()
-					});
-				}
-			}
+	public final NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
+	}
 
-			// conversion failed, may the property value itself is comparable
-			if(propertyValue instanceof Comparable) {
-				return (Comparable)propertyValue;
-			}
+	@Override
+	public final RelationshipType getRelType() {
 
-			// last try: convertFromInput to String to make comparable
-			if(propertyValue != null) {
-				return propertyValue.toString();
-			}
+		final Relationship dbRelationship = getRelationship();
+		if (dbRelationship != null) {
+
+			return dbRelationship.getType();
 		}
 
 		return null;
-	}
-
-	/**
-	 * Return all property keys.
-	 *
-	 * If a custom view is set via header, this can only include properties that are also included in the current view!
-	 *
-	 * @return property keys
-	 */
-	public final Set<PropertyKey> getPropertyKeys() {
-		return getPropertyKeys(PropertyView.All);
-	}
-
-	// ----- interface GraphObject -----
-	@Override
-	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
-
-		// check for custom view in content-type field
-		if (securityContext != null && securityContext.hasCustomView()) {
-
-			final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(traits, view));
-			final Set<String> customView = securityContext.getCustomView();
-
-			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
-				if (!customView.contains(it.next().jsonName())) {
-
-					it.remove();
-				}
-			}
-
-			return keys;
-		}
-
-		// this is the default if no application/json; properties=[...] content-type header is present on the request
-		return StructrApp.getConfiguration().getPropertySet(traits, propertyView);
 	}
 
 	public final Map<String, Long> getRelationshipInfo(Direction direction) {
@@ -305,11 +236,6 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 	@Override
 	public final String getType() {
 		return getRelType().name();
-	}
-
-	@Override
-	public final PropertyContainer getPropertyContainer() {
-		return getRelationship();
 	}
 
 	@Override
@@ -340,48 +266,8 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 		return cachedEndNodeId;
 	}
 
-	public final String getOtherNodeId(final NodeTrait node) {
+	public final String getOtherNodeId(final AbstractNode node) {
 		return getOtherNode(node).getProperty(AbstractRelationship.id);
-	}
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) throws FrameworkException {
-	}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
-	}
-
-	@Override
-	public void ownerModified(SecurityContext securityContext) {
-	}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {
-	}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {
-	}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {
 	}
 
 	@Override
@@ -396,93 +282,6 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 	}
 
 	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-		setProperties(securityContext, properties, false);
-	}
-
-	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-
-		final Relationship dbRelationship = getRelationship();
-
-		for (final PropertyKey key : properties.keySet()) {
-
-			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
-
-				// check for system properties
-				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
-
-					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
-				}
-
-				// check for read-only properties
-				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-
-					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
-				}
-			}
-		}
-
-		RelationshipInterface.super.setPropertiesInternal(securityContext, properties, isCreation);
-	}
-
-	@Override
-	public final <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
-		return setProperty(key, value, false);
-	}
-
-	@Override
-	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
-
-		// clear function property cache in security context since we are about to invalidate past results
-		if (securityContext != null) {
-
-			securityContext.getContextStore().clearFunctionPropertyCache();
-		}
-
-		if (key == null) {
-
-			logger.error("Tried to set property with null key (action was denied)");
-
-			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base.jsonName()));
-
-		}
-
-		try {
-
-			final Relationship dbRelationship = getRelationship();
-
-			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
-
-				// check for system properties
-				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
-
-					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
-
-				}
-
-				// check for read-only properties
-				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-
-					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
-
-				}
-
-			}
-
-			return key.setProperty(securityContext, this, value);
-
-		} finally {
-
-			// unconditionally lock read-only properties after every write (attempt) to avoid security problems
-			// since we made "unlock_readonly_properties_once" available through scripting
-			internalSystemPropertiesUnlocked = false;
-			readOnlyPropertiesUnlocked       = false;
-
-		}
-	}
-
-	@Override
 	public final void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
@@ -492,11 +291,11 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeTrait newStartNode = app.getNodeById(sourceNodeId);
-		final NodeTrait endNode      = getTargetNode();
-		final Class relationType     = getClass();
-		final PropertyMap _props     = getProperties();
-		final String type            = this.getClass().getSimpleName();
+		final NodeInterface newStartNode = app.getNodeById(sourceNodeId);
+		final NodeInterface endNode      = getTargetNode();
+		final Class relationType         = getClass();
+		final PropertyMap _props         = getProperties();
+		final String type                = this.getClass().getSimpleName();
 
 		if (newStartNode == null) {
 			throw new FrameworkException(404, "Node with ID " + sourceNodeId + " not found", new IdNotFoundToken(type, sourceNodeId));
@@ -519,11 +318,11 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final NodeTrait newTargetNode = app.getNodeById(targetNodeId);
-		final NodeTrait startNode     = getSourceNode();
-		final Class relationType      = getClass();
-		final PropertyMap _props      = getProperties();
-		final String type             = this.getClass().getSimpleName();
+		final NodeInterface newTargetNode = app.getNodeById(targetNodeId);
+		final NodeInterface startNode     = getSourceNode();
+		final Class relationType          = getClass();
+		final PropertyMap _props          = getProperties();
+		final String type                 = this.getClass().getSimpleName();
 
 		if (newTargetNode == null) {
 			throw new FrameworkException(404, "Node with ID " + targetNodeId + " not found", new IdNotFoundToken(type, targetNodeId));
@@ -534,11 +333,6 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 
 		// create new relationship and store here
 		app.create(startNode, newTargetNode, relationType, _props);
-	}
-
-	@Override
-	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
-		return Scripting.replaceVariables(renderContext, this, getProperty(key), key.jsonName());
 	}
 
 	@Override
@@ -555,7 +349,7 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 			default:
 
 				// evaluate object value or return default
-				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(traits, key), actionContext.getPredicate());
+				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
 				if (value == null) {
 
 					return Function.numberOrString(defaultValue);
@@ -654,13 +448,5 @@ public abstract class AbstractRelationship<S extends NodeTrait, T extends NodeTr
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		return this;
-	}
-
-	public String getCreatedBy() {
-		return getProperty(AbstractNode.createdBy);
-	}
-
-	public String getLastModifiedBy() {
-		return getProperty(AbstractNode.lastModifiedBy);
 	}
 }

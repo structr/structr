@@ -22,7 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTraits;
 import org.structr.core.traits.Trait;
 
 /**
@@ -31,7 +31,7 @@ import org.structr.core.traits.Trait;
  *
  *
  */
-public interface SerializationStrategy<S extends GraphTrait, T> {
+public interface SerializationStrategy<S extends GraphObjectTraits, T> {
 
 	public T serialize(SecurityContext securityContext, Trait<S> type, S source) throws FrameworkException;
 

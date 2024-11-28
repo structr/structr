@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -35,7 +34,7 @@ public class PredicateBinding implements ProxyObject {
 
 	private static final Logger logger           = LoggerFactory.getLogger(PredicateBinding.class.getName());
 
-	private GraphTrait entity                   = null;
+	private GraphObject entity                   = null;
 	private ActionContext actionContext          = null;
 
 	private final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
@@ -60,7 +59,7 @@ public class PredicateBinding implements ProxyObject {
 		Map.entry("gt",              Functions.get("find.gt"))
 	);
 
-	public PredicateBinding(final ActionContext actionContext, final GraphTrait entity) {
+	public PredicateBinding(final ActionContext actionContext, final GraphObject entity) {
 
 		this.entity = entity;
 		this.actionContext = actionContext;

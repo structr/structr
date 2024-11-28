@@ -42,7 +42,7 @@ import org.structr.core.graph.*;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.Trait;
 import org.structr.schema.ConfigurationProvider;
 
@@ -52,7 +52,7 @@ import java.util.*;
  *
  *
  */
-public abstract class SearchCommand<S extends PropertyContainer, T extends GraphTrait> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
+public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObjectTrait> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
 

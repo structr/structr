@@ -47,10 +47,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -68,7 +66,7 @@ public abstract class RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(RESTCallHandler.class.getName());
 
-	private GraphTrait cachedEntity = null;
+	private GraphObjectTrait cachedEntity = null;
 	protected String requestedView  = null;
 	protected RESTCall call         = null;
 
@@ -237,7 +235,7 @@ public abstract class RESTCallHandler {
 	}
 
 	// ----- protected methods -----
-	protected GraphTrait getEntity(final SecurityContext securityContext, final Traits entityClass, final String typeName, final String uuid) throws FrameworkException {
+	protected GraphObjectTrait getEntity(final SecurityContext securityContext, final Traits entityClass, final String typeName, final String uuid) throws FrameworkException {
 
 		if (cachedEntity != null) {
 			return cachedEntity;
@@ -455,7 +453,7 @@ public abstract class RESTCallHandler {
 
 	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<GraphTrait> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<GraphObjectTraits> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
@@ -466,7 +464,7 @@ public abstract class RESTCallHandler {
 
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-			for (final GraphTrait obj : results) {
+			for (final GraphObjectTraits obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
@@ -500,9 +498,9 @@ public abstract class RESTCallHandler {
 				chunk++;
 
 				// always fetch the first page
-				try (final ResultStream<GraphTrait> result = doGet(securityContext, null, pageSize, 1)) {
+				try (final ResultStream<GraphObjectTraits> result = doGet(securityContext, null, pageSize, 1)) {
 
-					for (final GraphTrait obj : result) {
+					for (final GraphObjectTraits obj : result) {
 
 						if (obj.isNode()) {
 
@@ -592,7 +590,7 @@ public abstract class RESTCallHandler {
 
 							final String id = (String)idSource;
 
-							GraphTrait obj = app.getNodeById(localType, id);
+							GraphObjectTraits obj = app.getNodeById(localType, id);
 							if (obj != null) {
 
 								obj = app.getRelationshipById(localType, id);

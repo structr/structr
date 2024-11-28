@@ -18,15 +18,23 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.api.graph.Direction;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
  *
  */
-public interface OneToMany<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
+public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
 
-	/*
 	@Override
 	public Multiplicity getSourceMultiplicity() {
 		return Multiplicity.One;
@@ -58,16 +66,17 @@ public interface OneToMany<S extends NodeTrait, T extends NodeTrait> extends Rel
 	}
 
 	@Override
-	public void ensureCardinality(final SecurityContext securityContext, final NodeTrait sourceNode, final NodeTrait targetNode) throws FrameworkException {
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
 		final App app                          = StructrApp.getInstance();
-		final Trait<? extends OneToMany> clazz = this.trait;
+		final Class<? extends OneToMany> clazz = this.getClass();
 		final Class<S> sourceType              = getSourceType();
 
 		if (targetNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface<NodeInterface, NodeInterface> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+
 			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 
 				app.delete(incomingRel);
@@ -87,12 +96,13 @@ public interface OneToMany<S extends NodeTrait, T extends NodeTrait> extends Rel
 	}
 
 	@Override
-	public Direction getDirectionForType(final Trait<? extends RelationshipTrait> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
+	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
+		return null;
 	}
 
 	@Override
-	public Trait<?> getOtherType(final Trait<?> type) {
+	public Class getOtherType(final Class type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -103,15 +113,4 @@ public interface OneToMany<S extends NodeTrait, T extends NodeTrait> extends Rel
 
 		return null;
 	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
-	}
-	*/
 }

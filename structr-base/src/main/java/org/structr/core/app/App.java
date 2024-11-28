@@ -27,7 +27,6 @@ import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.*;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 
@@ -45,29 +44,29 @@ public interface App extends Closeable {
 	Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException;
 	Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException;
 
-	<T extends NodeTrait> T create(final Traits type, final String name) throws FrameworkException;
-	<T extends NodeTrait> T create(final Traits type, final PropertyMap properties) throws FrameworkException;
-	<T extends NodeTrait> T create(final Traits type, final NodeAttribute<?>... attributes) throws FrameworkException;
+	<T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
+	<T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
+	<T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
 
-	<T extends NodeTrait> void deleteAllNodesOfType(final Trait<T> type) throws FrameworkException;
-	void delete(final NodeTrait node) throws FrameworkException;
+	<T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException;
+	void delete(final NodeInterface node) throws FrameworkException;
 
-	<A extends NodeTrait, B extends NodeTrait, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Traits relType) throws FrameworkException;
-	<A extends NodeTrait, B extends NodeTrait, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Traits relType, final PropertyMap properties) throws FrameworkException;
+	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
+	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
 
-	void delete(final RelationshipTrait relationship);
+	void delete(final RelationshipInterface relationship);
 
-	<T extends NodeTrait> T getNodeById(final Trait<T> type, final String uuid) throws FrameworkException;
-	NodeTrait getNodeById(final String uuid) throws FrameworkException;
-	<R extends RelationshipTrait> R getRelationshipById(final Trait<R> type, final String uuid) throws FrameworkException;
-	RelationshipTrait getRelationshipById(final String uuid) throws FrameworkException;
+	NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException;
+	NodeInterface getNodeById(final String uuid) throws FrameworkException;
+	RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
+	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
+	<T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
-	<T extends NodeTrait> Query<T> nodeQuery(final Trait<T> type);
-	<T extends NodeTrait> Query<T> nodeQuery(final Traits type);
+	Query<? extends NodeInterface> nodeQuery();
+	<T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
 
-	Query<? extends RelationshipTrait> relationshipQuery();
-	<T extends RelationshipTrait> Query<T> relationshipQuery(final Trait<T> type);
-	<T extends RelationshipTrait> Query<T> relationshipQuery(final Traits type);
+	Query<? extends RelationshipInterface> relationshipQuery();
+	<T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
 
 	void shutdown();
 
@@ -79,7 +78,7 @@ public interface App extends Closeable {
 	ContentAnalyzer getContentAnalyzer(final Object... params);
 	FulltextIndexer getFulltextIndexer(final Object... params);
 
-	Iterable<GraphTrait> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException;
+	Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException;
 
 	<T extends Service> T getService(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();

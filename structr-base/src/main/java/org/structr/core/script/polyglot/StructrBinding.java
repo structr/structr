@@ -31,7 +31,6 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -51,10 +50,10 @@ public class StructrBinding implements ProxyObject {
 
 	private final static Logger logger   = LoggerFactory.getLogger(StructrBinding.class);
 	private  ActionContext actionContext = null;
-	private GraphTrait entity            = null;
+	private GraphObject entity           = null;
 	private Value methodParameters       = null;
 
-	public StructrBinding(final ActionContext actionContext, final GraphTrait entity) {
+	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity        = entity;
@@ -68,11 +67,11 @@ public class StructrBinding implements ProxyObject {
 		this.actionContext = actionContext;
 	}
 
-	public GraphTrait getEntity() {
+	public GraphObject getEntity() {
 		return entity;
 	}
 
-	public void setEntity(final GraphTrait entity) {
+	public void setEntity(final GraphObject entity) {
 		this.entity = entity;
 	}
 

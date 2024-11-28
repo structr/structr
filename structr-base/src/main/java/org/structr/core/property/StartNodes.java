@@ -39,9 +39,6 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.Trait;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
@@ -53,11 +50,11 @@ import java.util.*;
  *
  *
  */
-public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Property<Iterable<S>> implements RelationProperty<S> {
+public class StartNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<S>> implements RelationProperty<S> {
 
 	private Relation<S, T, ManyStartpoint<S>, ? extends Target> relation = null;
 	private Notion notion                                                = null;
-	private Trait<S> destType                                            = null;
+	private Class<S> destType                                            = null;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
@@ -65,7 +62,7 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 	 * @param name
 	 * @param relationClass
 	 */
-	public  StartNodes(final String name, final Trait<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass) {
+	public  StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -76,11 +73,11 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 	 * @param relationClass
 	 * @param notion
 	 */
-	public StartNodes(final String name, final Trait<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass, final Notion notion) {
+	public StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass, final Notion notion) {
 
 		super(name);
 
-		this.relation = relationClass.getImplementation();
+		this.relation = Relation.getInstance(relationClass);
 		this.notion   = notion;
 		this.destType = relation.getSourceType();
 
@@ -119,7 +116,7 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 
 	@Override
 	public Class valueType() {
-		return relatedType().getClass();
+		return relatedType();
 	}
 
 	@Override
@@ -133,7 +130,7 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 	}
 
 	@Override
-	public PropertyConverter<Iterable<S>, ?> databaseConverter(SecurityContext securityContext, GraphTrait entity) {
+	public PropertyConverter<Iterable<S>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
@@ -143,27 +140,27 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 	}
 
 	@Override
-	public Iterable<S> getProperty(SecurityContext securityContext, GraphTrait obj, boolean applyConverter) {
+	public Iterable<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<S> getProperty(SecurityContext securityContext, GraphTrait obj, boolean applyConverter, final Predicate<GraphTrait> predicate) {
+	public Iterable<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		ManyStartpoint<S> startpoint = relation.getSource();
 
 		if (predicate != null) {
 
-			return Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeTrait)obj, new TruePredicate(predicate.comparator()))));
+			return Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator()))));
 
 		} else {
 
-			return Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeTrait)obj, null));
+			return Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, null));
 		}
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphTrait obj, Iterable<S> collection) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<S> collection) throws FrameworkException {
 
 		final ManyStartpoint<S> startpoint = relation.getSource();
 
@@ -171,11 +168,11 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 			updateCallback.notifyUpdated(obj, collection);
 		}
 
-		return startpoint.set(securityContext, (NodeTrait)obj, collection);
+		return startpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 
 	@Override
-	public Trait<?> relatedType() {
+	public Class relatedType() {
 		return destType;
 	}
 
@@ -216,7 +213,7 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphTrait obj, final S s) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
 
 		List<S> list = Iterables.toList(getProperty(securityContext, obj, false));
 		list.add(s);
@@ -225,7 +222,7 @@ public class StartNodes<S extends NodeTrait, T extends NodeTrait> extends Proper
 	}
 
 	@Override
-	public Trait<S> getTargetType() {
+	public Class<S> getTargetType() {
 		return destType;
 	}
 

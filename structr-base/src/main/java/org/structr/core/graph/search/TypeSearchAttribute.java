@@ -22,10 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.Trait;
 
 import java.util.Set;
@@ -35,7 +34,7 @@ import java.util.Set;
  *
  * @param <S>
  */
-public class TypeSearchAttribute<S extends GraphTrait> extends PropertySearchAttribute<String> implements TypeQuery {
+public class TypeSearchAttribute<S extends GraphObjectTrait> extends PropertySearchAttribute<String> implements TypeQuery {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
@@ -81,7 +80,7 @@ public class TypeSearchAttribute<S extends GraphTrait> extends PropertySearchAtt
 	}
 
 	@Override
-	public boolean includeInResult(final GraphTrait entity) {
+	public boolean includeInResult(final GraphObjectTraits entity) {
 
 		final String nodeValue   = entity.getProperty(getKey());
 		final Occurrence occur   = getOccurrence();

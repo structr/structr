@@ -19,25 +19,37 @@
 package org.structr.core.traits;
 
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A named collection of properties and methods with a
  * factory that can instantiate implementations.
  */
-public class Trait<T> {
+public class Trait implements GraphObjectTrait {
 
-	private static final Map<String, Trait<?>> availableTraits  = new LinkedHashMap<>();
+	/**
+		TODO: Traits replace Class in the new implementation, we
+	        need to implement an abstraction for isValid and all the
+	        lifecycle methods so they can be stored in a Trait object.
 
-	private Map<String, PropertyKey<?>> properties = new LinkedHashMap<>();
-	private ImplementationFactory<T> factory       = null;
-	private String name                            = null;
+	        The JSON schema is a good candidate to look for clues..
+	*/
+
+	private static final Map<String, Trait> availableTraits  = new LinkedHashMap<>();
+
+	private Map<String, PropertyKey> properties = new LinkedHashMap<>();
+	private ImplementationFactory factory       = null;
+	private String name                         = null;
 
 	Trait(final String name, final ImplementationFactory<T> factory) {
 
@@ -54,15 +66,11 @@ public class Trait<T> {
 	}
 
 	// ----- public methods -----
-	public T getImplementation(final GraphTrait obj) {
-		return factory.createImplementation(obj.getPropertyContainer());
-	}
-
-	public T getImplementation(final PropertyContainer obj) {
+	public Trait getImplementation(final PropertyContainer obj) {
 		return factory.createImplementation(obj);
 	}
 
-	public T getImplementation() {
+	public Trait getImplementation() {
 		return factory.createImplementation(null);
 	}
 
@@ -74,32 +82,47 @@ public class Trait<T> {
 		return name;
 	}
 
-	public Collection<PropertyKey<?>> getProperties() {
+	public Collection<PropertyKey> getProperties(final String view) {
 		return properties.values();
 	}
 
+	// ----- interface GraphObjectTrait ------
+	public boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+		return true;
+	}
+
+	public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	}
+
+	public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	}
+
+	public void onDeletion(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+	}
+
+	public void afterCreation(final GraphObject obj, final SecurityContext securityContext) throws FrameworkException {
+	}
+
+	public void afterModification(final GraphObject obj, final SecurityContext securityContext) throws FrameworkException {
+	}
+
+	public void afterDeletion(final GraphObject obj, final SecurityContext securityContext, final PropertyMap properties) {
+	}
+
+	public void ownerModified(final GraphObject obj, final SecurityContext securityContext) {
+	}
+
+	public void securityModified(final GraphObject obj, final SecurityContext securityContext) {
+	}
+
+	public void locationModified(final GraphObject obj, final SecurityContext securityContext) {
+	}
+
+	public void propagatedModification(final GraphObject obj, final SecurityContext securityContext) {
+	}
+
 	// ----- public static methods -----
-	public static <T> Trait<T> of(final Class<T> type) {
-		return Trait.of(type.getSimpleName());
-	}
-
-	public static <T> Trait<T> of(final String name) {
-		return (Trait<T>) availableTraits.get(name);
-	}
-
-	static <S extends PropertyContainer, T> Trait<T> create(final Class<T> type, final ImplementationFactory<T> factory) {
-
-		final String name = type.getSimpleName();
-
-		if (availableTraits.containsKey(name)) {
-
-			return (Trait<T>) availableTraits.get(name);
-		}
-
-		final Trait<T> newTrait = new Trait<T>(name, factory);
-
-		availableTraits.put(name, newTrait);
-
-		return newTrait;
+	public static Trait of(final String name) {
+		return availableTraits.get(name);
 	}
 }

@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 
+import java.lang.reflect.InvocationTargetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
@@ -26,14 +27,13 @@ import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.*;
 
 /**
  * A factory for Structr nodes.
  *
  * @param <T>
  */
-public class NodeFactory<T extends NodeTrait> extends Factory<Node, T> {
+public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeFactory.class.getName());
 
@@ -66,34 +66,43 @@ public class NodeFactory<T extends NodeTrait> extends Factory<Node, T> {
 		}
 
 		if (TransactionCommand.isDeleted(node)) {
-			return null;
+			return (T)instantiateWithType(node, null, pathSegmentId, false);
 		}
 
-		return (T) instantiate(node, pathSegmentId, false);
+		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), pathSegmentId, false);
 	}
 
 	@Override
-	public T instantiate(final Node node, final Identity pathSegmentId, boolean isCreation) {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Identity pathSegmentId, boolean isCreation) {
 
-		/*
-		final NodeWithTraits newNode = new NodeWithTraits();
+		// cannot instantiate node without type
+		if (nodeClass == null) {
+			return null;
+		}
 
-		newNode.init(securityContext, node, TransactionCommand.getCurrentTransactionId());
+		SecurityContext securityContext = factoryProfile.getSecurityContext();
+		T newNode                       = null;
+
+		try {
+			newNode = nodeClass.getDeclaredConstructor().newInstance();
+
+		} catch (NoSuchMethodException|NoClassDefFoundError|InvocationTargetException|InstantiationException|IllegalAccessException itex) {
+			itex.printStackTrace();
+			newNode = null;
+		}
+
+		if (newNode == null) {
+			newNode = (T)factoryDefinition.createGenericNode();
+		}
+
+		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
-		*/
-
-		// AccessControllable is the base interface here because we use isReadable
-		final Trait<AccessControllable> nodeTrait = Trait.of(AccessControllable.class);
-		final AccessControllable newNode          = nodeTrait.getImplementation(node);
 
 		// check access
-		if (isCreation || securityContext.isReadable(newNode, includeHidden, publicOnly)) {
+		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeHidden(), factoryProfile.publicOnly())) {
 
-			final Traits traits      = newNode.getTraits();
-			final Trait<T> typeTrait = (Trait<T>) traits.get(newNode.getType());
-
-			return typeTrait.getImplementation(node);
+			return newNode;
 		}
 
 		return null;
@@ -102,8 +111,8 @@ public class NodeFactory<T extends NodeTrait> extends Factory<Node, T> {
 	@Override
 	public T instantiate(final Node node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
 
-		this.includeHidden = includeHidden;
-		this.publicOnly    = publicOnly;
+		factoryProfile.setIncludeHidden(includeHidden);
+		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(node);
 	}

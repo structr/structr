@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
@@ -125,11 +124,11 @@ public abstract class ContextFactory {
 		return getContext(language, null, null);
 	}
 
-	public static Context getContext(final String language, final ActionContext actionContext, final GraphTrait entity) throws FrameworkException {
+	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
 		return getContext(language, actionContext, entity, true);
 	}
 
-	public static Context getContext(final String language, final ActionContext actionContext, final GraphTrait entity, final boolean allowEntityOverride) throws FrameworkException {
+	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity, final boolean allowEntityOverride) throws FrameworkException {
 
 		switch (language) {
 
@@ -147,7 +146,7 @@ public abstract class ContextFactory {
 		}
 	}
 
-	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphTrait entity, final Callable<Context> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
+	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
 
 		Context storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
 
@@ -174,20 +173,20 @@ public abstract class ContextFactory {
 		return  storedContext;
 	}
 
-	private static Context buildJSContext(final ActionContext actionContext, final GraphTrait entity) {
+	private static Context buildJSContext(final ActionContext actionContext, final GraphObject entity) {
 		return updateBindings(jsBuilder.build(), "js", actionContext, entity);
 	}
 
-	private static Context buildPythonContext(final ActionContext actionContext, final GraphTrait entity) {
+	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
 		Context ctx = pythonBuilder.build();
 		return updateBindings(ctx, "python", actionContext, entity);
 	}
 
-	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphTrait entity) {
+	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
 		return updateBindings(genericBuilder.build(), language, actionContext, entity);
 	}
 
-	private static Context updateBindings(final Context context, final String language, final ActionContext actionContext, final GraphTrait entity) {
+	private static Context updateBindings(final Context context, final String language, final ActionContext actionContext, final GraphObject entity) {
 
 		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 

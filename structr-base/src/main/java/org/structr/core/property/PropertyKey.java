@@ -28,11 +28,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Base interface for typed property keys.
@@ -126,7 +125,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return relatedType
 	 */
-	Trait<?> relatedType();
+	Class relatedType();
 
 	/**
 	 * Returns the format value for this property.
@@ -179,20 +178,20 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
-	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphTrait entity);
+	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
 	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
 	Object fixDatabaseProperty(final Object value);
 
 	boolean requiresSynchronization();
 	String getSynchronizationKey();
 
-	void setDeclaringTrait(final Trait<? extends GraphTrait> declaringTrait);
-	Trait<? extends GraphTrait> getDeclaringTrait();
+	void setDeclaringClass(final Class declaringClass);
+	Class getDeclaringClass();
 	String getSourceUuid();
 
-	T getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter);
-	T getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter, final Predicate<GraphTrait> predicate);
-	Object setProperty(final SecurityContext securityContext, final GraphTrait obj, final T value) throws FrameworkException;
+	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
+	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
+	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
 	void registrationCallback(final Class<GraphObject> entityType);
 

@@ -23,11 +23,11 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
 import org.structr.core.parser.LazyEvaluatedFunctionExpression;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -37,9 +37,9 @@ import java.util.Arrays;
 public class CacheFunction implements ProxyExecutable {
 	private static final Logger logger = LoggerFactory.getLogger(CacheFunction.class);
 	private final ActionContext actionContext;
-	private final GraphTrait entity;
+	private final GraphObject entity;
 
-	public CacheFunction(final ActionContext actionContext, final GraphTrait entity) {
+	public CacheFunction(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity = entity;

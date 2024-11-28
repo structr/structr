@@ -20,23 +20,9 @@ package org.structr.schema;
 
 import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
-import org.structr.common.FactoryDefinition;
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.PropertyGroup;
-import org.structr.core.PropertyValidator;
-import org.structr.core.Transformation;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 
-import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -44,91 +30,10 @@ import java.util.Set;
  */
 public interface ConfigurationProvider {
 
-	public void initialize(final LicenseManager licenseManager);
-	public void shutdown();
+	void initialize(final LicenseManager licenseManager);
+	void shutdown();
 
-	public void unregisterEntityType(final Traits oldType);
-	public void registerEntityType(final Traits newType);
-	public void registerEntityCreationTransformation(final Traits traits, final Transformation<GraphObject> transformation);
-
-	public Map<String, Class<? extends Agent>> getAgents();
-	public Map<String, Class<? extends NodeInterface>> getNodeEntities();
-	public Map<String, Class<? extends RelationshipInterface>> getRelationshipEntities();
-	public Map<String, Class> getInterfaces();
-
-	public Set<Class> getClassesForInterface(final String simpleName);
-
-	public void registerPropertyGroup(final Traits entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
-	public void registerConvertedProperty(final PropertyKey property);
-
-	public Trait<?> getNodeEntityClass(final String name);
-	public Trait<?> getRelationshipEntityClass(final String name);
-
-	public void setRelationClassForCombinedType(final String combinedType, final Traits clazz);
-	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Traits clazz);
-	public Class getRelationClassForCombinedType(final String sourceType, final String relType, final String targetType);
-
-	public <T extends GraphTrait> Set<Transformation<T>> getEntityCreationTransformations(final Traits<T> traits);
-
-	public PropertyGroup getPropertyGroup(final Traits traits, final PropertyKey key);
-
-	public PropertyGroup getPropertyGroup(final Traits traits, final String key);
-
-	public Set<String> getPropertyViews();
-	public Set<String> getPropertyViewsForType(final Traits traits);
-	public void registerDynamicViews(final Set<String> dynamicViews);
-	public boolean hasView(final Traits traits, final String propertyView);
-
-	public void registerPropertySet(final Traits traits, final String propertyView, final PropertyKey... propertyKey);
-	public void registerPropertySet(final Traits traits, final String propertyView, final String propertyName);
-	public Set<PropertyKey> getPropertySet(final Traits traits, final String propertyView);
-
-	public PropertyKey getPropertyKeyForDatabaseName(final Traits traits, final String dbName);
-	public PropertyKey getPropertyKeyForDatabaseName(final Traits traits, final String dbName, final boolean createGeneric);
-
-	public PropertyKey getPropertyKeyForJSONName(final Traits traits, final String jsonName);
-	public PropertyKey getPropertyKeyForJSONName(final Traits traits, final String jsonName, final boolean createIfNotFound);
-
-	public void setPropertyKeyForJSONName(final Traits traits, final String jsonName, final PropertyKey key);
-
-	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, final Traits traits, final PropertyKey propertyKey);
-
-	public Set<Class> getInterfacesForType(final Traits traits);
-
-	public Map<String, Method> getExportedMethodsForType(final Traits traits);
-
-	public boolean isKnownProperty(final PropertyKey key);
-
-	public FactoryDefinition getFactoryDefinition();
-
-	public void registerFactoryDefinition(final FactoryDefinition factory);
-
-	public Map<String, Method> getAnnotatedMethods(final Traits entityType, final Class annotationType);
-
-	/**
-	 * Registers the given property with the given type.
-	 *
-	 * @param type
-	 * @param propertyKey
-	 */
-	public void registerProperty(final Traits traits, final PropertyKey propertyKey);
-
-	/**
-	 * Unregisters the given property with the given type.
-	 *
-	 * @param type
-	 * @param propertyKey
-	 */
-	public void unregisterProperty(final Traits traits, final PropertyKey propertyKey);
-
-	/**
-	 * Registers the given property with the given type AND ALL SUPERTYPES.
-	 *
-	 * @param type
-	 * @param propertyKey
-	 */
-	public void registerDynamicProperty(final Traits traits, final PropertyKey propertyKey);
+	Map<String, Class<? extends Agent>> getAgents();
 
 	Map<String, StructrModule> getModules();
-	Map<String, Map<String, PropertyKey>> getTypeAndPropertyMapping();
 }

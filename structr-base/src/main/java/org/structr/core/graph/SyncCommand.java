@@ -30,14 +30,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaReloadingNode;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
@@ -179,7 +176,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				for (final GraphTrait obj : StructrApp.getInstance().query(query, null)) {
+				for (final GraphObjectTraits obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
 						nodes.add((NodeTrait)obj.getSyncNode());

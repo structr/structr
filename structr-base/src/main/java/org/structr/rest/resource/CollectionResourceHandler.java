@@ -41,7 +41,7 @@ import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
@@ -270,7 +270,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return defaultValue;
 	}
 
-	private <T extends GraphTrait> Query<T> createQuery(final App app, final Traits type, final boolean isNode) {
+	private <T extends GraphObjectTrait> Query<T> createQuery(final App app, final Traits type, final boolean isNode) {
 
 		if (isNode) {
 

@@ -36,11 +36,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
@@ -57,15 +57,15 @@ public class Scripting {
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
-	public static String replaceVariables(final ActionContext actionContext, final GraphTrait entity, final Object rawValue) throws FrameworkException {
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 		return replaceVariables(actionContext, entity, rawValue, false, "script source");
 	}
 
-	public static String replaceVariables(final ActionContext actionContext, final GraphTrait entity, final Object rawValue, final String methodName) throws FrameworkException {
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final String methodName) throws FrameworkException {
 		return replaceVariables(actionContext, entity, rawValue, false, methodName);
 	}
 
-	public static String replaceVariables(final ActionContext actionContext, final GraphTrait entity, final Object rawValue, final boolean returnNullValueForEmptyResult, final String methodName) throws FrameworkException {
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult, final String methodName) throws FrameworkException {
 
 		if (rawValue == null) {
 
@@ -140,15 +140,15 @@ public class Scripting {
 		return value;
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphTrait entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
 		return evaluate(actionContext, entity, input, methodName, null);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphTrait entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 		return evaluate(actionContext, entity, input, methodName, 0, codeSource);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphTrait entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 		final String expression = StringUtils.strip(input);
 
 		if (expression.isEmpty()) {
@@ -240,7 +240,7 @@ public class Scripting {
 		}
 	}
 
-	public static Object evaluateScript(final ActionContext actionContext, final GraphTrait entity, final String engineName, final Snippet snippet) throws FrameworkException {
+	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
 		// Clear output buffer
 		actionContext.clear();
 
@@ -275,7 +275,7 @@ public class Scripting {
 		return result != null ? result : "";
 	}
 
-	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphTrait entity, final Snippet snippet) throws FrameworkException {
+	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
 		try {
 
@@ -580,11 +580,11 @@ public class Scripting {
 
 			return buf.toString();
 
-		} else if (value instanceof GraphTrait && !(value instanceof GraphObjectMap)) {
+		} else if (value instanceof GraphObject && !(value instanceof GraphObjectMap)) {
 
-			final StringBuilder buf = new StringBuilder();
-			final GraphTrait obj    = (GraphTrait)value;
-			final String name       = obj.getProperty(AbstractNode.name);
+			final StringBuilder buf  = new StringBuilder();
+			final GraphObject<?> obj = (GraphObject)value;
+			final String name        = obj.getProperty(AbstractNode.name);
 
 			buf.append(obj.getType());
 			buf.append("(");
@@ -607,7 +607,7 @@ public class Scripting {
 		}
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphTrait entity, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
 		final String message = ex.getMessage();
 		int lineNumber       = 1;
@@ -629,12 +629,12 @@ public class Scripting {
 		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, broadcastToAdminUI);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphTrait entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
 		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, true);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphTrait entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean broadcastToAdminUI) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean broadcastToAdminUI) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -686,7 +686,7 @@ public class Scripting {
 
 			}
 
-			final GraphTrait codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
+			final NodeInterface codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
 			if (codeSource != null) {
 
 				nodeType = codeSource.getClass().getSimpleName();

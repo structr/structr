@@ -31,14 +31,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Trait;
 import org.structr.schema.Transformer;
 
 import java.util.HashMap;
@@ -73,12 +69,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphTrait obj, final boolean applyConverter, final Predicate<GraphTrait> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Object value = null;
 
@@ -135,7 +131,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Object setProperty(final SecurityContext securityContext, final GraphTrait obj, final T value) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
 
 		final PropertyConverter converter = databaseConverter(securityContext, PropertyMap.unwrap(obj));
 		Object convertedValue             = value;
@@ -176,14 +172,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					TransactionCommand.nodeModified(
 						securityContext.getCachedUser(),
-						(NodeTrait)obj,
+						(AbstractNode)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
 					);
 				}
 
-				internalSystemPropertiesUnlocked = ((GraphTrait) obj).internalSystemPropertiesUnlocked;
+				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
 
 			} else if (obj instanceof AbstractRelationship) {
 
@@ -191,7 +187,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					TransactionCommand.relationshipModified(
 						securityContext.getCachedUser(),
-						(RelationshipTrait)obj,
+						(AbstractRelationship)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
@@ -243,7 +239,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Trait<?> relatedType() {
+	public Class relatedType() {
 		return null;
 	}
 
@@ -313,7 +309,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 			if (securityContext.modifyAccessTime()) {
 
-				final Principal user = securityContext.getUser(false);
+				final PrincipalInterface user = securityContext.getUser(false);
 				String modifiedById  = null;
 
 				if (user != null) {
@@ -321,7 +317,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					if (user instanceof SuperUser) {
 
 						// "virtual" UUID of superuser
-						modifiedById = Principal.SUPERUSER_ID;
+						modifiedById = PrincipalInterface.SUPERUSER_ID;
 
 					} else {
 

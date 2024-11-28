@@ -24,22 +24,21 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
 import org.structr.schema.NonIndexed;
 
 /**
  *
  *
  */
-public interface RelationshipInterface extends GraphObject, NonIndexed {
+public interface RelationshipInterface<S extends NodeInterface, T extends NodeInterface> extends GraphObject<Relationship>, NonIndexed {
 
-	void init(final SecurityContext securityContext, final Relationship dbRel, final long transactionId);
+	void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId);
 
-	NodeTrait getSourceNode();
-	NodeTrait getTargetNode();
-	NodeTrait getSourceNodeAsSuperUser();
-	NodeTrait getTargetNodeAsSuperUser();
-	NodeTrait getOtherNode(final NodeTrait thisNode);
+	S getSourceNode();
+	T getTargetNode();
+	S getSourceNodeAsSuperUser();
+	T getTargetNodeAsSuperUser();
+	NodeInterface getOtherNode(final NodeInterface thisNode);
 	RelationshipType getRelType();
 
 	Relationship getRelationship();

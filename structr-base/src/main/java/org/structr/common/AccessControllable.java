@@ -19,9 +19,10 @@
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Security;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 
 import java.util.Date;
 import java.util.Set;
@@ -32,14 +33,14 @@ import java.util.Set;
  *
  *
  */
-public interface AccessControllable extends NodeTrait  {
+public interface AccessControllable {
 
 	/**
 	 * Return owner node
 	 *
 	 * @return owner
 	 */
-	public Principal getOwnerNode();
+	public PrincipalInterface getOwnerNode();
 
 	/**
 	 * Return true if principal has the given permission on this object.
@@ -49,8 +50,8 @@ public interface AccessControllable extends NodeTrait  {
 	 *
 	 * @return whether the security context has the given permissions on this node
 	 */
-	boolean isGranted(final Permission permission, final SecurityContext securityContext);
-	boolean isGranted(final Permission permission, final SecurityContext context, final boolean isCreation);
+	public boolean isGranted(final Permission permission, final SecurityContext securityContext);
+
 	/**
 	 * Grant given permission to given principal.
 	 *
@@ -58,7 +59,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
+	public void grant(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Grant given permissions to given principal.
@@ -67,7 +68,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Grant given permissions to given principal.
@@ -77,7 +78,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Revoke given permission from given principal.
@@ -86,7 +87,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
+	public void revoke(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Revoke given permissions from given principal.
@@ -95,7 +96,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Revoke given permissions from given principal.
@@ -105,7 +106,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Applies the given permissions to the given principal.
@@ -115,7 +116,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Applies the given permissions to the given principal.
@@ -126,7 +127,7 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Return the (cached) incoming relationship between this node and the
@@ -135,11 +136,12 @@ public interface AccessControllable extends NodeTrait  {
 	 * @param principal
 	 * @return incoming security relationship
 	 */
-	public Security getSecurityRelationship(final Principal principal);
+	public RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface principal);
 
 	// visibility
 	public boolean isVisibleToPublicUsers();
 	public boolean isVisibleToAuthenticatedUsers();
+	public boolean isNotHidden();
 	public boolean isHidden();
 
 	// access

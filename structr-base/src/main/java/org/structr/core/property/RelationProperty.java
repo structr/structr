@@ -22,7 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.core.notion.Notion;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTraits;
 import org.structr.core.traits.Trait;
 
 /**
@@ -39,7 +39,7 @@ public interface RelationProperty<T> {
 	boolean doAutocreate();
 	String getAutocreateFlagName();
 
-	void addSingleElement(final SecurityContext securityContext, final GraphTrait obj, final T t) throws FrameworkException;
+	void addSingleElement(final SecurityContext securityContext, final GraphObjectTraits obj, final T t) throws FrameworkException;
 
 	String getDirectionKey();
 }

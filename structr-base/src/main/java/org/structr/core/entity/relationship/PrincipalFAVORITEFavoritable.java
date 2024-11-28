@@ -20,15 +20,15 @@ package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 
-public interface PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favoritable> {
-
-	/*
+public class PrincipalFAVORITEFavoritable extends ManyToMany<PrincipalInterface, Favoritable> {
 
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public Class<PrincipalInterface> getSourceType() {
+		return PrincipalInterface.class;
 	}
 
 	@Override
@@ -37,8 +37,37 @@ public interface PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favo
 	}
 
 	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
+	}
+
+	@Override
+	public void setSourceProperty(PropertyKey source) {
+
+	}
+
+	@Override
+	public void setTargetProperty(PropertyKey target) {
+
+	}
+
+	@Override
+	public PropertyKey getSourceProperty() {
+		return null;
+	}
+
+	@Override
+	public PropertyKey getTargetProperty() {
+		return null;
+	}
+
+	@Override
 	public String name() {
 		return "FAVORITE";
 	}
-	*/
 }

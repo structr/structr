@@ -21,8 +21,8 @@ package org.structr.core.graph;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphTrait;
 
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public interface ModificationEvent {
 	public boolean isModified();
 	public boolean isCreated();
 
-	public GraphTrait getGraphObject();
+	public GraphObject getGraphObject();
 	public RelationshipType getRelationshipType();
 	public String getUuid();
 

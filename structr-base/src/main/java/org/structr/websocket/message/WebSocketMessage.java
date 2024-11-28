@@ -21,9 +21,8 @@ package org.structr.websocket.message;
 import com.google.gson.JsonElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 
 import java.util.*;
 
@@ -38,7 +37,7 @@ public class WebSocketMessage {
 	private int chunkSize                          = 512;
 	private int code                               = 0;
 	private String command                         = null;
-	private GraphTrait graphObject                 = null;
+	private GraphObjectTrait graphObject                 = null;
 	private String id                              = null;
 	private String pageId                          = null;
 	private String message                         = null;
@@ -50,7 +49,7 @@ public class WebSocketMessage {
 	private Map<String, Object> relData            = new LinkedHashMap();
 	private Set<PropertyKey> modifiedProperties    = new LinkedHashSet();
 	private Set<PropertyKey> removedProperties     = new LinkedHashSet();
-	private Iterable<? extends GraphTrait> result  = null;
+	private Iterable<? extends GraphObjectTrait> result  = null;
 	private int rawResultCount                     = 0;
 	private String sessionId                       = null;
 	private boolean sessionValid                   = false;
@@ -143,7 +142,7 @@ public class WebSocketMessage {
 		return view;
 	}
 
-	public Iterable<? extends GraphTrait> getResult() {
+	public Iterable<? extends GraphObjectTrait> getResult() {
 		return result;
 	}
 
@@ -187,7 +186,7 @@ public class WebSocketMessage {
 		return chunkSize;
 	}
 
-	public GraphTrait getGraphObject() {
+	public GraphObjectTrait getGraphObject() {
 		return graphObject;
 	}
 
@@ -346,7 +345,7 @@ public class WebSocketMessage {
 		this.view = view;
 	}
 
-	public void setResult(final Iterable<? extends GraphTrait> result) {
+	public void setResult(final Iterable<? extends GraphObjectTrait> result) {
 		this.result = result;
 	}
 
@@ -398,7 +397,7 @@ public class WebSocketMessage {
 		this.chunkSize = chunkSize;
 	}
 
-	public void setGraphObject(final GraphTrait graphObject) {
+	public void setGraphObject(final GraphObjectTrait graphObject) {
 		this.graphObject = graphObject;
 	}
 

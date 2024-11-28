@@ -28,8 +28,6 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.PrincipalTrait;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;

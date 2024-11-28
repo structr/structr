@@ -27,14 +27,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Trait;
 
 import java.util.Date;
 import java.util.Map.Entry;
@@ -46,27 +43,27 @@ import java.util.Map.Entry;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-	public <A extends NodeTrait, B extends NodeTrait, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Trait<R> relType) throws FrameworkException {
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
 	}
 
-	public <A extends NodeTrait, B extends NodeTrait, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Trait<R> relType, final PropertyMap properties) throws FrameworkException {
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> execute(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	private <A extends NodeTrait, B extends NodeTrait, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Trait<R> relType, final PropertyMap attributes) throws FrameworkException {
+	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap attributes) throws FrameworkException {
 
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 
-		final DatabaseService db             = (DatabaseService)this.getArgument("graphDb");
-		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
-		final PropertyMap properties         = new PropertyMap(attributes);
-		final PropertyMap toNotify           = new PropertyMap();
-		final CreationContainer tmp          = new CreationContainer(false);
-		final R template                     = (R)Relation.getInstance(relType);
-		final Date now                       = new Date();
-		final Principal user                 = securityContext.getCachedUser();
+		final DatabaseService db                                             = (DatabaseService)this.getArgument("graphDb");
+		final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory(securityContext);
+		final PropertyMap properties                                         = new PropertyMap(attributes);
+		final PropertyMap toNotify                                           = new PropertyMap();
+		final CreationContainer tmp                                          = new CreationContainer(false);
+		final R template                                                     = (R)Relation.getInstance(relType);
+		final Date now                                                       = new Date();
+		final PrincipalInterface user                                        = securityContext.getCachedUser();
 
 		template.ensureCardinality(securityContext, fromNode, toNode);
 
@@ -77,7 +74,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		// set initial properties manually (caution, this can only be used for primitive properties!)
 		tmp.getData().put(GraphObject.id.jsonName(), getNextUuid());
-		tmp.getData().put(GraphObject.type.jsonName(), relType.getName());
+		tmp.getData().put(GraphObject.type.jsonName(), relType.getSimpleName());
 		tmp.getData().put(AbstractRelationship.relType.jsonName(), template.name());
 		tmp.getData().put(AbstractRelationship.sourceId.jsonName(), fromNode.getUuid());
 		tmp.getData().put(AbstractRelationship.targetId.jsonName(), toNode.getUuid());
@@ -105,10 +102,10 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		}
 
 		// create relationship including initial properties
-		final Node startNode   = fromNode.getNode();
-		final Node endNode     = toNode.getNode();
-		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
-		final R newRel         = factory.instantiate(rel, null, true);
+		final Node startNode               = fromNode.getNode();
+		final Node endNode                 = toNode.getNode();
+		final Relationship rel             = startNode.createRelationshipTo(endNode, template, tmp.getData());
+		final RelationshipInterface newRel = factory.instantiateWithType(rel, relType, null, true);
 
 		if (newRel != null) {
 
@@ -136,7 +133,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			newRel.addToIndex();
 
 			// iterate post creation transformations
-			for (Transformation<RelationshipTrait> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getTraits())) {
+			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
 
 				transformation.apply(securityContext, newRel);
 			}
