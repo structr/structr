@@ -19,11 +19,11 @@
 package org.structr.schema;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTraits;
 
 /**
  */
-public interface Validator<T extends GraphTrait> {
+public interface Validator<T extends GraphObjectTraits> {
 
 	boolean isValid(final T obj, final ErrorBuffer errorBuffer);
 }

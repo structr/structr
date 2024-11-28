@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Traits;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -44,7 +43,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -268,7 +267,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		return getProperty(htmlClassProperty);
 	}
 
-	public Property<?>[] getHtmlAttributes() {
+	public Property[] getHtmlAttributes() {
 		return htmlView.properties();
 	}
 
@@ -301,7 +300,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		ActionMapping triggeredAction;
 
-		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().getNodeById(DOMElement.class, this.getUuid()).getProperty(triggeredActionsProperty));
+		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().get(DOMElement.class, this.getUuid()).getProperty(triggeredActionsProperty));
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
 			triggeredAction = triggeredActions.get(0);
@@ -374,7 +373,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		removeInternalDataBindingKeys(parameters);
 
-		final Principal currentUser              = actionContext.getSecurityContext().getUser(false);
+		final PrincipalInterface currentUser              = actionContext.getSecurityContext().getUser(false);
 		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 		final Map<String, Object> properties     = new LinkedHashMap<>();
 
@@ -393,7 +392,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		removeInternalDataBindingKeys(parameters);
 
-		final Principal currentUser                = actionContext.getSecurityContext().getUser(false);
+		final PrincipalInterface currentUser                = actionContext.getSecurityContext().getUser(false);
 		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 		final Map<String, Object> properties       = new LinkedHashMap<>();
 
@@ -410,7 +409,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
+		final PrincipalInterface currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -430,7 +429,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
+		final PrincipalInterface currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -533,7 +532,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			// convert input
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, target.getTraits(), parameters);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, target.getEntityType(), parameters);
 
 			// update properties
 			target.setProperties(securityContext, properties);
@@ -593,7 +592,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 			for (final GraphObject target : targets) {
 
-				final AbstractMethod method = Methods.resolveMethod(target.getTraits(), methodName);
+				final AbstractMethod method = Methods.resolveMethod(target.getClass(), methodName);
 				if (method != null) {
 
 					return method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
@@ -610,7 +609,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
 			if (staticClass != null) {
 
-				final AbstractMethod method = Methods.resolveMethod(Traits.of(staticClass), methodName);
+				final AbstractMethod method = Methods.resolveMethod(staticClass, methodName);
 				if (method != null) {
 
 					return method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
@@ -647,7 +646,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		}
 
 		// load child node
-		final DOMNode child = StructrApp.getInstance(securityContext).getNodeById(DOMNode.class, childId);
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child (object with ID not found or not a DOMNode).");
@@ -690,7 +689,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		}
 
 		// load child node
-		final DOMNode child = StructrApp.getInstance(securityContext).getNodeById(DOMNode.class, childId);
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child (object with ID not found or not a DOMNode).");
@@ -736,7 +735,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
 		}
 
-		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById(NodeInterface.class, sourceObjectId);
+		final GraphObject sourceObject = StructrApp.getInstance(securityContext).get(NodeInterface.class, sourceObjectId);
 		if (sourceObject == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
@@ -784,7 +783,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		}
 
 		// load child node
-		final DOMNode child = StructrApp.getInstance(securityContext).getNodeById(DOMNode.class, childId);
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
@@ -802,7 +801,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
 		}
 
-		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById(NodeInterface.class, sourceObjectId);
+		final GraphObject sourceObject = StructrApp.getInstance(securityContext).get(NodeInterface.class, sourceObjectId);
 		if (sourceObject == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
@@ -987,7 +986,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 				if (!lazyRendering && (synced == null || !EditMode.DEPLOYMENT.equals(editMode))) {
 
 					// fetch children
-					final List<DOMNodeCONTAINSDOMNode> rels = getChildRelationships();
+					final List<RelationshipInterface<DOMNode, DOMNode>> rels = getChildRelationships();
 					if (rels.isEmpty()) {
 
 						// No child relationships, maybe this node is in sync with another node
@@ -1079,15 +1078,15 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 			out.append("<").append(tag);
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Traits traits                = getTraits();
-			final String uuid                  = getUuid();
+			final Class type  = getEntityType();
+			final String uuid = getUuid();
 
 			final List<PropertyKey> htmlAttributes = new ArrayList<>();
 
 
 			getNode().getPropertyKeys().forEach((key) -> {
 				if (key.startsWith(PropertyView.Html)) {
-					htmlAttributes.add(config.getPropertyKeyForJSONName(traits, key));
+					htmlAttributes.add(config.getPropertyKeyForJSONName(type, key));
 				}
 			});
 
@@ -1183,7 +1182,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 				case NONE:
 
 					// Get actions in superuser context
-					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById(DOMElement.class, uuid);
+					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
 					final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getProperty(DOMElement.triggeredActionsProperty);
 					final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
 					boolean outputStructrId                          = false;
@@ -1220,7 +1219,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 							if (key.equals(ActionMapping.eventProperty)) {
 
-								eventsString = value;
+								eventsString = (String) value;
 							}
 						}
 
@@ -1447,7 +1446,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 					break;
 
 				case "inline-text-message":
-					final Integer delay = triggeredAction.getProperty(StructrApp.key(Traits.of(ActionMapping.class), "successNotificationsDelay"));
+					final Integer delay = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay"));
 					out.append(" data-structr-success-notifications-delay=\"").append(delay.toString()).append("\"");
 					break;
 
@@ -1592,7 +1591,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 					break;
 				case "none":
 				default:
-					break;
+					failureTargetString = null;
 			}
 		}
 
@@ -1735,7 +1734,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	public NodeList getElementsByTagName(final String tagName) {
 
-		final DOMNodeList<Node> results = new DOMNodeList<>();
+		DOMNodeList results = new DOMNodeList();
 
 		DOMNode.collectNodesByPredicate(getSecurityContext(), this, results, new TagPredicate(tagName), 0, false);
 
@@ -1745,7 +1744,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public HtmlProperty findOrCreateAttributeKey(final String name) {
 
 		// try to find native html property defined in DOMElement or one of its subclasses
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getTraits(), name, false);
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getEntityType(), name, false);
 
 		if (key != null && key instanceof HtmlProperty) {
 

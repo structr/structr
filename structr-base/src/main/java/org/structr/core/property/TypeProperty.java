@@ -27,8 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 
@@ -50,15 +49,15 @@ public class TypeProperty extends StringProperty {
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, final GraphTrait obj, String value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
 
 		super.setProperty(securityContext, obj, value);
 
-		if (obj instanceof NodeTrait) {
+		if (obj instanceof NodeInterface node) {
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass(value);
+			final Traits traits = node.getTraits();
 
-			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)obj, type, true);
+			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), node, traits, true);
 		}
 
 		return null;
@@ -81,7 +80,7 @@ public class TypeProperty extends StringProperty {
 		return result;
 	}
 
-	public static void updateLabels(final DatabaseService graphDb, final NodeTrait node, final boolean removeUnused) {
+	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Traits inputType, final boolean removeUnused) {
 
 		final Set<String> intersection = new LinkedHashSet<>();
 		final Set<String> toRemove     = new LinkedHashSet<>();

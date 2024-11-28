@@ -18,19 +18,16 @@
  */
 package org.structr.core.graph;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
@@ -39,7 +36,9 @@ import java.util.Set;
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
-	public void execute(final NodeTrait node) throws FrameworkException {
+	private static final Logger logger = LoggerFactory.getLogger(DeleteNodeCommand.class.getName());
+
+	public void execute(final NodeInterface node) throws FrameworkException {
 
 		if (securityContext.doCascadingDelete()) {
 
@@ -52,13 +51,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		}
 	}
 
-	private void cascadeDelete(final NodeTrait node) throws FrameworkException {
+	private void cascadeDelete(final NodeInterface node) throws FrameworkException {
 
-		final DeleteRelationshipCommand drc       = StructrApp.getInstance().command(DeleteRelationshipCommand.class);
-		final Principal user                      = securityContext.getCachedUser();
-		final Set<RelationshipTrait> relsToDelete = new HashSet<>();
-		final Set<NodeTrait> nodesToDelete        = new HashSet<>();
-		final Set<NodeTrait> nodesToCheck         = new HashSet<>();
+		final DeleteRelationshipCommand drc           = StructrApp.getInstance().command(DeleteRelationshipCommand.class);
+		final PrincipalInterface user                 = securityContext.getCachedUser();
+		final Set<RelationshipInterface> relsToDelete = new HashSet<>();
+		final Set<NodeInterface> nodesToDelete        = new HashSet<>();
+		final Set<NodeInterface> nodesToCheck         = new HashSet<>();
 
 		// collect nodes that are to be deleted
 		collectNodesForCascadingDelete(nodesToDelete, relsToDelete, nodesToCheck, node);
@@ -67,17 +66,17 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		nodesToCheck.removeAll(nodesToDelete);
 
 		// notify nodes of pending deletion
-		for (final NodeTrait deleteMe : nodesToDelete) {
+		for (final NodeInterface deleteMe : nodesToDelete) {
 			deleteMe.onNodeDeletion(securityContext);
 		}
 
 		// delete all rels
-		for (final RelationshipTrait deleteMe : relsToDelete) {
+		for (final RelationshipInterface deleteMe : relsToDelete) {
 			drc.execute(deleteMe);
 		}
 
 		// delete all nodes
-		for (final NodeTrait deleteMe : nodesToDelete) {
+		for (final NodeInterface deleteMe : nodesToDelete) {
 
 			// node can already be deleted by a previous run
 			if (!deleteMe.isDeleted()) {
@@ -90,10 +89,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			}
 		}
 
-		final Set<NodeTrait> invalidNodes = new HashSet<>();
+		final Set<NodeInterface> invalidNodes = new HashSet<>();
 
 		// check remaining nodes and delete as well
-		for (final NodeTrait checkMe : nodesToCheck) {
+		for (final NodeInterface checkMe : nodesToCheck) {
 
 			ErrorBuffer errorBuffer = new ErrorBuffer();
 
@@ -104,39 +103,39 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		}
 
 		// recurse for constraint-based cascading delete
-		for (final NodeTrait invalidNode : invalidNodes) {
+		for (final NodeInterface invalidNode : invalidNodes) {
 
 			cascadeDelete(invalidNode);
 		}
 	}
 
-	private void collectNodesForCascadingDelete(final Set<NodeTrait> nodesToDelete, final Set<RelationshipTrait> relsToDelete, final Set<NodeTrait> nodesToCheck, final NodeTrait node) {
+	private void collectNodesForCascadingDelete(final Set<NodeInterface> nodesToDelete, final Set<RelationshipInterface> relsToDelete, final Set<NodeInterface> nodesToCheck, final NodeInterface node) {
 
 		if (node == null) {
 			return;
 		}
 
-		final Queue<NodeTrait> queue = new ArrayDeque<>();
+		final Queue<NodeInterface> queue = new ArrayDeque<>();
 
 		// initial object
 		queue.add(node);
 
 		while (!queue.isEmpty()) {
 
-			final NodeTrait current = queue.remove();
+			final NodeInterface current = queue.remove();
 
 			if (current != null && !nodesToDelete.contains(current) && !current.isDeleted()) {
 
 				nodesToDelete.add(current);
 
-				for (RelationshipTrait rel : current.getRelationships()) {
+				for (RelationshipInterface<NodeInterface, NodeInterface> rel : current.getRelationships()) {
 
 					// deleted rels can be null..
 					if (rel != null) {
 
-						final int cascadeDelete   = rel.getCascadingDeleteFlag();
-						final NodeTrait startNode = rel.getSourceNode();
-						final NodeTrait endNode   = rel.getTargetNode();
+						final int cascadeDelete       = rel.getCascadingDeleteFlag();
+						final NodeInterface startNode = rel.getSourceNode();
+						final NodeInterface endNode   = rel.getTargetNode();
 
 						if (startNode != null && endNode != null) {
 

@@ -22,11 +22,10 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Trait;
 
@@ -48,7 +47,7 @@ public abstract class DeserializationStrategy<S, T extends NodeTrait> {
 
 	public abstract void setRelationProperty(final RelationProperty<S> parentProperty);
 
-	protected void setProperties(final SecurityContext securityContext, final GraphTrait obj, final PropertyMap properties) throws FrameworkException {
+	protected void setProperties(final SecurityContext securityContext, final GraphObjectTrait obj, final PropertyMap properties) throws FrameworkException {
 
 		// are we allowed to set properties on related nodes?
 		final Boolean allowed = (Boolean)securityContext.getAttribute("setNestedProperties");

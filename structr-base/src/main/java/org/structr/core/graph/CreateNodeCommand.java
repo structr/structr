@@ -38,9 +38,8 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.Traits;
+import org.structr.core.property.TypeProperty;
+import org.structr.schema.SchemaHelper;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -48,7 +47,7 @@ import java.util.Map.Entry;
 /**
  * Creates a new node in the database with the given properties.
  */
-public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
+public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
 
@@ -78,19 +77,19 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 	public T execute(final PropertyMap attributes) throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final Principal user          = securityContext.getUser(false);
+		final PrincipalInterface user          = securityContext.getUser(false);
 		T node	                      = null;
 
 		if (graphDb != null) {
 
+			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			final PropertyMap properties     = new PropertyMap(attributes);
 			final PropertyMap toNotify       = new PropertyMap();
 			final Object typeObject          = properties.get(AbstractNode.type);
-			final String typeName            = typeObject.toString();
-			final Traits<?> traits           = Traits.of(typeName);
-			final Set<String> labels         = traits.getLabels();
+			final Class nodeType             = getTypeOrGeneric(typeObject);
+			final String typeName            = nodeType.getSimpleName();
+			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
 			final CreationContainer tmp      = new CreationContainer(true);
-			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			final Date now                   = new Date();
 			final boolean isCreation         = true;
 
@@ -123,7 +122,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 
 			if (user != null) {
 
-				final String userId = user.getUuid();
+				final String userId = user.getProperty(GraphObject.id);
 
 				AbstractNode.createdBy.setProperty(securityContext, tmp, userId);
 				AbstractNode.lastModifiedBy.setProperty(securityContext, tmp, userId);
@@ -140,10 +139,10 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 			properties.remove(AbstractNode.createdDate);
 			properties.remove(AbstractNode.createdBy);
 
-			if (traits.contains(Principal.class.getSimpleName()) && !traits.contains(Group.class.getSimpleName())) {
+			if (PrincipalInterface.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
 				// If we are creating a node inheriting from Principal, force existence of password property
 				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-				final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
+				final PropertyKey passwordKey = StructrApp.key(PrincipalInterface.class, "password", false);
 				if (isCreation && !properties.containsKey(passwordKey)) {
 					properties.put(passwordKey, null);
 				}
@@ -153,7 +152,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 			tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 			// collect default values and try to set them on creation
-			for (final PropertyKey key : traits.getAllProperties()) {
+			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(nodeType, PropertyView.All)) {
 
 				if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 
@@ -165,7 +164,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 				}
 			}
 
-			node = (T) nodeFactory.instantiate(createNode(graphDb, user, typeName, labels, tmp.getData()), null, isCreation);
+			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), nodeType, null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -181,7 +180,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
-						TransactionCommand.nodeModified(securityContext.getCachedUser(), node, key, null, value);
+						TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)node, key, null, value);
 					}
 				}
 
@@ -198,8 +197,8 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 		if (node != null) {
 
 			// iterate post creation transformations
-			final Set<Transformation<NodeTrait>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getTraits());
-			for (Transformation<NodeTrait> transformation : transformations) {
+			final Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
+			for (Transformation<GraphObject> transformation : transformations) {
 
 				transformation.apply(securityContext, node);
 			}
@@ -223,7 +222,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 	}
 
 	// ----- private methods -----
-	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
+	private Node createNode(final DatabaseService graphDb, final PrincipalInterface user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
@@ -258,7 +257,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 
 			try {
 
-				final NodeWithOwnerResult result = graphDb.createNodeWithOwner(user.getIdentity(), type, labels, properties, ownsProperties, securityProperties);
+				final NodeWithOwnerResult result = graphDb.createNodeWithOwner(user.getNode().getId(), type, labels, properties, ownsProperties, securityProperties);
 				final Relationship securityRel   = result.getSecurityRelationship();
 				final Relationship ownsRel       = result.getOwnsRelationship();
 				final Node newNode               = result.getNewNode();
@@ -289,6 +288,15 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 		}
 	}
 
+	private Class getTypeOrGeneric(final Object typeObject) {
+
+		if (typeObject != null) {
+			return SchemaHelper.getEntityClassForRawType(typeObject.toString());
+		}
+
+		return StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
+	}
+
 	private <T> T getOrDefault(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
 
 		final T value = src.get(key);
@@ -300,13 +308,13 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 		return defaultValue;
 	}
 
-	private void notifySecurityRelCreation(final Principal user, final Relationship rel) {
+	private void notifySecurityRelCreation(final PrincipalInterface user, final Relationship rel) {
 
-		final RelationshipFactory<Security> factory = new RelationshipFactory<>(securityContext);
+		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface<NodeInterface, NodeInterface>> factory = new RelationshipFactory<>(securityContext);
 
 		try {
 
-			final Security securityRelationship = factory.instantiate(rel);
+			final RelationshipInterface<NodeInterface, NodeInterface> securityRelationship = factory.instantiate(rel);
 			if (securityRelationship != null) {
 
 				TransactionCommand.relationshipCreated(user, securityRelationship);
@@ -325,7 +333,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 			try {
 
 				// try again
-				final Security securityRelationship = factory.instantiate(rel);
+				final RelationshipInterface<NodeInterface, NodeInterface> securityRelationship = factory.instantiate(rel);
 				if (securityRelationship != null) {
 
 					TransactionCommand.relationshipCreated(user, securityRelationship);
@@ -338,13 +346,13 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 		}
 	}
 
-	private void notifyOwnsRelCreation(final Principal user, final Relationship rel) {
+	private void notifyOwnsRelCreation(final PrincipalInterface user, final Relationship rel) {
 
-		final RelationshipFactory<PrincipalOwnsNode> factory = new RelationshipFactory<>(securityContext);
+		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface<NodeInterface, NodeInterface>> factory = new RelationshipFactory<>(securityContext);
 
 		try {
 
-			final PrincipalOwnsNode ownsRelationship = factory.instantiate(rel);
+			final RelationshipInterface<NodeInterface, NodeInterface> ownsRelationship = factory.instantiate(rel);
 			if (ownsRelationship != null) {
 
 				TransactionCommand.relationshipCreated(user, ownsRelationship);
@@ -362,7 +370,7 @@ public class CreateNodeCommand<T extends NodeTrait> extends NodeServiceCommand {
 
 			try {
 				// try again
-				final PrincipalOwnsNode ownsRelationship = factory.instantiate(rel);
+				final RelationshipInterface<NodeInterface, NodeInterface> ownsRelationship = factory.instantiate(rel);
 				if (ownsRelationship != null) {
 
 					TransactionCommand.relationshipCreated(user, ownsRelationship);

@@ -18,40 +18,30 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.Permission;
-import org.structr.core.traits.NodeTrait;
+import org.structr.api.graph.Relationship;
+import org.structr.common.*;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Relationship type class for SECURITY relationships.
  */
-public interface Security extends ManyToMany<Principal, NodeTrait> {
+public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
 
-	boolean isAllowed(final Permission permission);
-	void setAllowed(final Set<String> allowed);
-	void setAllowed(final Permission... allowed);
-	Set<String> getPermissions();
-	void addPermission(final Permission permission);
-	void addPermissions(final Set<Permission> permissions);
-	void removePermission(final Permission permission);
-	void removePermissions(final Set<Permission> permissions);
+	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
 
 	/*
-
 	public static final SourceId           principalId          = new SourceId("principalId");
 	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
-	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
 
 	public static final View uiView = new View(Security.class, PropertyView.Ui,
 		allowed
 	);
 
-	public Security() {}
-
-	public Security(SecurityContext securityContext, Relationship dbRelationship, final long transactionId) {
-		init(securityContext, dbRelationship, Security.class, transactionId);
-	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
@@ -67,12 +57,13 @@ public interface Security extends ManyToMany<Principal, NodeTrait> {
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
-				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(traits, key));
+				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
 
 		return keys;
 	}
+	*/
 
 	public boolean isAllowed(final Permission permission) {
 		return SecurityDelegate.isAllowed(this, Security.allowed, permission);
@@ -108,8 +99,8 @@ public interface Security extends ManyToMany<Principal, NodeTrait> {
 
 	// ----- class Relation -----
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public Class<PrincipalInterface> getSourceType() {
+		return PrincipalInterface.class;
 	}
 
 	@Override
@@ -124,17 +115,32 @@ public interface Security extends ManyToMany<Principal, NodeTrait> {
 
 	@Override
 	public Property<String> getSourceIdProperty() {
-		return principalId;
+		//return principalId;
+		return null;
 	}
 
 	@Override
 	public Property<String> getTargetIdProperty() {
-		return accessControllableId;
+		//return accessControllableId;
+		return null;
 	}
 
 	@Override
-	public boolean isInternal() {
-		return true;
+	public void setSourceProperty(PropertyKey source) {
 	}
-	*/
+
+	@Override
+	public void setTargetProperty(PropertyKey target) {
+
+	}
+
+	@Override
+	public PropertyKey getSourceProperty() {
+		return null;
+	}
+
+	@Override
+	public PropertyKey getTargetProperty() {
+		return null;
+	}
 }

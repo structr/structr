@@ -30,7 +30,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -40,9 +39,9 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 	private static final Logger logger = LoggerFactory.getLogger(DoInNewTransactionFunction.class.getName());
 	private final ActionContext actionContext;
-	private final GraphTrait entity;
+	private final GraphObject entity;
 
-	public DoInNewTransactionFunction(final ActionContext actionContext, final GraphTrait entity) {
+	public DoInNewTransactionFunction(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity = entity;

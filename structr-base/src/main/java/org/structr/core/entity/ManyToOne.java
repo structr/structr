@@ -24,18 +24,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
-import org.structr.core.traits.NodeTrait;
 
 /**
  *
  *
  */
-public interface ManyToOne<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, ManyStartpoint<S>, OneEndpoint<T>> {
+public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, ManyStartpoint<S>, OneEndpoint<T>> {
 
-	/*
 	@Override
 	public Multiplicity getSourceMultiplicity() {
 		return Multiplicity.Many;
@@ -67,7 +66,7 @@ public interface ManyToOne<S extends NodeTrait, T extends NodeTrait> extends Rel
 	}
 
 	@Override
-	public void ensureCardinality(final SecurityContext securityContext, final NodeTrait sourceNode, final NodeTrait targetNode) throws FrameworkException {
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
 		final App app                          = StructrApp.getInstance();
 		final Class<? extends ManyToOne> clazz = this.getClass();
@@ -76,7 +75,7 @@ public interface ManyToOne<S extends NodeTrait, T extends NodeTrait> extends Rel
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface<NodeInterface, NodeInterface> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
 			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
 
 				app.delete(outgoingRel);
@@ -97,7 +96,8 @@ public interface ManyToOne<S extends NodeTrait, T extends NodeTrait> extends Rel
 
 	@Override
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
+		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
+		return null;
 	}
 
 	@Override
@@ -112,15 +112,4 @@ public interface ManyToOne<S extends NodeTrait, T extends NodeTrait> extends Rel
 
 		return null;
 	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
-	}
-	*/
 }

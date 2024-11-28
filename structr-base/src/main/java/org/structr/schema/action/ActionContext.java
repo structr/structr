@@ -42,7 +42,6 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
@@ -125,7 +124,7 @@ public class ActionContext {
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphTrait entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 
@@ -145,7 +144,7 @@ public class ActionContext {
 
 			final String key = parts[i];
 
-			if (_data instanceof GraphTrait obj) {
+			if (_data instanceof GraphObject obj) {
 
 				_data = obj.evaluate(this, key, null, hints, row, column);
 
@@ -240,7 +239,7 @@ public class ActionContext {
 		return getContextStore().getAdvancedMailContainer();
 	}
 
-	public Object evaluate(final GraphTrait entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		// report usage for toplevel keys only
 		if (data == null) {
@@ -299,7 +298,7 @@ public class ActionContext {
 
 				if (data != null) {
 
-					if (data instanceof GraphTrait graphObject) {
+					if (data instanceof GraphObject graphObject) {
 
 						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
 

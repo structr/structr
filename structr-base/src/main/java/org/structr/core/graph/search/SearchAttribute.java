@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphTrait;
+import org.structr.core.traits.GraphObjectTrait;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -39,16 +39,16 @@ import java.util.Set;
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphTrait>, QueryPredicate {
+public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObjectTrait>, QueryPredicate {
 
 	public static final String WILDCARD = "*";
 
-	private Comparator<GraphTrait> comparator = null;
+	private Comparator<GraphObjectTrait> comparator = null;
  	private Set<GraphObject> result          = new LinkedHashSet<>();
 	private Occurrence occur                 = null;
 	private SortOrder sortOrder              = null;
 
-	public abstract boolean includeInResult(final GraphTrait entity);
+	public abstract boolean includeInResult(final GraphObjectTrait entity);
 
 	public SearchAttribute() {
 		this(null, null);
@@ -87,7 +87,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	public void setExactMatch(final boolean exact) {
 	};
 
-	public void setComparator(final Comparator<GraphTrait> comparator) {
+	public void setComparator(final Comparator<GraphObjectTrait> comparator) {
 		this.comparator = comparator;
 	}
 
@@ -102,12 +102,12 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
-	public boolean accept(final GraphTrait obj) {
+	public boolean accept(final GraphObjectTrait obj) {
 		return includeInResult(obj);
 	}
 
 	@Override
-	public Comparator<GraphTrait> comparator() {
+	public Comparator<GraphObjectTrait> comparator() {
 		return comparator;
 	}
 

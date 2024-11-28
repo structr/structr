@@ -18,29 +18,7 @@
  */
 package org.structr.core.traits;
 
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
+import org.structr.core.graph.RelationshipInterface;
 
-public interface RelationshipTrait<S extends NodeTrait, T extends NodeTrait> extends GraphTrait {
-
-	Relationship getRelationship();
-	RelationshipType getRelType();
-
-	Traits getTraits();
-
-	String getName();
-	String getType();
-
-	S getSourceNodeAsSuperUser();
-	T getTargetNodeAsSuperUser();
-
-	S getSourceNode();
-	T getTargetNode();
-
-	String getSourceNodeId();
-	String getTargetNodeId();
-
-	int getCascadingDeleteFlag();
-
-	NodeTrait getOtherNode(final NodeTrait node);
+public interface RelationshipTrait extends GraphObjectTrait {
 }

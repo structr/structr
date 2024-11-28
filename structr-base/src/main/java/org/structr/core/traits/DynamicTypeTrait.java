@@ -19,13 +19,87 @@
 package org.structr.core.traits;
 
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.PropertyMap;
 
-public class DynamicTypeTrait<T extends NodeTrait> extends NodeTraitImpl<T> {
+public class DynamicTypeTrait implements NodeTrait {
 
 	protected DynamicTypeTrait(final PropertyContainer node) {
 		super(node);
 	}
 
 
+	@Override
+	public boolean isDeleted() {
+		return false;
+	}
 
+	@Override
+	public void onNodeCreation(SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isValid(GraphObject obj, ErrorBuffer errorBuffer) {
+		return false;
+	}
+
+	@Override
+	public void onCreation(GraphObject obj, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onModification(GraphObject obj, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onDeletion(GraphObject obj, SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterCreation(GraphObject obj, SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterModification(GraphObject obj, SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterDeletion(GraphObject obj, SecurityContext securityContext, PropertyMap properties) {
+
+	}
+
+	@Override
+	public void ownerModified(GraphObject obj, SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void securityModified(GraphObject obj, SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void locationModified(GraphObject obj, SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void propagatedModification(GraphObject obj, SecurityContext securityContext) {
+
+	}
 }

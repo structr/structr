@@ -23,7 +23,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import net.openhft.hashing.Access;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
@@ -36,13 +35,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.Trait;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.JavaScriptSource;
 
@@ -93,7 +89,7 @@ public class SecurityContext {
 	private AccessMode accessMode                  = AccessMode.Frontend;
 	private final List<Object> creationDetails     = new LinkedList<>();
 	private Authenticator authenticator            = null;
-	private Principal cachedUser                   = null;
+	private PrincipalInterface cachedUser                   = null;
 	private HttpServletRequest request             = null;
 	private HttpServletResponse response           = null;
 	private Set<String> customView                 = null;
@@ -108,7 +104,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(Principal user, AccessMode accessMode) {
+	private SecurityContext(PrincipalInterface user, AccessMode accessMode) {
 
 		this.cachedUser     = user;
 		this.accessMode     = accessMode;
@@ -117,7 +113,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(Principal user, HttpServletRequest request, AccessMode accessMode) {
+	private SecurityContext(PrincipalInterface user, HttpServletRequest request, AccessMode accessMode) {
 
 		this(request);
 
@@ -284,28 +280,32 @@ public class SecurityContext {
 		return new SuperUserSecurityContext();
 	}
 
-	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
+	public static SecurityContext getInstance(PrincipalInterface user, AccessMode accessMode) {
 		return new SecurityContext(user, accessMode);
 	}
 
-	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
+	public static SecurityContext getInstance(PrincipalInterface user, HttpServletRequest request, AccessMode accessMode) {
 		return new SecurityContext(user, request, accessMode);
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphTrait> nodes, final boolean includeHidden, final boolean publicOnly) {
+	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
-		final Trait<AccessControllable> trait = Trait.of(AccessControllable.class);
-		boolean readableByUser                = false;
+		boolean readableByUser = false;
 
-		for (Iterator<? extends GraphTrait> it = nodes.iterator(); it.hasNext();) {
+		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
 
-			final AccessControllable accessControllable = it.next().as(trait);
+			GraphObject obj = it.next();
 
-			readableByUser = accessControllable.isGranted(Permission.read, this);
+			if (obj instanceof AbstractNode) {
 
-			if (!(readableByUser && includeHidden && (accessControllable.isVisibleToPublicUsers() || !publicOnly))) {
+				AbstractNode n = (AbstractNode) obj;
 
-				it.remove();
+				readableByUser = n.isGranted(Permission.read, this);
+
+				if (!(readableByUser && includeHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
+
+					it.remove();
+				}
 			}
 		}
 	}
@@ -336,18 +336,18 @@ public class SecurityContext {
 		return cachedUserName;
 	}
 
-	public Principal getCachedUser() {
+	public PrincipalInterface getCachedUser() {
 		return cachedUser;
 	}
 
-	public void setCachedUser(final Principal user) {
+	public void setCachedUser(final PrincipalInterface user) {
 
 		this.cachedUser     = user;
 		this.cachedUserId   = user.getUuid();
 		this.cachedUserName = user.getName();
 	}
 
-	public Principal getUser(final boolean tryLogin) {
+	public PrincipalInterface getUser(final boolean tryLogin) {
 
 		// If we've got a user, return it! Easiest and fastest!!
 		if (cachedUser != null) {
@@ -459,7 +459,7 @@ public class SecurityContext {
 
 	public boolean isSuperUser() {
 
-		Principal user = getUser(false);
+		PrincipalInterface user = getUser(false);
 
 		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
 	}
@@ -483,7 +483,7 @@ public class SecurityContext {
 		}
 	}
 
-	public boolean isReadable(final AccessControllable node, final boolean includeHidden, final boolean publicOnly) {
+	public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split for
@@ -537,7 +537,7 @@ public class SecurityContext {
 		}
 
 		// fetch user
-		final Principal user = getUser(false);
+		final PrincipalInterface user = getUser(false);
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
@@ -563,6 +563,9 @@ public class SecurityContext {
 	 * It should *not* be used to check accessibility of child nodes because
 	 * it might send a 401 along with a request for basic authentication.
 	 *
+	 * For those, use
+	 * {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
+	 *
 	 * @param node
 	 * @return isVisible
 	 */
@@ -580,7 +583,7 @@ public class SecurityContext {
 		}
 
 		// Fetch already logged-in user, if present (don't try to login)
-		final Principal user = getUser(false);
+		final PrincipalInterface user = getUser(false);
 
 		if (user != null && user.isAdmin()) {
 			return true;
@@ -603,7 +606,7 @@ public class SecurityContext {
 
 		if (user != null) {
 
-			final Principal owner = node.getOwnerNode();
+			final PrincipalInterface owner = node.getOwnerNode();
 
 			// owner is always allowed to do anything with its nodes
 			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
@@ -1035,7 +1038,7 @@ public class SecurityContext {
 
 		private static final SuperUser superUser = new SuperUser();
 
-		public SuperUserSecurityContext(final HttpServletRequest request) {
+		public SuperUserSecurityContext(HttpServletRequest request) {
 			super(request);
 		}
 
@@ -1043,19 +1046,19 @@ public class SecurityContext {
 		}
 
 		@Override
-		public Principal getUser(final boolean tryLogin) {
+		public PrincipalInterface getUser(final boolean tryLogin) {
 
 			return new SuperUser();
 		}
 
 		@Override
-		public Principal getCachedUser() {
+		public PrincipalInterface getCachedUser() {
 			return superUser;
 		}
 
 		@Override
 		public String getCachedUserId() {
-			return Principal.SUPERUSER_ID;
+			return PrincipalInterface.SUPERUSER_ID;
 		}
 
 		@Override
@@ -1070,12 +1073,12 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isReadable(final AccessControllable node, final boolean includeHidden, final boolean publicOnly) {
+		public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
 			return true;
 		}
 
 		@Override
-		public boolean isVisible(final AccessControllable node) {
+		public boolean isVisible(AccessControllable node) {
 
 			return true;
 		}

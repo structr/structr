@@ -22,16 +22,13 @@ import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -44,22 +41,22 @@ import java.util.Set;
 /**
  *
  */
-public class CreationContainer<T extends Comparable> implements GraphTrait, PropertyContainer {
+public class CreationContainer<T extends Comparable> implements GraphObject<PropertyContainer>, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
-	private GraphTrait wrappedObj = null;
+	private GraphObject         wrappedObj = null;
 	private boolean isNode                 = true;
 
 	public CreationContainer(final boolean isNode) {
 		this.isNode = isNode;
 	}
 
-	public CreationContainer(final GraphTrait obj) {
+	public CreationContainer(final GraphObject obj) {
 		this.wrappedObj = obj;
 		this.isNode     = obj.isNode();
 	}
 
-	public GraphTrait getWrappedObject() {
+	public GraphObject getWrappedObject() {
 		return wrappedObj;
 	}
 
@@ -69,13 +66,17 @@ public class CreationContainer<T extends Comparable> implements GraphTrait, Prop
 
 	// ----- interface GraphObject -----
 	@Override
-	public Identity getIdentity() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public String getUuid() {
+		return wrappedObj.getUuid();
 	}
 
 	@Override
-	public String getUuid() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public void init(SecurityContext securityContext, PropertyContainer dbObject, Class type, long sourceTransactionId) {
+	}
+
+	@Override
+	public Identity getId() {
+		return null;
 	}
 
 	@Override
@@ -131,12 +132,17 @@ public class CreationContainer<T extends Comparable> implements GraphTrait, Prop
 	}
 
 	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphTrait> filter) {
+	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -156,57 +162,12 @@ public class CreationContainer<T extends Comparable> implements GraphTrait, Prop
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	public void addToIndex() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void ownerModified(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {
+	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -228,7 +189,7 @@ public class CreationContainer<T extends Comparable> implements GraphTrait, Prop
 	}
 
 	@Override
-	public List<GraphTrait> getSyncData() throws FrameworkException {
+	public List<GraphObject> getSyncData() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -243,12 +204,12 @@ public class CreationContainer<T extends Comparable> implements GraphTrait, Prop
 	}
 
 	@Override
-	public NodeTrait getSyncNode() {
+	public NodeInterface getSyncNode() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public RelationshipTrait getSyncRelationship() {
+	public RelationshipInterface getSyncRelationship() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -303,11 +264,6 @@ public class CreationContainer<T extends Comparable> implements GraphTrait, Prop
 	@Override
 	public boolean isDeleted() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public Traits getTraits() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

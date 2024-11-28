@@ -82,7 +82,7 @@ public class Template extends Content {
 			out.append(">");
 
 			// fetch children
-			final List<DOMNodeCONTAINSDOMNode> rels = this.getChildRelationships();
+			final List<RelationshipInterface<DOMNode, DOMNode>> rels = this.getChildRelationships();
 			if (rels.isEmpty()) {
 
 				// No child relationships, maybe this node is in sync with another node

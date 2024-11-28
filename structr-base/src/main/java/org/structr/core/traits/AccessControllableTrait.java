@@ -583,7 +583,7 @@ public class AccessControllableTrait extends NodeTraitImpl<AccessControllable> i
 		if (p != null) {
 
 			// try filter predicate to speed up things
-			final Predicate<GraphTrait> principalFilter = value -> p.getUuid().equals(value.getUuid());
+			final Predicate<GraphObjectTrait> principalFilter = value -> p.getUuid().equals(value.getUuid());
 
 			return getSecurityRelationship(p, mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Trait.of(Security.class), principalFilter)));
 		}

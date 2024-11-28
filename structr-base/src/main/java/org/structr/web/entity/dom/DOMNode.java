@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Traits;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.*;
@@ -49,7 +48,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.Trait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
@@ -252,12 +250,12 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	// ----- abstract method implementations -----
 	@Override
-	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, ManyEndpoint<DOMNode>>> Trait<R> getChildLinkType() {
+	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, ManyEndpoint<DOMNode>>> Class<R> getChildLinkType() {
 		return (Class<R>)DOMNodeCONTAINSDOMNode.class;
 	}
 
 	@Override
-	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, OneEndpoint<DOMNode>>> Trait<R> getSiblingLinkType() {
+	public <R extends Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, OneEndpoint<DOMNode>>> Class<R> getSiblingLinkType() {
 		return (Class<R>)DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;
 	}
 
@@ -643,7 +641,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 			final LinkSource linkSourceElement = (LinkSource)sourceNode;
 
-			properties.put(StructrApp.key(Traits.of(LinkSource.class), "linkable"), linkSourceElement.getLinkable());
+			properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
@@ -1255,7 +1253,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public void getSecurityInstructions(final Set<String> instructions) {
 
-		final Principal _owner = this.getOwnerNode();
+		final PrincipalInterface _owner = this.getOwnerNode();
 		if (_owner != null) {
 
 			instructions.add("@structr:owner(" + _owner.getProperty(AbstractNode.name) + ")");
@@ -1263,7 +1261,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		this.getSecurityRelationships().stream().filter(Objects::nonNull).sorted(Comparator.comparing(security -> security.getSourceNode().getProperty(AbstractNode.name))).forEach(security -> {
 
-			final Principal grantee = security.getSourceNode();
+			final PrincipalInterface grantee = security.getSourceNode();
 			final Set<String> perms = security.getPermissions();
 			final StringBuilder shortPerms = new StringBuilder();
 
@@ -1352,7 +1350,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 			for (final String p : rawProps) {
 
 				final String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
-				final PropertyKey key = StructrApp.key(Traits.of(DOMNode.class), p, false);
+				final PropertyKey key = StructrApp.key(DOMNode.class, p, false);
 
 				if (key != null) {
 
@@ -1379,7 +1377,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		for (final String key : props) {
 
-			PropertyKey propertyKey = StructrApp.key(traits, key, false);
+			PropertyKey propertyKey = StructrApp.key(this.getClass(), key, false);
 			if (propertyKey == null) {
 
 				// support arbitrary data-* attributes
@@ -1418,7 +1416,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		try {
 
-			final Page page            = this.getOwnerDocument();
+			final Page page            = (Page)this.getOwnerDocument();
 			final DOMNode newChildNode = (DOMNode)newChild;
 
 			newChildNode.setOwnerDocument(page);
@@ -1450,7 +1448,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		}
 
 		// special handling for tree items that explicitly opt-in to be controlled automatically, configured with the toggle-tree-item event.
-		final String treeItemDataKey = this.getProperty(StructrApp.key(Traits.of(DOMElement.class), "data-structr-tree-children"));
+		final String treeItemDataKey = this.getProperty(StructrApp.key(DOMElement.class, "data-structr-tree-children"));
 		if (treeItemDataKey != null) {
 
 			final GraphObject treeItem = renderContext.getDataNode(treeItemDataKey);
@@ -1532,7 +1530,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 						} else {
 
-							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getTraits(), subKey, false);
+							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 							renderContext.setRelatedProperty(propertyKey);
 
 							if (propertyKey != null) {
@@ -1739,7 +1737,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 				final LinkSource linkSourceElement = (LinkSource)this;
 
-				properties.put(StructrApp.key(Traits.of(LinkSource.class), "linkable"), linkSourceElement.getLinkable());
+				properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
 			}
 
 			final App app = StructrApp.getInstance(securityContext);
@@ -2029,7 +2027,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	}
 
-	public List<DOMNodeCONTAINSDOMNode> getChildRelationships() {
+	public List<RelationshipInterface<DOMNode, DOMNode>> getChildRelationships() {
 		return treeGetChildRelationships();
 	}
 

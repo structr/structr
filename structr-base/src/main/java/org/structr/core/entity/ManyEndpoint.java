@@ -27,11 +27,12 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,23 +41,18 @@ import java.util.stream.Collectors;
  *
  *
  */
-public class ManyEndpoint<T extends NodeTrait> extends AbstractEndpoint implements Target<Iterable<Relationship>, Iterable<T>> {
+public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint implements Target<Iterable<Relationship>, Iterable<T>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ManyEndpoint.class.getName());
 
-	private final Trait<? extends Relation<?, T, ?, ManyEndpoint<T>>> trait;
-	private final Relation<?, T, ?, ManyEndpoint<T>> relation;
-	private final Traits traits;
+	private Relation<?, T, ?, ManyEndpoint<T>> relation = null;
 
 	public ManyEndpoint(final Relation<?, T, ?, ManyEndpoint<T>> relation) {
-
 		this.relation = relation;
-		this.trait    = relation.getTrait();
-		this.traits   = relation.getTraits();
 	}
 
 	@Override
-	public Iterable<T> get(final SecurityContext securityContext, final NodeTrait node, final Predicate<GraphTrait> predicate) {
+	public Iterable<T> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
 		final NodeFactory<T> nodeFactory  = new NodeFactory<>(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
@@ -82,22 +78,23 @@ public class ManyEndpoint<T extends NodeTrait> extends AbstractEndpoint implemen
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeTrait sourceNode, final Iterable<T> collection) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final Iterable<T> collection) throws FrameworkException {
 
-		final App app                                                           = StructrApp.getInstance(securityContext);
-		final List<Relation> createdRelationships                               = new LinkedList<>();
-		final PropertyMap properties                                            = new PropertyMap();
-		final T actualSourceNode                                                = (T) unwrap(securityContext, relation.getTraits(), sourceNode, properties);
-		final Set<T> toBeDeleted                                                = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));
-		final Set<T> toBeCreated                                                = new LinkedHashSet<>();
+		final App app                             = StructrApp.getInstance(securityContext);
+		final List<Relation> createdRelationships = new LinkedList<>();
+		final PropertyMap properties              = new PropertyMap();
+		final T actualSourceNode                  = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
+		final Set<T> toBeDeleted                  = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));
+		final Set<T> toBeCreated                  = new LinkedHashSet<>();
+		final Class relationClass                 = relation.getClass();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
 		}
 
 		// create intersection of both sets
-		final Set<T> intersection         = intersect(toBeCreated, toBeDeleted);
-		final Map<String, GraphTrait> map = intersection.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+		final Set<T> intersection          = intersect(toBeCreated, toBeDeleted);
+		final Map<String, GraphObject> map = intersection.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
 
 		// remove all existing nodes from the list of to be created nodes
 		// so we don't delete and re-create the relationship
@@ -114,14 +111,14 @@ public class ManyEndpoint<T extends NodeTrait> extends AbstractEndpoint implemen
 				if (map.containsKey(uuid)) {
 
 					// if the target node UUID is in the intersection, it should not be deleted, only set properties
-					final GraphTrait inputObject = map.get(uuid);
+					final GraphObject inputObject = map.get(uuid);
 
 					// extract and set foreign properties from input object
-					unwrap(securityContext, traits, inputObject, foreignProperties);
+					unwrap(securityContext, relationClass, inputObject, foreignProperties);
 
 					if (!foreignProperties.isEmpty()) {
 
-						final RelationshipTrait rel = actualSourceNode.getRelationshipTo(relation, targetNode);
+						final AbstractRelationship rel = actualSourceNode.getRelationshipTo(relation, targetNode);
 						if (rel != null) {
 
 							rel.setProperties(securityContext, foreignProperties);
@@ -131,7 +128,7 @@ public class ManyEndpoint<T extends NodeTrait> extends AbstractEndpoint implemen
 				} else {
 
 					// delete this relationship only if the UUID of the target node is not in the intersection!
-					final RelationshipTrait rel = actualSourceNode.getRelationshipTo(relation, targetNode);
+					final AbstractRelationship rel = actualSourceNode.getRelationshipTo(relation, targetNode);
 					if (rel != null) {
 
 						app.delete(rel);
@@ -146,17 +143,17 @@ public class ManyEndpoint<T extends NodeTrait> extends AbstractEndpoint implemen
 
 					properties.clear();
 
-					final NodeTrait actualTargetNode = (NodeTrait)unwrap(securityContext, traits, targetNode, properties);
+					final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relationClass, targetNode, properties);
 
 					relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
-					final PropertyMap notionProperties = getNotionProperties(securityContext, traits, actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
+					final PropertyMap notionProperties = getNotionProperties(securityContext, relationClass, actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
 					if (notionProperties != null) {
 
 						properties.putAll(notionProperties);
 					}
 
-					createdRelationships.add(app.create(actualSourceNode, actualTargetNode, traits, properties));
+					createdRelationships.add(app.create(actualSourceNode, actualTargetNode, relationClass, properties));
 				}
 			}
 		}
@@ -165,12 +162,12 @@ public class ManyEndpoint<T extends NodeTrait> extends AbstractEndpoint implemen
 	}
 
 	@Override
-	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphTrait> predicate) {
+	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getMultiple(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType(), predicate);
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphTrait> predicate) {
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
 		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();
 	}
 }

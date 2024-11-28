@@ -24,18 +24,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
-import org.structr.core.traits.NodeTrait;
 
 /**
  *
  *
  */
-public interface OneToOne<S extends NodeTrait, T extends NodeTrait> extends Relation<S, T, OneStartpoint<S>, OneEndpoint<T>> {
+public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, OneStartpoint<S>, OneEndpoint<T>> {
 
-	/*
 	@Override
 	public Multiplicity getSourceMultiplicity() {
 		return Multiplicity.One;
@@ -77,7 +76,7 @@ public interface OneToOne<S extends NodeTrait, T extends NodeTrait> extends Rela
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface<NodeInterface, NodeInterface> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
 
 			// remove relationship if exists
 			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
@@ -88,7 +87,7 @@ public interface OneToOne<S extends NodeTrait, T extends NodeTrait> extends Rela
 		if (targetNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface<NodeInterface, NodeInterface> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
 
 			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 				app.delete(incomingRel);
@@ -109,7 +108,8 @@ public interface OneToOne<S extends NodeTrait, T extends NodeTrait> extends Rela
 
 	@Override
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
+		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
+		return null;
 	}
 
 	@Override
@@ -124,15 +124,4 @@ public interface OneToOne<S extends NodeTrait, T extends NodeTrait> extends Rela
 
 		return null;
 	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
-	}
-	*/
 }

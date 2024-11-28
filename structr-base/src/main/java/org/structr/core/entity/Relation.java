@@ -30,10 +30,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -48,39 +44,39 @@ import java.util.Map;
  *
  *
  */
-public interface Relation<A extends NodeTrait, B extends NodeTrait, S extends Source, T extends Target> extends RelationshipTrait<A, B>, RelationshipType {
+public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipType {
 
 	/**
 	 * No cascading delete / autocreate.
 	 */
-	final int NONE              = 0;
+	public static final int NONE              = 0;
 
 	/**
 	 * Target node will be deleted if source node
 	 * gets deleted.
 	 */
-	static final int SOURCE_TO_TARGET  = 1;
+	public static final int SOURCE_TO_TARGET  = 1;
 
 	/**
 	 * Source node will be deleted if target node
 	 * gets deleted.
 	 */
-	static final int TARGET_TO_SOURCE  = 2;
+	public static final int TARGET_TO_SOURCE  = 2;
 
 	/**
 	 * Both nodes will be deleted whenever one of
 	 * the two nodes gets deleted.
 	 *
 	 */
-	static final int ALWAYS            = 3;
+	public static final int ALWAYS            = 3;
 
 	/**
 	 * Source and/or target nodes will be deleted
 	 * if they become invalid.
 	 */
-	static final int CONSTRAINT_BASED  = 4;
+	public static final int CONSTRAINT_BASED  = 4;
 
-	static final String[] CASCADING_DESCRIPTIONS = {
+	public static final String[] CASCADING_DESCRIPTIONS = {
 		"NONE",
 		"SOURCE_TO_TARGET",
 		"TARGET_TO_SOURCE",
@@ -90,14 +86,12 @@ public interface Relation<A extends NodeTrait, B extends NodeTrait, S extends So
 
 	enum Multiplicity { One, Many }
 
-	Trait<A> getSourceType();
-	Trait<B> getTargetType();
+	Class<A> getSourceType();
+	Class<B> getTargetType();
 
-	Trait<Relation<A, B, S, T>> getTrait();
+	Class getOtherType(final Class type);
 
-	Trait<?> getOtherType(final Trait<?> type);
-
-	Direction getDirectionForType(final Trait<?> type);
+	Direction getDirectionForType(final Class<? extends NodeInterface> type);
 
 	Multiplicity getSourceMultiplicity();
 	Multiplicity getTargetMultiplicity();
@@ -113,9 +107,7 @@ public interface Relation<A extends NodeTrait, B extends NodeTrait, S extends So
 	int getCascadingDeleteFlag();
 	int getAutocreationFlag();
 
-	void ensureCardinality(final SecurityContext securityContext, final NodeTrait sourceNode, final NodeTrait targetNode) throws FrameworkException;
-
-	boolean isHidden();
+	void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 
 	void setSourceProperty(final PropertyKey source);
 	void setTargetProperty(final PropertyKey target);
@@ -123,7 +115,7 @@ public interface Relation<A extends NodeTrait, B extends NodeTrait, S extends So
 	PropertyKey getSourceProperty();
 	PropertyKey getTargetProperty();
 
-	static final Map<Class, Relation> relationCache = new LinkedHashMap<>();
+	Map<Class, Relation> relationCache = new LinkedHashMap<>();
 
 	static Relation getInstance(final Class<? extends Relation> type) {
 

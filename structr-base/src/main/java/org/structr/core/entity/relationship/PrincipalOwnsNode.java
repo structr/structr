@@ -19,19 +19,20 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Principal;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 
 /**
  *
  *
  */
-public interface PrincipalOwnsNode extends OneToMany<Principal, NodeTrait>, Ownership {
+public class PrincipalOwnsNode extends OneToMany<PrincipalInterface, NodeInterface> {
 
-	/*
 	@Override
-	public Trait<Principal> getSourceType() {
-		return Principal.class;
+	public Class<PrincipalInterface> getSourceType() {
+		return PrincipalInterface.class;
 	}
 
 	@Override
@@ -40,14 +41,37 @@ public interface PrincipalOwnsNode extends OneToMany<Principal, NodeTrait>, Owne
 	}
 
 	@Override
-	public Trait<NodeTrait> getTargetType() {
-		return NodeTrait.class;
+	public Class<NodeInterface> getTargetType() {
+		return NodeInterface.class;
 	}
 
 	@Override
-	public boolean isInternal() {
-		return true;
+	public Property<String> getSourceIdProperty() {
+		return null;
 	}
 
-	 */
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
+	}
+
+	@Override
+	public void setSourceProperty(PropertyKey source) {
+
+	}
+
+	@Override
+	public void setTargetProperty(PropertyKey target) {
+
+	}
+
+	@Override
+	public PropertyKey getSourceProperty() {
+		return null;
+	}
+
+	@Override
+	public PropertyKey getTargetProperty() {
+		return null;
+	}
 }

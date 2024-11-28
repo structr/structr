@@ -18,51 +18,14 @@
  */
 package org.structr.core.traits;
 
-import org.structr.api.graph.Node;
-import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.*;
+import org.structr.core.graph.NodeInterface;
 
-import java.util.List;
-
-public interface NodeTrait extends GraphTrait {
-
-	Node getNode();
-
-	String getName();
-	String getType();
+public interface NodeTrait extends GraphObjectTrait {
 
 	boolean isDeleted();
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeDeletion(final SecurityContext securityContext) throws FrameworkException;
-
-	boolean isValid(final ErrorBuffer errorBuffer);
-
-	boolean hasRelationshipTo(final RelationshipType type, final NodeTrait targetNode);
-	<R extends RelationshipTrait> R getRelationshipTo(final RelationshipType type, final NodeTrait targetNode);
-
-	<R extends RelationshipTrait> Iterable<R> getRelationships();
-	<R extends RelationshipTrait> Iterable<R> getRelationshipsAsSuperUser();
-
-	<R extends RelationshipTrait> Iterable<R> getIncomingRelationships();
-	<R extends RelationshipTrait> Iterable<R> getOutgoingRelationships();
-
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, T extends Target> boolean hasRelationship(final Trait<? extends Relation<A, B, S, T>> type);
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Trait<R> type);
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Trait<R> type);
-
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Trait<R> type);
-
-	<A extends NodeTrait, B extends NodeTrait, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Trait<R> type);
-	<A extends NodeTrait, B extends NodeTrait, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Trait<R> type);
-	<A extends NodeTrait, B extends NodeTrait, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Trait<R> type);
-
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Trait<R> type);
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Trait<R> type);
-	<A extends NodeTrait, B extends NodeTrait, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Trait<R> type);
-
-	List<Security> getSecurityRelationships();
 }

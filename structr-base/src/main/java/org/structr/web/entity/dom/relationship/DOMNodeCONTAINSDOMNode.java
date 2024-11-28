@@ -18,87 +18,58 @@
  */
 package org.structr.web.entity.dom.relationship;
 
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.PropertyContainer;
-import org.structr.core.entity.ManyEndpoint;
-import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Relation;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.OneToManyTrait;
-import org.structr.core.traits.Trait;
 import org.structr.web.entity.dom.DOMNode;
 
-public interface DOMNodeCONTAINSDOMNode extends OneToMany<DOMNode, DOMNode> {
+public class DOMNodeCONTAINSDOMNode extends OneToMany<DOMNode, DOMNode> {
 
 	public static final Property<Integer> position  = new IntProperty("position");
 
-	class Impl extends OneToManyTrait<DOMNode, DOMNode> implements DOMNodeCONTAINSDOMNode {
+	@Override
+	public Class<DOMNode> getSourceType() {
+		return DOMNode.class;
+	}
 
-		public Impl(final PropertyContainer propertyContainer) {
-			super(propertyContainer);
-		}
+	@Override
+	public Class<DOMNode> getTargetType() {
+		return DOMNode.class;
+	}
 
-		@Override
-		public Trait<DOMNode> getSourceType() {
-			return Trait.of(DOMNode.class);
-		}
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
 
-		@Override
-		public Trait<DOMNode> getTargetType() {
-			return Trait.of(DOMNode.class);
-		}
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
+	}
 
-		@Override
-		public Trait<Relation<DOMNode, DOMNode, OneStartpoint<DOMNode>, ManyEndpoint<DOMNode>>> getTrait() {
-			return Trait.of(DOMNodeCONTAINSDOMNode.class);
-		}
+	@Override
+	public void setSourceProperty(PropertyKey source) {
 
-		@Override
-		public Direction getDirectionForType(final Trait<?> type) {
-			return null;
-		}
+	}
 
-		@Override
-		public Property<String> getSourceIdProperty() {
-			return null;
-		}
+	@Override
+	public void setTargetProperty(PropertyKey target) {
 
-		@Override
-		public Property<String> getTargetIdProperty() {
-			return null;
-		}
+	}
 
-		@Override
-		public void setSourceProperty(PropertyKey source) {
+	@Override
+	public PropertyKey getSourceProperty() {
+		return null;
+	}
 
-		}
+	@Override
+	public PropertyKey getTargetProperty() {
+		return null;
+	}
 
-		@Override
-		public void setTargetProperty(PropertyKey target) {
-
-		}
-
-		@Override
-		public PropertyKey getSourceProperty() {
-			return null;
-		}
-
-		@Override
-		public PropertyKey getTargetProperty() {
-			return null;
-		}
-
-		@Override
-		public String name() {
-			return "CONTAINS";
-		}
-
-		@Override
-		public String getName() {
-			return "";
-		}
+	@Override
+	public String name() {
+		return "CONTAINS";
 	}
 }

@@ -21,7 +21,6 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.traits.GraphTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -108,6 +107,6 @@ public abstract class Expression {
 		return -1;
 	}
 
-	public abstract Object evaluate(final ActionContext ctx, final GraphTrait entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
-	public abstract Object transform(final ActionContext ctx, final GraphTrait entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
+	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
+	public abstract Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
 }

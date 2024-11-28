@@ -18,40 +18,34 @@
  */
 package org.structr.core.graph;
 
+import org.apache.commons.lang.StringUtils;
+import org.structr.api.Transaction;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.AccessControllable;
-import org.structr.common.Permission;
-import org.structr.common.Permissions;
-import org.structr.common.SecurityContext;
+import org.structr.api.util.Iterables;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Trait;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public interface NodeInterface extends GraphObject, Comparable {
+public interface NodeInterface extends GraphObject<Node>, Comparable, AccessControllable {
 
 	// properties
 	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
 	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<Principal>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	public static final Property<String>              ownerId      = new EntityIdProperty<>("ownerId", owner).partOfBuiltInSchema();
+	public static final Property<PrincipalInterface>  owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	public static final Property<Iterable<PrincipalInterface>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
-	void init(final SecurityContext securityContext, final Node dbNode, final long sourceTransactionId);
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
@@ -63,24 +57,47 @@ public interface NodeInterface extends GraphObject, Comparable {
 
 	String getName();
 
+	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+
+	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationships();
+	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser();
+
+	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getIncomingRelationships();
+	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getOutgoingRelationships();
+
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type);
+
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<RelationshipInterface<A, B>> getRelationships(final Class<R> type);
+
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(final Class<R> type);
+
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<RelationshipInterface<A, B>> getOutgoingRelationships(final Class<R> type);
+
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
-	List<Security> getSecurityRelationships();
+	List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships();
 
-	public Map<String, Object> getTemporaryStorage();
+	Map<String, Object> getTemporaryStorage();
 
-	default public void visitForUsage(final Map<String, Object> data) {
+	default void visitForUsage(final Map<String, Object> data) {
 
 		data.put("id",   getUuid());
 		data.put("type", getClass().getSimpleName());
 	}
 
-	default void copyPermissionsTo(final SecurityContext ctx, final NodeTrait targetNode, final boolean overwrite) throws FrameworkException {
+	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final Security security : this.getIncomingRelationships(Security.class)) {
+		for (final RelationshipInterface<PrincipalInterface, NodeInterface> security : this.getIncomingRelationships(Security.class)) {
 
-			final Set<Permission> permissions = new HashSet();
-			final Principal principal         = security.getSourceNode();
+			final Set<Permission> permissions  = new HashSet();
+			final PrincipalInterface principal = security.getSourceNode();
 
 			for (final String perm : security.getPermissions()) {
 

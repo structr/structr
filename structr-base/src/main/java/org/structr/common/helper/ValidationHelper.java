@@ -28,12 +28,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphTrait;
-import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.RelationshipTrait;
-import org.structr.core.traits.Trait;
 
 import java.util.List;
 import java.util.Map;
@@ -62,7 +59,7 @@ public class ValidationHelper {
 	 *
 	 * @return true if the condition is valid
 	 */
-	public static boolean isValidStringMinLength(final GraphTrait node, final PropertyKey<String> key, final int minLength, final ErrorBuffer errorBuffer) {
+	public static boolean isValidStringMinLength(final GraphObject <?>node, final PropertyKey<String> key, final int minLength, final ErrorBuffer errorBuffer) {
 
 		String value = node.getProperty(key);
 		String type  = node.getType();
@@ -94,7 +91,7 @@ public class ValidationHelper {
 	 *
 	 * @return true if the condition is valid
 	 */
-	public static boolean isValidStringNotBlank(final GraphTrait node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
+	public static boolean isValidStringNotBlank(final GraphObject<?> node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
 
 		if (StringUtils.isNotBlank(node.getProperty(key))) {
 
@@ -116,7 +113,7 @@ public class ValidationHelper {
 	 *
 	 * @return true if the condition is valid
 	 */
-	public static boolean isValidPropertyNotNull(final GraphTrait node, final PropertyKey key, final ErrorBuffer errorBuffer) {
+	public static boolean isValidPropertyNotNull(final GraphObject node, final PropertyKey key, final ErrorBuffer errorBuffer) {
 
 		final String type  = node.getType();
 		if (key == null) {
@@ -157,7 +154,7 @@ public class ValidationHelper {
 	 * @param errorBuffer
 	 * @return true if string matches expression
 	 */
-	public static boolean isValidStringMatchingRegex(final GraphTrait node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
+	public static boolean isValidStringMatchingRegex(final GraphObject <?>node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
 
@@ -200,7 +197,7 @@ public class ValidationHelper {
 	 * @param errorBuffer
 	 * @return true if string matches expression
 	 */
-	public static boolean isValidUuid(final GraphTrait node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
+	public static boolean isValidUuid(final GraphObject <?>node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
 
@@ -213,7 +210,7 @@ public class ValidationHelper {
 		return false;
 	}
 
-	public static boolean isValidIntegerInRange(final GraphTrait node, final PropertyKey<Integer> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidIntegerInRange(final GraphObject <?>node, final PropertyKey<Integer> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -265,7 +262,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidIntegerArrayInRange(final GraphTrait node, final PropertyKey<Integer[]> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidIntegerArrayInRange(final GraphObject <?>node, final PropertyKey<Integer[]> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -320,7 +317,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidLongInRange(final GraphTrait node, final PropertyKey<Long> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidLongInRange(final GraphObject <?>node, final PropertyKey<Long> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -373,7 +370,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidLongArrayInRange(final GraphTrait node, final PropertyKey<Long[]> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidLongArrayInRange(final GraphObject <?>node, final PropertyKey<Long[]> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -429,7 +426,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidDoubleInRange(final GraphTrait node, final PropertyKey<Double> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidDoubleInRange(final GraphObject <?>node, final PropertyKey<Double> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -482,7 +479,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidDoubleArrayInRange(final GraphTrait node, final PropertyKey<Double[]> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidDoubleArrayInRange(final GraphObject <?>node, final PropertyKey<Double[]> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -538,7 +535,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static synchronized boolean isValidUniqueProperty(final GraphTrait object, final PropertyKey key, final ErrorBuffer errorBuffer) {
+	public static synchronized boolean isValidUniqueProperty(final GraphObject object, final PropertyKey key, final ErrorBuffer errorBuffer) {
 
 		if (key != null) {
 
@@ -549,7 +546,7 @@ public class ValidationHelper {
 				List<GraphObject> result = null;
 
 				// use declaring class for inheritance-aware uniqueness
-				Trait<?> type = key.getDeclaringTrait();
+				Class type = key.getDeclaringClass();
 				if (type == null || (AbstractNode.name.equals(key) && NodeInterface.class.equals(type))) {
 
 					// fallback: object type
@@ -617,31 +614,37 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static synchronized boolean areValidCompoundUniqueProperties(final GraphTrait object, final ErrorBuffer errorBuffer, final PropertyKey... keys) {
+	public static synchronized boolean areValidCompoundUniqueProperties(final GraphObject object, final ErrorBuffer errorBuffer, final PropertyKey... keys) {
 
 		if (keys != null && keys.length > 0) {
 
 			final PropertyMap properties = new PropertyMap();
-			List<GraphTrait> result      = null;
-			Trait<?> trait               = null;
+			List<GraphObject> result     = null;
+			Class type                   = null;
 
 			for (final PropertyKey key : keys) {
 
 				properties.put(key, object.getProperty(key));
 
-				if (trait == null) {
+				if (type != null) {
 
 					// set type on first iteration
-					trait = key.getDeclaringTrait();
+					type = key.getDeclaringClass();
 				}
+			}
+
+			if (type == null) {
+
+				// fallback: object type
+				type = object.getClass();
 			}
 
 			try {
 
-				if (object instanceof NodeTrait) {
+				if (object instanceof NodeInterface) {
 
 					result = StructrApp.getInstance()
-							.nodeQuery(trait)
+							.nodeQuery(type)
 							.and(properties)
 							.sort(GraphObject.createdDate)
 							.getAsList();
@@ -649,7 +652,7 @@ public class ValidationHelper {
 				} else {
 
 					result = StructrApp.getInstance()
-							.relationshipQuery(trait)
+							.relationshipQuery(type)
 							.and(properties)
 							.sort(GraphObject.createdDate)
 							.getAsList();
@@ -675,9 +678,9 @@ public class ValidationHelper {
 
 				final Identity identity = object.getPropertyContainer().getId();
 
-				for (final GraphTrait foundNode : result) {
+				for (final GraphObject foundNode : result) {
 
-					if (!identity.equals(foundNode.getId())) {
+					if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
 						// validation is aborted when the first validation failure occurs, so
 						// we can assume that the object currently examined is the first
@@ -696,27 +699,27 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static synchronized boolean isValidGloballyUniqueProperty(final GraphTrait object, final PropertyKey key, final ErrorBuffer errorBuffer) {
+	public static synchronized boolean isValidGloballyUniqueProperty(final GraphObject object, final PropertyKey key, final ErrorBuffer errorBuffer) {
 
 		if (key != null) {
 
-			final Object value                = object.getProperty(key);
-			List<? extends GraphTrait> result = null;
+			final Object value                 = object.getProperty(key);
+			List<? extends GraphObject> result = null;
 
 			try {
 
-				if (object instanceof NodeTrait) {
+				if (object instanceof NodeInterface) {
 
 					result = StructrApp.getInstance()
-							.nodeQuery(Trait.of(NodeTrait.class))
+							.nodeQuery(NodeInterface.class)
 							.and(key, value)
 							.sort(GraphObject.createdDate)
 							.getAsList();
 
-				} else if (object instanceof RelationshipTrait) {
+				} else if (object instanceof RelationshipInterface) {
 
 					result = StructrApp.getInstance()
-							.relationshipQuery(Trait.of(RelationshipTrait.class))
+							.relationshipQuery(RelationshipInterface.class)
 							.and(key, value)
 							.sort(GraphObject.createdDate)
 							.getAsList();
@@ -738,7 +741,7 @@ public class ValidationHelper {
 
 				final Identity identity = object.getPropertyContainer().getId();
 
-				for (final GraphTrait foundNode : result) {
+				for (final GraphObject foundNode : result) {
 
 					if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
