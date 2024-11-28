@@ -26,9 +26,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
 
-public interface GraphObjectTrait extends PropertyContainerTrait {
+public interface GraphObjectTrait {
 
-	boolean isGranted(final GraphObject graphObject, final Permission permission, final SecurityContext securityContext, final boolean isCreation);
 	boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer);
 
 	void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
@@ -41,4 +40,6 @@ public interface GraphObjectTrait extends PropertyContainerTrait {
 	void securityModified(final GraphObject obj, final SecurityContext securityContext);
 	void locationModified(final GraphObject obj, final SecurityContext securityContext);
 	void propagatedModification(final GraphObject obj, final SecurityContext securityContext);
+
+	void indexPassiveProperties(final GraphObject obj);
 }

@@ -18,52 +18,70 @@
  */
 package org.structr.core.entity;
 
-import com.sun.xml.bind.v2.TODO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.Permission;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.*;
-import org.structr.common.helper.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.FunctionProperty;
+import org.structr.core.function.UserChangelogFunction;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.AccessControllableTrait;
+import org.structr.core.traits.GraphObjectTrait;
+import org.structr.core.traits.PropertyContainerTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract base class for all node entities in Structr.
  */
-public abstract class AbstractGraphObject<T extends PropertyContainer> implements GraphObject<T> {
+public abstract class AbstractGraphObject<T extends PropertyContainer> implements GraphObject {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractGraphObject.class);
 
-	protected Map<String, Object> tmpStorageContainer  = null;
-	protected boolean readOnlyPropertiesUnlocked       = false;
-	protected boolean internalSystemPropertiesUnlocked = false;
-	protected long sourceTransactionId                 = -1;
-	protected String cachedUuid                        = null;
-	protected SecurityContext securityContext          = null;
-	protected Traits traits                            = null;
-	protected Identity id                              = null;
+	protected Map<String, Object> tmpStorageContainer         = null;
+	protected boolean readOnlyPropertiesUnlocked              = false;
+	protected boolean internalSystemPropertiesUnlocked        = false;
+	protected long sourceTransactionId                        = -1;
+	protected String cachedUuid                               = null;
+	protected SecurityContext securityContext                 = null;
+	protected AccessControllableTrait accessControllableTrait = null;
+	protected PropertyContainerTrait propertyContainerTrait   = null;
+	protected GraphObjectTrait graphObjectTrait               = null;
+	protected Traits traits                                   = null;
+	protected Identity id                                     = null;
 
 	@Override
-	public final void init(final SecurityContext securityContext, final T propertyContainer, final Class entityType, final long sourceTransactionId) {
+	public Traits getTraits() {
+		return traits;
+	}
+
+	@Override
+	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final Class entityType, final long sourceTransactionId) {
 
 		this.traits              = Traits.of(propertyContainer.getType());
 		this.sourceTransactionId = sourceTransactionId;
 		this.securityContext     = securityContext;
 		this.id                  = propertyContainer.getId();
+
+		// preload traits for faster access
+		this.accessControllableTrait = this.traits.getAccessControllableTrait();
+		this.propertyContainerTrait  = this.traits.getPropertyContainerTrait();
+		this.graphObjectTrait        = this.traits.getGraphObjectTrait();
 	}
 
 	@Override
@@ -83,7 +101,6 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	public String toString() {
 		return getUuid();
-
 	}
 
 	/**
@@ -96,6 +113,77 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final void unlockReadOnlyPropertiesOnce() {
 		this.readOnlyPropertiesUnlocked = true;
+	}
+
+	@Override
+	public final void lockReadOnlyProperties() {
+		this.readOnlyPropertiesUnlocked = false;
+
+	}
+
+	@Override
+	public final boolean isGranted(final Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return accessControllableTrait.isGranted(this, permission, securityContext, isCreation);
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return graphObjectTrait.isValid(this, errorBuffer);
+	}
+
+	@Override
+	public void indexPassiveProperties() {
+		graphObjectTrait.indexPassiveProperties(this);
+	}
+
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		graphObjectTrait.onCreation(this, securityContext, errorBuffer);
+	}
+
+	@Override
+	public final void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		graphObjectTrait.onModification(this, securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public final void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+		graphObjectTrait.onDeletion(this, securityContext, errorBuffer, properties);
+	}
+
+	@Override
+	public final void afterCreation(final SecurityContext securityContext) throws FrameworkException {
+		graphObjectTrait.afterCreation(this, securityContext);
+	}
+
+	@Override
+	public final void afterModification(final SecurityContext securityContext) throws FrameworkException {
+		graphObjectTrait.afterModification(this, securityContext);
+	}
+
+	@Override
+	public final void afterDeletion(final SecurityContext securityContext, final PropertyMap properties) {
+		graphObjectTrait.afterDeletion(this, securityContext, properties);
+	}
+
+	@Override
+	public final void ownerModified(final SecurityContext securityContext) {
+		graphObjectTrait.ownerModified(this, securityContext);
+	}
+
+	@Override
+	public final void securityModified(final SecurityContext securityContext) {
+		graphObjectTrait.securityModified(this, securityContext);
+	}
+
+	@Override
+	public final void locationModified(final SecurityContext securityContext) {
+		graphObjectTrait.locationModified(this, securityContext);
+	}
+
+	@Override
+	public final void propagatedModification(final SecurityContext securityContext) {
+		graphObjectTrait.propagatedModification(this, securityContext);
 	}
 
 	/**
@@ -112,8 +200,23 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
+	public final void lockSystemProperties() {
+		this.internalSystemPropertiesUnlocked = true;
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return readOnlyPropertiesUnlocked;
+	}
+
+	@Override
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
-		traits.removeProperty(key);
+		propertyContainerTrait.removeProperty(this, key);
+	}
+
+	@Override
+	public boolean systemPropertiesUnlocked() {
+		return internalSystemPropertiesUnlocked;
 	}
 
 	/**
@@ -153,7 +256,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final Set<PropertyKey> getPropertyKeys(final String propertyView) {
-		return traits.getPropertyKeys(this, propertyView);
+		return propertyContainerTrait.getPropertyKeys(this, propertyView);
 	}
 
 	/**
@@ -166,32 +269,42 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key) {
-		return traits.getProperty(this, key, null);
+		return propertyContainerTrait.getProperty(this, key, null);
 	}
 
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
-		return traits.getProperty(this, key, predicate);
+		return propertyContainerTrait.getProperty(this, key, predicate);
 	}
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
-		return traits.setProperty(this, key, value);
+		return propertyContainerTrait.setProperty(this, key, value);
 	}
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
-		return traits.setProperty(this, key, value, isCreation);
+		return propertyContainerTrait.setProperty(this, key, value, isCreation);
 	}
 
 	@Override
 	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-		traits.setProperties(this, securityContext, properties);
+		propertyContainerTrait.setProperties(this, securityContext, properties);
 	}
 
 	@Override
 	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-		traits.setProperties(this, securityContext, properties, isCreation);
+		propertyContainerTrait.setProperties(this, securityContext, properties, isCreation);
+	}
+
+	@Override
+	public final boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public final boolean isRelationship() {
+		return false;
 	}
 
 	@Override
@@ -211,5 +324,30 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 		}
 
 		return result;
+	}
+
+	@Override
+	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public List<GraphObject> getSyncData() throws FrameworkException {
+		return List.of();
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return false;
 	}
 }

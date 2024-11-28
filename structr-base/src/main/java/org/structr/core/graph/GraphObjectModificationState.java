@@ -33,7 +33,6 @@ import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
-import org.structr.core.traits.Traits;
 
 import java.util.*;
 
@@ -62,7 +61,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private StringBuilder changeLog                           = null;
 	private Map<String, StringBuilder> userChangeLogs         = null;
 	private RelationshipType relType                          = null;
-	private Traits traits                                     = null;
 	private boolean isNode                                    = false;
 	private boolean modified                                  = false;
 	private GraphObject<?> object                             = null;
@@ -91,10 +89,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 		in, out
 	}
 
-	public GraphObjectModificationState(final GraphObject object) {
+	public GraphObjectModificationState(GraphObject object) {
 
 		this.object = object;
-		this.traits = object.getTraits();
 		this.isNode = (object instanceof NodeInterface);
 
 		if (!isNode) {
@@ -232,7 +229,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if (status != statusBefore) {
 
 			// copy all properties on deletion
-			for (final PropertyKey key : traits.getPropertySet(PropertyView.Public)) {
+			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
 				removedProperties.put(key, object.getProperty(key));
 			}
 
@@ -276,7 +273,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 6: // created, modified => only creation callback will be called
 				counter.onCreate();
-				traits.onCreation(object, securityContext, errorBuffer);
+				object.onCreation(securityContext, errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
@@ -284,22 +281,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 4: // created => creation callback
 				counter.onCreate();
-				traits.onCreation(object, securityContext, errorBuffer);
+				object.onCreation(securityContext, errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
 				counter.onDelete();
-				traits.onDeletion(object, securityContext, errorBuffer, removedProperties);
+				object.onDeletion(securityContext, errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
 				counter.onSave();
-				traits.onModification(object, securityContext, errorBuffer, modificationQueue);
+				object.onModification(securityContext, errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback
 				counter.onDelete();
-				traits.onDeletion(object, securityContext, errorBuffer, removedProperties);
+				object.onDeletion(securityContext, errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback
@@ -339,7 +336,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				long t0 = System.currentTimeMillis();
 
 				if (doValidation) {
-					valid &= traits.isValid(object, errorBuffer);
+					valid &= object.isValid(errorBuffer);
 				}
 
 				long t1 = System.currentTimeMillis();
@@ -394,7 +391,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case  6: // created, modified => only creation callback will be called
 				counter.afterCreate();
-				traits.afterCreation(object, securityContext);
+				object.afterCreation(securityContext);
 				break;
 
 			case  5: // created, deleted => no callback
@@ -402,22 +399,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case  4: // created => creation callback
 				counter.afterCreate();
-				traits.afterCreation(object, securityContext);
+				object.afterCreation(securityContext);
 				break;
 
 			case  3: // modified, deleted => deletion callback
 				counter.afterDelete();
-				traits.afterDeletion(object, securityContext, removedProperties);
+				object.afterDeletion(securityContext, removedProperties);
 				break;
 
 			case  2: // modified => modification callback
 				counter.afterSave();
-				traits.afterModification(object, securityContext);
+				object.afterModification(securityContext);
 				break;
 
 			case  1: // deleted => deletion callback
 				counter.afterDelete();
-				traits.afterDeletion(object, securityContext, removedProperties);
+				object.afterDeletion(securityContext, removedProperties);
 				break;
 
 			case  0: // no action, no callback

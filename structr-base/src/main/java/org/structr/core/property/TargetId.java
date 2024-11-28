@@ -94,7 +94,7 @@ public class TargetId extends Property<String> {
 
 		} else if (obj instanceof CreationContainer) {
 
-			((CreationContainer)obj).setProperty(jsonName, value);
+			((CreationContainer)obj).setProperty(this, value);
 		}
 
 		return null;
