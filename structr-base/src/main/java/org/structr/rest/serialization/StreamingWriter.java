@@ -61,7 +61,7 @@ import java.util.concurrent.Future;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(GraphObject.id, AbstractNode.type, AbstractNode.name));
+	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(GraphObject.id, AbstractNode.typeHandler, AbstractNode.name));
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();

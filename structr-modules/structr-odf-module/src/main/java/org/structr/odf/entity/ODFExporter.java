@@ -107,7 +107,7 @@ public abstract class ODFExporter extends AbstractNode {
 				output.setParent(template.getParent());
 
 				output.unlockSystemPropertiesOnce();
-				output.setProperty(AbstractNode.type, File.class.getSimpleName());
+				output.setProperty(AbstractNode.typeHandler, File.class.getSimpleName());
 
 				setResultDocument(output);
 			}

@@ -74,7 +74,9 @@ public interface GraphObject {
 
 	String getType();
 	String getUuid();
+
 	void init(final SecurityContext securityContext, final PropertyContainer dbObject, final Class type, final long sourceTransactionId);
+
 	void setSecurityContext(final SecurityContext securityContext);
 	SecurityContext getSecurityContext();
 

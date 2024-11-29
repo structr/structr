@@ -1917,7 +1917,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			} else {
 
 				// fallback: iterate over id, type, name
-				List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(visitor::visit);
+				List.of(AbstractNode.id, AbstractNode.typeHandler, AbstractNode.name).stream().forEach(visitor::visit);
 			}
 		}
 	}

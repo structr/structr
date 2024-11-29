@@ -309,7 +309,7 @@ public class PropertyMap {
 
 		if (source != null) {
 
-			Object typeName = source.get(AbstractNode.type.jsonName());
+			Object typeName = source.get(AbstractNode.typeHandler.jsonName());
 			if (typeName != null) {
 
 				Class<? extends GraphObject> type = SchemaHelper.getEntityClassForRawType(typeName.toString());

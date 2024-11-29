@@ -103,7 +103,7 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 		} else {
 
 			// default properties
-			List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(key -> {
+			List.of(AbstractNode.id, AbstractNode.typeHandler, AbstractNode.name).stream().forEach(key -> {
 
 				properties.put(key.jsonName(), key.describeOpenAPIOutputType(typeName, viewName, level));
 			});

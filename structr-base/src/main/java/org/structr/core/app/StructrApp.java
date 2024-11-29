@@ -107,7 +107,7 @@ public class StructrApp implements App {
 			if (actualType == null) {
 
 				// overwrite type information when creating a node (adhere to type specified by resource!)
-				properties.put(AbstractNode.type, type.getSimpleName());
+				properties.put(AbstractNode.typeHandler, type.getSimpleName());
 
 			} else if (actualType.isInterface() || Modifier.isAbstract(actualType.getModifiers())) {
 
@@ -120,7 +120,7 @@ public class StructrApp implements App {
 		}
 
 		// set type
-		properties.put(AbstractNode.type, finalType);
+		properties.put(AbstractNode.typeHandler, finalType);
 
 		return command.execute(properties);
 	}
@@ -132,7 +132,7 @@ public class StructrApp implements App {
 		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
 
 		// add type information when creating a node
-		attrs.add(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
+		attrs.add(new NodeAttribute(AbstractNode.typeHandler, type.getSimpleName()));
 
 		return command.execute(attrs);
 	}

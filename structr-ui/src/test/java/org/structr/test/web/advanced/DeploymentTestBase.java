@@ -230,7 +230,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	protected void hash(final NodeInterface node, final StringBuilder buf) {
 
 		// AbstractNode
-		buf.append(valueOrEmpty(node, AbstractNode.type));
+		buf.append(valueOrEmpty(node, AbstractNode.typeHandler));
 		buf.append(valueOrEmpty(node, AbstractNode.name));
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToPublicUsers));
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));

@@ -236,7 +236,7 @@ public class StructrTest {
 
 	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
 
-		props.put(AbstractNode.type, type.getSimpleName());
+		props.put(AbstractNode.typeHandler, type.getSimpleName());
 
 		try (final Tx tx = app.tx()) {
 

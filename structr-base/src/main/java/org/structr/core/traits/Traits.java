@@ -18,9 +18,9 @@
  */
 package org.structr.core.traits;
 
-import org.structr.common.error.ErrorBuffer;
-import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.operations.ComposableOperation;
+import org.structr.core.traits.operations.OverwritableOperation;
 
 import java.util.*;
 
@@ -29,9 +29,10 @@ import java.util.*;
  */
 public class Traits {
 
-	private static final Map<String, Traits> typeToTraitsMap = new TreeMap<>();
+	private final Map<Class, Hierarchy> overwritableMethods  = new LinkedHashMap<>();
+	private final Map<Class, Set> composableMethods          = new LinkedHashMap<>();
+	private final Map<String, PropertyKey> propertyKeys      = new LinkedHashMap<>();
 
-	private final Map<String, Trait> traits = new LinkedHashMap<>();
 	private final boolean isNodeType;
 	private final String typeName;
 
@@ -85,37 +86,43 @@ public class Traits {
 		return set;
 	}
 
-	public void addTrait(final AbstractTraitImplementation impl) {
-
+	public <T> Set<T> getMethods(final Class<T> type) {
+		return composableMethods.get(type);
 	}
 
-	// ----- trait handlers -----
-	public GraphObjectTrait getGraphObjectTrait() {
-		return new GraphObjectTraitHandler(this);
+	public <T> Hierarchy<T> getMethod(final Class<T> type) {
+		return overwritableMethods.get(type);
 	}
 
-	public PropertyContainerTrait getPropertyContainerTrait() {
-		return new PropertyContainerTraitHandler(this);
-	}
+	public void registerImplementation(final Trait trait) {
 
-	public AccessControllableTrait getAccessControllableTrait() {
-		return new AccessControllableTraitHandler(this);
-	}
+		// composable methods (like callbacks etc.)
+		for (final ComposableOperation operation : trait.getComposableOperations()) {
 
-	public NodeInterfaceTrait getNodeInterfaceTrait() {
-		return new NodeInterfaceTraitHandler(this);
-	}
+			final Class type = operation.getClass();
 
-	public PrincipalTrait getPrincipalTrait() {
-		return new PrincipalTraitHandler(this);
+			composableMethods.computeIfAbsent(type, k -> new LinkedHashSet()).add(operation);
+		}
+
+		// overwritable methods
+		for (final OverwritableOperation operation : trait.getOverwritableOperations()) {
+
+			final Class type          = operation.getClass();
+			final Hierarchy hierarchy = overwritableMethods.computeIfAbsent(type, k -> new Hierarchy());
+
+			hierarchy.add(operation);
+		}
+
+		// properties
+		for (final PropertyKey key : trait.getPropertyKeys()) {
+
+			propertyKeys.put(key.jsonName(), key);
+		}
 	}
 
 	// ----- static methods -----
 	public static Traits of(final String name) {
-		return typeToTraitsMap.get(name);
-	}
-
-	public static void registerImplementation(final Trait trait) {
-
+		//return typeToTraitsMap.get(name);
+		return null;
 	}
 }

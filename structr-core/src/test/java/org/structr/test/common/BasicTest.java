@@ -177,7 +177,7 @@ public class BasicTest extends StructrTest {
 			NodeInterface node      = null;
 			String uuid             = null;
 
-			props.put(AbstractNode.type, type);
+			props.put(AbstractNode.typeHandler, type);
 			props.put(AbstractNode.name, name);
 
 			try (final Tx tx = app.tx()) {
@@ -1329,7 +1329,7 @@ public class BasicTest extends StructrTest {
 
 			NodeInterface node      = null;
 
-			props.put(AbstractNode.type, type);
+			props.put(AbstractNode.typeHandler, type);
 			props.put(AbstractNode.name, name);
 
 			try (final Tx tx = app.tx()) {
@@ -1341,7 +1341,7 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Check defaults
-				assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
+				assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.typeHandler));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
 				assertTrue(!node.getProperty(AbstractNode.hidden));
 				assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
@@ -1443,7 +1443,7 @@ public class BasicTest extends StructrTest {
 
 			NodeInterface node      = null;
 
-			props.put(AbstractNode.type, type);
+			props.put(AbstractNode.typeHandler, type);
 			props.put(AbstractNode.name, name);
 
 			try (final Tx tx = app.tx()) {
@@ -1455,7 +1455,7 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Check defaults
-				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.type));
+				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.typeHandler));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
 				assertTrue(node.getProperty(key));
 			}

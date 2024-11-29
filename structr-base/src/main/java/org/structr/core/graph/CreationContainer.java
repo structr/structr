@@ -72,13 +72,13 @@ public class CreationContainer<T extends Comparable> implements GraphObject {
 	public void init(SecurityContext securityContext, PropertyContainer dbObject, Class type, long sourceTransactionId) {
 	}
 
-	@Override
 	public Traits getTraits() {
 		return wrappedObj.getTraits();
 	}
 
 	@Override
 	public String getType() {
+
 		if (wrappedObj == null) {
 			return null;
 		} else {
@@ -102,8 +102,13 @@ public class CreationContainer<T extends Comparable> implements GraphObject {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView) {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
+		return wrappedObj.getPropertyKeys(propertyView);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertySet(final String propertyView) {
+		return wrappedObj.getPropertySet(propertyView);
 	}
 
 	@Override

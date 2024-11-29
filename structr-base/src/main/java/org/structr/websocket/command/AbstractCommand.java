@@ -302,7 +302,7 @@ public abstract class AbstractCommand {
 			if (doc == null) {
 
 				final PropertyMap properties = new PropertyMap();
-				properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
+				properties.put(AbstractNode.typeHandler, ShadowDocument.class.getSimpleName());
 				properties.put(AbstractNode.name, "__ShadowDocument__");
 				properties.put(AbstractNode.hidden, true);
 				properties.put(AbstractNode.visibleToAuthenticatedUsers, true);

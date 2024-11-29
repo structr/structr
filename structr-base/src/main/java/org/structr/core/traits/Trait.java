@@ -19,6 +19,8 @@
 package org.structr.core.traits;
 
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.operations.ComposableOperation;
+import org.structr.core.traits.operations.OverwritableOperation;
 
 import java.util.Set;
 
@@ -32,4 +34,8 @@ public interface Trait {
 	PropertyKey key(final String name);
 
 	Set<PropertyKey> getPropertyKeys(final String view);
+
+	Set<ComposableOperation> getComposableOperations();
+	Set<OverwritableOperation> getOverwritableOperations();
+	Set<PropertyKey> getPropertyKeys();
 }

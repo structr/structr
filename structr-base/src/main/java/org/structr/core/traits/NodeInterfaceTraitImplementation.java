@@ -30,12 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 
-public class NodeInterfaceTraitImplementation extends AbstractTraitImplementation implements NodeInterfaceTrait {
-
-
-	public NodeInterfaceTraitImplementation(final Traits traits) {
-		super(traits);
-	}
+public class NodeInterfaceTraitImplementation extends AbstractTraitImplementation {
 
 	@Override
 	public void onNodeCreation(final NodeInterface node, final SecurityContext securityContext) throws FrameworkException {

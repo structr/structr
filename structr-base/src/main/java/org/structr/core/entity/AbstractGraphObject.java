@@ -28,23 +28,22 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.function.UserChangelogFunction;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.AccessControllableTrait;
-import org.structr.core.traits.GraphObjectTrait;
-import org.structr.core.traits.PropertyContainerTrait;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
+import org.structr.core.traits.operations.graphobject.*;
+import org.structr.core.traits.operations.nodeinterface.IsGranted;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -59,29 +58,21 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	protected long sourceTransactionId                        = -1;
 	protected String cachedUuid                               = null;
 	protected SecurityContext securityContext                 = null;
-	protected AccessControllableTrait accessControllableTrait = null;
-	protected PropertyContainerTrait propertyContainerTrait   = null;
-	protected GraphObjectTrait graphObjectTrait               = null;
-	protected Traits traits                                   = null;
+	protected Traits typeHandler                              = null;
 	protected Identity id                                     = null;
 
 	@Override
 	public Traits getTraits() {
-		return traits;
+		return typeHandler;
 	}
 
 	@Override
 	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final Class entityType, final long sourceTransactionId) {
 
-		this.traits              = Traits.of(propertyContainer.getType());
+		this.typeHandler         = Traits.of(propertyContainer.getType());
 		this.sourceTransactionId = sourceTransactionId;
 		this.securityContext     = securityContext;
 		this.id                  = propertyContainer.getId();
-
-		// preload traits for faster access
-		this.accessControllableTrait = this.traits.getAccessControllableTrait();
-		this.propertyContainerTrait  = this.traits.getPropertyContainerTrait();
-		this.graphObjectTrait        = this.traits.getGraphObjectTrait();
 	}
 
 	@Override
@@ -124,74 +115,116 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final boolean isGranted(final Permission permission, SecurityContext securityContext, boolean isCreation) {
 
-		if (isNode()) {
+		final Hierarchy<IsGranted> isGranted = typeHandler.getMethod(IsGranted.class);
+		if (isGranted != null) {
 
-			// FIXME: maybe this can be solved in a better way..
-			return accessControllableTrait.isGranted((NodeInterface)this, permission, securityContext, isCreation);
+			final IsGranted first = isGranted.get();
+
+			return first.isGranted(null, this, permission, securityContext, isCreation);
 		}
 
-		// relationships are always visible (?)
 		return true;
 	}
 
 	@Override
 	public final boolean isValid(final ErrorBuffer errorBuffer) {
-		return graphObjectTrait.isValid(this, errorBuffer);
+
+		boolean andValue = true;
+
+		for (final IsValid isValid : typeHandler.getMethods(IsValid.class)) {
+
+			andValue &= isValid.isValid(this, errorBuffer);
+		}
+
+		return andValue;
 	}
 
 	@Override
 	public void indexPassiveProperties() {
-		graphObjectTrait.indexPassiveProperties(this);
+
+		for (final IndexPassiveProperties callback : typeHandler.getMethods(IndexPassiveProperties.class)) {
+			callback.indexPassiveProperties(this);
+		}
 	}
 
 	@Override
 	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		graphObjectTrait.onCreation(this, securityContext, errorBuffer);
+
+		for (final OnCreation callback : typeHandler.getMethods(OnCreation.class)) {
+			callback.onCreation(this, securityContext, errorBuffer);
+		}
 	}
 
 	@Override
 	public final void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		graphObjectTrait.onModification(this, securityContext, errorBuffer, modificationQueue);
+
+		for (final OnModification callback : typeHandler.getMethods(OnModification.class)) {
+			callback.onModification(this, securityContext, errorBuffer, modificationQueue);
+		}
 	}
 
 	@Override
 	public final void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
-		graphObjectTrait.onDeletion(this, securityContext, errorBuffer, properties);
+
+		for (final OnDeletion callback : typeHandler.getMethods(OnDeletion.class)) {
+			callback.onDeletion(this, securityContext, errorBuffer, properties);
+		}
 	}
 
 	@Override
 	public final void afterCreation(final SecurityContext securityContext) throws FrameworkException {
-		graphObjectTrait.afterCreation(this, securityContext);
+
+		for (final AfterCreation callback : typeHandler.getMethods(AfterCreation.class)) {
+			callback.afterCreation(this, securityContext);
+		}
 	}
 
 	@Override
 	public final void afterModification(final SecurityContext securityContext) throws FrameworkException {
-		graphObjectTrait.afterModification(this, securityContext);
+
+		for (final AfterModification callback : typeHandler.getMethods(AfterModification.class)) {
+			callback.afterModification(this, securityContext);
+		}
 	}
 
 	@Override
 	public final void afterDeletion(final SecurityContext securityContext, final PropertyMap properties) {
-		graphObjectTrait.afterDeletion(this, securityContext, properties);
+
+		for (final AfterDeletion callback : typeHandler.getMethods(AfterDeletion.class)) {
+			callback.afterDeletion(this, securityContext, properties);
+		}
 	}
 
 	@Override
 	public final void ownerModified(final SecurityContext securityContext) {
-		graphObjectTrait.ownerModified(this, securityContext);
+
+		for (final OwnerModified callback : typeHandler.getMethods(OwnerModified.class)) {
+			callback.ownerModified(this, securityContext);
+		}
 	}
 
 	@Override
 	public final void securityModified(final SecurityContext securityContext) {
-		graphObjectTrait.securityModified(this, securityContext);
+
+		for (final SecurityModified callback : typeHandler.getMethods(SecurityModified.class)) {
+			callback.securityModified(this, securityContext);
+		}
 	}
 
 	@Override
 	public final void locationModified(final SecurityContext securityContext) {
-		graphObjectTrait.locationModified(this, securityContext);
+
+		for (final LocationModified callback : typeHandler.getMethods(LocationModified.class)) {
+			callback.locationModified(this, securityContext);
+		}
 	}
 
 	@Override
 	public final void propagatedModification(final SecurityContext securityContext) {
-		graphObjectTrait.propagatedModification(this, securityContext);
+
+		for (final PropagatedModification callback : typeHandler.getMethods(PropagatedModification.class)) {
+			callback.propagatedModification(this, securityContext);
+		}
 	}
 
 	/**
@@ -218,11 +251,6 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public final void removeProperty(final PropertyKey key) throws FrameworkException {
-		propertyContainerTrait.removeProperty(this, key);
-	}
-
-	@Override
 	public boolean systemPropertiesUnlocked() {
 		return internalSystemPropertiesUnlocked;
 	}
@@ -233,7 +261,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 * @return whether this node is visible to public users
 	 */
 	public final boolean getVisibleToPublicUsers() {
-		return getProperty(traits.key("visibleToPublicUsers"));
+		return getProperty(typeHandler.key("visibleToPublicUsers"));
 	}
 
 	/**
@@ -242,7 +270,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 * @return whether this node is visible to authenticated users
 	 */
 	public final boolean getVisibleToAuthenticatedUsers() {
-		return getProperty(traits.key("visibleToPublicUsers"));
+		return getProperty(typeHandler.key("visibleToPublicUsers"));
 	}
 
 	/**
@@ -251,7 +279,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 * @return whether this node is hidden
 	 */
 	public final boolean getHidden() {
-		return getProperty(traits.key("hidden"));
+		return getProperty(typeHandler.key("hidden"));
 	}
 
 	/**
@@ -277,6 +305,8 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key) {
+
+		// fixme: how to implement the inheritance hierarchy?
 		return propertyContainerTrait.getProperty(this, key, null);
 	}
 
@@ -286,18 +316,8 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public final <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
-		return propertyContainerTrait.setProperty(this, key, value);
-	}
-
-	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 		return propertyContainerTrait.setProperty(this, key, value, isCreation);
-	}
-
-	@Override
-	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-		propertyContainerTrait.setProperties(this, securityContext, properties);
 	}
 
 	@Override
@@ -306,13 +326,18 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
+	public final void removeProperty(final PropertyKey key) throws FrameworkException {
+		propertyContainerTrait.removeProperty(this, key);
+	}
+
+	@Override
 	public final boolean isNode() {
-		return false;
+		return typeHandler.isNodeType();
 	}
 
 	@Override
 	public final boolean isRelationship() {
-		return false;
+		return !typeHandler.isNodeType();
 	}
 
 	@Override
@@ -358,4 +383,18 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public boolean changelogEnabled() {
 		return false;
 	}
+
+	// ----- protected methods -----
+	protected <S, T, F extends BiFunction<S, T, Boolean>> boolean evaluateWithAnd(final S subject, final T argument, final Set<F> functions) {
+
+		boolean andValue = true;
+
+		for (final F consumer : functions) {
+
+			andValue &= consumer.apply(subject, argument);
+		}
+
+		return andValue;
+	}
+
 }

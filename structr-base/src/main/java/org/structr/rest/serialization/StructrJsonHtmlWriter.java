@@ -250,7 +250,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 			} else if (currentObject instanceof AbstractRelationship) {
 
-				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.typeHandler) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 
 			} else {
 

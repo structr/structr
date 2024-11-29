@@ -95,7 +95,7 @@ public class FileHelper {
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
-			existingFile.setProperties(securityContext, new PropertyMap(AbstractNode.type, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName()));
+			existingFile.setProperties(securityContext, new PropertyMap(AbstractNode.typeHandler, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName()));
 
 			existingFile = getFileByUuid(securityContext, uuid);
 
@@ -509,7 +509,7 @@ public class FileHelper {
 
 					// modify type when image type is detected AND the type is "File"
 					if (contentType.startsWith("image/") && Boolean.FALSE.equals(Image.class.isAssignableFrom(file.getClass())) && File.class.getSimpleName().equals(file.getClass().getSimpleName())) {
-						map.put(AbstractNode.type, Image.class.getSimpleName());
+						map.put(AbstractNode.typeHandler, Image.class.getSimpleName());
 					}
 				}
 

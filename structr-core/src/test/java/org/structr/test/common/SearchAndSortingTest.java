@@ -1223,7 +1223,7 @@ public class SearchAndSortingTest extends StructrTest {
 			final PropertyKey lat   = TestSeven.latitude;
 			final PropertyKey lon   = TestSeven.longitude;
 
-			props.put(AbstractNode.type, type.getSimpleName());
+			props.put(AbstractNode.typeHandler, type.getSimpleName());
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
 			props.put(AbstractNode.name, "TestSeven-0");

@@ -55,7 +55,6 @@ import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,7 +83,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		final PropertyMap props = new PropertyMap();
 
-		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
+		props.put(AbstractNode.typeHandler, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(StructrApp.key(Image.class, "isThumbnail"), markAsThumbnail);
 		props.put(AbstractNode.name, name);
 
@@ -113,7 +112,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		final PropertyMap props = new PropertyMap();
 
-		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
+		props.put(AbstractNode.typeHandler, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(StructrApp.key(Image.class, "isThumbnail"), markAsThumbnail);
 		props.put(AbstractNode.name, name);
 

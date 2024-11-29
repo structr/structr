@@ -79,7 +79,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 			// convertFromInput
 			PropertyMap properties = new PropertyMap();
 
-			properties.put(AbstractNode.type, Widget.class.getSimpleName());
+			properties.put(AbstractNode.typeHandler, Widget.class.getSimpleName());
 			properties.put(AbstractNode.name, name);
 			properties.put(StructrApp.key(Widget.class, "source"), source);
 

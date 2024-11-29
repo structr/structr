@@ -64,7 +64,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 		super.init(securityContext, propertyContainer, entityType, sourceTransactionId);
 
-		this.nodeInterfaceTrait = traits.getNodeInterfaceTrait();
+		this.nodeInterfaceTrait = typeHandler.getNodeInterfaceTrait();
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 	@Override
 	public void onNodeInstantiation(final boolean isCreation) {
-		this.cachedUuid = getProperty(traits.key("id"));
+		this.cachedUuid = getProperty(typeHandler.key("id"));
 		nodeInterfaceTrait.onNodeInstantiation(this, isCreation);
 	}
 
@@ -416,7 +416,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 			default:
 
 				// evaluate object value or return default
-				final PropertyKey propertyKey = traits.key(key);
+				final PropertyKey propertyKey = typeHandler.key(key);
 				if (propertyKey != null) {
 
 					hints.reportExistingKey(key);
@@ -428,7 +428,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 					}
 				}
 
-				final AbstractMethod method = Methods.resolveMethod(traits, key);
+				final AbstractMethod method = Methods.resolveMethod(typeHandler, key);
 				if (method != null) {
 
 					final ContextStore contextStore = actionContext.getContextStore();

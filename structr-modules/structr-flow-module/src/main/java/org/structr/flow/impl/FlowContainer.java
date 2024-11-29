@@ -68,7 +68,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	public static final View defaultView       = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration);
 	public static final View uiView            = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration, apiSpecification);
-	public static final View effectiveNameView = new View(FlowContainer.class, "effectiveNameView", type, id, effectiveName);
+	public static final View effectiveNameView = new View(FlowContainer.class, "effectiveNameView", typeHandler, id, effectiveName);
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 

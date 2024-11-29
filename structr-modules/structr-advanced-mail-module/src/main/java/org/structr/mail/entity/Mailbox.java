@@ -51,7 +51,7 @@ public class Mailbox extends AbstractNode {
 	public static final Property<Object> availableFoldersOnServerProperty = new FunctionProperty("availableFoldersOnServer").readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
 
 	public static final View defaultView = new View(Mailbox.class, PropertyView.Public,
-		id, type, name
+		id, typeHandler, name
 	);
 
 	public static final View uiView      = new View(Mailbox.class, PropertyView.Ui,

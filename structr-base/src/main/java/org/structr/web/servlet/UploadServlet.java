@@ -335,7 +335,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
 								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+								changedProperties.put(AbstractNode.typeHandler, type);
 
 								newFile.unlockSystemPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);

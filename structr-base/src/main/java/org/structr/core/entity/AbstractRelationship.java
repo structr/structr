@@ -68,11 +68,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
 
 	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
-		id, type, relType, sourceId, targetId
+		id, typeHandler, relType, sourceId, targetId
 	);
 
 	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
-		id, type, relType, sourceId, targetId
+		id, typeHandler, relType, sourceId, targetId
 	);
 
 	public boolean internalSystemPropertiesUnlocked = false;

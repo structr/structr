@@ -76,7 +76,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
 				// Treat only "our" nodes
-				if (node.getProperty(GraphObject.id) != null && node.getProperty(AbstractNode.type).equals(type)) {
+				if (node.getProperty(GraphObject.id) != null && node.getProperty(AbstractNode.typeHandler).equals(type)) {
 
 					for (Entry entry : properties.entrySet()) {
 
