@@ -46,7 +46,7 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 	}
 
 	@Override
-	public void onNodeDeletion(final NodeInterface node, SecurityContext securityContext) throws FrameworkException {
+	public void onNodeDeletion(final NodeInterface node, final SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final NodeInterface node, final Class<? extends Relation<A, B, S, T>> type) {
-		return this.getRelationships(type).iterator().hasNext();
+		return getRelationships(node, type).iterator().hasNext();
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 		final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
 		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
 	}
 
 	@Override
@@ -167,7 +167,7 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 		final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(securityContext);
 		final R template                                                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getSource().getRawSource(suContext, getNode(), predicate), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(suContext, node.getNode(), predicate), factory);
 	}
 
 	@Override

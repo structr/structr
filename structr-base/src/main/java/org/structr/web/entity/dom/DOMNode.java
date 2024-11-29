@@ -555,7 +555,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public Page getOwnerDocumentAsSuperUser() {
 
-		final RelationshipInterface ownership = this.getOutgoingRelationshipAsSuperUser(StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodePAGEPage"));
+		final RelationshipInterface ownership = this.getOutgoingRelationshipAsSuperUser(StructrApp.getConfiguration().getRelationshipEntityClass(DOMNodePAGEPage.class));
 		if (ownership != null) {
 
 			return (Page)ownership.getTargetNode();

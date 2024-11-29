@@ -53,10 +53,8 @@ import java.util.*;
  */
 public abstract class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
 
-	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                     = new FixedSizeCache<>("Relationship template cache", 1000);
-	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
 	/*
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
@@ -296,193 +294,6 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 		return getOwnerNode().getUuid();
 	}
 
-	/**
-	 * Determines whether propagation of permissions is allowed along the given relationship.
-	 *
-	 * CAUTION: this is a complex situation.
-	 *
-	 * - we need to determine the EVALUATION DIRECTION, which can be either WITH or AGAINST the RELATIONSHIP DIRECTION
-	 * - if we are looking at the START NODE of the relationship, we are evaluating WITH the relationship direction
-	 * - if we are looking at the END NODE of the relationship, we are evaluating AGAINST the relationship direction
-	 * - the result obtained by the above check must be compared to the PROPAGATION DIRECTION which can be either
-	 *   SOURCE_TO_TARGET or TARGET_TO_SOURCE
-	 * - a propagation direction of SOURCE_TO_TARGET implies that the permissions of the SOURCE NODE can be applied
-	 *   to the TARGET NODE, so if we are evaluating AGAINST the relationship direction, we are good to go
-	 * - a propagation direction of TARGET_TO_SOURCE implies that the permissions of that TARGET NODE can be applied
-	 *   to the SOURCE NODE, so if we are evaluating WITH the relationship direction, we are good to go
-	 *
-	 * @param thisNode
-	 * @param rel
-	 * @param propagationDirection
-	 *
-	 * @return whether permission resolution can continue along this relationship
-	 */
-	private boolean propagationAllowed(final AbstractNode thisNode, final RelationshipInterface rel, final PropagationDirection propagationDirection, final boolean doLog) {
-
-		// early exit
-		if (propagationDirection.equals(PropagationDirection.Both)) {
-			return true;
-		}
-
-		// early exit
-		if (propagationDirection.equals(PropagationDirection.None)) {
-			return false;
-		}
-
-		final String sourceNodeId = rel.getSourceNode().getUuid();
-		final String thisNodeId   = thisNode.getUuid();
-
-		if (sourceNodeId.equals(thisNodeId)) {
-
-			// evaluation WITH the relationship direction
-			switch (propagationDirection) {
-
-				case Out:
-					return false;
-
-				case In:
-					return true;
-			}
-
-		} else {
-
-			// evaluation AGAINST the relationship direction
-			switch (propagationDirection) {
-
-				case Out:
-					return true;
-
-				case In:
-					return false;
-			}
-		}
-
-		return false;
-	}
-
-	private void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
-
-		switch (rel.getReadPropagation()) {
-			case Add:
-			case Keep:
-				mask.addRead();
-				break;
-
-			case Remove:
-				mask.removeRead();
-				break;
-
-			default: break;
-		}
-
-		switch (rel.getWritePropagation()) {
-			case Add:
-			case Keep:
-				mask.addWrite();
-				break;
-
-			case Remove:
-				mask.removeWrite();
-				break;
-
-			default: break;
-		}
-
-		switch (rel.getDeletePropagation()) {
-			case Add:
-			case Keep:
-				mask.addDelete();
-				break;
-
-			case Remove:
-				mask.removeDelete();
-				break;
-
-			default: break;
-		}
-
-		switch (rel.getAccessControlPropagation()) {
-			case Add:
-			case Keep:
-				mask.addAccessControl();
-				break;
-
-			case Remove:
-				mask.removeAccessControl();
-				break;
-
-			default: break;
-		}
-
-		// handle delta properties
-		mask.handleProperties(rel.getDeltaProperties());
-	}
-
-	private Boolean getPermissionResolutionResult(final String principalId, final Permission permission) {
-
-		Map<String, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(getUuid());
-		if (permissionResolutionCache == null) {
-
-			permissionResolutionCache = new HashMap<>();
-			globalPermissionResolutionCache.put(getUuid(), permissionResolutionCache);
-		}
-
-		PermissionResolutionResult result = permissionResolutionCache.get(principalId);
-		if (result != null) {
-
-			if (permission.equals(Permission.read)) {
-				return result.read;
-			}
-
-			if (permission.equals(Permission.write)) {
-				return result.write;
-			}
-
-			if (permission.equals(Permission.delete)) {
-				return result.delete;
-			}
-
-			if (permission.equals(Permission.accessControl)) {
-				return result.accessControl;
-			}
-		}
-
-		return null;
-	}
-
-	private void storePermissionResolutionResult(final String principalId, final Permission permission, final boolean value) {
-
-		Map<String, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(getUuid());
-		if (permissionResolutionCache == null) {
-
-			permissionResolutionCache = new HashMap<>();
-			globalPermissionResolutionCache.put(getUuid(), permissionResolutionCache);
-		}
-
-		PermissionResolutionResult result = permissionResolutionCache.get(principalId);
-		if (result == null) {
-
-			result = new PermissionResolutionResult();
-			permissionResolutionCache.put(principalId, result);
-		}
-
-		if (permission.equals(Permission.read) && (result.read == null || result.read == false)) {
-			result.read = value;
-		}
-
-		if (permission.equals(Permission.write) && (result.write == null || result.write == false)) {
-			result.write = value;
-		}
-
-		if (permission.equals(Permission.delete) && (result.delete == null || result.delete == false)) {
-			result.delete = value;
-		}
-
-		if (permission.equals(Permission.accessControl) && (result.accessControl == null || result.accessControl == false)) {
-			result.accessControl = value;
-		}
-	}
-
 	@Override
 	public final RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface p) {
 		return accessControllableTrait.getSecurityRelationship(this, p);
@@ -532,7 +343,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
-		return getProperty(visibleToAuthenticatedUsers);
+		return getVisibleToAuthenticatedUsers();
 	}
 
 	@Override
@@ -652,47 +463,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 	@Override
 	public final void grant(final Set<Permission> permissions, final PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-
-		if (!isGranted(Permission.accessControl, ctx)) {
-			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("grant", permissions, principal, ctx));
-		}
-
-		clearCaches();
-
-		RelationshipInterface<PrincipalInterface, NodeInterface> secRel = getSecurityRelationship(principal);
-		if (secRel == null) {
-
-			try {
-
-				Set<String> permissionSet = new HashSet<>();
-
-				for (Permission permission : permissions) {
-
-					permissionSet.add(permission.name());
-				}
-
-				// ensureCardinality is not neccessary here
-				final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-				final PropertyMap properties           = new PropertyMap();
-				superUserContext.disablePreventDuplicateRelationships();
-
-				// performance improvement for grant(): add properties to the CREATE call that would
-				// otherwise be set in separate calls later in the transaction.
-				properties.put(Security.principalId,                    principal.getUuid());
-				properties.put(Security.accessControllableId,           getUuid());
-				properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
-
-				StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
-
-			} catch (FrameworkException ex) {
-
-				logger.error("Could not create security relationship!", ex);
-			}
-
-		} else {
-
-			secRel.addPermissions(permissions);
-		}
+		accessControllableTrait.grant(this, permissions, principal, ctx);
 	}
 
 	@Override
@@ -729,49 +500,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 	@Override
 	public final void setAllowed(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-
-		if (!isGranted(Permission.accessControl, ctx)) {
-			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("set", permissions, principal, ctx));
-		}
-
-		clearCaches();
-
-		final Set<String> permissionSet = new HashSet<>();
-
-		for (Permission permission : permissions) {
-
-			permissionSet.add(permission.name());
-		}
-
-		RelationshipInterface<PrincipalInterface, NodeInterface> secRel = getSecurityRelationship(principal);
-		if (secRel == null) {
-
-			if (!permissions.isEmpty()) {
-
-				try {
-
-					// ensureCardinality is not necessary here
-					final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-					final PropertyMap properties           = new PropertyMap();
-					superUserContext.disablePreventDuplicateRelationships();
-
-					// performance improvement for grant(): add properties to the CREATE call that would
-					// otherwise be set in separate calls later in the transaction.
-					properties.put(Security.principalId,                    principal.getUuid());
-					properties.put(Security.accessControllableId,           getUuid());
-					properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
-
-					StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
-
-				} catch (FrameworkException ex) {
-
-					logger.error("Could not create security relationship!", ex);
-				}
-			}
-
-		} else {
-			secRel.setAllowed(permissionSet);
-		}
+		accessControllableTrait.setAllowed(this, permissions, principal, ctx);
 	}
 
 	@Override
@@ -811,10 +540,6 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 	}
 
 	protected boolean isGenericNode() {
-		return false;
-	}
-
-	protected boolean allowedBySchema(final PrincipalInterface principal, final Permission permission) {
 		return false;
 	}
 }

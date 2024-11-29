@@ -78,6 +78,19 @@ public class Traits {
 		return isNodeType;
 	}
 
+	public Set<PropertyKey> getPropertySet(final String propertyView) {
+
+		final Set<PropertyKey> set = new LinkedHashSet<>();
+
+		for (final Trait trait : traits.values()) {
+
+			set.addAll(trait.getProperties(propertyView));
+		}
+
+		return set;
+	}
+
+	// ----- trait handlers -----
 	public GraphObjectTrait getGraphObjectTrait() {
 		return new GraphObjectTraitHandler(this);
 	}
@@ -87,11 +100,11 @@ public class Traits {
 	}
 
 	public AccessControllableTrait getAccessControllableTrait() {
-		return null;
+		return new AccessControllableTraitHandler(this);
 	}
 
 	public NodeInterfaceTrait getNodeInterfaceTrait() {
-		return null;
+		return new NodeInterfaceTraitHandler(this);
 	}
 
 	// ----- static methods -----
