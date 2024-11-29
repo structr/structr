@@ -85,7 +85,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			final PropertyMap properties     = new PropertyMap(attributes);
 			final PropertyMap toNotify       = new PropertyMap();
-			final Object typeObject          = properties.get(AbstractNode.type);
+			final Object typeObject          = properties.get(AbstractNode.typeHandler);
 			final Class nodeType             = getTypeOrGeneric(typeObject);
 			final String typeName            = nodeType.getSimpleName();
 			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
@@ -130,7 +130,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 			// prevent double setting of properties
 			properties.remove(AbstractNode.id);
-			properties.remove(AbstractNode.type);
+			properties.remove(AbstractNode.typeHandler);
 			properties.remove(AbstractNode.visibleToPublicUsers);
 			properties.remove(AbstractNode.visibleToAuthenticatedUsers);
 			properties.remove(AbstractNode.hidden);

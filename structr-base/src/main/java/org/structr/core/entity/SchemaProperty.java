@@ -89,19 +89,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	));
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		id, type, name, dbName, schemaNode, schemaViews, excludedViews, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
+		id, typeHandler, name, dbName, schemaNode, schemaViews, excludedViews, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		id, type, name, dbName, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaNode, schemaViews, excludedViews, propertyType, contentType, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
+		id, typeHandler, name, dbName, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaNode, schemaViews, excludedViews, propertyType, contentType, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, excludedViews, schemaViews, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
+		id, typeHandler, name, dbName, schemaNode, excludedViews, schemaViews, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, excludedViews, dbName, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
+		id, typeHandler, name, schemaNode, schemaViews, excludedViews, dbName, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;

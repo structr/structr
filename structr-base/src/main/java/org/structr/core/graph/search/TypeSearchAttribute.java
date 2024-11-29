@@ -44,7 +44,7 @@ public class TypeSearchAttribute<S extends GraphObjectTrait> extends PropertySea
 
 	public TypeSearchAttribute(final Trait<S> type, final Occurrence occur, final boolean isExactMatch) {
 
-		super(AbstractNode.type, null, occur, isExactMatch);
+		super(AbstractNode.typeHandler, null, occur, isExactMatch);
 
 		if (Relation.class.isAssignableFrom(type)) {
 

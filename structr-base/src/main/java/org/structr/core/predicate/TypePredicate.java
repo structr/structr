@@ -42,9 +42,9 @@ public class TypePredicate implements Predicate<Node> {
 	@Override
 	public boolean accept(Node node) {
 
-		if(node.hasProperty(AbstractNode.type.dbName())) {
+		if(node.hasProperty(AbstractNode.typeHandler.dbName())) {
 
-			String value = (String)node.getProperty(AbstractNode.type.dbName());
+			String value = (String)node.getProperty(AbstractNode.typeHandler.dbName());
 
 			logger.debug("Type property: {}, expected {}", new Object[] { value, type } );
 

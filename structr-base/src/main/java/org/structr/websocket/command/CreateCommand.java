@@ -30,7 +30,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -60,7 +59,7 @@ public class CreateCommand extends AbstractCommand {
 		try {
 
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData());
-			Class type                   = SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
+			Class type                   = SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.typeHandler));
 			final NodeInterface newNode  = app.create(type, properties);
 
 			TransactionCommand.registerNodeCallback(newNode, callback);

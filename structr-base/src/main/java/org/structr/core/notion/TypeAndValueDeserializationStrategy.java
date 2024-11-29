@@ -154,7 +154,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 			PropertyMap attributes = new PropertyMap();
 
 			attributes.put(propertyKey,       convertedSource);
-			attributes.put(AbstractNode.type, type.getSimpleName());
+			attributes.put(AbstractNode.typeHandler, type.getSimpleName());
 
 			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
 		}

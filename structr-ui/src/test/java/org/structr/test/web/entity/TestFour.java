@@ -32,6 +32,6 @@ public class TestFour extends AbstractNode {
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FourThreeOneToOne.class);
 
 	public static final View testView = new View(TestFour.class, "testView",
-		id, type, name, oneToOneTestThree, owner
+		id, typeHandler, name, oneToOneTestThree, owner
 	);
 }

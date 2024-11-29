@@ -44,7 +44,7 @@ public class CsvTestTwo extends AbstractNode {
 
 
 	public static final View protectedView = new View(CsvTestOne.class, "csv",
-		name, index, type, stringArrayProperty
+		name, index, typeHandler, stringArrayProperty
 	);
 
 	@Override

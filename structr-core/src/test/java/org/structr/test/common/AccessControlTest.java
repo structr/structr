@@ -47,7 +47,6 @@ import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.List;
-import org.structr.api.config.Settings;
 
 import static org.testng.AssertJUnit.*;
 
@@ -728,7 +727,7 @@ public class AccessControlTest extends StructrTest {
 			assertNotNull("Group should be readable for members", test);
 
 			testId = test.getProperty(AbstractNode.id);
-			testType = test.getProperty(AbstractNode.type);
+			testType = test.getProperty(AbstractNode.typeHandler);
 
 			test.setProperty(TestOne.name, "newname");
 
@@ -1143,7 +1142,7 @@ public class AccessControlTest extends StructrTest {
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
 
 			testId = testGroup.getProperty(AbstractNode.id);
-			testType = testGroup.getProperty(AbstractNode.type);
+			testType = testGroup.getProperty(AbstractNode.typeHandler);
 
 			testGroup.setProperty(Group.name, "dontchangeme");
 

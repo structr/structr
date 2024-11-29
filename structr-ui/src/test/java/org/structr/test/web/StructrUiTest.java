@@ -250,7 +250,7 @@ public abstract class StructrUiTest {
 
 		final PropertyMap props = new PropertyMap();
 
-		props.put(AbstractNode.type, type.getSimpleName());
+		props.put(AbstractNode.typeHandler, type.getSimpleName());
 
 		for (final NodeAttribute attr : attrs) {
 			props.put(attr.getKey(), attr.getValue());
@@ -262,7 +262,7 @@ public abstract class StructrUiTest {
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.type, type.getSimpleName());
+		props.put(AbstractNode.typeHandler, type.getSimpleName());
 
 		List<T> nodes = new LinkedList<>();
 

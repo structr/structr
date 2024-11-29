@@ -81,18 +81,14 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 	}
 
 	@Override
-	public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey) {
-		return getProperty(graphObject, propertyKey, null);
-	}
-
-	@Override
 	public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter) {
-		return null;
-	}
 
-	@Override
-	public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {
-		return null;
+		// early null check, this should not happen...
+		if (propertyKey == null || propertyKey.dbName() == null) {
+			return null;
+		}
+
+		return propertyKey.getProperty(graphObject.getSecurityContext(), graphObject, true, filter);
 	}
 
 	@Override
@@ -136,11 +132,6 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 		}
 
 		return null;
-	}
-
-	@Override
-	public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-		setProperties(graphObject, securityContext, properties, false);
 	}
 
 	@Override

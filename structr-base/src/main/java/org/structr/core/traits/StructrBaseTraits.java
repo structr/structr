@@ -2,26 +2,39 @@ package org.structr.core.traits;
 
 public class StructrBaseTraits {
 
+	private static final GraphObjectTraitImplementation graphObjectTraitImplementation = new GraphObjectTraitImplementation();
+	private static final NodeInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
+	//private static final RelationshipInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
+
 	static {
 
-		StructrBaseTraits.registerGraphObjectTraits();
-		StructrBaseTraits.registerPrincipalTraits();
+		StructrBaseTraits.registerPrincipal();
 	}
 
-	private static void registerGraphObjectTraits() {
-
-		Traits.registerImplementation(new GraphObjectTraitImplementation());
-
-		final Traits traits = new Traits("GraphObject", false);
-
-	}
-
-	private static void registerPrincipalTraits() {
+	private static void registerPrincipal() {
 
 		final Traits traits = new Traits("Principal", true);
 
-		traits.addTrait(new GraphObjectTraitImplementation(traits));
+		// Principal consists of the following traits
+		traits.registerImplementation(graphObjectTraitImplementation);
+		traits.registerImplementation(nodeInterfaceTraitImplementation);
+	}
 
+	private static void registerDynamicNodeType(final String typeName) {
 
+		final Traits traits = new Traits(typeName, true);
+
+		// Node types consist of at least the following traits
+		traits.registerImplementation(graphObjectTraitImplementation);
+		traits.registerImplementation(nodeInterfaceTraitImplementation);
+	}
+
+	private static void registerDynamicRelationshipType(final String typeName) {
+
+		final Traits traits = new Traits(typeName, false);
+
+		// Node types consist of at least the following traits
+		traits.registerImplementation(graphObjectTraitImplementation);
+		//traits.registerImplementation(relationshipInterfaceTraitImplementation);
 	}
 }

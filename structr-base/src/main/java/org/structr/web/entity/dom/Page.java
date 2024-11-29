@@ -22,8 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -36,7 +34,6 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.SchemaService;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
@@ -51,8 +48,6 @@ import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -328,7 +323,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// set default values for properties on creation to avoid them
 		// being set separately when indexing later
 		properties.put(AbstractNode.name, name != null ? name : "page");
-		properties.put(AbstractNode.type, Page.class.getSimpleName());
+		properties.put(AbstractNode.typeHandler, Page.class.getSimpleName());
 		properties.put(contentTypeKey,     "text/html");
 		properties.put(enableBasicAuthKey, false);
 

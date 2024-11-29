@@ -32,15 +32,14 @@ import java.util.Set;
 public interface PropertyContainerTrait {
 
 	PropertyContainer getPropertyContainer(final GraphObject graphObject);
+
 	Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView);
 	Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView);
 
-	<V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey);
-	<V> V getProperty(final GraphObject graphObject, PropertyKey<V> propertyKey, final Predicate<GraphObject> filter);
+	<V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter);
 
-	<T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, T value) throws FrameworkException;
 	<T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
-	void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
+
 	void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
 
 	void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException;

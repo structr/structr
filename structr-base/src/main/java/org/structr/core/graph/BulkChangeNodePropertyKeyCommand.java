@@ -54,11 +54,11 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 		if (StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
 
-			if (properties.containsKey(AbstractNode.type.dbName())) {
+			if (properties.containsKey(AbstractNode.typeHandler.dbName())) {
 
-				type = (String) properties.get(AbstractNode.type.dbName());
+				type = (String) properties.get(AbstractNode.typeHandler.dbName());
 
-				properties.remove(AbstractNode.type.dbName());
+				properties.remove(AbstractNode.typeHandler.dbName());
 			}
 
 			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {

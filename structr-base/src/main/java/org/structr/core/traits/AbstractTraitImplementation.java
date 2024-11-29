@@ -25,11 +25,6 @@ import java.util.*;
 public abstract class AbstractTraitImplementation implements Trait {
 
 	protected final Map<String, PropertyKey> properties = new HashMap<>();
-	protected final Traits type;
-
-	protected AbstractTraitImplementation(final Traits type) {
-		this.type = type;
-	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String view) {

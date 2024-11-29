@@ -51,7 +51,7 @@ public class EMailMessage extends AbstractNode {
 	public static final Property<Date> sentDateProperty     = new DateProperty("sentDate").indexed();
 
 	public static final View defaultView = new View(EMailMessage.class, PropertyView.Public,
-		id, type, subjectProperty, fromProperty, fromMailProperty, toProperty, ccProperty, bccProperty, replyToProperty,
+		id, typeHandler, subjectProperty, fromProperty, fromMailProperty, toProperty, ccProperty, bccProperty, replyToProperty,
 		contentProperty, htmlContentProperty, folderProperty, headerProperty, messageIdProperty, inReplyToProperty,
 		receivedDateProperty, sentDateProperty
 	);

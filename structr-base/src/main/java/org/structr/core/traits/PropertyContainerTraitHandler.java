@@ -34,28 +34,13 @@ public class PropertyContainerTraitHandler implements PropertyContainerTrait {
 	}
 
 	@Override
-	public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey) {
-		return defaultHandler.getProperty(graphObject, propertyKey);
-	}
-
-	@Override
 	public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter) {
 		return defaultHandler.getProperty(graphObject, propertyKey, filter);
 	}
 
 	@Override
-	public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {
-		return defaultHandler.setProperty(graphObject, key, value);
-	}
-
-	@Override
 	public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 		return defaultHandler.setProperty(graphObject, key, value, isCreation);
-	}
-
-	@Override
-	public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-		defaultHandler.setProperties(graphObject, securityContext, properties);
 	}
 
 	@Override

@@ -60,7 +60,7 @@ public class SchemaView extends SchemaReloadingNode {
 	);
 
 	public static final View exportView = new View(SchemaView.class, "export",
-		id, type, name, schemaNode, nonGraphProperties, isBuiltinView, sortOrder
+		id, typeHandler, name, schemaNode, nonGraphProperties, isBuiltinView, sortOrder
 	);
 
 	@Override

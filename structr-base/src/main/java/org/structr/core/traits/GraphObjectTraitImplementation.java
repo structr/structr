@@ -22,26 +22,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
-import org.structr.api.graph.PropertyContainer;
-import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.*;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.TypeProperty;
+import org.structr.core.property.UuidProperty;
+import org.structr.core.traits.operations.ComposableOperation;
+import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
+import org.structr.core.traits.operations.graphobject.IsValid;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
-public final class GraphObjectTraitImplementation extends AbstractTraitImplementation implements GraphObjectTrait {
+public final class GraphObjectTraitImplementation extends AbstractTraitImplementation {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTrait.class);
 
 	private static final String SYSTEM_CATEGORY     = "System";
 	private static final String VISIBILITY_CATEGORY = "Visibility";
+
+	private static final PropertyKey<String> typeProperty = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	private static final PropertyKey<String> idProperty   = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	static {
 
@@ -59,88 +67,70 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 		 */
 	}
 
-	protected GraphObjectTraitImplementation(final Traits traits) {
 
-		super(traits);
+	@Override
+	public Set<ComposableOperation> getComposableOperations() {
 
-		registerProperty(new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY));
-		registerProperty(new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY));
+		return Set.of(
+			isValid()
+		);
 	}
 
 	@Override
-	public boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
+	public Set<OverwritableOperation> getOverwritableOperations() {
 
-		final SecurityContext securityContext = graphObject.getSecurityContext();
-		boolean valid = true;
-
-		// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
-		valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
-
-		if (securityContext != null && securityContext.uuidWasSetManually()) {
-			valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
-		}
-
-		valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
-		valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
-
-		return valid;
-
+		return Set.of(
+			indexPassiveProperties()
+		);
 	}
 
 	@Override
-	public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public Set<PropertyKey> getPropertyKeys() {
+
+		return Set.of(
+			idProperty,
+			typeProperty
+		);
 	}
 
-	@Override
-	public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-	}
+	// ----- private methods -----
+	private IsValid isValid() {
 
-	@Override
-	public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
-	}
+		return (graphObject, errorBuffer) -> {
 
-	@Override
-	public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
-	}
+			final SecurityContext securityContext = graphObject.getSecurityContext();
+			boolean valid = true;
 
-	@Override
-	public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
-	}
+			// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
+			valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
 
-	@Override
-	public void afterDeletion(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) {
-	}
-
-	@Override
-	public void ownerModified(final GraphObject graphObject, final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void securityModified(final GraphObject graphObject, final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void locationModified(final GraphObject graphObject, final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void propagatedModification(final GraphObject graphObject, final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void indexPassiveProperties(final GraphObject obj) {
-
-		final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
-
-		for (PropertyKey key : obj.getPropertyKeys(PropertyView.All)) {
-
-			if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
-
-				passiveIndexingKeys.add(key);
+			if (securityContext != null && securityContext.uuidWasSetManually()) {
+				valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
 			}
-		}
 
-		addToIndex(obj, passiveIndexingKeys);
+			valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
+			valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
+
+			return valid;
+		};
+	}
+
+	private IndexPassiveProperties indexPassiveProperties() {
+
+		return graphObject -> {
+
+			final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
+
+			for (PropertyKey key : graphObject.getPropertyKeys(PropertyView.All)) {
+
+				if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
+
+					passiveIndexingKeys.add(key);
+				}
+			}
+
+			addToIndex(graphObject, passiveIndexingKeys);
+		};
 	}
 
 	private void addToIndex(final GraphObject obj, final Set<PropertyKey> indexKeys) {

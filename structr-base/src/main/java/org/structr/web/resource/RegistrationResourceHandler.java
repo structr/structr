@@ -396,7 +396,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			user.unlockSystemPropertiesOnce();
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.type, User.class.getSimpleName());
+			changedProperties.put(AbstractNode.typeHandler, User.class.getSimpleName());
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 

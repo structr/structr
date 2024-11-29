@@ -82,19 +82,19 @@ public class SchemaNode extends AbstractSchemaNode {
 	private static final Set<PropertyKey> PropertiesThatDoNotRequireRebuild = new LinkedHashSet<>(Arrays.asList(tags, summary, description, includeInOpenAPI));
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		id, type, name, icon, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
+		id, typeHandler, name, icon, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		id, type, name, owner, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
+		id, typeHandler, name, owner, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, extendsClassInternal, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
+		id, typeHandler, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, extendsClassInternal, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
-		id, type, name, icon, description, changelogDisabled, extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
+		id, typeHandler, name, icon, description, changelogDisabled, extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
 
 	@Override

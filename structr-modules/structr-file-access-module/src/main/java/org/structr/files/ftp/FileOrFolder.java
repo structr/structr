@@ -103,7 +103,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			try {
 				Folder newFolder = (Folder) app.command(CreateNodeCommand.class).execute(
-					new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.typeHandler, Folder.class.getSimpleName()),
 					new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
 					new NodeAttribute(AbstractNode.name, getName())
 				);
@@ -144,7 +144,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 				try {
 					structrFile = FileHelper.createFile(securityContext, new byte[0], null, File.class, getName(), false);
-					structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
+					structrFile.setProperty(AbstractNode.typeHandler, File.class.getSimpleName());
 					structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
 
 					if (parentFolder != null) {

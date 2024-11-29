@@ -220,5 +220,7 @@ module structr.base {
     exports org.structr.websocket.message;
     exports org.structr.websocket.servlet;
 	exports org.structr.core.traits;
+	exports org.structr.core.traits.operations;
+	exports org.structr.core.traits.operations.graphobject;
 
 }

@@ -64,7 +64,7 @@ public class GeoHelper {
 		double longitude        = coords.getLongitude();
 		String type             = Location.class.getSimpleName();
 
-		props.put(AbstractNode.type,  type);
+		props.put(AbstractNode.typeHandler,  type);
 		props.put(StructrApp.key(Location.class, "latitude"),  latitude);
 		props.put(StructrApp.key(Location.class, "longitude"), longitude);
 
