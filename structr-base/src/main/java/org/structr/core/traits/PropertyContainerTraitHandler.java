@@ -24,6 +24,11 @@ public class PropertyContainerTraitHandler implements PropertyContainerTrait {
 	}
 
 	@Override
+	public Set<PropertyKey> getPropertySet(GraphObject graphObject, String propertyView) {
+		return defaultHandler.getPropertySet(graphObject, propertyView);
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
 		return defaultHandler.getPropertyKeys(graphObject, propertyView);
 	}

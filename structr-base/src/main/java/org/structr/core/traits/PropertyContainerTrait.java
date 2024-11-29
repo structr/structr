@@ -32,6 +32,7 @@ import java.util.Set;
 public interface PropertyContainerTrait {
 
 	PropertyContainer getPropertyContainer(final GraphObject graphObject);
+	Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView);
 	Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView);
 
 	<V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey);

@@ -42,6 +42,11 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 		return graphObject.getPropertyContainer();
 	}
 
+	@Override
+	public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
+		return traits.getPropertySet(propertyView);
+	}
+
 	/**
 	 * Returns the property set for the given view as an Iterable.
 	 *
@@ -54,13 +59,12 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 	public final Set<PropertyKey> getPropertyKeys(final GraphObject object,  final String propertyView) {
 
 		final SecurityContext securityContext = object.getSecurityContext();
-		final Traits traits                   = object.getTraits();
 
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
 
 			final String view                = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-			final Set<PropertyKey> keys      = new LinkedHashSet<>(traits.getPropertySet(view));
+			final Set<PropertyKey> keys      = new LinkedHashSet<>(object.getPropertySet(view));
 			final Set<String> customView     = securityContext.getCustomView();
 
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
@@ -74,7 +78,7 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 		}
 
 		// this is the default if no application/json; properties=[...] content-type header is present on the request
-		return traits.getPropertySet(propertyView);
+		return object.getPropertySet(propertyView);
 	}
 
 	@Override

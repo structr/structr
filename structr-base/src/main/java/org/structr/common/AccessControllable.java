@@ -50,7 +50,6 @@ public interface AccessControllable {
 	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
-
 	// visibility
 	public boolean isVisibleToPublicUsers();
 	public boolean isVisibleToAuthenticatedUsers();

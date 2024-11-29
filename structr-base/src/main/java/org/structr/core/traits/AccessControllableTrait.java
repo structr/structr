@@ -21,7 +21,6 @@ package org.structr.core.traits;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -41,26 +40,11 @@ public interface AccessControllableTrait {
 	PrincipalInterface getOwnerNode(final NodeInterface node);
 
 	boolean isGranted(final NodeInterface node, final Permission permission, final SecurityContext securityContext, final boolean isCreation);
+	boolean allowedBySchema(final NodeInterface node, final PrincipalInterface principal, Permission permission);
 
-	void grant(final NodeInterface node, final Permission permission, final PrincipalInterface principal) throws FrameworkException;
-	void grant(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 	void grant(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
-
-	void revoke(final NodeInterface node, final Permission permission, final PrincipalInterface principal) throws FrameworkException;
-	void revoke(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 	void revoke(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
-
-	void setAllowed(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 	void setAllowed(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
-
-	// visibility
-	boolean isVisibleToPublicUsers(final NodeInterface node);
-	boolean isVisibleToAuthenticatedUsers(final NodeInterface node);
-	boolean isHidden(final NodeInterface node);
-
-	// access
-	Date getCreatedDate(final NodeInterface node);
-	Date getLastModifiedDate(final NodeInterface node);
 
 	List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships(final NodeInterface node);
 	RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final NodeInterface node, final PrincipalInterface principal);

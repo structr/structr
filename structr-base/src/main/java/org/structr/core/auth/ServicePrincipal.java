@@ -18,27 +18,19 @@
  */
 package org.structr.core.auth;
 
-import org.structr.api.Predicate;
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
-import org.structr.core.graph.ModificationQueue;
+import org.structr.core.entity.Favoritable;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
@@ -227,6 +219,11 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
+	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(Class<R> type) {
+		return null;
+	}
+
+	@Override
 	public Principal getOwnerNode() {
 		return null;
 	}
@@ -234,43 +231,6 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext) {
 		return false;
-	}
-
-	@Override
-	public void grant(Permission permission, Principal principal) throws FrameworkException {
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-	}
-
-	@Override
-	public void revoke(Permission permission, Principal principal) throws FrameworkException {
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-	}
-
-	@Override
-	public void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
-	}
-
-	@Override
-	public void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-	}
-
-	@Override
-	public Security getSecurityRelationship(Principal principal) {
-		return null;
 	}
 
 	@Override
@@ -284,28 +244,13 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public boolean isNotHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public Date getCreatedDate() {
-		return null;
-	}
-
-	@Override
-	public Date getLastModifiedDate() {
-		return null;
-	}
-
-	@Override
 	public String getUuid() {
 		return (String)data.get("id");
+	}
+
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return null;
 	}
 
 	// ----- private methods -----
