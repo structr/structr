@@ -193,7 +193,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships() {
+	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships() {
 		return List.of();
 	}
 
@@ -328,7 +328,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public PrincipalInterface getOwnerNode() {
+	public Principal getOwnerNode() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -338,47 +338,47 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void grant(Permission permission, PrincipalInterface principal) throws FrameworkException {
+	public void grant(Permission permission, Principal principal) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
+	public void revoke(Permission permission, Principal principal) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException {
+	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {
+	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(PrincipalInterface principal) {
+	public RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(Principal principal) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

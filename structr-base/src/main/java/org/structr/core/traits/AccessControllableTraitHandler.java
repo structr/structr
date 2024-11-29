@@ -3,7 +3,7 @@ package org.structr.core.traits;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -22,7 +22,7 @@ public class AccessControllableTraitHandler extends AbstractTraitImplementation 
 	}
 
 	@Override
-	public PrincipalInterface getOwnerNode(NodeInterface node) {
+	public Principal getOwnerNode(NodeInterface node) {
 		return defaultImplementation.getOwnerNode(node);
 	}
 
@@ -32,32 +32,32 @@ public class AccessControllableTraitHandler extends AbstractTraitImplementation 
 	}
 
 	@Override
-	public boolean allowedBySchema(NodeInterface node, PrincipalInterface principal, Permission permission) {
+	public boolean allowedBySchema(NodeInterface node, Principal principal, Permission permission) {
 		return defaultImplementation.allowedBySchema(node, principal, permission);
 	}
 
 	@Override
-	public void grant(NodeInterface node, Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void grant(NodeInterface node, Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		defaultImplementation.grant(node, permissions, principal, ctx);
 	}
 
 	@Override
-	public void revoke(NodeInterface node, Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void revoke(NodeInterface node, Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		defaultImplementation.revoke(node, permissions, principal, ctx);
 	}
 
 	@Override
-	public void setAllowed(NodeInterface node, Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public void setAllowed(NodeInterface node, Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		defaultImplementation.setAllowed(node, permissions, principal, ctx);
 	}
 
 	@Override
-	public List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships(NodeInterface node) {
+	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships(NodeInterface node) {
 		return defaultImplementation.getSecurityRelationships(node);
 	}
 
 	@Override
-	public RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(NodeInterface node, PrincipalInterface principal) {
+	public RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(NodeInterface node, Principal principal) {
 		return defaultImplementation.getSecurityRelationship(node, principal);
 	}
 }

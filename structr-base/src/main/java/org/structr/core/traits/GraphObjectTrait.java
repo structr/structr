@@ -18,7 +18,6 @@
  */
 package org.structr.core.traits;
 
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;

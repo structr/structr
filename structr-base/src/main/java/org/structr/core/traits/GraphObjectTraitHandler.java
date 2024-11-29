@@ -1,6 +1,5 @@
 package org.structr.core.traits;
 
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -8,17 +7,16 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
 
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 public class GraphObjectTraitHandler implements GraphObjectTrait {
 
 	private final GraphObjectTrait defaultHandler;
 
 	public GraphObjectTraitHandler(final Traits traits) {
 		this.defaultHandler = new GraphObjectTraitImplementation(traits);
-	}
-
-	@Override
-	public boolean isGranted(final GraphObject graphObject, final Permission permission, final SecurityContext securityContext, final boolean isCreation) {
-		return defaultHandler.isGranted(graphObject, permission, securityContext, isCreation);
 	}
 
 	@Override

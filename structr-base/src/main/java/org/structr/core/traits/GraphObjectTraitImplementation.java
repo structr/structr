@@ -34,23 +34,14 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public final class GraphObjectTraitImplementation implements GraphObjectTrait {
+public final class GraphObjectTraitImplementation extends AbstractTraitImplementation implements GraphObjectTrait {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTrait.class);
 
 	private static final String SYSTEM_CATEGORY     = "System";
 	private static final String VISIBILITY_CATEGORY = "Visibility";
-
-	protected final PropertyKey<String> typeProperty;
-	protected final PropertyKey<String> idProperty;
-	protected SecurityContext securityContext;
-	protected PropertyContainer obj;
-	protected Traits traits;
 
 	static {
 
@@ -58,8 +49,7 @@ public final class GraphObjectTraitImplementation implements GraphObjectTrait {
 		final Trait trait = Trait.create(GraphObjectTrait.class, n -> new GraphTraitImpl(n) {});
 
 		trait.registerProperty(new StringProperty("base").partOfBuiltInSchema());
-		trait.registerProperty(new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY));
-		trait.registerProperty(new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY));
+		trait.registerProperty();
 		trait.registerProperty(new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
 		trait.registerProperty(new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
 		trait.registerProperty(new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
@@ -71,32 +61,16 @@ public final class GraphObjectTraitImplementation implements GraphObjectTrait {
 
 	protected GraphObjectTraitImplementation(final Traits traits) {
 
-		this.traits = traits;
+		super(traits);
 
-		typeProperty = traits.get("GraphTrait").key("type");
-		idProperty   = traits.get("GraphTrait").key("id");
-
-	}
-
-	protected Trait as(final String type) {
-
-		final Trait trait = Trait.of(type);
-		if (trait != null) {
-
-			return trait.getImplementation(obj);
-		}
-
-		// should throw exception here
-		return null;
-	}
-
-	protected <T> PropertyKey<T> key(final String name) {
-		return traits.key(name);
+		registerProperty(new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY));
+		registerProperty(new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY));
 	}
 
 	@Override
 	public boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
 
+		final SecurityContext securityContext = graphObject.getSecurityContext();
 		boolean valid = true;
 
 		// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live

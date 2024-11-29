@@ -31,7 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.TransactionCommand;
@@ -309,7 +309,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 			if (securityContext.modifyAccessTime()) {
 
-				final PrincipalInterface user = securityContext.getUser(false);
+				final Principal user = securityContext.getUser(false);
 				String modifiedById  = null;
 
 				if (user != null) {
@@ -317,7 +317,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					if (user instanceof SuperUser) {
 
 						// "virtual" UUID of superuser
-						modifiedById = PrincipalInterface.SUPERUSER_ID;
+						modifiedById = Principal.SUPERUSER_ID;
 
 					} else {
 

@@ -123,11 +123,19 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final boolean isGranted(final Permission permission, SecurityContext securityContext, boolean isCreation) {
-		return accessControllableTrait.isGranted(this, permission, securityContext, isCreation);
+
+		if (isNode()) {
+
+			// FIXME: maybe this can be solved in a better way..
+			return accessControllableTrait.isGranted((NodeInterface)this, permission, securityContext, isCreation);
+		}
+
+		// relationships are always visible (?)
+		return true;
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	public final boolean isValid(final ErrorBuffer errorBuffer) {
 		return graphObjectTrait.isValid(this, errorBuffer);
 	}
 

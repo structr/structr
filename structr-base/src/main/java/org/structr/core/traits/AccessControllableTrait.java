@@ -21,11 +21,10 @@ package org.structr.core.traits;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -37,15 +36,15 @@ import java.util.Set;
  */
 public interface AccessControllableTrait {
 
-	PrincipalInterface getOwnerNode(final NodeInterface node);
+	Principal getOwnerNode(final NodeInterface node);
 
 	boolean isGranted(final NodeInterface node, final Permission permission, final SecurityContext securityContext, final boolean isCreation);
-	boolean allowedBySchema(final NodeInterface node, final PrincipalInterface principal, Permission permission);
+	boolean allowedBySchema(final NodeInterface node, final Principal principal, Permission permission);
 
-	void grant(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
-	void revoke(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
-	void setAllowed(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
+	void grant(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	void revoke(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	void setAllowed(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
-	List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships(final NodeInterface node);
-	RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final NodeInterface node, final PrincipalInterface principal);
+	List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships(final NodeInterface node);
+	RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final NodeInterface node, final Principal principal);
 }

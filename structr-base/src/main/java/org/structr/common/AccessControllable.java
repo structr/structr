@@ -19,10 +19,7 @@
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.entity.Security;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.entity.Principal;
 
 import java.util.Date;
 import java.util.Set;
@@ -35,20 +32,20 @@ import java.util.Set;
  */
 public interface AccessControllable {
 
-	public PrincipalInterface getOwnerNode();
+	public Principal getOwnerNode();
 
 	public boolean isGranted(final Permission permission, final SecurityContext securityContext);
 
-	public void grant(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
-	public void grant(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
-	public void grant(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
+	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
-	public void revoke(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
-	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
-	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
+	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
+	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
 	// visibility
 	public boolean isVisibleToPublicUsers();

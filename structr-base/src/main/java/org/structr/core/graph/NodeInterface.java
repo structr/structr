@@ -29,8 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.property.*;
+import org.structr.core.property.PropertyKey;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,16 +38,17 @@ import java.util.Set;
 
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
+	/*
 	// properties
 	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
 	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<PrincipalInterface>  owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<Principal>  owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
 	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<Iterable<PrincipalInterface>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
-
+	*/
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
@@ -87,8 +87,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
-	List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships();
-	RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface principal);
+	List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships();
+	RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal principal);
 
 	Map<String, Object> getTemporaryStorage();
 
@@ -100,10 +100,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final RelationshipInterface<PrincipalInterface, NodeInterface> security : this.getIncomingRelationships(Security.class)) {
+		for (final RelationshipInterface<Principal, NodeInterface> security : this.getIncomingRelationships(Security.class)) {
 
 			final Set<Permission> permissions  = new HashSet();
-			final PrincipalInterface principal = security.getSourceNode();
+			final Principal principal = security.getSourceNode();
 
 			for (final String perm : security.getPermissions()) {
 

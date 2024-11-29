@@ -18,29 +18,20 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.api.util.Iterables;
 import org.structr.common.*;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.IterableAdapter;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.AccessControllableTrait;
 import org.structr.core.traits.NodeInterfaceTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -281,7 +272,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 	}
 
 	@Override
-	public final PrincipalInterface getOwnerNode() {
+	public final Principal getOwnerNode() {
 		return accessControllableTrait.getOwnerNode(this);
 	}
 
@@ -295,12 +286,12 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 	}
 
 	@Override
-	public final RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface p) {
+	public final RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal p) {
 		return accessControllableTrait.getSecurityRelationship(this, p);
 	}
 
 	@Override
-	public List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships() {
+	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships() {
 		return accessControllableTrait.getSecurityRelationships(this);
 	}
 
@@ -452,32 +443,32 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 	}
 
 	@Override
-	public final void grant(final Permission permission, final PrincipalInterface principal) throws FrameworkException {
+	public final void grant(final Permission permission, final Principal principal) throws FrameworkException {
 		grant(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void grant(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException {
+	public final void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException {
 		grant(permissions, principal, securityContext);
 	}
 
 	@Override
-	public final void grant(final Set<Permission> permissions, final PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public final void grant(final Set<Permission> permissions, final Principal principal, SecurityContext ctx) throws FrameworkException {
 		accessControllableTrait.grant(this, permissions, principal, ctx);
 	}
 
 	@Override
-	public final void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
+	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
 		revoke(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void revoke(final Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public final void revoke(final Set<Permission> permissions, Principal principal) throws FrameworkException {
 		revoke(permissions, principal, securityContext);
 	}
 
 	@Override
-	public final void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("revoke", permissions, principal, ctx));
@@ -485,7 +476,7 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 		clearCaches();
 
-		RelationshipInterface<PrincipalInterface, NodeInterface> secRel = getSecurityRelationship(principal);
+		RelationshipInterface<Principal, NodeInterface> secRel = getSecurityRelationship(principal);
 		if (secRel != null) {
 
 			secRel.removePermissions(permissions);
@@ -494,12 +485,12 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 
 	@Override
-	public final void setAllowed(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
+	public final void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
 		setAllowed(permissions, principal, securityContext);
 	}
 
 	@Override
-	public final void setAllowed(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
+	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
 		accessControllableTrait.setAllowed(this, permissions, principal, ctx);
 	}
 

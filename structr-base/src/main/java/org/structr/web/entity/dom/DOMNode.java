@@ -1252,7 +1252,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public void getSecurityInstructions(final Set<String> instructions) {
 
-		final PrincipalInterface _owner = this.getOwnerNode();
+		final Principal _owner = this.getOwnerNode();
 		if (_owner != null) {
 
 			instructions.add("@structr:owner(" + _owner.getProperty(AbstractNode.name) + ")");
@@ -1260,7 +1260,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 		this.getSecurityRelationships().stream().filter(Objects::nonNull).sorted(Comparator.comparing(security -> security.getSourceNode().getProperty(AbstractNode.name))).forEach(security -> {
 
-			final PrincipalInterface grantee = security.getSourceNode();
+			final Principal grantee = security.getSourceNode();
 			final Set<String> perms = security.getPermissions();
 			final StringBuilder shortPerms = new StringBuilder();
 

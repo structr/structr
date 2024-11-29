@@ -18,14 +18,9 @@
  */
 package org.structr.core.traits;
 
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 
 import java.util.*;
 
@@ -38,11 +33,11 @@ public class Traits {
 
 	private final Map<String, Trait> traits = new LinkedHashMap<>();
 	private final boolean isNodeType;
-	private final String type;
+	private final String typeName;
 
-	private Traits(final String type, final boolean isNodeType) {
+	Traits(final String typeName, final boolean isNodeType) {
 
-		this.type       = type;
+		this.typeName   = typeName;
 		this.isNodeType = isNodeType;
 	}
 
@@ -71,7 +66,7 @@ public class Traits {
 	}
 
 	public String getName() {
-		return type;
+		return typeName;
 	}
 
 	public boolean isNodeType() {
@@ -84,10 +79,14 @@ public class Traits {
 
 		for (final Trait trait : traits.values()) {
 
-			set.addAll(trait.getProperties(propertyView));
+			set.addAll(trait.getPropertyKeys(propertyView));
 		}
 
 		return set;
+	}
+
+	public void addTrait(final AbstractTraitImplementation impl) {
+
 	}
 
 	// ----- trait handlers -----
@@ -107,8 +106,16 @@ public class Traits {
 		return new NodeInterfaceTraitHandler(this);
 	}
 
+	public PrincipalTrait getPrincipalTrait() {
+		return new PrincipalTraitHandler(this);
+	}
+
 	// ----- static methods -----
 	public static Traits of(final String name) {
 		return typeToTraitsMap.get(name);
+	}
+
+	public static void registerImplementation(final Trait trait) {
+
 	}
 }

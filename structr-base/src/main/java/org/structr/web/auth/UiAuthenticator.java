@@ -47,6 +47,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -222,7 +223,7 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(Trait.of(CorsSetting.class)).and(CorsSetting.requestUri, requestUri).getFirst();
+			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
 				acceptedOriginsString = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.acceptedOrigins,  acceptedOriginsString);
@@ -833,7 +834,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
-		Principal user = null;
+		Traits userTraits = Traits.of("User");
+		Principal user    = null;
 
 		String authorizationToken = getAuthorizationToken(request);
 
@@ -884,14 +886,14 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Class getUserClass() {
+	public Traits getUserClass() {
 
 		String configuredCustomClassName = Settings.RegistrationCustomUserClass.getValue();
 		if (StringUtils.isEmpty(configuredCustomClassName)) {
 
-			configuredCustomClassName = User.class.getSimpleName();
+			configuredCustomClassName = "User";
 		}
 
-		return StructrApp.getConfiguration().getNodeEntityClass(configuredCustomClassName);
+		return Traits.of(configuredCustomClassName);
 	}
 }

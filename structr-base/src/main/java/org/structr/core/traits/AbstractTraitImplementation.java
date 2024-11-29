@@ -18,11 +18,36 @@
  */
 package org.structr.core.traits;
 
-public class AbstractTraitImplementation {
+import org.structr.core.property.PropertyKey;
 
-	protected final Traits traits;
+import java.util.*;
 
-	public AbstractTraitImplementation(Traits traits) {
-		this.traits = traits;
+public abstract class AbstractTraitImplementation implements Trait {
+
+	protected final Map<String, PropertyKey> properties = new HashMap<>();
+	protected final Traits type;
+
+	protected AbstractTraitImplementation(final Traits type) {
+		this.type = type;
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys(final String view) {
+		return new LinkedHashSet<>(properties.values());
+	}
+
+	@Override
+	public boolean hasKey(final String name) {
+		return properties.containsKey(name);
+	}
+
+	@Override
+	public PropertyKey key(final String name) {
+		return properties.get(name);
+	}
+
+	// ----- protected methods -----
+	protected void registerProperty(final PropertyKey property) {
+		properties.put(property.jsonName(), property);
 	}
 }

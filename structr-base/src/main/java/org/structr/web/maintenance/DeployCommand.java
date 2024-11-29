@@ -42,6 +42,7 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
@@ -1253,8 +1254,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		}
 
+		final Traits traits = node.getTraits();
+
 		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
+		for (final PropertyKey key : traits.getPropertySet(PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
@@ -1269,8 +1272,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "id",                          abstractFile.getProperty(AbstractFile.id));
 		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
-
-		putData(config, "type",                        abstractFile.getProperty(File.type));
+		putData(config, "type",                        abstractFile.getType());
 
 		if (abstractFile instanceof File) {
 
@@ -1346,13 +1348,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
-		for (final Security security : node.getSecurityRelationships()) {
+		for (final RelationshipInterface<Principal, NodeInterface> security : node.getSecurityRelationships()) {
 
 			if (security != null) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 
-				grant.put("name", security.getSourceNode().getProperty(AbstractNode.name));
+				grant.put("name", security.getSourceNode().getName());
 				final String allowedActions = StringUtils.join(security.getPermissions(), ",");
 				grant.put("allowed", allowedActions);
 
