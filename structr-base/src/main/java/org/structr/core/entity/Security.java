@@ -18,19 +18,16 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.graph.Relationship;
 import org.structr.common.*;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Relationship type class for SECURITY relationships.
  */
-public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
+public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
 
@@ -99,8 +96,8 @@ public class Security extends ManyToMany<PrincipalInterface, NodeInterface> {
 
 	// ----- class Relation -----
 	@Override
-	public Class<PrincipalInterface> getSourceType() {
-		return PrincipalInterface.class;
+	public Class<Principal> getSourceType() {
+		return Principal.class;
 	}
 
 	@Override

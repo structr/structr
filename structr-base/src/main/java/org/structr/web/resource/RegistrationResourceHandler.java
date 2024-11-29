@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
+import org.structr.core.traits.Traits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.rest.api.RESTCallHandler;
@@ -53,6 +54,7 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
+import static org.structr.web.agent.ThumbnailAgent.logger;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -335,13 +337,13 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param autoCreate
-	 * @param userClass
+	 * @param traits
 	 * @param confKey
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Traits traits, final String confKey) throws FrameworkException {
 
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass, confKey);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, traits, confKey);
 	}
 
 	/**
@@ -378,7 +380,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param confKey
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Traits traits, final String confKey) throws FrameworkException {
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
 		Principal user = null;

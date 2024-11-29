@@ -14,10 +14,9 @@ import org.structr.common.PermissionPropagation;
 import org.structr.common.PermissionResolutionMask;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
@@ -34,7 +33,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 
 	// non-static fields
-	protected PrincipalInterface cachedOwnerNode = null;
+	protected Principal cachedOwnerNode = null;
 
 	public AccessControllableTraitImplementation(final Traits traits) {
 		super(traits);
@@ -48,7 +47,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 			return true;
 		}
 
-		PrincipalInterface accessingUser = null;
+		Principal accessingUser = null;
 		if (context != null) {
 
 			accessingUser = context.getUser(false);
@@ -70,15 +69,15 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	@Override
-	public boolean allowedBySchema(final NodeInterface node, final PrincipalInterface principal, Permission permission) {
+	public boolean allowedBySchema(final NodeInterface node, final Principal principal, Permission permission) {
 		return false;
 	}
 
-	public PrincipalInterface getOwnerNode(final NodeInterface node) {
+	public Principal getOwnerNode(final NodeInterface node) {
 
 		if (cachedOwnerNode == null) {
 
-			final RelationshipInterface<PrincipalInterface, NodeInterface> ownership = node.getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
+			final RelationshipInterface<Principal, NodeInterface> ownership = node.getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
 			if (ownership != null) {
 
 				cachedOwnerNode = ownership.getSourceNode();
@@ -89,7 +88,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	@Override
-	public void grant(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException {
+	public void grant(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(node, Permission.accessControl, ctx, false)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("grant", permissions, principal, ctx));
@@ -97,7 +96,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 		clearCaches();
 
-		RelationshipInterface<PrincipalInterface, NodeInterface> secRel = getSecurityRelationship(node, principal);
+		RelationshipInterface<Principal, NodeInterface> secRel = getSecurityRelationship(node, principal);
 		if (secRel == null) {
 
 			try {
@@ -134,7 +133,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	@Override
-	public void revoke(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException {
+	public void revoke(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(node, Permission.accessControl, ctx, false)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("revoke", permissions, principal, ctx));
@@ -142,7 +141,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 		clearCaches();
 
-		RelationshipInterface<PrincipalInterface, NodeInterface> secRel = getSecurityRelationship(node, principal);
+		RelationshipInterface<Principal, NodeInterface> secRel = getSecurityRelationship(node, principal);
 		if (secRel != null) {
 
 			secRel.removePermissions(permissions);
@@ -150,7 +149,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	@Override
-	public void setAllowed(final NodeInterface node, final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException {
+	public void setAllowed(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(node, Permission.accessControl, ctx, false)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("set", permissions, principal, ctx));
@@ -165,7 +164,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 			permissionSet.add(permission.name());
 		}
 
-		RelationshipInterface<PrincipalInterface, NodeInterface> secRel = getSecurityRelationship(principal);
+		RelationshipInterface<Principal, NodeInterface> secRel = getSecurityRelationship(principal);
 		if (secRel == null) {
 
 			if (!permissions.isEmpty()) {
@@ -197,15 +196,15 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	@Override
-	public List<RelationshipInterface<PrincipalInterface, NodeInterface>> getSecurityRelationships(final NodeInterface node) {
+	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships(final NodeInterface node) {
 
-		final List<RelationshipInterface<PrincipalInterface, NodeInterface>> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser(Security.class, null));
+		final List<RelationshipInterface<Principal, NodeInterface>> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser(Security.class, null));
 
 		// sort list by principal name (important for diff'able export)
 		Collections.sort(grants, (o1, o2) -> {
 
-			final PrincipalInterface p1 = o1.getSourceNode();
-			final PrincipalInterface p2 = o2.getSourceNode();
+			final Principal p1 = o1.getSourceNode();
+			final Principal p2 = o2.getSourceNode();
 			final String n1    = p1 != null ? p1.getProperty(AbstractNode.name) : "empty";
 			final String n2    = p2 != null ? p2.getProperty(AbstractNode.name) : "empty";
 
@@ -227,7 +226,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	@Override
-	public RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(NodeInterface node, PrincipalInterface p) {
+	public RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(NodeInterface node, Principal p) {
 
 		if (p != null) {
 
@@ -242,7 +241,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 		return getSecurityRelationship(p, mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(Security.class, null)));
 	}
 
-	private RelationshipInterface<PrincipalInterface, NodeInterface> getSecurityRelationship(final PrincipalInterface p, final Map<String, RelationshipInterface<PrincipalInterface, NodeInterface>> securityRelationships) {
+	private RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal p, final Map<String, RelationshipInterface<Principal, NodeInterface>> securityRelationships) {
 
 		if (p == null) {
 
@@ -252,11 +251,11 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 		return securityRelationships.get(p.getUuid());
 	}
 
-	private Map<String, RelationshipInterface<PrincipalInterface, NodeInterface>> mapSecurityRelationshipsMapped(final Iterable<RelationshipInterface<PrincipalInterface, NodeInterface>> src) {
+	private Map<String, RelationshipInterface<Principal, NodeInterface>> mapSecurityRelationshipsMapped(final Iterable<RelationshipInterface<Principal, NodeInterface>> src) {
 
-		final Map<String, RelationshipInterface<PrincipalInterface, NodeInterface>> map = new HashMap<>();
+		final Map<String, RelationshipInterface<Principal, NodeInterface>> map = new HashMap<>();
 
-		for (final RelationshipInterface<PrincipalInterface, NodeInterface> sec : src) {
+		for (final RelationshipInterface<Principal, NodeInterface> sec : src) {
 
 			map.put(sec.getSourceNodeId(), sec);
 		}
@@ -264,11 +263,11 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 		return map;
 	}
 
-	private boolean isGranted(final NodeInterface node, final Permission permission, final PrincipalInterface accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final boolean isCreation) {
+	private boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final boolean isCreation) {
 		return isGranted(node, permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null, isCreation);
 	}
 
-	private boolean isGranted(final NodeInterface node, final Permission permission, final PrincipalInterface accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, RelationshipInterface<PrincipalInterface, NodeInterface>> incomingSecurityRelationships, final boolean isCreation) {
+	private boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, RelationshipInterface<Principal, NodeInterface>> incomingSecurityRelationships, final boolean isCreation) {
 
 		if (level > 300) {
 			logger.warn("Aborting recursive permission resolution for {} on {} because of recursion level > 300, this is quite likely an infinite loop.", permission.name(), node.getType() + "(" + node.getUuid() + ")");
@@ -292,7 +291,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 			}
 		}
 
-		final PrincipalInterface _owner = getOwnerNode(node);
+		final Principal _owner = getOwnerNode(node);
 		final boolean hasOwner          = (_owner != null);
 
 		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(_owner) ) ) {
@@ -316,15 +315,15 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				return true;
 			}
 
-			final Map<String, RelationshipInterface<PrincipalInterface, NodeInterface>> localIncomingSecurityRelationships = incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(Security.class, null));
-			final RelationshipInterface<PrincipalInterface, NodeInterface> security = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
+			final Map<String, RelationshipInterface<Principal, NodeInterface>> localIncomingSecurityRelationships = incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(Security.class, null));
+			final RelationshipInterface<Principal, NodeInterface> security = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 
 			if (security != null && security.isAllowed(permission)) {
 				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 
-			for (PrincipalInterface parent : accessingUser.getParentsPrivileged()) {
+			for (Principal parent : accessingUser.getParentsPrivileged()) {
 
 				if (isGranted(node, permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships, isCreation)) {
 					return true;
@@ -414,7 +413,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 
-	private boolean hasEffectivePermissions(final NodeInterface node, final BFSInfo parent, final PrincipalInterface principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes, final boolean doLog, final boolean isCreation) {
+	private boolean hasEffectivePermissions(final NodeInterface node, final BFSInfo parent, final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes, final boolean doLog, final boolean isCreation) {
 
 		// check nodes here to avoid circles in permission-propagating relationships
 		if (alreadyTraversed.contains("Node", node.getUuid())) {

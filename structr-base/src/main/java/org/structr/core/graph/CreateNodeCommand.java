@@ -77,7 +77,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	public T execute(final PropertyMap attributes) throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final PrincipalInterface user          = securityContext.getUser(false);
+		final Principal user          = securityContext.getUser(false);
 		T node	                      = null;
 
 		if (graphDb != null) {
@@ -139,10 +139,10 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			properties.remove(AbstractNode.createdDate);
 			properties.remove(AbstractNode.createdBy);
 
-			if (PrincipalInterface.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
+			if (Principal.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
 				// If we are creating a node inheriting from Principal, force existence of password property
 				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-				final PropertyKey passwordKey = StructrApp.key(PrincipalInterface.class, "password", false);
+				final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
 				if (isCreation && !properties.containsKey(passwordKey)) {
 					properties.put(passwordKey, null);
 				}
@@ -222,7 +222,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	}
 
 	// ----- private methods -----
-	private Node createNode(final DatabaseService graphDb, final PrincipalInterface user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
+	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
@@ -308,7 +308,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		return defaultValue;
 	}
 
-	private void notifySecurityRelCreation(final PrincipalInterface user, final Relationship rel) {
+	private void notifySecurityRelCreation(final Principal user, final Relationship rel) {
 
 		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface<NodeInterface, NodeInterface>> factory = new RelationshipFactory<>(securityContext);
 
@@ -346,7 +346,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 	}
 
-	private void notifyOwnsRelCreation(final PrincipalInterface user, final Relationship rel) {
+	private void notifyOwnsRelCreation(final Principal user, final Relationship rel) {
 
 		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface<NodeInterface, NodeInterface>> factory = new RelationshipFactory<>(securityContext);
 

@@ -27,7 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
@@ -63,7 +63,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final CreationContainer tmp                                          = new CreationContainer(false);
 		final R template                                                     = (R)Relation.getInstance(relType);
 		final Date now                                                       = new Date();
-		final PrincipalInterface user                                        = securityContext.getCachedUser();
+		final Principal user                                        = securityContext.getCachedUser();
 
 		template.ensureCardinality(securityContext, fromNode, toNode);
 

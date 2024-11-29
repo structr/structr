@@ -19,7 +19,7 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -28,11 +28,11 @@ import org.structr.core.property.PropertyKey;
  *
  *
  */
-public class PrincipalOwnsNode extends OneToMany<PrincipalInterface, NodeInterface> {
+public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> {
 
 	@Override
-	public Class<PrincipalInterface> getSourceType() {
-		return PrincipalInterface.class;
+	public Class<Principal> getSourceType() {
+		return Principal.class;
 	}
 
 	@Override

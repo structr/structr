@@ -35,7 +35,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -223,7 +222,7 @@ public class RenderContext extends ActionContext {
 	 * @param user
 	 * @return edit mode
 	 */
-	public EditMode getEditMode(final PrincipalInterface user) {
+	public EditMode getEditMode(final Principal user) {
 		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode;
 	}
 

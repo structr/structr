@@ -12,10 +12,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -359,7 +358,7 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 
 	protected String getCurrentUserString (final SecurityContext ctx) {
 
-		final PrincipalInterface currentUser = ctx.getUser(false);
+		final Principal currentUser = ctx.getUser(false);
 		String userString = "";
 
 		if (currentUser == null) {
@@ -371,7 +370,7 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 		return userString;
 	}
 
-	protected String getAccessControlNotPermittedExceptionString(final GraphObject graphObject, final String action, final Set<Permission> permissions, PrincipalInterface principal, final SecurityContext ctx) {
+	protected String getAccessControlNotPermittedExceptionString(final GraphObject graphObject, final String action, final Set<Permission> permissions, Principal principal, final SecurityContext ctx) {
 
 		final String userString       = getCurrentUserString(ctx);
 		final String thisNodeString   = graphObject.getType()      + "(" + graphObject.getUuid()      + ")";

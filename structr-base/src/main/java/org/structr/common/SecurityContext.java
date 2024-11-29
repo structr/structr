@@ -35,7 +35,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -89,7 +89,7 @@ public class SecurityContext {
 	private AccessMode accessMode                  = AccessMode.Frontend;
 	private final List<Object> creationDetails     = new LinkedList<>();
 	private Authenticator authenticator            = null;
-	private PrincipalInterface cachedUser                   = null;
+	private Principal cachedUser                   = null;
 	private HttpServletRequest request             = null;
 	private HttpServletResponse response           = null;
 	private Set<String> customView                 = null;
@@ -104,7 +104,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(PrincipalInterface user, AccessMode accessMode) {
+	private SecurityContext(Principal user, AccessMode accessMode) {
 
 		this.cachedUser     = user;
 		this.accessMode     = accessMode;
@@ -113,7 +113,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(PrincipalInterface user, HttpServletRequest request, AccessMode accessMode) {
+	private SecurityContext(Principal user, HttpServletRequest request, AccessMode accessMode) {
 
 		this(request);
 
@@ -280,11 +280,11 @@ public class SecurityContext {
 		return new SuperUserSecurityContext();
 	}
 
-	public static SecurityContext getInstance(PrincipalInterface user, AccessMode accessMode) {
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
 		return new SecurityContext(user, accessMode);
 	}
 
-	public static SecurityContext getInstance(PrincipalInterface user, HttpServletRequest request, AccessMode accessMode) {
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
 		return new SecurityContext(user, request, accessMode);
 	}
 
@@ -336,18 +336,18 @@ public class SecurityContext {
 		return cachedUserName;
 	}
 
-	public PrincipalInterface getCachedUser() {
+	public Principal getCachedUser() {
 		return cachedUser;
 	}
 
-	public void setCachedUser(final PrincipalInterface user) {
+	public void setCachedUser(final Principal user) {
 
 		this.cachedUser     = user;
 		this.cachedUserId   = user.getUuid();
 		this.cachedUserName = user.getName();
 	}
 
-	public PrincipalInterface getUser(final boolean tryLogin) {
+	public Principal getUser(final boolean tryLogin) {
 
 		// If we've got a user, return it! Easiest and fastest!!
 		if (cachedUser != null) {
@@ -459,7 +459,7 @@ public class SecurityContext {
 
 	public boolean isSuperUser() {
 
-		PrincipalInterface user = getUser(false);
+		Principal user = getUser(false);
 
 		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
 	}
@@ -537,7 +537,7 @@ public class SecurityContext {
 		}
 
 		// fetch user
-		final PrincipalInterface user = getUser(false);
+		final Principal user = getUser(false);
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
@@ -583,7 +583,7 @@ public class SecurityContext {
 		}
 
 		// Fetch already logged-in user, if present (don't try to login)
-		final PrincipalInterface user = getUser(false);
+		final Principal user = getUser(false);
 
 		if (user != null && user.isAdmin()) {
 			return true;
@@ -606,7 +606,7 @@ public class SecurityContext {
 
 		if (user != null) {
 
-			final PrincipalInterface owner = node.getOwnerNode();
+			final Principal owner = node.getOwnerNode();
 
 			// owner is always allowed to do anything with its nodes
 			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
@@ -1046,19 +1046,19 @@ public class SecurityContext {
 		}
 
 		@Override
-		public PrincipalInterface getUser(final boolean tryLogin) {
+		public Principal getUser(final boolean tryLogin) {
 
 			return new SuperUser();
 		}
 
 		@Override
-		public PrincipalInterface getCachedUser() {
+		public Principal getCachedUser() {
 			return superUser;
 		}
 
 		@Override
 		public String getCachedUserId() {
-			return PrincipalInterface.SUPERUSER_ID;
+			return Principal.SUPERUSER_ID;
 		}
 
 		@Override

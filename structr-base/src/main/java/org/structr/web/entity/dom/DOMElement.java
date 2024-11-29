@@ -43,7 +43,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -373,7 +373,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		removeInternalDataBindingKeys(parameters);
 
-		final PrincipalInterface currentUser              = actionContext.getSecurityContext().getUser(false);
+		final Principal currentUser              = actionContext.getSecurityContext().getUser(false);
 		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 		final Map<String, Object> properties     = new LinkedHashMap<>();
 
@@ -392,7 +392,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		removeInternalDataBindingKeys(parameters);
 
-		final PrincipalInterface currentUser                = actionContext.getSecurityContext().getUser(false);
+		final Principal currentUser                = actionContext.getSecurityContext().getUser(false);
 		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 		final Map<String, Object> properties       = new LinkedHashMap<>();
 
@@ -409,7 +409,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final PrincipalInterface currentUser          = actionContext.getSecurityContext().getUser(false);
+		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -429,7 +429,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final PrincipalInterface currentUser          = actionContext.getSecurityContext().getUser(false);
+		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
