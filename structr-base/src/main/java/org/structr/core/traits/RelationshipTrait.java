@@ -18,7 +18,5 @@
  */
 package org.structr.core.traits;
 
-import org.structr.core.graph.RelationshipInterface;
-
-public interface RelationshipTrait extends GraphObjectTrait {
+public interface RelationshipTrait extends GraphObject {
 }

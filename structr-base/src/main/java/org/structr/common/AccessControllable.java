@@ -32,27 +32,28 @@ import java.util.Set;
  */
 public interface AccessControllable {
 
-	public Principal getOwnerNode();
+	Principal getOwnerNode();
 
-	public boolean isGranted(final Permission permission, final SecurityContext securityContext);
+	boolean allowedBySchema(final Principal principal, final Permission permission);
+	boolean isGranted(final Permission permission, final SecurityContext securityContext);
 
-	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
-	public void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
-	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	void grant(final Permission permission, final Principal principal) throws FrameworkException;
+	void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
-	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
-	public void revoke(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
-	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	void revoke(final Permission permission, final Principal principal) throws FrameworkException;
+	void revoke(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
-	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
-	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
 
 	// visibility
-	public boolean isVisibleToPublicUsers();
-	public boolean isVisibleToAuthenticatedUsers();
-	public boolean isHidden();
+	boolean isVisibleToPublicUsers();
+	boolean isVisibleToAuthenticatedUsers();
+	boolean isHidden();
 
 	// access
-	public Date getCreatedDate();
-	public Date getLastModifiedDate();
+	Date getCreatedDate();
+	Date getLastModifiedDate();
 }

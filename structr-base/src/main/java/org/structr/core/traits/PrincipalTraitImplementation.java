@@ -26,7 +26,9 @@ import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.common.EMailValidator;
+import org.structr.common.LowercaseTransformator;
 import org.structr.common.SecurityContext;
+import org.structr.common.TrimTransformator;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
@@ -34,14 +36,20 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.entity.Security;
+import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
+import org.structr.core.entity.relationship.PrincipalFAVORITEFavoritable;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
 import org.structr.core.traits.operations.ComposableOperation;
 import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.propertycontainer.GetProperty;
+import org.structr.core.traits.operations.propertycontainer.SetProperty;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,14 +57,87 @@ import java.util.*;
 
 public class PrincipalTraitImplementation extends AbstractTraitImplementation {
 
+	Property<Iterable<Favoritable>> favoritesProperty = new EndNodes<>("favorites", PrincipalFAVORITEFavoritable.class);
+	Property<Iterable<Group>> groupsProperty          = new StartNodes<>("groups", GroupCONTAINSPrincipal.class);
+
+	Property<Iterable<NodeInterface>> ownedNodes   = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	Property<Iterable<NodeInterface>> grantedNodes = new EndNodes<>("grantedNodes", Security.class).partOfBuiltInSchema();
+
+	Property<Boolean> isAdminProperty                           = new BooleanProperty("isAdmin").indexed().readOnly();
+	Property<Boolean> blockedProperty                           = new BooleanProperty("blocked");
+	Property<String> sessionIdsProperty                         = new ArrayProperty("sessionIds", String.class).indexed();
+	Property<String> refreshTokensProperty                      = new ArrayProperty("refreshTokens", String.class).indexed();
+	Property<String> sessionDataProperty                        = new StringProperty("sessionData");
+	Property<String> eMailProperty                              = new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName());
+	Property<String> passwordProperty                           = new PasswordProperty("password");
+	Property<Date> passwordChangeDateProperty                   = new DateProperty("passwordChangeDate");
+	Property<Integer> passwordAttemptsProperty                  = new IntProperty("passwordAttempts");
+	Property<Date> lastLoginDateProperty                        = new DateProperty("lastLoginDate");
+	Property<String> twoFactorSecretProperty                    = new StringProperty("twoFactorSecret");
+	Property<String> twoFactorTokenProperty                     = new StringProperty("twoFactorToken").indexed();
+	Property<Boolean> isTwoFactorUserProperty                   = new BooleanProperty("isTwoFactorUser");
+	Property<Boolean> twoFactorConfirmedProperty                = new BooleanProperty("twoFactorConfirmed");
+	Property<String> saltProperty                               = new StringProperty("salt");
+	Property<String> localeProperty                             = new StringProperty("locale");
+	Property<String> publicKeyProperty                          = new StringProperty("publicKey");
+	Property<String> proxyUrlProperty                           = new StringProperty("proxyUrl");
+	Property<String> proxyUsernameProperty                      = new StringProperty("proxyUsername");
+	Property<String> proxyPasswordProperty                      = new StringProperty("proxyPassword");
+	Property<String> publicKeysProperty                         = new ArrayProperty("publicKeys", String.class);
+
 	@Override
 	public Set<ComposableOperation> getComposableOperations() {
-		return Set.of();
+
+		return Set.of(
+
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					boolean valid = true;
+
+					valid &= ValidationHelper.isValidUniqueProperty(obj, eMailProperty, errorBuffer);
+					valid &= new EMailValidator().isValid(obj, errorBuffer);
+
+					return valid;
+				}
+			}
+		);
 	}
 
 	@Override
 	public Set<OverwritableOperation> getOverwritableOperations() {
-		return Set.of();
+
+		return Set.of(
+
+			new GetProperty() {
+
+				@Override
+				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> predicate) {
+
+					if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) {
+
+						return (V) Principal.HIDDEN;
+
+					} else {
+
+						return this.getSuper().getProperty(graphObject, key, predicate);
+					}
+				}
+			},
+
+			new SetProperty() {
+
+				@Override
+				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+
+					AbstractNode.clearCaches();
+
+					return getSuper().setProperty(graphObject, key, value, isCreation);
+				}
+			}
+		);
 	}
 
 	@Override
@@ -450,39 +531,4 @@ public class PrincipalTraitImplementation extends AbstractTraitImplementation {
 			return "URISyntaxException for " + path + "?" + query;
 		}
 	}
-
-	/*
-	@Override
-	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
-
-		if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) {
-
-			return (T) Principal.HIDDEN;
-
-		} else {
-
-			return super.getProperty(key, predicate);
-		}
-	}
-
-	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
-
-		AbstractNode.clearCaches();
-
-		return super.setProperty(key, value);
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidUniqueProperty(this, traits.key("eMail"), errorBuffer);
-		valid &= new EMailValidator().isValid(this, errorBuffer);
-
-		return valid;
-	}
-
-	 */
 }

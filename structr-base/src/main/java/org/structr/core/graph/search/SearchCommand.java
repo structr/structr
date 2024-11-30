@@ -34,7 +34,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
@@ -42,7 +41,7 @@ import org.structr.core.graph.*;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphObjectTrait;
+import org.structr.core.traits.GraphObject;
 import org.structr.core.traits.Trait;
 import org.structr.schema.ConfigurationProvider;
 
@@ -52,7 +51,7 @@ import java.util.*;
  *
  *
  */
-public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObjectTrait> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
+public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
 
@@ -428,7 +427,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		doNotSort = true;
 
-		return and(GraphObject.id, uuid);
+		return and(org.structr.core.GraphObject.id, uuid);
 	}
 
 	@Override
@@ -480,7 +479,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value) {
 
-		if (GraphObject.id.equals(key)) {
+		if (org.structr.core.GraphObject.id.equals(key)) {
 			this.doNotSort = false;
 		}
 
@@ -490,7 +489,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
 
-		if (GraphObject.id.equals(key)) {
+		if (org.structr.core.GraphObject.id.equals(key)) {
 
 			this.doNotSort = false;
 		}
@@ -503,7 +502,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur) {
 
-		if (GraphObject.id.equals(key)) {
+		if (org.structr.core.GraphObject.id.equals(key)) {
 
 			this.doNotSort = false;
 		}
@@ -523,7 +522,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
 
-			if (GraphObject.id.equals(key)) {
+			if (org.structr.core.GraphObject.id.equals(key)) {
 
 				this.doNotSort = false;
 			}
@@ -716,7 +715,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public Predicate<GraphObject> toPredicate() {
+	public Predicate<org.structr.core.GraphObject> toPredicate() {
 		return new AndPredicate(rootGroup.getSearchAttributes());
 	}
 
@@ -857,9 +856,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	// ----- nested classes -----
-	private class AndPredicate implements Predicate<GraphObject> {
+	private class AndPredicate implements Predicate<org.structr.core.GraphObject> {
 
-		final List<Predicate<GraphObject>> predicates = new ArrayList<>();
+		final List<Predicate<org.structr.core.GraphObject>> predicates = new ArrayList<>();
 
 		public AndPredicate(final List<SearchAttribute> searchAttributes) {
 
@@ -903,11 +902,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		@Override
-		public boolean accept(GraphObject obj) {
+		public boolean accept(org.structr.core.GraphObject obj) {
 
 			boolean result = true;
 
-			for (final Predicate<GraphObject> predicate : predicates) {
+			for (final Predicate<org.structr.core.GraphObject> predicate : predicates) {
 
 				result &= predicate.accept(obj);
 			}

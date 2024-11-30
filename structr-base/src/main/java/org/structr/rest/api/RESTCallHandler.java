@@ -42,7 +42,6 @@ import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -66,7 +65,7 @@ public abstract class RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(RESTCallHandler.class.getName());
 
-	private GraphObjectTrait cachedEntity = null;
+	private GraphObject cachedEntity = null;
 	protected String requestedView  = null;
 	protected RESTCall call         = null;
 
@@ -235,7 +234,7 @@ public abstract class RESTCallHandler {
 	}
 
 	// ----- protected methods -----
-	protected GraphObjectTrait getEntity(final SecurityContext securityContext, final Traits entityClass, final String typeName, final String uuid) throws FrameworkException {
+	protected GraphObject getEntity(final SecurityContext securityContext, final Traits entityClass, final String typeName, final String uuid) throws FrameworkException {
 
 		if (cachedEntity != null) {
 			return cachedEntity;
@@ -280,7 +279,7 @@ public abstract class RESTCallHandler {
 		throw new FrameworkException(404, "Entity with ID ‛" + uuid + "‛ of type ‛" +  typeName +  "‛ does not exist");
 	}
 
-	protected String buildLocationHeader(final SecurityContext securityContext, final GraphObject newObject) {
+	protected String buildLocationHeader(final SecurityContext securityContext, final org.structr.core.GraphObject newObject) {
 
 		final StringBuilder uriBuilder = securityContext.getBaseURI();
 
@@ -295,7 +294,7 @@ public abstract class RESTCallHandler {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(final List<? extends GraphObject> list, final SortOrder sortOrder) {
+	protected void applyDefaultSorting(final List<? extends org.structr.core.GraphObject> list, final SortOrder sortOrder) {
 
 		if (sortOrder != null && !sortOrder.isEmpty()) {
 
@@ -453,7 +452,7 @@ public abstract class RESTCallHandler {
 
 	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<org.structr.core.GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
@@ -464,7 +463,7 @@ public abstract class RESTCallHandler {
 
 			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-			for (final GraphObject obj : results) {
+			for (final org.structr.core.GraphObject obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
@@ -498,9 +497,9 @@ public abstract class RESTCallHandler {
 				chunk++;
 
 				// always fetch the first page
-				try (final ResultStream<GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
+				try (final ResultStream<org.structr.core.GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
 
-					for (final GraphObject obj : result) {
+					for (final org.structr.core.GraphObject obj : result) {
 
 						if (obj.isNode()) {
 
@@ -590,7 +589,7 @@ public abstract class RESTCallHandler {
 
 							final String id = (String)idSource;
 
-							GraphObject obj = app.getNodeById(localType, id);
+							org.structr.core.GraphObject obj = app.getNodeById(localType, id);
 							if (obj != null) {
 
 								obj = app.getRelationshipById(localType, id);

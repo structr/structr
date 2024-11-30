@@ -32,38 +32,11 @@ import java.util.Set;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
-	Object HIDDEN                            = "****** HIDDEN ******";
+	String HIDDEN                            = "****** HIDDEN ******";
 	String SUPERUSER_ID                      = "00000000000000000000000000000000";
 	String ANONYMOUS                         = "anonymous";
 
 	/*
-	Property<Iterable<Favoritable>> favoritesProperty = new EndNodes<>("favorites", PrincipalFAVORITEFavoritable.class);
-	Property<Iterable<Group>> groupsProperty          = new StartNodes<>("groups", GroupCONTAINSPrincipal.class);
-
-	Property<Iterable<NodeInterface>> ownedNodes   = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	Property<Iterable<NodeInterface>> grantedNodes = new EndNodes<>("grantedNodes", Security.class).partOfBuiltInSchema();
-
-	Property<Boolean> isAdminProperty                           = new BooleanProperty("isAdmin").indexed().readOnly();
-	Property<Boolean> blockedProperty                           = new BooleanProperty("blocked");
-	Property<String> sessionIdsProperty                         = new ArrayProperty("sessionIds", String.class).indexed();
-	Property<String> refreshTokensProperty                      = new ArrayProperty("refreshTokens", String.class).indexed();
-	Property<String> sessionDataProperty                        = new StringProperty("sessionData");
-	Property<String> eMailProperty                              = new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName());
-	Property<String> passwordProperty                           = new PasswordProperty("password");
-	Property<Date> passwordChangeDateProperty                   = new DateProperty("passwordChangeDate");
-	Property<Integer> passwordAttemptsProperty                  = new IntProperty("passwordAttempts");
-	Property<Date> lastLoginDateProperty                        = new DateProperty("lastLoginDate");
-	Property<String> twoFactorSecretProperty                    = new StringProperty("twoFactorSecret");
-	Property<String> twoFactorTokenProperty                     = new StringProperty("twoFactorToken").indexed();
-	Property<Boolean> isTwoFactorUserProperty                   = new BooleanProperty("isTwoFactorUser");
-	Property<Boolean> twoFactorConfirmedProperty                = new BooleanProperty("twoFactorConfirmed");
-	Property<String> saltProperty                               = new StringProperty("salt");
-	Property<String> localeProperty                             = new StringProperty("locale");
-	Property<String> publicKeyProperty                          = new StringProperty("publicKey");
-	Property<String> proxyUrlProperty                           = new StringProperty("proxyUrl");
-	Property<String> proxyUsernameProperty                      = new StringProperty("proxyUsername");
-	Property<String> proxyPasswordProperty                      = new StringProperty("proxyPassword");
-	Property<String> publicKeysProperty                         = new ArrayProperty("publicKeys", String.class);
 
 	View uiView = new View(Principal.class, PropertyView.Ui,
 		blockedProperty

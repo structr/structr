@@ -19,28 +19,28 @@
 package org.structr.common;
 
 import org.structr.api.Predicate;
-import org.structr.core.traits.GraphObjectTrait;
+import org.structr.core.traits.GraphObject;
 
 import java.util.Comparator;
 
 /**
  * A predicate that accepts all inputs and supports a comparator.
  */
-public class TruePredicate implements Predicate<GraphObjectTrait> {
+public class TruePredicate implements Predicate<GraphObject> {
 
-	private Comparator<GraphObjectTrait> comparator = null;
+	private Comparator<GraphObject> comparator = null;
 
-	public TruePredicate(final Comparator<GraphObjectTrait> comparator) {
+	public TruePredicate(final Comparator<GraphObject> comparator) {
 		this.comparator = comparator;
 	}
 
 	@Override
-	public boolean accept(final GraphObjectTrait value) {
+	public boolean accept(final GraphObject value) {
 		return true;
 	}
 
 	@Override
-	public Comparator<GraphObjectTrait> comparator() {
+	public Comparator<GraphObject> comparator() {
 		return comparator;
 	}
 }

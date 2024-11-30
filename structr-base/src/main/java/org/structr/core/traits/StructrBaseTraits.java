@@ -2,9 +2,10 @@ package org.structr.core.traits;
 
 public class StructrBaseTraits {
 
-	private static final PropertyContainerTraitImplementation propertyContainerTraitImplementation = new PropertyContainerTraitImplementation();
-	private static final GraphObjectTraitImplementation graphObjectTraitImplementation = new GraphObjectTraitImplementation();
-	private static final NodeInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
+	private static final PropertyContainerTraitImplementation propertyContainerTraitImplementation   = new PropertyContainerTraitImplementation();
+	private static final GraphObjectTraitImplementation graphObjectTraitImplementation               = new GraphObjectTraitImplementation();
+	private static final NodeInterfaceTraitImplementation nodeInterfaceTraitImplementation           = new NodeInterfaceTraitImplementation();
+	private static final AccessControllableTraitImplementation accessControllableTraitImplementation = new AccessControllableTraitImplementation();
 	//private static final RelationshipInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
 
 	static {
@@ -20,6 +21,7 @@ public class StructrBaseTraits {
 		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
 		traits.registerImplementation(nodeInterfaceTraitImplementation);
+		traits.registerImplementation(accessControllableTraitImplementation);
 	}
 
 	private static void registerDynamicNodeType(final String typeName) {
@@ -30,6 +32,7 @@ public class StructrBaseTraits {
 		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
 		traits.registerImplementation(nodeInterfaceTraitImplementation);
+		traits.registerImplementation(accessControllableTraitImplementation);
 	}
 
 	private static void registerDynamicRelationshipType(final String typeName) {

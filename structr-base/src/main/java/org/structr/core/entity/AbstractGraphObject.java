@@ -36,7 +36,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.*;
 import org.structr.core.traits.operations.graphobject.*;
-import org.structr.core.traits.operations.nodeinterface.IsGranted;
+import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.propertycontainer.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -44,7 +44,6 @@ import org.structr.schema.action.EvaluationHints;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -116,7 +115,13 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final boolean isGranted(final Permission permission, SecurityContext securityContext, boolean isCreation) {
-		return typeHandler.getMethod(IsGranted.class).isGranted(this, permission, securityContext, isCreation);
+
+		if (this instanceof NodeInterface node) {
+
+			return typeHandler.getMethod(IsGranted.class).isGranted(node, permission, securityContext, isCreation);
+		}
+
+		return true;
 	}
 
 	@Override

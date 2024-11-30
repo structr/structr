@@ -32,6 +32,8 @@ import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
+import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -42,7 +44,7 @@ import java.util.*;
 /**
  * Abstract base class for all node entities in Structr.
  */
-public abstract class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
+public class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
 
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                     = new FixedSizeCache<>("Relationship template cache", 1000);
@@ -274,7 +276,12 @@ public abstract class AbstractNode extends AbstractGraphObject<Node> implements 
 
 	@Override
 	public final Principal getOwnerNode() {
-		return accessControllableTrait.getOwnerNode(this);
+		return typeHandler.getMethod(IsGranted.class).isGranted(this, )
+	}
+
+	@Override
+	public boolean allowedBySchema(Principal principal, Permission permission) {
+		return typeHandler.getMethod(AllowedBySchema.class).allowedBySchema(this, principal, permission);
 	}
 
 	/**

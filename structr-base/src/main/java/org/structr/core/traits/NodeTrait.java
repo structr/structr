@@ -22,7 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
-public interface NodeTrait extends GraphObjectTrait {
+public interface NodeTrait extends GraphObject {
 
 	void onNodeCreation(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException;
 	void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException;

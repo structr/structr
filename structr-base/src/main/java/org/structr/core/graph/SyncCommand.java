@@ -34,7 +34,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaReloadingNode;
-import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
