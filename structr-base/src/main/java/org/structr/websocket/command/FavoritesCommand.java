@@ -78,14 +78,14 @@ public class FavoritesCommand extends AbstractCommand {
 
 						case "add": {
 
-							favorites.add((Favoritable)file);
+							favorites.add(file);
 							break;
 
 						}
 
 						case "remove": {
 
-							favorites.remove((Favoritable)file);
+							favorites.remove(file);
 							break;
 
 						}

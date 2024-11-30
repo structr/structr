@@ -37,6 +37,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.*;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.nodeinterface.IsGranted;
+import org.structr.core.traits.operations.propertycontainer.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -69,7 +70,8 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final Class entityType, final long sourceTransactionId) {
 
-		this.typeHandler         = Traits.of(propertyContainer.getType());
+		// FIXME: unchecked type cast will fail for non-Structr nodes
+		this.typeHandler         = Traits.of((String)propertyContainer.getProperty("type"));
 		this.sourceTransactionId = sourceTransactionId;
 		this.securityContext     = securityContext;
 		this.id                  = propertyContainer.getId();
@@ -114,16 +116,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final boolean isGranted(final Permission permission, SecurityContext securityContext, boolean isCreation) {
-
-		final Hierarchy<IsGranted> isGranted = typeHandler.getMethod(IsGranted.class);
-		if (isGranted != null) {
-
-			final IsGranted first = isGranted.get();
-
-			return first.isGranted(null, this, permission, securityContext, isCreation);
-		}
-
-		return true;
+		return typeHandler.getMethod(IsGranted.class).isGranted(this, permission, securityContext, isCreation);
 	}
 
 	@Override
@@ -292,7 +285,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final Set<PropertyKey> getPropertyKeys(final String propertyView) {
-		return propertyContainerTrait.getPropertyKeys(this, propertyView);
+		return typeHandler.getMethod(GetPropertyKeys.class).getPropertyKeys(this, propertyView);
 	}
 
 	/**
@@ -305,29 +298,27 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key) {
-
-		// fixme: how to implement the inheritance hierarchy?
-		return propertyContainerTrait.getProperty(this, key, null);
+		return getProperty(key, null);
 	}
 
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
-		return propertyContainerTrait.getProperty(this, key, predicate);
+		return typeHandler.getMethod(GetProperty.class).getProperty(this, key, predicate);
 	}
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
-		return propertyContainerTrait.setProperty(this, key, value, isCreation);
+		return typeHandler.getMethod(SetProperty.class).setProperty(this, key, value, isCreation);
 	}
 
 	@Override
 	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-		propertyContainerTrait.setProperties(this, securityContext, properties, isCreation);
+		typeHandler.getMethod(SetProperties.class).setProperties(this, securityContext, properties, isCreation);
 	}
 
 	@Override
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
-		propertyContainerTrait.removeProperty(this, key);
+		typeHandler.getMethod(RemoveProperty.class).removeProperty(this, key);
 	}
 
 	@Override
@@ -383,18 +374,4 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public boolean changelogEnabled() {
 		return false;
 	}
-
-	// ----- protected methods -----
-	protected <S, T, F extends BiFunction<S, T, Boolean>> boolean evaluateWithAnd(final S subject, final T argument, final Set<F> functions) {
-
-		boolean andValue = true;
-
-		for (final F consumer : functions) {
-
-			andValue &= consumer.apply(subject, argument);
-		}
-
-		return andValue;
-	}
-
 }

@@ -29,9 +29,11 @@ import java.util.*;
  */
 public class Traits {
 
-	private final Map<Class, Hierarchy> overwritableMethods  = new LinkedHashMap<>();
-	private final Map<Class, Set> composableMethods          = new LinkedHashMap<>();
-	private final Map<String, PropertyKey> propertyKeys      = new LinkedHashMap<>();
+	private static final Map<String, Trait> types = new LinkedHashMap<>();
+
+	private final Map<Class, OverwritableOperation> overwritableMethods = new LinkedHashMap<>();
+	private final Map<Class, Set> composableMethods                     = new LinkedHashMap<>();
+	private final Map<String, PropertyKey> propertyKeys                 = new LinkedHashMap<>();
 
 	private final boolean isNodeType;
 	private final String typeName;
@@ -43,20 +45,20 @@ public class Traits {
 	}
 
 	public Set<String> getLabels() {
-		return Collections.unmodifiableSet(traits.keySet());
+		return Collections.unmodifiableSet(types.keySet());
 	}
 
 	public boolean contains(final String type) {
-		return traits.containsKey(type);
+		return types.containsKey(type);
 	}
 
 	public Trait get(final String type) {
-		return traits.get(type);
+		return types.get(type);
 	}
 
 	public <T> PropertyKey<T> key(final String name) {
 
-		for (final Trait trait : traits.values()) {
+		for (final Trait trait : types.values()) {
 
 			if (trait.hasKey(name)) {
 				return trait.key(name);
@@ -78,7 +80,7 @@ public class Traits {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
-		for (final Trait trait : traits.values()) {
+		for (final Trait trait : types.values()) {
 
 			set.addAll(trait.getPropertyKeys(propertyView));
 		}
@@ -90,8 +92,8 @@ public class Traits {
 		return composableMethods.get(type);
 	}
 
-	public <T> Hierarchy<T> getMethod(final Class<T> type) {
-		return overwritableMethods.get(type);
+	public <T extends OverwritableOperation> T getMethod(final Class<T> type) {
+		return (T) overwritableMethods.get(type);
 	}
 
 	public void registerImplementation(final Trait trait) {
@@ -107,10 +109,9 @@ public class Traits {
 		// overwritable methods
 		for (final OverwritableOperation operation : trait.getOverwritableOperations()) {
 
-			final Class type          = operation.getClass();
-			final Hierarchy hierarchy = overwritableMethods.computeIfAbsent(type, k -> new Hierarchy());
+			final Class type = operation.getClass();
 
-			hierarchy.add(operation);
+			overwritableMethods.put(type, operation);
 		}
 
 		// properties

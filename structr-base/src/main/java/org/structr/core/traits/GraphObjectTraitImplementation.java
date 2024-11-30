@@ -24,22 +24,18 @@ import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.TypeProperty;
-import org.structr.core.property.UuidProperty;
+import org.structr.core.property.*;
 import org.structr.core.traits.operations.ComposableOperation;
 import org.structr.core.traits.operations.OverwritableOperation;
 import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class GraphObjectTraitImplementation extends AbstractTraitImplementation {
 
@@ -48,24 +44,14 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	private static final String SYSTEM_CATEGORY     = "System";
 	private static final String VISIBILITY_CATEGORY = "Visibility";
 
-	private static final PropertyKey<String> typeProperty = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	private static final PropertyKey<String> idProperty   = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-
-	static {
-
-		/*
-		final Trait trait = Trait.create(GraphObjectTrait.class, n -> new GraphTraitImpl(n) {});
-
-		trait.registerProperty(new StringProperty("base").partOfBuiltInSchema());
-		trait.registerProperty();
-		trait.registerProperty(new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
-		trait.registerProperty(new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
-		trait.registerProperty(new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
-		trait.registerProperty(new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
-		trait.registerProperty(new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly());
-
-		 */
-	}
+	private static final PropertyKey<String> baseProperty                  = new StringProperty("base").partOfBuiltInSchema();
+	private static final PropertyKey<String> typeProperty                  = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	private static final PropertyKey<String> idProperty                    = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	private static final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<String> createdByProperty             = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
 
 
 	@Override
@@ -88,48 +74,66 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
+			baseProperty,
 			idProperty,
-			typeProperty
+			typeProperty,
+			createdDateProperty,
+			createdByProperty,
+			lastModifiedDateProperty,
+			lastModifiedByProperty,
+			visibleToPublicUsersProperty
 		);
 	}
 
 	// ----- private methods -----
 	private IsValid isValid() {
 
-		return (graphObject, errorBuffer) -> {
+		return new IsValid() {
+			@Override
+			public Boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
 
-			final SecurityContext securityContext = graphObject.getSecurityContext();
-			boolean valid = true;
+				final SecurityContext securityContext = graphObject.getSecurityContext();
+				boolean valid = true;
 
-			// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
-			valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
+				// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
+				valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
 
-			if (securityContext != null && securityContext.uuidWasSetManually()) {
-				valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
+				if (securityContext != null && securityContext.uuidWasSetManually()) {
+					valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
+				}
+
+				valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
+				valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
+
+				return valid;
 			}
-
-			valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
-			valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
-
-			return valid;
 		};
 	}
 
 	private IndexPassiveProperties indexPassiveProperties() {
 
-		return graphObject -> {
+		return new IndexPassiveProperties() {
 
-			final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
+			@Override
+			public void indexPassiveProperties(final GraphObject graphObject) {
 
-			for (PropertyKey key : graphObject.getPropertyKeys(PropertyView.All)) {
+				final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
 
-				if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
+				for (PropertyKey key : graphObject.getPropertyKeys(PropertyView.All)) {
 
-					passiveIndexingKeys.add(key);
+					if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
+
+						passiveIndexingKeys.add(key);
+					}
 				}
+
+				addToIndex(graphObject, passiveIndexingKeys);
 			}
 
-			addToIndex(graphObject, passiveIndexingKeys);
+			@Override
+			public Object getSuper() {
+				return null;
+			}
 		};
 	}
 

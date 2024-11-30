@@ -9,7 +9,10 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.*;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InternalSystemPropertyToken;
+import org.structr.common.error.NullArgumentToken;
+import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -22,227 +25,292 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
+import org.structr.core.traits.operations.ComposableOperation;
+import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.propertycontainer.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PropertyContainerTraitImplementation implements PropertyContainerTrait {
+public class PropertyContainerTraitImplementation extends AbstractTraitImplementation {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitImplementation.class);
 
-	protected Traits traits = null;
-
-	public PropertyContainerTraitImplementation(final Traits traits) {
-		this.traits = traits;
+	@Override
+	public Set<ComposableOperation> getComposableOperations() {
+		return Set.of();
 	}
 
 	@Override
-	public PropertyContainer getPropertyContainer(final GraphObject graphObject) {
-		return graphObject.getPropertyContainer();
-	}
+	public Set<OverwritableOperation> getOverwritableOperations() {
 
-	@Override
-	public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
-		return traits.getPropertySet(propertyView);
-	}
+		return Set.of(
 
-	/**
-	 * Returns the property set for the given view as an Iterable.
-	 *
-	 * If a custom view is set via header, this can only include properties that are also included in the current view!
-	 *
-	 * @param propertyView
-	 * @return the property set for the given view
-	 */
-	@Override
-	public final Set<PropertyKey> getPropertyKeys(final GraphObject object,  final String propertyView) {
+			new GetPropertyContainer() {
 
-		final SecurityContext securityContext = object.getSecurityContext();
-
-		// check for custom view in content-type field
-		if (securityContext != null && securityContext.hasCustomView()) {
-
-			final String view                = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-			final Set<PropertyKey> keys      = new LinkedHashSet<>(object.getPropertySet(view));
-			final Set<String> customView     = securityContext.getCustomView();
-
-			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
-				if (!customView.contains(it.next().jsonName())) {
-
-					it.remove();
+				@Override
+				public GetPropertyContainer getSuper() {
+					return null;
 				}
-			}
 
-			return keys;
-		}
+				@Override
+				public PropertyContainer getPropertyContainer(final GraphObject graphObject) {
+					return graphObject.getPropertyContainer();
+				}
+			},
 
-		// this is the default if no application/json; properties=[...] content-type header is present on the request
-		return object.getPropertySet(propertyView);
-	}
+			new GetPropertySet() {
 
-	@Override
-	public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter) {
+				@Override
+				public GetPropertySet getSuper() {
+					return null;
+				}
 
-		// early null check, this should not happen...
-		if (propertyKey == null || propertyKey.dbName() == null) {
-			return null;
-		}
+				@Override
+				public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
 
-		return propertyKey.getProperty(graphObject.getSecurityContext(), graphObject, true, filter);
-	}
+					final Traits traits = graphObject.getTraits();
 
-	@Override
-	public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, boolean isCreation) throws FrameworkException {
+					return traits.getPropertySet(propertyView);
+				}
+			},
 
-		final SecurityContext securityContext = graphObject.getSecurityContext();
-		final Traits traits                   = graphObject.getTraits();
+			new GetPropertyKeys() {
 
-		// clear function property cache in security context since we are about to invalidate past results
-		if (securityContext != null) {
-			securityContext.getContextStore().clearFunctionPropertyCache();
-		}
+				@Override
+				public GetPropertyKeys getSuper() {
+					return null;
+				}
 
-		// allow setting of ID without permissions
-		if (!key.equals(traits.key("id"))) {
+				@Override
+				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
 
-			if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
+					final SecurityContext securityContext = graphObject.getSecurityContext();
 
-				graphObject.lockSystemProperties();
-				graphObject.lockReadOnlyProperties();
+					// check for custom view in content-type field
+					if (securityContext != null && securityContext.hasCustomView()) {
 
-				throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
-			}
-		}
+						final String view                = securityContext.isSuperUser() ? PropertyView.All : propertyView;
+						final Set<PropertyKey> keys      = new LinkedHashSet<>(graphObject.getPropertySet(view));
+						final Set<String> customView     = securityContext.getCustomView();
 
-		try {
+						for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
+							if (!customView.contains(it.next().jsonName())) {
 
-			// no need to check previous value when creating a node
-			T oldValue = isCreation ? null : (T)graphObject.getProperty(key);
+								it.remove();
+							}
+						}
 
-			// no old value exists  OR  old value exists and is NOT equal => set property
-			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
-
-				return setPropertyInternal(graphObject, key, value);
-			}
-
-		} finally {
-
-			graphObject.lockSystemProperties();
-			graphObject.lockReadOnlyProperties();
-		}
-
-		return null;
-	}
-
-	@Override
-	public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, boolean isCreation) throws FrameworkException {
-
-		if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
-
-			graphObject.lockSystemProperties();
-			graphObject.lockReadOnlyProperties();
-
-			throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
-		}
-
-		final Traits traits = graphObject.getTraits();
-
-		for (final PropertyKey key : properties.keySet()) {
-
-			final Object oldValue = isCreation ? null : graphObject.getProperty(key);
-			final Object value    = properties.get(key);
-
-			// no old value exists  OR  old value exists and is NOT equal => set property
-			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || (key instanceof FunctionProperty)) ) {
-
-				if (!key.equals(traits.key("id"))) {
-
-					// check for system properties
-					if (key.isSystemInternal() && !graphObject.systemPropertiesUnlocked()) {
-
-						throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
+						return keys;
 					}
 
-					// check for read-only properties
-					if ((key.isReadOnly() || key.isWriteOnce()) && !graphObject.readOnlyPropertiesUnlocked() && !securityContext.isSuperUser()) {
+					// this is the default if no application/json; properties=[...] content-type header is present on the request
+					return graphObject.getPropertySet(propertyView);
+				}
+			},
 
-						throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
+			new GetProperty() {
+
+				@Override
+				public GetProperty getSuper() {
+					return null;
+				}
+
+				@Override
+				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter) {
+
+					// early null check, this should not happen...
+					if (propertyKey == null || propertyKey.dbName() == null) {
+						return null;
+					}
+
+					return propertyKey.getProperty(graphObject.getSecurityContext(), graphObject, true, filter);
+				}
+			},
+
+			new SetProperty() {
+
+				@Override
+				public SetProperty getSuper() {
+					return null;
+				}
+
+				@Override
+				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+
+					final SecurityContext securityContext = graphObject.getSecurityContext();
+					final Traits traits                   = graphObject.getTraits();
+
+					// clear function property cache in security context since we are about to invalidate past results
+					if (securityContext != null) {
+						securityContext.getContextStore().clearFunctionPropertyCache();
+					}
+
+					// allow setting of ID without permissions
+					if (!key.equals(traits.key("id"))) {
+
+						if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
+
+							graphObject.lockSystemProperties();
+							graphObject.lockReadOnlyProperties();
+
+							throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
+						}
+					}
+
+					try {
+
+						// no need to check previous value when creating a node
+						T oldValue = isCreation ? null : (T)graphObject.getProperty(key);
+
+						// no old value exists  OR  old value exists and is NOT equal => set property
+						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
+
+							return setPropertyInternal(graphObject, key, value);
+						}
+
+					} finally {
+
+						graphObject.lockSystemProperties();
+						graphObject.lockReadOnlyProperties();
+					}
+
+					return null;
+				}
+			},
+
+			new SetProperties() {
+
+				@Override
+				public SetProperties getSuper() {
+					return null;
+				}
+
+				@Override
+				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+
+					if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
+
+						graphObject.lockSystemProperties();
+						graphObject.lockReadOnlyProperties();
+
+						throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
+					}
+
+					final Traits traits   = graphObject.getTraits();
+
+					for (final PropertyKey key : properties.keySet()) {
+
+						final Object oldValue = isCreation ? null : graphObject.getProperty(key);
+						final Object value    = properties.get(key);
+
+						// no old value exists  OR  old value exists and is NOT equal => set property
+						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || (key instanceof FunctionProperty)) ) {
+
+							if (!key.equals(traits.key("id"))) {
+
+								// check for system properties
+								if (key.isSystemInternal() && !graphObject.systemPropertiesUnlocked()) {
+
+									throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(graphObject.getType(), key.jsonName()));
+								}
+
+								// check for read-only properties
+								if ((key.isReadOnly() || key.isWriteOnce()) && !graphObject.readOnlyPropertiesUnlocked() && !securityContext.isSuperUser()) {
+
+									throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(graphObject.getType(), key.jsonName()));
+								}
+							}
+						}
+					}
+
+					setPropertiesInternal(graphObject, securityContext, properties, isCreation);
+				}
+			},
+
+			new RemoveProperty() {
+
+				@Override
+				public RemoveProperty getSuper() {
+					return null;
+				}
+
+				@Override
+				public void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException {
+
+					final SecurityContext securityContext = graphObject.getSecurityContext();
+
+					if (!graphObject.isGranted(Permission.write, securityContext, false)) {
+
+						throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
+					}
+
+					if (graphObject.getPropertyContainer() != null) {
+
+						if (key == null) {
+
+							logger.error("Tried to set property with null key (action was denied)");
+
+							return;
+
+						}
+
+						// check for read-only properties
+						if (key.isReadOnly()) {
+
+							// allow super user to set read-only properties
+							if (graphObject.readOnlyPropertiesUnlocked() || securityContext.isSuperUser()) {
+
+								// permit write operation once and
+								// lock read-only properties again
+								graphObject.lockReadOnlyProperties();
+
+							} else {
+
+								throw new FrameworkException(404, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(graphObject.getType(), key.jsonName()));
+							}
+
+						}
+
+						// check for system properties - cannot be overriden with super-user rights
+						if (key.isSystemInternal()) {
+
+							// allow super user to set read-only properties
+							if (graphObject.systemPropertiesUnlocked()) {
+
+								// permit write operation once and
+								// lock read-only properties again
+								graphObject.lockSystemProperties();
+
+							} else {
+
+								throw new FrameworkException(404, "Property ‛" + key.jsonName() + "‛ is read-only", new InternalSystemPropertyToken(graphObject.getType(), key.jsonName()));
+							}
+
+						}
+
+						graphObject.getPropertyContainer().removeProperty(key.dbName());
 					}
 				}
 			}
-		}
-
-		setPropertiesInternal(graphObject, securityContext, properties, isCreation);
+		);
 	}
 
 	@Override
-	public void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException {
-
-		final SecurityContext securityContext = graphObject.getSecurityContext();
-
-		if (!graphObject.isGranted(Permission.write, securityContext, false)) {
-
-			throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
-		}
-
-		if (graphObject.getPropertyContainer() != null) {
-
-			if (key == null) {
-
-				logger.error("Tried to set property with null key (action was denied)");
-
-				return;
-
-			}
-
-			// check for read-only properties
-			if (key.isReadOnly()) {
-
-				// allow super user to set read-only properties
-				if (graphObject.readOnlyPropertiesUnlocked() || securityContext.isSuperUser()) {
-
-					// permit write operation once and
-					// lock read-only properties again
-					graphObject.lockReadOnlyProperties();
-
-				} else {
-
-					throw new FrameworkException(404, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(graphObject.getType(), key.jsonName()));
-				}
-
-			}
-
-			// check for system properties - cannot be overriden with super-user rights
-			if (key.isSystemInternal()) {
-
-				// allow super user to set read-only properties
-				if (graphObject.systemPropertiesUnlocked()) {
-
-					// permit write operation once and
-					// lock read-only properties again
-					graphObject.lockSystemProperties();
-
-				} else {
-
-					throw new FrameworkException(404, "Property ‛" + key.jsonName() + "‛ is read-only", new InternalSystemPropertyToken(graphObject.getType(), key.jsonName()));
-				}
-
-			}
-
-			graphObject.getPropertyContainer().removeProperty(key.dbName());
-		}
-
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of();
 	}
 
-	private <T> Object setPropertyInternal(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {
+	private static <T> Object setPropertyInternal(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		final SecurityContext securityContext = graphObject.getSecurityContext();
+		final String type                     = graphObject.getType();
 
 		if (key == null) {
 
 			logger.error("Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), "base"));
+			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(type, "base"));
 
 		}
 
@@ -251,13 +319,13 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 			// check for system properties
 			if (key.isSystemInternal() && !graphObject.systemPropertiesUnlocked()) {
 
-				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
+				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(type, key.jsonName()));
 			}
 
 			// check for read-only properties
 			if ((key.isReadOnly() || key.isWriteOnce()) && !graphObject.readOnlyPropertiesUnlocked() && !securityContext.isSuperUser()) {
 
-				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
+				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(type, key.jsonName()));
 			}
 
 			return key.setProperty(securityContext, graphObject, value);
@@ -272,7 +340,7 @@ public class PropertyContainerTraitImplementation implements PropertyContainerTr
 
 	}
 
-	private void setPropertiesInternal(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+	private static void setPropertiesInternal(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
 		final CreationContainer container = new CreationContainer(graphObject);
 		final Traits traits               = graphObject.getTraits();
