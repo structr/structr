@@ -415,7 +415,7 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 		}
 	}
 
-	protected String getCurrentUserString (final SecurityContext ctx) {
+	protected static String getCurrentUserString (final SecurityContext ctx) {
 
 		final Principal currentUser = ctx.getUser(false);
 		String userString = "";
@@ -429,19 +429,9 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 		return userString;
 	}
 
-	protected String getAccessControlNotPermittedExceptionString(final GraphObject graphObject, final String action, final Set<Permission> permissions, Principal principal, final SecurityContext ctx) {
-
-		final String userString       = getCurrentUserString(ctx);
-		final String thisNodeString   = graphObject.getType()      + "(" + graphObject.getUuid()      + ")";
-		final String principalString  = principal.getType() + "(" + principal.getUuid() + ")";
-		final String permissionString = permissions.stream().map(p -> p.name()).collect(Collectors.joining(", "));
-
-		return "Access control not permitted! " + userString + " can not " + action + " rights (" + permissionString + ") for " + principalString + " to node " + thisNodeString;
-	}
-
 	protected String getModificationNotPermittedExceptionString(final GraphObject obj, final SecurityContext ctx) {
 
-		final String userString     = getCurrentUserString(ctx);
+		final String userString     = PropertyContainerTraitImplementation.getCurrentUserString(ctx);
 		final String thisNodeString = obj.getType() + "(" + obj.getUuid()      + ")";
 
 		return "Modification of node " + thisNodeString + " by " + userString + "not permitted.";

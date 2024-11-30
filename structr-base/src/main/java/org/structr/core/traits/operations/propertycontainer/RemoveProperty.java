@@ -5,7 +5,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.OverwritableOperation;
 
-public interface RemoveProperty extends OverwritableOperation<RemoveProperty> {
+public abstract class RemoveProperty extends OverwritableOperation<RemoveProperty> {
 
-	void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException;
+	public abstract void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException;
 }

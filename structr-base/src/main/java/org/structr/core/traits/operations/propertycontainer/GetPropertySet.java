@@ -6,7 +6,7 @@ import org.structr.core.traits.operations.OverwritableOperation;
 
 import java.util.Set;
 
-public interface GetPropertySet extends OverwritableOperation<GetPropertySet> {
+public abstract class GetPropertySet extends OverwritableOperation<GetPropertySet> {
 
-	Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView);
+	public abstract Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView);
 }

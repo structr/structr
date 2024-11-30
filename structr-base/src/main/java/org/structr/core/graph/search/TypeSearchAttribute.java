@@ -24,7 +24,7 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.GraphObjectTrait;
+import org.structr.core.traits.GraphObject;
 import org.structr.core.traits.Trait;
 
 import java.util.Set;
@@ -34,7 +34,7 @@ import java.util.Set;
  *
  * @param <S>
  */
-public class TypeSearchAttribute<S extends GraphObjectTrait> extends PropertySearchAttribute<String> implements TypeQuery {
+public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> implements TypeQuery {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 

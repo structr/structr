@@ -27,7 +27,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.rest.resource.MaintenanceResource;

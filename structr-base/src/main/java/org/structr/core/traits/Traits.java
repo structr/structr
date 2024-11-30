@@ -109,9 +109,14 @@ public class Traits {
 		// overwritable methods
 		for (final OverwritableOperation operation : trait.getOverwritableOperations()) {
 
-			final Class type = operation.getClass();
+			final Class type                   = operation.getClass();
+			final OverwritableOperation parent = overwritableMethods.put(type, operation);
 
-			overwritableMethods.put(type, operation);
+			// replace currently registered implementation and install as super implementation
+			if (parent != null) {
+
+				operation.setSuper(parent);
+			}
 		}
 
 		// properties

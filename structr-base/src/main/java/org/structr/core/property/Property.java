@@ -34,7 +34,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.traits.GraphObjectTrait;
 import org.structr.core.traits.Trait;
 
 import java.util.*;

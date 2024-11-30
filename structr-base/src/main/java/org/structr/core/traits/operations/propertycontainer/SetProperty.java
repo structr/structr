@@ -5,7 +5,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.OverwritableOperation;
 
-public interface SetProperty extends OverwritableOperation<SetProperty> {
+public abstract class SetProperty extends OverwritableOperation<SetProperty> {
 
-	<T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
+	public abstract <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
 }

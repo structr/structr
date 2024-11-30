@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.traits.GraphObjectTrait;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;

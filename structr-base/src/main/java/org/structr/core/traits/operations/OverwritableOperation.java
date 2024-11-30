@@ -1,6 +1,14 @@
 package org.structr.core.traits.operations;
 
-public interface OverwritableOperation<T> {
+public abstract class OverwritableOperation<T> {
 
-	T getSuper();
+	private T superImplementation = null;
+
+	public final T getSuper() {
+		return superImplementation;
+	}
+
+	public final void setSuper(final T superImplementation) {
+		this.superImplementation = superImplementation;
+	}
 }

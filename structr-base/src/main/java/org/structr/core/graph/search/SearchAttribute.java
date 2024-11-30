@@ -22,11 +22,10 @@ import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphObjectTrait;
+import org.structr.core.traits.GraphObject;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -39,16 +38,16 @@ import java.util.Set;
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObjectTrait>, QueryPredicate {
+public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
 
 	public static final String WILDCARD = "*";
 
-	private Comparator<GraphObjectTrait> comparator = null;
- 	private Set<GraphObject> result          = new LinkedHashSet<>();
+	private Comparator<GraphObject> comparator = null;
+ 	private Set<org.structr.core.GraphObject> result          = new LinkedHashSet<>();
 	private Occurrence occur                 = null;
 	private SortOrder sortOrder              = null;
 
-	public abstract boolean includeInResult(final GraphObjectTrait entity);
+	public abstract boolean includeInResult(final GraphObject entity);
 
 	public SearchAttribute() {
 		this(null, null);
@@ -68,26 +67,26 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.occur = occur;
 	}
 
-	public void setResult(final Set<GraphObject> result) {
+	public void setResult(final Set<org.structr.core.GraphObject> result) {
 		this.result = result;
 	}
 
-	public Set<GraphObject> getResult() {
+	public Set<org.structr.core.GraphObject> getResult() {
 		return result;
 	}
 
-	public void addToResult(final GraphObject graphObject) {
+	public void addToResult(final org.structr.core.GraphObject graphObject) {
 		result.add(graphObject);
 	}
 
-	public void addToResult(final Set<GraphObject> list) {
+	public void addToResult(final Set<org.structr.core.GraphObject> list) {
 		result.addAll(list);
 	}
 
 	public void setExactMatch(final boolean exact) {
 	};
 
-	public void setComparator(final Comparator<GraphObjectTrait> comparator) {
+	public void setComparator(final Comparator<GraphObject> comparator) {
 		this.comparator = comparator;
 	}
 
@@ -102,12 +101,12 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
-	public boolean accept(final GraphObjectTrait obj) {
+	public boolean accept(final GraphObject obj) {
 		return includeInResult(obj);
 	}
 
 	@Override
-	public Comparator<GraphObjectTrait> comparator() {
+	public Comparator<GraphObject> comparator() {
 		return comparator;
 	}
 
@@ -141,7 +140,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		if (key != null) {
 
 			final Class declaringClass = key.getDeclaringTrait();
-			if (declaringClass != null && !GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+			if (declaringClass != null && !org.structr.core.GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
 
 				return declaringClass.getSimpleName();
 			}

@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.*;
 import org.structr.core.traits.operations.ComposableOperation;
@@ -39,7 +38,7 @@ import java.util.*;
 
 public final class GraphObjectTraitImplementation extends AbstractTraitImplementation {
 
-	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTrait.class);
+	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTraitImplementation.class);
 
 	private static final String SYSTEM_CATEGORY     = "System";
 	private static final String VISIBILITY_CATEGORY = "Visibility";
@@ -58,7 +57,28 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	public Set<ComposableOperation> getComposableOperations() {
 
 		return Set.of(
-			isValid()
+
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final org.structr.core.GraphObject graphObject, final ErrorBuffer errorBuffer) {
+
+					final SecurityContext securityContext = graphObject.getSecurityContext();
+					boolean valid = true;
+
+					// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
+					valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
+
+					if (securityContext != null && securityContext.uuidWasSetManually()) {
+						valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
+					}
+
+					valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
+					valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
+
+					return valid;
+				}
+			}
 		);
 	}
 
@@ -66,7 +86,25 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	public Set<OverwritableOperation> getOverwritableOperations() {
 
 		return Set.of(
-			indexPassiveProperties()
+
+			new IndexPassiveProperties() {
+
+				@Override
+				public void indexPassiveProperties(final org.structr.core.GraphObject graphObject) {
+
+					final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
+
+					for (PropertyKey key : graphObject.getPropertyKeys(PropertyView.All)) {
+
+						if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
+
+							passiveIndexingKeys.add(key);
+						}
+					}
+
+					addToIndex(graphObject, passiveIndexingKeys);
+				}
+			}
 		);
 	}
 
@@ -86,58 +124,7 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	}
 
 	// ----- private methods -----
-	private IsValid isValid() {
-
-		return new IsValid() {
-			@Override
-			public Boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
-
-				final SecurityContext securityContext = graphObject.getSecurityContext();
-				boolean valid = true;
-
-				// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
-				valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
-
-				if (securityContext != null && securityContext.uuidWasSetManually()) {
-					valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
-				}
-
-				valid &= ValidationHelper.isValidUuid(graphObject, idProperty, errorBuffer);
-				valid &= ValidationHelper.isValidStringNotBlank(graphObject, typeProperty, errorBuffer);
-
-				return valid;
-			}
-		};
-	}
-
-	private IndexPassiveProperties indexPassiveProperties() {
-
-		return new IndexPassiveProperties() {
-
-			@Override
-			public void indexPassiveProperties(final GraphObject graphObject) {
-
-				final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
-
-				for (PropertyKey key : graphObject.getPropertyKeys(PropertyView.All)) {
-
-					if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
-
-						passiveIndexingKeys.add(key);
-					}
-				}
-
-				addToIndex(graphObject, passiveIndexingKeys);
-			}
-
-			@Override
-			public Object getSuper() {
-				return null;
-			}
-		};
-	}
-
-	private void addToIndex(final GraphObject obj, final Set<PropertyKey> indexKeys) {
+	private void addToIndex(final org.structr.core.GraphObject obj, final Set<PropertyKey> indexKeys) {
 
 		final Map<String, Object> values = new LinkedHashMap<>();
 
@@ -157,7 +144,7 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 
 				} catch (FrameworkException ex) {
 
-					final Logger logger = LoggerFactory.getLogger(GraphObject.class);
+					final Logger logger = LoggerFactory.getLogger(org.structr.core.GraphObject.class);
 					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
 					logger.warn("Exception", ex);
 				}
@@ -181,7 +168,7 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 
 		} catch (UnknownClientException | UnknownDatabaseException e) {
 
-			final Logger logger = LoggerFactory.getLogger(GraphObject.class);
+			final Logger logger = LoggerFactory.getLogger(org.structr.core.GraphObject.class);
 			logger.warn("Unable to index properties of {} with UUID {}: {}", obj.getType(), obj.getUuid(), e.getMessage());
 			logger.warn("Properties: {}", values);
 		}

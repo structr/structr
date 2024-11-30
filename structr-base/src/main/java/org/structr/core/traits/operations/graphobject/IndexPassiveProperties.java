@@ -3,7 +3,7 @@ package org.structr.core.traits.operations.graphobject;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.operations.OverwritableOperation;
 
-public interface IndexPassiveProperties extends OverwritableOperation {
+public abstract class IndexPassiveProperties extends OverwritableOperation {
 
-	void indexPassiveProperties(final GraphObject graphObject);
+	public abstract void indexPassiveProperties(final GraphObject graphObject);
 }
