@@ -2,6 +2,7 @@ package org.structr.core.traits;
 
 public class StructrBaseTraits {
 
+	private static final PropertyContainerTraitImplementation propertyContainerTraitImplementation = new PropertyContainerTraitImplementation();
 	private static final GraphObjectTraitImplementation graphObjectTraitImplementation = new GraphObjectTraitImplementation();
 	private static final NodeInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
 	//private static final RelationshipInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
@@ -16,6 +17,7 @@ public class StructrBaseTraits {
 		final Traits traits = new Traits("Principal", true);
 
 		// Principal consists of the following traits
+		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
 		traits.registerImplementation(nodeInterfaceTraitImplementation);
 	}
@@ -25,6 +27,7 @@ public class StructrBaseTraits {
 		final Traits traits = new Traits(typeName, true);
 
 		// Node types consist of at least the following traits
+		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
 		traits.registerImplementation(nodeInterfaceTraitImplementation);
 	}
@@ -33,7 +36,8 @@ public class StructrBaseTraits {
 
 		final Traits traits = new Traits(typeName, false);
 
-		// Node types consist of at least the following traits
+		// Relationship types consist of at least the following traits
+		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
 		//traits.registerImplementation(relationshipInterfaceTraitImplementation);
 	}

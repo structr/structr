@@ -28,7 +28,6 @@ import java.util.Map;
 public interface PropertyContainer {
 
 	Identity getId();
-	String getType();
 
 	default void invalidate() {}
 

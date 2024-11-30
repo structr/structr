@@ -1,4 +1,6 @@
 package org.structr.core.traits.operations;
 
-public interface OverwritableOperation {
+public interface OverwritableOperation<T> {
+
+	T getSuper();
 }

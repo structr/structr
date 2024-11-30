@@ -38,18 +38,6 @@ import java.util.Set;
 
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
-	/*
-	// properties
-	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
-	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
-
-	public static final Property<Principal>  owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
-
-	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
-	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
-	*/
-
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
 	void onNodeDeletion(SecurityContext securityContext) throws FrameworkException;

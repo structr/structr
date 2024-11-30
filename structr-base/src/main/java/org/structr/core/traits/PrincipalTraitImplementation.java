@@ -40,15 +40,28 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.operations.ComposableOperation;
+import org.structr.core.traits.operations.OverwritableOperation;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-public class PrincipalTraitImplementation extends AbstractTraitImplementation implements PrincipalTrait {
+public class PrincipalTraitImplementation extends AbstractTraitImplementation {
 
-	public PrincipalTraitImplementation(final Traits traits) {
-		super(traits);
+	@Override
+	public Set<ComposableOperation> getComposableOperations() {
+		return Set.of();
+	}
+
+	@Override
+	public Set<OverwritableOperation> getOverwritableOperations() {
+		return Set.of();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of();
 	}
 
 	@Override

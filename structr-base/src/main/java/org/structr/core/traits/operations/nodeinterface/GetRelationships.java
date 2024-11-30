@@ -1,36 +1,13 @@
-/*
- * Copyright (C) 2010-2024 Structr GmbH
- *
- * This file is part of Structr <http://structr.org>.
- *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
- */
-package org.structr.core.traits;
+package org.structr.core.traits.operations.nodeinterface;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.operations.OverwritableOperation;
 
-public interface NodeInterfaceTrait {
-
-	void onNodeCreation(final NodeInterface node,  final SecurityContext securityContext) throws FrameworkException;
-	void onNodeInstantiation(final NodeInterface node, final boolean isCreation);
-	void onNodeDeletion(final NodeInterface node, SecurityContext securityContext) throws FrameworkException;
+public interface GetRelationships extends OverwritableOperation<GetRelationships> {
 
 	boolean hasRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);
 	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);

@@ -43,7 +43,7 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	}
 
 	@Override
-	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<NodeInterface> predicate) {
 
 		final NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
 		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
@@ -82,12 +82,12 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	}
 
 	@Override
-	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate) {
 		return getSingle(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType());
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<NodeInterface> predicate) {
 		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

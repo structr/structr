@@ -598,6 +598,12 @@
             <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.odftoolkit</groupId>
+            <artifactId>odfdom-java</artifactId>
+            <version>1.0.0-BETA1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
