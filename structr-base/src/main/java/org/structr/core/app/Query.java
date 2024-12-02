@@ -28,7 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.Comparator;
 import java.util.List;
@@ -60,8 +60,8 @@ public interface Query<T> {
 	Query<T> publicOnly(final boolean publicOnly);
 	Query<T> includeHidden(final boolean includeHidden);
 	Query<T> uuid(final String uuid);
-	Query<T> andType(final Trait type);
-	Query<T> orType(final Trait type);
+	Query<T> andType(final TraitDefinition type);
+	Query<T> orType(final TraitDefinition type);
 
 	Query<T> andName(final String name);
 	Query<T> orName(final String name);

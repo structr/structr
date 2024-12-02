@@ -23,5 +23,5 @@ import org.structr.api.graph.PropertyContainer;
 @FunctionalInterface
 public interface ImplementationFactory {
 
-	Trait createImplementation(final PropertyContainer obj);
+	TraitDefinition createImplementation(final PropertyContainer obj);
 }

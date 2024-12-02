@@ -42,7 +42,7 @@ import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.GraphObject;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 
 import java.util.*;
@@ -431,14 +431,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andType(final Trait<? extends T> type) {
+	public org.structr.core.app.Query<T> andType(final TraitDefinition<? extends T> type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> orType(final Trait<? extends T> type) {
+	public org.structr.core.app.Query<T> orType(final TraitDefinition<? extends T> type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
@@ -834,7 +834,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		if (key != null && !key.isIndexed() && key instanceof AbstractPrimitiveProperty) {
 
-			final Trait<?> declaringClass = key.getDeclaringTrait();
+			final TraitDefinition<?> declaringClass = key.getDeclaringTrait();
 			String className           = "";
 
 			if (declaringClass != null) {

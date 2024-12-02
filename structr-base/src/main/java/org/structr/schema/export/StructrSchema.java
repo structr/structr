@@ -30,8 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.Trait;
-import org.structr.schema.SchemaService;
+import org.structr.core.traits.TraitDefinition;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -154,13 +153,13 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			app.deleteAllNodesOfType(Trait.of(SchemaRelationshipNode.class));
-			app.deleteAllNodesOfType(Trait.of(SchemaNode.class));
-			app.deleteAllNodesOfType(Trait.of(SchemaMethod.class));
-			app.deleteAllNodesOfType(Trait.of(SchemaMethodParameter.class));
-			app.deleteAllNodesOfType(Trait.of(SchemaProperty.class));
-			app.deleteAllNodesOfType(Trait.of(SchemaView.class));
-			app.deleteAllNodesOfType(Trait.of(SchemaGrant.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaRelationshipNode.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaNode.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaMethod.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaMethodParameter.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaProperty.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaView.class));
+			app.deleteAllNodesOfType(TraitDefinition.of(SchemaGrant.class));
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 

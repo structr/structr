@@ -19,25 +19,24 @@
 package org.structr.core.traits;
 
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
-public abstract class AbstractTraitImplementation implements Trait {
+/**
+ * A named collection of properties and methods with a
+ * factory that can instantiate implementations.
+ */
+public interface TraitDefinition {
 
-	protected final Map<String, PropertyKey> properties = new HashMap<>();
+	boolean hasKey(final String name);
+	PropertyKey key(final String name);
 
-	@Override
-	public Set<PropertyKey> getPropertyKeys(final String view) {
-		return new LinkedHashSet<>(properties.values());
-	}
+	Set<PropertyKey> getPropertyKeys(final String view);
 
-	@Override
-	public boolean hasKey(final String name) {
-		return properties.containsKey(name);
-	}
-
-	@Override
-	public PropertyKey key(final String name) {
-		return properties.get(name);
-	}
+	Map<Class, LifecycleMethod> getLifecycleMethods();
+	Map<Class, FrameworkMethod> getFrameworkMethods();
+	Set<PropertyKey> getPropertyKeys();
 }

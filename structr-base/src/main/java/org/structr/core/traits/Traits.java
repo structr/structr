@@ -29,7 +29,7 @@ import java.util.*;
  */
 public class Traits {
 
-	private static final Map<String, Trait> types = new LinkedHashMap<>();
+	private static final Map<String, TraitDefinition> types = new LinkedHashMap<>();
 
 	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
 	private final Map<Class, Set> composableMethods                     = new LinkedHashMap<>();
@@ -52,13 +52,13 @@ public class Traits {
 		return types.containsKey(type);
 	}
 
-	public Trait get(final String type) {
+	public TraitDefinition get(final String type) {
 		return types.get(type);
 	}
 
 	public <T> PropertyKey<T> key(final String name) {
 
-		for (final Trait trait : types.values()) {
+		for (final TraitDefinition trait : types.values()) {
 
 			if (trait.hasKey(name)) {
 				return trait.key(name);
@@ -80,7 +80,7 @@ public class Traits {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
-		for (final Trait trait : types.values()) {
+		for (final TraitDefinition trait : types.values()) {
 
 			set.addAll(trait.getPropertyKeys(propertyView));
 		}
@@ -96,26 +96,27 @@ public class Traits {
 		return (T) overwritableMethods.get(type);
 	}
 
-	public void registerImplementation(final Trait trait) {
+	public void registerImplementation(final TraitDefinition trait) {
 
 		// composable methods (like callbacks etc.)
-		for (final LifecycleMethod operation : trait.getLifecycleMethods()) {
+		for (final Map.Entry<Class, LifecycleMethod> entry : trait.getLifecycleMethods().entrySet()) {
 
-			final Class type = operation.getClass();
+			final Class type = entry.getKey();
 
-			composableMethods.computeIfAbsent(type, k -> new LinkedHashSet()).add(operation);
+			composableMethods.computeIfAbsent(type, k -> new LinkedHashSet()).add(entry.getValue());
 		}
 
 		// overwritable methods
-		for (final FrameworkMethod operation : trait.getFrameworkMethods()) {
+		for (final Map.Entry<Class, FrameworkMethod> entry : trait.getFrameworkMethods().entrySet()) {
 
-			final Class type                   = operation.getClass();
-			final FrameworkMethod parent = overwritableMethods.put(type, operation);
+			final Class type             = entry.getKey();
+			final FrameworkMethod method = entry.getValue();
+			final FrameworkMethod parent = overwritableMethods.put(type, method);
 
 			// replace currently registered implementation and install as super implementation
 			if (parent != null) {
 
-				operation.setSuper(parent);
+				method.setSuper(parent);
 			}
 		}
 

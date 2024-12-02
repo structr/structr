@@ -46,7 +46,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
@@ -463,8 +463,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final PropertyKey<String> confKey  = Trait.of(User.class).key("confirmationKey");
-		final PropertyKey<String> eMailKey = Trait.of(User.class).key("eMail");
+		final PropertyKey<String> confKey  = TraitDefinition.of(User.class).key("confirmationKey");
+		final PropertyKey<String> eMailKey = TraitDefinition.of(User.class).key("eMail");
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
@@ -665,7 +665,7 @@ public class UiAuthenticator implements Authenticator {
 
 				if (value != null) {
 
-					final PropertyKey credentialKey = Trait.of(User.class).key("eMail");
+					final PropertyKey credentialKey = TraitDefinition.of(User.class).key("eMail");
 
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
@@ -849,7 +849,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if (authorizationToken != null) {
 
-			final PropertyKey<String> eMailKey = Trait.of(User.class).key("eMail");
+			final PropertyKey<String> eMailKey = TraitDefinition.of(User.class).key("eMail");
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
@@ -875,7 +875,7 @@ public class UiAuthenticator implements Authenticator {
 
 					} catch (AuthenticationException ex) {
 
-						final PropertyKey<String> eMailKey = Trait.of(User.class).key("eMail");
+						final PropertyKey<String> eMailKey = TraitDefinition.of(User.class).key("eMail");
 						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
 					}
 				}

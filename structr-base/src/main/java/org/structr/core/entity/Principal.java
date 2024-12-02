@@ -18,19 +18,14 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
-import org.structr.core.entity.relationship.PrincipalFAVORITEFavoritable;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
 
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public interface Principal extends NodeInterface, AccessControllable {
+public interface Principal {
 
 	String HIDDEN                            = "****** HIDDEN ******";
 	String SUPERUSER_ID                      = "00000000000000000000000000000000";
@@ -42,6 +37,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 		blockedProperty
 	);
 	*/
+
+	String getUuid();
+	String getName();
 
 	Iterable<Favoritable> getFavorites();
 	Iterable<Group> getGroups();
@@ -57,8 +55,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 	void setSalt(final String salt) throws FrameworkException;
 	String getLocale();
 	boolean shouldSkipSecurityRelationships();
-	Iterable<Principal> getParents();
-	Iterable<Principal> getParentsPrivileged();
+	Iterable<Group> getParents();
+	Iterable<Group> getParentsPrivileged();
 	boolean addSessionId(final String sessionId);
 	boolean addRefreshToken(final String refreshToken);
 	void removeSessionId(final String sessionId);
@@ -69,6 +67,16 @@ public interface Principal extends NodeInterface, AccessControllable {
 	String getSalt();
 	String getTwoFactorSecret();
 	String getTwoFactorUrl();
+	void setTwoFactorConfirmed(final boolean b) throws FrameworkException;
+	void setTwoFactorToken(final String token) throws FrameworkException;
+	boolean isTwoFactorUser();
+	void setIsTwoFactorUser(final boolean b) throws FrameworkException;
+	boolean isTwoFactorConfirmed();
+	Integer getPasswordAttempts();
+	Date getPasswordChangeDate();
+	void setPasswordAttempts(int num) throws FrameworkException;
+	void setLastLoginDate(final Date date) throws FrameworkException;
+	String[] getSessionIds();
 
 	default void onAuthenticate() {}
 

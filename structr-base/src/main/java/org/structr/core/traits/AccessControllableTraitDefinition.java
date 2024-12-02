@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.traits;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
+import org.structr.core.entity.SecurityRelationship;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -23,20 +42,29 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
+import org.structr.core.traits.operations.graphobject.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AccessControllableTraitImplementation extends AbstractTraitImplementation {
+public class AccessControllableTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Logger logger                                                                        = LoggerFactory.getLogger(AccessControllableTraitImplementation.class);
+	private static final Logger logger                                                                        = LoggerFactory.getLogger(AccessControllableTraitDefinition.class);
 	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                                 = new FixedSizeCache<>("Grant result cache", 100000);
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
+		return Map.of(
+
+			OnModification.class,         new OnModificationActionVoid(AccessControllableTraitDefinition::clearCaches),
+			OnDeletion.class,             new OnDeletionActionVoid(AccessControllableTraitDefinition::clearCaches),
+			OwnerModified.class,          new OwnerModifiedActionVoid(AccessControllableTraitDefinition::clearCaches),
+			SecurityModified.class,       new SecurityModifiedActionVoid(AccessControllableTraitDefinition::clearCaches),
+			LocationModified.class,       new LocationModifiedActionVoid(AccessControllableTraitDefinition::clearCaches),
+			PropagatedModification.class, new PropagatedModificationActionVoid(AccessControllableTraitDefinition::clearCaches)
+		);
 	}
 
 	@Override
@@ -85,7 +113,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 					}
 
 					final boolean doLog = node.getSecurityContext().hasParameter("logPermissionResolution");
-					final boolean result = AccessControllableTraitImplementation.isGranted(node, permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true, doLog, isCreation);
+					final boolean result = AccessControllableTraitDefinition.isGranted(node, permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true, doLog, isCreation);
 
 					isGrantedResultCache.put(cacheKey, result);
 
@@ -105,12 +133,12 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 					clearCaches();
 
-					RelationshipInterface<Principal, NodeInterface> secRel = node.getSecurityRelationship(principal);
+					final Security secRel = node.getSecurityRelationship(principal);
 					if (secRel == null) {
 
 						try {
 
-							Set<String> permissionSet = new HashSet<>();
+							final Set<String> permissionSet = new HashSet<>();
 
 							for (Permission permission : permissions) {
 
@@ -119,16 +147,17 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 							// ensureCardinality is not neccessary here
 							final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-							final PropertyMap properties = new PropertyMap();
+							final PropertyMap properties           = new PropertyMap();
+
 							superUserContext.disablePreventDuplicateRelationships();
 
 							// performance improvement for grant(): add properties to the CREATE call that would
 							// otherwise be set in separate calls later in the transaction.
-							properties.put(Security.principalId, principal.getUuid());
-							properties.put(Security.accessControllableId, node.getUuid());
-							properties.put(Security.allowed, permissionSet.toArray(new String[permissionSet.size()]));
+							properties.put(SecurityRelationship.principalId, principal.getUuid());
+							properties.put(SecurityRelationship.accessControllableId, node.getUuid());
+							properties.put(SecurityRelationship.allowed, permissionSet.toArray(new String[permissionSet.size()]));
 
-							StructrApp.getInstance(superUserContext).create(principal, node, Security.class, properties);
+							StructrApp.getInstance(superUserContext).create(principal, node, SecurityRelationship.class, properties);
 
 						} catch (FrameworkException ex) {
 
@@ -154,7 +183,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 					clearCaches();
 
-					RelationshipInterface<Principal, NodeInterface> secRel = node.getSecurityRelationship(principal);
+					final Security secRel = node.getSecurityRelationship(principal);
 					if (secRel != null) {
 
 						secRel.removePermissions(permissions);
@@ -181,7 +210,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 						permissionSet.add(permission.name());
 					}
 
-					RelationshipInterface<Principal, NodeInterface> secRel = node.getSecurityRelationship(principal);
+					final Security secRel = node.getSecurityRelationship(principal);
 					if (secRel == null) {
 
 						if (!permissions.isEmpty()) {
@@ -190,16 +219,17 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 								// ensureCardinality is not necessary here
 								final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-								final PropertyMap properties = new PropertyMap();
+								final PropertyMap properties           = new PropertyMap();
+
 								superUserContext.disablePreventDuplicateRelationships();
 
 								// performance improvement for grant(): add properties to the CREATE call that would
 								// otherwise be set in separate calls later in the transaction.
-								properties.put(Security.principalId, principal.getUuid());
-								properties.put(Security.accessControllableId, node.getUuid());
-								properties.put(Security.allowed, permissionSet.toArray(new String[permissionSet.size()]));
+								properties.put(SecurityRelationship.principalId, principal.getUuid());
+								properties.put(SecurityRelationship.accessControllableId, node.getUuid());
+								properties.put(SecurityRelationship.allowed, permissionSet.toArray(new String[permissionSet.size()]));
 
-								StructrApp.getInstance(superUserContext).create(principal, node, Security.class, properties);
+								StructrApp.getInstance(superUserContext).create(principal, node, SecurityRelationship.class, properties);
 
 							} catch (FrameworkException ex) {
 
@@ -217,9 +247,9 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 			new GetSecurityRelationships() {
 
 				@Override
-				public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships(final NodeInterface node) {
+				public List<Security> getSecurityRelationships(final NodeInterface node) {
 
-					final List<RelationshipInterface<Principal, NodeInterface>> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser(Security.class, null));
+					final List<RelationshipInterface<Principal, NodeInterface>> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser(SecurityRelationship.class, null));
 
 					// sort list by principal name (important for diff'able export)
 					Collections.sort(grants, (o1, o2) -> {
@@ -247,11 +277,11 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 
 				@Override
-				public RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final NodeInterface node, final Principal p) {
+				public Security getSecurityRelationship(final NodeInterface node, final Principal p) {
 
-					return AccessControllableTraitImplementation.getSecurityRelationship(
+					return AccessControllableTraitDefinition.getSecurityRelationship(
 						p,
-						AccessControllableTraitImplementation.mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(Security.class, null))
+						AccessControllableTraitDefinition.mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(SecurityRelationship.class, null))
 					);
 				}
 			},
@@ -277,7 +307,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 		isGrantedResultCache.clear();
 	}
 
-	private static RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal p, final Map<String, RelationshipInterface<Principal, NodeInterface>> securityRelationships) {
+	private static Security getSecurityRelationship(final Principal p, final Map<String, Security> securityRelationships) {
 
 		if (p == null) {
 
@@ -287,11 +317,12 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 		return securityRelationships.get(p.getUuid());
 	}
 
-	private static Map<String, RelationshipInterface<Principal, NodeInterface>> mapSecurityRelationshipsMapped(final Iterable<RelationshipInterface<Principal, NodeInterface>> src) {
+	private static Map<String, Security> mapSecurityRelationshipsMapped(final Iterable<RelationshipInterface<Principal, NodeInterface>> src) {
 
-		final Map<String, RelationshipInterface<Principal, NodeInterface>> map = new HashMap<>();
+		final Map<String, Security> map = new HashMap<>();
 
 		for (final RelationshipInterface<Principal, NodeInterface> sec : src) {
+
 
 			map.put(sec.getSourceNodeId(), sec);
 		}
@@ -300,10 +331,10 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	}
 
 	private static boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final boolean isCreation) {
-		return AccessControllableTraitImplementation.isGranted(node, permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null, isCreation);
+		return AccessControllableTraitDefinition.isGranted(node, permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null, isCreation);
 	}
 
-	private static boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, RelationshipInterface<Principal, NodeInterface>> incomingSecurityRelationships, final boolean isCreation) {
+	private static boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships, final boolean isCreation) {
 
 		if (level > 300) {
 			logger.warn("Aborting recursive permission resolution for {} on {} because of recursion level > 300, this is quite likely an infinite loop.", permission.name(), node.getType() + "(" + node.getUuid() + ")");
@@ -351,8 +382,8 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				return true;
 			}
 
-			final Map<String, RelationshipInterface<Principal, NodeInterface>> localIncomingSecurityRelationships = incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(Security.class, null));
-			final RelationshipInterface<Principal, NodeInterface> security = AccessControllableTraitImplementation.getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
+			final Map<String, Security> localIncomingSecurityRelationships = incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(SecurityRelationship.class, null));
+			final Security security                                        = AccessControllableTraitDefinition.getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 
 			if (security != null && security.isAllowed(permission)) {
 				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
@@ -707,7 +738,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 
 	protected String getAccessControlNotPermittedExceptionString(final GraphObject graphObject, final String action, final Set<Permission> permissions, Principal principal, final SecurityContext ctx) {
 
-		final String userString       = PropertyContainerTraitImplementation.getCurrentUserString(ctx);
+		final String userString       = PropertyContainerTraitDefinition.getCurrentUserString(ctx);
 		final String thisNodeString   = graphObject.getType()      + "(" + graphObject.getUuid()      + ")";
 		final String principalString  = principal.getType() + "(" + principal.getUuid() + ")";
 		final String permissionString = permissions.stream().map(p -> p.name()).collect(Collectors.joining(", "));

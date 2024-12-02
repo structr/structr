@@ -23,7 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.core.notion.Notion;
 import org.structr.core.traits.GraphObjectTraits;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 
 /**
  *
@@ -32,7 +32,7 @@ public interface RelationProperty<T> {
 
 	Notion getNotion();
 
-	Trait<? extends T> getTargetType();
+	TraitDefinition<? extends T> getTargetType();
 
 	Relation getRelation();
 

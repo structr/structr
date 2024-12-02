@@ -26,7 +26,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.GraphObject;
 import org.structr.core.traits.NodeInterface;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -42,7 +42,7 @@ import java.util.Set;
  */
 public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 
-	public abstract T deserialize(final SecurityContext securityContext, Trait<T> type, S source, final Object context) throws FrameworkException;
+	public abstract T deserialize(final SecurityContext securityContext, TraitDefinition<T> type, S source, final Object context) throws FrameworkException;
 
 	public abstract void setRelationProperty(final RelationProperty<S> parentProperty);
 

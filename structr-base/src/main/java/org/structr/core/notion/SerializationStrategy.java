@@ -23,7 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.GraphObjectTraits;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 
 /**
  * Defines a strategy for serializing a {@link GraphObject} into an output
@@ -33,7 +33,7 @@ import org.structr.core.traits.Trait;
  */
 public interface SerializationStrategy<S extends GraphObjectTraits, T> {
 
-	public T serialize(SecurityContext securityContext, Trait<S> type, S source) throws FrameworkException;
+	public T serialize(SecurityContext securityContext, TraitDefinition<S> type, S source) throws FrameworkException;
 
 	public void setRelationProperty(final RelationProperty<T> parentProperty);
 }

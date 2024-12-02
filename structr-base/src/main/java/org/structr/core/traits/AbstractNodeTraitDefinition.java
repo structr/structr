@@ -1,26 +1,36 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.traits;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.graphobject.*;
 
 import java.util.Map;
 import java.util.Set;
 
-public class AbstractNodeTraitImplementation extends AbstractTraitImplementation {
+public class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
 		return Map.of(
-
-			OnModification.class,         new OnModificationActionVoid(this::clearCaches),
-			OnDeletion.class,             new OnDeletionActionVoid(this::clearCaches),
-			OwnerModified.class,          new OwnerModifiedActionVoid(this::clearCaches),
-			SecurityModified.class,       new SecurityModifiedActionVoid(this::clearCaches),
-			LocationModified.class,       new LocationModifiedActionVoid(this::clearCaches),
-			PropagatedModification.class, new PropagatedModificationActionVoid(this::clearCaches)
 		);
 	}
 

@@ -1830,22 +1830,22 @@ public class BasicTest extends StructrTest {
 			final List<? extends RelationshipInterface> rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
 			final List<Class> classes1                        = rels1.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
-			assertTrue("Invalid relationship type after object creation", classes1.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes1.contains(SecurityRelationship.class));
 			assertTrue("Invalid relationship type after object creation", classes1.contains(PrincipalOwnsNode.class));
 
 			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
 			final List<Class> classes2                        = rels2.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
-			assertTrue("Invalid relationship type after object creation", classes2.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes2.contains(SecurityRelationship.class));
 			assertTrue("Invalid relationship type after object creation", classes2.contains(PrincipalOwnsNode.class));
 
 			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
 			final List<Class> classes3                        = rels3.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());
-			assertTrue("Invalid relationship type after object creation", classes3.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes3.contains(SecurityRelationship.class));
 			assertTrue("Invalid relationship type after object creation", classes3.contains(PrincipalOwnsNode.class));
 
-			final Security sec = app.relationshipQuery(Security.class).getFirst();
+			final Security sec = app.relationshipQuery(SecurityRelationship.class).getFirst();
 			assertNotNull("Relationship caching on node creation is broken", sec);
 
 			final PrincipalOwnsNode owns = app.relationshipQuery(PrincipalOwnsNode.class).getFirst();
@@ -1954,7 +1954,7 @@ public class BasicTest extends StructrTest {
 			final List<Class> classes4                        = rels4.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 0, rels4.size());
 
-			final Security sec = app.relationshipQuery(Security.class).getFirst();
+			final Security sec = app.relationshipQuery(SecurityRelationship.class).getFirst();
 			assertNull("Relationship caching on node creation is broken", sec);
 
 			final PrincipalOwnsNode owns = app.relationshipQuery(PrincipalOwnsNode.class).getFirst();

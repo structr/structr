@@ -34,7 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -50,7 +50,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	protected final List<String> transformators            = new LinkedList<>();
 	protected UpdateCallback<T> updateCallback             = null;
-	protected Trait<? extends GraphObjectTraits> declaringTrait = null;
+	protected TraitDefinition<? extends GraphObjectTraits> declaringTrait = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
 	protected boolean systemInternal                       = false;
@@ -265,7 +265,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringTrait(final Trait<? extends GraphObjectTraits> declaringTrait) {
+	public void setDeclaringTrait(final TraitDefinition<? extends GraphObjectTraits> declaringTrait) {
 		this.declaringTrait = declaringTrait;
 	}
 
@@ -274,7 +274,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Trait<? extends GraphObjectTraits> getDeclaringTrait() {
+	public TraitDefinition<? extends GraphObjectTraits> getDeclaringTrait() {
 		return declaringTrait;
 	}
 
