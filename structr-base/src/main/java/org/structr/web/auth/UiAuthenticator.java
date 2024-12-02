@@ -42,6 +42,7 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
@@ -223,15 +224,15 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
+			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery("CorsSetting").and(CorsSetting.requestUri, requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
-				acceptedOriginsString = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.acceptedOrigins,  acceptedOriginsString);
+				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.acceptedOrigins,  acceptedOriginsString);
 				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.maxAge,           maxAge);
-				allowMethods          = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowMethods,     allowMethods);
-				allowHeaders          = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowHeaders,     allowHeaders);
-				allowCredentials      = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowCredentials, allowCredentials);
-				exposeHeaders         = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.exposeHeaders,    exposeHeaders);
+				allowMethods          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.allowMethods,     allowMethods);
+				allowHeaders          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.allowHeaders,     allowHeaders);
+				allowCredentials      = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.allowCredentials, allowCredentials);
+				exposeHeaders         = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.exposeHeaders,    exposeHeaders);
 			}
 
 			tx.success();
@@ -541,7 +542,7 @@ public class UiAuthenticator implements Authenticator {
 	/**
 	 * Get effective CORS setting
 	 */
-	private <T> Object getEffectiveCorsSettingValue(final CorsSetting corsSettingObjectFromDatabase, final PropertyKey<T> corsSettingPropertyKey, final T defaultValue) throws FrameworkException {
+	private <T> Object getEffectiveCorsSettingValue(final NodeInterface corsSettingObjectFromDatabase, final PropertyKey<T> corsSettingPropertyKey, final T defaultValue) throws FrameworkException {
 
 		if (corsSettingObjectFromDatabase != null) {
 

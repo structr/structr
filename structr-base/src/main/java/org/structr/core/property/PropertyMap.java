@@ -309,7 +309,7 @@ public class PropertyMap {
 
 		if (source != null) {
 
-			Object typeName = source.get(AbstractNode.typeHandler.jsonName());
+			Object typeName = source.get(AbstractNode.type.jsonName());
 			if (typeName != null) {
 
 				Class<? extends GraphObject> type = SchemaHelper.getEntityClassForRawType(typeName.toString());
@@ -385,7 +385,7 @@ public class PropertyMap {
 
 							// allow custom attributes on DOMNode
 
-						} else if ("PrincipalInterface".equals(type.getSimpleName()) && "allowed".equals(key)) {
+						} else if ("PrincipalInterface".equals(type) && "allowed".equals(key)) {
 
 							// allow "allowed" property for grantees
 
@@ -395,18 +395,18 @@ public class PropertyMap {
 							switch (Settings.InputValidationMode.getValue()) {
 
 								case "reject_warn":
-									logger.warn("Rejecting input with unknown JSON key for type {}: \"{}\" = \"{}\"", type.getSimpleName(), key, value);
+									logger.warn("Rejecting input with unknown JSON key for type {}: \"{}\" = \"{}\"", type, key, value);
 								case "reject":
-									throw new FrameworkException(422, "Rejecting input with unknown JSON key for type " + type.getSimpleName() + ": \"" + key + "\" with value \"" + value + "\".");
+									throw new FrameworkException(422, "Rejecting input with unknown JSON key for type " + type + ": \"" + key + "\" with value \"" + value + "\".");
 
 								case "ignore_warn":
-									logger.warn("Ignoring unknown JSON key for type {}: \"{}\" = \"{}\"", type.getSimpleName(), key, value);
+									logger.warn("Ignoring unknown JSON key for type {}: \"{}\" = \"{}\"", type, key, value);
 								case "ignore":
 									// move on to the next key/value pair
 									continue;
 
 								case "accept_warn":
-									logger.warn("Accepting unknown JSON key for type {}: \"{}\" = \"{}\"", type.getSimpleName(), key, value);
+									logger.warn("Accepting unknown JSON key for type {}: \"{}\" = \"{}\"", type, key, value);
 								case "accept":
 									// allow the key/value pair to be read
 							}

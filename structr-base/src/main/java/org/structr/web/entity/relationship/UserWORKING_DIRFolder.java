@@ -22,16 +22,16 @@ import org.structr.core.entity.ManyToOne;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
-public class UserWORKING_DIRFolder extends ManyToOne<User, Folder> {
+public class UserWORKING_DIRFolder extends ManyToOne {
 
 	@Override
-	public Class<User> getSourceType() {
-		return User.class;
+	public String getSourceType() {
+		return "User";
 	}
 
 	@Override
-	public Class<Folder> getTargetType() {
-		return Folder.class;
+	public String getTargetType() {
+		return "Folder";
 	}
 
 	@Override

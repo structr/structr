@@ -42,8 +42,8 @@ import java.util.*;
 
 public class PrincipalTrait implements Principal {
 
-	private final NodeInterface nodeInterface;
-	private final Traits traits;
+	protected final NodeInterface nodeInterface;
+	protected final Traits traits;
 
 	public PrincipalTrait(final Traits traits, final NodeInterface nodeInterface) {
 
@@ -191,10 +191,11 @@ public class PrincipalTrait implements Principal {
 
 		try {
 
-			final App app                       = StructrApp.getInstance();
-			final Principal privilegedPrincipal = app.getNodeById(Principal.class, nodeInterface.getUuid());
+			final App app             = StructrApp.getInstance();
+			final NodeInterface node  = app.getNodeById("Principal", nodeInterface.getUuid());
+			final Principal principal = new PrincipalTrait(null, node);
 
-			return privilegedPrincipal.getGroups();
+			return principal.getGroups();
 
 		} catch (FrameworkException fex) {
 

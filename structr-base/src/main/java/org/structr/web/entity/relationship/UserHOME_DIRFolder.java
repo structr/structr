@@ -19,20 +19,19 @@
 package org.structr.web.entity.relationship;
 
 import org.structr.core.entity.OneToOne;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
-public class UserHOME_DIRFolder extends OneToOne<User, Folder> {
+public class UserHOME_DIRFolder extends OneToOne {
 
 	@Override
-	public Class<User> getSourceType() {
-		return User.class;
+	public String getSourceType() {
+		return "User";
 	}
 
 	@Override
-	public Class<Folder> getTargetType() {
-		return Folder.class;
+	public String getTargetType() {
+		return "Folder";
 	}
+
 
 	@Override
 	public String name() {

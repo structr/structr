@@ -118,7 +118,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return the value type
 	 */
-	Class valueType();
+	String valueType();
 
 	/**
 	 * Returns the type of the related property this property key references, or
@@ -126,7 +126,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return relatedType
 	 */
-	Class relatedType();
+	String relatedType();
 
 	/**
 	 * Returns the format value for this property.
@@ -194,7 +194,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate);
 	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
-	void registrationCallback(final Class<GraphObject> entityType);
+	void registrationCallback(final String entityType);
 
 	/**
 	 * Indicates whether this property is an unvalidated property or not.

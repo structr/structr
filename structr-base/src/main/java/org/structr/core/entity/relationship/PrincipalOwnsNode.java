@@ -19,8 +19,6 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 
@@ -28,11 +26,11 @@ import org.structr.core.property.PropertyKey;
  *
  *
  */
-public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> {
+public class PrincipalOwnsNode extends OneToMany {
 
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public String getSourceType() {
+		return "Principal";
 	}
 
 	@Override
@@ -41,8 +39,8 @@ public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> {
 	}
 
 	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
+	public String getTargetType() {
+		return "NodeInterface";
 	}
 
 	@Override
@@ -56,12 +54,12 @@ public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> {
 	}
 
 	@Override
-	public void setSourceProperty(PropertyKey source) {
+	public void setSourceProperty(final PropertyKey source) {
 
 	}
 
 	@Override
-	public void setTargetProperty(PropertyKey target) {
+	public void setTargetProperty(final PropertyKey target) {
 
 	}
 

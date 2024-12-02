@@ -25,10 +25,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.NodeInterface;
-import org.structr.core.traits.TraitDefinition;
 
 import java.util.Collections;
 import java.util.LinkedList;
