@@ -732,7 +732,7 @@ public class SchemaService implements Service {
 		// new: return relationship type for rels
 		if (Relation.class.isAssignableFrom(type)) {
 
-			final Relation rel = AbstractNode.getRelationshipForType(type);
+			final Relation rel = AbstractNode.getRelationForType(type);
 			if (rel != null) {
 
 				return rel.name();

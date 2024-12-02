@@ -25,13 +25,13 @@ import org.structr.web.entity.User;
 public class ImagePICTURE_OFUser extends OneToOne<Image, User> {
 
 	@Override
-	public Class<Image> getSourceType() {
-		return Image.class;
+	public String getSourceType() {
+		return "Image";
 	}
 
 	@Override
-	public Class<User> getTargetType() {
-		return User.class;
+	public String getTargetType() {
+		return "User";
 	}
 
 	@Override

@@ -42,13 +42,12 @@ import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.*;
@@ -216,32 +215,34 @@ public abstract class RESTCallHandler {
 		return AbstractNode.class;
 	}
 
-	public org.structr.core.graph.NodeInterface createNode(final SecurityContext securityContext, final Traits traits, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
+	public org.structr.core.graph.NodeInterface createNode(final SecurityContext securityContext, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
 
+		final Traits traits = Traits.of(typeName);
 		if (traits != null) {
 
 			// experimental: instruct deserialization strategies to set properties on related nodes
 			securityContext.setAttribute("setNestedProperties", true);
 
 			final App app                = StructrApp.getInstance(securityContext);
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, traits, propertySet);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, typeName, propertySet);
 
-			return app.create(traits, properties);
+			return app.create(typeName, properties);
 		}
 
 		throw new NotFoundException("Type " + typeName + " does not exist");
 	}
 
 	// ----- protected methods -----
-	protected GraphObject getEntity(final SecurityContext securityContext, final Traits entityClass, final String typeName, final String uuid) throws FrameworkException {
+	protected GraphObject getEntity(final SecurityContext securityContext, final String typeName, final String uuid) throws FrameworkException {
 
 		if (cachedEntity != null) {
 			return cachedEntity;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
+		final Traits traits = Traits.of(typeName);
 
-		if (entityClass == null) {
+		if (traits == null) {
 
 			if (uuid != null) {
 
@@ -254,9 +255,9 @@ public abstract class RESTCallHandler {
 		}
 
 
-		if (entityClass.isNodeType()) {
+		if (traits.isNodeType()) {
 
-			final NodeInterface entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+			final NodeInterface entity = app.nodeQuery(typeName).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -266,7 +267,7 @@ public abstract class RESTCallHandler {
 
 		} else {
 
-			final RelationshipTrait entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
+			final RelationshipInterface entity = app.relationshipQuery(typeName).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -301,7 +302,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void collectSearchAttributes(final SecurityContext securityContext, final Traits entityClass, final Query query) throws FrameworkException {
+	protected void collectSearchAttributes(final SecurityContext securityContext, final String entityClass, final Query query) throws FrameworkException {
 
 		final HttpServletRequest request = securityContext.getRequest();
 
@@ -377,7 +378,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void extractSearchableAttributes(final SecurityContext securityContext, final Traits type, final HttpServletRequest request, final Query query) throws FrameworkException {
+	protected void extractSearchableAttributes(final SecurityContext securityContext, final String type, final HttpServletRequest request, final Query query) throws FrameworkException {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
@@ -512,7 +513,7 @@ public abstract class RESTCallHandler {
 
 						} else {
 
-							final RelationshipTrait relationship = (RelationshipTrait)obj;
+							final RelationshipInterface relationship = (RelationshipInterface)obj;
 
 							if (!TransactionCommand.isDeleted(relationship.getRelationship())) {
 
@@ -546,7 +547,7 @@ public abstract class RESTCallHandler {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final Traits entityClass, final String typeName) throws FrameworkException {
+	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final String entityClass, final String typeName) throws FrameworkException {
 
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
@@ -563,7 +564,7 @@ public abstract class RESTCallHandler {
 				while (iterator.hasNext() && count++ < batchSize) {
 
 					final Map<String, Object> propertySet = iterator.next();
-					Traits localType                      = entityClass;
+					String localType                      = entityClass;
 
 					overallCount++;
 

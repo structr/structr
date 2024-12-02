@@ -48,36 +48,36 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
 
-	protected final List<String> transformators            = new LinkedList<>();
-	protected UpdateCallback<T> updateCallback             = null;
-	protected TraitDefinition<? extends GraphObjectTraits> declaringTrait = null;
-	protected T defaultValue                               = null;
-	protected boolean readOnly                             = false;
-	protected boolean systemInternal                       = false;
-	protected boolean writeOnce                            = false;
-	protected boolean unvalidated                          = false;
-	protected boolean indexed                              = false;
-	protected boolean indexedPassively                     = false;
-	protected boolean indexedWhenEmpty                     = false;
-	protected boolean compound                             = false;
-	protected boolean unique                               = false;
-	protected boolean notNull                              = false;
-	protected boolean dynamic                              = false;
-	protected boolean isPartOfBuiltInSchema                = false;
-	protected boolean cachingEnabled                       = false;
-	protected boolean nodeOnly                             = false;
-	protected String dbName                                = null;
-	protected String jsonName                              = null;
-	protected String format                                = null;
-	protected String typeHint                              = null;
-	protected String readFunction                          = null;
-	protected String writeFunction                         = null;
-	protected String openAPIReturnType                     = null;
-	protected String hint                                  = null;
-	protected String category                              = null;
-	protected String sourceUuid                            = null;
+	protected final List<String> transformators = new LinkedList<>();
+	protected UpdateCallback<T> updateCallback  = null;
+	protected TraitDefinition declaringTrait    = null;
+	protected T defaultValue                    = null;
+	protected boolean readOnly                  = false;
+	protected boolean systemInternal            = false;
+	protected boolean writeOnce                 = false;
+	protected boolean unvalidated               = false;
+	protected boolean indexed                   = false;
+	protected boolean indexedPassively          = false;
+	protected boolean indexedWhenEmpty          = false;
+	protected boolean compound                  = false;
+	protected boolean unique                    = false;
+	protected boolean notNull                   = false;
+	protected boolean dynamic                   = false;
+	protected boolean isPartOfBuiltInSchema     = false;
+	protected boolean cachingEnabled            = false;
+	protected boolean nodeOnly                  = false;
+	protected String dbName                     = null;
+	protected String jsonName                   = null;
+	protected String format                     = null;
+	protected String typeHint                   = null;
+	protected String readFunction               = null;
+	protected String writeFunction              = null;
+	protected String openAPIReturnType          = null;
+	protected String hint                       = null;
+	protected String category                   = null;
+	protected String sourceUuid                 = null;
 
-	private boolean requiresSynchronization                = false;
+	private boolean requiresSynchronization     = false;
 
 	protected Property(final String name) {
 		this(name, name);
@@ -265,7 +265,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringTrait(final TraitDefinition<? extends GraphObjectTraits> declaringTrait) {
+	public void setDeclaringTrait(final TraitDefinition declaringTrait) {
 		this.declaringTrait = declaringTrait;
 	}
 
@@ -274,7 +274,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public TraitDefinition<? extends GraphObjectTraits> getDeclaringTrait() {
+	public TraitDefinition getDeclaringTrait() {
 		return declaringTrait;
 	}
 

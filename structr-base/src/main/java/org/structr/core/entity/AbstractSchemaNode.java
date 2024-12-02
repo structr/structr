@@ -44,13 +44,13 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 	private static final Map<String, Iterable<SchemaMethod>> cachedSchemaMethods = new HashMap<>();
 
-	public static final Property<Iterable<SchemaProperty>> schemaProperties      = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
-	public static final Property<Iterable<SchemaMethod>>   schemaMethods         = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
-	public static final Property<Iterable<SchemaView>>     schemaViews           = new EndNodes<>("schemaViews", SchemaNodeView.class);
-	public static final Property<Boolean>                  changelogDisabled     = new BooleanProperty("changelogDisabled");
-	public static final Property<String>                   icon                  = new StringProperty("icon");
-	public static final Property<String>                   description           = new StringProperty("description");
-	public static final Set<String>                        hiddenPropertyNames   = new LinkedHashSet<>();
+	public static final Property<Iterable<NodeInterface>> schemaProperties      = new EndNodes("schemaProperties", SchemaNodeProperty.class);
+	public static final Property<Iterable<NodeInterface>> schemaMethods         = new EndNodes("schemaMethods", SchemaNodeMethod.class);
+	public static final Property<Iterable<NodeInterface>> schemaViews           = new EndNodes("schemaViews", SchemaNodeView.class);
+	public static final Property<Boolean>                 changelogDisabled     = new BooleanProperty("changelogDisabled");
+	public static final Property<String>                  icon                  = new StringProperty("icon");
+	public static final Property<String>                  description           = new StringProperty("description");
+	public static final Set<String>                       hiddenPropertyNames   = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
 		name, icon, changelogDisabled

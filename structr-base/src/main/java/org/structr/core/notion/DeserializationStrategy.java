@@ -21,12 +21,11 @@ package org.structr.core.notion;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.GraphObject;
-import org.structr.core.traits.NodeInterface;
-import org.structr.core.traits.TraitDefinition;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -42,9 +41,9 @@ import java.util.Set;
  */
 public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 
-	public abstract T deserialize(final SecurityContext securityContext, TraitDefinition<T> type, S source, final Object context) throws FrameworkException;
+	public abstract T deserialize(final SecurityContext securityContext, String type, S source, final Object context) throws FrameworkException;
 
-	public abstract void setRelationProperty(final RelationProperty<S> parentProperty);
+	public abstract void setRelationProperty(final RelationProperty parentProperty);
 
 	protected void setProperties(final SecurityContext securityContext, final GraphObject obj, final PropertyMap properties) throws FrameworkException {
 

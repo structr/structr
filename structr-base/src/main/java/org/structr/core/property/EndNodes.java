@@ -79,7 +79,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	 * @param relationClass
 	 * @param notion
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
+	public EndNodes(final String name, final Class<? extends Relation<? extends Source, ManyEndpoint>> relationClass, final Notion notion) {
 
 		super(name);
 
@@ -163,7 +163,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<NodeInterface> collection) throws FrameworkException {
 
-		final ManyEndpoint<T> endpoint = relation.getTarget();
+		final ManyEndpoint endpoint = relation.getTarget();
 
 		if (updateCallback != null) {
 			updateCallback.notifyUpdated(obj, collection);
@@ -178,7 +178,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 
@@ -229,7 +229,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public Class<T> getTargetType() {
+	public String getTargetType() {
 		return destType;
 	}
 
@@ -322,9 +322,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 				map.put("readOnly", true);
 			}
 
-			final String destTypeName = destType.getName();
-
-			if ("org.structr.core.graph.NodeInterface".equals(destTypeName) || "org.structr.flow.impl.FlowContainer".equals(destTypeName)) {
+			if ("NodeInterface".equals(destType) || "FlowContainer".equals(destType)) {
 
 				final ConfigurationProvider configuration = StructrApp.getConfiguration();
 

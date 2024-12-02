@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.Traits;
 import org.structr.util.Writable;
 
 import java.io.IOException;
@@ -287,11 +288,11 @@ public abstract class NodeServiceCommand extends Command {
 
 		if (nodeType != null) {
 
-			final Class entityType = StructrApp.getConfiguration().getNodeEntityClass(nodeType);
-			if (entityType != null) {
+			final Traits traits = Traits.of(nodeType);
+			if (traits != null) {
 
 
-				return StructrApp.getInstance().nodeQuery(entityType);
+				return StructrApp.getInstance().nodeQuery(nodeType);
 			}
 		}
 
@@ -306,10 +307,10 @@ public abstract class NodeServiceCommand extends Command {
 
 		if (relationshipType != null) {
 
-			final Class entityType = StructrApp.getConfiguration().getRelationshipEntityClass(relationshipType);
-			if (entityType != null) {
+			final Traits traits = Traits.of(relationshipType);
+			if (traits != null) {
 
-				return StructrApp.getInstance().relationshipQuery(entityType);
+				return StructrApp.getInstance().relationshipQuery(relationshipType);
 			}
 		}
 

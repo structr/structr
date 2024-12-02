@@ -46,7 +46,6 @@ import java.util.*;
 public class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
 
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
-	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                     = new FixedSizeCache<>("Relationship template cache", 1000);
 
 	/*
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
@@ -62,6 +61,13 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	@Override
 	public String getType() {
 		return getProperty(typeHandler.key("type"));
+	}
+
+	@Override
+	public void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId) {
+
+
+
 	}
 
 	@Override
@@ -345,32 +351,6 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	@Override
 	public final Date getLastModifiedDate() {
 		return getProperty(typeHandler.key("lastModifiedDate"));
-	}
-
-	public static void clearRelationshipTemplateInstanceCache() {
-		relationshipTemplateInstanceCache.clear();
-	}
-
-	public static RelationshipInterface getRelationshipForType(final String type) {
-
-		RelationshipInterface instance = relationshipTemplateInstanceCache.get(type.getName());
-		if (instance == null) {
-
-			try {
-
-				instance = type.getDeclaredConstructor().newInstance();
-				relationshipTemplateInstanceCache.put(type.getName(), instance);
-
-			} catch (Throwable t) {
-
-				// TODO: throw meaningful exception here,
-				// should be a RuntimeException that indicates
-				// wrong use of Relationships etc.
-				logger.warn("", t);
-			}
-		}
-
-		return instance;
 	}
 
 	public final Object getPath(final SecurityContext currentSecurityContext) {

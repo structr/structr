@@ -22,8 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
 import org.structr.api.search.Occurrence;
+import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphObjectTraits;
 
 /**
  * Represents an attribute for textual search, used in {@link SearchNodeCommand}.
@@ -60,7 +60,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 	}
 
 	@Override
-	public boolean includeInResult(final GraphObjectTraits entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
 		T nodeValue          = entity.getProperty(getKey());
 		Occurrence occur     = getOccurrence();

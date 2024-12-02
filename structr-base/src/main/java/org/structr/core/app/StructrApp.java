@@ -18,6 +18,7 @@
  */
 package org.structr.core.app;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.AgentService;
@@ -37,16 +38,13 @@ import org.structr.common.fulltext.DummyContentAnalyzer;
 import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
 
@@ -54,7 +52,6 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Stateful facade for accessing the Structr core layer.
@@ -120,7 +117,7 @@ public class StructrApp implements App {
 		}
 
 		// set type
-		properties.put(AbstractNode.typeHandler, finalType);
+		properties.put(AbstractNode.type, finalType);
 
 		return command.execute(properties);
 	}
@@ -132,7 +129,7 @@ public class StructrApp implements App {
 		final CreateNodeCommand command    = command(CreateNodeCommand.class);
 
 		// add type information when creating a node
-		attrs.add(new NodeAttribute(AbstractNode.typeHandler, type));
+		attrs.add(new NodeAttribute(AbstractNode.type, type));
 
 		return command.execute(attrs);
 	}
@@ -273,19 +270,16 @@ public class StructrApp implements App {
 	@Override
 	public <T extends GraphObject> T get(final String type, final String uuid) throws FrameworkException {
 
-		if (type != null) {
+		final Traits traits = Traits.of(type);
+		if (traits != null) {
 
-			if (NodeInterface.class.isAssignableFrom(type)) {
+			if (traits.isNodeType()) {
 
-				return (T)getNodeById(type, uuid);
-
-			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
-
-				return (T)getRelationshipById(type, uuid);
+				return (T) getNodeById(type, uuid);
 
 			} else {
 
-				throw new IllegalStateException("Invalid type ‛" + type + "‛, cannot be used in query");
+				return (T)getRelationshipById(type, uuid);
 			}
 		}
 
@@ -592,9 +586,9 @@ public class StructrApp implements App {
 	}
 
 	// ----- private static methods -----
-	private static void registerType(final Class type) {
+	private static void registerType(final String type) {
 
-		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type.getSimpleName())));
+		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type)));
 
 		logger.debug("Registering type {} with {}", type, id);
 

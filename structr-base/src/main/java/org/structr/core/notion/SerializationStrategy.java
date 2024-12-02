@@ -22,18 +22,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.GraphObjectTraits;
-import org.structr.core.traits.TraitDefinition;
 
 /**
  * Defines a strategy for serializing a {@link GraphObject} into an output
  * object.
- *
- *
  */
-public interface SerializationStrategy<S extends GraphObjectTraits, T> {
+public interface SerializationStrategy<S extends GraphObject, T> {
 
-	public T serialize(SecurityContext securityContext, TraitDefinition<S> type, S source) throws FrameworkException;
+	public T serialize(SecurityContext securityContext, String type, S source) throws FrameworkException;
 
-	public void setRelationProperty(final RelationProperty<T> parentProperty);
+	public void setRelationProperty(final RelationProperty parentProperty);
 }

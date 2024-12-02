@@ -38,12 +38,12 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
 	private Set<String> types = null;
-	private Class sourceType  = null;
-	private Class targetType  = null;
+	private String sourceType = null;
+	private String targetType = null;
 
 	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
 
-		super(AbstractNode.typeHandler, null, occur, isExactMatch);
+		super(AbstractNode.type, null, occur, isExactMatch);
 
 		if (Relation.class.isAssignableFrom(type)) {
 
@@ -62,10 +62,10 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 		} else {
 
 			// node types
-			setValue(type.getName());
+			setValue(type);
 		}
 
-		this.types  = SearchCommand.getAllSubtypesAsStringSet(type.getName());
+		this.types  = SearchCommand.getAllSubtypesAsStringSet(type);
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	}
 
 	@Override
-	public boolean includeInResult(final GraphObjectTraits entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
 		final String nodeValue   = entity.getProperty(getKey());
 		final Occurrence occur   = getOccurrence();
@@ -96,12 +96,12 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	}
 
 	@Override
-	public Class getSourceType() {
+	public String getSourceType() {
 		return sourceType;
 	}
 
 	@Override
-	public Class getTargetType() {
+	public String getTargetType() {
 		return targetType;
 	}
 }

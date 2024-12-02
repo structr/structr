@@ -19,9 +19,11 @@
 package org.structr.core.property;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.GraphObjectTraits;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
 @FunctionalInterface
 public interface UpdateCallback<V> {
-	void notifyUpdated(final GraphObjectTraits obj, final V value) throws FrameworkException;
+
+	void notifyUpdated(final GraphObject obj, final V value) throws FrameworkException;
 }

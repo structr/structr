@@ -26,8 +26,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SecurityRelationship;
 import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
@@ -47,33 +45,31 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 
-	Property<Iterable<Favoritable>> favoritesProperty = new EndNodes<>("favorites", PrincipalFAVORITEFavoritable.class);
-	Property<Iterable<Group>> groupsProperty          = new StartNodes<>("groups", GroupCONTAINSPrincipal.class);
-
-	Property<Iterable<NodeInterface>> ownedNodes   = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	Property<Iterable<NodeInterface>> grantedNodes = new EndNodes<>("grantedNodes", SecurityRelationship.class).partOfBuiltInSchema();
-
-	Property<Boolean> isAdminProperty                           = new BooleanProperty("isAdmin").indexed().readOnly();
-	Property<Boolean> blockedProperty                           = new BooleanProperty("blocked");
-	Property<String> sessionIdsProperty                         = new ArrayProperty("sessionIds", String.class).indexed();
-	Property<String> refreshTokensProperty                      = new ArrayProperty("refreshTokens", String.class).indexed();
-	Property<String> sessionDataProperty                        = new StringProperty("sessionData");
-	Property<String> eMailProperty                              = new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName());
-	Property<String> passwordProperty                           = new PasswordProperty("password");
-	Property<Date> passwordChangeDateProperty                   = new DateProperty("passwordChangeDate");
-	Property<Integer> passwordAttemptsProperty                  = new IntProperty("passwordAttempts");
-	Property<Date> lastLoginDateProperty                        = new DateProperty("lastLoginDate");
-	Property<String> twoFactorSecretProperty                    = new StringProperty("twoFactorSecret");
-	Property<String> twoFactorTokenProperty                     = new StringProperty("twoFactorToken").indexed();
-	Property<Boolean> isTwoFactorUserProperty                   = new BooleanProperty("isTwoFactorUser");
-	Property<Boolean> twoFactorConfirmedProperty                = new BooleanProperty("twoFactorConfirmed");
-	Property<String> saltProperty                               = new StringProperty("salt");
-	Property<String> localeProperty                             = new StringProperty("locale");
-	Property<String> publicKeyProperty                          = new StringProperty("publicKey");
-	Property<String> proxyUrlProperty                           = new StringProperty("proxyUrl");
-	Property<String> proxyUsernameProperty                      = new StringProperty("proxyUsername");
-	Property<String> proxyPasswordProperty                      = new StringProperty("proxyPassword");
-	Property<String> publicKeysProperty                         = new ArrayProperty("publicKeys", String.class);
+	private static final Property<Iterable<NodeInterface>> favoritesProperty    = new EndNodes("favorites", PrincipalFAVORITEFavoritable.class);
+	private static final Property<Iterable<NodeInterface>> groupsProperty       = new StartNodes("groups", GroupCONTAINSPrincipal.class);
+	private static final Property<Iterable<NodeInterface>> ownedNodesProperty   = new EndNodes("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	private static final Property<Iterable<NodeInterface>> grantedNodesProperty = new EndNodes("grantedNodes", SecurityRelationship.class).partOfBuiltInSchema();
+	private static final Property<Boolean> isAdminProperty                      = new BooleanProperty("isAdmin").indexed().readOnly();
+	private static final Property<Boolean> blockedProperty                      = new BooleanProperty("blocked");
+	private static final Property<String> sessionIdsProperty                    = new ArrayProperty("sessionIds", String.class).indexed();
+	private static final Property<String> refreshTokensProperty                 = new ArrayProperty("refreshTokens", String.class).indexed();
+	private static final Property<String> sessionDataProperty                   = new StringProperty("sessionData");
+	private static final Property<String> eMailProperty                         = new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName());
+	private static final Property<String> passwordProperty                      = new PasswordProperty("password");
+	private static final Property<Date> passwordChangeDateProperty              = new DateProperty("passwordChangeDate");
+	private static final Property<Integer> passwordAttemptsProperty             = new IntProperty("passwordAttempts");
+	private static final Property<Date> lastLoginDateProperty                   = new DateProperty("lastLoginDate");
+	private static final Property<String> twoFactorSecretProperty               = new StringProperty("twoFactorSecret");
+	private static final Property<String> twoFactorTokenProperty                = new StringProperty("twoFactorToken").indexed();
+	private static final Property<Boolean> isTwoFactorUserProperty              = new BooleanProperty("isTwoFactorUser");
+	private static final Property<Boolean> twoFactorConfirmedProperty           = new BooleanProperty("twoFactorConfirmed");
+	private static final Property<String> saltProperty                          = new StringProperty("salt");
+	private static final Property<String> localeProperty                        = new StringProperty("locale");
+	private static final Property<String> publicKeyProperty                     = new StringProperty("publicKey");
+	private static final Property<String> proxyUrlProperty                      = new StringProperty("proxyUrl");
+	private static final Property<String> proxyUsernameProperty                 = new StringProperty("proxyUsername");
+	private static final Property<String> proxyPasswordProperty                 = new StringProperty("proxyPassword");
+	private static final Property<String> publicKeysProperty                    = new ArrayProperty("publicKeys", String.class);
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -137,6 +133,11 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
+
+			favoritesProperty,
+			groupsProperty,
+			ownedNodesProperty,
+			grantedNodesProperty,
 
 			isAdminProperty,
 			blockedProperty,

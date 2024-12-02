@@ -21,6 +21,6 @@ package org.structr.api.search;
 
 public interface TypeQuery extends QueryPredicate {
 
-	Class getSourceType();
-	Class getTargetType();
+	String getSourceType();
+	String getTargetType();
 }

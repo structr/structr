@@ -18,11 +18,15 @@
  */
 package org.structr.core.traits;
 
+import org.structr.api.util.FixedSizeCache;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 
 import java.util.*;
 
 public abstract class AbstractTraitDefinition implements TraitDefinition {
+
+	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache = new FixedSizeCache<>("Relationship template cache", 1000);
 
 	protected final Map<String, PropertyKey> properties = new HashMap<>();
 
@@ -39,5 +43,31 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	@Override
 	public PropertyKey key(final String name) {
 		return properties.get(name);
+	}
+
+	protected Relation getRelationForType(final String type) {
+
+		Relation instance = (Relation)relationshipTemplateInstanceCache.get(type);
+		if (instance == null) {
+
+			try {
+
+				instance = type.getDeclaredConstructor().newInstance();
+				relationshipTemplateInstanceCache.put(type, instance);
+
+			} catch (Throwable t) {
+
+				// TODO: throw meaningful exception here,
+				// should be a RuntimeException that indicates
+				// wrong use of Relationships etc.
+				logger.warn("", t);
+			}
+		}
+
+		return instance;
+	}
+
+	public static void clearRelationshipTemplateInstanceCache() {
+		relationshipTemplateInstanceCache.clear();
 	}
 }

@@ -31,14 +31,6 @@ public interface User extends Principal {
 
 	/*
 
-	public static final Property<Folder> homeDirectoryProperty              = new EndNode<>("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema();
-	public static final Property<Folder> workingDirectoryProperty           = new EndNode<>("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
-	public static final Property<Image> imgProperty                         = new StartNode<>("img", ImagePICTURE_OFUser.class);
-	public static final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
-	public static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
-	public static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
-	public static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
-
 	public static final View defaultView = new View(User.class, PropertyView.Public,
 		isUserProperty, name
 	);

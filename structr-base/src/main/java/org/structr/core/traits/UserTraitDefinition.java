@@ -20,38 +20,53 @@ package org.structr.core.traits;
 
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
 import org.structr.web.entity.relationship.UserHOME_DIRFolder;
 import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
 
-public class UserImpl extends PrincipalTrait implements User {
+import java.util.Map;
+import java.util.Set;
 
-	static {
+public class UserTraitDefinition extends AbstractTraitDefinition {
 
-		final TraitDefinition trait = TraitDefinition.create(User.class, n -> new UserImpl(n));
+	public static final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema();
+	public static final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
+	public static final Property<NodeInterface> imgProperty                 = new StartNode("img", ImagePICTURE_OFUser.class);
+	public static final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
+	public static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
+	public static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
+	public static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
 
-		trait.registerProperty(new EndNode<>("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema());
-		trait.registerProperty(new EndNode<>("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema());
-		trait.registerProperty(new StartNode<>("img", ImagePICTURE_OFUser.class));
-		trait.registerProperty(new StringProperty("confirmationKey").indexed().partOfBuiltInSchema());
-		trait.registerProperty(new StringProperty("localStorage").partOfBuiltInSchema());
-		trait.registerProperty(new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema());
-		trait.registerProperty(new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema());
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+		return Map.of();
+	}
 
-		Traits.registerNodeType("User",
-			TraitDefinition.of(User.class),
-			TraitDefinition.of(Principal.class)
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of(
+			homeDirectoryProperty,
+			workingDirectoryProperty,
+			imgProperty,
+			confirmationKeyProperty,
+			localStorageProperty,
+			skipSecurityRelationshipsProperty,
+			isUserProperty
 		);
 	}
 
-	public UserImpl(final PropertyContainer obj) {
-		super(obj);
-	}
-
+	/*
 	@Override
 	public Folder getHomeDirectory() {
 		return getProperty(traits.key("homeDirectory"));
@@ -76,4 +91,5 @@ public class UserImpl extends PrincipalTrait implements User {
 	public String getLocalStorage() {
 		return getProperty(traits.key("localStorage"));
 	}
+	*/
 }
