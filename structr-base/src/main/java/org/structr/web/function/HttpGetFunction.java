@@ -25,6 +25,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.property.*;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -33,6 +36,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -53,7 +57,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length >= 1 && sources.length <= 4 && sources[0] != null) {
 
@@ -72,6 +76,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					case 2: contentType = sources[1].toString();
 						break;
 				}
+
+				final GraphObjectMap response = new GraphObjectMap();
 
 				// Extract character set from contentType if given
 				if (StringUtils.isNotBlank(contentType)) {
@@ -98,10 +104,14 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					}
 				}
 
-				//long t0 = System.currentTimeMillis();
+				final Map<String, Object> responseData;
 				if ("text/html".equals(contentType)) {
 
-					final Document doc = Jsoup.parse(HttpHelper.get(address, charset, ctx.getHeaders(), ctx.isValidateCertificates()));
+					responseData = HttpHelper.get(address, charset, ctx.getHeaders(), ctx.isValidateCertificates());
+
+					String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
+
+					final Document doc = Jsoup.parse(body);
 
 					if (sources.length > 2) {
 
@@ -120,36 +130,42 @@ public class HttpGetFunction extends UiAdvancedFunction {
 							return parts;
 
 						} else {
-							return elements.html();
+
+							response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), elements.html());
 						}
 
 					} else {
 
-						return doc.html();
+						response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), doc.html());
 					}
 				} else if ("application/octet-stream".equals(contentType)) {
 
-					return getBinaryFromUrl(ctx, address, charset, username, password);
+					responseData = getBinaryFromUrl(ctx, address, charset, username, password);
 
+					response.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
 				} else {
 
-					return getFromUrl(ctx, address, charset, username, password);
+					responseData = getFromUrl(ctx, address, charset, username, password);
+
+					response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
 				}
 
-			} catch (Throwable t) {
+				// Set status and headers
+				final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
+				response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
 
-				if (t.getCause() instanceof UnknownHostException) {
+				if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
 
-					logger.warn("{}", t.getMessage());
-
-				} else {
-
-					logException(caller, t, sources);
+					response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
 				}
+
+				return response;
+			} catch (IllegalArgumentException e) {
+
+				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+				return usage(ctx.isJavaScriptContext());
 			}
-
-			return "";
-
+			
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());

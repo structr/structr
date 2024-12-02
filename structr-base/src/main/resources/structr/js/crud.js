@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Crud = {
 	_moduleName: 'crud',
-	displayTypeConfigKey: 'structrCrudDisplayTypes_' + location.port,
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
 	defaultType: 'Page',
@@ -35,15 +34,10 @@ let _Crud = {
 	crudTypeKey: 'structrCrudType_' + location.port,
 	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + location.port,
 	crudSortedColumnsKey: 'structrCrudSortedColumns_' + location.port,
-	crudRecentTypesKey: 'structrCrudRecentTypes_' + location.port,
 	crudResizerLeftKey: 'structrCrudResizerLeft_' + location.port,
 	crudExactTypeKey: 'structrCrudExactType_' + location.port,
-	searchField: undefined,
-	searchFieldClearIcon: undefined,
 	types: {},
 	typeColumnSort: {},
-	abstractSchemaNodes: {},
-	availableViews: {},
 	relInfo: {},
 	keys: {},
 	hiddenKeysForAllTypes: [
@@ -99,11 +93,7 @@ let _Crud = {
 		'isTwoFactorUser',
 		'twoFactorConfirmed',
 		'ownedNodes',
-		'localStorage',
-		'customPermissionQueryAccessControl',
-		'customPermissionQueryDelete',
-		'customPermissionQueryRead',
-		'customPermissionQueryWrite'
+		'localStorage'
 	],
 	crudCache: new AsyncObjectCache(async (obj) => {
 
@@ -122,7 +112,6 @@ let _Crud = {
 				_Crud.crudCache.addObject(node, node.id);
 			}
 		}
-
 	}),
 	crudListFetchAbortMechanism: {
 		abortController: undefined,
@@ -158,24 +147,7 @@ let _Crud = {
 
 				if (data && data.result && data.result[0]) {
 
-					_Crud.availableViews[type] = data.result[0].views;
-
-					let properties = {};
-
-					let processViewInfo = (view) => {
-						if (view) {
-							for (let key in view) {
-								let prop = view[key];
-								properties[prop.jsonName] = prop;
-							}
-						}
-					};
-
-					processViewInfo(data.result[0].views.public);
-					processViewInfo(data.result[0].views.custom);
-					processViewInfo(data.result[0].views.all);
-
-					_Crud.keys[type] = properties;
+					_Crud.types[type] = data.result[0];
 
 					if (typeof callback === 'function') {
 						callback();
@@ -184,7 +156,7 @@ let _Crud = {
 				} else {
 
 					new ErrorMessage().text(`No type information found for type: ${type}`).delayDuration(5000).show();
-					_Crud.showMessageAfterDelay(`<span class="mr-1">No type information found for type: </span><b>${type}</b>`, 500);
+					_Crud.delayedMessage.showMessageAfterDelay(`<span class="mr-1">No type information found for type: </span><b>${type}</b>`, 500);
 				}
 
 			} else {
@@ -198,7 +170,9 @@ let _Crud = {
 			return;
 		}
 
-		if (_Crud.keys[type]) {
+		let properties = _Crud.types[type]?.views?.all;
+
+		if (properties) {
 
 			callback?.();
 
@@ -206,12 +180,12 @@ let _Crud = {
 
 			_Crud.getTypeInfo(type, () => {
 
-				let properties = _Crud.keys[type];
+				properties = _Crud.types[type].views.all;
 
 				if (Object.keys(properties).length === 0) {
 
 					new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
-					_Crud.showMessageAfterDelay(`Unable to find schema information for type '${type}'.<br>There might be database nodes with no type information or a type unknown to Structr in the database.`, 500);
+					_Crud.delayedMessage.showMessageAfterDelay(`Unable to find schema information for type '${type}'.<br>There might be database nodes with no type information or a type unknown to Structr in the database.`, 500);
 
 				} else {
 
@@ -240,7 +214,7 @@ let _Crud = {
 		});
 	},
 	reloadList: () => {
-		_Crud.typeSelected(_Crud.type);
+		_Crud.typeList.typeSelected(_Crud.type);
 	},
 	init: () => {
 
@@ -253,127 +227,30 @@ let _Crud = {
 
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-		document.querySelector('#crud-left').addEventListener('click', (e) => {
-			let type = e.target.closest('.crud-type');
-			if (type) {
-				_Crud.typeSelected(type.dataset['type']);
-			}
-		});
-
-		document.querySelector('#crud-recent-types').addEventListener('click', (e) => {
-			let removeRecentType = e.target.closest('.remove-recent-type');
-			if (removeRecentType) {
-				e.stopPropagation();
-				let type = removeRecentType.closest('div[data-type]');
-				_Crud.removeRecentType(type);
-			}
-		});
-
-		for (let typeFilterCheckbox of document.querySelectorAll('#crudTypeFilterSettings input')) {
-			typeFilterCheckbox.addEventListener('change', () => {
-				LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
-				_Crud.updateTypeList();
-			})
-		}
-
-		document.querySelector('#crudTypesSearch').addEventListener('keyup', (e) => {
-
-			if (e.keyCode === 27) {
-
-				e.target.value = '';
-
-			} else if (e.keyCode === 13) {
-
-				let visibleTypes = document.querySelectorAll('#crud-types-list .crud-type:not(.hidden)');
-
-				if (visibleTypes.length === 1) {
-
-					_Crud.typeSelected(visibleTypes[0].dataset['type']);
-
-				} else {
-
-					let filterVal     = e.target.value.toLowerCase();
-					let matchingTypes = Object.keys(_Crud.types).filter(type => type.toLowerCase() === filterVal);
-
-					if (matchingTypes.length === 1) {
-						_Crud.typeSelected(matchingTypes[0]);
-					}
-				}
-			}
-
-			_Crud.filterTypes(e.target.value.toLowerCase());
-		});
+		_Crud.typeList.addListeners();
+		_Crud.typeList.filtering.activateFilterElements();
 
 		_Crud.exact         = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 		_Crud.schemaLoading = false;
 		_Crud.schemaLoaded  = false;
-		_Crud.keys          = {};
 
-		_Crud.loadSchema().then(() => {
+		_Crud.loadBasicSchemaInformation().then(() => {
 
-			Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, (abstractSchemaNodes) => {
+			_Crud.typeList.setCurrentTypeIfNotYetSet();
 
-				for (let asn of abstractSchemaNodes) {
-					_Crud.abstractSchemaNodes[asn.name] = asn;
-				}
+			_Crud.typeList.populateTypeList();
 
-				_Crud.updateTypeList();
-				_Crud.typeSelected(_Crud.type);
-				_Crud.updateRecentTypeList(_Crud.type);
+			_Crud.typeList.highlightCurrentType(_Crud.type);
+			_Crud.typeList.filtering.filterTypes();
 
-				Structr.resize();
-				Structr.mainMenu.unblock(100);
-			});
+			_Crud.typeList.typeSelected(_Crud.type);
+			_Crud.typeList.recents.update(_Crud.type);
+
+			Structr.resize();
+			Structr.mainMenu.unblock(100);
 		});
 
-		_Crud.searchField          = document.getElementById('crud-search-box');
-		_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-		_Crud.focusSearchField();
-
-		_Helpers.appendInfoTextToElement({
-			element: _Crud.searchField,
-			text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
-			insertAfter: true,
-			css: {
-				left: '-18px',
-				position: 'absolute'
-			},
-			helpElementCss: {
-				fontSize: '12px',
-				lineHeight: '1.1em'
-			}
-		});
-
-		let crudMain = $('#crud-main');
-
-		_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
-			_Crud.clearMainSearch(crudMain);
-			_Crud.focusSearchField();
-		});
-
-		_Crud.searchField.addEventListener('keyup', (e) => {
-
-			let searchString = _Crud.searchField.value;
-
-			if (searchString && searchString.length) {
-				_Crud.searchFieldClearIcon.style.display = 'block';
-			}
-
-			if (searchString && searchString.length && e.keyCode === 13) {
-
-				_Crud.search(searchString, crudMain, null, function(e, node) {
-					e.preventDefault();
-					_Entities.showProperties(node, 'ui');
-					return false;
-				});
-
-				$('#crud-type-detail').hide();
-
-			} else if (e.keyCode === 27 || searchString === '') {
-
-				_Crud.clearMainSearch(crudMain);
-			}
-		});
+		_Crud.search.setupGlobalSearch();
 	},
 	onload: () => {
 
@@ -381,126 +258,12 @@ let _Crud = {
 
 		_Crud.init();
 	},
-	messageTimeout: undefined,
-	showLoadingMessageAfterDelay: (message, delay) => {
-
-		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
-	},
-	showMessageAfterDelay: (message, delay) => {
-
-		clearTimeout(_Crud.messageTimeout);
-
-		_Crud.messageTimeout = window.setTimeout(() => {
-
-			_Crud.removeMessage();
-
-			let crudRight = $('#crud-type-detail');
-			crudRight.append(`
-				<div class="crud-message">
-					<div class="crud-centered flex items-center justify-center">${message}</div>
-				</div>
-			`);
-
-		}, delay);
-	},
-	removeMessage: () => {
-
-		clearTimeout(_Crud.messageTimeout);
-		_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
-	},
-	typeSelected: (type) => {
-
-		_Crud.storeType(type);
-
-		_Crud.updateRecentTypeList(type);
-		_Crud.highlightCurrentType(type);
-
-		let crudRight = document.querySelector('#crud-type-detail');
-
-		_Crud.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
-
-		_Crud.getProperties(type, () => {
-
-			_Crud.removeMessage();
-
-			_Helpers.fastRemoveAllChildren(crudRight);
-
-			let crudButtons = Structr.functionBar.querySelector('#crud-buttons');
-			_Helpers.setContainerHTML(crudButtons, _Crud.templates.typeButtons({ type: type }));
-
-			let exactTypeLabel = crudButtons.querySelector('.exact-type-checkbox-label');
-
-			_Helpers.appendInfoTextToElement({
-				element: exactTypeLabel,
-				text: 'This flag affects the list shown below and the delete function.<br><br>If active only nodes of the selected type ("' + type + '") are shown in the list and types inheriting from this type are excluded. If it is not active, nodes for the current type and nodes of all its subtypes are shown.<br><br>The same is true for the delete function. If active, only nodes with that exact type are deleted and nodes of inheriting types are not deleted. If it is not active, nodes for the active type and nodes of all its subtypes are deleted.',
-				insertAfter: true,
-				css: {
-					marginLeft: '4px',
-				},
-				helpElementCss: {
-					fontSize: '12px',
-					lineHeight: '1.1em'
-				}
-			});
-
-			// fall back to public view if saved view does not exist (anymore)
-			if (!Object.keys(_Crud.availableViews[type]).includes(_Crud.view[type])) {
-				_Crud.view[type] = 'public';
-			}
-
-			_Crud.determinePagerData(type);
-
-			let pagerNode = _Crud.addPager(type, crudRight);
-
-			crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
-
-			_Crud.updateCrudTableHeader(type);
-
-			document.querySelector('#create' + type).addEventListener('click', () => {
-				_Crud.crudCreate(type);
-			});
-
-			document.querySelector('#export' + type).addEventListener('click', () => {
-				_Crud.crudExport(type);
-			});
-
-			document.querySelector('#import' + type).addEventListener('click', () => {
-				_Crud.crudImport(type);
-			});
-
-			let exactTypeCheckbox = document.querySelector('#exact_type_' + type);
-			exactTypeCheckbox.checked = _Crud.exact[type];
-
-			exactTypeCheckbox.addEventListener('change', () => {
-				_Crud.exact[type] = exactTypeCheckbox.checked;
-				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
-				_Crud.refreshList(type);
-			});
-
-			document.querySelector('#delete' + type).addEventListener('click', async () => {
-
-				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>WARNING: Really delete all objects of type '${type}'${((exactTypeCheckbox.checked === true) ? '' : ' and of inheriting types')}?</h3>
-					<p>This will delete all objects of the type (<b>${((exactTypeCheckbox.checked === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
-					<p>Depending on the amount of objects this can take a while.</p>
-				`);
-
-				if (confirm === true) {
-					await _Crud.deleteAllNodesOfType(type, exactTypeCheckbox.checked);
-				}
-			});
-
-			_Crud.deActivatePagerElements(pagerNode);
-			_Crud.activateList(type);
-			_Crud.activatePagerElements(type, pagerNode);
-		});
-	},
 	getCurrentProperties: (type) => {
 
-		let properties = _Crud.availableViews[type].all;
+		let properties = _Crud.types[type].views.all;
 
 		if (_Crud.view[type] !== 'all') {
-			let viewDef = _Crud.availableViews[type][_Crud.view[type]];
+			let viewDef = _Crud.types[type].views[_Crud.view[type]];
 
 			if (viewDef) {
 				properties = viewDef;
@@ -518,193 +281,25 @@ let _Crud = {
 
 		let newHeaderHTML = `
 			<th class="___action_header" data-key="action_header">Actions</th>
-			${_Crud.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Crud.cssClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
+			${_Crud.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Helpers.getCSSClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
 		`;
 
 		tableHeaderRow.insertAdjacentHTML('beforeend', newHeaderHTML);
-	},
-	updateTypeList: () => {
-
-		let typesList      = document.querySelector('#crud-types-list');
-		let typeVisibility = _Crud.getStoredTypeVisibilityConfig();
-
-		let typesToShow    = Object.keys(_Crud.types).sort().filter(typeName => {
-
-			let schemaNode    = _Crud.abstractSchemaNodes[typeName];
-			let type          = _Crud.types[typeName];
-
-			let isRelType       = type.isRel === true;
-			let isBuiltInRel    = isRelType && (schemaNode === undefined || ((schemaNode?.isPartOfBuiltInSchema ?? false) || (schemaNode?.isBuiltinType ?? false)));
-			let isCustomRelType = isRelType && !(schemaNode === undefined || ((schemaNode?.isPartOfBuiltInSchema ?? false) || (schemaNode?.isBuiltinType ?? false)));
-			let isDynamicType   = !isRelType && (schemaNode && schemaNode.isBuiltinType === false);
-			let isCoreType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'core');
-			let isHtmlType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'html');
-			let isUiType        = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'ui');
-			let isLogType       = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
-			let isOtherType     = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
-
-			let hide =  (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) ||
-				(!typeVisibility.html && isHtmlType) || (!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
-
-			return !hide;
-		});
-
-		typesList.innerHTML = (typesToShow.length > 0) ? typesToShow.map(typeName => `<div class="crud-type truncate" data-type="${typeName}">${typeName}</div>`).join('') : '<div class="px-3">No types available. Use the above configuration dropdown to adjust the filter settings.</div>';
-
-		_Crud.updateCurrentTypeIfNotYetSet();
-
-		_Crud.highlightCurrentType(_Crud.type);
-		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
-		Structr.resize();
-	},
-	updateCurrentTypeIfNotYetSet: () => {
-
-		if (!_Crud.type) {
-			_Crud.setCurrentTypeIfPossible(_Helpers.urlParam('type'));
-		}
-
-		if (!_Crud.type) {
-			_Crud.setCurrentTypeIfPossible(LSWrapper.getItem(_Crud.crudTypeKey));
-		}
-
-		if (!_Crud.type) {
-			_Crud.setCurrentTypeIfPossible(_Crud.defaultType);
-		}
-	},
-	setCurrentTypeIfPossible: (type) => {
-
-		if (_Crud.types[type]) {
-			_Crud.type = type;
-		}
-	},
-	getStoredTypeVisibilityConfig: (singleKey) => {
-
-		let config = LSWrapper.getItem(_Crud.displayTypeConfigKey, {
-			custom:     true,
-			customRels: true,
-			rels:       false,
-			core:       false,
-			html:       false,
-			ui:         false,
-			log:        false,
-			other:      false
-		});
-
-		if (singleKey) {
-
-			return config[singleKey];
-		}
-
-		return config;
-	},
-	getTypeVisibilityConfig: () => {
-
-		return {
-			custom:       $('#crudTypeToggleCustom').prop('checked'),
-			customRels:   $('#crudTypeToggleCustomRels').prop('checked'),
-			rels:         $('#crudTypeToggleRels').prop('checked'),
-			core:         $('#crudTypeToggleCore').prop('checked'),
-			html:         $('#crudTypeToggleHtml').prop('checked'),
-			ui:           $('#crudTypeToggleUi').prop('checked'),
-			log:          $('#crudTypeToggleLog').prop('checked'),
-			other:        $('#crudTypeToggleOther').prop('checked')
-		};
-	},
-	highlightCurrentType: (selectedType) => {
-
-		$('#crud-left .crud-type').removeClass('active');
-		$('#crud-left .crud-type[data-type="' + selectedType + '"]').addClass('active');
-
-		let $crudTypesList             = $('#crud-types-list');
-		let $selectedElementInTypeList = $('.crud-type[data-type="' + selectedType + '"]', $crudTypesList);
-
-		if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
-			let positionOfList    = $crudTypesList.position().top;
-			let scrollTopOfList   = $crudTypesList.scrollTop();
-			let positionOfElement = $selectedElementInTypeList.position().top;
-			$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
-		} else {
-			$crudTypesList.animate({scrollTop: 0});
-		}
-
-	},
-	filterTypes: (filterVal) => {
-
-		for (let el of document.querySelectorAll('#crud-types-list .crud-type')) {
-
-			let shouldBeHidden = (el.dataset['type'].toLowerCase().indexOf(filterVal) === -1);
-
-			el.classList.toggle('hidden', shouldBeHidden);
-		}
-	},
-	updateRecentTypeList: (selectedType) => {
-
-		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
-
-		if (recentTypes && selectedType) {
-
-			recentTypes = recentTypes.filter((type) => (type !== selectedType));
-			recentTypes.unshift(selectedType);
-
-		} else if (selectedType) {
-
-			recentTypes = [selectedType];
-		}
-
-		recentTypes = recentTypes.slice(0, 12);
-
-		if (recentTypes) {
-
-			let recentTypesList = document.querySelector('#crud-recent-types-list');
-
-			recentTypesList.innerHTML = recentTypes.map(type => `
-				<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
-					<div class="truncate">${type}</div>
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
-				</div>
-			`).join('');
-		}
-
-		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-	},
-	removeRecentType: (recentTypeElement) => {
-
-		let typeToRemove = recentTypeElement.dataset['type'];
-		let recentTypes  = LSWrapper.getItem(_Crud.crudRecentTypesKey);
-
-		if (recentTypes) {
-			recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
-		}
-
-		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-
-		_Helpers.fastRemoveElement(recentTypeElement);
 	},
 	updateUrl: (type) => {
 
 		if (type) {
 			_Crud.type = type;
-			_Crud.storeType(type);
+			_Crud.storeCurrentType(type);
 			_Crud.storePagerData();
 			_Crud.updateResourceLink(type);
 		}
 
-		_Crud.focusSearchField();
+		_Crud.search.focusSearchField();
 	},
-	loadSchema: async () => {
+	loadBasicSchemaInformation: async () => {
 
-		_Crud.showLoadingMessageAfterDelay('Loading data', 100);
-
-		let processRelInfo = (relInfo) => {
-			if (relInfo) {
-				for (let r of relInfo) {
-					_Crud.relInfo[r.type] = {
-						source: r.possibleSourceTypes,
-						target: r.possibleTargetTypes
-					};
-				}
-			}
-		};
+		_Crud.delayedMessage.showLoadingMessageAfterDelay('Loading data', 100);
 
 		let response = await fetch(Structr.rootUrl + '_schema');
 
@@ -713,107 +308,86 @@ let _Crud = {
 			let data = await response.json();
 
 			for (let typeObj of data.result) {
+
 				_Crud.types[typeObj.type] = typeObj;
-				processRelInfo(typeObj.relatedTo);
-				processRelInfo(typeObj.relatedFrom);
 			}
 		}
 	},
-	determinePagerData: (type) => {
-
-		// Priority: JS vars -> Local Storage -> URL -> Default
-
-		if (!_Crud.view[type]) {
-			_Crud.view[type]     = _Helpers.urlParam('view');
-			_Crud.sort[type]     = _Helpers.urlParam('sort');
-			_Crud.order[type]    = _Helpers.urlParam('order');
-			_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
-			_Crud.page[type]     = _Helpers.urlParam('page');
-		}
-
-		if (!_Crud.view[type]) {
-			_Crud.restorePagerData();
-		}
-
-		if (!_Crud.view[type]) {
-			_Crud.view[type]     = _Crud.defaultView;
-			_Crud.sort[type]     = _Crud.defaultSort;
-			_Crud.order[type]    = _Crud.defaultOrder;
-			_Crud.pageSize[type] = _Crud.defaultPageSize;
-			_Crud.page[type]     = _Crud.defaultPage;
-		}
-	},
+	isRelType: (type) => (_Crud.types[type]?.isRel === true),
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a collection
 	 */
 	isCollection: (key, type) => {
-		return (key && type && _Crud.keys[type]?.[key]?.isCollection === true);
+		return (key && type && _Crud.types[type]?.views.all[key]?.isCollection === true);
+	},
+	/* returns if given type is supported (in create dialog) */
+	isSupportedArrayType: (key, type) => {
+		return (
+			_Crud.types[type]?.views.all[key]?.type === 'String[]' ||
+			_Crud.types[type]?.views.all[key]?.type === 'Integer[]' ||
+			_Crud.types[type]?.views.all[key]?.type === 'Long[]' ||
+			_Crud.types[type]?.views.all[key]?.type === 'Double[]'
+		);
+	},
+	isBaseProperty: (key, type) => {
+		return ('base' === _Crud.types[type]?.views.all[key]?.jsonName && 'GraphObject' === _Crud.types[type]?.views.all[key]?.declaringClass);
+	},
+	isHiddenProperty: (key, type) => {
+		return ('hidden' === _Crud.types[type]?.views.all[key]?.jsonName && 'NodeInterface' === _Crud.types[type]?.views.all[key]?.declaringClass);
 	},
 	isFunctionProperty: (key, type) => {
-		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type]?.[key]?.className);
+		return ('org.structr.core.property.FunctionProperty' === _Crud.types[type]?.views.all[key]?.className);
 	},
 	isCypherProperty: (key, type) => {
-		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type]?.[key]?.className);
+		return ('org.structr.core.property.CypherQueryProperty' === _Crud.types[type]?.views.all[key]?.className);
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
 	 */
 	isEnum: (key, type) => {
-		return (key && type && _Crud.keys[type]?.[key]?.className === 'org.structr.core.property.EnumProperty');
+		return (key && type && _Crud.types[type]?.views.all[key]?.className === 'org.structr.core.property.EnumProperty');
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a read-only property
 	 */
 	readOnly: (key, type) => {
-		return (key && type && (_Crud.keys[type]?.[key]?.readOnly === true || _Crud.isCypherProperty(key, type)));
+		return (key && type && (_Crud.types[type]?.views.all[key]?.readOnly === true || _Crud.isCypherProperty(key, type)));
 	},
 	/**
-	 * Return the related type of the given property key
-	 * of the given type
+	 * Return the related type of the given property key of the given type (or a comma-separated list of possible related types)
 	 */
-	relatedType: (key, type) => {
+	getRelatedTypeForAttribute: (key, type) => {
 
-		if (key && type && _Crud.keys[type] && _Crud.keys[type][key]) {
+		if (key && type && _Crud.types[type] && _Crud.types[type].views.all[key]) {
 
-			let storedInfo = _Crud.keys[type][key].relatedType;
+			let info;
 
-			if (!storedInfo) {
+			let isRelType = _Crud.isRelType(type);
+			if (!isRelType) {
 
-				let declaringClass = _Crud.keys[type][key].declaringClass;
-				if (declaringClass && _Crud.relInfo[declaringClass]) {
-					if (key === 'sourceId') {
+				info = _Crud.types[type].views.all[key].relatedType;
 
-						storedInfo = _Crud.relInfo[declaringClass].source;
+			} else {
 
-					} else if (key === 'targetId') {
+				// special handling for relationship types where we want to display the start and end node
+				if (key === 'sourceId' || key === 'sourceNode') {
 
-						storedInfo = _Crud.relInfo[declaringClass].target;
-					}
-				}
+					info = _Crud.types[type].relInfo.possibleSourceTypes;
 
-				// sourceNode and targetNode are defined on type AbstractRelationship, thus we use the info from sourceId and targetId
-				if (key === 'sourceNode') {
+				} else if (key === 'targetId' || key === 'targetNode') {
 
-					declaringClass     = _Crud.keys[type]?.sourceId?.declaringClass;
-					storedInfo         = _Crud.relInfo[declaringClass]?.source;
-
-				} else if (key === 'targetNode' && _Crud.keys[type].targetId) {
-
-					declaringClass     = _Crud.keys[type]?.targetId?.declaringClass;
-					storedInfo         = _Crud.relInfo[declaringClass]?.target;
+					info = _Crud.types[type].relInfo.possibleTargetTypes;
 				}
 			}
 
-			return storedInfo;
+			return info;
 		}
-
-		//console.log(`Unknown relatedType for ${type}.${key}`);
 	},
 	getFormat: (key, type) => {
-		return _Crud.keys[type][key].format;
+		return _Crud.types[type].views.all[key].format;
 	},
 	addPager: (type, el) => {
 
@@ -844,7 +418,7 @@ let _Crud = {
 					<input class="pageSize" type="text" value="${_Crud.pageSize[type]}">
 					<span class="ml-2 mr-1">View:</span>
 					<select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${Object.keys(_Crud.availableViews[type]).map(view => `<option${(_Crud.view[type] === view) ? ' selected' : ''}>${view}</option>`).join('')}
+						${Object.keys(_Crud.types[type].views).map(view => `<option${(_Crud.view[type] === view) ? ' selected' : ''}>${view}</option>`).join('')}
 					</select>
 				</div>
 
@@ -878,7 +452,7 @@ let _Crud = {
 		resourceLink.setAttribute('href', endpointURL);
 		resourceLink.textContent = endpointURL;
 	},
-	storeType: (type) => {
+	storeCurrentType: (type) => {
 		LSWrapper.setItem(_Crud.crudTypeKey, type);
 	},
 	storePagerData: () => {
@@ -886,8 +460,7 @@ let _Crud = {
 		let pagerData = `${_Crud.view[type]},${_Crud.sort[type]},${_Crud.order[type]},${_Crud.page[type]},${_Crud.pageSize[type]}`;
 		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
-	restorePagerData: () => {
-		let type = _Crud.type;
+	restorePagerData: (type) => {
 		let val  = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
 		if (val) {
@@ -899,17 +472,38 @@ let _Crud = {
 			_Crud.pageSize[type] = pagerData[4];
 		}
 	},
+	determinePagerData: (type) => {
+
+		// Priority: JS vars -> Local Storage -> URL -> Default
+
+		if (!_Crud.view[type]) {
+			_Crud.view[type]     = _Helpers.urlParam('view');
+			_Crud.sort[type]     = _Helpers.urlParam('sort');
+			_Crud.order[type]    = _Helpers.urlParam('order');
+			_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
+			_Crud.page[type]     = _Helpers.urlParam('page');
+		}
+
+		if (!_Crud.view[type]) {
+			_Crud.restorePagerData(type);
+		}
+
+		if (!_Crud.view[type]) {
+			_Crud.view[type]     = _Crud.defaultView;
+			_Crud.sort[type]     = _Crud.defaultSort;
+			_Crud.order[type]    = _Crud.defaultOrder;
+			_Crud.pageSize[type] = _Crud.defaultPageSize;
+			_Crud.page[type]     = _Crud.defaultPage;
+		}
+	},
 	setCollectionPageSize: (type, key, value) => {
-		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Crud.cssClassForKey(key)}`, value);
+		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`, value);
 	},
 	getCollectionPageSize: (type, key) => {
-		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Crud.cssClassForKey(key)}`);
-	},
-	setCollectionPage: (type, key, value) => {
-		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Crud.cssClassForKey(key)}`, value);
+		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`);
 	},
 	getCollectionPage: (type, key) => {
-		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Crud.cssClassForKey(key)}`);
+		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Helpers.getCSSClassForKey(key)}`);
 	},
 	replaceSortHeader: (type) => {
 
@@ -1034,8 +628,7 @@ let _Crud = {
 	appendPerCollectionPager: (el, type, key, callback) => {
 		el.append(`<input type="text" class="collection-page-size" size="1" value="${_Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize}">`);
 
-		$('.collection-page-size', el).on('blur', function() {
-			var newPageSize = $(this).val();
+		let update = (newPageSize) => {
 			if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
 				_Crud.setCollectionPageSize(type, key, newPageSize);
 				if (callback) {
@@ -1044,19 +637,15 @@ let _Crud = {
 					_Crud.refreshList(type);
 				}
 			}
+		};
+
+		$('.collection-page-size', el).on('blur', function() {
+			update($(this).val());
 		});
 
 		$('.collection-page-size', el).on('keypress', function(e) {
 			if (e.keyCode === 13) {
-				var newPageSize = $(this).val();
-				if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
-					_Crud.setCollectionPageSize(type, key, newPageSize);
-					if (callback) {
-						callback();
-					} else {
-						_Crud.refreshList(type);
-					}
-				}
+				update($(this).val());
 			}
 		});
 	},
@@ -1194,17 +783,11 @@ let _Crud = {
 				if (softLimited) {
 					_Crud.showSoftLimitAlert($('input.page-count'));
 				}
-
-			} else {
-
-//				console.log('appendCellPager', id, el, type, key);
-//				console.log('Property: ', _Crud.keys[type][key]);
-//				console.log('Error: ', textStatus, errorThrown, jqXHR.responseJSON);
 			}
 		});
 
 	},
-	sortAndPagingParameters: function(t, s, o, ps, p, exact = false) {
+	sortAndPagingParameters: (t, s, o, ps, p, exact = false) => {
 
 		let paramsArray = [];
 
@@ -1244,7 +827,7 @@ let _Crud = {
 
 		let properties = _Crud.getCurrentProperties(type);
 
-		_Crud.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
+		_Crud.delayedMessage.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
 		let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(','));
 
@@ -1262,7 +845,7 @@ let _Crud = {
 
 			if (response.ok) {
 
-				_Crud.removeMessage();
+				_Crud.delayedMessage.removeMessage();
 
 				if (!data || !Structr.isModuleActive(_Crud)) {
 					return;
@@ -1277,21 +860,6 @@ let _Crud = {
 				_Crud.updatePager(type, data);
 				_Crud.replaceSortHeader(type);
 
-				if (_Crud.types[type].isRel && !_Crud.relInfo[type]) {
-
-					let button = $('#crud-buttons #create' + type);
-					button.attr('disabled', 'disabled').addClass('disabled');
-					_Helpers.appendInfoTextToElement({
-						text: 'Action not supported for built-in relationship types',
-						element: $('#crud-buttons #create' + type),
-						css: {
-							marginRight: '10px'
-						},
-						offsetY: -50,
-						insertAfter: true
-					});
-				}
-
 			} else {
 
 				if (response.status === 431) {
@@ -1300,14 +868,14 @@ let _Crud = {
 					if (!isRetry) {
 						_Crud.list(type, url, true);
 					} else {
-						_Crud.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
+						_Crud.delayedMessage.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
 					}
 
 				} else {
 					console.log(type, url);
 				}
 
-				_Crud.removeMessage();
+				_Crud.delayedMessage.removeMessage();
 			}
 		}).catch(e => {
 
@@ -1319,11 +887,14 @@ let _Crud = {
 		});
 
 	},
-	ranges: function(type) {
-		var ranges = '';
-		var keys = type && _Crud.keys[type] && Object.keys(_Crud.keys[type]);
+	ranges: (type) => {
+		let ranges = '';
+		let keys;
+		if (type && _Crud.types[type]?.views?.all) {
+			keys = Object.keys(_Crud.types[type]?.views?.all);
+		}
 		if (!keys) {
-			var typeDef = _Crud.type[type];
+			let typeDef = _Crud.type[type];
 			if (typeDef) {
 				keys = Object.keys(typeDef.views[_Crud.view[type]]);
 			}
@@ -1331,10 +902,10 @@ let _Crud = {
 		if (keys) {
 			keys.forEach(function(key) {
 				if ( _Crud.isCollection(key, type)) {
-					var page = _Crud.getCollectionPage(type, key) || 1;
-					var pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
-					var start = (page-1)*pageSize;
-					var end = page*pageSize;
+					let page = _Crud.getCollectionPage(type, key) || 1;
+					let pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
+					let start = (page-1)*pageSize;
+					let end = page*pageSize;
 					ranges += `${key}=${start}-${end};`;
 				}
 			});
@@ -1362,7 +933,7 @@ let _Crud = {
 		});
 
 		let hiddenKeys             = _Crud.getHiddenKeys(type);
-		let acceptHeaderProperties = Object.keys(_Crud.keys[type]).filter(key => !hiddenKeys.includes(key)).join(',');
+		let acceptHeaderProperties = Object.keys(_Crud.types[type].views.all).filter(key => !hiddenKeys.includes(key)).join(',');
 
 		fetch(`${Structr.csvRootUrl}${type}/all${_Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type])}`, {
 			headers: {
@@ -1482,7 +1053,7 @@ let _Crud = {
 		if (response.ok) {
 
 			new SuccessMessage().text(`Deletion of all nodes of type '${type}' finished.`).show();
-			_Crud.typeSelected(type);
+			_Crud.typeList.typeSelected(type);
 
 		} else {
 
@@ -1590,108 +1161,6 @@ let _Crud = {
 		$('.pageLeft', pagerNode).off('click');
 		$('.pageRight', pagerNode).off('click');
 	},
-	crudCreate: (type, json, onError) => {
-
-		let url = Structr.rootUrl + type;
-
-		fetch(url, {
-			method: 'POST',
-			body: json
-		}).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				let properties = _Crud.getCurrentProperties(type);
-
-				let newNodeResponse = await fetch(`${Structr.rootUrl}${data.result[0]}/all`, {
-					headers: {
-						Accept: 'application/json; charset=utf-8; properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',')
-					}
-				});
-
-				if (newNodeResponse.ok) {
-
-					let newNodeResult = await newNodeResponse.json();
-					let newNode       = newNodeResult.result;
-					_Crud.appendRow(type, properties, newNode);
-
-					_Helpers.blinkGreen(_Crud.row(newNode.id));
-
-				} else {
-
-					_Crud.refreshList(type);
-				}
-
-			} else {
-
-				if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
-					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-				}
-				_Crud.showCreateError(type, data, onError);
-			}
-		});
-	},
-	showCreateError: (type, data, onError) => {
-
-		if (onError) {
-
-			onError();
-
-		} else {
-
-			let dialogText = _Dialogs.custom.getDialogTextElement();
-
-			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.showCreate(type);
-				dialogText = elements.dialogText;
-			}
-
-			$('.props input', $(dialogText)).css({
-				backgroundColor: '#fff',
-				borderColor: '#a5a5a5'
-			});
-
-			$('.props textarea', $(dialogText)).css({
-				backgroundColor: '#fff',
-				borderColor: '#a5a5a5'
-			});
-
-			$('.props td.value', $(dialogText)).css({
-				backgroundColor: '#fff',
-				borderColor: '#b5b5b5'
-			});
-
-			window.setTimeout(() => {
-
-				for (let error of data.errors) {
-
-					let key      = error.property;
-					let errorMsg = error.token;
-
-					let input = $(`td [name="${key}"]`, $(dialogText));
-					if (input.length) {
-
-						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
-
-						if (error.detail) {
-							errorText += ` ${error.detail}`;
-						}
-
-						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
-
-						input.css({
-							backgroundColor: '#fee',
-							borderColor: '#933'
-						});
-
-						input.focus();
-					}
-				}
-			}, 100);
-		}
-	},
 	crudRefresh: (id, key, oldValue) => {
 
 		fetch(`${Structr.rootUrl}${id}/all`, {
@@ -1793,7 +1262,6 @@ let _Crud = {
 				}
 			}
 		});
-
 	},
 	crudRemoveProperty: (id, key, onSuccess, onError) => {
 
@@ -1854,8 +1322,8 @@ let _Crud = {
 
 		let row = _Crud.row(id);
 
-		let cellInMainTable    = $('.' + _Crud.cssClassForKey(key), row);
-		let cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), $('#details_' + id));
+		let cellInMainTable    = $('.' + _Helpers.getCSSClassForKey(key), row);
+		let cellInDetailsTable = $('.' + _Helpers.getCSSClassForKey(key), $('#details_' + id));
 
 		let result = [];
 
@@ -1878,7 +1346,6 @@ let _Crud = {
 			_Helpers.fastRemoveAllChildren(cell[0]);
 			_Crud.populateCell(id, key, _Crud.type, oldValue, cell);
 		}
-
 	},
 	refreshCell: (id, key, newValue, type, oldValue) => {
 
@@ -1893,13 +1360,12 @@ let _Crud = {
 				_Helpers.blinkGreen(cell);
 			}
 		}
-
 	},
 	refreshRow: (id, item, type) => {
 
 		let row = _Crud.row(id);
 		_Helpers.fastRemoveAllChildren(row[0]);
-		_Crud.populateRow(id, item, type, _Crud.keys[type]);
+		_Crud.populateRow(id, item, type, _Crud.types[type].views.all);
 
 	},
 	activateTextInputField: (el, id, key, propertyType) => {
@@ -1960,7 +1426,7 @@ let _Crud = {
 				</td>
 			`);
 
-			if (!(_Crud.types[type] && _Crud.types[type].isRel === true)) {
+			if (!(_Crud.types[type] && _Crud.isRelType(type))) {
 				_Entities.appendNewAccessControlIcon(actions, item, false);
 			}
 
@@ -1970,7 +1436,7 @@ let _Crud = {
 
 			for (let key of filterKeys) {
 
-				row.append(`<td class="value ${_Crud.cssClassForKey(key)}"></td>`);
+				row.append(`<td class="value ${_Helpers.getCSSClassForKey(key)}"></td>`);
 				let cells = _Crud.cells(id, key);
 
 				for (let cell of cells) {
@@ -1985,37 +1451,40 @@ let _Crud = {
 			});
 
 			row[0].querySelector('.actions .delete').addEventListener('click', async (e) => {
-				let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
-				if (confirm === true) {
-					_Crud.crudDelete(type, id);
-				}
+				await _Crud.crudAskDelete(type, id);
 			});
 		}
 	},
+	crudAskDelete: async (type, id) => {
+		let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+		if (confirm === true) {
+			_Crud.crudDelete(type, id);
+		}
+
+		return confirm;
+	},
 	populateCell: (id, key, type, value, cell) => {
 
-		let isRel            = _Crud.types[type].isRel;
+		let isRelType        = _Crud.isRelType(type);
 		let isCollection     = _Crud.isCollection(key, type);
 		let isEnum           = _Crud.isEnum(key, type);
 		let isCypher         = _Crud.isCypherProperty(key, type);
-		let relatedType      = _Crud.relatedType(key, type);
+		let relatedType      = _Crud.getRelatedTypeForAttribute(key, type);
 		let readOnly         = _Crud.readOnly(key, type);
-		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
-		let propertyType     = _Crud.keys[type]?.[key]?.type;
-		let simpleType;
+		let isSourceOrTarget = isRelType && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
+		let propertyType     = _Crud.types[type]?.views.all[key]?.type;
 
 		if (readOnly) {
 			cell.addClass('readonly');
 		}
 
-		if (!isSourceOrTarget && !relatedType) {
+		let isRegularDirectAttribute = !isSourceOrTarget && !relatedType;
 
-			if (!_Crud.keys[type]) {
-				return;
-			}
+		if (isRegularDirectAttribute) {
 
 			if (propertyType === 'Boolean') {
 
+				cell.addClass('boolean-attr');
 				cell.append(`<input name="${key}" ${readOnly ? 'class="readonly" readonly disabled ' : ''}type="checkbox" ${value ? 'checked="checked"' : ''}>`);
 
 				if (!readOnly) {
@@ -2210,42 +1679,33 @@ let _Crud = {
 
 			} else if (isCollection) { // Array types
 
-				let values = value || [];
+				let values = value ?? [];
+				let typeInfo = _Crud.types[type].views.all;
 
 				if (!id) {
+					/**
+					 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
+					 */
 
-					let focusAndActivateField = function (el) {
-						$(el).focus().on('keydown', function (e) {
-							if (e.which === 9) { // tab key
-								e.stopPropagation();
-								cell.append(`<input name="${key}" size="4">`);
-								focusAndActivateField(cell.find(`[name="${key}"]`).last());
-								return false;
-							}
+					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+					cell.find(`[name="${key}"]`).each(function (i, el) {
+						_Entities.activateInput(el, null, null, typeInfo, function () {
 						});
-						return false;
-					};
-
-					// create dialog
-					_Schema.getTypeInfo(type, function (typeInfo) {
-						cell.append(`<input name="${key}" size="4">`);
-						focusAndActivateField(cell.find(`[name="${key}"]`).last());
 					});
 
 				} else {
 
-					// update existing object
-					_Schema.getTypeInfo(type, function (typeInfo) {
-						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, id, null, typeInfo, function () {
-								_Crud.crudRefresh(id, key);
-							});
+					// existing object
+					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+					cell.find(`[name="${key}"]`).each(function (i, el) {
+						_Entities.activateInput(el, id, null, typeInfo, function () {
+							_Crud.crudRefresh(id, key);
 						});
 					});
 				}
 
 			} else {
+				// default: any other type of direct property
 
 				cell.text(_Helpers.nvl(value, ''));
 
@@ -2261,74 +1721,64 @@ let _Crud = {
 				}
 			}
 
-		} else if (isCollection) {
-
-			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
-
-			cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
-
-			$('.add', cell).on('click', function() {
-
-				let { dialogText } = _Dialogs.custom.openDialog('Add ' + simpleType);
-				_Crud.displaySearch(type, id, key, simpleType, $(dialogText));
-			});
-
-			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1 && _Crud.keys[type][key].className.indexOf("CollectionNotionProperty") === -1) {
-
-				_Crud.appendCellPager(cell, id, type, key);
-			}
-
 		} else {
 
-			simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
+			// This attribute is a relationship attribute, either a collection or a single object
+			let simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
 
-			if (isRel && _Crud.relInfo[type]) {
+			if (isCollection) {
 
-				if (key === 'sourceId') {
-					simpleType = _Crud.relInfo[type].source;
-				} else if (key === 'targetId') {
-					simpleType = _Crud.relInfo[type].target;
-				} else if (key === 'sourceNode') {
-					simpleType = _Crud.relInfo[type].source;
-				} else if (key === 'targetNode') {
-					simpleType = _Crud.relInfo[type].target;
+				cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+
+				$('.add', cell).on('click', function() {
+
+					let { dialogText } = _Dialogs.custom.openDialog('Add ' + simpleType);
+					_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
+				});
+
+				if (_Crud.types[type].views.all[key] && _Crud.types[type].views.all[key].className.indexOf('CollectionIdProperty') === -1 && _Crud.types[type].views.all[key].className.indexOf("CollectionNotionProperty") === -1) {
+
+					_Crud.appendCellPager(cell, id, type, key);
 				}
-			}
-
-			if (value) {
-
-				_Crud.getAndAppendNode(type, id, key, value, cell);
 
 			} else {
 
-				if (simpleType) {
+				if (value) {
 
-					cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
-					$('.add', cell).on('click', function() {
+					_Crud.getAndAppendNode(type, id, key, value, cell);
 
-						if (!_Dialogs.custom.isDialogOpen() || isRel == false) {
+				} else {
 
-							let { dialogText } = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
-							_Crud.displaySearch(type, id, key, simpleType, $(dialogText));
+					// This branch is only run for the create node dialog.
 
-						} else {
+					if (simpleType) {
 
-							//TODO
-							let dialogText = $(_Dialogs.custom.getDialogTextElement());
+						cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+						$('.add', cell).on('click', function () {
 
-							var btn = $(this);
-							$('#entityForm').hide();
-							_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
+							if (!_Dialogs.custom.isDialogOpen() || isRelType == false) {
 
-								$('.searchBox', dialogText).remove();
-								btn.remove();
+								let {dialogText} = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
+								_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
 
-								_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
-								_Crud.clearSearchResults(dialogText);
-								$('#entityForm').show();
-							});
-						}
-					});
+							} else {
+
+								let dialogText = $(_Dialogs.custom.getDialogTextElement());
+
+								let btn = $(this);
+								$('#entityForm').hide();
+								_Crud.search.displaySearchDialog(type, id, key, simpleType, dialogText, function (n) {
+
+									$('.searchBox', dialogText).remove();
+									btn.remove();
+
+									_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
+									_Crud.search.clearSearchResults(dialogText);
+									$('#entityForm').show();
+								});
+							}
+						});
+					}
 				}
 			}
 		}
@@ -2343,32 +1793,40 @@ let _Crud = {
 				return false;
 			});
 		}
-
 	},
-	appendEnumSelect: function(cell, id, key, format) {
+	appendEnumSelect: (cell, id, key, format) => {
+
 		cell.off('click');
-		var input;
-		var oldValue = cell.text();
-		cell.empty().append(`<select name="${key}">`);
-		input = $('select', cell);
-		input.focus();
-		var values = format.split(',');
-		input.append('<option></option>');
-		values.forEach(function(value) {
-			value = value.trim();
-			if (value.length > 0) {
-				input.append(`<option ${value === oldValue ? 'selected="selected"' : ''}value="${value}">${value}</option>`);
-			}
-		});
-		input.on('change', function() {
-			let newValue = input.val();
+
+		let oldValue       = cell.text().trim();
+		console.log(oldValue);
+		let possibleValues = format.split(',').map(value => value.trim()).filter(value => value.length > 0);
+		possibleValues.unshift('');
+
+		_Helpers.fastRemoveAllChildren(cell[0]);
+
+		let select = _Helpers.createSingleDOMElementFromHTML(`
+			<select name="${key}">
+				${possibleValues.map(value => `<option ${value === oldValue ? 'selected="selected"' : ''}value="${value}">${value}</option>`).join()}
+			</select>
+		`);
+
+		cell[0].appendChild(select);
+		select.focus();
+
+		let blurHandler = (e) => {
+			_Crud.resetCell(id, key, oldValue);
+		};
+
+		select.addEventListener('change', function(e) {
+			let newValue = select.value;
 			if (id) {
+				select.removeEventListener('blur', blurHandler);
 				_Crud.crudUpdate(id, key, newValue, oldValue);
 			}
 		});
-		input.on('blur', function() {
-			_Crud.resetCell(id, key, oldValue);
-		});
+
+		select.addEventListener('blur', blurHandler);
 	},
 	getAndAppendNode: (parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) => {
 
@@ -2383,7 +1841,7 @@ let _Crud = {
 			id = obj;
 		} else {
 			// search object by name
-			type = _Crud.keys[parentType][key].relatedType.split('.').pop();
+			type = _Crud.types[parentType].views.all[key].relatedType.split('.').pop();
 
 			fetch(Structr.rootUrl + type + '?name=' + obj).then(async response => {
 
@@ -2463,160 +1921,6 @@ let _Crud = {
 		}
 
 	},
-	clearMainSearch: (el) => {
-
-		_Crud.clearSearchResults(el);
-		_Crud.searchFieldClearIcon.style.display = 'none';
-		_Crud.searchField.value = '';
-		$('#crud-type-detail').show();
-
-	},
-	clearSearchResults: (el) => {
-
-		let searchResults = $('.searchResults', el);
-		if (searchResults.length) {
-			_Helpers.fastRemoveElement(searchResults[0]);
-			return true;
-		}
-		return false;
-	},
-	focusSearchField: () => {
-
-		// only auto-activate search field if no other input element is active
-		if ( !(document.activeElement instanceof HTMLInputElement) ) {
-			_Crud.searchField.focus();
-		}
-	},
-	/**
-	 * Conduct a search and append search results to 'el'.
-	 *
-	 * If an optional type is given, restrict search to this type.
-	 *
-	 * Get only the given properties from the backend, otherwise just id,type,name.
-	 */
-	search: (searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = [], properties = 'id,type,name,path,isImage,width,height,isThumbnail,isFile,isFolder') => {
-
-		_Crud.clearSearchResults(el);
-
-		el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
-		let searchResults = $('.searchResults', el);
-
-		searchResults.append(`<span class="search-results-info">Showing the first ${optionalPageSize||1000} results. Use the input field to refine your search.</span>`);
-		Structr.resize();
-
-		let types;
-		let attr = 'name';
-		let posOfColon = searchString.indexOf(':');
-
-		if (posOfColon > -1) {
-
-			let typeAndValue = searchString.split(':');
-			let type = typeAndValue[0];
-			let posOfDot = type.indexOf('.');
-
-			if (posOfDot > -1) {
-				let typeAndAttr = type.split('.');
-				type = typeAndAttr[0];
-				attr = typeAndAttr[1];
-			}
-			types = [_Helpers.capitalize(type)];
-			searchString = typeAndValue[1];
-
-		} else {
-
-			if (type) {
-				types = type.split(',').filter(t => (t.trim() !== ''));
-			} else {
-				// only search in node types
-				types = Object.keys(_Crud.types).filter(t => !_Crud.types[t].isRel);
-			}
-			if (_Helpers.isUUID(searchString)) {
-				attr = 'uuid';
-				types = ['AbstractNode'];
-			}
-		}
-
-		for (let type of types) {
-
-			let url, searchPart;
-			if (attr === 'uuid') {
-				url = `${Structr.rootUrl}${type}/${searchString}`;
-			} else {
-				searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
-				url = `${Structr.rootUrl}${type}${_Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
-			}
-
-			searchResults.append(`
-				<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">
-					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}
-				</div>
-			`);
-
-			fetch(url, { headers: { 'Accept': 'application/json; properties=' + properties }	}).then(async response => {
-
-				if (response.ok) {
-
-					let data = await response.json();
-
-					if (!data || !data.result) {
-						return;
-					}
-
-					let result = data.result;
-					_Helpers.fastRemoveElement(document.querySelector(`#placeholderFor${type}`));
-
-					if (result) {
-						if (Array.isArray(result)) {
-							if (result.length) {
-								for (let node of result) {
-									if (!blacklistedIds.includes(node.id)) {
-										_Crud.searchResult(searchResults, type, node, onClickCallback);
-									}
-								}
-							} else {
-								_Crud.noResults(searchResults, type);
-							}
-						} else if (result.id) {
-							_Crud.searchResult(searchResults, type, result, onClickCallback);
-						}
-					} else {
-						_Crud.noResults(searchResults, type);
-					}
-
-				} else {
-					_Helpers.fastRemoveElement(document.querySelector(`#placeholderFor${type}`));
-				}
-			});
-		}
-
-	},
-	noResults: (searchResults, type) => {
-
-		searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox">No results for ${type}</div>`);
-		window.setTimeout(() => {
-			$(`#resultsFor${type}`).fadeOut('fast');
-		}, 1000);
-
-	},
-	searchResult: (searchResults, type, node, onClickCallback) => {
-		if (!$(`#resultsFor${type}`, searchResults).length) {
-			searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox"><h3>${type}</h3></div>`);
-		}
-		let displayName = _Crud.displayName(node);
-		let title = `name: ${node.name}
-id: ${node.id} 
-type: ${node.type}`;
-		$('#resultsFor' + type, searchResults).append(`<div title="${_Helpers.escapeForHtmlAttributes(title)}" class="_${node.id} node"><span class="name_ abbr-ellipsis abbr-120">${displayName}</span></div>`);
-
-		let nodeEl = $(`#resultsFor${type} ._${node.id}`, searchResults);
-		if (node.isImage) {
-			nodeEl.append(`<div class="wrap"><img class="thumbnailZoom" src="/${node.id}" alt=""><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-		}
-
-		nodeEl.on('click', function(e) {
-			onClickCallback(e, node);
-		});
-	},
 	displayName: (node) => {
 		let displayName;
 		if (node.isContent && node.content && !node.name) {
@@ -2625,74 +1929,6 @@ type: ${node.type}`;
 			displayName = node.name || node.id || node;
 		}
 		return displayName;
-	},
-	displaySearch: (parentType, id, key, type, el, callbackOverride) => {
-
-		el.append(`
-			<div class="searchBox searchBoxDialog flex justify-end">
-				<input class="search" name="search" size="20" placeholder="Search">
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
-			</div>
-		`);
-		let searchBox = $('.searchBoxDialog', el);
-		let search    = $('.search', searchBox);
-
-		window.setTimeout(() => {
-			search.focus();
-		}, 250);
-
-		search.keyup(function(e) {
-			e.preventDefault();
-
-			let searchString = search.val();
-			if (e.keyCode === 13) {
-
-				$('.clearSearchIcon', searchBox).show().on('click', function() {
-					_Crud.clearSearchResults(el);
-					$('.clearSearchIcon').hide().off('click');
-					search.focus();
-					search.val('');
-				});
-
-				_Crud.search(searchString, el, type, function(e, node) {
-					e.preventDefault();
-					if (typeof callbackOverride === "function") {
-						callbackOverride(node);
-					} else {
-						_Crud.addRelatedObject(parentType, id, key, node);
-					}
-					return false;
-				});
-
-			} else if (e.keyCode === 27) {
-
-				if (searchString.trim() === '') {
-					_Dialogs.custom.clickDialogCancelButton();
-				}
-
-				_Crud.clearSearchResults(el);
-				$('.clearSearchIcon').hide().off('click');
-				search.focus();
-				search.val('');
-			}
-
-			return false;
-		});
-
-		_Crud.populateSearchDialogWithInitialResult(parentType, id, key, type, el, callbackOverride, "*");
-	},
-	populateSearchDialogWithInitialResult: (parentType, id, key, type, el, callbackOverride, initialSearchText) => {
-
-		// display initial result list
-		_Crud.search(initialSearchText, el, type, (e, node) => {
-			e.preventDefault();
-			if (typeof callbackOverride === "function") {
-				callbackOverride(node);
-			} else {
-				_Crud.addRelatedObject(parentType, id, key, node, () => {});
-			}
-			return false;
-		}, 100);
 	},
 	removeRelatedObject: (obj, key, relatedObj, callback) => {
 
@@ -2758,71 +1994,6 @@ type: ${node.type}`;
 		});
 
 	},
-	removeStringFromArray: (type, id, key, obj, pos, callback) => {
-
-		fetch(`${Structr.rootUrl}${type}/${id}/public`).then(async response => {
-
-			if (response.ok) {
-
-				let data = await response.json();
-
-				obj = unescape(obj);
-				let newData = {};
-				let curVal = data.result[key];
-
-				if (curVal[pos] === obj) {
-
-					// string is at expected position => just remove that position/element
-					curVal.splice(pos, 1);
-					newData[key] = curVal;
-
-				} else {
-
-					// obj is not at position. it seems the crud is not up to date => remove the first occurence of the string (if any)
-					let newVal = [];
-					let found = false;
-					for (let v of curVal) {
-						if (v === obj && !found) {
-							found = true;
-						} else {
-							newVal.push(v);
-						}
-					}
-					newData[key] = newVal;
-				}
-
-				_Crud.crudUpdateObj(id, JSON.stringify(newData), () => {
-					_Crud.crudRefresh(id, key);
-					callback?.();
-				});
-			}
-		});
-
-	},
-	addStringToArray: (type, id, key, obj, callback) => {
-
-		fetch(`${Structr.rootUrl}${type}/${id}/all`).then(async response => {
-
-			if (response.ok) {
-
-				let data   = await response.json();
-				let curVal = data.result[key];
-				if (curVal === null) {
-					curVal = [obj];
-				} else {
-					curVal.push(obj);
-				}
-
-				let newData = {};
-				newData[key] = curVal;
-				_Crud.crudUpdateObj(id, JSON.stringify(newData), () => {
-					_Crud.crudRefresh(id, key);
-					callback?.();
-				});
-			}
-		});
-
-	},
 	extractIds: (result) => {
 
 		return result.map(obj => {
@@ -2842,7 +2013,7 @@ type: ${node.type}`;
 			return;
 		}
 
-		let typeDef = _Crud.keys[type];
+		let typeDef = _Crud.types[type]?.views?.all;
 
 		if (!typeDef) {
 			_Crud.getProperties(type, () => {
@@ -2867,7 +2038,6 @@ type: ${node.type}`;
 			}
 		}).then(async response => {
 
-
 			let data = await response.json();
 			if (!data)
 				return;
@@ -2876,13 +2046,27 @@ type: ${node.type}`;
 
 			let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
 
+			let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
+				<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+				</button>
+			`);
+
+			deleteBtn.addEventListener('click', async (e) => {
+				let deleted = await _Crud.crudAskDelete(type, id);
+
+				if (deleted) {
+					_Dialogs.custom.getCloseDialogButton().click();
+				}
+			});
+
 			dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
 
 			let table = dialogText.querySelector('table');
 
 			for (let key of visibleKeys) {
 
-				let cssClassForKey = _Crud.cssClassForKey(key);
+				let cssClassForKey = _Helpers.getCSSClassForKey(key);
 
 				let row = _Helpers.createSingleDOMElementFromHTML(`
 					<tr>
@@ -2907,56 +2091,6 @@ type: ${node.type}`;
 				dialogText.insertAdjacentHTML('beforeend', `<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/${node.id}"></div></div>`);
 			}
 		});
-	},
-	showCreate: (type) => {
-
-		if (!type) {
-			Structr.error('Missing type');
-			return;
-		}
-		let typeDef = _Crud.types[type];
-
-		let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
-
-		dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
-
-		let table = dialog.dialogText.querySelector('table');
-
-		for (let key in _Crud.keys[type]) {
-
-			let readOnly     = _Crud.readOnly(key, type);
-			let isCollection = _Crud.isCollection(key, type);
-			let relatedType  = _Crud.relatedType(key, type);
-
-			if (!readOnly && !isCollection && (!relatedType || _Crud.relInfo[type])) {
-
-				let cssClassForKey = _Crud.cssClassForKey(key);
-
-				let row = _Helpers.createSingleDOMElementFromHTML(`
-					<tr>
-						<td class="key"><label for="${key}">${key}</label></td>
-						<td class="__value ${cssClassForKey}"></td>
-					</tr>
-				`);
-				table.appendChild(row);
-
-				let cell = $(`.${cssClassForKey}`, $(row));
-
-				_Crud.populateCell(null, key, type, null, cell);
-			}
-
-		}
-
-		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
-		_Helpers.enableElement(dialogSaveButton);
-
-		dialogSaveButton.addEventListener('click', () => {
-			_Helpers.disableElement(dialogSaveButton);
-			let json = JSON.stringify(_Crud.serializeObject($('#entityForm')));
-			_Crud.crudCreate(type, json, () => { _Helpers.enableElement(dialogSaveButton); });
-		});
-
-		return dialog;
 	},
 	getHiddenKeys: (type) => {
 
@@ -3034,15 +2168,15 @@ type: ${node.type}`;
 		LSWrapper.setItem(_Crud.crudSortedColumnsKey + type, JSON.stringify(order));
 	},
 	isPrincipalType: (typeDef) => {
-		let cls = 'org.structr.dynamic.Principal';
+		let cls = Structr.getFQCNForDynamicTypeName('Principal');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isFileType: (typeDef) => {
-		let cls = 'org.structr.dynamic.AbstractFile';
+		let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	isImageType: (typeDef) => {
-		let cls = 'org.structr.dynamic.Image';
+		let cls = Structr.getFQCNForDynamicTypeName('Image');
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
 	},
 	inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
@@ -3112,8 +2246,8 @@ type: ${node.type}`;
 			let table = $('#crud-type-detail table');
 
 			// remove column(s) from table
-			$(`th.${_Crud.cssClassForKey(key)}`, table).remove();
-			$(`td.${_Crud.cssClassForKey(key)}`, table).each(function(i, t) {
+			$(`th.${_Helpers.getCSSClassForKey(key)}`, table).remove();
+			$(`td.${_Helpers.getCSSClassForKey(key)}`, table).each(function(i, t) {
 				t.remove();
 			});
 		}
@@ -3147,10 +2281,823 @@ type: ${node.type}`;
 	showActualResultCount: (el, pageSize) => {
 		el.attr('title', 'Result count = ' + pageSize);
 	},
-	cssClassForKey: (key) => {
-		return '___' + key.replace(/\s/g,  '_whitespace_');
-	},
+	createDialogWithErrorHandling: {
+		create: (type, nodeData = {}, onSuccess) => {
 
+			let url = Structr.rootUrl + type;
+
+			fetch(url, {
+				method: 'POST',
+				body: JSON.stringify(nodeData)
+			}).then(async response => {
+
+				let responseData = await response.json();
+
+				if (response.ok) {
+
+					onSuccess?.(type, responseData.result[0]);
+
+					if (_Dialogs.custom.isDialogOpen()) {
+						_Dialogs.custom.getCloseDialogButton().click();
+					}
+
+				} else {
+
+					if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
+						Structr.errorFromResponse(responseData, url, { statusCode: response.status, delayDuration: 5000 });
+					}
+
+					_Dialogs.custom.enableSaveButton();
+
+					_Crud.getTypeInfo(type, () => {
+
+						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
+					});
+				}
+			});
+		},
+		showCreateError: (type, nodeData, responseData, onSuccess) => {
+
+			let dialogText = _Dialogs.custom.getDialogTextElement();
+
+			if (!_Dialogs.custom.isDialogOpen()) {
+				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
+				dialogText = elements.dialogText;
+			}
+
+			// remove "invalid" highlight from elements
+			for (let el of dialogText.querySelectorAll('.props input, .props textarea, .props td.value')) {
+				el.classList.remove('form-input', 'input-invalid');
+			}
+
+			// delay only used to further highlight the input elements (slight blink)
+			window.setTimeout(() => {
+
+				for (let error of responseData.errors) {
+
+					let key      = error.property;
+					let errorMsg = error.token;
+
+					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (inputs.length > 0) {
+
+						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
+
+						if (error.detail) {
+							errorText += ` ${error.detail}`;
+						}
+
+						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
+
+
+						// add "invalid" highlight from elements
+						for (let input of inputs) {
+							input.classList.add('form-input', 'input-invalid');
+						}
+
+						inputs[0].focus();
+					}
+				}
+			}, 100);
+		},
+		showCreateDialog: (type, initialData = {}, onSuccess) => {
+
+			if (!type) {
+				Structr.error('Missing type');
+				return;
+			}
+
+			let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
+			_Dialogs.custom.noConfirmOnEscape();
+
+			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
+
+			let table = dialog.dialogText.querySelector('table');
+
+			let isRelType = _Crud.isRelType(type);
+
+			for (let key in _Crud.types[type].views.all) {
+
+				let isBuiltinBaseProperty              = _Crud.isBaseProperty(key, type);
+				let isBuiltinHiddenProperty            = _Crud.isHiddenProperty(key, type);
+				let readOnly                           = _Crud.readOnly(key, type);
+				let isCollection                       = _Crud.isCollection(key, type);
+				let isAllowedCollectionForCreateDialog = _Crud.isSupportedArrayType(key, type);
+				let relatedType                        = _Crud.getRelatedTypeForAttribute(key, type);
+				let isSourceOrTarget = isRelType && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
+
+				let showKey = !isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || isAllowedCollectionForCreateDialog) && (!relatedType || isRelType);
+
+				if (showKey) {
+
+					let cssClassForKey = _Helpers.getCSSClassForKey(key);
+
+					let row = _Helpers.createSingleDOMElementFromHTML(`
+						<tr>
+							<td class="key"><label for="${key}">${key}</label></td>
+							<td class="__value ${cssClassForKey}"></td>
+						</tr>
+					`);
+					table.appendChild(row);
+
+					let cell = row.querySelector(`.${cssClassForKey}`);
+
+					_Crud.populateCell(null, key, type, initialData[key], $(cell));
+				}
+			}
+
+			let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+			_Helpers.enableElement(dialogSaveButton);
+
+			dialogSaveButton.addEventListener('click', () => {
+
+				_Helpers.disableElement(dialogSaveButton);
+				let nodeData = _Crud.serializeObject($('#entityForm'));
+				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
+			});
+
+			return dialog;
+		},
+		crudCreateSuccess: async (type, newNodeId) => {
+
+			let properties = _Crud.getCurrentProperties(type);
+
+			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
+				headers: {
+					Accept: 'application/json; charset=utf-8; properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',')
+				}
+			});
+
+			if (newNodeResponse.ok) {
+
+				let newNodeResult = await newNodeResponse.json();
+				let newNode       = newNodeResult.result;
+				_Crud.appendRow(type, properties, newNode);
+
+				_Helpers.blinkGreen(_Crud.row(newNode.id));
+
+			} else {
+
+				_Crud.refreshList(type);
+			}
+		},
+	},
+	search: {
+		searchField: undefined,
+		searchFieldClearIcon: undefined,
+		setupGlobalSearch: () => {
+
+			let crudMain = $('#crud-main');
+
+			_Crud.search.searchField          = document.getElementById('crud-search-box');
+			_Crud.search.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Crud.search.focusSearchField();
+
+			_Helpers.appendInfoTextToElement({
+				element: _Crud.search.searchField,
+				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+				insertAfter: true,
+				css: {
+					left: '-18px',
+					position: 'absolute'
+				},
+				helpElementCss: {
+					fontSize: '12px',
+					lineHeight: '1.1em'
+				}
+			});
+
+			_Crud.search.searchFieldClearIcon.addEventListener('click', (e) => {
+				_Crud.search.clearMainSearch(crudMain);
+				_Crud.search.focusSearchField();
+			});
+
+			_Crud.search.searchField.addEventListener('keyup', (e) => {
+
+				let searchString = _Crud.search.searchField.value;
+
+				if (searchString && searchString.length) {
+					_Crud.search.searchFieldClearIcon.style.display = 'block';
+				}
+
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					_Crud.search.doSearch(searchString, crudMain, null, (e, node) => {
+						e.preventDefault();
+						_Entities.showProperties(node, 'ui');
+						return false;
+					});
+
+					$('#crud-type-detail').hide();
+
+				} else if (e.keyCode === 27 || searchString === '') {
+
+					_Crud.search.clearMainSearch(crudMain);
+				}
+			});
+		},
+		/**
+		 * Conduct a search and append search results to 'el'.
+		 *
+		 * If an optional type is given, restrict search to this type.
+		 *
+		 * Get only the given properties from the backend, otherwise just id,type,name.
+		 */
+		doSearch: (searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = [], properties = 'id,type,name,path,isImage,width,height,isThumbnail,isFile,isFolder') => {
+
+			_Crud.search.clearSearchResults(el);
+
+			el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
+			let searchResults = $('.searchResults', el);
+
+			searchResults.append(`<span class="search-results-info">Showing the first ${optionalPageSize||1000} results. Use the input field to refine your search.</span>`);
+			Structr.resize();
+
+			let types;
+			let attr = 'name';
+			let posOfColon = searchString.indexOf(':');
+
+			if (posOfColon > -1) {
+
+				let typeAndValue = searchString.split(':');
+				let type = typeAndValue[0];
+				let posOfDot = type.indexOf('.');
+
+				if (posOfDot > -1) {
+					let typeAndAttr = type.split('.');
+					type = typeAndAttr[0];
+					attr = typeAndAttr[1];
+				}
+				types = [_Helpers.capitalize(type)];
+				searchString = typeAndValue[1];
+
+			} else {
+
+				if (type) {
+					types = type.split(',').filter(t => (t.trim() !== ''));
+				} else {
+					// only search in node types
+					types = Object.keys(_Crud.types).filter(t => !_Crud.types[t].isRel);
+				}
+				if (_Helpers.isUUID(searchString)) {
+					attr = 'uuid';
+					types = ['AbstractNode'];
+				}
+			}
+
+			for (let type of types) {
+
+				let url, searchPart;
+				if (attr === 'uuid') {
+
+					url = `${Structr.rootUrl}${type}/${searchString}`;
+
+				} else {
+
+					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
+					url = `${Structr.rootUrl}${type}${_Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
+				}
+
+				searchResults.append(`
+					<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}
+					</div>
+				`);
+
+				fetch(url, {
+					headers: {
+						Accept: 'application/json; properties=' + properties
+					}
+				}).then(async response => {
+
+					if (response.ok) {
+
+						let data = await response.json();
+
+						if (!data || !data.result) {
+							return;
+						}
+
+						let result = data.result;
+						_Helpers.fastRemoveElement(document.querySelector(`#placeholderFor${type}`));
+
+						if (result) {
+							if (Array.isArray(result)) {
+								if (result.length) {
+									for (let node of result) {
+										if (!blacklistedIds.includes(node.id)) {
+											_Crud.search.searchResult(searchResults, type, node, onClickCallback);
+										}
+									}
+								} else {
+									_Crud.search.noResults(searchResults, type);
+								}
+							} else if (result.id) {
+								_Crud.search.searchResult(searchResults, type, result, onClickCallback);
+							}
+						} else {
+							_Crud.search.noResults(searchResults, type);
+						}
+
+					} else {
+						_Helpers.fastRemoveElement(document.querySelector(`#placeholderFor${type}`));
+					}
+				});
+			}
+		},
+		clearSearchResults: (el) => {
+
+			let searchResults = $('.searchResults', el);
+			if (searchResults.length) {
+				_Helpers.fastRemoveElement(searchResults[0]);
+				return true;
+			}
+			return false;
+		},
+		clearMainSearch: (el) => {
+
+			_Crud.search.clearSearchResults(el);
+			_Crud.search.searchFieldClearIcon.style.display = 'none';
+			_Crud.search.searchField.value = '';
+			$('#crud-type-detail').show();
+		},
+		focusSearchField: () => {
+
+			// only auto-activate search field if no other input element is active
+			if ( !(document.activeElement instanceof HTMLInputElement) ) {
+				_Crud.search.searchField.focus();
+			}
+		},
+		noResults: (searchResults, type) => {
+
+			searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox">No results for ${type}</div>`);
+			window.setTimeout(() => {
+				$(`#resultsFor${type}`).fadeOut('fast');
+			}, 1000);
+
+		},
+		searchResult: (searchResults, type, node, onClickCallback) => {
+
+			if (!$(`#resultsFor${type}`, searchResults).length) {
+				searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox"><h3>${type}</h3></div>`);
+			}
+
+			let displayName = _Crud.displayName(node);
+			let title = `name: ${node.name}\nid: ${node.id}\ntype: ${node.type}`;
+			$('#resultsFor' + type, searchResults).append(`<div title="${_Helpers.escapeForHtmlAttributes(title)}" class="_${node.id} node"><span class="name_ abbr-ellipsis abbr-120">${displayName}</span></div>`);
+
+			let nodeEl = $(`#resultsFor${type} ._${node.id}`, searchResults);
+			if (node.isImage) {
+				nodeEl.append(`<div class="wrap"><img class="thumbnailZoom" src="/${node.id}" alt=""><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
+			}
+
+			nodeEl.on('click', function(e) {
+				onClickCallback(e, node);
+			});
+		},
+		displaySearchDialog: (parentType, id, key, type, el, callbackOverride) => {
+
+			el.append(`
+				<div class="searchBox searchBoxDialog flex justify-end">
+					<input class="search" name="search" size="20" placeholder="Search">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				</div>
+			`);
+			let searchBox = $('.searchBoxDialog', el);
+			let search    = $('.search', searchBox);
+
+			window.setTimeout(() => {
+				search.focus();
+			}, 250);
+
+			search.keyup(function(e) {
+				e.preventDefault();
+
+				let searchString = search.val();
+				if (e.keyCode === 13) {
+
+					$('.clearSearchIcon', searchBox).show().on('click', function() {
+						_Crud.search.clearSearchResults(el);
+						$('.clearSearchIcon').hide().off('click');
+						search.focus();
+						search.val('');
+					});
+
+					_Crud.search.doSearch(searchString, el, type, function(e, node) {
+						e.preventDefault();
+						if (typeof callbackOverride === "function") {
+							callbackOverride(node);
+						} else {
+							_Crud.addRelatedObject(parentType, id, key, node);
+						}
+						return false;
+					});
+
+				} else if (e.keyCode === 27) {
+
+					if (searchString.trim() === '') {
+						_Dialogs.custom.clickDialogCancelButton();
+					}
+
+					_Crud.search.clearSearchResults(el);
+					$('.clearSearchIcon').hide().off('click');
+					search.focus();
+					search.val('');
+				}
+
+				return false;
+			});
+
+			// display initial result list
+			_Crud.search.doSearch('*', el, type, (e, node) => {
+				e.preventDefault();
+				if (typeof callbackOverride === "function") {
+					callbackOverride(node);
+				} else {
+					_Crud.addRelatedObject(parentType, id, key, node, () => {});
+				}
+				return false;
+			}, 100);
+		}
+	},
+	delayedMessage: {
+		messageTimeout: undefined,
+		showLoadingMessageAfterDelay: (message, delay) => {
+
+			_Crud.delayedMessage.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
+		},
+		showMessageAfterDelay: (message, delay) => {
+
+			clearTimeout(_Crud.delayedMessage.messageTimeout);
+
+			_Crud.delayedMessage.messageTimeout = window.setTimeout(() => {
+
+				_Crud.delayedMessage.removeMessage();
+
+				let crudRight = $('#crud-type-detail');
+				crudRight.append(`
+					<div class="crud-message">
+						<div class="crud-centered flex items-center justify-center">${message}</div>
+					</div>
+				`);
+
+			}, delay);
+		},
+		removeMessage: () => {
+
+			clearTimeout(_Crud.delayedMessage.messageTimeout);
+			_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
+		},
+	},
+	typeList: {
+		addListeners: () => {
+
+			document.querySelector('#crud-left').addEventListener('click', (e) => {
+				let type = e.target.closest('.crud-type');
+				if (type) {
+					_Crud.typeList.typeSelected(type.dataset['type']);
+				}
+			});
+
+			document.querySelector('#crud-recent-types').addEventListener('click', (e) => {
+				let removeRecentType = e.target.closest('.remove-recent-type');
+				if (removeRecentType) {
+					e.stopPropagation();
+					let type = removeRecentType.closest('div[data-type]');
+					_Crud.typeList.recents.remove(type);
+				}
+			});
+		},
+		populateTypeList: () => {
+
+			let typeListHtml = Object.keys(_Crud.types).sort().map(typeName => `<div class="crud-type truncate hidden" data-type="${typeName}">${typeName}</div>`).join('');
+			let typesListEl  = document.querySelector('#crud-types-list');
+
+			typesListEl.insertAdjacentHTML('beforeEnd', typeListHtml);
+		},
+		highlightCurrentType: (selectedType) => {
+
+			[...document.querySelectorAll('#crud-left .crud-type.active')].forEach(a => a.classList.remove('active'));
+			document.querySelector(`#crud-left .crud-type[data-type="${selectedType}"]`)?.classList?.add('active');
+
+			let $crudTypesList             = $('#crud-types-list');
+			let $selectedElementInTypeList = $('.crud-type[data-type="' + selectedType + '"]', $crudTypesList);
+
+			if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
+
+				let positionOfList    = $crudTypesList.position().top;
+				let scrollTopOfList   = $crudTypesList.scrollTop();
+				let positionOfElement = $selectedElementInTypeList.position().top;
+				$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+
+			} else {
+
+				$crudTypesList.animate({scrollTop: 0});
+			}
+		},
+		setCurrentTypeIfNotYetSet: () => {
+
+			let setCurrentTypeIfPossible = (type) => {
+
+				if (_Crud.types[type]) {
+					_Crud.type = type;
+				}
+			};
+
+			if (!_Crud.type) {
+				setCurrentTypeIfPossible(_Helpers.urlParam('type'));
+			}
+
+			if (!_Crud.type) {
+				setCurrentTypeIfPossible(LSWrapper.getItem(_Crud.crudTypeKey));
+			}
+
+			if (!_Crud.type) {
+				setCurrentTypeIfPossible(_Crud.defaultType);
+			}
+		},
+		typeSelected: (type) => {
+
+			_Crud.storeCurrentType(type);
+
+			_Crud.typeList.recents.update(type);
+			_Crud.typeList.highlightCurrentType(type);
+
+			let crudRight = document.querySelector('#crud-type-detail');
+
+			_Crud.delayedMessage.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
+
+			_Crud.getProperties(type, () => {
+
+				_Crud.delayedMessage.removeMessage();
+
+				_Helpers.fastRemoveAllChildren(crudRight);
+
+				let crudButtons = Structr.functionBar.querySelector('#crud-buttons');
+				_Helpers.setContainerHTML(crudButtons, _Crud.templates.typeButtons({ type: type }));
+
+				let exactTypeLabel = crudButtons.querySelector('.exact-type-checkbox-label');
+
+				_Helpers.appendInfoTextToElement({
+					element: exactTypeLabel,
+					text: 'This flag affects the list shown below and the delete function.<br><br>If active only nodes of the selected type ("' + type + '") are shown in the list and types inheriting from this type are excluded. If it is not active, nodes for the current type and nodes of all its subtypes are shown.<br><br>The same is true for the delete function. If active, only nodes with that exact type are deleted and nodes of inheriting types are not deleted. If it is not active, nodes for the active type and nodes of all its subtypes are deleted.',
+					insertAfter: true,
+					css: {
+						marginLeft: '4px',
+					},
+					helpElementCss: {
+						fontSize: '12px',
+						lineHeight: '1.1em'
+					}
+				});
+
+				_Crud.determinePagerData(type);
+
+				// fall back to public view if saved view does not exist (anymore)
+				if (!Object.keys(_Crud.types[type].views).includes(_Crud.view[type])) {
+					_Crud.view[type] = 'public';
+				}
+
+				let pagerNode = _Crud.addPager(type, crudRight);
+
+				crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+
+				_Crud.updateCrudTableHeader(type);
+
+				document.querySelector('#create' + type).addEventListener('click', () => {
+					_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
+				});
+
+				document.querySelector('#export' + type).addEventListener('click', () => {
+					_Crud.crudExport(type);
+				});
+
+				document.querySelector('#import' + type).addEventListener('click', () => {
+					_Crud.crudImport(type);
+				});
+
+				let exactTypeCheckbox = document.querySelector('#exact_type_' + type);
+				exactTypeCheckbox.checked = _Crud.exact[type];
+
+				exactTypeCheckbox.addEventListener('change', () => {
+					_Crud.exact[type] = exactTypeCheckbox.checked;
+					LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
+					_Crud.refreshList(type);
+				});
+
+				document.querySelector('#delete' + type).addEventListener('click', async () => {
+
+					let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>WARNING: Really delete all objects of type '${type}'${((exactTypeCheckbox.checked === true) ? '' : ' and of inheriting types')}?</h3>
+					<p>This will delete all objects of the type (<b>${((exactTypeCheckbox.checked === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
+					<p>Depending on the amount of objects this can take a while.</p>
+				`);
+
+					if (confirm === true) {
+						await _Crud.deleteAllNodesOfType(type, exactTypeCheckbox.checked);
+					}
+				});
+
+				_Crud.deActivatePagerElements(pagerNode);
+				_Crud.activateList(type);
+				_Crud.activatePagerElements(type, pagerNode);
+			});
+		},
+		recents: {
+			crudRecentTypesKey: 'structrCrudRecentTypes_' + location.port,
+			update: (selectedType) => {
+
+				let recentTypes = LSWrapper.getItem(_Crud.typeList.recents.crudRecentTypesKey);
+
+				if (recentTypes && selectedType) {
+
+					recentTypes = recentTypes.filter((type) => (type !== selectedType));
+					recentTypes.unshift(selectedType);
+
+				} else if (selectedType) {
+
+					recentTypes = [selectedType];
+				}
+
+				recentTypes = recentTypes.slice(0, 12);
+
+				if (recentTypes) {
+
+					let recentTypesList = document.querySelector('#crud-recent-types-list');
+
+					recentTypesList.innerHTML = recentTypes.map(type => `
+							<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
+								<div class="truncate">${type}</div>
+								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
+							</div>
+						`).join('');
+				}
+
+				LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
+			},
+			remove: (recentTypeElement) => {
+
+				let typeToRemove = recentTypeElement.dataset['type'];
+				let recentTypes  = LSWrapper.getItem(_Crud.typeList.recents.crudRecentTypesKey);
+
+				if (recentTypes) {
+					recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
+				}
+
+				LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
+
+				_Helpers.fastRemoveElement(recentTypeElement);
+			},
+		},
+		filtering: {
+			displayTypeConfigKey: 'structrCrudDisplayTypes_' + location.port,
+			activateFilterElements: () => {
+
+				for (let typeFilterCheckbox of document.querySelectorAll('#crudTypeFilterSettings input')) {
+
+					typeFilterCheckbox.addEventListener('change', () => {
+						LSWrapper.setItem(_Crud.typeList.filtering.displayTypeConfigKey, _Crud.typeList.filtering.getTypeVisibilityConfigFromUI());
+						_Crud.typeList.filtering.filterTypes();
+					});
+				}
+
+				document.querySelector('#crudTypesSearch').addEventListener('keyup', (e) => {
+
+					if (e.keyCode === 27) {
+
+						e.target.value = '';
+
+					} else if (e.keyCode === 13) {
+
+						let visibleTypes = document.querySelectorAll('#crud-types-list .crud-type:not(.hidden)');
+
+						if (visibleTypes.length === 1) {
+
+							_Crud.typeList.typeSelected(visibleTypes[0].dataset['type']);
+
+						} else {
+
+							let filterVal     = e.target.value.toLowerCase();
+							let matchingTypes = Object.keys(_Crud.types).filter(type => type.toLowerCase() === filterVal);
+
+							if (matchingTypes.length === 1) {
+								_Crud.typeList.typeSelected(matchingTypes[0]);
+							}
+						}
+					}
+
+					_Crud.typeList.filtering.filterTypes();
+				});
+			},
+			getFilteredTypes: () => {
+
+				let typeVisibility = _Crud.typeList.filtering.getStoredTypeVisibilityConfig();
+
+				return Object.keys(_Crud.types).sort().filter(typeName => {
+
+					let type            = _Crud.types[typeName];
+					let isRelType       = type.isRel === true;
+					let isBuiltInRel    = isRelType && !(type.className.startsWith('org.structr.dynamic'));
+					let isCustomRelType = isRelType && (type.className.startsWith('org.structr.dynamic'));
+					let isDynamicType   = !isRelType && (type.className.startsWith('org.structr.dynamic'));
+					let isHtmlType      = !isRelType && (type.extendsClass.startsWith('org.structr.web.entity.dom'));
+					let isFlowType      = !isRelType && type.className.startsWith('org.structr.flow');
+					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
+
+					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||
+						(!typeVisibility.html && isHtmlType) || (!typeVisibility.flow && isFlowType) || (!typeVisibility.other && isOtherType);
+
+					return !hide;
+				});
+			},
+			filterTypes: () => {
+
+				// combined filter function for search input and filter checkboxes
+				let typesToShowViaFilterCheckbox = _Crud.typeList.filtering.getFilteredTypes();
+
+				let filterString = document.querySelector('#crudTypesSearch').value.toLowerCase();
+
+				for (let el of document.querySelectorAll('#crud-types-list .crud-type')) {
+
+					let typeName = el.dataset['type'];
+
+					let shouldHideByTypeFilters     = !(typesToShowViaFilterCheckbox.includes(typeName));
+					let shouldHideByUserInputFilter = (filterString.length > 0) && (typeName.toLowerCase().indexOf(filterString) === -1);
+
+					let force = shouldHideByTypeFilters || shouldHideByUserInputFilter;
+
+					el.classList.toggle('hidden', force);
+				}
+			},
+			getStoredTypeVisibilityConfig: (singleKey) => {
+
+				let config = LSWrapper.getItem(_Crud.typeList.filtering.displayTypeConfigKey, {
+					custom:     true,
+					customRels: true,
+					rels:       false,
+					flow:       false,
+					html:       false,
+					other:      false
+				});
+
+				if (singleKey) {
+
+					return config[singleKey];
+				}
+
+				return config;
+			},
+			getTypeVisibilityConfigFromUI: () => {
+
+				return {
+					custom:       document.querySelector('#crudTypeToggleCustom').checked,
+					customRels:   document.querySelector('#crudTypeToggleCustomRels').checked,
+					rels:         document.querySelector('#crudTypeToggleRels').checked,
+					flow:         document.querySelector('#crudTypeToggleFlow').checked,
+					html:         document.querySelector('#crudTypeToggleHtml').checked,
+					other:        document.querySelector('#crudTypeToggleOther').checked
+				};
+			},
+			templates: {
+				filterBox: config => `
+					<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
+	
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
+							${_Icons.getSvgIcon(_Icons.iconFilterFunnel, 16, 16, ['mr-2'])}
+						</button>
+			
+						<div class="dropdown-menu-container" style="width: 17rem;">
+			
+							<div class="heading-row">
+								<h3>Type Filters</h3>
+							</div>
+			
+							<div class="row">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('custom') ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustom"> Custom Types</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('customRels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustomRels"> Custom Relationship Types</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('rels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleRels"> Built-In Relationship Types</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('html')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleHtml"> HTML Types</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('flow')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleFlow"> Flow Types</label>
+							</div>
+							<div class="row mb-2">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('other')  ? 'checked' : ''} type="checkbox" id="crudTypeToggleOther"> Other Types</label>
+							</div>
+			
+						</div>
+					</div>
+				`,
+				filterInput: config => `<input placeholder="Filter types..." id="crudTypesSearch" autocomplete="off">`
+			}
+		},
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
@@ -3162,52 +3109,15 @@ type: ${node.type}`;
 				<div id="crud-left" class="resourceBox">
 
 					<div id="crud-types">
-
+					
 						<div class="flex">
-							<h2 class="flex-grow">All Types</h2>
 
-							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
+							<h2 class="flex-grow">Types</h2>
 
-								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									${_Icons.getSvgIcon(_Icons.iconFilterFunnel, 16, 16, ['mr-2'])}
-								</button>
-
-								<div class="dropdown-menu-container" style="width: 17rem;">
-
-									<div class="heading-row">
-										<h3>Type Filters</h3>
-									</div>
-
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('custom') ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustom"> Custom Types</label>
-									</div>
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('customRels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustomRels"> Custom Relationship Types</label>
-									</div>
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('rels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleRels"> Built-In Relationship Types</label>
-									</div>
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('core')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCore"> Core Types</label>
-									</div>
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('html')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleHtml"> HTML Types</label>
-									</div>
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('ui')     ? 'checked' : ''} type="checkbox" id="crudTypeToggleUi"> UI Types</label>
-									</div>
-									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('log')    ? 'checked' : ''} type="checkbox" id="crudTypeToggleLog"> Log Types</label>
-									</div>
-									<div class="row mb-2">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('other')  ? 'checked' : ''} type="checkbox" id="crudTypeToggleOther"> Other Types</label>
-									</div>
-
-								</div>
-							</div>
+							${_Crud.typeList.filtering.templates.filterBox(config)}
 						</div>
-
-						<input placeholder="Filter types..." id="crudTypesSearch" autocomplete="off">
+						
+						${_Crud.typeList.filtering.templates.filterInput(config)}
 
 						<div id="crud-types-list"></div>
 					</div>

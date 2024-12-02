@@ -100,16 +100,7 @@ public class GetByTypeCommand extends AbstractCommand {
 				query.and(StructrApp.key(Image.class, "isThumbnail"), false);
 			}
 
-			// do search
-			final ResultStream result    = query.getResultStream();
-			final List<GraphObject> list = Iterables.toList(result);
-
-			// save raw result count
-			int resultCountBeforePaging = result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize));
-
-			// set full result list
-			webSocketData.setResult(list);
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

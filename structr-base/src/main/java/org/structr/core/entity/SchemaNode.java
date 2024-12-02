@@ -89,7 +89,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
+		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, extendsClassInternal, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
@@ -288,7 +288,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 			// migrate dynamic classes that extend static types (that were dynamic before)
-			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.");
+			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.", "org.structr.mail.entity.");
 			final String ifaces           = getProperty(SchemaNode.implementsInterfaces);
 			final List<String> interfaces = new LinkedList<>();
 			String extendsClass           = null;
@@ -334,6 +334,8 @@ public class SchemaNode extends AbstractSchemaNode {
 					setProperty(SchemaNode.implementsInterfaces, implementsInterfaces);
 				}
 			}
+
+			// migrate extendsClass relationship from dynamic to static
 		}
 
 		// remove "all" view since it is internal and shouldn't be updated explicitly

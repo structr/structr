@@ -16,14 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.api.util;
 
-import org.structr.api.graph.RelationshipType;
+import java.util.Iterator;
 
-/**
- *
- */
-public enum RelType implements RelationshipType {
-
-	OWNS, SECURITY
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 }

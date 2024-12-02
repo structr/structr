@@ -20,8 +20,8 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -154,7 +154,8 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 			for (final FlowBaseNode node : nodes) {
 
 				 rels.addAll(StreamSupport.stream(node.getRelationships().spliterator(), false).filter(rel -> {
-					if (!RelType.SECURITY.equals(rel.getRelType()) && !RelType.OWNS.equals(rel.getRelType())) {
+					final RelationshipType relType = rel.getRelType();
+					if (!"SECURITY".equals(relType.name()) && !"OWNS".equals(relType.name())) {
 						return true;
 					}
 					return false;

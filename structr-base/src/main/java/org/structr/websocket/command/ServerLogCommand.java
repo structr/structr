@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.ServerLogFunction;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -49,18 +50,16 @@ public class ServerLogCommand extends AbstractCommand {
 
 		int numberOfLines      = webSocketData.getNodeDataIntegerValue("numberOfLines") != null ? webSocketData.getNodeDataIntegerValue("numberOfLines") : 20;
 		int truncateLinesAfter = webSocketData.getNodeDataIntegerValue("truncateLinesAfter") != null ? webSocketData.getNodeDataIntegerValue("truncateLinesAfter") : -1;
+		final String fileName  = webSocketData.getNodeDataStringValue("logFileName");	// null is allowed (uses default/first available log file)
 
-		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter);
+		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter, fileName);
 
 		try {
 
 			GraphObjectMap result = new GraphObjectMap();
 			result.setProperty(new StringProperty("result"), log);
 
-			List<GraphObject> resultList = new ArrayList();
-
-			resultList.add(result);
-			webSocketData.setResult(resultList);
+			webSocketData.setResult(List.of(result));
 
 			getWebSocket().send(webSocketData, true);
 

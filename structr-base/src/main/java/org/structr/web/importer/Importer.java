@@ -282,9 +282,15 @@ public class Importer {
 				logger.info("##### Start fetching {} for page {} #####", new Object[]{address, name});
 			}
 
-			code = HttpHelper.get(address);
-			parsedDocument = Jsoup.parse(code);
+			final Map<String, Object> responseData = HttpHelper.get(address);
+			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+			if (code != null) {
 
+				parsedDocument = Jsoup.parse(code);
+			} else {
+
+				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");
+			}
 		}
 
 		return true;

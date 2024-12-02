@@ -16,19 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.common;
-
-import org.structr.api.graph.RelationshipType;
+package org.structr.api.schema;
 
 /**
  *
  *
  */
-public enum TestRestRelType implements RelationshipType {
+public interface JsonCountProperty extends JsonLongProperty {
 
-	MANY_TO_MANY,
-	ONE_TO_MANY,
-	ONE_TO_ONE,
-
-	HAS
 }

@@ -45,11 +45,12 @@ import org.structr.feed.entity.relationship.DataFeedHAS_FEED_ITEMSFeedItem;
 import org.structr.rest.common.HttpHelper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Map;
 
 
 public class DataFeed extends AbstractNode {
@@ -192,7 +193,18 @@ public class DataFeed extends AbstractNode {
 
 				final SyndFeedInput input              = new SyndFeedInput();
 
-				try (final Reader reader = new XmlReader(HttpHelper.getAsStream(remoteUrl))) {
+				InputStream inputStream = null;
+				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+
+					inputStream =  (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+				}
+
+				if (inputStream == null) {
+					throw new FrameworkException(422, "Could not get input stream for feed " + getUuid());
+				}
+
+				try (final Reader reader = new XmlReader(inputStream)) {
 
 					final SyndFeed        feed    = input.build(reader);
 					final List<SyndEntry> entries = feed.getEntries();

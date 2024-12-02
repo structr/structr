@@ -59,11 +59,11 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 					typeClass = StructrApp.getConfiguration().getRelationshipEntityClass(type);
 				}
 
-				webSocketData.setResult(Iterables.toList(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, typeClass, PropertyView.All)));
+				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, typeClass, PropertyView.All));
 
 			} else {
 
-				webSocketData.setResult(Iterables.toList(SchemaResource.getSchemaOverviewResult()));
+				webSocketData.setResult(SchemaResource.getSchemaOverviewResult());
 			}
 
 			// send only over local connection (no broadcast)

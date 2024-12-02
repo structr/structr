@@ -35,6 +35,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -462,6 +463,11 @@ public abstract class StreamingWriter {
 						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
 						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
 							keys = idTypeNameOnly;
+						}
+
+						// prefetching hook
+						if (source instanceof NodeInterface n) {
+							n.prefetchPropertySet(keys);
 						}
 
 						for (final PropertyKey key : keys) {

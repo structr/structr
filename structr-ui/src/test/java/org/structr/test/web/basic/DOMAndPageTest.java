@@ -1193,7 +1193,59 @@ public class DOMAndPageTest extends StructrUiTest {
 		}
 
 		logger.info("Rendering a test page {} times took {} ms on average", count, (average / count));
+	}
 
+	@Test
+	public void testDetailsObjectInPageUrlWithCaching() {
+
+		String uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page test  = Page.createSimplePage(securityContext, "test");
+			final Text text  = test.createTextNode(" / ${current.id}");
+
+			test.getElementsByTagName("div").item(0).appendChild(text);
+
+			final User user = app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			);
+
+			uuid = user.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.expect()
+			.body("html.body.div",   Matchers.equalTo("Initial body text / " + uuid))
+			.statusCode(200)
+			.when()
+			.get("/html/test/" + uuid);
+
+		// make sure that the second request (which comes from the cache) also contains the details object!
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.expect()
+			.body("html.body.div",   Matchers.equalTo("Initial body text / " + uuid))
+			.statusCode(200)
+			.when()
+			.get("/html/test/" + uuid);
 	}
 
 	// ----- private methods -----

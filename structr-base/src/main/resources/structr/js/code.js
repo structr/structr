@@ -887,7 +887,7 @@ let _Code = {
 			},
 			{
 				id:       path + '/remoteproperties',
-				text:     'Related Properties',
+				text:     'Linked Properties',
 				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'remoteproperties' },

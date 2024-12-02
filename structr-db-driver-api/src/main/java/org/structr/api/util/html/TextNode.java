@@ -16,39 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.common;
+package org.structr.api.util.html;
 
-import org.structr.api.graph.RelationshipType;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
- * Defines relationship types for structr's internal relationships.
  *
  *
  */
-public enum RelType implements RelationshipType {
+public class TextNode extends Tag {
 
-	// web
-	CONTAINS,
-	CONTAINS_NEXT_SIBLING,
-	DEFINES_TYPE,
-	DEFINES_PROPERTY,
-	PAGE,
-	ROOT,
-	SYNC,
-	LINK,
+	private String textContent = null;
 
-	// picture
-	THUMBNAIL,
-	PICTURE_OF,
+	public TextNode(final Tag parent, final String textContent) {
+		super(parent, null, false, false);
 
-	// blog
-	AUTHOR,
-	COMMENT,
+		this.textContent = textContent;
+	}
 
-	TAG,
+	protected void render(final PrintWriter writer, final int level) throws IOException {
 
-	// files
-	HOME_DIR,
-	WORKING_DIR
-
+		if (textContent != null) {
+			writer.print(textContent);
+		}
+	}
 }

@@ -59,7 +59,7 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			// Get all top nodes, use method from list command
-			final List<NodeInterface> topNodes = ListUnattachedNodesCommand.getUnattachedNodes(app, securityContext, webSocketData);
+			final Iterable<DOMNode> topNodes = ListUnattachedNodesCommand.getUnattachedNodes(app, securityContext, webSocketData);
 
 			// Loop through all top nodes and collect all their child nodes
 			for (final NodeInterface topNode : topNodes) {

@@ -571,6 +571,16 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final AbstractSchemaNode schemaNode = type.getSchemaNode();
 		if (schemaNode != null) {
 
+			final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(type.getName());
+			if (clazz != null) {
+
+				// move extends relationship to internal type
+				for (final SchemaNode subtype : schemaNode.getProperty(SchemaNode.extendedByClasses)) {
+
+					subtype.setProperty(SchemaNode.extendsClassInternal, clazz.getName());
+				}
+			}
+
 			StructrApp.getInstance().delete(schemaNode);
 		}
 	}

@@ -364,8 +364,8 @@ let _Elements = {
 		let idString    = entity._html_id;
 		let classString = entity._html_class;
 
-		let htmlIdString    = (idString    ? '#' + idString.replace(/\${.*}/g, '${…}') : '');
-		let htmlClassString = (classString ? '.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') : '');
+		let htmlIdString    = (idString    ? '#' + idString.replace(/\${[^}]*}/g, '${…}') : '');
+		let htmlClassString = (classString ? '.' + classString.replace(/\${[^}]*}/g, '${…}').replace(/ +/g, '.') : '');
 
 		// only display tagname if node has a displayname other than its tagname (otherwise the tagname itself is already displayed in the name field)
 		let displayName = _Helpers.getElementDisplayName(entity);

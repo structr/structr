@@ -16,20 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.core;
+package org.structr.core.property;
 
-import org.structr.api.graph.RelationshipType;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
-/**
- *
- *
- */
-public enum TestRelType implements RelationshipType {
-
-	MANY_TO_MANY,
-	MANY_TO_ONE,
-	ONE_TO_ONE,
-	ONE_TO_MANY,
-
-	HAS
+@FunctionalInterface
+public interface UpdateCallback<V> {
+	void notifyUpdated(final GraphObject obj, final V value) throws FrameworkException;
 }

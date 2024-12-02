@@ -33,7 +33,6 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	//public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
 	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
@@ -101,8 +100,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-		//return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+	public Iterable<Node> getResult(final CypherQuery query) {
 		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
 	}
 }

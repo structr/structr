@@ -525,6 +525,12 @@ public class MigrationService {
 			// check (and fix) event action mapping relationships
 			logger.info("Checking hasSharedComponent flag..");
 
+			// prefetch dom nodes with sync rels
+			tx.prefetch("DOMElement", "DOMElement",
+				Set.of("all/INCOMING/SYNC",
+					"all/OUTGOING/SYNC")
+			);
+
 			for (final DOMElement elem : app.nodeQuery(DOMElement.class).getResultStream()) {
 
 				if (!elem.getProperty(key) && elem.getSharedComponent() != null) {

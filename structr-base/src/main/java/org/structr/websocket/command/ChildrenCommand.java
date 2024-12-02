@@ -18,15 +18,19 @@
  */
 package org.structr.websocket.command;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.web.common.RelType;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -42,6 +46,8 @@ import org.structr.core.graph.TransactionCommand;
  * Websocket command to return the children of the given node.
  */
 public class ChildrenCommand extends AbstractCommand {
+
+	private static final Logger logger = LoggerFactory.getLogger(ChildrenCommand.class);
 
 	static {
 
@@ -64,9 +70,9 @@ public class ChildrenCommand extends AbstractCommand {
 
 		final List<GraphObject> result = new LinkedList();
 
-		if (node instanceof Page) {
+		if (node instanceof Page page) {
 
-			DOMNode subNode = (DOMNode) ((Page) node).treeGetFirstChild();
+			DOMNode subNode = (DOMNode) (page).treeGetFirstChild();
 
 			while (subNode != null) {
 
@@ -75,20 +81,17 @@ public class ChildrenCommand extends AbstractCommand {
 				subNode = (DOMNode) subNode.getNextSibling();
 			}
 
+		} else  if (node instanceof Group group) {
+
+			result.addAll(Iterables.toList(group.getMembers()));
+
+		} else  if (node instanceof Content content) {
+
+			// Content has no children
+
 		} else {
 
-			final Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING, RelType.CONTAINS), factory);
-
-			for (RelationshipInterface rel : rels) {
-
-				NodeInterface endNode = rel.getTargetNode();
-				if (endNode == null) {
-
-					continue;
-				}
-
-				result.add(endNode);
-			}
+			logger.warn("Unsupported type {} in ChildrenCommand, requested for node {} with name {}", node.getType(), node.getUuid(), node.getName());
 		}
 
 		webSocketData.setView(PropertyView.Ui);

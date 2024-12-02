@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -32,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relationship.*;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.net.URI;
 
@@ -196,5 +199,24 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 				}
 			}
 		}
+	}
+
+	static Set<AbstractFile> getAllChildNodes(final Folder node) {
+
+		final Set<AbstractFile> allChildren = new LinkedHashSet<>();
+
+		for (AbstractFile child : getFiles(node)) {
+
+			allChildren.add(child);
+		}
+
+		for (Folder child : getFolders(node)) {
+
+			allChildren.add(child);
+
+			allChildren.addAll(getAllChildNodes(child));
+		}
+
+		return allChildren;
 	}
 }

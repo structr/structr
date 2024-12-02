@@ -31,7 +31,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to retrieve type information from the schema.
  *
@@ -80,7 +79,6 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "GET_TYPE_INFO";

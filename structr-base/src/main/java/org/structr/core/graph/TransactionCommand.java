@@ -603,6 +603,11 @@ public class TransactionCommand {
 		}
 	}
 
+	public static void flushCaches() {
+		final DatabaseService graphDb = Services.getInstance().getDatabaseService();
+		graphDb.flushCaches();
+	}
+
 	private static void assertSameTransaction(final GraphObject obj, final long currentTransactionId) {
 
 		final long nodeTransactionId = obj.getSourceTransactionId();
