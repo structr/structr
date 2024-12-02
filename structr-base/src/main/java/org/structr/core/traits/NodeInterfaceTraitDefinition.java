@@ -43,10 +43,10 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 	private static final PropertyKey<String>  nameProperty                 = new StringProperty("name").indexed().partOfBuiltInSchema();
 	private static final PropertyKey<Boolean> hiddenProperty               = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	private static final Property<Principal> ownerProperty                 = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	private static final Property<NodeInterface> ownerProperty             = new StartNode("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
 	private static final PropertyKey<String> ownerIdProperty               = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
 
-	private static final PropertyKey<Iterable<Principal>> granteesProperty = new StartNodes<>("grantees", SecurityRelationship.class).partOfBuiltInSchema();
+	private static final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes<>("grantees", SecurityRelationship.class).partOfBuiltInSchema();
 	private static final PropertyKey<String> internalPathProperty          = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 	@Override
@@ -75,11 +75,11 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(NodeInterface node, RelationshipType type, NodeInterface targetNode) {
+				public R getRelationshipTo(NodeInterface node, RelationshipType type, NodeInterface targetNode) {
 
 					if (node.getNode() != null && type != null && targetNode != null) {
 
-						final RelationshipFactory<A, B, R> factory = new RelationshipFactory<>(node.getSecurityContext());
+						final RelationshipFactory<A, B, R> factory = new RelationshipFactory(node.getSecurityContext());
 						final Relationship rel = node.getNode().getRelationshipTo(type, targetNode.getNode());
 
 						if (rel != null) {
@@ -92,72 +92,57 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationships(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(), new RelationshipFactory<>(node.getSecurityContext()));
+				public  Iterable<RelationshipInterface> getRelationships(final NodeInterface node) {
+					return new IterableAdapter<>(node.getNode().getRelationships(), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(), new RelationshipFactory<>(SecurityContext.getSuperUserInstance()));
+				public  Iterable<RelationshipInterface> getRelationshipsAsSuperUser(final NodeInterface node) {
+					return new IterableAdapter<>(node.getNode().getRelationships(), new RelationshipFactory(SecurityContext.getSuperUserInstance()));
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getIncomingRelationships(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(Direction.INCOMING), new RelationshipFactory<>(node.getSecurityContext()));
+				public  Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node) {
+					return new IterableAdapter<>(node.getNode().getRelationships(Direction.INCOMING), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getOutgoingRelationships(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING), new RelationshipFactory<>(node.getSecurityContext()));
+				public  Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node) {
+					return new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final NodeInterface node, final Class<? extends Relation<A, B, S, T>> type) {
+				public  boolean hasRelationship(final NodeInterface node, final String type) {
 					return getRelationships(node, type).iterator().hasNext();
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final NodeInterface node, final Class<R> type) {
+				public  boolean hasIncomingRelationships(final NodeInterface node, final String type) {
 					return AbstractNode.getRelationshipForType(type).getSource().hasElements(node.getSecurityContext(), node.getNode(), null);
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final NodeInterface node, final Class<R> type) {
+				public  boolean hasOutgoingRelationships(final NodeInterface node, final String type) {
 					return AbstractNode.getRelationshipForType(type).getTarget().hasElements(node.getSecurityContext(), node.getNode(), null);
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<RelationshipInterface<A, B>> getRelationships(final NodeInterface node, final Class<R> type) {
+				public  Iterable<RelationshipInterface> getRelationships(final NodeInterface node, final String type) {
 
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
-					final Direction direction                                            = template.getDirectionForType(entityType);
-					final RelationshipType relType                                       = template;
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template           = getRelationshipForType(type);
+					final Direction direction         = template.getDirectionForType(entityType);
+					final RelationshipType relType    = template;
 
 					return new IterableAdapter<>(node.getNode().getRelationships(direction, relType), factory);
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(final NodeInterface node, final Class<R> type) {
+				public  RelationshipInterface getIncomingRelationship(final NodeInterface node, final String type) {
 
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
-					final Relationship relationship                                      = template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null);
-
-					if (relationship != null) {
-						return factory.adapt(relationship);
-					}
-
-					return null;
-				}
-
-				@Override
-				public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(final NodeInterface node, final Class<R> type) {
-
-					final SecurityContext suContext                                      = SecurityContext.getSuperUserInstance();
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
-					final Relationship relationship                                      = template.getSource().getRawSource(suContext, node.getNode(), null);
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template           = getRelationshipForType(type);
+					final Relationship relationship   = template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null);
 
 					if (relationship != null) {
 						return factory.adapt(relationship);
@@ -167,45 +152,45 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(final NodeInterface node, final Class<R> type) {
+				public  RelationshipInterface getIncomingRelationshipAsSuperUser(final NodeInterface node, final String type) {
 
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
+					final SecurityContext suContext   = SecurityContext.getSuperUserInstance();
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template           = getRelationshipForType(type);
+					final Relationship relationship   = template.getSource().getRawSource(suContext, node.getNode(), null);
+
+					if (relationship != null) {
+						return factory.adapt(relationship);
+					}
+
+					return null;
+				}
+
+				@Override
+				public  Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node, final String type) {
+
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template           = getRelationshipForType(type);
 
 					return new IterableAdapter<>(template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final Class<R> type, final Predicate<NodeInterface> predicate) {
+				public  Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<NodeInterface> predicate) {
 
-					final SecurityContext suContext                                      = SecurityContext.getSuperUserInstance();
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(securityContext);
-					final R template                                                     = getRelationshipForType(type);
+					final SecurityContext suContext   = SecurityContext.getSuperUserInstance();
+					final RelationshipFactory factory = new RelationshipFactory(securityContext);
+					final Relation template           = getRelationshipForType(type);
 
 					return new IterableAdapter<>(template.getSource().getRawSource(suContext, node.getNode(), predicate), factory);
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(final NodeInterface node, final Class<R> type) {
+				public  RelationshipInterface getOutgoingRelationship(final NodeInterface node, final String type) {
 
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
-					final Relationship relationship                                      = template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null);
-
-					if (relationship != null) {
-						return factory.adapt(relationship);
-					}
-
-					return null;
-				}
-
-				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(final NodeInterface node, final Class<R> type) {
-
-					final SecurityContext suContext                                      = SecurityContext.getSuperUserInstance();
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
-					final Relationship relationship                                      = template.getTarget().getRawSource(suContext, node.getNode(), null);
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template                  = getRelationshipForType(type);
+					final Relationship relationship   = template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null);
 
 					if (relationship != null) {
 						return factory.adapt(relationship);
@@ -215,10 +200,25 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 				}
 
 				@Override
-				public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<RelationshipInterface<A, B>> getOutgoingRelationships(final NodeInterface node, final Class<R> type) {
+				public  RelationshipInterface getOutgoingRelationshipAsSuperUser(final NodeInterface node, final String type) {
 
-					final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory<>(node.getSecurityContext());
-					final R template                                                     = getRelationshipForType(type);
+					final SecurityContext suContext   = SecurityContext.getSuperUserInstance();
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template                  = getRelationshipForType(type);
+					final Relationship relationship   = template.getTarget().getRawSource(suContext, node.getNode(), null);
+
+					if (relationship != null) {
+						return factory.adapt(relationship);
+					}
+
+					return null;
+				}
+
+				@Override
+				public  Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node, final String type) {
+
+					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
+					final Relation template           = getRelationshipForType(type);
 
 					return new IterableAdapter<>(template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
 				}

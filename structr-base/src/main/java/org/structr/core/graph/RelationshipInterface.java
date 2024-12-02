@@ -23,6 +23,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 
@@ -30,15 +31,17 @@ import org.structr.schema.NonIndexed;
  *
  *
  */
-public interface RelationshipInterface<S extends NodeInterface, T extends NodeInterface> extends GraphObject<Relationship>, NonIndexed {
+public interface RelationshipInterface extends GraphObject, NonIndexed {
 
 	void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId);
 
-	S getSourceNode();
-	T getTargetNode();
-	S getSourceNodeAsSuperUser();
-	T getTargetNodeAsSuperUser();
+	NodeInterface getSourceNode();
+	NodeInterface getTargetNode();
+	NodeInterface getSourceNodeAsSuperUser();
+	NodeInterface getTargetNodeAsSuperUser();
 	NodeInterface getOtherNode(final NodeInterface thisNode);
+
+	Relation getRelation();
 	RelationshipType getRelType();
 
 	Relationship getRelationship();

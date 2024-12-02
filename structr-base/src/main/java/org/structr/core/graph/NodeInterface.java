@@ -49,29 +49,29 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	String getName();
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
-	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	RelationshipInterface getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
-	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationships();
-	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser();
-	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(final Class<R> type);
+	Iterable<RelationshipInterface> getRelationships();
+	Iterable<RelationshipInterface> getRelationshipsAsSuperUser();
+	Iterable<RelationshipInterface> getRelationshipsAsSuperUser(final String type);
 
-	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getIncomingRelationships();
-	<A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getOutgoingRelationships();
+	Iterable<RelationshipInterface> getIncomingRelationships();
+	Iterable<RelationshipInterface> getOutgoingRelationships();
 
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type);
+	boolean hasRelationship(final String type);
+	boolean hasIncomingRelationships(final String type);
+	boolean hasOutgoingRelationships(final String type);
 
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<RelationshipInterface<A, B>> getRelationships(final Class<R> type);
+	Iterable<RelationshipInterface> getRelationships(final String type);
 
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<NodeInterface> predicate);
+	RelationshipInterface getIncomingRelationship(final String type);
+	RelationshipInterface getIncomingRelationshipAsSuperUser(final String type);
+	Iterable<RelationshipInterface> getIncomingRelationships(final String type);
+	Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<NodeInterface> predicate);
 
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<RelationshipInterface<A, B>> getOutgoingRelationships(final Class<R> type);
+	RelationshipInterface getOutgoingRelationship(final String type);
+	RelationshipInterface getOutgoingRelationshipAsSuperUser(final String type);
+	Iterable<RelationshipInterface> getOutgoingRelationships(final String type);
 
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
@@ -88,10 +88,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final RelationshipInterface<Principal, NodeInterface> security : this.getIncomingRelationships(SecurityRelationship.class)) {
+		for (final RelationshipInterface security : this.getIncomingRelationships("Security")) {
 
-			final Set<Permission> permissions  = new HashSet();
-			final Principal principal = security.getSourceNode();
+			final Set<Permission> permissions = new HashSet();
+			final NodeInterface principal     = security.getSourceNode();
 
 			for (final String perm : security.getPermissions()) {
 

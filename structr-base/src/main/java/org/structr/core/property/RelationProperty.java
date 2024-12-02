@@ -21,25 +21,24 @@ package org.structr.core.property;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
-import org.structr.core.traits.GraphObjectTraits;
-import org.structr.core.traits.TraitDefinition;
 
 /**
  *
  */
-public interface RelationProperty<T> {
+public interface RelationProperty {
 
 	Notion getNotion();
 
-	TraitDefinition<? extends T> getTargetType();
+	String getTargetType();
 
 	Relation getRelation();
 
 	boolean doAutocreate();
 	String getAutocreateFlagName();
 
-	void addSingleElement(final SecurityContext securityContext, final GraphObjectTraits obj, final T t) throws FrameworkException;
+	void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException;
 
 	String getDirectionKey();
 }

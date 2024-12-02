@@ -37,14 +37,12 @@ import java.util.Map;
 /**
  * Defines constants for structr's relationship entities.
  *
- * @param <A>
- * @param <B>
  * @param <S>
  * @param <T>
  *
  *
  */
-public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipType {
+public interface Relation<S extends Source, T extends Target> extends RelationshipType {
 
 	/**
 	 * No cascading delete / autocreate.
@@ -84,14 +82,17 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 		"CONSTRAINT_BASED"
 	};
 
+	default String getType() {
+		return getSourceType() + name() + getTargetType();
+	}
+
 	enum Multiplicity { One, Many }
 
-	Class<A> getSourceType();
-	Class<B> getTargetType();
+	String getSourceType();
+	String getTargetType();
 
-	Class getOtherType(final Class type);
-
-	Direction getDirectionForType(final Class<? extends NodeInterface> type);
+	String getOtherType(final String type);
+	Direction getDirectionForType(final String type);
 
 	Multiplicity getSourceMultiplicity();
 	Multiplicity getTargetMultiplicity();

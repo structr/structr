@@ -60,8 +60,8 @@ public interface Query<T> {
 	Query<T> publicOnly(final boolean publicOnly);
 	Query<T> includeHidden(final boolean includeHidden);
 	Query<T> uuid(final String uuid);
-	Query<T> andType(final TraitDefinition type);
-	Query<T> orType(final TraitDefinition type);
+	Query<T> andType(final String type);
+	Query<T> orType(final String type);
 
 	Query<T> andName(final String name);
 	Query<T> orName(final String name);

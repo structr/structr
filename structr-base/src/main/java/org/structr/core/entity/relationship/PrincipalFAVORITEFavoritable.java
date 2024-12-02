@@ -24,16 +24,16 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 
-public class PrincipalFAVORITEFavoritable extends ManyToMany<Principal, Favoritable> {
+public class PrincipalFAVORITEFavoritable extends ManyToMany {
 
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public String getSourceType() {
+		return "Principal";
 	}
 
 	@Override
-	public Class<Favoritable> getTargetType() {
-		return Favoritable.class;
+	public String getTargetType() {
+		return "Favoritable";
 	}
 
 	@Override

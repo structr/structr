@@ -33,7 +33,7 @@ import org.structr.core.notion.RelationshipNotion;
  *
  *
  */
-public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, ManyStartpoint<S>, OneEndpoint<T>> {
+public abstract class ManyToOne implements Relation<ManyStartpoint, OneEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -46,13 +46,13 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public ManyStartpoint<S> getSource() {
-		return new ManyStartpoint<>(this);
+	public ManyStartpoint getSource() {
+		return new ManyStartpoint(this);
 	}
 
 	@Override
-	public OneEndpoint<T> getTarget() {
-		return new OneEndpoint<>(this);
+	public OneEndpoint getTarget() {
+		return new OneEndpoint(this);
 	}
 
 	@Override
@@ -68,17 +68,22 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                          = StructrApp.getInstance();
-		final Class<? extends ManyToOne> clazz = this.getClass();
-		final Class<T> targetType              = getTargetType();
+		final App app           = StructrApp.getInstance();
+		final String type       = getType();
+		final String targetType = getTargetType();
 
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final RelationshipInterface<NodeInterface, NodeInterface> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
-			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
+			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
+			if (outgoingRel != null) {
 
-				app.delete(outgoingRel);
+				final Relation relation = outgoingRel.getRelation();
+
+				if (SearchCommand.isTypeAssignableFromOtherType(targetType, relation.getTargetType())) {
+
+					app.delete(outgoingRel);
+				}
 			}
 		}
 	}
@@ -95,13 +100,13 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+	public Direction getDirectionForType(final String type) {
 		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
 		return null;
 	}
 
 	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 

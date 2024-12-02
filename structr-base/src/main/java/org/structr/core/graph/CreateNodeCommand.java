@@ -47,11 +47,11 @@ import java.util.Map.Entry;
 /**
  * Creates a new node in the database with the given properties.
  */
-public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
+public class CreateNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
 
-	public T execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
+	public NodeInterface execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -63,7 +63,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	}
 
-	public T execute(final NodeAttribute<?>... attributes) throws FrameworkException {
+	public NodeInterface execute(final NodeAttribute<?>... attributes) throws FrameworkException {
 
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -74,24 +74,24 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		return execute(properties);
 	}
 
-	public T execute(final PropertyMap attributes) throws FrameworkException {
+	public NodeInterface execute(final PropertyMap attributes) throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		final Principal user          = securityContext.getUser(false);
-		T node	                      = null;
+		NodeInterface node	                      = null;
 
 		if (graphDb != null) {
 
-			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-			final PropertyMap properties     = new PropertyMap(attributes);
-			final PropertyMap toNotify       = new PropertyMap();
-			final Object typeObject          = properties.get(AbstractNode.typeHandler);
-			final Class nodeType             = getTypeOrGeneric(typeObject);
-			final String typeName            = nodeType.getSimpleName();
-			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
-			final CreationContainer tmp      = new CreationContainer(true);
-			final Date now                   = new Date();
-			final boolean isCreation         = true;
+			final NodeFactory nodeFactory = new NodeFactory(securityContext);
+			final PropertyMap properties  = new PropertyMap(attributes);
+			final PropertyMap toNotify    = new PropertyMap();
+			final Object typeObject       = properties.get(AbstractNode.type);
+			final Class nodeType          = getTypeOrGeneric(typeObject);
+			final String typeName         = nodeType.getSimpleName();
+			final Set<String> labels      = TypeProperty.getLabelsForType(nodeType);
+			final CreationContainer tmp   = new CreationContainer(true);
+			final Date now                = new Date();
+			final boolean isCreation      = true;
 
 			// use user-supplied UUID?
 			String uuid = properties.get(GraphObject.id);
@@ -310,11 +310,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	private void notifySecurityRelCreation(final Principal user, final Relationship rel) {
 
-		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface<NodeInterface, NodeInterface>> factory = new RelationshipFactory<>(securityContext);
+		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface factory = new RelationshipFactory<>(securityContext);
 
 		try {
 
-			final RelationshipInterface<NodeInterface, NodeInterface> securityRelationship = factory.instantiate(rel);
+			final RelationshipInterface securityRelationship = factory.instantiate(rel);
 			if (securityRelationship != null) {
 
 				TransactionCommand.relationshipCreated(user, securityRelationship);
@@ -348,11 +348,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 	private void notifyOwnsRelCreation(final Principal user, final Relationship rel) {
 
-		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface<NodeInterface, NodeInterface>> factory = new RelationshipFactory<>(securityContext);
+		final RelationshipFactory factory = new RelationshipFactory(securityContext);
 
 		try {
 
-			final RelationshipInterface<NodeInterface, NodeInterface> ownsRelationship = factory.instantiate(rel);
+			final RelationshipInterface ownsRelationship = factory.instantiate(rel);
 			if (ownsRelationship != null) {
 
 				TransactionCommand.relationshipCreated(user, ownsRelationship);
@@ -370,7 +370,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 			try {
 				// try again
-				final RelationshipInterface<NodeInterface, NodeInterface> ownsRelationship = factory.instantiate(rel);
+				final RelationshipInterface ownsRelationship = factory.instantiate(rel);
 				if (ownsRelationship != null) {
 
 					TransactionCommand.relationshipCreated(user, ownsRelationship);

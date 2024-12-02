@@ -35,21 +35,21 @@ import java.util.Set;
  */
 public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
-	private Set<String> subtypes                 = null;
-	private Predicate<GraphObject> nodePredicate = null;
-	private NodeFactory nodeFactory              = null;
-	private Node thisNode                        = null;
+	private Set<String> subtypes                   = null;
+	private Predicate<NodeInterface> nodePredicate = null;
+	private NodeFactory nodeFactory                = null;
+	private Node thisNode                          = null;
 
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType) {
+	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final String desiredType) {
 		this(securityContext, thisNode, desiredType, null);
 	}
 
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType, final Predicate<GraphObject> nodePredicate) {
+	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final String desiredType, final Predicate<NodeInterface> nodePredicate) {
 
 		this.nodePredicate = nodePredicate;
 		this.nodeFactory   = new NodeFactory(securityContext);
 		this.thisNode      = thisNode;
-		this.subtypes      = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName());
+		this.subtypes      = SearchCommand.getAllSubtypesAsStringSet(desiredType);
 	}
 
 	@Override

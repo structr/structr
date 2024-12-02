@@ -21,14 +21,18 @@ package org.structr.common;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -45,14 +49,14 @@ import java.util.Set;
 public class EntityAndPropertiesContainer implements NodeInterface {
 
 	private Map<String, Object> properties = null;
-	private GraphObject entity             = null;
+	private NodeInterface entity           = null;
 
-	public EntityAndPropertiesContainer(final GraphObject entity, final Map<String, Object> properties) {
+	public EntityAndPropertiesContainer(final NodeInterface entity, final Map<String, Object> properties) {
 		this.properties = properties;
 		this.entity     = entity;
 	}
 
-	public GraphObject getEntity() {
+	public NodeInterface getEntity() {
 		return entity;
 	}
 
@@ -69,12 +73,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public boolean equals(final Object other) {
 		return other.hashCode() == hashCode();
-	}
-
-	// dummy implementation of NodeInterface
-	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, final long transactionId) {
-		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
@@ -113,77 +111,87 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+	public RelationshipInterface getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationships() {
+	public Iterable<RelationshipInterface> getRelationships() {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser() {
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getIncomingRelationships() {
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getOutgoingRelationships() {
+	public Iterable<RelationshipInterface> getIncomingRelationships() {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
+	public Iterable<RelationshipInterface> getOutgoingRelationships() {
+		return null;
+	}
+
+	@Override
+	public boolean hasRelationship(String type) {
 		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
+	public boolean hasIncomingRelationships(String type) {
 		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
+	public boolean hasOutgoingRelationships(String type) {
 		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<RelationshipInterface<A, B>> getRelationships(Class<R> type) {
+	public Iterable<RelationshipInterface> getRelationships(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(Class<R> type) {
+	public RelationshipInterface getIncomingRelationship(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(Class<R> type) {
+	public RelationshipInterface getIncomingRelationshipAsSuperUser(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(Class<R> type) {
+	public Iterable<RelationshipInterface> getIncomingRelationships(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(Class<R> type) {
+	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<NodeInterface> predicate) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(Class<R> type) {
+	public RelationshipInterface getOutgoingRelationship(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<RelationshipInterface<A, B>> getOutgoingRelationships(Class<R> type) {
+	public RelationshipInterface getOutgoingRelationshipAsSuperUser(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getOutgoingRelationships(String type) {
 		return null;
 	}
 
@@ -193,13 +201,28 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships() {
+	public List<Security> getSecurityRelationships() {
 		return List.of();
 	}
 
 	@Override
 	public String getUuid() {
 		return entity.getUuid();
+	}
+
+	@Override
+	public void clearCaches() {
+
+	}
+
+	@Override
+	public void init(SecurityContext securityContext, PropertyContainer dbObject, String type, long sourceTransactionId) {
+
+	}
+
+	@Override
+	public Traits getTraits() {
+		return null;
 	}
 
 	@Override
@@ -220,6 +243,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public Node getPropertyContainer() {
 		return null;
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertySet(String propertyView) {
+		return Set.of();
 	}
 
 	@Override
@@ -263,6 +291,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
+	}
+
+	@Override
 	public boolean isNode() {
 		return false;
 	}
@@ -278,8 +311,23 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public boolean systemPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
 	public void unlockSystemPropertiesOnce() {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
 	}
 
 	@Override
@@ -288,13 +336,53 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void addToIndex() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public void lockReadOnlyProperties() {
+
 	}
 
 	@Override
 	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
 	}
 
 	@Override
@@ -330,6 +418,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public Principal getOwnerNode() {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public boolean allowedBySchema(Principal principal, Permission permission) {
+		return false;
 	}
 
 	@Override
@@ -378,7 +471,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(Principal principal) {
+	public Security getSecurityRelationship(Principal principal) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -389,11 +482,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public boolean isNotHidden() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

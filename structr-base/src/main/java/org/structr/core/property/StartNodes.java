@@ -50,11 +50,11 @@ import java.util.*;
  *
  *
  */
-public class StartNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<S>> implements RelationProperty<S> {
+public class StartNodes extends Property<Iterable<NodeInterface>> implements RelationProperty {
 
-	private Relation<S, T, ManyStartpoint<S>, ? extends Target> relation = null;
-	private Notion notion                                                = null;
-	private Class<S> destType                                            = null;
+	private Relation<ManyStartpoint, ? extends Target> relation = null;
+	private Notion notion                                       = null;
+	private String destType                                     = null;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
@@ -62,7 +62,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	 * @param name
 	 * @param relationClass
 	 */
-	public  StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass) {
+	public  StartNodes(final String name, final Class<? extends Relation<ManyStartpoint, ? extends Target>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -73,7 +73,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	 * @param relationClass
 	 * @param notion
 	 */
-	public StartNodes(final String name, final Class<? extends Relation<S, T, ManyStartpoint<S>, ? extends Target>> relationClass, final Notion notion) {
+	public StartNodes(final String name, final Class<? extends Relation<ManyStartpoint, ? extends Target>> relationClass, final Notion notion) {
 
 		super(name);
 
@@ -95,7 +95,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	 * @param relation
 	 * @param notion
 	 */
-	public StartNodes(final String name, final Relation<S, T, ManyStartpoint<S>, ? extends Target> relation, final Notion notion) {
+	public StartNodes(final String name, final Relation<ManyStartpoint, ? extends Target> relation, final Notion notion) {
 
 		super(name);
 
@@ -125,27 +125,27 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public PropertyConverter<Iterable<S>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<Iterable<S>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<S>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
-	public Iterable<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		ManyStartpoint<S> startpoint = relation.getSource();
 
@@ -160,9 +160,9 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<S> collection) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final Iterable<NodeInterface> collection) throws FrameworkException {
 
-		final ManyStartpoint<S> startpoint = relation.getSource();
+		final ManyStartpoint startpoint = relation.getSource();
 
 		if (updateCallback != null) {
 			updateCallback.notifyUpdated(obj, collection);
@@ -172,7 +172,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return destType;
 	}
 
@@ -182,17 +182,17 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public Property<Iterable<S>> indexed() {
+	public Property<Iterable<NodeInterface>> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<Iterable<S>> passivelyIndexed() {
+	public Property<Iterable<NodeInterface>> passivelyIndexed() {
 		return this;
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 		return null;
 	}
 
@@ -213,21 +213,21 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface s) throws FrameworkException {
 
-		List<S> list = Iterables.toList(getProperty(securityContext, obj, false));
+		List<NodeInterface> list = Iterables.toList(getProperty(securityContext, obj, false));
 		list.add(s);
 
 		setProperty(securityContext, obj, list);
 	}
 
 	@Override
-	public Class<S> getTargetType() {
+	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public Iterable<S> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public Iterable<NodeInterface> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
@@ -240,14 +240,14 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 				}
 			}
 
-			return (Iterable<S>)inputConverter.convert(sources);
+			return (Iterable<NodeInterface>)inputConverter.convert(sources);
 		}
 
 		return null;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<S> searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<NodeInterface> searchValue, boolean exactMatch, final Query query) {
 		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
 

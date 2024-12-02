@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
 
 import java.util.Comparator;
@@ -190,7 +191,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	String getSourceUuid();
 
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
-	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
+	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate);
 	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
 	void registrationCallback(final Class<GraphObject> entityType);

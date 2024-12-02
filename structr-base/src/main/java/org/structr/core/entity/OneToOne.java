@@ -33,7 +33,7 @@ import org.structr.core.notion.RelationshipNotion;
  *
  *
  */
-public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, OneStartpoint<S>, OneEndpoint<T>> {
+public abstract class OneToOne implements Relation<OneStartpoint, OneEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -46,13 +46,13 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	}
 
 	@Override
-	public OneStartpoint<S> getSource() {
-		return new OneStartpoint<>(this);
+	public OneStartpoint getSource() {
+		return new OneStartpoint(this);
 	}
 
 	@Override
-	public OneEndpoint<T> getTarget() {
-		return new OneEndpoint<>(this);
+	public OneEndpoint getTarget() {
+		return new OneEndpoint(this);
 	}
 
 	@Override
@@ -68,29 +68,37 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                         = StructrApp.getInstance();
-		final Class<? extends OneToOne> clazz = getClass();
-		final Class<S> sourceType             = getSourceType();
-		final Class<T> targetType             = getTargetType();
+		final App app           = StructrApp.getInstance();
+		final String type       = getType();
+		final String sourceType = getSourceType();
+		final String targetType = getTargetType();
 
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final RelationshipInterface<NodeInterface, NodeInterface> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
+			if (outgoingRel != null) {
 
-			// remove relationship if exists
-			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
-				app.delete(outgoingRel);
+				final Relation relation = outgoingRel.getRelation();
+
+				// remove relationship if exists
+				if (SearchCommand.isTypeAssignableFromOtherType(targetType, relation.getTargetType())) {
+					app.delete(outgoingRel);
+				}
 			}
 		}
 
 		if (targetNode != null) {
 
 			// check existing relationships
-			final RelationshipInterface<NodeInterface, NodeInterface> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
+			if (incomingRel != null) {
 
-			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
-				app.delete(incomingRel);
+				final Relation relation = incomingRel.getRelation();
+
+				if (SearchCommand.isTypeAssignableFromOtherType(sourceType, relation.getSourceType())) {
+					app.delete(incomingRel);
+				}
 			}
 		}
 	}
@@ -107,13 +115,13 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	}
 
 	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+	public Direction getDirectionForType(final String type) {
 		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
 		return null;
 	}
 
 	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 

@@ -50,14 +50,14 @@ import java.util.Map;
  *
  *
  */
-public class StartNode<S extends NodeInterface, T extends NodeInterface> extends Property<S> implements RelationProperty<S> {
+public class StartNode extends Property<NodeInterface> implements RelationProperty {
 
 	private static final Logger logger = LoggerFactory.getLogger(StartNode.class.getName());
 
 	// relationship members
-	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
-	private Class<S> destType                                           = null;
-	private Notion notion                                               = null;
+	private Relation<OneStartpoint, ? extends Target> relation = null;
+	private String destType                                    = null;
+	private Notion notion                                      = null;
 
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -67,7 +67,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	 * @param name
 	 * @param relationClass
 	 */
-	public StartNode(String name, Class<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass) {
+	public StartNode(final String name, Class<? extends Relation<OneStartpoint, ? extends Target>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -81,7 +81,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	 * @param relationClass
 	 * @param notion
 	 */
-	public StartNode(String name, Class<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass, Notion notion) {
+	public StartNode(String name, Class<? extends Relation<OneStartpoint, ? extends Target>> relationClass, Notion notion) {
 
 		super(name);
 
@@ -103,7 +103,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 
@@ -113,37 +113,37 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public PropertyConverter<S, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<S, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, S> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
 		return notion.getEntityConverter(securityContext);
 	}
 
 	@Override
-	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
-		final OneStartpoint<? extends S> startpoint = relation.getSource();
+		final OneStartpoint startpoint = relation.getSource();
 
 		return startpoint.get(securityContext, (NodeInterface)obj, predicate);
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, S value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, NodeInterface value) throws FrameworkException {
 
-		final OneStartpoint<S> startpoint = relation.getSource();
+		final OneStartpoint startpoint = relation.getSource();
 
 		try {
 
@@ -166,7 +166,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return destType;
 	}
 
@@ -176,17 +176,17 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public Property<S> indexed() {
+	public Property<NodeInterface> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<S> passivelyIndexed() {
+	public Property<NodeInterface> passivelyIndexed() {
 		return this;
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 		return null;
 	}
 
@@ -207,17 +207,17 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface s) throws FrameworkException {
 		setProperty(securityContext, obj, s);
 	}
 
 	@Override
-	public Class<? extends S> getTargetType() {
+	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, S searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final NodeInterface searchValue, final boolean exactMatch, final Query query) {
 		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
 
