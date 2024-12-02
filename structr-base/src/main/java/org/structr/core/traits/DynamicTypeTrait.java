@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
 
-public class DynamicTypeTrait implements NodeTrait {
+public class DynamicTypeTrait implements NodeInterface {
 
 	protected DynamicTypeTrait(final PropertyContainer node) {
 		super(node);

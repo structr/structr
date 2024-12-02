@@ -1,6 +1,6 @@
 package org.structr.core.traits.operations;
 
-public abstract class OverwritableOperation<T> {
+public abstract class FrameworkMethod<T> {
 
 	private T superImplementation = null;
 

@@ -25,10 +25,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.Trait;
 
 import java.util.Collections;
@@ -47,7 +46,7 @@ import java.util.List;
  * @param <S>
  * @param <T>
  */
-public abstract class Notion<S extends NodeTrait, T> {
+public abstract class Notion<S extends NodeInterface, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(Notion.class.getName());
 

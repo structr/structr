@@ -5,9 +5,9 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-public abstract class GetRelationships extends OverwritableOperation<GetRelationships> {
+public abstract class GetRelationships extends FrameworkMethod<GetRelationships> {
 
 	public abstract boolean hasRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);
 	public abstract <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);

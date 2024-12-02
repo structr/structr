@@ -67,6 +67,20 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
+	public String getUuid() {
+		return getProperty(typeHandler.key("id"));
+	}
+
+	@Override
+	public void clearCaches() {
+
+		for (final ClearCaches clearCaches : typeHandler.getMethods(ClearCaches.class)) {
+
+			clearCaches.clearCaches();
+		}
+	}
+
+	@Override
 	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final Class entityType, final long sourceTransactionId) {
 
 		// FIXME: unchecked type cast will fail for non-Structr nodes
@@ -293,6 +307,11 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 		return typeHandler.getMethod(GetPropertyKeys.class).getPropertyKeys(this, propertyView);
 	}
 
+	@Override
+	public Set<PropertyKey> getPropertySet(final String propertyView) {
+		return typeHandler.getMethod(GetPropertySet.class).getPropertySet(this, propertyView);
+	}
+
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for
 	 * the given property key.
@@ -312,8 +331,18 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+		return setProperty(key, value, false);
+	}
+
+	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 		return typeHandler.getMethod(SetProperty.class).setProperty(this, key, value, isCreation);
+	}
+
+	@Override
+	public void setProperties(SecurityContext securityContext, PropertyMap properties) throws FrameworkException {
+		setProperties(securityContext, properties, false);
 	}
 
 	@Override

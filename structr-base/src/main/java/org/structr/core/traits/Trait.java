@@ -19,9 +19,10 @@
 package org.structr.core.traits;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,7 +36,7 @@ public interface Trait {
 
 	Set<PropertyKey> getPropertyKeys(final String view);
 
-	Set<ComposableOperation> getComposableOperations();
-	Set<OverwritableOperation> getOverwritableOperations();
+	Map<Class, LifecycleMethod> getLifecycleMethods();
+	Map<Class, FrameworkMethod> getFrameworkMethods();
 	Set<PropertyKey> getPropertyKeys();
 }

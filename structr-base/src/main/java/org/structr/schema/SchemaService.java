@@ -334,7 +334,7 @@ public class SchemaService implements Service {
 							AbstractNode.clearRelationshipTemplateInstanceCache();
 
 							// clear permission cache
-							AbstractNode.clearCaches();
+							.clearCaches();
 
 							// inject views in configuration provider
 							config.registerDynamicViews(dynamicViews);

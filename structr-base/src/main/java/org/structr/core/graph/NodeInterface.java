@@ -75,8 +75,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
-	List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships();
-	RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal principal);
+	List<Security> getSecurityRelationships();
+	Security getSecurityRelationship(final Principal principal);
 
 	Map<String, Object> getTemporaryStorage();
 

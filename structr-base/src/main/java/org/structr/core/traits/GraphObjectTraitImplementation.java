@@ -29,8 +29,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.*;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
@@ -54,7 +54,7 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 
 
 	@Override
-	public Set<ComposableOperation> getComposableOperations() {
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
 		return Set.of(
 
@@ -83,7 +83,7 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	}
 
 	@Override
-	public Set<OverwritableOperation> getOverwritableOperations() {
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Set.of(
 

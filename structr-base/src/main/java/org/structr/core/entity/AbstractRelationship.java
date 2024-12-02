@@ -20,10 +20,7 @@ package org.structr.core.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
+import org.structr.api.graph.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -106,6 +103,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public long getSourceTransactionId() {
 		return transactionId;
+	}
+
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return TransactionCommand.getCurrentTransaction().getRelationship(id);
 	}
 
 	@Override

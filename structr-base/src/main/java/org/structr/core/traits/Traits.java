@@ -19,8 +19,8 @@
 package org.structr.core.traits;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 
 import java.util.*;
 
@@ -31,7 +31,7 @@ public class Traits {
 
 	private static final Map<String, Trait> types = new LinkedHashMap<>();
 
-	private final Map<Class, OverwritableOperation> overwritableMethods = new LinkedHashMap<>();
+	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
 	private final Map<Class, Set> composableMethods                     = new LinkedHashMap<>();
 	private final Map<String, PropertyKey> propertyKeys                 = new LinkedHashMap<>();
 
@@ -92,14 +92,14 @@ public class Traits {
 		return composableMethods.get(type);
 	}
 
-	public <T extends OverwritableOperation> T getMethod(final Class<T> type) {
+	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
 		return (T) overwritableMethods.get(type);
 	}
 
 	public void registerImplementation(final Trait trait) {
 
 		// composable methods (like callbacks etc.)
-		for (final ComposableOperation operation : trait.getComposableOperations()) {
+		for (final LifecycleMethod operation : trait.getLifecycleMethods()) {
 
 			final Class type = operation.getClass();
 
@@ -107,10 +107,10 @@ public class Traits {
 		}
 
 		// overwritable methods
-		for (final OverwritableOperation operation : trait.getOverwritableOperations()) {
+		for (final FrameworkMethod operation : trait.getFrameworkMethods()) {
 
 			final Class type                   = operation.getClass();
-			final OverwritableOperation parent = overwritableMethods.put(type, operation);
+			final FrameworkMethod parent = overwritableMethods.put(type, operation);
 
 			// replace currently registered implementation and install as super implementation
 			if (parent != null) {
