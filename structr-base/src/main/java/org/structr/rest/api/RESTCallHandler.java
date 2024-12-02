@@ -47,7 +47,6 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -217,7 +216,7 @@ public abstract class RESTCallHandler {
 		return AbstractNode.class;
 	}
 
-	public NodeInterface createNode(final SecurityContext securityContext, final Traits traits, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
+	public org.structr.core.graph.NodeInterface createNode(final SecurityContext securityContext, final Traits traits, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (traits != null) {
 
@@ -257,7 +256,7 @@ public abstract class RESTCallHandler {
 
 		if (entityClass.isNodeType()) {
 
-			final NodeTrait entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+			final NodeInterface entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -503,7 +502,7 @@ public abstract class RESTCallHandler {
 
 						if (obj.isNode()) {
 
-							final NodeTrait node = (NodeTrait)obj;
+							final NodeInterface node = (NodeInterface)obj;
 
 							if (!TransactionCommand.isDeleted(node.getNode())) {
 

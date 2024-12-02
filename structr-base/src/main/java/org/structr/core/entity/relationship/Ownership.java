@@ -19,7 +19,7 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.Principal;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.NodeInterface;
 
 /**
  *
@@ -28,5 +28,5 @@ import org.structr.core.traits.NodeTrait;
 public interface Ownership {
 
 	public Principal getSourceNode();
-	public NodeTrait getTargetNode();
+	public NodeInterface getTargetNode();
 }

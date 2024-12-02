@@ -32,8 +32,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
-import org.structr.core.traits.operations.accesscontrollable.IsGranted;
+import org.structr.core.traits.operations.accesscontrollable.*;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -59,6 +58,16 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	 */
 
 	private Identity rawPathSegmentId = null;
+
+	@Override
+	public String getType() {
+		return getProperty(typeHandler.key("type"));
+	}
+
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return TransactionCommand.getCurrentTransaction().getNode(id);
+	}
 
 	@Override
 	public long getSourceTransactionId() {
@@ -251,6 +260,11 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	}
 
 	@Override
+	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(Class<R> type) {
+		return typeHandler.getMethod(GetRelationships.class).getRelationshipsAsSuperUser(this);
+	}
+
+	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<NodeInterface> predicate) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipsAsSuperUser(this, type, predicate);
 	}
@@ -276,12 +290,17 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	@Override
 	public final Principal getOwnerNode() {
-		return typeHandler.getMethod(IsGranted.class).isGranted(this, )
+		return typeHandler.getMethod(GetOwnerNode.class).getOwnerNode(this);
 	}
 
 	@Override
 	public boolean allowedBySchema(Principal principal, Permission permission) {
 		return typeHandler.getMethod(AllowedBySchema.class).allowedBySchema(this, principal, permission);
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
 	}
 
 	/**
@@ -295,45 +314,13 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	@Override
 	public final RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal p) {
-		return accessControllableTrait.getSecurityRelationship(this, p);
+		return typeHandler.getMethod(GetSecurityRelationships.class).getSecurityRelationship(this, p);
 	}
 
 	@Override
 	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships() {
-		return accessControllableTrait.getSecurityRelationships(this);
+		return typeHandler.getMethod(GetSecurityRelationships.class).getSecurityRelationships(this);
 	}
-
-	/*
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		clearCaches();
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		clearCaches();
-	}
-
-	@Override
-	public void ownerModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {
-		clearCaches();
-	}
-	*/
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
@@ -362,11 +349,6 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	public static void clearRelationshipTemplateInstanceCache() {
 		relationshipTemplateInstanceCache.clear();
-	}
-
-	public static void clearCaches() {
-		globalPermissionResolutionCache.clear();
-		isGrantedResultCache.clear();
 	}
 
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
@@ -499,7 +481,7 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	@Override
 	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-		accessControllableTrait.setAllowed(this, permissions, principal, ctx);
+		typeHandler.getMethod(SetAllowed.class).setAllowed(this, permissions, principal, ctx);
 	}
 
 	@Override

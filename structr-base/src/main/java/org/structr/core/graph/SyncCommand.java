@@ -34,7 +34,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaReloadingNode;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
 
@@ -165,7 +165,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			final NodeFactory<?> nodeFactory         = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			final RelationshipFactory <?>relFactory  = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-			final Set<NodeTrait> nodes               = new HashSet<>();
+			final Set<NodeInterface> nodes               = new HashSet<>();
 			final Set<RelationshipTrait> rels        = new HashSet<>();
 			boolean conditionalIncludeFiles          = includeFiles;
 
@@ -178,7 +178,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				for (final GraphObjectTraits obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
-						nodes.add((NodeTrait)obj.getSyncNode());
+						nodes.add((NodeInterface)obj.getSyncNode());
 					} else {
 						rels.add((RelationshipTrait)obj.getSyncRelationship());
 					}
@@ -217,7 +217,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(final String fileName, final Iterable<? extends NodeTrait> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToFile(final String fileName, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -244,7 +244,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeTrait> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try (final ZipOutputStream zos = new ZipOutputStream(outputStream)) {
 
@@ -492,7 +492,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream,  final Iterable<? extends NodeTrait> nodes, final Iterable<? extends RelationshipTrait> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipTrait> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
@@ -503,7 +503,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		zos.putNextEntry(dbEntry);
 
-		for (NodeTrait nodeObject : nodes) {
+		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
 			if (nodeObject instanceof SchemaReloadingNode) {
@@ -628,7 +628,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		long totalNodeCount                       = 0;
 		long totalRelCount                        = 0;
 
-		labels.add(NodeInterface.class.getSimpleName());
+		labels.add(org.structr.core.graph.NodeInterface.class.getSimpleName());
 
 		// add tenant identifier to all nodes
 		if (graphDb.getTenantIdentifier() != null) {
@@ -729,7 +729,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 											currentObject.put(currentKey, obj);
 
 											// set type label
-											if (currentObject instanceof NodeCreation && NodeInterface.type.dbName().equals(currentKey)) {
+											if (currentObject instanceof NodeCreation && org.structr.core.graph.NodeInterface.type.dbName().equals(currentKey)) {
 
 												((NodeCreation)currentObject).addLabel((String) obj);
 											}

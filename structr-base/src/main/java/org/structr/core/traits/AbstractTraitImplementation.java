@@ -40,9 +40,4 @@ public abstract class AbstractTraitImplementation implements Trait {
 	public PropertyKey key(final String name) {
 		return properties.get(name);
 	}
-
-	// ----- protected methods -----
-	protected void registerProperty(final PropertyKey property) {
-		properties.put(property.jsonName(), property);
-	}
 }

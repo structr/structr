@@ -36,11 +36,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
@@ -198,7 +196,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 		if (modificationEvent.isNode()) {
 
-			final NodeTrait node = (NodeTrait) modificationEvent.getGraphObject();
+			final NodeInterface node = (NodeInterface) modificationEvent.getGraphObject();
 
 			if (modificationEvent.isDeleted()) {
 
@@ -307,8 +305,8 @@ public class WebsocketController implements StructrTransactionListener {
 				if (modificationEvent.isCreated()) {
 
 					final WebSocketMessage message = new WebSocketMessage();
-					final NodeTrait startNode      = relationship.getSourceNode();
-					final NodeTrait endNode        = relationship.getTargetNode();
+					final NodeInterface startNode      = relationship.getSourceNode();
+					final NodeInterface endNode        = relationship.getTargetNode();
 
 					// If either start or end node are not visible for the user to be notified,
 					// don't send a notification

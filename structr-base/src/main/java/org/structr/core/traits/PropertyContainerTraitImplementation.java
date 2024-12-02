@@ -25,33 +25,28 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.propertycontainer.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class PropertyContainerTraitImplementation extends AbstractTraitImplementation {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitImplementation.class);
 
 	@Override
-	public Set<ComposableOperation> getComposableOperations() {
-		return Set.of();
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+		return Map.of();
 	}
 
 	@Override
-	public Set<OverwritableOperation> getOverwritableOperations() {
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			GetPropertyContainer.class,
 			new GetPropertyContainer() {
-
-				@Override
-				public GetPropertyContainer getSuper() {
-					return null;
-				}
 
 				@Override
 				public PropertyContainer getPropertyContainer(final GraphObject graphObject) {
@@ -59,28 +54,19 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 				}
 			},
 
+			GetPropertySet.class,
 			new GetPropertySet() {
-
-				@Override
-				public GetPropertySet getSuper() {
-					return null;
-				}
 
 				@Override
 				public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
 
 					final Traits traits = graphObject.getTraits();
-
 					return traits.getPropertySet(propertyView);
 				}
 			},
 
+			GetPropertyKeys.class,
 			new GetPropertyKeys() {
-
-				@Override
-				public GetPropertyKeys getSuper() {
-					return null;
-				}
 
 				@Override
 				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
@@ -109,12 +95,8 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 				}
 			},
 
+			GetProperty.class,
 			new GetProperty() {
-
-				@Override
-				public GetProperty getSuper() {
-					return null;
-				}
 
 				@Override
 				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter) {
@@ -128,12 +110,8 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 				}
 			},
 
+			SetProperty.class,
 			new SetProperty() {
-
-				@Override
-				public SetProperty getSuper() {
-					return null;
-				}
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
@@ -179,12 +157,8 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 				}
 			},
 
+			SetProperties.class,
 			new SetProperties() {
-
-				@Override
-				public SetProperties getSuper() {
-					return null;
-				}
 
 				@Override
 				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
@@ -228,12 +202,8 @@ public class PropertyContainerTraitImplementation extends AbstractTraitImplement
 				}
 			},
 
+			RemoveProperty.class,
 			new RemoveProperty() {
-
-				@Override
-				public RemoveProperty getSuper() {
-					return null;
-				}
 
 				@Override
 				public void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException {

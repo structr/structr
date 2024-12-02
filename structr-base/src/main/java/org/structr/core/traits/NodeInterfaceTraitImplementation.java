@@ -30,10 +30,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 
+import java.util.Map;
 import java.util.Set;
 
 public class NodeInterfaceTraitImplementation extends AbstractTraitImplementation {
@@ -49,18 +50,18 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 	private static final PropertyKey<String> internalPathProperty          = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 	@Override
-	public Set<ComposableOperation> getComposableOperations() {
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
-		return Set.of(
-
+		return Map.of(
 		);
 	}
 
 	@Override
-	public Set<OverwritableOperation> getOverwritableOperations() {
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			GetRelationships.class,
 			new GetRelationships() {
 
 				@Override
@@ -220,11 +221,6 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 					final R template                                                     = getRelationshipForType(type);
 
 					return new IterableAdapter<>(template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
-				}
-
-				@Override
-				public GetRelationships getSuper() {
-					return null;
 				}
 			}
 		);

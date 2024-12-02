@@ -35,14 +35,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.GraphObject;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
@@ -109,7 +108,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		if (isNode) {
 
 			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			final NodeInterface newNode   = createNode(securityContext, entityClass, typeName, propertySet);
+			final org.structr.core.graph.NodeInterface newNode   = createNode(securityContext, entityClass, typeName, propertySet);
 
 			if (newNode != null) {
 
@@ -128,8 +127,8 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			if (template != null) {
 
-				final NodeTrait sourceNode        = identifyStartNode(securityContext, template, propertySet);
-				final NodeTrait targetNode        = identifyEndNode(securityContext, template, propertySet);
+				final NodeInterface sourceNode        = identifyStartNode(securityContext, template, propertySet);
+				final NodeInterface targetNode        = identifyEndNode(securityContext, template, propertySet);
 				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 				RelationshipInterface newRelationship = null;
 
@@ -210,7 +209,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	private NodeTrait identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
+	private NodeInterface identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> sourceIdProperty = template.getSourceIdProperty();
 		final Trait<?> sourceType               = template.getSourceType();
@@ -226,14 +225,14 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			properties.remove(sourceIdProperty.dbName());
 
-			return (NodeTrait)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
+			return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
 		}
 
 		return null;
 	}
 
-	private NodeTrait identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
+	private NodeInterface identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> targetIdProperty = template.getTargetIdProperty();
 		final Trait<?> targetType               = template.getTargetType();
@@ -248,7 +247,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			properties.remove(targetIdProperty.dbName());
 
-			return (NodeTrait)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
+			return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
 
 		}
 

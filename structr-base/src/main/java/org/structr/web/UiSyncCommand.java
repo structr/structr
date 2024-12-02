@@ -27,7 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.File;
@@ -97,7 +97,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		// collect all nodes etc that belong to the frontend (including files)
 		// and export them to the given output file
 		final Set<RelationshipInterface> rels = new LinkedHashSet<>();
-		final Set<NodeInterface> nodes        = new LinkedHashSet<>();
+		final Set<org.structr.core.graph.NodeInterface> nodes        = new LinkedHashSet<>();
 		final Set<String> filePaths           = new LinkedHashSet<>();
 		final App app                         = StructrApp.getInstance();
 
@@ -164,11 +164,11 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void collectDataRecursively(final App app, final GraphObjectTraits root, final Set<NodeTrait> nodes, final Set<RelationshipTrait> rels, final Set<String> files) throws FrameworkException {
+	private void collectDataRecursively(final App app, final GraphObjectTraits root, final Set<NodeInterface> nodes, final Set<RelationshipTrait> rels, final Set<String> files) throws FrameworkException {
 
 		if (root.isNode()) {
 
-			final NodeTrait node = root.getSyncNode();
+			final NodeInterface node = root.getSyncNode();
 			if (node instanceof File) {
 
 				final String fileUuid = node.getUuid();

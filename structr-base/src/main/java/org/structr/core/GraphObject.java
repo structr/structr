@@ -75,6 +75,8 @@ public interface GraphObject {
 	String getType();
 	String getUuid();
 
+	void clearCaches();
+
 	void init(final SecurityContext securityContext, final PropertyContainer dbObject, final Class type, final long sourceTransactionId);
 
 	void setSecurityContext(final SecurityContext securityContext);
@@ -105,8 +107,7 @@ public interface GraphObject {
 	void unlockReadOnlyPropertiesOnce();
 	void lockReadOnlyProperties();
 
-
-	// callbacks
+	// lifecycle methods
 	boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation);
 	boolean isValid(final ErrorBuffer errorBuffer);
 
@@ -137,23 +138,4 @@ public interface GraphObject {
 	}
 
 	boolean changelogEnabled();
-
-	default boolean isFrontendNode() {
-		return false;
-	}
-
-
-	/*
-
-	default <T> T getProperty(final String propertyName) {
-
-		final PropertyKey<T> key = getTraits().key(propertyName);
-		if (key != null) {
-
-			return getProperty(key);
-		}
-
-		throw new IllegalArgumentException("Invalid property key " + propertyName + " for type " + getClass().getSimpleName());
-	}
-	 */
 }

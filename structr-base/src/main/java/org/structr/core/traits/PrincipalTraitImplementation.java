@@ -45,8 +45,8 @@ import org.structr.core.entity.relationship.PrincipalFAVORITEFavoritable;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
@@ -86,10 +86,11 @@ public class PrincipalTraitImplementation extends AbstractTraitImplementation {
 	Property<String> publicKeysProperty                         = new ArrayProperty("publicKeys", String.class);
 
 	@Override
-	public Set<ComposableOperation> getComposableOperations() {
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			IsValid.class,
 			new IsValid() {
 
 				@Override
@@ -107,10 +108,11 @@ public class PrincipalTraitImplementation extends AbstractTraitImplementation {
 	}
 
 	@Override
-	public Set<OverwritableOperation> getOverwritableOperations() {
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			GetProperty.class,
 			new GetProperty() {
 
 				@Override
@@ -127,12 +129,13 @@ public class PrincipalTraitImplementation extends AbstractTraitImplementation {
 				}
 			},
 
+			SetProperty.class,
 			new SetProperty() {
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
-					AbstractNode.clearCaches();
+					graphObject.clearCaches();
 
 					return getSuper().setProperty(graphObject, key, value, isCreation);
 				}

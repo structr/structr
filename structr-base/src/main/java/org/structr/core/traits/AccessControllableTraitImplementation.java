@@ -3,7 +3,6 @@ package org.structr.core.traits;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropagationDirection;
@@ -21,8 +20,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.operations.ComposableOperation;
-import org.structr.core.traits.operations.OverwritableOperation;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
 
 import java.util.*;
@@ -36,15 +35,16 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 
 	@Override
-	public Set<ComposableOperation> getComposableOperations() {
-		return Set.of();
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+		return Map.of();
 	}
 
 	@Override
-	public Set<OverwritableOperation> getOverwritableOperations() {
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			GetOwnerNode.class,
 			new GetOwnerNode() {
 
 				@Override
@@ -60,6 +60,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 			},
 
+			IsGranted.class,
 			new IsGranted() {
 
 				@Override
@@ -92,6 +93,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 			},
 
+			Grant.class,
 			new Grant() {
 
 				@Override
@@ -140,6 +142,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 			},
 
+			Revoke.class,
 			new Revoke() {
 
 				@Override
@@ -159,6 +162,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 			},
 
+			SetAllowed.class,
 			new SetAllowed() {
 
 				@Override
@@ -209,6 +213,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 			},
 
+			GetSecurityRelationships.class,
 			new GetSecurityRelationships() {
 
 				@Override
@@ -251,6 +256,7 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 				}
 			},
 
+			AllowedBySchema.class,
 			new AllowedBySchema() {
 
 				@Override
@@ -264,6 +270,11 @@ public class AccessControllableTraitImplementation extends AbstractTraitImplemen
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 		return Set.of();
+	}
+
+	public static void clearCaches() {
+		globalPermissionResolutionCache.clear();
+		isGrantedResultCache.clear();
 	}
 
 	private static RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal p, final Map<String, RelationshipInterface<Principal, NodeInterface>> securityRelationships) {
