@@ -43,27 +43,27 @@ import java.util.Map.Entry;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
+	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
 	}
 
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> execute(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
+	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap attributes) throws FrameworkException {
+	private RelationshipInterface createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap attributes) throws FrameworkException {
 
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 
-		final DatabaseService db                                             = (DatabaseService)this.getArgument("graphDb");
-		final RelationshipFactory<A, B, RelationshipInterface<A, B>> factory = new RelationshipFactory(securityContext);
-		final PropertyMap properties                                         = new PropertyMap(attributes);
-		final PropertyMap toNotify                                           = new PropertyMap();
-		final CreationContainer tmp                                          = new CreationContainer(false);
-		final R template                                                     = (R)Relation.getInstance(relType);
-		final Date now                                                       = new Date();
-		final Principal user                                        = securityContext.getCachedUser();
+		final DatabaseService db          = (DatabaseService)this.getArgument("graphDb");
+		final RelationshipFactory factory = new RelationshipFactory(securityContext);
+		final PropertyMap properties      = new PropertyMap(attributes);
+		final PropertyMap toNotify        = new PropertyMap();
+		final CreationContainer tmp       = new CreationContainer(false);
+		final Relation template           = Relation.getInstance(relType);
+		final Date now                    = new Date();
+		final Principal user              = securityContext.getCachedUser();
 
 		template.ensureCardinality(securityContext, fromNode, toNode);
 

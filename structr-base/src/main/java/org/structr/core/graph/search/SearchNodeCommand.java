@@ -19,11 +19,9 @@
 package org.structr.core.graph.search;
 
 
-import org.structr.api.Traits;
 import org.structr.api.graph.Node;
 import org.structr.api.index.Index;
 import org.structr.common.SecurityContext;
-import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
@@ -45,11 +43,11 @@ import org.structr.core.graph.NodeInterface;
  *
  * @param <T>
  */
-public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<Node, T> {
+public class SearchNodeCommand extends SearchCommand<Node, NodeInterface> {
 
 	@Override
-	public Factory<Node, T> getFactory(SecurityContext securityContext, final Traits traits, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
-		return new NodeFactory<T>(securityContext, traits, includeHidden, publicOnly, pageSize, page);
+	public NodeFactory getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+		return new NodeFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override

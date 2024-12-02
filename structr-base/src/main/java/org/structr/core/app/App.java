@@ -44,29 +44,29 @@ public interface App extends Closeable {
 	Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException;
 	Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException;
 
-	<T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
-	<T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
-	<T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
+	NodeInterface create(final String type, final String name) throws FrameworkException;
+	NodeInterface create(final String type, final PropertyMap properties) throws FrameworkException;
+	NodeInterface create(final String type, final NodeAttribute<?>... attributes) throws FrameworkException;
 
-	<T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException;
+	<T extends NodeInterface> void deleteAllNodesOfType(final String type) throws FrameworkException;
 	void delete(final NodeInterface node) throws FrameworkException;
 
-	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
-	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> RelationshipInterface<A, B> create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
+	RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException;
+	RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties) throws FrameworkException;
 
 	void delete(final RelationshipInterface relationship);
 
-	NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException;
+	NodeInterface getNodeById(final String type, final String uuid) throws FrameworkException;
 	NodeInterface getNodeById(final String uuid) throws FrameworkException;
-	RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
+	RelationshipInterface getRelationshipById(final String type, final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
-	<T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
+	<T extends GraphObject> T get(final String type, final String uuid) throws FrameworkException;
 
 	Query<? extends NodeInterface> nodeQuery();
-	<T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
+	<T extends NodeInterface> Query<T> nodeQuery(final String type);
 
 	Query<? extends RelationshipInterface> relationshipQuery();
-	<T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
+	<T extends RelationshipInterface> Query<T> relationshipQuery(final String type);
 
 	void shutdown();
 

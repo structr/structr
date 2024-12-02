@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Relationship type class for SECURITY relationships.
  */
-public class SecurityRelationship extends ManyToMany<Principal, NodeInterface> implements Security {
+public class SecurityRelationship extends ManyToMany implements Security {
 
 	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
 
@@ -104,8 +104,8 @@ public class SecurityRelationship extends ManyToMany<Principal, NodeInterface> i
 
 	// ----- class Relation -----
 	@Override
-	public Class<Principal> getSourceType() {
-		return Principal.class;
+	public String getSourceType() {
+		return "Principal";
 	}
 
 	@Override
@@ -114,8 +114,8 @@ public class SecurityRelationship extends ManyToMany<Principal, NodeInterface> i
 	}
 
 	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
+	public String getTargetType() {
+		return "NodeInterface";
 	}
 
 	@Override

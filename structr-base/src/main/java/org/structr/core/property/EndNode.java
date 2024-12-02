@@ -53,13 +53,13 @@ import java.util.Map;
  *
  *
  */
-public class EndNode<S extends NodeInterface, T extends NodeInterface> extends Property<T> implements RelationProperty<T> {
+public class EndNode extends Property<NodeInterface> implements RelationProperty {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNode.class.getName());
 
-	private Relation<S, T, ? extends Source, OneEndpoint<T>> relation = null;
-	private Notion notion                                             = null;
-	private Class<T> destType                                         = null;
+	private Relation<? extends Source, OneEndpoint> relation = null;
+	private Notion notion                                    = null;
+	private String destType                                  = null;
 
 	/**
 	 * Constructs an entity property with the given name.
@@ -79,7 +79,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param name
 	 * @param relationClass
 	 */
-	public EndNode(String name, Class<? extends Relation<S, T, ? extends Source, OneEndpoint<T>>> relationClass) {
+	public EndNode(String name, Class<? extends Relation<? extends Source, OneEndpoint>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -91,7 +91,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param relationClass
 	 * @param notion
 	 */
-	public EndNode(String name, Class<? extends Relation<S, T, ? extends Source, OneEndpoint<T>>> relationClass, Notion notion) {
+	public EndNode(String name, Class<? extends Relation<? extends Source, OneEndpoint>> relationClass, Notion notion) {
 
 		super(name);
 
@@ -117,37 +117,37 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
 		return notion.getEntityConverter(securityContext);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
-		OneEndpoint<T> endpoint  = relation.getTarget();
+		OneEndpoint endpoint  = relation.getTarget();
 
 		return endpoint.get(securityContext, (NodeInterface)obj, predicate);
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, NodeInterface value) throws FrameworkException {
 
-		final OneEndpoint<T> endpoint = relation.getTarget();
+		final OneEndpoint endpoint = relation.getTarget();
 
 		try {
 
@@ -170,7 +170,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return destType;
 	}
 
@@ -185,12 +185,12 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public Property<T> indexed() {
+	public Property<NodeInterface> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<T> passivelyIndexed() {
+	public Property<NodeInterface> passivelyIndexed() {
 		return this;
 	}
 
@@ -216,17 +216,17 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException {
 		setProperty(securityContext, obj, t);
 	}
 
 	@Override
-	public Class<T> getTargetType() {
+	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, NodeInterface searchValue, boolean exactMatch, final Query query) {
 		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
 

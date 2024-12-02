@@ -30,7 +30,7 @@ import org.structr.core.notion.RelationshipNotion;
  *
  *
  */
-public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, ManyStartpoint<S>, ManyEndpoint<T>> {
+public abstract class ManyToMany implements Relation<ManyStartpoint, ManyEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -43,13 +43,13 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public ManyStartpoint<S> getSource() {
-		return new ManyStartpoint<>(this);
+	public ManyStartpoint getSource() {
+		return new ManyStartpoint(this);
 	}
 
 	@Override
-	public ManyEndpoint<T> getTarget() {
-		return new ManyEndpoint<>(this);
+	public ManyEndpoint getTarget() {
+		return new ManyEndpoint(this);
 	}
 
 	@Override
@@ -91,13 +91,13 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+	public Direction getDirectionForType(final String type) {
 		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
 		return null;
 	}
 
 	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 

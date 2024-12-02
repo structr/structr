@@ -34,6 +34,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
@@ -41,7 +42,6 @@ import org.structr.core.graph.*;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphObject;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 
@@ -431,14 +431,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andType(final TraitDefinition<? extends T> type) {
+	public org.structr.core.app.Query<T> andType(final String type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> orType(final TraitDefinition<? extends T> type) {
+	public org.structr.core.app.Query<T> orType(final String type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
@@ -803,9 +803,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return Collections.unmodifiableSet(allSubtypes);
 	}
 
-	public static boolean isTypeAssignableFromOtherType(final Class type, final Class otherType) {
+	public static boolean isTypeAssignableFromOtherType(final String type, final String otherType) {
 
-		return getAllSubtypesAsStringSet(type.getSimpleName()).contains(otherType.getSimpleName());
+		return getAllSubtypesAsStringSet(type).contains(otherType);
 	}
 
 	public static Set<Class> typeAndAllSupertypes(final Class type) {

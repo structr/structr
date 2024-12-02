@@ -77,7 +77,7 @@ public interface GraphObject {
 
 	void clearCaches();
 
-	void init(final SecurityContext securityContext, final PropertyContainer dbObject, final Class type, final long sourceTransactionId);
+	void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId);
 
 	void setSecurityContext(final SecurityContext securityContext);
 	SecurityContext getSecurityContext();

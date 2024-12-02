@@ -54,9 +54,9 @@ public abstract class Notion<S extends NodeInterface, T> {
 	protected SerializationStrategy<S, T> serializationStrategy     = null;
 	protected SecurityContext securityContext                       = null;
 	protected String idProperty                                     = null;
-	protected TraitDefinition<S> type                                         = null;
+	protected String type                                           = null;
 
-	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
+	public Notion(final SerializationStrategy serializationStrategy, final DeserializationStrategy deserializationStrategy) {
 
 		this.serializationStrategy   = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;
@@ -71,7 +71,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	 */
 	public abstract PropertyKey<T> getPrimaryPropertyKey();
 
-	public void setRelationProperty(final RelationProperty<T> propertyKey) {
+	public void setRelationProperty(final RelationProperty propertyKey) {
 		this.serializationStrategy.setRelationProperty(propertyKey);
 		this.deserializationStrategy.setRelationProperty(propertyKey);
 	}
@@ -199,7 +199,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	}
 
-	public void setType(final TraitDefinition<S> type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 

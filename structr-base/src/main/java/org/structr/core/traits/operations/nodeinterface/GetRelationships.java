@@ -20,7 +20,6 @@ package org.structr.core.traits.operations.nodeinterface;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.RelationshipType;
-import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -28,26 +27,26 @@ import org.structr.core.traits.operations.FrameworkMethod;
 public abstract class GetRelationships extends FrameworkMethod<GetRelationships> {
 
 	public abstract boolean hasRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);
-	public abstract <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);
+	public abstract RelationshipInterface getRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode);
 
-	public abstract <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationships(final NodeInterface node);
-	public abstract <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(final NodeInterface node);
+	public abstract Iterable<RelationshipInterface> getRelationships(final NodeInterface node);
+	public abstract Iterable<RelationshipInterface> getRelationshipsAsSuperUser(final NodeInterface node);
 
-	public abstract <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getIncomingRelationships(final NodeInterface node);
-	public abstract <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getOutgoingRelationships(final NodeInterface node);
+	public abstract Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node);
+	public abstract Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node);
 
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final NodeInterface node, final Class<? extends Relation<A, B, S, T>> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final NodeInterface node, final Class<R> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final NodeInterface node, final Class<R> type);
+	public abstract boolean hasRelationship(final NodeInterface node, final String type);
+	public abstract boolean hasIncomingRelationships(final NodeInterface node, final String type);
+	public abstract boolean hasOutgoingRelationships(final NodeInterface node, final String type);
 
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<RelationshipInterface<A, B>> getRelationships(final NodeInterface node, final Class<R> type);
+	public abstract Iterable<RelationshipInterface> getRelationships(final NodeInterface node, final String type);
 
-	public abstract <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(final NodeInterface node, final Class<R> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(final NodeInterface node, final Class<R> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(final NodeInterface node, final Class<R> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final Class<R> type, final Predicate<NodeInterface> predicate);
+	public abstract RelationshipInterface getIncomingRelationship(final NodeInterface node, final String type);
+	public abstract RelationshipInterface getIncomingRelationshipAsSuperUser(final NodeInterface node, final String type);
+	public abstract Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node, final String type);
+	public abstract Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<NodeInterface> predicate);
 
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(final NodeInterface node, final Class<R> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(final NodeInterface node, final Class<R> type);
-	public abstract <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<RelationshipInterface<A, B>> getOutgoingRelationships(final NodeInterface node, final Class<R> type);
+	public abstract RelationshipInterface getOutgoingRelationship(final NodeInterface node, final String type);
+	public abstract RelationshipInterface getOutgoingRelationshipAsSuperUser(final NodeInterface node, final String type);
+	public abstract Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node, final String type);
 }

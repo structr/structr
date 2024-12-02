@@ -22,10 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.GraphObject;
-import org.structr.core.traits.TraitDefinition;
 
 import java.util.Set;
 
@@ -42,7 +41,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	private Class sourceType  = null;
 	private Class targetType  = null;
 
-	public TypeSearchAttribute(final TraitDefinition<S> type, final Occurrence occur, final boolean isExactMatch) {
+	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
 
 		super(AbstractNode.typeHandler, null, occur, isExactMatch);
 

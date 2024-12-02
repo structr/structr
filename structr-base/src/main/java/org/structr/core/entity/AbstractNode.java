@@ -205,86 +205,86 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
+	public RelationshipInterface getRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
 		return typeHandler.getMethod(GetRelationships.class).getRelationshipTo(this, type, targetNode);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationships() {
+	public Iterable<RelationshipInterface> getRelationships() {
 		return typeHandler.getMethod(GetRelationships.class).getRelationships(this);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<RelationshipInterface<A, B>> getRelationships(final Class<R> type) {
+	public final Iterable<RelationshipInterface> getRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getRelationships(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationship(final Class<R> type) {
+	public final RelationshipInterface getIncomingRelationship(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationship(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> RelationshipInterface<A, B> getIncomingRelationshipAsSuperUser(final Class<R> type) {
+	public final RelationshipInterface getIncomingRelationshipAsSuperUser(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipAsSuperUser(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationships(final Class<R> type) {
+	public final Iterable<RelationshipInterface> getIncomingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationships(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationship(final Class<R> type) {
+	public final RelationshipInterface getOutgoingRelationship(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationship(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<RelationshipInterface<A, B>> getOutgoingRelationships(final Class<R> type) {
+	public final Iterable<RelationshipInterface> getOutgoingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationships(this, type);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getIncomingRelationships() {
+	public  Iterable<RelationshipInterface> getIncomingRelationships() {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationships(this);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getOutgoingRelationships() {
+	public  Iterable<RelationshipInterface> getOutgoingRelationships() {
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationships(this);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser() {
+	public  Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
 		return typeHandler.getMethod(GetRelationships.class).getRelationshipsAsSuperUser(this);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(Class<R> type) {
+	public  Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
 		return typeHandler.getMethod(GetRelationships.class).getRelationshipsAsSuperUser(this);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<RelationshipInterface<A, B>> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<NodeInterface> predicate) {
+	public final Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<NodeInterface> predicate) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipsAsSuperUser(this, type, predicate);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> RelationshipInterface<A, B> getOutgoingRelationshipAsSuperUser(final Class<R> type) {
+	public RelationshipInterface getOutgoingRelationshipAsSuperUser(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationshipAsSuperUser(this, type);
 	}
 
-	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type) {
+	public final boolean hasRelationship(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).hasRelationship(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
+	public final boolean hasIncomingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).hasIncomingRelationships(this, type);
 	}
 
 	@Override
-	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
+	public final boolean hasOutgoingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).hasOutgoingRelationships(this, type);
 	}
 
@@ -313,12 +313,12 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	}
 
 	@Override
-	public final RelationshipInterface<Principal, NodeInterface> getSecurityRelationship(final Principal p) {
+	public final Security getSecurityRelationship(final Principal p) {
 		return typeHandler.getMethod(GetSecurityRelationships.class).getSecurityRelationship(this, p);
 	}
 
 	@Override
-	public List<RelationshipInterface<Principal, NodeInterface>> getSecurityRelationships() {
+	public List<Security> getSecurityRelationships() {
 		return typeHandler.getMethod(GetSecurityRelationships.class).getSecurityRelationships(this);
 	}
 
@@ -351,9 +351,9 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 		relationshipTemplateInstanceCache.clear();
 	}
 
-	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
+	public static RelationshipInterface getRelationshipForType(final String type) {
 
-		R instance = (R) relationshipTemplateInstanceCache.get(type.getName());
+		RelationshipInterface instance = relationshipTemplateInstanceCache.get(type.getName());
 		if (instance == null) {
 
 			try {
@@ -444,7 +444,7 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	@Override
 	public final void grant(final Set<Permission> permissions, final Principal principal, SecurityContext ctx) throws FrameworkException {
-		accessControllableTrait.grant(this, permissions, principal, ctx);
+		typeHandler.getMethod(Grant.class).grant(this, permissions, principal, ctx);
 	}
 
 	@Override
@@ -459,20 +459,8 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	@Override
 	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-
-		if (!isGranted(Permission.accessControl, ctx)) {
-			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("revoke", permissions, principal, ctx));
-		}
-
-		clearCaches();
-
-		RelationshipInterface<Principal, NodeInterface> secRel = getSecurityRelationship(principal);
-		if (secRel != null) {
-
-			secRel.removePermissions(permissions);
-		}
+		typeHandler.getMethod(Revoke.class).revoke(this, permissions, principal, ctx);
 	}
-
 
 	@Override
 	public final void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {

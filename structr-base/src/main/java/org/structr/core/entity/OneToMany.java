@@ -33,7 +33,7 @@ import org.structr.core.notion.RelationshipNotion;
  *
  *
  */
-public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface> implements Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
+public abstract class OneToMany implements Relation<OneStartpoint, ManyEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -46,13 +46,13 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public OneStartpoint<S> getSource() {
-		return new OneStartpoint<>(this);
+	public OneStartpoint getSource() {
+		return new OneStartpoint(this);
 	}
 
 	@Override
-	public ManyEndpoint<T> getTarget() {
-		return new ManyEndpoint<>(this);
+	public ManyEndpoint getTarget() {
+		return new ManyEndpoint(this);
 	}
 
 	@Override
@@ -68,18 +68,22 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                          = StructrApp.getInstance();
-		final Class<? extends OneToMany> clazz = this.getClass();
-		final Class<S> sourceType              = getSourceType();
+		final App app           = StructrApp.getInstance();
+		final String type       = this.getType();
+		final String sourceType = getSourceType();
 
 		if (targetNode != null) {
 
 			// check existing relationships
-			final RelationshipInterface<NodeInterface, NodeInterface> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
+			if (incomingRel != null) {
 
-			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
+				final Relation relation = incomingRel.getRelation();
 
-				app.delete(incomingRel);
+				if (SearchCommand.isTypeAssignableFromOtherType(sourceType, relation.getSourceType())) {
+
+					app.delete(incomingRel);
+				}
 			}
 		}
 	}
@@ -96,13 +100,13 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+	public Direction getDirectionForType(final String type) {
 		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
 		return null;
 	}
 
 	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 

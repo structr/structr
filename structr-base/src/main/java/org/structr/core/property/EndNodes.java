@@ -54,13 +54,13 @@ import java.util.*;
  *
  *
  */
-public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<T>> implements RelationProperty<T> {
+public class EndNodes extends Property<Iterable<NodeInterface>> implements RelationProperty {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNodes.class.getName());
 
-	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
-	private Notion notion                                              = null;
-	private Class<T> destType                                          = null;
+	private Relation<? extends Source, ManyEndpoint> relation = null;
+	private Notion notion                                     = null;
+	private String destType                                   = null;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
@@ -68,7 +68,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	 * @param name
 	 * @param relationClass
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass) {
+	public EndNodes(final String name, final Class<? extends Relation<? extends Source, ManyEndpoint>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -79,7 +79,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	 * @param relationClass
 	 * @param notion
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
+	public EndNodes(final String name, final Class<? extends Relation<? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
 
 		super(name);
 
@@ -101,7 +101,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	 * @param relation
 	 * @param notion
 	 */
-	public EndNodes(final String name, final Relation<S, T, ? extends Source, ManyEndpoint<T>> relation, final Notion notion) {
+	public EndNodes(final String name, final Relation<? extends Source, ManyEndpoint> relation, final Notion notion) {
 
 		super(name);
 
@@ -126,29 +126,29 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<NodeInterface> getProperty(final SecurityContext securityContext, final GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
-		ManyEndpoint<T> endpoint = relation.getTarget();
+		ManyEndpoint endpoint = relation.getTarget();
 
 		if (predicate != null) {
 
@@ -161,7 +161,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> collection) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<NodeInterface> collection) throws FrameworkException {
 
 		final ManyEndpoint<T> endpoint = relation.getTarget();
 
@@ -173,7 +173,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return destType;
 	}
 
@@ -188,12 +188,12 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Property<Iterable<T>> indexed() {
+	public Property<Iterable<NodeInterface>> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<Iterable<T>> passivelyIndexed() {
+	public Property<Iterable<NodeInterface>> passivelyIndexed() {
 		return this;
 	}
 
@@ -219,9 +219,9 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException {
 
-		final List<T> list = Iterables.toList(getProperty(securityContext, obj, false));
+		final List<NodeInterface> list = Iterables.toList(getProperty(securityContext, obj, false));
 
 		list.add(t);
 
@@ -234,7 +234,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Iterable<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public Iterable<NodeInterface> convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
@@ -254,7 +254,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final Query query) {
 
 		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}

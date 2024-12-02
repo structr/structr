@@ -22,10 +22,10 @@ import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphObject;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
