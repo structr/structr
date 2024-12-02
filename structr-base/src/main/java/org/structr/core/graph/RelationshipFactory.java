@@ -62,7 +62,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiate(final Relationship relationship, final Identity pathSegmentId) {
 
-		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
+		if (relationship == null || TransactionCommand.isDeleted(relationship) || relationship.isDeleted()) {
 			return null;
 		}
 
@@ -89,7 +89,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		try {
 
-			newRel = relClass.newInstance();
+			newRel = relClass.getDeclaredConstructor().newInstance();
 
 		} catch (Throwable t) {
 			logger.warn("", t);
@@ -102,7 +102,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		}
 
 		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
-		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}

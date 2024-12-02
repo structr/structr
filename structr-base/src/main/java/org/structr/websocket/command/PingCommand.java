@@ -21,7 +21,7 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -51,7 +51,7 @@ public class PingCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("PING received from session {}", sessionId);
 
-		final Principal currentUser = AuthHelper.getPrincipalForSessionId(SessionHelper.getShortSessionId(sessionId), true);
+		final PrincipalInterface currentUser = AuthHelper.getPrincipalForSessionId(SessionHelper.getShortSessionId(sessionId), true);
 
 		if (currentUser != null) {
 

@@ -28,32 +28,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
-import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -62,291 +61,174 @@ import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.relationship.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.entity.html.TemplateElement;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
-import org.structr.web.resource.LoginResource;
-import org.structr.web.resource.LogoutResource;
-import org.structr.web.resource.RegistrationResource;
-import org.structr.web.resource.ResetPasswordResource;
+import org.structr.web.resource.LoginResourceHandler;
+import org.structr.web.resource.LogoutResourceHandler;
+import org.structr.web.resource.RegistrationResourceHandler;
+import org.structr.web.resource.ResetPasswordResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonIndexed {
 
-public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
+	public static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 
-	static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
+	public static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
-	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
-	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
-	static final String lowercaseBodyName        = "body";
+	public static final String lowercaseBodyName        = "body";
 
-	static final String DATA_BINDING_PARAMETER_STRUCTRID                                   = "structrId";
-	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION                         = "structrIdExpression";
-	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET                               = "structrTarget";
-	static final String DATA_BINDING_PARAMETER_STRUCTR_RELOAD_TARGET                       = "structrReloadTarget";
-	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD                               = "structrMethod";
-	static final String DATA_BINDING_PARAMETER_STRUCTRACTION                               = "structrAction";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENT                                = "structrEvent";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENTS                               = "structrEvents";
-	static final String DATA_BINDING_PARAMETER_HTMLEVENT                                   = "htmlEvent";
-	static final String DATA_BINDING_PARAMETER_CHILDID                                     = "childId";
-	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT                                = "sourceObject";
-	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY                              = "sourceProperty";
-	static final String DATA_BINDING_PARAMETER_REPEATER_DATA_OBJECT_ID                     = "repeaterDataObjectId";
-	static final String DATA_BINDING_PARAMETER_DATA_TYPE                                   = "structrDataType";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS                       = "structrSuccessNotifications";
-	static final String DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS                       = "structrFailureNotifications";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_TARGET                              = "structrSuccessTarget";
-	static final String DATA_BINDING_PARAMETER_FAILURE_TARGET                              = "structrFailureTarget";
-	static final String DATA_BINDING_PARAMETER_FLOW_RESULT                                 = "flowResult";
-	static final String DATA_BINDING_PARAMETER_METHOD_RESULT                               = "methodResult";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT = "structrSuccessNotificationsCustomDialogElement";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT                                   = "htmlEvent";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION                         = "structrIdExpression";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET                               = "structrTarget";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE                             = "structrDataType";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD                               = "structrMethod";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_CHILDID                                     = "childId";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT                                = "sourceObject";
+	public static final String EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY                              = "sourceProperty";
 
+	public static final int HtmlPrefixLength            = PropertyView.Html.length();
+	public static final Gson gson                       = new GsonBuilder().create();
 
-	static final int HtmlPrefixLength            = PropertyView.Html.length();
-	static final Gson gson                       = new GsonBuilder().create();
+	public static final Property<Iterable<DOMElement>> reloadSourcesProperty           = new StartNodes<>("reloadSources", DOMElementRELOADSDOMElement.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMElement>> reloadTargetsProperty           = new EndNodes<>("reloadTargets", DOMElementRELOADSDOMElement.class).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> triggeredActionsProperty     = new EndNodes<>("triggeredActions", DOMElementTRIGGERED_BYActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<ParameterMapping>> parameterMappingsProperty = new EndNodes<>("parameterMappings", DOMElementINPUT_ELEMENTParameterMapping.class).partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final Property<String> tagProperty              = new StringProperty("tag").indexed().category(PAGE_CATEGORY).partOfBuiltInSchema();
+	public static final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
+	public static final Property<String> partialUpdateKeyProperty = new StringProperty("partialUpdateKey").indexed().partOfBuiltInSchema();
 
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType type          = schema.addType("DOMElement");
-		final JsonObjectType actionMapping = schema.addType("ActionMapping");
+	public static final Property<Boolean> hasSharedComponent         = new BooleanProperty("hasSharedComponent").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean> manualReloadTargetProperty = new BooleanProperty("data-structr-manual-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.").partOfBuiltInSchema();
+	public static final Property<Boolean> fromWidgetProperty         = new BooleanProperty("fromWidget").partOfBuiltInSchema();
+	public static final Property<Boolean> dataInsertProperty         = new BooleanProperty("data-structr-insert").partOfBuiltInSchema();
+	public static final Property<Boolean> dataFromWidgetProperty     = new BooleanProperty("data-structr-from-widget").partOfBuiltInSchema();
 
-		//type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
-		type.setExtends(URI.create("#/definitions/DOMNode"));
-		type.setCategory("html");
+	public static final Property<String> eventMappingProperty       = new StringProperty("eventMapping").category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).").partOfBuiltInSchema();
+	// probably useless ATM because EAM does not support trees yet
+	public static final Property<String> dataTreeChildrenProperty   = new StringProperty("data-structr-tree-children").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.").partOfBuiltInSchema();
+	public static final Property<String> dataReloadTargetProperty   = new StringProperty("data-structr-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.").partOfBuiltInSchema();
+	public static final Property<String> renderingModeProperty      = new StringProperty("data-structr-rendering-mode").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval").partOfBuiltInSchema();
+	public static final Property<String> delayOrIntervalProperty    = new StringProperty("data-structr-delay-or-interval").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode").partOfBuiltInSchema();
+	public static final Property<String> onAbortProperty            = new StringProperty("_html_onabort").partOfBuiltInSchema();
+	public static final Property<String> onBlurProperty             = new StringProperty("_html_onblur").partOfBuiltInSchema();
+	public static final Property<String> onCanPlayProperty          = new StringProperty("_html_oncanplay").partOfBuiltInSchema();
+	public static final Property<String> onCanPlayThroughProperty   = new StringProperty("_html_oncanplaythrough").partOfBuiltInSchema();
+	public static final Property<String> onChangeProperty           = new StringProperty("_html_onchange").partOfBuiltInSchema();
+	public static final Property<String> onClickProperty            = new StringProperty("_html_onclick").partOfBuiltInSchema();
+	public static final Property<String> onContextMenuProperty      = new StringProperty("_html_oncontextmenu").partOfBuiltInSchema();
+	public static final Property<String> onDblClickProperty         = new StringProperty("_html_ondblclick").partOfBuiltInSchema();
+	public static final Property<String> onDragProperty             = new StringProperty("_html_ondrag").partOfBuiltInSchema();
+	public static final Property<String> onDragEndProperty          = new StringProperty("_html_ondragend").partOfBuiltInSchema();
+	public static final Property<String> onDragEnterProperty        = new StringProperty("_html_ondragenter").partOfBuiltInSchema();
+	public static final Property<String> onDragLeaveProperty        = new StringProperty("_html_ondragleave").partOfBuiltInSchema();
+	public static final Property<String> onDragOverProperty         = new StringProperty("_html_ondragover").partOfBuiltInSchema();
+	public static final Property<String> onDragStartProperty        = new StringProperty("_html_ondragstart").partOfBuiltInSchema();
+	public static final Property<String> onDropProperty             = new StringProperty("_html_ondrop").partOfBuiltInSchema();
+	public static final Property<String> onDurationChangeProperty   = new StringProperty("_html_ondurationchange").partOfBuiltInSchema();
+	public static final Property<String> onEmptiedProperty          = new StringProperty("_html_onemptied").partOfBuiltInSchema();
+	public static final Property<String> onEndedProperty            = new StringProperty("_html_onended").partOfBuiltInSchema();
+	public static final Property<String> onErrorProperty            = new StringProperty("_html_onerror").partOfBuiltInSchema();
+	public static final Property<String> onFocusProperty            = new StringProperty("_html_onfocus").partOfBuiltInSchema();
+	public static final Property<String> onInputProperty            = new StringProperty("_html_oninput").partOfBuiltInSchema();
+	public static final Property<String> onInvalidProperty          = new StringProperty("_html_oninvalid").partOfBuiltInSchema();
+	public static final Property<String> onKeyDownProperty          = new StringProperty("_html_onkeydown").partOfBuiltInSchema();
+	public static final Property<String> onKeyPressProperty         = new StringProperty("_html_onkeypress").partOfBuiltInSchema();
+	public static final Property<String> onKeyUpProperty            = new StringProperty("_html_onkeyup").partOfBuiltInSchema();
+	public static final Property<String> onLoadProperty             = new StringProperty("_html_onload").partOfBuiltInSchema();
+	public static final Property<String> onLoadedDataProperty       = new StringProperty("_html_onloadeddata").partOfBuiltInSchema();
+	public static final Property<String> onLoadedMetadataProperty   = new StringProperty("_html_onloadedmetadata").partOfBuiltInSchema();
+	public static final Property<String> onLoadStartProperty        = new StringProperty("_html_onloadstart").partOfBuiltInSchema();
+	public static final Property<String> onMouseDownProperty        = new StringProperty("_html_onmousedown").partOfBuiltInSchema();
+	public static final Property<String> onMouseMoveProperty        = new StringProperty("_html_onmousemove").partOfBuiltInSchema();
+	public static final Property<String> onMouseOutProperty         = new StringProperty("_html_onmouseout").partOfBuiltInSchema();
+	public static final Property<String> onMouseOverProperty        = new StringProperty("_html_onmouseover").partOfBuiltInSchema();
+	public static final Property<String> onMouseUpProperty          = new StringProperty("_html_onmouseup").partOfBuiltInSchema();
+	public static final Property<String> onMouseWheelProperty       = new StringProperty("_html_onmousewheel").partOfBuiltInSchema();
+	public static final Property<String> onPauseProperty            = new StringProperty("_html_onpause").partOfBuiltInSchema();
+	public static final Property<String> onPlayProperty             = new StringProperty("_html_onplay").partOfBuiltInSchema();
+	public static final Property<String> onPlayingProperty          = new StringProperty("_html_onplaying").partOfBuiltInSchema();
+	public static final Property<String> onProgressProperty         = new StringProperty("_html_onprogress").partOfBuiltInSchema();
+	public static final Property<String> onRateChangeProperty       = new StringProperty("_html_onratechange").partOfBuiltInSchema();
+	public static final Property<String> onReadyStateChangeProperty = new StringProperty("_html_onreadystatechange").partOfBuiltInSchema();
+	public static final Property<String> onResetProperty            = new StringProperty("_html_onreset").partOfBuiltInSchema();
+	public static final Property<String> onScrollProperty           = new StringProperty("_html_onscroll").partOfBuiltInSchema();
+	public static final Property<String> onSeekedProperty           = new StringProperty("_html_onseeked").partOfBuiltInSchema();
+	public static final Property<String> onSeekingProperty          = new StringProperty("_html_onseeking").partOfBuiltInSchema();
+	public static final Property<String> onSelectProperty           = new StringProperty("_html_onselect").partOfBuiltInSchema();
+	public static final Property<String> onShowProperty             = new StringProperty("_html_onshow").partOfBuiltInSchema();
+	public static final Property<String> onStalledProperty          = new StringProperty("_html_onstalled").partOfBuiltInSchema();
+	public static final Property<String> onSubmitProperty           = new StringProperty("_html_onsubmit").partOfBuiltInSchema();
+	public static final Property<String> onSuspendProperty          = new StringProperty("_html_onsuspend").partOfBuiltInSchema();
+	public static final Property<String> onTimeUpdateProperty       = new StringProperty("_html_ontimeupdate").partOfBuiltInSchema();
+	public static final Property<String> onVolumechangeProperty     = new StringProperty("_html_onvolumechange").partOfBuiltInSchema();
+	public static final Property<String> onWaitingProperty          = new StringProperty("_html_onwaiting").partOfBuiltInSchema();
+	public static final Property<String> htmlDataProperty           = new StringProperty("_html_data").partOfBuiltInSchema();
 
-		type.addStringProperty("tag",              PropertyView.Public, PropertyView.Ui).setIndexed(true).setCategory(PAGE_CATEGORY);
-		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("partialUpdateKey", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+	// Core attributes
+	public static final Property<String> htmlAcceskeyProperty        = new StringProperty("_html_accesskey").partOfBuiltInSchema();
+	public static final Property<String> htmlClassProperty           = new StringProperty("_html_class").partOfBuiltInSchema();
+	public static final Property<String> htmlContentEditableProperty = new StringProperty("_html_contenteditable").partOfBuiltInSchema();
+	public static final Property<String> htmlContextMenuProperty     = new StringProperty("_html_contextmenu").partOfBuiltInSchema();
+	public static final Property<String> htmlDirProperty             = new StringProperty("_html_dir").partOfBuiltInSchema();
+	public static final Property<String> htmlDraggableProperty       = new StringProperty("_html_draggable").partOfBuiltInSchema();
+	public static final Property<String> htmlDropzoneProperty        = new StringProperty("_html_dropzone").partOfBuiltInSchema();
+	public static final Property<String> htmlHiddenProperty          = new StringProperty("_html_hidden").partOfBuiltInSchema();
+	public static final Property<String> htmlIdProperty              = new StringProperty("_html_id").indexed().partOfBuiltInSchema();
+	public static final Property<String> htmlLangProperty            = new StringProperty("_html_lang").partOfBuiltInSchema();
+	public static final Property<String> htmlSpellcheckProperty      = new StringProperty("_html_spellcheck").partOfBuiltInSchema();
+	public static final Property<String> htmlStyleProperty           = new StringProperty("_html_style").partOfBuiltInSchema();
+	public static final Property<String> htmlTabindexProperty        = new StringProperty("_html_tabindex").partOfBuiltInSchema();
+	public static final Property<String> htmlTitleProperty           = new StringProperty("_html_title").partOfBuiltInSchema();
+	public static final Property<String> htmlTranslateProperty       = new StringProperty("_html_translate").partOfBuiltInSchema();
 
-		type.addStringProperty("_html_onabort", PropertyView.Html);
-		type.addStringProperty("_html_onblur", PropertyView.Html);
-		type.addStringProperty("_html_oncanplay", PropertyView.Html);
-		type.addStringProperty("_html_oncanplaythrough", PropertyView.Html);
-		type.addStringProperty("_html_onchange", PropertyView.Html);
-		type.addStringProperty("_html_onclick", PropertyView.Html);
-		type.addStringProperty("_html_oncontextmenu", PropertyView.Html);
-		type.addStringProperty("_html_ondblclick", PropertyView.Html);
-		type.addStringProperty("_html_ondrag", PropertyView.Html);
-		type.addStringProperty("_html_ondragend", PropertyView.Html);
-		type.addStringProperty("_html_ondragenter", PropertyView.Html);
-		type.addStringProperty("_html_ondragleave", PropertyView.Html);
-		type.addStringProperty("_html_ondragover", PropertyView.Html);
-		type.addStringProperty("_html_ondragstart", PropertyView.Html);
-		type.addStringProperty("_html_ondrop", PropertyView.Html);
-		type.addStringProperty("_html_ondurationchange", PropertyView.Html);
-		type.addStringProperty("_html_onemptied", PropertyView.Html);
-		type.addStringProperty("_html_onended", PropertyView.Html);
-		type.addStringProperty("_html_onerror", PropertyView.Html);
-		type.addStringProperty("_html_onfocus", PropertyView.Html);
-		type.addStringProperty("_html_oninput", PropertyView.Html);
-		type.addStringProperty("_html_oninvalid", PropertyView.Html);
-		type.addStringProperty("_html_onkeydown", PropertyView.Html);
-		type.addStringProperty("_html_onkeypress", PropertyView.Html);
-		type.addStringProperty("_html_onkeyup", PropertyView.Html);
-		type.addStringProperty("_html_onload", PropertyView.Html);
-		type.addStringProperty("_html_onloadeddata", PropertyView.Html);
-		type.addStringProperty("_html_onloadedmetadata", PropertyView.Html);
-		type.addStringProperty("_html_onloadstart", PropertyView.Html);
-		type.addStringProperty("_html_onmousedown", PropertyView.Html);
-		type.addStringProperty("_html_onmousemove", PropertyView.Html);
-		type.addStringProperty("_html_onmouseout", PropertyView.Html);
-		type.addStringProperty("_html_onmouseover", PropertyView.Html);
-		type.addStringProperty("_html_onmouseup", PropertyView.Html);
-		type.addStringProperty("_html_onmousewheel", PropertyView.Html);
-		type.addStringProperty("_html_onpause", PropertyView.Html);
-		type.addStringProperty("_html_onplay", PropertyView.Html);
-		type.addStringProperty("_html_onplaying", PropertyView.Html);
-		type.addStringProperty("_html_onprogress", PropertyView.Html);
-		type.addStringProperty("_html_onratechange", PropertyView.Html);
-		type.addStringProperty("_html_onreadystatechange", PropertyView.Html);
-		type.addStringProperty("_html_onreset", PropertyView.Html);
-		type.addStringProperty("_html_onscroll", PropertyView.Html);
-		type.addStringProperty("_html_onseeked", PropertyView.Html);
-		type.addStringProperty("_html_onseeking", PropertyView.Html);
-		type.addStringProperty("_html_onselect", PropertyView.Html);
-		type.addStringProperty("_html_onshow", PropertyView.Html);
-		type.addStringProperty("_html_onstalled", PropertyView.Html);
-		type.addStringProperty("_html_onsubmit", PropertyView.Html);
-		type.addStringProperty("_html_onsuspend", PropertyView.Html);
-		type.addStringProperty("_html_ontimeupdate", PropertyView.Html);
-		type.addStringProperty("_html_onvolumechange", PropertyView.Html);
-		type.addStringProperty("_html_onwaiting", PropertyView.Html);
-		type.addStringProperty("_html_data", PropertyView.Html);
+	// new properties for Polymer support
+	public static final Property<String> htmlIsProperty         = new StringProperty("_html_is").partOfBuiltInSchema();
+	public static final Property<String> htmlPropertiesProperty = new StringProperty("_html_properties").partOfBuiltInSchema();
 
-		// data-structr-* attributes
-		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successful action.");
-		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, a user has to confirm the action.");
-		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("On create, append ID of first created object to the return URI.");
-		type.addStringProperty("data-structr-action",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | registration | login | logout)");
-		type.addStringProperty("data-structr-attributes",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The names of the properties that should be included in the request. (for create, edit/save, login or registration actions)");
-		type.addStringProperty("data-structr-attr",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If this is set, the input field is rendered in auto-edit mode");
-		type.addStringProperty("data-structr-name",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The name of the property (for create/save actions with custom form)");
-		type.addStringProperty("data-structr-hide",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Which mode (if any) the element should be hidden from the user (eg. edit | non-edit | edit,non-edit)");
-		type.addStringProperty("data-structr-raw-value",            PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The unformatted value of the element. Provide this if the value of the element is printed with a format applied (useful for Date or Number fields)");
-		type.addStringProperty("data-structr-placeholder",          PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("used to display option labels (default: name)");
-		type.addStringProperty("data-structr-type",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Type hint for the attribute (e.g. Date, Boolean; default: String)");
-		type.addStringProperty("data-structr-custom-options-query", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom REST query for value options (for collection properties)");
-		type.addStringProperty("data-structr-options-key",          PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Key used to display option labels for collection properties (default: name)");
-		type.addStringProperty("data-structr-edit-class",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom CSS class in edit mode");
-		type.addStringProperty("data-structr-return",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Return URI after successful action");
-		type.addStringProperty("data-structr-format",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom format for Date or Enum properties. (Example: Date: dd.MM.yyyy - Enum: Value1,Value2,Value3");
-		type.addBooleanProperty("data-structr-insert",              PropertyView.Ui);
-		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
+	// The role attribute, see http://www.w3.org/TR/role-attribute/
+	public static final Property<String> htmlRoleProperty            = new StringProperty("_html_role").partOfBuiltInSchema();
 
-		// simple interactive elements
-		type.addStringProperty("data-structr-target",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
-		type.addStringProperty("data-structr-options",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
-		type.addStringProperty("data-structr-reload-target",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
-		type.addStringProperty("data-structr-tree-children",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-		type.addBooleanProperty("data-structr-manual-reload-target", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
-		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
-		type.addPropertyGetter("eventMapping", String.class);
-		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
+	public static final View defaultView = new View(DOMElement.class, PropertyView.Public,
+		tagProperty, pathProperty, partialUpdateKeyProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
+		name, childrenProperty, dataKeyProperty, cypherQueryProperty, restQueryProperty, functionQueryProperty
+	);
 
-		// old relationships between action element (typically Button) and inputs (typically Input or Select elements)
-		//type.relate(type, "INPUTS",   Cardinality.OneToMany,   "actionElement",     "inputs");
-		//type.addViewProperty(PropertyView.Ui, "actionElement");
-		//type.addViewProperty(PropertyView.Ui, "inputs");
+	public static final View uiView = new View(DOMElement.class, PropertyView.Ui,
+		tagProperty, pathProperty, partialUpdateKeyProperty, htmlClassProperty, htmlIdProperty, sharedComponentConfigurationProperty,
+		isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, dataStructrIdProperty, childrenProperty,
+		childrenIdsProperty, showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty,
+		restQueryProperty, functionQueryProperty, renderingModeProperty, delayOrIntervalProperty, dataInsertProperty, dataFromWidgetProperty, dataTreeChildrenProperty,
+		dataReloadTargetProperty, eventMappingProperty, triggeredActionsProperty, reloadingActionsProperty, failureActionsProperty, successNotificationActionsProperty,
+		failureNotificationActionsProperty, manualReloadTargetProperty
+	);
 
-		// new event action mapping, moved to ActionMapping node
-		type.addViewProperty(PropertyView.Ui, "triggeredActions");
+	public static final View htmlView = new View(DOMElement.class, PropertyView.Html,
+		onAbortProperty, onBlurProperty, onCanPlayProperty, onCanPlayThroughProperty, onChangeProperty, onClickProperty, onContextMenuProperty, onDblClickProperty,
+		onDragProperty, onDragEndProperty, onDragEnterProperty, onDragLeaveProperty, onDragOverProperty, onDragStartProperty, onDropProperty, onDurationChangeProperty,
+		onEmptiedProperty, onEndedProperty, onErrorProperty, onFocusProperty, onInputProperty, onInvalidProperty, onKeyDownProperty, onKeyPressProperty, onKeyUpProperty,
+		onLoadProperty, onLoadedDataProperty, onLoadedMetadataProperty, onLoadStartProperty, onMouseDownProperty, onMouseMoveProperty, onMouseOutProperty,
+		onMouseOverProperty, onMouseUpProperty, onMouseWheelProperty, onPauseProperty, onPlayProperty, onPlayingProperty, onProgressProperty, onRateChangeProperty,
+		onReadyStateChangeProperty, onResetProperty, onScrollProperty, onSeekedProperty, onSeekingProperty, onSelectProperty, onShowProperty, onStalledProperty,
+		onSubmitProperty, onSuspendProperty, onTimeUpdateProperty, onVolumechangeProperty, onWaitingProperty, htmlDataProperty,
 
-		// attributes for lazy rendering
-		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
-		type.addStringProperty("data-structr-delay-or-interval",    PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
+		htmlAcceskeyProperty, htmlClassProperty, htmlContentEditableProperty, htmlContextMenuProperty, htmlDirProperty, htmlDraggableProperty, htmlDropzoneProperty,
+		htmlHiddenProperty, htmlIdProperty, htmlLangProperty, htmlSpellcheckProperty, htmlStyleProperty, htmlTabindexProperty, htmlTitleProperty, htmlTranslateProperty,
 
-		// Core attributes
-		type.addStringProperty("_html_accesskey", PropertyView.Html);
-		type.addStringProperty("_html_class", PropertyView.Html, PropertyView.Ui);
-		type.addStringProperty("_html_contenteditable", PropertyView.Html);
-		type.addStringProperty("_html_contextmenu", PropertyView.Html);
-		type.addStringProperty("_html_dir", PropertyView.Html);
-		type.addStringProperty("_html_draggable", PropertyView.Html);
-		type.addStringProperty("_html_dropzone", PropertyView.Html);
-		type.addStringProperty("_html_hidden", PropertyView.Html);
-		type.addStringProperty("_html_id", PropertyView.Html, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("_html_lang", PropertyView.Html);
-		type.addStringProperty("_html_spellcheck", PropertyView.Html);
-		type.addStringProperty("_html_style", PropertyView.Html);
-		type.addStringProperty("_html_tabindex", PropertyView.Html);
-		type.addStringProperty("_html_title", PropertyView.Html);
-		type.addStringProperty("_html_translate", PropertyView.Html);
+		htmlRoleProperty, htmlIsProperty, htmlPropertiesProperty
+	);
 
-		// new properties for Polymer support
-		type.addStringProperty("_html_is", PropertyView.Html);
-		type.addStringProperty("_html_properties", PropertyView.Html);
-		type.addBooleanProperty("fromWidget");
-
-		// The role attribute, see http://www.w3.org/TR/role-attribute/
-		type.addStringProperty("_html_role", PropertyView.Html);
-
-		type.addPropertyGetter("tag", String.class);
-
-		type.overrideMethod("onCreation",             true,  DOMElement.class.getName() + ".onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification",         true,  DOMElement.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-
-		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
-		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
-		type.overrideMethod("getHtmlAttributeNames",  false, "return " + DOMElement.class.getName() + ".getHtmlAttributeNames(this);");
-		type.overrideMethod("getOffsetAttributeName", false, "return " + DOMElement.class.getName() + ".getOffsetAttributeName(this, arg0, arg1);");
-		type.overrideMethod("getLocalName",           false, "return null;");
-		type.overrideMethod("getAttributes",          false, "return this;");
-		type.overrideMethod("contentEquals",          false, "return false;");
-		type.overrideMethod("hasAttributes",          false, "return getLength() > 0;");
-		type.overrideMethod("getLength",              false, "return getHtmlAttributeNames().size();");
-		type.overrideMethod("getTagName",             false, "return getTag();");
-		type.overrideMethod("getNodeName",            false, "return getTagName();");
-		type.overrideMethod("setNodeValue",           false, "");
-		type.overrideMethod("getNodeValue",           false, "return null;");
-		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
-		type.overrideMethod("getPropertyKeys",        false, "final Set<PropertyKey> allProperties = new LinkedHashSet<>(); final Set<PropertyKey> htmlAttrs = super.getPropertyKeys(arg0); for (final PropertyKey attr : htmlAttrs) { allProperties.add(attr); } allProperties.addAll(getDataPropertyKeys()); return allProperties;");
-		type.overrideMethod("getCssClass",            false, "return getProperty(_html_classProperty);");
-
-		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
-		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
-		type.overrideMethod("renderStructrAppLib",    false, DOMElement.class.getName() + ".renderStructrAppLib(this, arg0, arg1, arg2, arg3);");
-		type.overrideMethod("setIdAttribute",         false, DOMElement.class.getName() + ".setIdAttribute(this, arg0, arg1);");
-		type.overrideMethod("setAttribute",           false, DOMElement.class.getName() + ".setAttribute(this, arg0, arg1);");
-		type.overrideMethod("removeAttribute",        false, DOMElement.class.getName() + ".removeAttribute(this, arg0);");
-		type.overrideMethod("doImport",               false, "return "+ DOMElement.class.getName() + ".doImport(this, arg0);");
-		type.overrideMethod("getAttribute",           false, "return " + DOMElement.class.getName() + ".getAttribute(this, arg0);");
-		type.overrideMethod("getAttributeNode",       false, "return " + DOMElement.class.getName() + ".getAttributeNode(this, arg0);");
-		type.overrideMethod("setAttributeNode",       false, "return " + DOMElement.class.getName() + ".setAttributeNode(this, arg0);");
-		type.overrideMethod("removeAttributeNode",    false, "return " + DOMElement.class.getName() + ".removeAttributeNode(this, arg0);");
-		type.overrideMethod("getElementsByTagName",   false, "return " + DOMElement.class.getName() + ".getElementsByTagName(this, arg0);");
-		type.overrideMethod("setIdAttributeNS",       false, "throw new UnsupportedOperationException(\"Namespaces not supported.\");");
-		type.overrideMethod("setIdAttributeNode",     false, "throw new UnsupportedOperationException(\"Attribute nodes not supported in HTML5.\");");
-		type.overrideMethod("hasAttribute",           false, "return getAttribute(arg0) != null;");
-		type.overrideMethod("hasAttributeNS",         false, "return false;");
-		type.overrideMethod("getAttributeNS",         false, "");
-		type.overrideMethod("setAttributeNS",         false, "");
-		type.overrideMethod("removeAttributeNS",      false, "");
-		type.overrideMethod("getAttributeNodeNS",     false, "return null;");
-		type.overrideMethod("setAttributeNodeNS",     false, "return null;");
-		type.overrideMethod("getElementsByTagNameNS", false, "return null;");
-
-		// NamedNodeMap
-		type.overrideMethod("getNamedItemNS",         false, "return null;");
-		type.overrideMethod("setNamedItemNS",         false, "return null;");
-		type.overrideMethod("removeNamedItemNS",      false, "return null;");
-		type.overrideMethod("getNamedItem",           false, "return getAttributeNode(arg0);");
-		type.overrideMethod("setNamedItem",           false, "return " + DOMElement.class.getName() + ".setNamedItem(this, arg0);");
-		type.overrideMethod("removeNamedItem",        false, "return " + DOMElement.class.getName() + ".removeNamedItem(this, arg0);");
-		type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
-		type.overrideMethod("item",                   false, "return " + DOMElement.class.getName() + ".item(this, arg0);");
-
-		// W3C Element
-		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "isDOMNode");
-		type.addViewProperty(PropertyView.Public, "pageId");
-		type.addViewProperty(PropertyView.Public, "parent");
-		type.addViewProperty(PropertyView.Public, "sharedComponentId");
-		type.addViewProperty(PropertyView.Public, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Public, "name");
-		type.addViewProperty(PropertyView.Public, "children");
-		type.addViewProperty(PropertyView.Public, "dataKey");
-		type.addViewProperty(PropertyView.Public, "cypherQuery");
-		type.addViewProperty(PropertyView.Public, "xpathQuery");
-		type.addViewProperty(PropertyView.Public, "restQuery");
-		type.addViewProperty(PropertyView.Public, "functionQuery");
-
-		type.addViewProperty(PropertyView.Ui, "hideOnDetail");
-		type.addViewProperty(PropertyView.Ui, "hideOnIndex");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentConfiguration");
-		type.addViewProperty(PropertyView.Ui, "isDOMNode");
-		type.addViewProperty(PropertyView.Ui, "pageId");
-		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentId");
-		type.addViewProperty(PropertyView.Ui, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Ui, "data-structr-id");
-		type.addViewProperty(PropertyView.Ui, "renderDetails");
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "childrenIds");
-		type.addViewProperty(PropertyView.Ui, "showForLocales");
-		type.addViewProperty(PropertyView.Ui, "hideForLocales");
-		type.addViewProperty(PropertyView.Ui, "showConditions");
-		type.addViewProperty(PropertyView.Ui, "hideConditions");
-		type.addViewProperty(PropertyView.Ui, "dataKey");
-		type.addViewProperty(PropertyView.Ui, "cypherQuery");
-		type.addViewProperty(PropertyView.Ui, "xpathQuery");
-		type.addViewProperty(PropertyView.Ui, "restQuery");
-		type.addViewProperty(PropertyView.Ui, "functionQuery");
+	/*
 
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
@@ -354,36 +236,62 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			type.addViewProperty(PropertyView.Public, "flow");
 			type.addViewProperty(PropertyView.Ui, "flow");
 		}
-
-	}}
-
-	String getTag();
-	String getOffsetAttributeName(final String name, final int offset);
-
-	void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
-	void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException;
-
-	Property[] getHtmlAttributes();
-	List<String> getHtmlAttributeNames();
-	String getEventMapping();
+	*/
 
 	@Override
-	Set<PropertyKey> getPropertyKeys(String propertyView);
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-	static void onCreation(final DOMElement thisElement, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		DOMElement.updateReloadTargets(thisElement);
+		super.onCreation(securityContext, errorBuffer);
+
+		updateReloadTargets();
 	}
 
-	static void onModification(final DOMElement thisElement, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		DOMElement.updateReloadTargets(thisElement);
+	@Override
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		updateReloadTargets();
+	}
+
+	// ----- public methods -----
+	public String getTag() {
+		return getProperty(tagProperty);
+	}
+
+	public String getEventMapping() {
+		return getProperty(eventMappingProperty);
+	}
+
+	public String getCssClass() {
+		return getProperty(htmlClassProperty);
+	}
+
+	public Property[] getHtmlAttributes() {
+		return htmlView.properties();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
+
+		final Set<PropertyKey> allProperties = new LinkedHashSet<>();
+		final Set<PropertyKey> htmlAttrs     = super.getPropertyKeys(propertyView);
+
+		for (final PropertyKey attr : htmlAttrs) {
+			allProperties.add(attr);
+		}
+
+		allProperties.addAll(getDataPropertyKeys());
+
+		return allProperties;
 	}
 
 	@Export
-	default Object event(final SecurityContext securityContext, final java.util.Map<String, java.lang.Object> parameters) throws FrameworkException {
+	public Object event(final SecurityContext securityContext, final java.util.Map<String, java.lang.Object> parameters) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final EventContext  eventContext  = new EventContext();
-		final String        event         = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
+		final String        event         = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 		final String        action;
 
 		if (event == null) {
@@ -392,27 +300,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		ActionMapping triggeredAction;
 
-		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().get(DOMElement.class, this.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
+		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().get(DOMElement.class, this.getUuid()).getProperty(triggeredActionsProperty));
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
+
 			triggeredAction = triggeredActions.get(0);
-			action = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "action"));
+			action = triggeredAction.getProperty(ActionMapping.actionProperty);
+
 		} else {
+
 			throw new FrameworkException(422, "Cannot execute action without action defined on this DOMElement: " + this);
 		}
-
-		// parse event mapping property on this node and determine event type
-//		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
-//		if (eventMapping != null) {
-//
-//			final Map<String, Object> mapping = getMappedEvents();
-//			if (mapping != null) {
-//
-//				event = (String)mapping.get(event);
-//			}
-//		}
-
-		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
-		parameters.remove("id");
 
 		// store event context in object
 		actionContext.setConstant("eventContext", eventContext);
@@ -444,11 +341,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			case "replace-html":
 				return handleReplaceHtmlAction(actionContext, parameters, eventContext);
 
-			case "open-tree-item":
-			case "close-tree-item":
-			case "toggle-tree-item":
-				handleTreeAction(actionContext, parameters, eventContext, event);
-				break;
+//			case "open-tree-item":
+//			case "close-tree-item":
+//			case "toggle-tree-item":
+//				handleTreeAction(actionContext, parameters, eventContext, event);
+//				break;
 
 			case "sign-in":
 				return handleSignInAction(actionContext, parameters, eventContext);
@@ -465,7 +362,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			case "method":
 			default:
 				// execute custom method (and return the result directly)
-				final String method = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
+				final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
 				return handleCustomAction(actionContext, parameters, eventContext, method);
 		}
 
@@ -476,10 +373,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LoginResource loginResource = new LoginResource();
-		loginResource.setSecurityContext(actionContext.getSecurityContext());
-
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final PrincipalInterface currentUser              = actionContext.getSecurityContext().getUser(false);
+		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
+		final Map<String, Object> properties     = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
 
@@ -489,19 +385,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		final RestMethodResult result = loginResource.doPost(properties);
-
-		return result;
+		return loginResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleSignOutAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LogoutResource logoutResource = new LogoutResource();
-		logoutResource.setSecurityContext(actionContext.getSecurityContext());
-
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final PrincipalInterface currentUser                = actionContext.getSecurityContext().getUser(false);
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
+		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
 
@@ -511,13 +404,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		final RestMethodResult result = logoutResource.doPost(properties);
-
-		return result;
+		return logoutResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
+		final PrincipalInterface currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -530,15 +422,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResource registrationResource = new RegistrationResource();
-		registrationResource.setSecurityContext(actionContext.getSecurityContext());
-		final RestMethodResult result = registrationResource.doPost(properties);
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 
-		return result;
+		return registrationResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
+		final PrincipalInterface currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -551,57 +442,55 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResource resetPasswordResource = new ResetPasswordResource();
-		resetPasswordResource.setSecurityContext(actionContext.getSecurityContext());
-		final RestMethodResult result = resetPasswordResource.doPost(properties);
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 
-		return result;
+		return resetPasswordResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
-	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
-
-		final SecurityContext securityContext = actionContext.getSecurityContext();
-
-		if (parameters.containsKey(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET)) {
-
-			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET));
-
-			switch (action) {
-
-				case "open-tree-item":
-					setSessionAttribute(securityContext, key, true);
-					break;
-
-				case "close-tree-item":
-					removeSessionAttribute(securityContext, key);
-					break;
-
-				case "toggle-tree-item":
-
-					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
-
-						removeSessionAttribute(securityContext, key);
-
-					} else {
-
-						setSessionAttribute(securityContext, key, true);
-					}
-					break;
-			}
-
-
-		} else {
-
-			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
-		}
-	}
+//	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+//
+//		final SecurityContext securityContext = actionContext.getSecurityContext();
+//
+//		if (parameters.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET)) {
+//
+//			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET));
+//
+//			switch (action) {
+//
+//				case "open-tree-item":
+//					setSessionAttribute(securityContext, key, true);
+//					break;
+//
+//				case "close-tree-item":
+//					removeSessionAttribute(securityContext, key);
+//					break;
+//
+//				case "toggle-tree-item":
+//
+//					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
+//
+//						removeSessionAttribute(securityContext, key);
+//
+//					} else {
+//
+//						setSessionAttribute(securityContext, key, true);
+//					}
+//					break;
+//			}
+//
+//
+//		} else {
+//
+//			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+//		}
+//	}
 
 	private GraphObject handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
 		// create new object of type?
-		final String targetType = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String targetType = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (targetType == null) {
 
 			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
@@ -631,7 +520,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -640,7 +529,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			// convert input
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, target.getEntityType(), parameters);
@@ -655,14 +544,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute delete action without target UUID (data-structr-target attribute).");
 		}
 
-		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			if (target.isNode()) {
 
@@ -678,8 +567,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
 
 		// Support old and new parameters
-		final String idExpression  = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
-		final String structrTarget = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String idExpression  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
+		final String structrTarget = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		final String dataTarget    = structrTarget != null ? structrTarget : idExpression;
 
 		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
@@ -688,16 +577,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			removeInternalDataBindingKeys(parameters);
 
 			return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
-
-			// call global schema method
-			//return invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
-			//throw new FrameworkException(422, "Cannot execute action without target (data-structr-target attribute).");
-
 		}
 
 		if (Settings.isValidUuid(dataTarget)) {
 
-			final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
+			final List<GraphObject> targets = resolveDataTargets(actionContext, dataTarget);
 			final Logger logger             = LoggerFactory.getLogger(getClass());
 
 			if (targets.size() > 1) {
@@ -708,8 +592,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			for (final GraphObject target : targets) {
 
-				// try to execute event method
-				return target.invokeMethod(actionContext.getSecurityContext(), methodName, parameters, false, new EvaluationHints());
+				final AbstractMethod method = Methods.resolveMethod(target.getClass(), methodName);
+				if (method != null) {
+
+					return method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute method " + target.getClass().getSimpleName() + "." + methodName + ": method not found.");
+				}
 			}
 
 		} else {
@@ -718,23 +609,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
 			if (staticClass != null) {
 
-				final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(staticClass);
-				final Method method               = methods.get(methodName);
-
+				final AbstractMethod method = Methods.resolveMethod(staticClass, methodName);
 				if (method != null) {
 
-					if (Modifier.isStatic(methods.get(methodName).getModifiers())) {
-
-						return AbstractNode.invokeMethod(actionContext.getSecurityContext(), method, null, parameters, new EvaluationHints());
-
-					} else {
-
-						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method is not static.");
-					}
+					return method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
 
 				} else {
 
-					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method not found.");
+					throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
 				}
 
 			} else {
@@ -749,7 +631,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleAppendChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -757,7 +639,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
@@ -772,7 +654,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			if (target instanceof DOMElement) {
 
@@ -792,7 +674,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleRemoveChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -800,7 +682,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
@@ -815,7 +697,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			if (target instanceof DOMElement) {
 
@@ -835,19 +717,19 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleInsertHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without target UUID (data-structr-target attribute).");
 		}
 
-		final String sourceObjectId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
+		final String sourceObjectId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
 		}
 
-		final String sourceProperty = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+		final String sourceProperty = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
 		if (sourceProperty == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
@@ -867,7 +749,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			if (target instanceof DOMElement) {
 
@@ -887,14 +769,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleReplaceHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
 		}
 
 		// fetch child ID
-		final String childId = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child UUID (data-child-id attribute).");
@@ -907,13 +789,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
 		}
 
-		final String sourceObjectId = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
+		final String sourceObjectId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
 		}
 
-		final String sourceProperty = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+		final String sourceProperty = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
 		if (sourceProperty == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
@@ -933,7 +815,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(actionContext, dataTarget)) {
 
 			if (target instanceof DOMElement) {
 
@@ -963,42 +845,22 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	private void removeInternalDataBindingKeys(final java.util.Map<String, java.lang.Object> parameters) {
 
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRID);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTR_RELOAD_TARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRACTION);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENTS);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_REPEATER_DATA_OBJECT_ID);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_DATA_TYPE);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_TARGET);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FLOW_RESULT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_METHOD_RESULT);
-		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 	}
 
-
-
-
-
-
-
-	// ----- static methods -----
-	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {
+	public String getOffsetAttributeName(final String name, final int offset) {
 
 		int namePosition = -1;
 		int index = 0;
 
-		List<String> keys = Iterables.toList(elem.getNode().getPropertyKeys());
+		List<String> keys = Iterables.toList(getNode().getPropertyKeys());
 		Collections.sort(keys);
 
 		List<String> names = new ArrayList<>(10);
@@ -1030,38 +892,37 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
-	public static void updateFromNode(final DOMElement node, final DOMNode newNode) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
 		if (newNode instanceof DOMElement) {
 
-			final PropertyKey<String> tagKey = StructrApp.key(DOMElement.class, "tag");
-			final PropertyMap properties     = new PropertyMap();
+			final PropertyMap properties = new PropertyMap();
 
-			for (Property htmlProp : node.getHtmlAttributes()) {
+			for (Property htmlProp : getHtmlAttributes()) {
 				properties.put(htmlProp, newNode.getProperty(htmlProp));
 			}
 
 			// copy tag
-			properties.put(tagKey, newNode.getProperty(tagKey));
+			properties.put(DOMElement.tagProperty, newNode.getProperty(DOMElement.tagProperty));
 
-			node.setProperties(node.getSecurityContext(), properties);
+			setProperties(getSecurityContext(), properties);
 		}
 	}
 
-	public static String getContextName(DOMElement thisNode) {
+	public String getContextName() {
 
-		final String _name = thisNode.getProperty(DOMElement.name);
+		final String _name = this.getProperty(DOMElement.name);
 		if (_name != null) {
 
 			return _name;
 		}
 
-		return thisNode.getTag();
+		return getTag();
 	}
 
-	static void renderContent(final DOMElement thisElement, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (!thisElement.shouldBeRendered(renderContext)) {
+		if (!shouldBeRendered(renderContext)) {
 			return;
 		}
 
@@ -1069,16 +930,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final AsyncBuffer out                 = renderContext.getBuffer();
 		final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
-		final boolean isVoid                  = thisElement.isVoidElement();
-		final String _tag                     = thisElement.getTag();
+		final boolean hasSharedComponent      = getProperty(DOMElement.hasSharedComponent);
+		final DOMElement synced               = hasSharedComponent ? (DOMElement)getSharedComponent() : null;
+		final boolean isVoid                  = isVoidElement();
+		final String _tag                     = getTag();
 
 		// non-final variables
 		boolean anyChildNodeCreatesNewLine = false;
 
-		// TODO: remove this..
-		thisElement.renderStructrAppLib(out, securityContext, renderContext, depth);
-
-		if (depth > 0 && !thisElement.avoidWhitespace()) {
+		if (depth > 0 && !avoidWhitespace()) {
 
 			out.append(DOMNode.indent(depth, renderContext));
 
@@ -1091,26 +951,26 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				// Determine if this element's visibility flags differ from
 				// the flags of the page and render a <!-- @structr:private -->
 				// comment accordingly.
-				if (DOMNode.renderDeploymentExportComments(thisElement, out, false)) {
+				if (renderDeploymentExportComments(out, false)) {
 
 					// restore indentation
-					if (depth > 0 && !thisElement.avoidWhitespace()) {
+					if (depth > 0 && !avoidWhitespace()) {
 						out.append(DOMNode.indent(depth, renderContext));
 					}
 				}
 			}
 
-			thisElement.openingTag(out, _tag, editMode, renderContext, depth);
+			openingTag(out, _tag, editMode, renderContext, depth);
 
 			try {
 
 				// in body?
-				if (lowercaseBodyName.equals(thisElement.getTagName())) {
+				if (lowercaseBodyName.equals(getTagName())) {
 					renderContext.setInBody(true);
 				}
 
-				boolean lazyRendering = false;
-				final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
+				final String renderingMode = getProperty(DOMElement.renderingModeProperty);
+				boolean lazyRendering      = false;
 
 				// lazy rendering can only work if this node is not requested as a partial
 				if (renderContext.getPage() != null && renderingMode != null) {
@@ -1123,25 +983,26 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				}
 
 				// only render children if we are not in a shared component scenario, not in deployment mode and it's not rendered lazily
-				if (!lazyRendering && (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode))) {
+				if (!lazyRendering && (synced == null || !EditMode.DEPLOYMENT.equals(editMode))) {
 
 					// fetch children
-					final List<RelationshipInterface> rels = thisElement.getChildRelationships();
+					final List<DOMNodeCONTAINSDOMNode> rels = getChildRelationships();
 					if (rels.isEmpty()) {
 
 						// No child relationships, maybe this node is in sync with another node
-						final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
-						if (_syncedNode != null) {
+						if (synced != null) {
 
-							rels.addAll(_syncedNode.getChildRelationships());
+							DOMNode.prefetchDOMNodes(synced.getUuid());
+
+							rels.addAll(synced.getChildRelationships());
 						}
 					}
 
 					// apply configuration for shared component if present
-					final String _sharedComponentConfiguration = thisElement.getProperty(StructrApp.key(DOMElement.class, "sharedComponentConfiguration"));
+					final String _sharedComponentConfiguration = getProperty(DOMElement.sharedComponentConfigurationProperty);
 					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-						Scripting.evaluate(renderContext, thisElement, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", thisElement.getUuid());
+						Scripting.evaluate(renderContext,  this, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", getUuid());
 					}
 
 					for (final RelationshipInterface rel : rels) {
@@ -1160,25 +1021,24 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			} catch (Throwable t) {
 
-				out.append("Error while rendering node ").append(thisElement.getUuid()).append(": ").append(t.getMessage());
+				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
 
 				final Logger logger = LoggerFactory.getLogger(DOMElement.class);
 				logger.warn("", t);
 			}
 
 			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(_tag) && (!isVoid) || (isVoid && thisElement.getSharedComponent() != null && EditMode.DEPLOYMENT.equals(editMode))) {
+			if (StringUtils.isNotBlank(_tag) && (!isVoid) || (isVoid && synced != null && EditMode.DEPLOYMENT.equals(editMode))) {
 
 				// only insert a newline + indentation before the closing tag if any child-element used a newline
-				final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
-				final boolean isTemplate     = _syncedNode != null && EditMode.DEPLOYMENT.equals(editMode);
+				final boolean isTemplate     = synced != null && EditMode.DEPLOYMENT.equals(editMode);
 
 				if (anyChildNodeCreatesNewLine || isTemplate) {
 
 					out.append(DOMNode.indent(depth, renderContext));
 				}
 
-				if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
+				if (synced != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
 					out.append("</structr:component>");
 
@@ -1194,42 +1054,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	static void renderStructrAppLib(final DOMElement thisElement, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-
-		if (!(EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && thisElement.getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
-
-			out
-				.append("<!--")
-				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-3.3.1.min.js\"><\\/script>'); }</script><!--")
-				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script><!--")
-				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script><!--")
-				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.js\"><\\/script>'); }</script><!--")
-				.append(DOMNode.indent(depth, renderContext))
-				.append("--><script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script><!--")
-				.append(DOMNode.indent(depth, renderContext))
-				.append("--><link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/lib/jquery-ui-1.10.3.custom.min.css\">");
-
-			renderContext.setAppLibRendered(true);
-
-			// Send deprecation warning
-			TransactionCommand.simpleBroadcastDeprecationWarning(
-					"EDIT_MODE_BINDING",
-					"Edit Mode Binding is deprecated",
-					"Element " + thisElement.getUuid() + " uses deprecated frontend edit-mode bindings. This feature is deprecated and will be removed in a coming version. Migration is needed to ensure future functioning.",
-					thisElement.getUuid()
-			);
-		}
-	}
-
-	static void openingTag(final DOMElement thisElement, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		final DOMElement _sharedComponentElement = (DOMElement) thisElement.getSharedComponent();
+		final boolean hasSharedComponent         = getProperty(DOMElement.hasSharedComponent);
+		final DOMElement _sharedComponentElement = hasSharedComponent ? (DOMElement) getSharedComponent() : null;
 
 		if (_sharedComponentElement != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
@@ -1240,23 +1068,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			out.append("\"");
 
-			thisElement.renderSharedComponentConfiguration(out, editMode);
+			renderSharedComponentConfiguration(out, editMode);
 
 			// include data-* attributes in template
-			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
+			renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 		} else {
 
 			out.append("<").append(tag);
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Class type  = thisElement.getEntityType();
-			final String uuid = thisElement.getUuid();
+			final Class type  = getEntityType();
+			final String uuid = getUuid();
 
 			final List<PropertyKey> htmlAttributes = new ArrayList<>();
 
 
-			thisElement.getNode().getPropertyKeys().forEach((key) -> {
+			getNode().getPropertyKeys().forEach((key) -> {
 				if (key.startsWith(PropertyView.Html)) {
 					htmlAttributes.add(config.getPropertyKeyForJSONName(type, key));
 				}
@@ -1272,16 +1100,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				if (EditMode.DEPLOYMENT.equals(editMode)) {
 
-					value = (String)thisElement.getProperty(attribute);
+					value = (String)getProperty(attribute);
 
 				} else {
 
-					value = thisElement.getPropertyWithVariableReplacement(renderContext, attribute);
+					value = getPropertyWithVariableReplacement(renderContext, attribute);
 				}
 
 				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
 
-					value = escapeForHtmlAttributes(value);
+					value = DOMNode.escapeForHtmlAttributes(value);
 				}
 
 				if (value != null) {
@@ -1295,17 +1123,17 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			// make repeater data object ID available
 			final GraphObject repeaterDataObject = renderContext.getDataObject();
-			if (repeaterDataObject != null && StringUtils.isNotBlank(thisElement.getDataKey())) {
+			if (repeaterDataObject != null && StringUtils.isNotBlank(getDataKey())) {
 
 				out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 			}
 
 			// include arbitrary data-* attributes
-			thisElement.renderSharedComponentConfiguration(out, editMode);
-			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
+			renderSharedComponentConfiguration(out, editMode);
+			renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 			// new: managed attributes (like selected
-			thisElement.renderManagedAttributes(out, renderContext.getSecurityContext(), renderContext);
+			renderManagedAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 			// include special mode attributes
 			switch (editMode) {
@@ -1313,8 +1141,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				case SHAPES:
 				case SHAPES_MINIATURES:
 
-					final boolean isInsertable = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-insert"));
-					final boolean isFromWidget = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-from-widget"));
+					final boolean isInsertable = getProperty(DOMElement.dataInsertProperty);
+					final boolean isFromWidget = getProperty(DOMElement.fromWidgetProperty);
 
 					if (isInsertable || isFromWidget) {
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
@@ -1338,13 +1166,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case RAW:
 
-					out.append(" ").append("data-structr-hash").append("=\"").append(thisElement.getIdHash()).append("\"");
+					out.append(" ").append("data-structr-hash").append("=\"").append(getIdHash()).append("\"");
 					break;
 
 				case WIDGET:
 				case DEPLOYMENT:
 
-					final String eventMapping = (String) thisElement.getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
+					final String eventMapping = getEventMapping();
 					if (eventMapping != null) {
 
 						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
@@ -1354,30 +1182,43 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				case NONE:
 
 					// Get actions in superuser context
-					final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>)	StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
-					if (triggeredActions != null && !triggeredActions.isEmpty()) {
+					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
+					final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getProperty(DOMElement.triggeredActionsProperty);
+					final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
+					boolean outputStructrId                          = false;
 
-						final ActionMapping triggeredAction = triggeredActions.get(0);
+					if (!list.isEmpty()) {
 
-						// Support for legacy action mapping (simple interactive elements)
-						// ensure backwards compatibility with frontend.js before switch to new persistence model
-						if (StringUtils.isNotBlank(uuid)) {
-							out.append(" data-structr-id=\"").append(uuid).append("\"");
+						// all active elements need data-structr-id
+						outputStructrId = true;
+
+						// why only the first one?!
+						final ActionMapping triggeredAction = list.get(0);
+						final String options                = triggeredAction.getProperty(ActionMapping.optionsProperty);
+
+						// support for configuration options
+						if (StringUtils.isNotBlank(options)) {
+							out.append(" data-structr-options=\"").append(uuid).append("\"");
 						}
+
 						String eventsString = null;
-						final Map<String, Object> mapping = thisElement.getMappedEvents();
+						final Map<String, Object> mapping = getMappedEvents();
 						if (mapping != null) {
 							eventsString = StringUtils.join(mapping.keySet(), ",");
 						}
 
 						// append all stored action mapping keys as data-structr-<key> attributes
-						for (final String key : new String[] { "event", "action", "method", "dataType", "idExpression" }) {
-							final String value = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, key));
+						for (final Property<String> key : Set.of(ActionMapping.eventProperty, ActionMapping.actionProperty, ActionMapping.methodProperty, ActionMapping.dataTypeProperty, ActionMapping.idExpressionProperty)) {
+
+							final String value = triggeredAction.getPropertyWithVariableReplacement(renderContext, key);
 							if (StringUtils.isNotBlank(value)) {
-								final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
+
+								final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key.jsonName());
 								out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
 							}
-							if (key.equals("event")) {
+
+							if (key.equals(ActionMapping.eventProperty)) {
+
 								eventsString = (String) value;
 							}
 						}
@@ -1386,143 +1227,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							out.append(" data-structr-events=\"").append(eventsString).append("\"");
 						}
 
-						// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element
-						final String successNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotifications"));
-						if (StringUtils.isNotBlank(successNotifications)) {
-
-							out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
-
-							switch (successNotifications) {
-
-								case ("custom-dialog-linked"):
-									out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "successNotificationElements")).append("\"");
-									break;
-								default:
-
-							}
-						}
-
-						final String successNotificationsPartial = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial"));
-						if (StringUtils.isNotBlank(successNotificationsPartial)) {
-							out.append(" data-structr-success-notifications-partial=\"").append(successNotificationsPartial).append("\"");
-						}
-
-						// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element
-						final String failureNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications"));
-						if (StringUtils.isNotBlank(failureNotifications)) {
-							out.append(" data-structr-failure-notifications=\"").append(failureNotifications).append("\"");
-						}
-
-						if (StringUtils.isNotBlank(failureNotifications)) {
-
-							switch (failureNotifications) {
-
-								case ("custom-dialog-linked"):
-									out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "failureNotificationElements")).append("\"");
-									break;
-								default:
-
-							}
-						}
-						final String failureNotificationsPartial = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial"));
-						if (StringUtils.isNotBlank(failureNotificationsPartial)) {
-							out.append(" data-structr-failure-notifications-partial=\"").append(failureNotificationsPartial).append("\"");
-						}
-
-						// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-						final String successBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour"));
-						final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successPartial"));
-						final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successURL"));
-						final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successEvent"));
-
-						String successTargetString = null;
-
-						if (StringUtils.isNotBlank(successBehaviour)) {
-
-							switch (successBehaviour) {
-								case "partial-refresh":
-									successTargetString = successPartial;
-									break;
-								case "partial-refresh-linked":
-									successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "successTargets");
-									break;
-								case "navigate-to-url":
-									successTargetString = "url:" + successURL;
-									break;
-								case "fire-event":
-									successTargetString = "event:" + successEvent;
-									break;
-								case "full-page-reload":
-									successTargetString = "url:";
-									break;
-								case "sign-out":
-									successTargetString = "sign-out";
-									break;
-								case "none":
-								default:
-									successTargetString = null;
-							}
-						}
-
-						final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "idExpression"));
-						if (StringUtils.isNotBlank(idExpression)) {
-							out.append(" data-structr-target=\"").append(idExpression).append("\"");
-						}
-
-						final String action = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "action"));
-						if ("create".equals(action)) {
-							final String dataType = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "dataType"));
-							if (StringUtils.isNotBlank(dataType)) {
-								out.append(" data-structr-target=\"").append(dataType).append("\"");
-							}
-						}
-
-						if (StringUtils.isNotBlank(successTargetString)) {
-							out.append(" data-structr-reload-target=\"").append(successTargetString).append("\""); // Legacy, deprecated
-							out.append(" data-structr-success-target=\"").append(successTargetString).append("\"");
-						}
+						renderDialogAttributes(renderContext, out, triggeredAction);
+						renderSuccessNotificationAttributes(renderContext, out, triggeredAction);
+						renderFailureNotificationAttributes(renderContext, out, triggeredAction);
+						renderSuccessBehaviourAttributes(renderContext, out, triggeredAction);
+						renderFailureBehaviourAttributes(renderContext, out, triggeredAction);
 
 
-						// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-						final String failureBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"));
-						final String failurePartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "failurePartial"));
-						final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "failureURL"));
-						final String failureEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "failureEvent"));
-
-						String failureTargetString = null;
-
-						if (StringUtils.isNotBlank(failureBehaviour)) {
-
-							switch (failureBehaviour) {
-								case "partial-refresh":
-									failureTargetString = failurePartial;
-									break;
-								case "partial-refresh-linked":
-									failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "failureTargets");
-									break;
-								case "navigate-to-url":
-									failureTargetString = "url:" + failureURL;
-									break;
-								case "fire-event":
-									failureTargetString = "event:" + failureEvent;
-									break;
-								case "full-page-reload":
-									failureTargetString = "url:";
-									break;
-								case "sign-out":
-									failureTargetString = "sign-out";
-									break;
-								case "none":
-								default:
-									failureTargetString = null;
-							}
-						}
-
-						if (StringUtils.isNotBlank(failureTargetString)) {
-							out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
-						}
-						
-						
 //						{ // TODO: Migrate tree handling to new action mapping
 //							// toggle-tree-item
 //							if (mapping.containsValue("toggle-tree-item")) {
@@ -1536,10 +1247,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 //						}
 
 
+						// **************************************************************************+
+						// parameters
+						// **************************************************************************+
+
 						// TODO: Add support for multiple triggered actions.
 						//  At the moment, backend and frontend code only support one triggered action,
 						// even though the data model has a ManyToMany rel between triggerElements and triggeredActions
-						for (final ParameterMapping parameterMapping : (Iterable<? extends ParameterMapping>) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "parameterMappings"))) {
+						for (final ParameterMapping parameterMapping : triggeredAction.getProperty(ActionMapping.parameterMappings)) {
 
 							final String parameterType = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType"));
 							final String parameterName = parameterMapping.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ParameterMapping.class, "parameterName"));
@@ -1554,11 +1269,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							switch (parameterType) {
 
 								case "user-input":
-									final DOMElement element   = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "inputElement"));
+									final DOMElement element   = parameterMapping.getProperty(ParameterMapping.inputElement);
 
 									if (element != null) {
 
-										final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
+										final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, DOMElement.htmlIdProperty);
 
 										if (elementCssId != null) {
 
@@ -1573,19 +1288,20 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 									break;
 
 								case "constant-value":
-									final String constantValue = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue"));
+									final String constantValue = parameterMapping.getProperty(ParameterMapping.constantValue);
 									// Could be 'json(...)' or a simple value
-									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(escapeForHtmlAttributes(constantValue)).append("\"");
+									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(DOMNode.escapeForHtmlAttributes(constantValue)).append("\"");
 									break;
 
 								case "script-expression":
-									final String scriptExpression = parameterMapping.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ParameterMapping.class, "scriptExpression"));
-									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(escapeForHtmlAttributes(scriptExpression)).append("\"");
+									final String scriptExpression = parameterMapping.getPropertyWithVariableReplacement(renderContext, ParameterMapping.scriptExpression);
+									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(DOMNode.escapeForHtmlAttributes(scriptExpression)).append("\"");
 									break;
 
 								case "page-param":
 									// Name of the request parameter for pager 'page'
-									final String value = renderContext.getRequestParameter(parameterName);
+									final String action = triggeredAction.getProperty(ActionMapping.actionProperty);
+									final String value  = renderContext.getRequestParameter(parameterName);
 									// special handling for pagination (migrated code)
 									switch (action) {
 
@@ -1627,14 +1343,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							}
 						}
-
 					}
-
-					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
 
 					if (isTargetElement(thisElementWithSuperuserContext)) {
 
-						out.append(" data-structr-id=\"").append(uuid).append("\"");
+						outputStructrId = true;
 
 						// make current object ID available in reload targets
 						final GraphObject current = renderContext.getDetailsDataObject();
@@ -1669,11 +1382,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode")) != null) {
+					if (getProperty(DOMElement.renderingModeProperty) != null) {
 
-						out.append(" data-structr-id=\"").append(uuid).append("\"");
-						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
+						out.append(" data-structr-delay-or-interval=\"").append(getProperty(DOMElement.delayOrIntervalProperty)).append("\"");
 
+						outputStructrId = true;
 					}
 
 					if (renderContext.isTemplateRoot(uuid)) {
@@ -1683,14 +1396,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey     = StructrApp.key(DOMElement.class, "parameterMappings");
-					final Iterable<? extends ParameterMapping>	parameterMappings = thisElementWithSuperuserContext.getProperty(parameterMappingsKey);
+					final Iterable<? extends ParameterMapping> parameterMappings = thisElementWithSuperuserContext.getProperty(DOMElement.parameterMappingsProperty);
 
-					final boolean isParameterElement = parameterMappings.iterator().hasNext();
+					outputStructrId |= (thisElementWithSuperuserContext instanceof TemplateElement || parameterMappings.iterator().hasNext());
 
-					if (thisElementWithSuperuserContext instanceof TemplateElement || isParameterElement) {
-
-						// render ID into output so it can be re-used
+					// output data-structr-id only once
+					if (outputStructrId) {
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 
@@ -1701,14 +1412,202 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		out.append(">");
 	}
 
-	public static Node doImport(final DOMElement thisNode, final Page newPage) throws DOMException {
+	public static void renderDialogAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
 
-		DOMElement newElement = (DOMElement) newPage.createElement(thisNode.getTag());
+		final String dialogType = triggeredAction.getProperty(ActionMapping.dialogTypeProperty);
+		if (dialogType != null && !dialogType.equals("none")) {
+
+			final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.dialogTitleProperty);
+			final String dialogText = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.dialogTextProperty);
+
+			out.append(" data-structr-dialog-type=\"").append(dialogType).append("\"");
+			out.append(" data-structr-dialog-title=\"").append(DOMNode.escapeForHtmlAttributes(dialogTitle)).append("\"");
+			out.append(" data-structr-dialog-text=\"").append(DOMNode.escapeForHtmlAttributes(dialogText)).append("\"");
+
+		}
+	}
+
+	public void renderSuccessNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
+
+		// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
+		final String successNotifications = triggeredAction.getProperty(ActionMapping.successNotificationsProperty);
+		if (StringUtils.isNotBlank(successNotifications)) {
+
+			out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
+
+			switch (successNotifications) {
+
+				case "custom-dialog-linked":
+					out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.successNotificationElements)).append("\"");
+					break;
+
+				case "fire-event":
+					out.append(" data-structr-success-notifications-event=\"").append(triggeredAction.getProperty(ActionMapping.successNotificationsEventProperty)).append("\"");
+					break;
+
+				case "inline-text-message":
+					final Integer delay = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay"));
+					out.append(" data-structr-success-notifications-delay=\"").append(delay.toString()).append("\"");
+					break;
+
+				default:
+					break;
+
+			}
+		}
+
+		final String successNotificationsPartial = triggeredAction.getProperty(ActionMapping.successNotificationsPartialProperty);
+		if (StringUtils.isNotBlank(successNotificationsPartial)) {
+
+			out.append(" data-structr-success-notifications-partial=\"").append(successNotificationsPartial).append("\"");
+		}
+	}
+
+	public void renderFailureNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
+
+		// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
+		final String failureNotifications = triggeredAction.getProperty(ActionMapping.failureNotificationsProperty);
+		if (StringUtils.isNotBlank(failureNotifications)) {
+
+			out.append(" data-structr-failure-notifications=\"").append(failureNotifications).append("\"");
+		}
+
+		if (StringUtils.isNotBlank(failureNotifications)) {
+
+			switch (failureNotifications) {
+
+				case "custom-dialog-linked":
+					out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.failureNotificationElements)).append("\"");
+					break;
+
+				case "fire-event":
+					out.append(" data-structr-failure-notifications-event=\"").append(triggeredAction.getProperty(ActionMapping.failureNotificationsEventProperty)).append("\"");
+					break;
+
+				case "inline-text-message":
+					final Integer delay = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsDelay"));
+					out.append(" data-structr-failure-notifications-delay=\"").append(delay.toString()).append("\"");
+					break;
+
+				default:
+					break;
+
+			}
+		}
+
+		final String failureNotificationsPartial = triggeredAction.getProperty(ActionMapping.failureNotificationsPartialProperty);
+		if (StringUtils.isNotBlank(failureNotificationsPartial)) {
+
+			out.append(" data-structr-failure-notifications-partial=\"").append(failureNotificationsPartial).append("\"");
+		}
+	}
+
+	public void renderSuccessBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
+
+		// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
+		final String successBehaviour = triggeredAction.getProperty(ActionMapping.successBehaviourProperty);
+		final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.successPartialProperty);
+		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.successURLProperty);
+		final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.successEventProperty);
+
+		String successTargetString = null;
+
+		if (StringUtils.isNotBlank(successBehaviour)) {
+
+			switch (successBehaviour) {
+				case "partial-refresh":
+					successTargetString = successPartial;
+					break;
+				case "partial-refresh-linked":
+					successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.successTargets);
+					break;
+				case "navigate-to-url":
+					successTargetString = "url:" + successURL;
+					break;
+				case "fire-event":
+					successTargetString = "event:" + successEvent;
+					break;
+				case "full-page-reload":
+					successTargetString = "url:";
+					break;
+				case "sign-out":
+					successTargetString = "sign-out";
+					break;
+				case "none":
+				default:
+					successTargetString = null;
+			}
+		}
+
+		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.idExpressionProperty);
+		if (StringUtils.isNotBlank(idExpression)) {
+			out.append(" data-structr-target=\"").append(idExpression).append("\"");
+		}
+
+		final String action = triggeredAction.getProperty(ActionMapping.actionProperty);
+		if ("create".equals(action)) {
+
+			final String dataType = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.dataTypeProperty);
+			if (StringUtils.isNotBlank(dataType)) {
+				out.append(" data-structr-target=\"").append(dataType).append("\"");
+			}
+		}
+
+		if (StringUtils.isNotBlank(successTargetString)) {
+			out.append(" data-structr-success-target=\"").append(successTargetString).append("\"");
+		}
+	}
+
+	public void renderFailureBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
+
+		// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
+		final String failureBehaviour = triggeredAction.getProperty(ActionMapping.failureBehaviourProperty);
+		final String failurePartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.failurePartialProperty);
+		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.failureURLProperty);
+		final String failureEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, ActionMapping.failureEventProperty);
+
+		String failureTargetString = null;
+
+		if (StringUtils.isNotBlank(failureBehaviour)) {
+
+			switch (failureBehaviour) {
+				case "partial-refresh":
+					failureTargetString = failurePartial;
+					break;
+				case "partial-refresh-linked":
+					failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.failureTargets);
+					break;
+				case "navigate-to-url":
+					failureTargetString = "url:" + failureURL;
+					break;
+				case "fire-event":
+					failureTargetString = "event:" + failureEvent;
+					break;
+				case "full-page-reload":
+					failureTargetString = "url:";
+					break;
+				case "sign-out":
+					failureTargetString = "sign-out";
+					break;
+				case "none":
+				default:
+					failureTargetString = null;
+			}
+		}
+
+		if (StringUtils.isNotBlank(failureTargetString)) {
+			out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
+		}
+	}
+
+	public Node doImport(final Page newPage) throws DOMException {
+
+		DOMElement newElement = (DOMElement) newPage.createElement(getTag());
 
 		// copy attributes
-		for (String _name : thisNode.getHtmlAttributeNames()) {
+		for (String _name : getHtmlAttributeNames()) {
 
-			Attr attr = thisNode.getAttributeNode(_name);
+			Attr attr = getAttributeNode(_name);
 			if (attr.getSpecified()) {
 
 				newElement.setAttribute(attr.getName(), attr.getValue());
@@ -1718,11 +1617,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return newElement;
 	}
 
-	public static List<String> getHtmlAttributeNames(final DOMElement thisNode) {
+	public List<String> getHtmlAttributeNames() {
 
 		List<String> names = new ArrayList<>(10);
 
-		for (String key : thisNode.getNode().getPropertyKeys()) {
+		for (String key : getNode().getPropertyKeys()) {
 
 			// use html properties only
 			if (key.startsWith(PropertyView.Html)) {
@@ -1734,12 +1633,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return names;
 	}
 
-	public static void setIdAttribute(final DOMElement thisElement, final String idString, boolean isId) throws DOMException {
+	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
 
-		thisElement.checkWriteAccess();
+		checkWriteAccess();
 
 		try {
-			thisElement.setProperty(StructrApp.key(DOMElement.class, "_html_id"), idString);
+			setProperty(DOMElement.htmlIdProperty, idString);
 
 		} catch (FrameworkException fex) {
 
@@ -1747,20 +1646,20 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	public static String getAttribute(final DOMElement thisElement, final String name) {
+	public String getAttribute(final String name) {
 
-		HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+		HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
 
-		return htmlProperty.getProperty(thisElement.getSecurityContext(), thisElement, true);
+		return htmlProperty.getProperty(getSecurityContext(), this, true);
 	}
 
-	public static void setAttribute(final DOMElement thisElement, final String name, final String value) throws DOMException {
+	public void setAttribute(final String name, final String value) throws DOMException {
 
 		try {
-			HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
 			if (htmlProperty != null) {
 
-				htmlProperty.setProperty(thisElement.getSecurityContext(), thisElement, value);
+				htmlProperty.setProperty(getSecurityContext(), this, value);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1770,13 +1669,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	public static void removeAttribute(final DOMElement thisElement, final String name) throws DOMException {
+	public void removeAttribute(final String name) throws DOMException {
 
 		try {
-			HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
 			if (htmlProperty != null) {
 
-				htmlProperty.setProperty(thisElement.getSecurityContext(), thisElement, null);
+				htmlProperty.setProperty(getSecurityContext(), this, null);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1786,10 +1685,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	public static Attr getAttributeNode(final DOMElement thisElement, final String name) {
+	public Attr getAttributeNode(final String name) {
 
-		HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
-		final String value        = htmlProperty.getProperty(thisElement.getSecurityContext(), thisElement, true);
+		HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+		final String value        = htmlProperty.getProperty(getSecurityContext(), this, true);
 
 		if (value != null) {
 
@@ -1800,52 +1699,52 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				explicitlySpecified = false;
 			}
 
-			return new DOMAttribute((Page) thisElement.getOwnerDocument(), thisElement, name, value, explicitlySpecified, isId);
+			return new DOMAttribute(getOwnerDocument(), this, name, value, explicitlySpecified, isId);
 		}
 
 		return null;
 	}
 
-	public static Attr setAttributeNode(final DOMElement thisElement, final Attr attr) throws DOMException {
+	public Attr setAttributeNode(final Attr attr) throws DOMException {
 
 		// save existing attribute node
-		final Attr attribute = thisElement.getAttributeNode(attr.getName());
+		final Attr attribute = getAttributeNode(attr.getName());
 
 		// set value
-		thisElement.setAttribute(attr.getName(), attr.getValue());
+		setAttribute(attr.getName(), attr.getValue());
 
 		// set parent of attribute node
 		if (attr instanceof DOMAttribute) {
-			((DOMAttribute) attr).setParent(thisElement);
+			((DOMAttribute) attr).setParent(this);
 		}
 
 		return attribute;
 	}
 
-	public static Attr removeAttributeNode(final DOMElement thisElement, final Attr attr) throws DOMException {
+	public Attr removeAttributeNode(final Attr attr) throws DOMException {
 
 		// save existing attribute node
-		final Attr attribute = thisElement.getAttributeNode(attr.getName());
+		final Attr attribute = getAttributeNode(attr.getName());
 
 		// set value
-		thisElement.setAttribute(attr.getName(), null);
+		setAttribute(attr.getName(), null);
 
 		return attribute;
 	}
 
-	public static NodeList getElementsByTagName(final DOMElement thisElement, final String tagName) {
+	public NodeList getElementsByTagName(final String tagName) {
 
 		DOMNodeList results = new DOMNodeList();
 
-		DOMNode.collectNodesByPredicate(thisElement.getSecurityContext(), thisElement, results, new TagPredicate(tagName), 0, false);
+		DOMNode.collectNodesByPredicate(getSecurityContext(), this, results, new TagPredicate(tagName), 0, false);
 
 		return results;
 	}
 
-	public static HtmlProperty findOrCreateAttributeKey(final DOMElement thisElement, final String name) {
+	public HtmlProperty findOrCreateAttributeKey(final String name) {
 
 		// try to find native html property defined in DOMElement or one of its subclasses
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisElement.getEntityType(), name, false);
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getEntityType(), name, false);
 
 		if (key != null && key instanceof HtmlProperty) {
 
@@ -1861,40 +1760,40 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	public static Node setNamedItem(final DOMElement thisElement, final Node node) throws DOMException {
+	public Node setNamedItem(final Node node) throws DOMException {
 
 		if (node instanceof Attr) {
-			return thisElement.setAttributeNode((Attr) node);
+			return setAttributeNode((Attr) node);
 		}
 
 		return null;
 	}
 
-	public static Node removeNamedItem(final DOMElement thisElement, final String name) throws DOMException {
+	public Node removeNamedItem(final String name) throws DOMException {
 
 		// save existing attribute node
-		Attr attribute = thisElement.getAttributeNode(name);
+		Attr attribute = getAttributeNode(name);
 
 		// set value to null
-		thisElement.setAttribute(name, null);
+		setAttribute(name, null);
 
 		return attribute;
 	}
 
-	public static Node item(final DOMElement thisElement, final int i) {
+	public Node item(final int i) {
 
-		List<String> htmlAttributeNames = thisElement.getHtmlAttributeNames();
+		List<String> htmlAttributeNames = getHtmlAttributeNames();
 		if (i >= 0 && i < htmlAttributeNames.size()) {
 
-			return thisElement.getAttributeNode(htmlAttributeNames.get(i));
+			return getAttributeNode(htmlAttributeNames.get(i));
 		}
 
 		return null;
 	}
 
-	public static List<GraphObject> resolveDataTargets(final ActionContext actionContext, final DOMElement thisElement, final String dataTarget) throws FrameworkException {
+	public List<GraphObject> resolveDataTargets(final ActionContext actionContext, final String dataTarget) throws FrameworkException {
 
-		final App app                   = StructrApp.getInstance(thisElement.getSecurityContext());
+		final App app                   = StructrApp.getInstance(getSecurityContext());
 		final List<GraphObject> targets = new LinkedList<>();
 
 		if (dataTarget.length() >= 32) {
@@ -1924,7 +1823,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		} else {
 
 			// evaluate single keyword
-			final Object result = thisElement.evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
+			final Object result = evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -1947,18 +1846,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return targets;
 	}
 
-	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
+	public void updateReloadTargets() throws FrameworkException {
 
 		try {
 
-			final PropertyKey<Iterable<DOMElement>> reloadSourcesKey     = StructrApp.key(DOMElement.class, "reloadSources");
-			final PropertyKey<Iterable<DOMElement>> reloadTargetsKey     = StructrApp.key(DOMElement.class, "reloadTargets");
-			final PropertyKey<String> reloadTargetKey                    = StructrApp.key(DOMElement.class, "data-structr-reload-target");
-			final List<DOMElement> actualReloadSources                   = new LinkedList<>();
-			final List<DOMElement> actualReloadTargets                   = new LinkedList<>();
-			final org.jsoup.nodes.Element matchElement                   = thisElement.getMatchElement();
-			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
-			final Page page                                              = thisElement.getOwnerDocument();
+			final List<DOMElement> actualReloadSources = new LinkedList<>();
+			final List<DOMElement> actualReloadTargets = new LinkedList<>();
+			final org.jsoup.nodes.Element matchElement = getMatchElement();
+			final String reloadTargets                 = getProperty(DOMElement.dataReloadTargetProperty);
+			final Page page                            = getOwnerDocument();
 
 			if (page != null) {
 
@@ -1968,7 +1864,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
 						final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
-						final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
+						final String otherReloadTarget        = possibleTarget.getProperty(DOMElement.dataReloadTargetProperty);
 
 						if (reloadTargets != null && element != null) {
 
@@ -2008,8 +1904,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			}
 
 			// update reload targets with list from above
-			thisElement.setProperty(reloadSourcesKey, actualReloadSources);
-			thisElement.setProperty(reloadTargetsKey, actualReloadTargets);
+			setProperty(DOMElement.reloadSourcesProperty, actualReloadSources);
+			setProperty(DOMElement.reloadTargetsProperty, actualReloadTargets);
+
+			// update shared component sync flag
+			setProperty(DOMElement.hasSharedComponent, getSharedComponent() != null);
 
 		} catch (Throwable t) {
 
@@ -2017,16 +1916,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	private org.jsoup.nodes.Element getMatchElement() {
+	public org.jsoup.nodes.Element getMatchElement() {
 
-		final PropertyKey<String> classKey    = StructrApp.key(DOMElement.class, "_html_class");
-		final PropertyKey<String> idKey       = StructrApp.key(DOMElement.class, "_html_id");
-		final String tag                      = getTag();
+		final String tag = getTag();
 
 		if (StringUtils.isNotBlank(tag)) {
 
 			final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(tag);
-			final String classes                  = getProperty(classKey);
+			final String classes                  = getProperty(DOMElement.htmlClassProperty);
 
 			if (classes != null) {
 
@@ -2044,7 +1941,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				element.attr("name", name);
 			}
 
-			final String htmlId = getProperty(idKey);
+			final String htmlId = getProperty(DOMElement.htmlIdProperty);
 			if (htmlId != null) {
 
 				element.attr("id", htmlId);
@@ -2056,29 +1953,144 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
-	public static boolean isTargetElement(final DOMElement thisElement) {
+	public boolean isTargetElement(final DOMElement thisElement) {
 
-		final PropertyKey<Boolean> isManualReloadTargetKey          = StructrApp.key(DOMElement.class, "data-structr-manual-reload-target");
-		final boolean isManualReloadTarget                          = thisElement.getProperty(isManualReloadTargetKey);
-
-		final PropertyKey<Iterable<DOMElement>> reloadSourcesKey    = StructrApp.key(DOMElement.class, "reloadSources");
-		final List<DOMElement> reloadSources                        = Iterables.toList(thisElement.getProperty(reloadSourcesKey));
-
-		final PropertyKey<Iterable<DOMNode>> reloadingActionsKey = StructrApp.key(DOMNode.class, "reloadingActions");
-		final List<DOMNode> reloadingActions                     = Iterables.toList(thisElement.getProperty(reloadingActionsKey));
-
-		final PropertyKey<Iterable<DOMNode>> failureActionsKey = StructrApp.key(DOMNode.class, "failureActions");
-		final List<DOMNode> failureActions                     = Iterables.toList(thisElement.getProperty(failureActionsKey));
-
-		final PropertyKey<Iterable<DOMNode>> successNotificationActionsKey = StructrApp.key(DOMNode.class, "successNotificationActions");
-		final List<DOMNode> successNotificationActions                     = Iterables.toList(thisElement.getProperty(successNotificationActionsKey));
-
-		final PropertyKey<Iterable<DOMNode>> failureNotificationActionsKey = StructrApp.key(DOMNode.class, "failureNotificationActions");
-		final List<DOMNode> failureNotificationActions                     = Iterables.toList(thisElement.getProperty(failureNotificationActionsKey));
+		final boolean isManualReloadTarget                   = thisElement.getProperty(DOMElement.manualReloadTargetProperty);
+		final List<DOMElement> reloadSources                 = Iterables.toList(thisElement.getProperty(DOMElement.reloadSourcesProperty));
+		final List<ActionMapping> reloadingActions           = Iterables.toList(thisElement.getProperty(DOMElement.reloadingActionsProperty));
+		final List<ActionMapping> failureActions             = Iterables.toList(thisElement.getProperty(DOMElement.failureActionsProperty));
+		final List<ActionMapping> successNotificationActions = Iterables.toList(thisElement.getProperty(DOMElement.successNotificationActionsProperty));
+		final List<ActionMapping> failureNotificationActions = Iterables.toList(thisElement.getProperty(DOMElement.failureNotificationActionsProperty));
 
 		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty();
 	}
 
+	// ----- org.w3c.Node methods -----
+	@Override
+	public String getLocalName() {
+		return null;
+	}
+
+	@Override
+	public NamedNodeMap getAttributes() {
+		return this;
+	}
+
+	@Override
+	public boolean contentEquals(final Node node) {
+		return false;
+	}
+
+	@Override
+	public boolean hasAttributes() {
+		return getLength() > 0;
+	}
+
+	@Override
+	public int getLength() {
+		return getHtmlAttributeNames().size();
+	}
+
+	@Override
+	public String getTagName() {
+		return getTag();
+	}
+
+	@Override
+	public String getNodeName() {
+		return getTagName();
+	}
+
+	@Override
+	public void setNodeValue(final String value) {
+	}
+
+	@Override
+	public String getNodeValue() {
+		return null;
+	}
+
+	@Override
+	public short getNodeType() {
+		return ELEMENT_NODE;
+	}
+
+	// ----- org.w3c.dom.Element -----
+	@Override
+	public void setIdAttributeNS(final String namespaceURI, final String localName, final boolean isId) throws DOMException {
+		throw new UnsupportedOperationException("Namespaces not supported.");
+	}
+
+	@Override
+	public void setIdAttributeNode(final Attr idAttr, final boolean isId) throws DOMException {
+		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
+	}
+
+	@Override
+	public String getAttributeNS(String namespaceURI, String localName) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public void setAttributeNS(String namespaceURI, String qualifiedName, String value) throws DOMException {
+	}
+
+	@Override
+	public void removeAttributeNS(String namespaceURI, String localName) throws DOMException {
+	}
+
+	@Override
+	public Attr getAttributeNodeNS(String namespaceURI, String localName) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public Attr setAttributeNodeNS(Attr newAttr) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public NodeList getElementsByTagNameNS(String namespaceURI, String localName) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public boolean hasAttribute(String name) {
+		return getAttribute(name) != null;
+	}
+
+	@Override
+	public boolean hasAttributeNS(String namespaceURI, String localName) throws DOMException {
+		return false;
+	}
+
+	@Override
+	public TypeInfo getSchemaTypeInfo() {
+		return null;
+	}
+
+	// ----- org.w3c.dom.NamedNodeMap -----
+	@Override
+	public Node getNamedItem(String name) {
+		return getAttributeNode(name);
+	}
+
+	@Override
+	public Node getNamedItemNS(String namespaceURI, String localName) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public Node setNamedItemNS(Node arg) throws DOMException {
+		return null;
+	}
+
+	@Override
+	public Node removeNamedItemNS(String namespaceURI, String localName) throws DOMException {
+		return null;
+	}
+
+	// ----- private static methods -----
 	private static int intOrOne(final String source) {
 
 		if (source != null) {
@@ -2113,7 +2125,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return buf.toString();
 	}
 
-	public static class TagPredicate implements Predicate<Node> {
+	public class TagPredicate implements Predicate<Node> {
 
 		private String tagName = null;
 
@@ -2128,7 +2140,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				DOMElement elem = (DOMElement)obj;
 
-				if (tagName.equals(elem.getProperty(StructrApp.key(DOMElement.class, "tag")))) {
+				if (tagName.equals(elem.getTag())) {
 					return true;
 				}
 			}
@@ -2137,27 +2149,24 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	private static String generateDataAttributesForIdList(final RenderContext renderContext, final ActionMapping triggeredAction, final String propertyKey) {
+	private String generateDataAttributesForIdList(final RenderContext renderContext, final ActionMapping triggeredAction, final Property<Iterable<DOMNode>> key) {
 
-		String resultString = "";
+		final List<String> selectors = new LinkedList<>();
 
-		final List<DOMNode> nodeList = (List<DOMNode>) Iterables.toList((Iterable<? extends DOMNode >) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, propertyKey)));
-		if (!nodeList.isEmpty()) {
-			int i=1;
-			for (final DOMNode node : nodeList) {
+		for (final DOMNode node : triggeredAction.getProperty(key)) {
 
-				// Create CSS selector for data-structr-id
-				String selector = "[data-structr-id='" + node.getUuid() + "']";
-				final String key = node.getDataKey();
-				if (key != null) {
-					selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(key).getUuid() + "']";
-				}
-				resultString += selector + (i < nodeList.size() ? "," : "");
-				i++;
+			// Create CSS selector for data-structr-id
+			String selector = "[data-structr-id='" + node.getUuid() + "']";
+
+			final String dataKey = node.getDataKey();
+			if (dataKey != null) {
+
+				selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(dataKey).getUuid() + "']";
 			}
 
+			selectors.add(selector);
 		}
 
-		return resultString;
+		return StringUtils.join(selectors, ",");
 	}
 }

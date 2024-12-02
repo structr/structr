@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.PropertyMap;
@@ -149,12 +149,12 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<Principal> principals        = app.nodeQuery(Principal.class).andName(principalName).getAsList();
+		final List<PrincipalInterface> principals        = app.nodeQuery(PrincipalInterface.class).andName(principalName).getAsList();
 
 		if (principals.isEmpty()) {
 
 			// log error
-			logger.warn("No node of type Principal found for schema grant '{}', ignoring.", principalName);
+			logger.warn("No node of type Principal with name '{}' found for schema grant, ignoring.", principalName);
 			DeployCommand.addMissingPrincipal(principalName);
 			return null;
 		}
@@ -162,8 +162,8 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (principals.size() > 1) {
 
 			// log error
-			logger.warn("Found {} candidates for type Principal in schema grant {}, ignoring.", principals.size(), principalName);
-			DeployCommand.addMissingPrincipal(principalName);
+			logger.warn("Found {} nodes of type Principal named '{}' for schema grant, ignoring.", principals.size(), principalName);
+			DeployCommand.addAmbiguousPrincipal(principalName);
 			return null;
 		}
 

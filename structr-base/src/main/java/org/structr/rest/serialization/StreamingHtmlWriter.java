@@ -19,7 +19,6 @@
 package org.structr.rest.serialization;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.Value;
 
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
@@ -31,7 +30,7 @@ import java.io.Writer;
  */
 public class StreamingHtmlWriter extends StreamingWriter {
 
-	public StreamingHtmlWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+	public StreamingHtmlWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 

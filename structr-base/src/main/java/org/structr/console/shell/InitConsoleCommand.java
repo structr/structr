@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.*;
 import org.structr.util.Writable;
 
@@ -42,7 +42,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 	@Override
 	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 
-		final Principal user    = securityContext.getUser(false);
+		final PrincipalInterface user    = securityContext.getUser(false);
 		final int paramCount    = parameters.size();
 
 		if (user != null && user.isAdmin()) {

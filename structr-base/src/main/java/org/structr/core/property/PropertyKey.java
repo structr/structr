@@ -31,6 +31,7 @@ import org.structr.core.graph.search.SearchAttribute;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Base interface for typed property keys.
@@ -81,6 +82,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	Property<T> indexed();
+
+	/**
+	 * Use this method to mark an indexed property to be created
+	 * for nodes only.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> nodeIndexOnly();
 
 	/**
 	 * Use this method to indicate that a property key can change its value
@@ -232,6 +241,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return isIndexed
 	 */
 	boolean isIndexed();
+
+	/**
+	 * Indicates whether this property is indexed on nodes only.
+	 *
+	 * @return isIndexed
+	 */
+	boolean isNodeIndexOnly();
 
 	/**
 	 * Indicates whether this property is indexed. The difference to the

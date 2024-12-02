@@ -35,8 +35,6 @@ public class GoogleAuthClient extends AbstractOAuth2Client {
 
 		super(request, authServer);
 
-		System.out.println("Initializing google oauth client");
-
 		service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.callback(redirectUri)

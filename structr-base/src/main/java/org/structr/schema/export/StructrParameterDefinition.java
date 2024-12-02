@@ -170,22 +170,24 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	// ----- package methods -----
 	SchemaMethodParameter createDatabaseSchema(final App app, final SchemaMethod schemaMethod, final int index) throws FrameworkException {
 
-		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
 
-		getOrCreateProperties.put(SchemaMethodParameter.name,         getName());
-		getOrCreateProperties.put(SchemaMethodParameter.schemaMethod, schemaMethod);
-
-		SchemaMethodParameter parameter = app.nodeQuery(SchemaMethodParameter.class).and(getOrCreateProperties).getFirst();
+		SchemaMethodParameter parameter = schemaMethod.getSchemaMethodParameter(getName());
 		if (parameter == null) {
+
+			final PropertyMap getOrCreateProperties = new PropertyMap();
+
+			getOrCreateProperties.put(SchemaMethodParameter.name,         getName());
+			getOrCreateProperties.put(SchemaMethodParameter.schemaMethod, schemaMethod);
 
 			parameter = app.create(SchemaMethodParameter.class, getOrCreateProperties);
 		}
 
+		final PropertyMap updateProperties = new PropertyMap();
+
 		updateProperties.put(SchemaMethodParameter.parameterType, type);
-		updateProperties.put(SchemaMethodParameter.description, description);
-		updateProperties.put(SchemaMethodParameter.exampleValue, exampleValue);
-		updateProperties.put(SchemaMethodParameter.index, index);
+		updateProperties.put(SchemaMethodParameter.description,   description);
+		updateProperties.put(SchemaMethodParameter.exampleValue,  exampleValue);
+		updateProperties.put(SchemaMethodParameter.index,         index);
 
 		// update properties
 		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);

@@ -28,12 +28,8 @@ import org.structr.core.property.PropertyMap;
 
 import java.util.Map.Entry;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A property group that uses a Map.
- *
- *
  */
 public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 

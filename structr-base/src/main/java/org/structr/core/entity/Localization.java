@@ -18,85 +18,67 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.function.LocalizeFunction;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 
-import java.net.URI;
+public class Localization extends AbstractNode {
 
-public interface Localization extends NodeInterface {
+	public static final Property<String> localizedNameProperty = new StringProperty("localizedName").indexed().partOfBuiltInSchema();
+	public static final Property<String> domainProperty        = new StringProperty("domain").indexed().partOfBuiltInSchema();
+	public static final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed().partOfBuiltInSchema();
+	public static final Property<Boolean> importedProperty     = new BooleanProperty("imported").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View defaultView = new View(Localization.class, PropertyView.Public,
+		localizedNameProperty, domainProperty, localeProperty, importedProperty
+	);
 
-		final JsonType type = SchemaService.getDynamicSchema().addType("Localization");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Localization"));
-		type.setCategory("core");
-
-		type.addStringProperty("localizedName", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("domain",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("locale",        PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
-		type.addBooleanProperty("imported",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-
-		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification", true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
-		type.overrideMethod("onDeletion",     true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
-
-	public static void onCreation(final Localization localization, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		localization.setProperty(visibleToPublicUsers, true);
-		localization.setProperty(visibleToAuthenticatedUsers, true);
-
-		LocalizeFunction.invalidateCache();
-	}
-
-	/*
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.onCreation(securityContext, errorBuffer)) {
-
-			setProperty(visibleToPublicUsers, true);
-			setProperty(visibleToAuthenticatedUsers, true);
-
-			LocalizeFunction.invalidateCache();
-
-			return true;
-		}
-
-		return false;
-	}
+	public static final View uiView = new View(Localization.class, PropertyView.Ui,
+		localizedNameProperty, domainProperty, localeProperty, importedProperty
+	);
 
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			LocalizeFunction.invalidateCache();
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
 		boolean valid = super.isValid(errorBuffer);
 
-		valid &= ValidationHelper.isValidStringNotBlank(this, Localization.name, errorBuffer);
-		valid &= ValidationHelper.isValidStringNotBlank(this, Localization.locale, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Localization.localeProperty, errorBuffer);
 
 		return valid;
 	}
-	*/
+
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+
+		setProperty(visibleToPublicUsers, true);
+		setProperty(visibleToAuthenticatedUsers, true);
+
+		LocalizeFunction.invalidateCache();
+	}
+
+	@Override
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+		LocalizeFunction.invalidateCache();
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		super.onDeletion(securityContext, errorBuffer, properties);
+		LocalizeFunction.invalidateCache();
+	}
 }

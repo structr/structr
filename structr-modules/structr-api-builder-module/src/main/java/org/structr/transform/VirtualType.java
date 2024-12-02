@@ -22,83 +22,83 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.transform.relationship.VirtualTypevirtualPropertyVirtualProperty;
 
-import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 
 /**
  *
  */
-public interface VirtualType extends NodeInterface, ResultTransformer {
+public class VirtualType extends AbstractNode implements ResultTransformer {
 
-	static class Impl { static {
+	public static final Property<Iterable<VirtualProperty>> propertiesProperty = new EndNodes<>("properties", VirtualTypevirtualPropertyVirtualProperty.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("VirtualType");
-		final JsonObjectType prop = schema.addType("VirtualProperty");
+	public static final Property<String> filterExpressionProperty  = new StringProperty("filterExpression");
+	public static final Property<String> sourceTypeProperty        = new StringProperty("sourceType");
+	public static final Property<Integer> positionProperty         = new IntProperty("position").indexed();
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VirtualType"));
+	public static final View defaultView = new View(VirtualType.class, PropertyView.Public,
+		name, filterExpressionProperty, sourceTypeProperty, positionProperty, propertiesProperty
+	);
 
-		type.addStringProperty("filterExpression", PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("sourceType",       PropertyView.Public, PropertyView.Ui);
-		type.addIntegerProperty("position",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+	public static final View uiView = new View(VirtualType.class, PropertyView.Ui,
+		filterExpressionProperty, sourceTypeProperty, positionProperty, propertiesProperty
+	);
 
-		type.addPropertyGetter("filterExpression", String.class);
-		type.addPropertyGetter("sourceType",       String.class);
-		type.addPropertyGetter("position",         Integer.class);
+	public String getSourceType() {
+		return getProperty(sourceTypeProperty);
+	}
 
-		type.overrideMethod("isPrimitiveArray",     false, "return false;");
-		type.overrideMethod("getVirtualProperties", false, "return getProperty(propertiesProperty);");
-		type.overrideMethod("transformOutput",      false, "return " + VirtualType.class.getName() + ".transformOutput(this, arg0, arg1, arg2);");
-		type.overrideMethod("transformInput",       false, VirtualType.class.getName() + ".transformInput(this, arg0, arg1, arg2);");
+	public Integer getPosition() {
+		return getProperty(positionProperty);
+	}
 
-		type.relate(prop, "virtualProperty", Cardinality.OneToMany, "virtualType", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
+	public String getFilterExpression() {
+		return getProperty(filterExpressionProperty);
+	}
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-		type.addViewProperty(PropertyView.Public, "properties");
+	public Iterable<VirtualProperty> getVirtualProperties() {
+		return getProperty(propertiesProperty);
+	}
 
-		type.addViewProperty(PropertyView.Ui, "properties");
-	}}
+	@Override
+	public boolean isPrimitiveArray() {
+		return false;
+	}
 
-	Integer getPosition();
-	String getFilterExpression();
-	Iterable<VirtualProperty> getVirtualProperties();
+	@Override
+	public ResultStream transformOutput(final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException {
 
-	public static ResultStream transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException {
-
-		final List<VirtualProperty> props         = VirtualType.sort(Iterables.toList(thisType.getVirtualProperties()));
-		final Mapper mapper                       = new Mapper(securityContext, props, StructrApp.getConfiguration().getNodeEntityClass(thisType.getSourceType()));
-		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
+		final List<VirtualProperty> props         = sort(Iterables.toList(getVirtualProperties()));
+		final Mapper mapper                       = new Mapper(securityContext, props, StructrApp.getConfiguration().getNodeEntityClass(getSourceType()));
+		final Filter filter                       = new Filter(securityContext, getFilterExpression());
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result));
 
 		return new PagingIterable("VirtualType.transformOutput()", iterable);
 	}
 
-	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
+	@Override
+	public void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
-		final List<VirtualProperty> props = VirtualType.sort(Iterables.toList(thisType.getVirtualProperties()));
-		final Set<String> targetNames     = VirtualType.extractTargetNames(props);
+		final List<VirtualProperty> props = sort(Iterables.toList(getVirtualProperties()));
+		final Set<String> targetNames     = extractTargetNames(props);
 
 		// remove all properties for which no VirtualProperty exists
 		final Iterator<String> it = propertySet.keySet().iterator();
@@ -121,14 +121,14 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	}
 
 	// ----- private methods -----
-	static List<VirtualProperty> sort(final List<VirtualProperty> source) {
+	private List<VirtualProperty> sort(final List<VirtualProperty> source) {
 
 		Collections.sort(source, StructrApp.key(VirtualProperty.class, "position").sorted(false));
 
 		return source;
 	}
 
-	static Set<String> extractTargetNames(final List<VirtualProperty> source) {
+	private Set<String> extractTargetNames(final List<VirtualProperty> source) {
 
 		final Set<String> result = new LinkedHashSet<>();
 
@@ -140,7 +140,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	}
 
 	// ----- nested classes -----
-	static class Filter implements Predicate<GraphObject> {
+	private class Filter implements Predicate<GraphObject> {
 
 		private ActionContext ctx = null;
 		private String expression = null;
@@ -170,7 +170,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		}
 	}
 
-	static class Mapper implements Function<GraphObject, GraphObject> {
+	private class Mapper implements Function<GraphObject, GraphObject> {
 
 		private final List<Transformation> transformations = new LinkedList<>();
 		private ActionContext actionContext                = null;

@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
@@ -65,7 +65,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal fileOwner = file.getOwnerNode();
+			final PrincipalInterface fileOwner = file.getOwnerNode();
 			if (fileOwner == null) {
 
 				owner = securityContext.getUser(false)::getName;
@@ -92,7 +92,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal owner = file.getOwnerNode();
+			final PrincipalInterface owner = file.getOwnerNode();
 			if (owner != null) {
 
 				groups.addAll(Iterables.toList(owner.getGroups()));
@@ -130,7 +130,6 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		}
 
 		return time;
-
 	}
 
 	@Override
@@ -326,59 +325,66 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public Map<String, Object> toMap(final String filter) {
 
 		final Map<String, Object> map = new HashMap<>();
-		final String prefix           = filter.substring(0, filter.indexOf(":"));
-		final GroupPrincipal group    = group();
-		final UserPrincipal owner     = owner();
 
-		if ("dos".equals(prefix)) {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			map.put("hidden", isHidden());
-			map.put("archive", isArchive());
-			map.put("system", isSystem());
-			map.put("readonly", isReadOnly());
-		}
+			final String prefix = filter.substring(0, filter.indexOf(":"));
+			final GroupPrincipal group = group();
+			final UserPrincipal owner = owner();
 
-		if (!"owner".equals(prefix)) {
+			if ("dos".equals(prefix)) {
 
-			map.put("lastModifiedTime", lastModifiedTime());
-			map.put("lastAccessTime", lastAccessTime());
-			map.put("creationTime", creationTime());
-			map.put("size", size());
-			map.put("isRegularFile", isRegularFile());
-			map.put("isDirectory", isDirectory());
-			map.put("isSymbolicLink", isSymbolicLink());
-			map.put("isOther", isOther());
-			map.put("fileKey", fileKey());
-		}
-
-		// POSIX properties
-		if ("posix".equals(prefix)) {
-
-			map.put("permissions", permissions());
-
-			if (group != null) {
-				map.put("group", group.getName());
+				map.put("hidden", isHidden());
+				map.put("archive", isArchive());
+				map.put("system", isSystem());
+				map.put("readonly", isReadOnly());
 			}
 
-			if (owner != null) {
-				map.put("owner", owner.getName());
+			if (!"owner".equals(prefix)) {
 
-				// set group to owner
-				if (group == null) {
-					map.put("group", owner.getName());
+				map.put("lastModifiedTime", lastModifiedTime());
+				map.put("lastAccessTime", lastAccessTime());
+				map.put("creationTime", creationTime());
+				map.put("size", size());
+				map.put("isRegularFile", isRegularFile());
+				map.put("isDirectory", isDirectory());
+				map.put("isSymbolicLink", isSymbolicLink());
+				map.put("isOther", isOther());
+				map.put("fileKey", fileKey());
+			}
+
+			// POSIX properties
+			if ("posix".equals(prefix)) {
+
+				map.put("permissions", permissions());
+
+				if (group != null) {
+					map.put("group", group.getName());
+				}
+
+				if (owner != null) {
+					map.put("owner", owner.getName());
+
+					// set group to owner
+					if (group == null) {
+						map.put("group", owner.getName());
+					}
 				}
 			}
-		}
 
-		// permissions only
-		if ("permissions".equals(prefix)) {
+			// permissions only
+			if ("permissions".equals(prefix)) {
 
-			map.put("permissions", permissions());
-		}
+				map.put("permissions", permissions());
+			}
 
-		if ("owner".equals(prefix) && owner != null) {
+			if ("owner".equals(prefix) && owner != null) {
 
-			map.put("owner", owner().getName());
+				map.put("owner", owner().getName());
+			}
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
 		return map;

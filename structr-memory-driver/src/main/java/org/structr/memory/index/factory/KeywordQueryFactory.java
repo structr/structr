@@ -86,9 +86,14 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		} else {
 
+
 			if (value != null && isString) {
 
-				query.addPredicate(new StringContainsPredicate(name, (String)value));
+				query.addPredicate(new StringContainsPredicate(name, (String)value, !predicate.isExactMatch()));
+
+			} else if ("".equals(predicate.getValue()) && isString) {
+
+				query.addPredicate(new StringContainsPredicate(name, "", !predicate.isExactMatch()));
 
 			} else {
 

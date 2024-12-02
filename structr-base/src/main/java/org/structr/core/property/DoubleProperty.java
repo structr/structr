@@ -23,11 +23,12 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NumberToken;
+import org.structr.common.error.NumberFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 import java.util.Map;
+import org.structr.common.error.PropertyInputParsingException;
 
 /**
  * A property that stores and retrieves a simple Double value.
@@ -146,7 +147,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), DoubleProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+					);
 				}
 			}
 

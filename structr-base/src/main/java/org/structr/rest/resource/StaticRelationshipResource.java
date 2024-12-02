@@ -18,43 +18,11 @@
  */
 package org.structr.rest.resource;
 
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.api.graph.Node;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.Iterables;
-import org.structr.api.util.PagingIterable;
-import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.app.App;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.OtherNodeTypeRelationFilter;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.Notion;
-import org.structr.core.property.*;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotFoundException;
-import org.structr.schema.action.EvaluationHints;
-
-import java.util.*;
-
 /**
  *
  */
-public class StaticRelationshipResource extends WrappingResource {
+public class StaticRelationshipResource {
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(StaticRelationshipResource.class.getName());
 
@@ -68,7 +36,7 @@ public class StaticRelationshipResource extends WrappingResource {
 		this.securityContext = securityContext;
 		this.typedIdResource = typedIdResource;
 		this.typeResource    = typeResource;
-		this.propertyKey     = findPropertyKey(typedIdResource, typeResource);
+		this.propertyKey     = null;//findPropertyKey(typedIdResource, typeResource);
 	}
 
 	@Override
@@ -104,12 +72,10 @@ public class StaticRelationshipResource extends WrappingResource {
 						applyDefaultSorting(finalResult, sortOrder);
 
 						// return result
-						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
 						return new PagingIterable<>("/" + getUriPart(), finalResult, pageSize, page);
 
 					} else {
 
-						// what here?
 						throw new NotFoundException("Cannot access relationship collection " + typeResource.getRawType());
 					}
 				}
@@ -146,11 +112,8 @@ public class StaticRelationshipResource extends WrappingResource {
 								if (obj instanceof GraphObject) {
 
 									iterableContainsGraphObject = true;
-
 								}
-
 							}
-
 						}
 
 						int rawResultCount = propertyResults.size();
@@ -162,10 +125,6 @@ public class StaticRelationshipResource extends WrappingResource {
 							gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
 
 							return new PagingIterable<>("/" + getUriPart(), Arrays.asList(gObject));
-
-							//final ResultStream r = new ResultStream(gObject, true);
-							//return r;
-
 						}
 
 						final List<GraphObject> finalResult = new LinkedList<>();
@@ -177,13 +136,11 @@ public class StaticRelationshipResource extends WrappingResource {
 						applyDefaultSorting(finalResult, sortOrder);
 
 						// return result
-						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
 						return new PagingIterable<>("/" + getUriPart(), finalResult, pageSize, page);
 
 					} else if (value instanceof GraphObject) {
 
 						return new PagingIterable<>("/" + getUriPart(), Arrays.asList(value));
-						//return new ResultStream((GraphObject) value, isPrimitiveArray());
 
 					} else {
 
@@ -193,17 +150,29 @@ public class StaticRelationshipResource extends WrappingResource {
 
 						//FIXME: Dynamically resolve all property types and their result count
 						if (value instanceof String) {
+
 							key = new StringProperty(keyName);
+
 						} else if (value instanceof Integer) {
+
 							key = new IntProperty(keyName);
+
 						} else if (value instanceof Long) {
+
 							key = new LongProperty(keyName);
+
 						} else if (value instanceof Double) {
+
 							key = new DoubleProperty(keyName);
+
 						} else if (value instanceof Boolean) {
+
 							key = new BooleanProperty(keyName);
+
 						} else if (value instanceof Date) {
+
 							key = new DateProperty(keyName);
+
 						} else if (value instanceof String[]) {
 
 							key = new ArrayProperty(keyName, String.class);
@@ -216,8 +185,6 @@ public class StaticRelationshipResource extends WrappingResource {
 						gObject.setProperty(key, value);
 
 						return new PagingIterable<>("/" + getUriPart(), Arrays.asList(gObject));
-						//return new ResultStream(gObject, true);
-
 					}
 				}
 
@@ -225,15 +192,11 @@ public class StaticRelationshipResource extends WrappingResource {
 				if (!(propertyKey instanceof StartNode || propertyKey instanceof EndNode)) {
 
 					return PagingIterable.EMPTY_ITERABLE;
-					//return new ResultStream(Collections.EMPTY_LIST, false, true);
-
 				}
-
 			}
 		}
 
 		return PagingIterable.EMPTY_ITERABLE;
-		//return new ResultStream(Collections.EMPTY_LIST, false, true);
 	}
 
 	@Override
@@ -283,6 +246,8 @@ public class StaticRelationshipResource extends WrappingResource {
 
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
+			logger.warn("");
+
 			final RelationProperty relationProperty = (RelationProperty) propertyKey;
 			final Class sourceNodeType = sourceNode.getClass();
 			NodeInterface newNode = null;
@@ -328,7 +293,6 @@ public class StaticRelationshipResource extends WrappingResource {
 			 * The below code is used when a schema method is called on an entity via REST. The
 			 * result of this operation should not be wrapped in an array, so we set the flag
 			 * accordingly.
-			 */
 			this.isCollectionResource = false;
 
 			final GraphObject entity = typedIdResource.getEntity();
@@ -336,15 +300,15 @@ public class StaticRelationshipResource extends WrappingResource {
 			final String methodName  = typeResource.getRawType();
 
 			try {
-				final SchemaMethod method = SchemaMethodResource.findMethod(entityType, methodName);
+				final SchemaMethod method = StaticMethodResource.findMethod(entityType, methodName);
 				final String source       = method.getProperty(SchemaMethod.source);
 
-				result = SchemaMethodResource.invoke(securityContext, entity, source, propertySet, methodName, method.getUuid());
+				result = StaticMethodResource.invoke(securityContext, entity, source, propertySet, methodName, method.getUuid());
 
 			} catch (IllegalPathException ex) {
 
 				// try direct invocation of the schema method on the node type
-				result = SchemaMethodResource.wrapInResult(entity.invokeMethod(securityContext, methodName, propertySet, true, new EvaluationHints()));
+				result = StaticMethodResource.wrapInResult(entity.invokeMethod(securityContext, methodName, propertySet, true, new EvaluationHints()));
 			}
 		}
 
@@ -403,4 +367,5 @@ public class StaticRelationshipResource extends WrappingResource {
 	public String getResourceSignature() {
 		return typedIdResource.getResourceSignature().concat("/").concat(typeResource.getResourceSignature());
 	}
+*/
 }

@@ -52,7 +52,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 
-		if (graphDb != null && rel != null) {
+		if (graphDb != null && rel != null && !rel.isDeleted()) {
 
 			if (rel.getProperty(AbstractRelationship.id) == null) {
 
@@ -62,13 +62,10 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			final Relationship relToDelete       = rel.getRelationship();
+			final Relationship relToDelete = rel.getRelationship();
 			final RelationshipInterface finalRel = rel;
 
 			TransactionCommand.relationshipDeleted(securityContext.getCachedUser(), finalRel, passiveDeletion);
-
-			// callback
-			finalRel.onRelationshipDeletion();
 
 			// delete node in database
 			relToDelete.delete(true);

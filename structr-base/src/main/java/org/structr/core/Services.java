@@ -31,10 +31,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.api.util.CountResult;
-import org.structr.common.Permission;
-import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -42,11 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.ManageDatabasesCommand;
-import org.structr.core.graph.NodeService;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
@@ -66,6 +59,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.structr.common.helper.VersionHelper;
 
 public class Services implements StructrServices, BroadcastReceiver {
 
@@ -73,7 +67,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
-	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
@@ -83,7 +77,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
 	private final Map<String, Object> cachedValues              = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -123,8 +116,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private static void checkJavaRuntime() {
 
-		final int expectedMajorVersion = 22;
-		final int expectedMinorVersion = 3;
+		final int expectedMajorVersion = 24;
+		final int expectedMinorVersion = 0;
 
 		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
 		final Version foundVersion     = org.graalvm.home.Version.getCurrent();
@@ -160,7 +153,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		try {
 
-			final T command          = commandType.newInstance();
+			final T command          = commandType.getDeclaredConstructor().newInstance();
 			final Class serviceClass = command.getServiceClass();
 
 			// inject security context first
@@ -313,9 +306,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// start registered services
 		startServices();
 
-		// initialize permissions for ownerless nodes
-		initializePermissionsForOwnerlessNodes();
-
 		// register shutdown hook
 		registerShutdownHook();
 
@@ -327,6 +317,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		// register change handlers for various Settings
 		registerSettingsChangeHandlers();
+
+		// run migration service
+		MigrationService.execute();
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
 		logger.info("---------------- Initialization complete ----------------");
@@ -348,15 +341,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private void checkForSettingsConflicts() {
 
-		if (Settings.UUIDv4AllowedFormats.getValue().equals("with_dashes") && true == Settings.UUIDv4CreateCompact.getValue()) {
-			logger.error("Unable to start because created UUIDs would contain dashes but this would not be accepted. Please fix the following settings: {} and/or {}", Settings.UUIDv4AllowedFormats.getKey(), Settings.UUIDv4CreateCompact.getKey());
-			System.exit(1);
-		}
+		// possibly check settings for configuration problems
 
-		if (Settings.UUIDv4AllowedFormats.getValue().equals("without_dashes") && false == Settings.UUIDv4CreateCompact.getValue()) {
-			logger.error("Unable to start because created UUIDs would not contain dashes but this would not be accepted. Please fix the following settings: {} and/or {}", Settings.UUIDv4AllowedFormats.getKey(), Settings.UUIDv4CreateCompact.getKey());
-			System.exit(1);
-		}
 	}
 
 	private void registerSettingsChangeHandlers() {
@@ -365,7 +351,15 @@ public class Services implements StructrServices, BroadcastReceiver {
 		Settings.fallbackLocale.setChangeHandler((setting, oldValue, newValue) -> FlushCachesCommand.flushLocalizationCache());
 
 		Settings.UUIDv4AllowedFormats.setChangeHandler((setting, oldValue, newValue) -> RestartRequiredChangeHandler.logRestartRequiredMessage(setting, "Be aware that changing this setting, with existing data, could lead to data being inaccessible or being unable to start. This setting should only be changed with an empty database or in development."));
-		Settings.UUIDv4CreateCompact.setChangeHandler((setting, oldValue, newValue) -> RestartRequiredChangeHandler.logRestartRequiredMessage(setting, "Be aware that changing this setting could lead to not being able to start. This setting should only be changed with an empty database or in development."));
+
+		Settings.UUIDv4CreateCompact.setChangeHandler((setting, oldValue, newValue) -> {
+
+			// changing this setting only has an effect if we accept both UUIDv4 formats
+			if (Settings.UUIDv4AllowedFormats.getValue().equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
+
+				RestartRequiredChangeHandler.logRestartRequiredMessage(setting);
+			}
+		});
 	}
 
 	private void startServices() {
@@ -529,36 +523,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 				shutdown();
 			}
 		});
-	}
-
-	private void initializePermissionsForOwnerlessNodes() {
-
-		// read permissions for ownerless nodes
-		final String configForOwnerlessNodes = Settings.OwnerlessNodes.getValue();
-		if (StringUtils.isNotBlank(configForOwnerlessNodes)) {
-
-			for (final String permission : configForOwnerlessNodes.split("[, ]+")) {
-
-				final String trimmed = permission.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					final Permission val = Permissions.valueOf(trimmed);
-					if (val != null) {
-
-						permissionsForOwnerlessNodes.add(val);
-
-					} else {
-
-						logger.warn("Invalid permisson {}, ignoring.", trimmed);
-					}
-				}
-			}
-
-		} else {
-
-			// default
-			permissionsForOwnerlessNodes.add(Permission.read);
-		}
 	}
 
 	public boolean isShutdownDone() {
@@ -725,7 +689,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			// initializers.
 			try {
 
-				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
+				configuration = (ConfigurationProvider)Class.forName(configurationClass).getDeclaredConstructor().newInstance();
 				configuration.initialize(licenseManager);
 
 			} catch (Throwable t) {
@@ -805,7 +769,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
-			final Service service = (Service) serviceClass.newInstance();
+			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
 
 			if (licenseManager != null && !licenseManager.isValid(service)) {
 
@@ -880,7 +844,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		} catch (Throwable t) {
 
-			if (!disableRetry && isVital) {
+			logger.error("Exception occured when trying to start service " + serviceName, t);
+
+            if (!disableRetry && isVital) {
 
 				checkVitalService(serviceClass, t);
 
@@ -1188,10 +1154,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 		return Settings.SessionTimeout.getValue();
 	}
 
-	public static Set<Permission> getPermissionsForOwnerlessNodes() {
-		return getInstance().permissionsForOwnerlessNodes;
-	}
-
 	public String getEdition() {
 
 		if (licenseManager != null) {
@@ -1347,16 +1309,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 		getServices(type).put(name, service);
 	}
 
-	public void updateLicense() {
-		if (licenseManager != null) {
-			licenseManager.refresh(true);
-		}
-	}
-
 	private void checkLicense() {
 
 		if (licenseManager != null) {
-			licenseManager.refresh(false);
+			licenseManager.refresh();
 		}
 	}
 
@@ -1391,17 +1347,17 @@ public class Services implements StructrServices, BroadcastReceiver {
 		Services.getInstance().broadcastMessageToCluster("data-changed", ids);
 	}
 
-	public void broadcastLogin(final Principal user) {
+	public void broadcastLogin(final long userId) {
 		try {
-			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
 
-	public void broadcastLogout(final Principal user) {
+	public void broadcastLogout(final long userId) {
 		try {
-			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -1438,10 +1394,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 				break;
 
 			case "data-changed":
-
-				if (this.isClusterStarted) {
-					this.removeFromCache(message.getPayloadAsList());
-				}
 				break;
 
 			case "startup-complete":
@@ -1458,18 +1410,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				break;
 		}
-	}
-
-	public void removeFromCache(final List<Long> ids) {
-
-		final DatabaseService db = getDatabaseService();
-
-		// db.identity() converts a long ID into an Identity object
-		ids.stream().map(db::identify).forEach(id -> {
-			db.removeNodeFromCache(id);
-			db.removeRelationshipFromCache(id);
-		});
-
 	}
 
 	@Override

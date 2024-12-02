@@ -23,133 +23,105 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
  *
  */
-public interface XMPPClient extends NodeInterface, XMPPInfo {
+public class XMPPClient extends AbstractNode implements XMPPInfo {
 
-	static class Impl { static {
+	public static final Property<Iterable<XMPPRequest>> pendingRequestsProperty = new EndNodes<>("pendingRequests", XMPPClientRequest.class);
+	public static final Property<String> xmppHandleProperty                     = new FunctionProperty("xmppHandle").readFunction("concat(this.xmppUsername, '@', this.xmppHost)").typeHint("String").indexed();
+	public static final Property<String> xmppUsernameProperty                   = new StringProperty("xmppUsername").indexed();
+	public static final Property<String> xmppPasswordProperty                   = new StringProperty("xmppPassword");
+	public static final Property<String> xmppServiceProperty                    = new StringProperty("xmppService");
+	public static final Property<String> xmppHostProperty                       = new StringProperty("xmppHost");
+	public static final Property<Integer> xmppPortProperty                      = new IntProperty("xmppPort");
+	public static final Property<Mode> presenceModeProperty                     = new EnumProperty("presenceMode", Mode.class);
+	public static final Property<Boolean> isEnabledProperty                     = new BooleanProperty("isEnabled");
+	public static final Property<Boolean> isConnectedProperty                   = new BooleanProperty("isConnected");
 
-		final JsonSchema schema      = SchemaService.getDynamicSchema();
-		final JsonObjectType type    = schema.addType("XMPPClient");
-		final JsonObjectType request = schema.addType("XMPPRequest");
+	public static final View defaultView = new View(XMPPClient.class, PropertyView.Public,
+		xmppHandleProperty, xmppUsernameProperty, xmppPasswordProperty, xmppServiceProperty, xmppHostProperty, xmppPortProperty,
+		presenceModeProperty, isEnabledProperty, isConnectedProperty, pendingRequestsProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/XMPPClient"));
+	public static final View uiView = new View(XMPPClient.class, PropertyView.Ui,
+		xmppHandleProperty, xmppUsernameProperty, xmppPasswordProperty, xmppServiceProperty, xmppHostProperty, xmppPortProperty,
+		presenceModeProperty, isEnabledProperty, isConnectedProperty, pendingRequestsProperty
+	);
 
-		type.addFunctionProperty("xmppHandle", PropertyView.Public, PropertyView.Ui).setTypeHint("String").setFormat("concat(this.xmppUsername, '@', this.xmppHost)").setIndexed(true);
-		type.addStringProperty("xmppUsername", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("xmppPassword", PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("xmppService",  PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("xmppHost",     PropertyView.Public, PropertyView.Ui);
-		type.addIntegerProperty("xmppPort",    PropertyView.Public, PropertyView.Ui);
-		type.addEnumProperty("presenceMode",   PropertyView.Public, PropertyView.Ui).setEnumType(Mode.class);
-		type.addBooleanProperty("isEnabled",   PropertyView.Public, PropertyView.Ui);
-		type.addBooleanProperty("isConnected", PropertyView.Public, PropertyView.Ui);
+	public String getUsername() {
+		return getProperty(xmppUsernameProperty);
+	}
 
-		type.addPropertyGetter("isConnected",  Boolean.TYPE);
-		type.addPropertyGetter("isEnabled",    Boolean.TYPE);
-		type.addPropertyGetter("presenceMode", Mode.class);
+	public String getPassword() {
+		return getProperty(xmppPasswordProperty);
+	}
 
-		type.addPropertySetter("isConnected", Boolean.TYPE);
+	public String getService() {
+		return getProperty(xmppServiceProperty);
+	}
 
-		type.overrideMethod("onCreation",     true, "if (getProperty(isEnabledProperty)) { " + XMPPContext.class.getName() + ".connect(this); }");
-		type.overrideMethod("onModification", true, XMPPClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-		type.overrideMethod("onDeletion",     true, XMPPClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
+	public String getHostName() {
+		return getProperty(xmppHostProperty);
+	}
 
-		type.overrideMethod("getUsername", false, "return getProperty(xmppUsernameProperty);");
-		type.overrideMethod("getPassword", false, "return getProperty(xmppPasswordProperty);");
-		type.overrideMethod("getService",  false, "return getProperty(xmppServiceProperty);");
-		type.overrideMethod("getHostName", false, "return getProperty(xmppHostProperty);");
-		type.overrideMethod("getPort",     false, "return getProperty(xmppPortProperty);");
+	public int getPort() {
+		return getProperty(xmppPortProperty);
+	}
 
-		type.addMethod("doSendMessage")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("recipient", String.class.getName())
-			.addParameter("message", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doSendMessage(this, recipient, message);")
-			.addException(FrameworkException.class.getName());
+	public void setIsConnected(final boolean isConnected) throws FrameworkException {
+		setProperty(isConnectedProperty, isConnected);
+	}
 
-		type.addMethod("doSubscribe")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("recipient", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doSubscribe(this, recipient);")
-			.addException(FrameworkException.class.getName());
+	public Mode getPresenceMode() {
+		return getProperty(presenceModeProperty);
+	}
 
-		type.addMethod("doUnsubscribe")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("recipient", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doUnsubscribe(this, recipient);")
-			.addException(FrameworkException.class.getName());
+	public boolean getIsConnected() {
+		return getProperty(isConnectedProperty);
+	}
 
-		type.addMethod("doConfirmSubscription")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("recipient", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doConfirmSubscription(this, recipient);")
-			.addException(FrameworkException.class.getName());
+	public boolean getIsEnabled() {
+		return getProperty(isEnabledProperty);
+	}
 
-		type.addMethod("doDenySubscription")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("recipient", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doDenySubscription(this, recipient);")
-			.addException(FrameworkException.class.getName());
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		type.addMethod("doJoinChat")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("chatroom", String.class.getName())
-			.addParameter("nickname", String.class.getName())
-			.addParameter("password", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doJoinChat(this, chatroom, nickname, password);")
-			.addException(FrameworkException.class.getName());
+		super.onCreation(securityContext, errorBuffer);
 
-		type.addMethod("doSendChatMessage")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("chatroom", String.class.getName())
-			.addParameter("message", String.class.getName())
-			.addParameter("password", String.class.getName())
-			.setSource("return " + XMPPClient.class.getName() + ".doSendChatMessage(this, chatroom, message, password);")
-			.addException(FrameworkException.class.getName());
+		if (getIsEnabled()) {
+			XMPPContext.connect(this);
+		}
+	}
 
-		type.relate(request, "PENDING_REQUEST", Cardinality.OneToMany, "client", "pendingRequests").setCascadingDelete(Cascade.sourceToTarget);
+	@Override
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "pendingRequests");
-		type.addViewProperty(PropertyView.Ui,     "pendingRequests");
-	}}
-
-	void setIsConnected(final boolean value) throws FrameworkException;
-	Mode getPresenceMode();
-	boolean getIsConnected();
-	boolean getIsEnabled();
-
-	static void onModification(final XMPPClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
-		boolean enabled                 = thisClient.getIsEnabled();
+		XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
+		boolean enabled                 = this.getIsEnabled();
 
 		if (!enabled) {
 
@@ -160,26 +132,29 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		} else {
 
 			if (connection == null || !connection.isConnected()) {
-				XMPPContext.connect(thisClient);
+				XMPPContext.connect(this);
 			}
 
-			connection = XMPPContext.getClientForId(thisClient.getUuid());
+			connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection != null) {
 
 				if (connection.isConnected()) {
 
-					thisClient.setIsConnected(true);
-					connection.setPresence(thisClient.getPresenceMode());
+					this.setIsConnected(true);
+					connection.setPresence(this.getPresenceMode());
 
 				} else {
 
-					thisClient.setIsConnected(false);
+					this.setIsConnected(false);
 				}
 			}
 		}
 	}
 
-	static void onDeletion(final XMPPClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+	@Override
+	public void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+		super.onDeletion(securityContext, errorBuffer, properties);
 
 		final String uuid = properties.get(id);
 		if (uuid != null) {
@@ -192,11 +167,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		}
 	}
 
-	static RestMethodResult doSendMessage(final XMPPClient thisClient, final String recipient, final String message) throws FrameworkException {
+	@Export
+	public RestMethodResult doSendMessage(final String recipient, final String message) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.sendMessage(recipient, message);
@@ -210,11 +186,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult doSubscribe(final XMPPClient thisClient, final String recipient) throws FrameworkException {
+	@Export
+	public RestMethodResult doSubscribe(final String recipient) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.subscribe(recipient);
@@ -228,11 +205,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult doUnsubscribe(final XMPPClient thisClient, final String recipient) throws FrameworkException {
+	@Export
+	public RestMethodResult doUnsubscribe(final String recipient) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.unsubscribe(recipient);
@@ -246,11 +224,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult doConfirmSubscription(final XMPPClient thisClient, final String recipient) throws FrameworkException {
+	@Export
+	public RestMethodResult doConfirmSubscription(final String recipient) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.confirmSubscription(recipient);
@@ -264,11 +243,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult doDenySubscription(final XMPPClient thisClient, final String recipient) throws FrameworkException {
+	@Export
+	public RestMethodResult doDenySubscription(final String recipient) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.denySubscription(recipient);
@@ -282,11 +262,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult doJoinChat(final XMPPClient thisClient, final String chatRoom, final String nickname, final String password) throws FrameworkException {
+	@Export
+	public RestMethodResult doJoinChat(final String chatRoom, final String nickname, final String password) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.joinChat(chatRoom, nickname, password);
@@ -301,11 +282,12 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 	}
 
-	static RestMethodResult doSendChatMessage(final XMPPClient thisClient, final String chatRoom, final String message, final String password) throws FrameworkException {
+	@Export
+	public RestMethodResult doSendChatMessage(final String chatRoom, final String message, final String password) throws FrameworkException {
 
-		if (thisClient.getIsEnabled()) {
+		if (this.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(this.getUuid());
 			if (connection.isConnected()) {
 
 				connection.sendChatMessage(chatRoom, message, password);
@@ -328,13 +310,18 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 			final XMPPClient client = StructrApp.getInstance().get(XMPPClient.class, uuid);
 			if (client != null) {
 
-				final String callbackName            = "onXMPP" + message.getClass().getSimpleName();
-				final Map<String, Object> properties = new HashMap<>();
+				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
+				final AbstractMethod method = Methods.resolveMethod(client.getClass(), callbackName);
 
-				properties.put("sender", message.getFrom());
-				properties.put("message", message.getBody());
+				if (method != null) {
 
-				client.invokeMethod(SecurityContext.getSuperUserInstance(), callbackName, properties, false, new EvaluationHints());
+					final Arguments arguments = new Arguments();
+
+					arguments.add("sender",  message.getFrom());
+					arguments.add("message", message.getBody());
+
+					method.execute(SecurityContext.getSuperUserInstance(), client, arguments, new EvaluationHints());
+				}
 			}
 
 			tx.success();

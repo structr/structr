@@ -64,6 +64,19 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
+	public int hashCode() {
+		return getName().hashCode();
+	}
+
+	public boolean equals(final Object obj) {
+
+		if (obj instanceof Function) {
+			return obj.hashCode() == hashCode();
+		}
+
+		return false;
+	}
+
 	/**
 	 * Basic logging for functions called with wrong parameter combination/count
 	 *
@@ -113,7 +126,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 			l.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			l.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
+			l.error(msg + "\n(Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 
@@ -489,50 +502,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 				logger.warn("File path might contain directory traversal attack, aborting. Path: '{}'", source);
 
 			}
-
-		} else {
-
-			logger.warn("Unable to determine base.path from structr.conf, no data input/output possible.");
-		}
-
-		return null;
-	}
-
-	protected static File getServerlogFile() {
-
-		final String basePath = Settings.getBasePath();
-
-		if (!basePath.isEmpty()) {
-
-			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
-
-			File logFile;
-
-			// log file name from env
-			final String envLogFile = System.getenv("LOG_FILE");
-			if (envLogFile != null) {
-
-				logFile = new File(envLogFile);
-				if (logFile.exists()) {
-
-					return logFile;
-				}
-			}
-
-			// logs/server.log
-			logFile = new File(logPath.concat("server.log"));
-			if (logFile.exists()) {
-
-				return logFile;
-			}
-
-			// special handling for .deb installation
-			logFile = new File("/var/log/structr.log");
-			if (logFile.exists()) {
-				return logFile;
-			}
-
-			logger.warn("Could not locate logfile");
 
 		} else {
 

@@ -42,7 +42,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 
@@ -54,7 +54,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 		// FIXME: due to a bug in RestAssured/Groovy, the double value is truncated to a float.
 		//        The JSON result contains the correct (full) value, so we just ignore the wrong
@@ -68,11 +68,11 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 	@Test
 	public void testSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 1.2 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 2.3 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 3.4 } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'        : 'test' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : NaN } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 1.2 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 2.3 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 3.4 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'        : 'test' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : NaN } ").expect().statusCode(201).when().post("/TestThree");
 
 		// test for five elements
 		RestAssured.given()
@@ -86,7 +86,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(5))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 		// test strict search
 		RestAssured.given()
@@ -100,7 +100,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].doubleProperty", equalTo(2.3f))
 		.when()
-			.get("/test_threes?doubleProperty=2.3");
+			.get("/TestThree?doubleProperty=2.3");
 
 
 		// test range query
@@ -115,7 +115,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/test_threes?doubleProperty=[1.1 TO 2.4]");
+			.get("/TestThree?doubleProperty=[1.1 TO 2.4]");
 
 		// test empty value
 		RestAssured.given()
@@ -130,7 +130,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.body("result_count", equalTo(1))
 			.body("result[0].name", equalTo("test"))
 		.when()
-			.get("/test_threes?doubleProperty=");
+			.get("/TestThree?doubleProperty=");
 
 		/* temporarily disabled because Cypher cannot handle NaN yet..
 		// test NaN value
@@ -145,7 +145,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/test_threes?doubleProperty=NaN");
+			.get("/TestThree?doubleProperty=NaN");
 		*/
 	}
 
@@ -153,17 +153,16 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 	public void testConverters() {
 
 		// test double property on regular node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/TestThree");
 
 		// test double property on dynamic node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_doubleProperty': 'Double' } ").expect().statusCode(201).when().post("/schema_nodes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_doubleProperty': 'Double' } ").expect().statusCode(201).when().post("/SchemaNode");
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/tests");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/tests");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/Test");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/Test");
 
-		// test NaN value on regular node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : NaN } ").expect().statusCode(201).when().post("/test_threes");
+		// test NaN value on regular nod/TestThree		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : NaN } ").expect().statusCode(201).when().post("/test_threes");
 
 	}
 }

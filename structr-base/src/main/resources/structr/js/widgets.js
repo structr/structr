@@ -62,6 +62,7 @@ let _Widgets = {
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (entity.isLocalWidget === true) {
+
 			elements.push({
 				name: 'Properties',
 				clickHandler: () => {
@@ -70,16 +71,26 @@ let _Widgets = {
 			});
 
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
-		}
 
-		elements.push({
-			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
-			classes: ['menu-bolder', 'danger'],
-			name: 'Delete Widget',
-			clickHandler: () => {
-				_Entities.deleteNode(entity);
-			}
-		});
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
+				classes: ['menu-bolder', 'danger'],
+				name: 'Delete Widget',
+				clickHandler: () => {
+					_Entities.deleteNode(entity);
+				}
+			});
+
+		} else {
+
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
+				name: 'Copy to Local Widgets',
+				clickHandler: () => {
+					_Widgets.copyRemoteWidgetToLocalWidget(entity);
+				}
+			});
+		}
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
@@ -126,17 +137,8 @@ let _Widgets = {
 					// drop widget from remote widgets
 
 					if (sourceWidget.treePath) {
-						let copiedRemoteWidget = {
-							type: 'Widget',
-							name: `${sourceWidget.name} (copied)`,
-							source: sourceWidget.source,
-							description: sourceWidget.description,
-							configuration: sourceWidget.configuration,
-							svgIconPath: sourceWidget.svgIconPath,
-							// treePath: sourceWidget.treePath
-						};
 
-						Command.create(copiedRemoteWidget, (entity) => {
+						_Widgets.copyRemoteWidgetToLocalWidget(sourceWidget, (entity) => {
 							_Elements.dropBlocked = false;
 						});
 					}
@@ -190,6 +192,20 @@ let _Widgets = {
 		_Widgets.updateWidgetServerSelector(() => {
 			_Widgets.refreshRemoteWidgets();
 		});
+	},
+	copyRemoteWidgetToLocalWidget: (sourceWidget, callback) => {
+
+		let copiedRemoteWidget = {
+			type: 'Widget',
+			name: `${sourceWidget.name} (copied)`,
+			source: sourceWidget.source,
+			description: sourceWidget.description,
+			configuration: sourceWidget.configuration,
+			svgIconPath: sourceWidget.svgIconPath,
+			// treePath: sourceWidget.treePath
+		};
+
+		Command.create(copiedRemoteWidget, callback);
 	},
 	getWidgetServerUrl: () => {
 
@@ -974,10 +990,10 @@ let _Widgets = {
 
 				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
 
-					<div class="bold">Name</div>
+					<div class="font-bold">Name</div>
 					<div><input id="new-widget-server-name"></div>
 
-					<div class="bold">
+					<div class="font-bold">
 						<label data-comment="The server should respond with JSON-formatted widgets as every structr instance would.<br><br>Because the widgets are fetched via a HTTP GET request, the usual rights management applies. Widgets need to be visible to public users to show up in the resulting list.">URL</label>
 					</div>
 					<div>
@@ -1003,9 +1019,9 @@ let _Widgets = {
 		serversTable: config => `
 			<div class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 20fr 70fr 10fr;">
 
-				<div class="bold">Name</div>
-				<div class="bold">URL</div>
-				<div class="bold text-center">Actions</div>
+				<div class="font-bold">Name</div>
+				<div class="font-bold">URL</div>
+				<div class="font-bold text-center">Actions</div>
 
 				${config.servers.map((s) => {
 					return `

@@ -101,6 +101,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 				try (final Tx tx = StructrApp.getInstance(getWebSocket().getSecurityContext()).tx(true, true, true)) {
 
+					tx.prefetchHint("Websocket CreateAndAppendOMNodeCommand");
+
 					final boolean isShadowPage = document.equals(CreateComponentCommand.getOrCreateHiddenDocument());
 					final boolean isTemplate   = (parentNode instanceof Template);
 
@@ -286,9 +288,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						// experimental: create DOM element with literal tag
 						newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(entityClass,
-							new NodeAttribute(StructrApp.key(DOMElement.class, "tag"),          "custom"),
-							new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnDetail"), false),
-							new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnIndex"),  false)
+							new NodeAttribute(StructrApp.key(DOMElement.class, "tag"), "custom")
 						);
 
 						if (newNode != null && document != null) {

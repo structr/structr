@@ -293,7 +293,7 @@ public class MaintenanceTest extends StructrTest {
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {
 
-				// check nodes, we should find 100 Groups here
+				// check nodes, we should find 3000 Groups here
 				assertEquals(3000, app.nodeQuery(Group.class).getAsList().size());
 
 				// check nodes
@@ -319,12 +319,13 @@ public class MaintenanceTest extends StructrTest {
 		try {
 
 			final DatabaseService graphDb    = app.getDatabaseService();
-			final Set<String> expectedLabels = new LinkedHashSet<>();
+			final Set<String> expectedLabels = new TreeSet<>();
 
-			expectedLabels.add("Principal");
-			expectedLabels.add("Group");
-			expectedLabels.add("AccessControllable");
 			expectedLabels.add("AbstractNode");
+			expectedLabels.add("AccessControllable");
+			expectedLabels.add("Group");
+			expectedLabels.add("Principal");
+			expectedLabels.add("PrincipalInterface");
 			expectedLabels.add("NodeInterface");
 
 			if (graphDb.getTenantIdentifier() != null) {
@@ -361,10 +362,9 @@ public class MaintenanceTest extends StructrTest {
 				// check nodes
 				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
 
-					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
+					final Set<String> labels = new TreeSet<>(Iterables.toSet(group.getNode().getLabels()));
 
-					assertEquals("Invalid number of labels", expectedLabels.size(), labels.size());
-					assertTrue("Invalid labels found", labels.containsAll(expectedLabels));
+					assertEquals("Invalid labels", expectedLabels, labels);
 				}
 
 				tx.success();

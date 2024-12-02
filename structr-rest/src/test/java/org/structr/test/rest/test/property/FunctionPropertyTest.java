@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.export.StructrSchema;
@@ -180,5 +181,93 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			.body("result",                    hasSize(1))
 		.when()
 			.get("/TestType/all?test" + typeName + "=" + value);
+	}
+
+	@Test
+	public void testFunctionPropertyCacheInvalidation() {
+
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+			final JsonType type     = schema.addType("TestType");
+
+			type.addFunctionProperty("test").setReadFunction("{ return 'value1'; }").setTypeHint("String");
+
+			type.addViewProperty("public", "test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+
+		// data setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "test"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// check via REST
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+			.statusCode(200)
+			.body("result[0].type",  equalTo("TestType"))
+			.body("result[0].name",  equalTo("test"))
+			.body("result[0].test",       equalTo("value1"))
+			.body("result",                    hasSize(1))
+			.when()
+			.get("/TestType");
+
+		// fetch UUID of test property
+		final String functionPropertyId = RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+			.statusCode(200)
+			.when()
+			.get("/SchemaProperty?name=test")
+			.andReturn()
+			.body()
+			.jsonPath()
+			.getString("result[0].id");
+
+
+		// change read function
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.body("{ readFunction: '{ return \"changed\"; }' }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.put("/SchemaProperty/" + functionPropertyId);
+
+		// check via REST
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+			.statusCode(200)
+			.body("result[0].type",  equalTo("TestType"))
+			.body("result[0].name",  equalTo("test"))
+			.body("result[0].test",       equalTo("changed"))
+			.body("result",                    hasSize(1))
+			.when()
+			.get("/TestType");
 	}
 }

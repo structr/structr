@@ -23,16 +23,13 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -64,6 +61,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 		keys.add(startNodeId);
 		keys.add(endNodeId);
 
+		final Relationship dbRelationship = getRelationship();
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
@@ -92,11 +90,6 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	@Override
 	public String name() {
 		return "GENERIC";
-	}
-
-	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

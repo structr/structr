@@ -94,7 +94,8 @@
 	--input-background: #f0f0f0;
 	--header-bg-dark: #1f242d;
 	--warning-bg: #feefb3;
-	--input-invalid: #fee;
+	--input-invalid-bg-color: #fee;
+	--input-invalid-border-color: #935;
 
 	--structr-green:                   #84ba39;
 	--config-structr-green:            #81ce25;
@@ -1390,12 +1391,12 @@ button.action.disabled:hover {
 }
 
 .schema-props tbody tr:nth-child(odd),
-.schema-props .fake-tbody .fake-tr:nth-child(odd) {
+.schema-props .schema-grid-body .schema-grid-row:nth-child(odd) > div {
 	background-color: var(--light-gray-bg-f7);
 }
 
 .schema-props tbody tr:nth-child(even),
-.schema-props .fake-tbody .fake-tr:nth-child(even) {
+.schema-props .schema-grid-body .schema-grid-row:nth-child(even) > div {
 	background-color: var(--solid-white);
 }
 
@@ -1408,19 +1409,21 @@ button.action.disabled:hover {
 	vertical-align: initial;
 }
 
-.schema-props .to-delete {
+.schema-props .to-delete,
+.schema-props .to-delete > div {
 	background-image: var(--striped-background);
 	background-size: 20px 20px;
+	background-attachment: fixed;
 }
 
 /* attribute with changes and to-delete flag */
-.actions.schema-props .fake-tr.editing.to-delete {
+.actions.schema-props .schema-grid-row.editing.to-delete > div {
 	background-image: linear-gradient(135deg, var(--very-light-structr-green) 25%, var(--light-gray-delete-b3) 25%, var(--light-gray-delete-b3) 50%, var(--very-light-structr-green) 50%, var(--very-light-structr-green) 75%, var(--light-gray-delete-b3) 75%, var(--light-gray-delete-b3) 100%);
 	background-size: 20px 20px;
+	background-attachment: fixed;
 }
 
-.schema-props .to-delete td:not(.actions-col),
-.schema-props .to-delete .fake-td:not(.actions-col) {
+.schema-props .to-delete > div {
 	opacity: 0.5;
 }
 
@@ -1430,13 +1433,13 @@ button.action.disabled:hover {
 
 .schema-props tr.to-delete .discard-changes,
 .schema-props tr.has-changes .discard-changes,
-.schema-props .fake-tr.has-changes .discard-changes
-{
+.schema-props .schema-grid-row.to-delete .discard-changes,
+.schema-props .schema-grid-row.has-changes .discard-changes {
 	display: inline-block;
 }
 
 .schema-props tr.to-delete .remove-action,
-.schema-props .fake-tr.to-delete .remove-action {
+.schema-props .schema-grid-row.to-delete .remove-action {
 	display: none;
 }
 
@@ -1850,18 +1853,23 @@ button.disabled, i.disabled {
 }
 
 
-.property-name,
-.property-dbname,
-.property-format,
-.property-code,
-.property-comment,
-.property-attrs,
-.property-default,
 .localization-locale,
 .localization-name {
 	width: calc(100% - 1rem);
 	border: none;
 	background: transparent;
+}
+
+.property-name,
+.property-dbname,
+.property-format,
+.property-code,
+.property-attrs,
+.property-default {
+	width: 100%;
+	border: none;
+	background: transparent;
+	box-sizing: border-box;
 }
 
 .select2-container.select2-container--default .select2-selection--multiple,
@@ -2372,10 +2380,6 @@ td#cascading-options, td#propagation-options {
 	margin-right: .5rem;
 }
 
-.bold {
-	font-weight: bold;
-}
-
 .tree-main b.name_, .tree-main input.new-name {
 	font-weight: normal;
 }
@@ -2472,7 +2476,8 @@ input.tree-search-input {
 	color: var(--gray-aaa);
 }
 
-.tree-contents-container button, #crud-buttons button {
+.tree-contents-container button:not(.save-all),
+#crud-buttons button {
 	margin-right: .5rem ! important;
 }
 
@@ -2517,69 +2522,6 @@ input.tree-search-input {
 	width: 100%;
 }
 
-/* BEGIN: Fake table styles for schema METHODS editor (used in schema and code) */
-.fake-th {
-	text-align: center;
-	font-weight: 700;
-}
-
-.global .fake-th, .global .fake-td {
-	display: inline-block;
-	padding: 4px 4px;
-	width: calc(100% - 96px);
-}
-
-.entity .fake-th, .entity .fake-td {
-	display: inline-block;
-	padding: 4px 4px;
-	width: calc(100% - 154px);
-}
-
-.global .fake-th.isstatic-col, .global .fake-td.isstatic-col {
-	display: none;
-}
-
-.entity .fake-th.isstatic-col, .entity .fake-td.isstatic-col {
-	width: 45px;
-	text-align: center;
-}
-
-.fake-th.actions-col, .fake-td.actions-col {
-	width: 76px;
-	text-align: right;
-}
-
-.fake-tfoot .fake-td.actions-col {
-	display: flex;
-	padding-top: .5rem;
-	padding-bottom: 1rem;
-	width: calc(100% - 8px);
-}
-
-.fake-td.actions-col i {
-	vertical-align: middle;
-}
-
-#methods-table-container {
-	height: 100%;
-}
-
-.fake-table.actions.schema-props {
-	background: none;
-	height: 100%;
-	border: none;
-}
-
-.fake-thead, .fake-tfoot {
-	background: var(--solid-white);
-}
-
-.fake-tbody {
-	max-height: calc(100% - 120px);
-	overflow-y: auto;
-}
-/* END: Fake table styles for schema methods editor */
-
 /* BEGIN: styles to maximize methods editors in bulk save dialog for CODE area */
 #code-methods-container {
 	height: calc(100% - 40px);
@@ -2610,6 +2552,11 @@ input.tree-search-input {
 	height: 100%;
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
+
+#methods-container.global .isstatic-col,
+#dialogBox.dialog.schema-edit-dialog .global .isstatic-col {
+	display: none;
+}
 
 /* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname */
 .show-dialog-title .dialogTitle,
@@ -2873,7 +2820,7 @@ i.fa-sitemap {
 }
 
 #context-menu-dialog .danger:hover {
-	background: var(--medium-red);
+	background: var(--medium-red) !important;
 }
 
 #context-menu-dialog ul ul {
@@ -3028,62 +2975,6 @@ i.fa-sitemap {
 #contents-main .column-resizer-left {
 	left: 300px;
 }
-
-/**
- * Styles for the 'Contents' area
- */
-.trumbowyg-box {
-	background-color: var(--solid-white);
-	border: none;
-	margin: 0 auto;
-}
-
-.trumbowyg-editor {
-	min-height: 274px;
-}
-
-.trumbowyg-button-pane {
-	background-color: var(--medium-light-gray-e0);
-}
-
-.trumbowyg-button-pane button {
-	width: 32px;
-}
-
-.trumbowyg-fullscreen.trumbowyg-box {
-	width: 100%;
-}
-
-.value-container {
-	display: inline-block;
-	width: calc(100% - 236px);
-}
-
-.value-container input[type=text], .value-container textarea {
-	width: 100%;
-	/*font-size: 1.2em;*/
-	padding: 4px;
-}
-
-.value-container textarea {
-	margin: 6px 0;
-	vertical-align: middle;
-}
-
-.value-container.related-nodes {
-	background-color: var(--solid-white);
-	border: 1px solid var(--black-opacity-125);
-	padding: 4px;
-}
-
-.value-container.related-nodes i.add {
-	vertical-align: text-bottom;
-}
-
-.item-title:hover b {
-	cursor: pointer;
-}
-
 
 /**
  * Favorites
@@ -3426,19 +3317,6 @@ table#principals .typeIcon {
 	padding-top: 1rem;
 }
 
-#hide-conditions, #show-conditions {
-	flex-basis: 75%;
-	margin-right: -1px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
-}
-
-#show-conditions-templates, #hide-conditions-templates {
-	flex-basis: 25%;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-}
-
 .quick-access-options select,
 .quick-access-options input[type="text"],
 .quick-access-options input[type="password"],
@@ -3503,6 +3381,19 @@ button.icon-button {
 button.icon-button i {
 	margin: 0;
 }
+
+/* routing dialog */
+.routing-container select,
+.routing-container input[type="text"],
+.routing-container input[type="password"],
+.routing-container input[type="number"],
+.routing-container textarea {
+	width: 100%;
+	box-sizing: border-box;
+	/*margin-top: .25rem;*/
+	/*height: 2.5rem;*/
+}
+
 
 /* mount dialog */
 #mount-dialog input[type="text"] {
@@ -3625,7 +3516,7 @@ table.props td.__value {
 	margin-top: .5rem;
 }
 
-.deployment-source, .deployment-target {
+.deployment-path {
 	user-select: all;
 	font-weight: 600;
 }
@@ -3786,6 +3677,20 @@ ul.combined-input-select-field li:hover {
 	background-color: var(--input-background);
 }
 
+.monaco-editor-maximized {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 12000;
+}
+
+.form-input.input-invalid {
+	border: 1px solid var(--input-invalid-border-color);
+	background-color: var(--input-invalid-bg-color);
+}
+
 /**
  * Tailwind classes
  */
@@ -3803,6 +3708,9 @@ ul.combined-input-select-field li:hover {
 }
 .inline-flex {
 	display: inline-flex;
+}
+.contents {
+	display: contents;
 }
 .grid {
 	display: grid;
@@ -3961,6 +3869,9 @@ ul.combined-input-select-field li:hover {
 .mr-12 {
 	margin-right: 3rem;
 }
+.ml-px {
+	margin-left: 1px;
+}
 .ml-1 {
 	margin-left: .25rem;
 }
@@ -4081,6 +3992,9 @@ ul.combined-input-select-field li:hover {
 .w-60 {
 	width: 15rem;
 }
+.w-64 {
+	width: 16rem;
+}
 .w-72 {
 	width: 18rem;
 }
@@ -4133,6 +4047,9 @@ ul.combined-input-select-field li:hover {
 .text-4xl {
 	font-size: 2.25rem;
 	line-height: 2.5rem;
+}
+.text-gray-ddd {
+	color: var(--gray-ddd);
 }
 .font-medium {
 	font-weight: 500;
@@ -4215,6 +4132,14 @@ ul.combined-input-select-field li:hover {
 .pt-5 {
 	padding-top: 1.25rem;
 }
+.px-1 {
+	padding-left: .25rem;
+	padding-right: .25rem;
+}
+.px-1\.5 {
+	padding-left: .375rem;
+	padding-right: .375rem;
+}
 .px-2 {
 	padding-left: .5rem;
 	padding-right: .5rem;
@@ -4226,6 +4151,10 @@ ul.combined-input-select-field li:hover {
 .px-4 {
 	padding-left: 1rem;
 	padding-right: 1rem;
+}
+.py-0\.5 {
+	padding-top: .125rem;
+	padding-bottom: .125rem;
 }
 .py-1 {
 	padding-top: .25rem;
@@ -4249,6 +4178,12 @@ ul.combined-input-select-field li:hover {
 }
 .whitespace-nowrap {
 	white-space: nowrap;
+}
+.whitespace-pre {
+	white-space: pre;
+}
+.whitespace-pre-wrap {
+	white-space: pre-wrap;
 }
 .break-word {
 	word-break: break-word;
@@ -4282,6 +4217,9 @@ ul.combined-input-select-field li:hover {
 }
 .cursor-not-allowed {
 	cursor: not-allowed;
+}
+.cursor-text {
+	cursor: text;
 }
 .gap-y-2 {
 	row-gap: .5rem;
@@ -4346,6 +4284,9 @@ ul.combined-input-select-field li:hover {
 .grid-cols-6 {
 	grid-template-columns: repeat(6, minmax(0, 1fr));
 }
+.grid-cols-7 {
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
 .overflow-hidden {
 	overflow: hidden;
 }
@@ -4360,6 +4301,9 @@ ul.combined-input-select-field li:hover {
 }
 .min-h-20 {
 	min-height: 5rem;
+}
+.max-w-64 {
+	max-width: 16rem;
 }
 .max-w-120 {
 	max-width: 30rem;
@@ -4415,6 +4359,9 @@ ul.combined-input-select-field li:hover {
 .hover\:bg-gray-100:hover:not([disabled]) {
 	background-color: var(--light-gray-bg-f3);
 }
+.hover\:bg-gray-200:hover:not([disabled]) {
+	background-color: var(--medium-light-gray-e0);
+}
 .focus\:border-gray-666:focus {
 	border: 1px solid var(--gray-666);
 }
@@ -4427,8 +4374,17 @@ ul.combined-input-select-field li:hover {
 .border-gray-ddd {
 	border-color: var(--gray-ddd);
 }
+.border-gray-input {
+	border-color: var(--input-field-border);
+}
+.border {
+	border-width: 1px;
+}
 .border-0 {
 	border-width: 0px;
+}
+.border-r {
+	border-right-width: 1px;
 }
 .border-r-0 {
 	border-right: 0px;
@@ -4436,23 +4392,48 @@ ul.combined-input-select-field li:hover {
 .border-l-0 {
 	border-left: 0px;
 }
+.border-l {
+	border-left-width: 1px;
+}
 .border-t {
 	border-top-width: 1px;
+}
+.border-x {
+	border-left-width: 1px;
+	border-right-width: 1px;
+}
+.border-y {
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+}
+.rounded-none {
+	border-radius: 0px;
+}
+.rounded-sm {
+	border-radius: 0.125rem;
+}
+.rounded {
+	border-radius: 0.25rem;
 }
 .rounded-md {
 	border-radius: 0.375rem;
 }
+.rounded-lg {
+	border-radius: 0.5rem;
+}
+.rounded-xl {
+	border-radius: 0.75rem;
+}
+.rounded-2xl {
+	border-radius: 1rem;
+}
 .rounded-l {
 	border-top-left-radius: .25rem;
 	border-bottom-left-radius: .25rem;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
 }
 .rounded-r {
 	border-top-right-radius: .25rem;
 	border-bottom-right-radius: .25rem;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
 }
 .inset-0 {
 	top: 0px;
@@ -4460,8 +4441,14 @@ ul.combined-input-select-field li:hover {
 	bottom: 0px;
 	left: 0px;
 }
+.bg-black {
+	background-color: var(--solid-black);
+}
 .bg-white {
 	background-color: var(--solid-white);
+}
+.bg-gray {
+	background-color: var(--light-gray-bg-f7);
 }
 .odd\:bg-white:nth-child(even) {
 	background-color: var(--solid-white);
@@ -4469,4 +4456,20 @@ ul.combined-input-select-field li:hover {
 
 .even\:bg-gray-75:nth-child(odd) {
 	background-color: var(--light-gray-bg-f7);
+}
+
+.group:hover .group-hover\:underline {
+	text-decoration: underline;
+}
+.group:hover .group-hover\:font-bold {
+	font-weight: 700;
+}
+.select-none {
+	user-select: none;
+}
+.no-underline {
+	text-decoration-line: none;
+}
+.font-mono {
+	font-family: var(--font-monospace);
 }

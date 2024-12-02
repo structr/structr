@@ -19,6 +19,12 @@
 package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,17 +34,14 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 
 /**
  *
@@ -54,6 +57,7 @@ public class Actions {
 
 	public enum Type {
 
+		OnNodeCreation("onNodeCreation","SecurityContext securityContext", "securityContext", "onNodeCreation", SecurityContext.class),
 		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer", "onCreate", SecurityContext.class, ErrorBuffer.class),
 		AfterCreate("afterCreation","SecurityContext securityContext", "securityContext", "afterCreate", SecurityContext.class),
 		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave", SecurityContext.class, ErrorBuffer.class, ModificationQueue.class),
@@ -201,6 +205,8 @@ public class Actions {
 	}
 
 	public static void clearCache() {
+		FunctionProperty.clearCache();
+		Methods.clearMethodCache();
 		methodCache.clear();
 	}
 

@@ -34,7 +34,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.HttpHelper;
@@ -47,6 +47,7 @@ import org.structr.web.entity.User;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Servlet for proxy requests.
@@ -128,28 +129,33 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		try {
 
+			boolean hasUser;
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				securityContext = auth.initializeAndExamineRequest(request, response);
+				hasUser         = securityContext.getUser(false) != null;
 				tx.success();
 			}
 
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
-			if (Settings.ProxyServletMode.getValue().equals("protected") && securityContext.getUser(false) == null) {
+			if (Settings.ProxyServletMode.getValue().equals("protected") && !hasUser) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				logger.error("Authorization required in 'protected' mode");
 				return;
 			}
 
 			final String address = request.getParameter("url");
-
 			if (StringUtils.isBlank(address)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.error("Empty request parameter 'url'");
-                return;
-            }
+
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				logger.error("Empty request parameter 'url'");
+
+				return;
+			}
 
 			final URI url  = URI.create(address);
 
@@ -171,16 +177,33 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
-			final Principal user = securityContext.getCachedUser();
 
-			if (user != null && StringUtils.isBlank(proxyUrl)) {
-				proxyUrl      = user.getProperty(proxyUrlKey);
-				proxyUsername = user.getProperty(proxyUsernameKey);
-				proxyPassword = user.getProperty(proxyPasswordKey);
+			if (StringUtils.isBlank(proxyUrl)) {
+
+				final PrincipalInterface user = securityContext.getCachedUser();
+				if (user != null) {
+
+					try (final Tx tx = StructrApp.getInstance().tx()) {
+
+						proxyUrl = user.getProperty(proxyUrlKey);
+						proxyUsername = user.getProperty(proxyUsernameKey);
+						proxyPassword = user.getProperty(proxyPasswordKey);
+
+						tx.success();
+
+					} catch (FrameworkException fex) {
+					}
+				}
 			}
 
-			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final Map<String, Object> responseData = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true);
+			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+			if (body == null) {
+				throw new FrameworkException(422, "Request returned empty body");
+			}
+
+			content =  body.replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 		} catch (Throwable t) {
 

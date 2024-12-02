@@ -35,6 +35,6 @@ class NodeNodeMapper implements Function<org.neo4j.driver.types.Node, Node> {
 
 	@Override
 	public Node apply(final org.neo4j.driver.types.Node t) {
-		return NodeWrapper.newInstance(db, t);
+		return db.getCurrentTransaction().getNodeWrapper(t);
 	}
 }

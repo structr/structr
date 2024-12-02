@@ -47,9 +47,6 @@ public interface DatabaseService {
 	 */
 	boolean initialize(final String serviceName, final String version, final String instanceName);
 	void shutdown();
-	void clearCaches();
-	void removeNodeFromCache(final Identity id);
-	void removeRelationshipFromCache(final Identity id);
 	void cleanDatabase();
 	void deleteNodesByLabel(final String label);
 
@@ -81,7 +78,7 @@ public interface DatabaseService {
 	Iterable<Relationship> getRelationshipsByType(final String type);
 
 	String getTenantIdentifier();
-	String getInternalTimestamp();
+	String getInternalTimestamp(final long millisOffset, final long nanoOffset);
 	String getErrorMessage();
 
 	public Map<String, Map<String, Integer>> getCachesInfo();
@@ -100,4 +97,6 @@ public interface DatabaseService {
 	<T> T execute(final NativeQuery<T> nativeQuery);
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
+
+	void flushCaches();
 }

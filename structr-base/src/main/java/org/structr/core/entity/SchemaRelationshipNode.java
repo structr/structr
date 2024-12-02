@@ -22,6 +22,7 @@ import graphql.Scalars;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Ownership;
@@ -53,19 +53,25 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public static final String schemaRemoteAttributeNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaRelationshipNode.class.getName());
-	private static final Set<Class> propagatingRelTypes             = new HashSet<>();
+	private static final Set<Class> dynamicPropagatingRelTypes      = new HashSet<>();
+	private static final Set<Class> staticPropagatingRelTypes       = new HashSet<>();
 	private static final Pattern ValidKeyPattern                    = Pattern.compile("[a-zA-Z_]+");
 
 	public static final Property<SchemaNode> sourceNode             = new StartNode<>("sourceNode", SchemaRelationshipSourceNode.class);
 	public static final Property<SchemaNode> targetNode             = new EndNode<>("targetNode", SchemaRelationshipTargetNode.class);
 	public static final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(GraphObject.id));
 	public static final Property<String>     targetId               = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(GraphObject.id));
+	public static final Property<String>     sourceType             = new StringProperty("sourceType");
+	public static final Property<String>     targetType             = new StringProperty("targetType");
 	public static final Property<String>     name                   = new StringProperty("name").indexed();
 	public static final Property<String>     relationshipType       = new StringProperty("relationshipType").indexed();
 	public static final Property<String>     sourceMultiplicity     = new StringProperty("sourceMultiplicity");
@@ -90,25 +96,25 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<String>      propertyMask                     = new StringProperty("propertyMask");
 
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
-		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
 		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
 	);
 
 	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
-		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
 		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
 	);
 
 	public static final View exportView = new View(SchemaRelationshipNode.class, "export",
-		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, permissionPropagation,
 		propertyMask, isPartOfBuiltInSchema
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
 		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
 	);
@@ -116,18 +122,25 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 
-	public static void registerPropagatingRelationshipType(final Class type) {
-		propagatingRelTypes.add(type);
+	public static void registerPropagatingRelationshipType(final Class type, final boolean isDynamic) {
+
+		if (isDynamic) {
+
+			dynamicPropagatingRelTypes.add(type);
+
+		} else {
+
+			staticPropagatingRelTypes.add(type);
+		}
 	}
 
 	public static void clearPropagatingRelationshipTypes() {
-		propagatingRelTypes.clear();
+		dynamicPropagatingRelTypes.clear();
 	}
 
 	public static Set<Class> getPropagatingRelationshipTypes() {
-		return propagatingRelTypes;
+		return SetUtils.union(dynamicPropagatingRelTypes, staticPropagatingRelTypes);
 	}
-
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
@@ -154,10 +167,16 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		valid &= (getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, sourceJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
 		valid &= (getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, targetJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
 		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
-		valid &= ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer);
-		valid &= ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer);
+
+		// source and target node can be type names
+		valid &= (ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(this, sourceType, errorBuffer));
+		valid &= (ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(this, targetType, errorBuffer));
 
 		if (valid) {
+
+			// clear error buffer so the schema build doesn't fail because of the above check
+			errorBuffer.getErrorTokens().clear();
+
 			// only if we are valid up to here, test for relationship uniqueness
 			valid &= isRelationshipDefinitionUnique(errorBuffer);
 		}
@@ -245,8 +264,30 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			final String _sourceType = getSchemaNodeSourceType();
 			final String _targetType = getSchemaNodeTargetType();
 			final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
+			final StringBuilder buf  = new StringBuilder();
 
-			name = _sourceType + _relType + _targetType;
+			if (_sourceType.contains(".")) {
+
+				// remove FQCN from class name (if present)
+				buf.append(StringUtils.substringAfterLast(_sourceType, "."));
+
+			} else {
+
+				buf.append(_sourceType);
+			}
+
+			buf.append(_relType);
+
+			if (_targetType.contains(".")) {
+
+				// remove FQCN from class name (if present)
+				buf.append(StringUtils.substringAfter(_targetType, "."));
+			} else {
+
+				buf.append(_targetType);
+			}
+
+			name = buf.toString();
 
 			try {
 				setProperty(AbstractNode.name, name);
@@ -293,7 +334,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				if (!newStatementOnly) {
 
 					line.append("public static final Property<");
-					line.append("org.structr.dynamic.");
+					//line.append("org.structr.dynamic.");
 					line.append(_targetType);
 					line.append("> ");
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
@@ -328,7 +369,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				if (!newStatementOnly) {
 
 					line.append("public static final Property<java.lang.Iterable<");
-					line.append("org.structr.dynamic.".concat(_targetType));
+					//line.append("org.structr.dynamic.");
+					line.append(_targetType);
 					line.append(">> ");
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
 					line.append("Property");
@@ -363,7 +405,9 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				if (!newStatementOnly) {
 
 					line.append("public static final Property<");
-					line.append("org.structr.dynamic.".concat(_sourceType)).append("> ");
+					//line.append("org.structr.dynamic.");
+					line.append(_sourceType);
+					line.append("> ");
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
 					line.append("Property");
 					line.append(" = ");
@@ -395,7 +439,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				if (!newStatementOnly) {
 
 					line.append("public static final Property<java.lang.Iterable<");
-					line.append("org.structr.dynamic.".concat(_sourceType));
+					line.append("org.structr.dynamic.");
+					line.append(_sourceType);
 					line.append(">> ");
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
 					line.append("Property");
@@ -574,7 +619,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		if (!PropagationDirection.None.equals(getProperty(permissionPropagation))) {
 
 			src.begin(this, "static {");
-			src.line(this, "SchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);");
+			src.line(this, "SchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class, true);");
 			src.end();
 		}
 
@@ -649,7 +694,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			return sourceNode.getProperty(SchemaNode.name);
 		}
 
-		return null;
+		return getProperty(sourceType);
 	}
 
 	public String getSchemaNodeTargetType() {
@@ -660,7 +705,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			return targetNode.getProperty(SchemaNode.name);
 		}
 
-		return null;
+		return getProperty(targetType);
 	}
 
 	@Override
@@ -678,31 +723,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _targetType = getSchemaNodeTargetType();
 
 		return _targetType + "/" + _sourceType;
-	}
-
-	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) {
-
-		final List<GraphQLFieldDefinition> fields = new LinkedList<>();
-		final String className                    = getClassName();
-
-		// add static fields (id, name etc.)
-		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).build());
-		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-
-		// add dynamic fields
-		for (final SchemaProperty property : getSchemaProperties()) {
-
-			final GraphQLFieldDefinition field = property.getGraphQLField();
-			if (field != null) {
-
-				fields.add(field);
-			}
-		}
-
-		final GraphQLObjectType graphQLType = GraphQLObjectType.newObject().name(getClassName()).fields(fields).build();
-
-		// register type in GraphQL schema
-		graphQLTypes.put(className, graphQLType);
 	}
 
 	private String getRelationshipType() {
@@ -1202,7 +1222,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			}
 
 			if (!allow) {
-				errorBuffer.add(new SemanticErrorToken(this.getType(), relationshipType, "duplicate_relationship_definition", "Schema Relationship with same name between source and target node already exists. This is not allowed."));
+
+				errorBuffer.add(new SemanticErrorToken(this.getType(), relationshipType.jsonName(), "duplicate_relationship_definition")
+					.withDetail("Schema Relationship with same name between source and target node already exists. This is not allowed.")
+				);
 			}
 
 		} catch (FrameworkException fex) {

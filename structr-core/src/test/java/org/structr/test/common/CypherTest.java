@@ -42,7 +42,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -51,10 +51,12 @@ import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -130,6 +132,7 @@ public class CypherTest extends StructrTest {
 			final TestOne testOne  = createTestNode(TestOne.class);
 			final TestSix testSix  = createTestNode(TestSix.class);
 			SixOneOneToOne rel     = null;
+			String uuid = null;
 
 			assertNotNull(testOne);
 			assertNotNull(testSix);
@@ -137,6 +140,7 @@ public class CypherTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				uuid = rel.getUuid();
 				tx.success();
 			}
 
@@ -150,8 +154,9 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				rel.getUuid();
-				fail("Accessing a deleted relationship should thow an exception.");
+				List result = app.relationshipQuery().uuid(uuid).getAsList();
+
+				assertEquals("Relationship should have been deleted", 0, result.size());
 
 				tx.success();
 
@@ -555,7 +560,7 @@ public class CypherTest extends StructrTest {
 
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			Principal tester = null;
+			PrincipalInterface tester = null;
 
 			try (final Tx tx = app.tx()) {
 
@@ -563,7 +568,7 @@ public class CypherTest extends StructrTest {
 				final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
 				int count                    = 0;
 
-				tester = app.create(Principal.class, "tester");
+				tester = app.create(User.class, "tester");
 
 				for (final TestSix testSix : testSixs) {
 					testSix.grant(Permission.read, tester);
@@ -652,12 +657,12 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
-				final String uuid     = testSix.getUuid();
-
-				assertNotNull(testSix);
-
 				try (final Tx tx = app.tx()) {
+
+					final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+					final String uuid     = testSix.getUuid();
+
+					assertNotNull(testSix);
 
 					final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
 					final Iterator rit    = result.iterator();

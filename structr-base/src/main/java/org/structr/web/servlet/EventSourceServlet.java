@@ -32,13 +32,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.entity.User;
@@ -47,7 +45,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.regex.Pattern;
 
 
 public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceServlet implements HttpServiceServlet {
@@ -56,31 +53,13 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	private static final BlockingDeque<StructrEventSource> eventSources = new LinkedBlockingDeque<>();
 
-	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
 
 	static PropertyKey<String[]> sessionIdsPropertyKey = null;
-	static PropertyKey<Iterable<Principal>> membersKey = null;
+	static PropertyKey<Iterable<PrincipalInterface>> membersKey = null;
 
 	private SecurityContext securityContext;
-
-	@Override
-	public void init() throws ServletException {
-
-		// inject resources
-		final ResourceProvider provider = config.getResourceProvider();
-		if (provider != null) {
-
-			resourceMap.putAll(provider.getResources());
-
-		} else {
-
-			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class");
-		}
-
-		super.init();
-	}
 
 	@Override
 	protected EventSource newEventSource(HttpServletRequest hsr) {
@@ -171,7 +150,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 				if (shouldReceive == null) {
 
-					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+					final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 					if (user == null) {
 						checkedSessionIds.put(sessionId, true);
@@ -198,7 +177,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 				if (shouldReceive == null) {
 
-					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+					final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 					if (user != null) {
 						checkedSessionIds.put(sessionId, true);
@@ -215,12 +194,12 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		}
 	}
 
-	public static boolean sendEvent(final String name, final String data, final Set<Principal> targets) {
+	public static boolean sendEvent(final String name, final String data, final Set<PrincipalInterface> targets) {
 
 		final Set<User> uniqueUsers = new HashSet<>();
-		final Set<Principal> seenGroups  = new HashSet<>();
+		final Set<PrincipalInterface> seenGroups  = new HashSet<>();
 
-		for (Principal principal : targets) {
+		for (PrincipalInterface principal : targets) {
 
 			if (principal instanceof User) {
 //			if (User.class.isAssignableFrom(principal.getClass())) {
@@ -240,7 +219,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		return oneTargetSeen;
 	}
 
-	private static Set<User> getUniqueUsersForGroup(final Principal group, final Set<Principal> seenGroups, final boolean recurse) {
+	private static Set<User> getUniqueUsersForGroup(final PrincipalInterface group, final Set<PrincipalInterface> seenGroups, final boolean recurse) {
 
 		seenGroups.add(group);
 
@@ -250,7 +229,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 			membersKey = StructrApp.key(Group.class, "members");
 		}
 
-		for (Principal member : group.getProperty(membersKey)) {
+		for (PrincipalInterface member : group.getProperty(membersKey)) {
 
 //			if (User.class.isAssignableFrom(member.getClass())) {
 			if (member instanceof User) {
@@ -291,7 +270,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	private static boolean shouldReceiveMessage(final StructrEventSource es, final User target) {
 
 		if (sessionIdsPropertyKey == null) {
-			sessionIdsPropertyKey = StructrApp.key(Principal.class, "sessionIds");
+			sessionIdsPropertyKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
 		}
 
 		final String[] ids = target.getProperty(sessionIdsPropertyKey);

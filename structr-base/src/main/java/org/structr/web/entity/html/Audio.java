@@ -18,35 +18,26 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
-
-import java.net.URI;
 
 /**
  *
  */
-public interface Audio extends DOMElement {
+public class Audio extends DOMElement {
 
-	static class Impl { static {
+	public static final Property<String> htmlSrcProperty         = new StringProperty("_html_src");
+	public static final Property<String> htmlCrossOriginProperty = new StringProperty("_html_crossorigin");
+	public static final Property<String> htmlPreloadProperty     = new StringProperty("_html_preload");
+	public static final Property<String> htmlAutoplayProperty    = new StringProperty("_html_autoplay");
+	public static final Property<String> htmlLoopProperty        = new StringProperty("_html_loop");
+	public static final Property<String> htmlMutedProperty       = new StringProperty("_html_muted");
+	public static final Property<String> htmlControlsProperty    = new StringProperty("_html_controls");
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Audio");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Audio"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_src",         PropertyView.Html);
-		type.addStringProperty("_html_crossorigin", PropertyView.Html);
-		type.addStringProperty("_html_preload",     PropertyView.Html);
-		type.addStringProperty("_html_autoplay",    PropertyView.Html);
-		type.addStringProperty("_html_loop",        PropertyView.Html);
-		type.addStringProperty("_html_muted",       PropertyView.Html);
-		type.addStringProperty("_html_controls",    PropertyView.Html);
-	}}
-
+	public static final View htmlView = new View(Audio.class, PropertyView.Html,
+		htmlSrcProperty, htmlCrossOriginProperty, htmlPreloadProperty, htmlAutoplayProperty, htmlLoopProperty, htmlMutedProperty, htmlControlsProperty
+	);
 }

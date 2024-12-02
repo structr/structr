@@ -18,26 +18,23 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.knowledge.iso25964.relationship.ThesaurusConcepthasCustomNoteCustomNote;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface CustomNote extends Note {
+public class CustomNote extends Note {
 
-	static class Impl { static {
+	public static final Property<ThesaurusConcept> conceptProperty = new StartNode<>("concept", ThesaurusConcepthasCustomNoteCustomNote.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("CustomNote");
+	public static final Property<String> noteTypeProperty = new StringProperty("noteType");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CustomNote"));
-		type.setExtends(URI.create("#/definitions/Note"));
-
-		type.addStringProperty("noteType", PropertyView.All, PropertyView.Ui).setIndexed(true);
-	}}
+	public static final View uiView = new View(CustomNote.class, PropertyView.Ui,
+		noteTypeProperty
+	);
 }

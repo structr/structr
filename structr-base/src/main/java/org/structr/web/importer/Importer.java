@@ -27,8 +27,6 @@ import org.jsoup.nodes.*;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.CaseHelper;
-import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -69,6 +67,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.PathHelper;
 
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
@@ -207,7 +207,7 @@ public class Importer {
 
 		init();
 
-		if (StringUtils.isNotBlank(code)) {
+		if (StringUtils.isNotBlank(code) || StringUtils.isBlank(address)) {
 
 			if (isDeployment) {
 
@@ -282,9 +282,15 @@ public class Importer {
 				logger.info("##### Start fetching {} for page {} #####", new Object[]{address, name});
 			}
 
-			code = HttpHelper.get(address);
-			parsedDocument = Jsoup.parse(code);
+			final Map<String, Object> responseData = HttpHelper.get(address);
+			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+			if (code != null) {
 
+				parsedDocument = Jsoup.parse(code);
+			} else {
+
+				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");
+			}
 		}
 
 		return true;

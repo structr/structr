@@ -65,8 +65,6 @@ let _Pages = {
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
-
-		Structr.ensureShadowPageExists();
 	},
 	handleNodeRefresh: (node) => {
 
@@ -108,9 +106,9 @@ let _Pages = {
 			window.location.hash       = urlHash;
 		}
 
-		Structr.setMainContainerHTML(_Pages.templates.main());
-
 		_Pages.init();
+
+		Structr.setMainContainerHTML(_Pages.templates.main());
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('pages'));
 
@@ -126,133 +124,142 @@ let _Pages = {
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
 		_Pages.previewSlideout         = $('#previewSlideout');
 
-		let pagesTab = document.getElementById('pagesTab');
-		let pagesTabSlideoutAction = (e) => {
-			Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
-				Structr.resize();
-				_Entities.highlightSelectedElementOnSlideoutOpen();
-			}, _Pages.leftSlideoutClosedCallback);
-		};
+		_Pages.ensureShadowPageExists().then(() => {
 
-		pagesTab.addEventListener('click', pagesTabSlideoutAction);
+			let pagesTab = document.getElementById('pagesTab');
+			let pagesTabSlideoutAction = (e) => {
+				Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
+					Structr.resize();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
+				}, _Pages.leftSlideoutClosedCallback);
+			};
 
-		$(pagesTab).droppable({
-			tolerance: 'touch',
-			//over: pagesTabSlideoutAction
-		});
+			pagesTab.addEventListener('click', pagesTabSlideoutAction);
 
-		let localizationsTab = document.getElementById('localizationsTab');
-		localizationsTab.addEventListener('click', () => {
-			Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
-				_Pages.localizations.refreshPagesForLocalizationPreview();
-				Structr.resize();
-				_Entities.highlightSelectedElementOnSlideoutOpen();
-			}, _Pages.leftSlideoutClosedCallback);
-		});
-
-		document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
-			if (e.which === 13) {
-				_Pages.localizations.refreshLocalizations();
-			}
-		});
-
-		let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
-		refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
-
-		_Helpers.appendInfoTextToElement({
-			element: refreshLocalizationsButton,
-			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
-			insertAfter: true,
-			helpElementCss: { width: "300px" },
-			offsetX: -20,
-			offsetY: 10
-		});
-
-		let widgetsTab = document.getElementById('widgetsTab');
-		widgetsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
-				_Widgets.reloadWidgets();
-				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
-		});
-
-		let paletteTab = document.getElementById('paletteTab');
-		paletteTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
-				_Pages.designTools.reload();
-				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
-		});
-
-		let componentsTab = document.getElementById('componentsTab');
-		let componentsTabSlideoutAction = (isDragOpen = false) => {
-			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
-				_Pages.sharedComponents.reload(isDragOpen);
-				Structr.resize();
-			}, () => {
-				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
-				_Pages.rightSlideoutClosedCallback();
+			$(pagesTab).droppable({
+				tolerance: 'touch',
+				//over: pagesTabSlideoutAction
 			});
-		};
-		componentsTab.addEventListener('click', componentsTabSlideoutAction);
 
-		$(componentsTab).droppable({
-			tolerance: 'touch',
-			over: (e, ui) => {
+			let localizationsTab = document.getElementById('localizationsTab');
+			localizationsTab.addEventListener('click', () => {
+				Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
+					_Pages.localizations.refreshPagesForLocalizationPreview();
+					Structr.resize();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
+				}, _Pages.leftSlideoutClosedCallback);
+			});
 
-				let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
-				let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
-
-				if (!isComponentsSlideoutOpen && !isColumnResizer) {
-					componentsTabSlideoutAction(true);
+			document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
+				if (e.which === 13) {
+					_Pages.localizations.refreshLocalizations();
 				}
-			}
-		});
-
-		let elementsTab = document.getElementById('elementsTab');
-		elementsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
-				_Pages.unattachedNodes.reload();
-				Structr.resize();
-			}, () => {
-				_Pages.unattachedNodes.removeElementsFromUI();
-				_Pages.rightSlideoutClosedCallback();
 			});
-		});
 
-		let previewTab = document.getElementById('previewTab');
-		previewTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
-				_Pages.previews.updatePreviewSlideout();
-				Structr.resize();
-			}, () => {
-				_Pages.rightSlideoutClosedCallback();
+			let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
+			refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
+
+			_Helpers.appendInfoTextToElement({
+				element: refreshLocalizationsButton,
+				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+				insertAfter: true,
+				helpElementCss: { width: "300px" },
+				offsetX: -20,
+				offsetY: 10
 			});
-		});
 
-		_Pages.refresh();
+			let widgetsTab = document.getElementById('widgetsTab');
+			widgetsTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
+					_Widgets.reloadWidgets();
+					Structr.resize();
+				}, _Pages.rightSlideoutClosedCallback);
+			});
+
+			let paletteTab = document.getElementById('paletteTab');
+			paletteTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
+					_Pages.designTools.reload();
+					Structr.resize();
+				}, _Pages.rightSlideoutClosedCallback);
+			});
+
+			let componentsTab = document.getElementById('componentsTab');
+			let componentsTabSlideoutAction = (isDragOpen = false) => {
+				Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
+					_Pages.sharedComponents.reload(isDragOpen);
+					Structr.resize();
+				}, () => {
+					_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+					_Pages.rightSlideoutClosedCallback();
+				});
+			};
+			componentsTab.addEventListener('click', componentsTabSlideoutAction);
+
+			$(componentsTab).droppable({
+				tolerance: 'touch',
+				over: (e, ui) => {
+
+					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
+					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
+
+					if (!isComponentsSlideoutOpen && !isColumnResizer) {
+						componentsTabSlideoutAction(true);
+					}
+				}
+			});
+
+			let elementsTab = document.getElementById('elementsTab');
+			elementsTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
+					_Pages.unattachedNodes.reload();
+					Structr.resize();
+				}, () => {
+					_Pages.unattachedNodes.removeElementsFromUI();
+					_Pages.rightSlideoutClosedCallback();
+				});
+			});
+
+			let previewTab = document.getElementById('previewTab');
+			previewTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
+					_Pages.previews.updatePreviewSlideout();
+					Structr.resize();
+				}, () => {
+					_Pages.rightSlideoutClosedCallback();
+				});
+			});
+
+			_Pages.refresh();
+		});
 	},
 	getContextMenuElements: (div, entity) => {
 
-		let elements      = [];
-		const isPage      = (entity.type === 'Page');
-		const isContent   = (entity.type === 'Content');
-		const hasChildren = (entity.children && entity.children.length > 0);
+		let elements                      = [];
+		const isPage                      = (entity.isPage === true    || entity.type === 'Page');
+		const isActualContentElement      = (entity.isContent === true && entity.type === 'Content');
+		const hasChildren                 = (entity.children && entity.children.length > 0);
+		const parentId                    = entity.parent?.id ?? null;
+		const hasParent                   = (parentId !== null);
+		const hasParentAndParentIsNotPage = (hasParent && !isPage);
+		const parentIsShadowPage          = (!hasParent && entity.pageId === _Pages.shadowPage.id);
+		const entityTypeisDivType         = (entity.type === 'Div');  // does not work for subclasses of Div... but who would do that?
+		const anyElementIsSelected        = !!_Elements.selectedEntity;
+		const currentElementIsSelected    = (_Elements.selectedEntity?.id === entity.id);
 
-		let handleInsertHTMLAction = (itemText) => {
+		let handleInsertHTMLAction   = (itemText) => {
 			let pageId  = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
-
 		let handleInsertBeforeAction = (itemText) => {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
@@ -261,7 +268,9 @@ let _Pages = {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
-		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
+		let handleReplaceWithAction  = (itemText) => {
+			Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id));
+		};
 		let handleWrapInHTMLAction   = (itemText) => {
 
 			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
@@ -271,21 +280,22 @@ let _Pages = {
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
 
-		if (!isContent) {
+		if (!isActualContentElement) {
 
 			elements.push({
 				name: 'Insert HTML element',
-				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
+				elements: isPage ? ['html'] : _Elements.sortedElementGroups,
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
 			elements.push({
 				name: 'Insert content element',
-				elements: !isPage ? ['#content', '#template'] : ['#template'],
+				elements: isPage ? ['#template'] : ['#content', '#template'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
 			if (_Elements.suggestedElements[entity.tag]) {
+
 				elements.push({
 					name: 'Suggested HTML element',
 					elements: _Elements.suggestedElements[entity.tag],
@@ -294,7 +304,8 @@ let _Pages = {
 			}
 		}
 
-		if (!isPage && !isContent) {
+		if (!isPage && !isActualContentElement) {
+
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: () => {
@@ -305,7 +316,7 @@ let _Pages = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+		if (!isPage && hasParentAndParentIsNotPage) {
 
 			elements.push({
 				name: 'Insert before...',
@@ -354,7 +365,7 @@ let _Pages = {
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
-		if (entity.type === 'Div' && !hasChildren) {
+		if (entityTypeisDivType && !hasChildren) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
@@ -365,16 +376,13 @@ let _Pages = {
 			});
 		}
 
-		let hasParentAndParentIsNotPage = (entity.parent && entity.parent.type !== 'Page');
-		let parentIsShadowPage          = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
-
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone',
 				clickHandler: () => {
-					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+					Command.cloneNode(entity.id, parentId, true);
 				}
 			});
 
@@ -446,14 +454,17 @@ let _Pages = {
 
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+			if (currentElementIsSelected) {
+
 				elements.push({
 					name: 'Deselect element',
 					clickHandler: () => {
 						_Elements.unselectEntity();
 					}
 				});
+
 			} else {
+
 				elements.push({
 					name: 'Select element',
 					clickHandler: () => {
@@ -462,8 +473,9 @@ let _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && !parentIsShadowPage;
 			if (canConvertToSharedComponent) {
+
 				_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 				elements.push({
@@ -475,14 +487,14 @@ let _Pages = {
 			}
 		}
 
-		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
+		if (!isActualContentElement && anyElementIsSelected && !currentElementIsSelected) {
 
-			let isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			let isSamePage                               = _Elements.selectedEntity.pageId === entity.pageId;
 			let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			let isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
-			let isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+			let isSelectedEntityInShadowPage             = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
+			let isSelectedEntitySharedComponent          = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
 
-			let isDescendantOfSelectedEntity = function (possibleDescendant) {
+			let isDescendantOfSelectedEntity = (possibleDescendant) => {
 				if (possibleDescendant.parent) {
 					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
 						return true;
@@ -525,46 +537,39 @@ let _Pages = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (!isContent && hasChildren) {
+		if (!isActualContentElement && hasChildren) {
+
+			let toggleChildrenExpandedState = (isCurrentlyExpanded) => {
+
+				// we reverse, because we want collapse to work from the deepest level backwards (for expand it does not make a difference)
+				let nodeDescendants = [...div.closest('.node').querySelectorAll('.node')].toReversed();
+
+				for (let childNode of nodeDescendants) {
+					if (_Entities.isExpanded(childNode) === isCurrentlyExpanded) {
+						let id = Structr.getId(childNode);
+						_Entities.toggleElement(id, childNode);
+					}
+				}
+
+				if (_Entities.isExpanded(div) === isCurrentlyExpanded) {
+					_Entities.toggleElement(entity.id, div);
+				}
+			};
 
 			elements.push({
 				name: 'Expand / Collapse',
 				elements: [
 					{
 						name: 'Expand subtree',
-						clickHandler: () => {
-
-							$(div).find('.node').each(function(i, el) {
-								if (!_Entities.isExpanded(el)) {
-									_Entities.toggleElement(entity.id, el);
-								}
-							});
-
-							if (!_Entities.isExpanded(div)) {
-								_Entities.toggleElement(entity.id, div);
-							}
-						}
+						clickHandler: () => toggleChildrenExpandedState(false)
 					},
 					{
 						name: 'Expand subtree recursively',
-						clickHandler: () => {
-							_Entities.expandRecursively([entity.id]);
-						}
+						clickHandler: () => _Entities.expandRecursively([entity.id])
 					},
 					{
 						name: 'Collapse subtree',
-						clickHandler: () => {
-
-							$(div).find('.node').each(function(i, el) {
-								if (_Entities.isExpanded(el)) {
-									_Entities.toggleElement(entity.id, el);
-								}
-							});
-
-							if (_Entities.isExpanded(div)) {
-								_Entities.toggleElement(entity.id, div);
-							}
-						}
+						clickHandler: () => toggleChildrenExpandedState(true)
 					}
 				]
 			});
@@ -574,7 +579,7 @@ let _Pages = {
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
-		if (!isPage && entity.parent !== null) {
+		if (!isPage && hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -589,15 +594,15 @@ let _Pages = {
 			});
 		}
 
-		// should only be visible for type===Page
-		if (isPage || !entity.parent) {
+		if (isPage || !hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
-					_Entities.deleteNode(entity, (isContent === false));
+					let recursive = (isActualContentElement === false);
+					_Entities.deleteNode(entity, recursive);
 				}
 			});
 		}
@@ -937,22 +942,23 @@ let _Pages = {
 						document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
 					}
+
+					document.querySelector('a[href="#pages:routing"]').closest('li').classList.add('hidden');
+					break;
 			}
 
 			if (!_Entities.isLinkableEntity(entity)) {
 				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
 			}
 
-			// Create shadow page if not existing
-			Structr.ensureShadowPageExists().then(() => {
-				let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
-				let isEntityInTrash = (!entity.isPage && !entity.pageId);
-				if (isEntityInSharedComponents || isEntityInTrash) {
-					document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
-				}
-			});
+			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
+			let isEntityInTrash = (!entity.isPage && !entity.pageId);
+			if (isEntityInSharedComponents || isEntityInTrash) {
+				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+			}
 
 		} else {
+
 			_Pages.hideAllFunctionBarTabs();
 		}
 	},
@@ -1072,6 +1078,14 @@ let _Pages = {
 		}
 
 		switch (urlHash) {
+
+			case '#pages:routing':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.routing());
+				let routingContainer = document.querySelector('#center-pane .routing-container');
+
+				_Pages.routingDialog(obj, routingContainer);
+				break;
 
 			case '#pages:basic':
 
@@ -1385,10 +1399,10 @@ let _Pages = {
 
 		_Helpers.activateCommentsInElement(container);
 
-		let eventSelectElement               = container.querySelector('#event-select');
+		let eventSelect                      = container.querySelector('#data-event-select');
+		let eventSelectUl                    = eventSelect.parentNode.querySelector('ul');
+		let eventInput                       = container.querySelector('#data-event-input');
 		let actionSelectElement              = container.querySelector('#action-select');
-
-		let customEventInput                 = container.querySelector('#custom-event-input');
 
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
@@ -1400,11 +1414,20 @@ let _Pages = {
 		let addParameterMappingButton        = container.querySelector('.em-add-parameter-mapping-button');
 		let addParameterMappingForTypeButton = container.querySelector('.em-add-parameter-mapping-for-type-button');
 
+		let dialogTypeSelect                 = container.querySelector('#dialog-select');
+		let dialogTitleInput                 = container.querySelector('#dialog-title');
+		let dialogTextInput                  = container.querySelector('#dialog-text');
+
 		let successNotificationsSelect       = container.querySelector('#success-notifications-select');
 		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
+		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input');
+		let successNotificationsDelayInput   = container.querySelector('#success-inline-message-delay-input');
 
 		let failureNotificationsSelect       = container.querySelector('#failure-notifications-select');
 		let failureNotificationsPartialInput = container.querySelector('#failure-notifications-custom-dialog-input');
+		let failureNotificationsEventInput   = container.querySelector('#failure-notifications-fire-event-input');
+		let failureNotificationsDelayInput   = container.querySelector('#failure-inline-message-delay-input');
+
 
 		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
@@ -1429,8 +1452,8 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
-				//console.log('Using first object for event action mapping:', result);
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+				console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
 		}
@@ -1444,8 +1467,69 @@ let _Pages = {
 
 		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
 
-		eventSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+		eventSelect.addEventListener('change', e => saveEventMappingData(entity));
 		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+
+		// combined event select and input
+		{
+			let showEventList = () => { eventSelectUl.classList.remove('hidden'); };
+			let hideEventList = () => { eventSelectUl.classList.add('hidden'); };
+
+			eventSelect.addEventListener('change', e => {
+				eventInput.value = eventSelect.value;
+			});
+
+			eventSelect.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+				showEventList();
+			});
+
+			eventSelectUl.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+			});
+
+			eventSelectUl.addEventListener('click', e => {
+				if (e.target.dataset.value) {
+					eventInput.value  = e.target.dataset.value;
+					eventSelect.value = eventInput.value;
+
+					saveEventMappingData(entity, eventSelectUl);
+
+					hideEventList();
+				}
+			});
+
+			container.addEventListener('mousedown', e => {
+				if (e.defaultPrevented === false) {
+					hideEventList();
+				}
+			});
+
+			eventInput.addEventListener('keyup', e => {
+				const el  = e.target;
+				const key = e.key;
+
+				if (key === 'Escape') {
+
+					eventSelectUl.classList.add('hidden');
+					return;
+
+				} else if (key === 'Enter') {
+
+					saveEventMappingData(entity, eventInput);
+					eventSelectUl.classList.add('hidden');
+					return;
+				}
+
+				for (let child of eventSelectUl.children) {
+
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
+				}
+
+				showEventList();
+			});
+		}
 
 		// combined type select and input
 		{
@@ -1500,11 +1584,8 @@ let _Pages = {
 
 				for (let child of dataTypeSelectUl.children) {
 
-					if (child.dataset.value && child.dataset.value.match(el.value)) {
-						child.classList.remove('hidden');
-					} else {
-						child.classList.add('hidden');
-					}
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
 				}
 
 				showDataTypeList();
@@ -1547,6 +1628,12 @@ let _Pages = {
 			});
 		});
 
+		dialogTypeSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+			saveEventMappingData(entity, el);
+		});
+
 		successNotificationsSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
@@ -1571,25 +1658,22 @@ let _Pages = {
 			saveEventMappingData(entity, el);
 		});
 
-		const updateEventMappingInterface = (entity, actionMapping) => {
+		const updateEventMappingInterface = (entity, actionMapping, calledAfterDelete = false) => {
 
 			if (!actionMapping) {
 				console.warn('No actionMapping object given', entity);
 				return;
 			}
 
-			//console.log('updateEventMapping', entity, actionMapping);
+			//console.log('updateEventMapping', actionMapping);
 
 			// TODO: Find better solution for the following conversion which is necessary because of 'previous-page' vs. 'prev-page'
 			if (actionMapping.action === 'previous-page') {
 				actionMapping.action = 'prev-page';
 			}
 
-			// if (actionMapping.event === 'custom') {
-			// 	customEventInput.value  = actionMapping.event;
-			// }
-
-			eventSelectElement.value               = actionMapping.event;
+			eventSelect.value                      = actionMapping.event;
+			eventInput.value                       = actionMapping.event;
 			actionSelectElement.value              = actionMapping.action;
 
 			methodNameInput.value                  = actionMapping.method;
@@ -1598,11 +1682,19 @@ let _Pages = {
 
 			idExpressionInput.value                = actionMapping.idExpression;
 
+			dialogTypeSelect.value                 = actionMapping.dialogType ?? 'none';
+			dialogTitleInput.value                 = actionMapping.dialogTitle ?? '';
+			dialogTextInput.value                  = actionMapping.dialogText ?? '';
+
 			successNotificationsSelect.value       = actionMapping.successNotifications;
 			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
+			successNotificationsEventInput.value   = actionMapping.successNotificationsEvent;
+			successNotificationsDelayInput.value   = actionMapping.successNotificationsDelay;
 
 			failureNotificationsSelect.value       = actionMapping.failureNotifications;
 			failureNotificationsPartialInput.value = actionMapping.failureNotificationsPartial;
+			failureNotificationsEventInput.value   = actionMapping.failureNotificationsEvent;
+			failureNotificationsDelayInput.value   = actionMapping.failureNotificationsDelay;
 
 			successBehaviourSelect.value           = actionMapping.successBehaviour;
 			successPartialRefreshInput.value       = actionMapping.successPartial;
@@ -1622,13 +1714,13 @@ let _Pages = {
 					any.classList.add('hidden');
 				}
 
-				if (eventSelectElement.value === 'none') {
+				if (eventSelect.value === 'none') {
 
-					eventSelectElement.classList.add('required');
+					eventSelect.classList.add('required');
 
 				} else {
 
-					eventSelectElement.classList.remove('required');
+					eventSelect.classList.remove('required');
 
 					// show all elements that are shown for non-empty event values
 					for (let any of document.querySelectorAll('.em-event-any')) {
@@ -1647,8 +1739,10 @@ let _Pages = {
 						actionSelectElement.classList.add('required');
 					}
 
+
+
 					// show all relevant elements for event
-					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelectElement.value}`)) {
+					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelect.value}`)) {
 						eventRelevant.classList.remove('hidden');
 					}
 
@@ -1657,6 +1751,18 @@ let _Pages = {
 						actionRelevant.classList.remove('hidden');
 					}
 
+					// show dialog
+					{
+						if(dialogTypeSelect.value !== 'none') {
+							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
+								dialogInput.classList.remove('hidden');
+							}
+						} else {
+							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
+								dialogInput.classList.add('hidden');
+							}
+						}
+					}
 
 					// success notifications
 					{
@@ -1722,11 +1828,13 @@ let _Pages = {
 			}
 
 			// append mapped parameters
-			Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
-				for (const parameterMapping of actionMapping.parameterMappings) {
-					getAndAppendParameterMapping(parameterMapping.id);
-				}
-			});
+			if (!calledAfterDelete) {
+				Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
+					for (const parameterMapping of actionMapping.parameterMappings) {
+						getAndAppendParameterMapping(parameterMapping.id);
+					}
+				});
+			}
 
 			// if (entity.triggeredActions && entity.triggeredActions.length) {
 			//
@@ -1981,15 +2089,22 @@ let _Pages = {
 
 			let actionMappingObject = {
 				type:                        'ActionMapping',
-				event:                       eventSelectElement?.value,
+				event:                       eventInput?.value ?? eventSelect?.value,
 				action:                      actionSelectElement?.value,
 				method:                      methodNameInput?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
 				idExpression:                idExpressionInput.value,
+				dialogType:                  dialogTypeSelect.value,
+				dialogTitle:                 dialogTitleInput.value,
+				dialogText:                  dialogTextInput.value,
 				successNotifications:        successNotificationsSelect.value,
 				successNotificationsPartial: successNotificationsPartialInput.value,
+				successNotificationsEvent:   successNotificationsEventInput.value,
+				successNotificationsDelay:	 successNotificationsDelayInput.value === '' ? '5000' : successNotificationsDelayInput.value,
 				failureNotifications:        failureNotificationsSelect.value,
 				failureNotificationsPartial: failureNotificationsPartialInput.value,
+				failureNotificationsEvent:   failureNotificationsEventInput.value,
+				failureNotificationsDelay:   failureNotificationsDelayInput.value === '' ? '5000' : failureNotificationsDelayInput.value,
 				successBehaviour:            successBehaviourSelect?.value,
 				successPartial:              successPartialRefreshInput?.value,
 				successURL:                  successNavigateToURLInput?.value,
@@ -2011,7 +2126,7 @@ let _Pages = {
 					//console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
 					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
-						updateEventMappingInterface(entity, actionMappingObject);
+						updateEventMappingInterface(entity, actionMappingObject, true);
 						_Helpers.blinkGreen(el);
 					});
 
@@ -2371,7 +2486,7 @@ let _Pages = {
 					+ '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + (entity._html_id ? entity._html_id.length : 10)   + '" value="' + (entity._html_id || '') + '">'
 					+ '<span class="class-id-attrs _html_class">.' + (entity._html_class ? entity._html_class.split(' ').join('.') : '&lt;class>') + '</span>'
 					+ '<textarea style="width:calc(100% + 1.5rem)" rows="' + Math.ceil((entity._html_class ? entity._html_class.length/35 : 1)) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + (entity._html_class || '') + '</textarea>'
-					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon'])),
+					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon']), 'Context-Menu'),
 
 				clickHandler: (e) => {
 
@@ -2765,7 +2880,7 @@ let _Pages = {
 		isPreviewActive: () => {
 
 			// only reload if the iframe is already present!
-			let iframe = _Pages.centerPane.querySelector('iframe');
+			let iframe = _Pages.centerPane?.querySelector('iframe');
 
 			if (iframe) {
 				return true;
@@ -3386,18 +3501,19 @@ let _Pages = {
 
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', (result) => {
 
-					let count = result.length;
-					if (count > 0) {
+					let hasEntries = (result.length > 0);
 
-						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${count})`;
-						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
+					deleteUnattachedNodesButton.classList.toggle('hover:bg-gray-100', hasEntries);
+
+					if (hasEntries) {
+
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${result.length})`;
 
 						_Helpers.disableElements(false, deleteUnattachedNodesButton);
 
 					} else {
 
 						deleteUnattachedNodesButton.textContent = 'No unused elements';
-						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}
 
 					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);
@@ -3646,6 +3762,141 @@ let _Pages = {
 		},
 	},
 
+	routingDialog: async (page, container) => {
+
+		let addButton     = document.querySelector('.add-route-button');
+		let listContainer = document.querySelector('#routing-entries');
+
+		let ifok = (response) => { if (response.ok) return response.json(); }
+
+		let enableUpdateEvents = async (paramsContainer) => {
+
+			paramsContainer.querySelectorAll('.value-type-select').forEach(input => {
+				input.addEventListener('change', event => {
+					let select = event.target;
+					let id     = select.dataset.structrId;
+					Command.setProperty(id, 'valueType', select.value, false, () => _Helpers.blinkGreen(select));
+				});
+			});
+		}
+
+		let addPathObject = async (p) => {
+
+			let path = await Command.getPromise(p.id, '', 'ui');
+
+			path.page = page;
+
+			listContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingRow(path));
+
+			let rowContainer    = listContainer.querySelector(`#routing-entry-${path.id}`);
+			let paramsContainer = rowContainer.querySelector('.path-parameters');
+
+			for (let param of path.parameters) {
+				paramsContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingParameterRow(param));
+				let select = paramsContainer.querySelector(`#routing-parameter-${param.id} select`);
+				if (select) {
+					select.value = param.valueType;
+				}
+			}
+
+			let pathInput = rowContainer.querySelector(`#routing-path-${path.id}`);
+			if (pathInput) {
+				let func = _Helpers.debounce(event => updateParameters(event, path, paramsContainer), 300);
+				pathInput.addEventListener('input', func);
+			}
+
+			let removeButton = rowContainer.querySelector('.routing-remove-button');
+			if (removeButton) {
+
+				removeButton.addEventListener('click', async (event) => {
+
+					await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' }).then(ifok);
+					listContainer.removeChild(rowContainer);
+				});
+			}
+
+			enableUpdateEvents(paramsContainer);
+		};
+
+		let createParameter = async () => {
+
+			let data = await fetch(`${Structr.rootUrl}PagePath`, {
+				method: 'POST',
+				body: JSON.stringify({
+					page: page.id,
+					name: '/' + page.name + '/'
+				})
+  			}).then(ifok);
+
+			if (data && data.result && data.result.length === 1) {
+				let path = await Command.getPromise(data.result[0], '', 'ui');
+				addPathObject(path);
+			}
+		};
+
+		let updateParameters = async (event, path, paramsContainer) => {
+
+			let string = event.target.value;
+			let names  = string.match(/(\{[a-zA-Z0-9]+\})/g) || [];
+
+			// remove {} around parameter name
+			names = names.map(n => n.substring(1, n.length - 1));
+
+			// update parameters
+			let data = await fetch(`${Structr.rootUrl}PagePath/${path.id}/updatePathAndParameters`, {
+				method: 'POST',
+				body: JSON.stringify({
+					path: string,
+					names: names
+				})
+  			}).then(ifok);
+
+			paramsContainer.replaceChildren();
+
+			if (data && data.result) {
+
+				for (let param of data.result) {
+
+					paramsContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingParameterRow(param));
+					let select = paramsContainer.querySelector(`#routing-parameter-${param.id} select`);
+					if (select) {
+						select.value = param.valueType;
+					}
+				}
+
+				enableUpdateEvents(paramsContainer);
+			}
+		};
+
+		addButton.addEventListener('click', createParameter);
+
+		let paths = await Command.queryPromise('PagePath', 1000, 1, 'name', false, { page: page.id }, true, 'ui');
+
+		for (let path of paths) {
+			await addPathObject(path);
+		}
+
+		_Helpers.activateCommentsInElement(container);
+	},
+	ensureShadowPageExists: () => {
+
+		return new Promise((resolve, reject) => {
+
+			if (_Pages.shadowPage) {
+
+				resolve(_Pages.shadowPage);
+
+			} else {
+
+				Command.getOrCreateShadowPage().then(shadowPage => {
+
+					_Pages.shadowPage = shadowPage;
+
+					resolve(_Pages.shadowPage);
+				});
+			}
+		});
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
@@ -3832,11 +4083,62 @@ let _Pages = {
 					<li id="tabs-menu-security">
 						<a href="#pages:security">Security</a>
 					</li>
+					<li id="tabs-menu-basic">
+						<a href="#pages:routing">URL Routing</a>
+					</li>
 				</ul>
 			</div>
 		`,
 		basic: config => `
 			<div class="content-container basic-container"></div>
+		`,
+		routing: config => `
+			<div class="content-container routing-container">
+				<h3>
+					Routes
+					<i class="m-2 add-route-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add route')}</i>
+				</h3>
+				<div id="routing-entries">
+				</div>
+			</div>
+		`,
+		routingRow: config => `
+			<div class="mb-4 grid grid-cols-3 gap-8" id="routing-entry-${config.id}">
+				<div class="m-0">
+					<label class="block" data-comment="Enter the URL path that should route to this page.">Path</label>
+					<input id="routing-path-${config.id}" type="text" class="parameter-url-input" placeholder="/products/{name}/{amount}" value="${config.name}">
+				</div>
+				<div>
+					<label class="block" data-comment="Parameters are managed automatically based on variables in the path.">Path parameters</label>
+					<div class="path-parameters"></div>
+				</div>
+				<div>
+					<label class="block mb-2">Actions</label>
+					<i class="block mt-2 routing-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
+				</div>
+				<div>
+				</div>
+			</div>
+		`,
+		routingParameterRow: config => `
+			<div class="grid grid-cols-2 gap-4" id="routing-parameter-${config.id}">
+				<div class="m-0">
+					<pre class="block bold mt-3" id="routing-parameter-name-${config.id}">${config.name}</pre>
+				</div>
+				<div>
+					<select class="select2 value-type-select" data-structr-id="${config.id}">
+						<option value="">Select value type..</option>
+						<option>String</option>
+						<option>Integer</option>
+						<option>Long</option>
+						<option>Double</option>
+						<option>Float</option>
+						<option>Date</option>
+						<option>List</option>
+						<option>Map</option>
+					</select>
+				</div>
+			</div>
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">
@@ -3865,18 +4167,59 @@ let _Pages = {
 					<div class="grid grid-cols-2 gap-8">
 
 						<div>
-							<label class="block mb-2" data-comment="Select the event type that triggers the action.">Event</label>
-
-							<select class="select2" id="event-select">
-								<option value="none">None</option>
-								<option value="click">Click</option>
-								<option value="change">Change</option>
-								<option value="focusout">Focus out</option>
-								<option value="drop">Drop</option>
-								<option value="load">Load</option>
-								<option value="custom">Custom frontend event</option>
-							</select>
+							<div class="relative">
+								<label class="block mb-2" for="data-event-select" data-comment="Use this setting to bind a browser event to a backend action.">Event</label>
+								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
+								<select class="required combined-input-select-field" id="data-event-select">
+									<option value="">Select event from list</option>
+									<option value="none">None</option>
+									<option value="click">Click</option>
+									<option value="change">Change</option>
+									<option value="focusout">Focus out</option>
+									<option value="keydown">Key down</option>
+									<option value="keyup">Key up</option>
+									<option value="keypress">Key press</option>
+									<option value="mousemove">Mouse move</option>
+									<option value="mouseover">Mouse over</option>
+									<option value="mouseenter">Mouse enter</option>
+									<option value="mouseout">Mouse out</option>
+									<option value="mouseleave">Mouse leave</option>
+									<option value="input">Input</option>
+									<option value="load">Page load</option>
+									<option value="drop">Drop</option>
+									<option value="copy">Copy</option>
+									<option value="cut">Cut</option>
+									<option value="paste">Paste</option>
+									<option value="offline">Offline</option>
+									<option value="online">Online</option>
+									<!-- add more events here? -->
+								</select>
+								<ul class="combined-input-select-field hidden">
+									<li data-value="none">None</li>
+									<li data-value="click">Click</li>
+									<li data-value="change">Change</li>
+									<li data-value="focusout">Focus out</li>
+									<li data-value="keydown">Key down</li>
+									<li data-value="keyup">Key up</li>
+									<li data-value="keypress">Key press</li>
+									<li data-value="mousemove">Mouse move</li>
+									<li data-value="mouseover">Mouse over</li>
+									<li data-value="mouseenter">Mouse enter</li>
+									<li data-value="mouseout">Mouse out</li>
+									<li data-value="mouseleave">Mouse leave</li>
+									<li data-value="input">Input</li>
+									<li data-value="load">Page load</li>
+									<li data-value="drop">Drop</li>
+									<li data-value="copy">Copy</li>
+									<li data-value="cut">Cut</li>
+									<li data-value="paste">Paste</li>
+									<li data-value="offline">Offline</li>
+									<li data-value="online">Online</li>
+									<!-- add more events here? -->
+								</ul>
+							</div>
 						</div>
+
 
 						<div class="hidden em-event-element em-event-any">
 							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
@@ -3903,11 +4246,6 @@ let _Pages = {
 									<option value="reset-password">Reset password</option>
 								</optgroup>
 							</select>
-						</div>
-
-						<div class="hidden em-event-element em-event-custom">
-							<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
-							<input type="text" id="custom-event-input">
 						</div>
 
 						<div class="hidden em-event-element em-action-custom">
@@ -3960,7 +4298,7 @@ let _Pages = {
 
 						<div class="hidden options-method em-action-element em-action-method">
 							<div>
-								<label class="block mb-2" for="method-name-input">Name of method to execute</label>
+								<label class="block mb-2" for="method-name-input" data-comment="Enter name of an User-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
 								<input type="text" id="method-name-input">
 							</div>
 						</div>
@@ -3982,9 +4320,33 @@ let _Pages = {
 								<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
 								<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
 							</h3>
-
 							<div class="em-parameter-mappings-container"></div>
 
+						</div>
+						
+						<div class="col-span-2 hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
+							<h3>Dialog Settings</h3>
+							<div class="grid grid-cols-2 gap-8">
+							
+								<div>
+									<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
+		
+									<select class="select2" id="dialog-select">
+										<option value="none">None</option>
+										<option value="okcancel">Confirm Dialog (window.confirm)</option>
+									</select>
+								</div>
+
+								<div class="dialog-input-field-group hidden">
+									<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
+									<input type="text" id="dialog-title">
+						
+									<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
+									<input type="text" id="dialog-text">
+								</div>
+
+								
+							</div>
 						</div>
 
 						<div class="col-span-2 hidden em-action-element em-action-any">
@@ -4001,6 +4363,11 @@ let _Pages = {
 										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
 										<option value="fire-event">Raise a custom event</option>
 									</select>
+								</div>
+								
+								<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
+									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
 								</div>
 
 								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
@@ -4038,6 +4405,11 @@ let _Pages = {
 										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
 										<option value="fire-event">Raise a custom event</option>
 									</select>
+								</div>
+								
+								<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
+									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
 								</div>
 
 								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
@@ -4179,20 +4551,20 @@ let _Pages = {
 							<option value="page-param">Request parameter for page</option>
 							<option value="pagesize-param">Request parameter for page size</option>
 							<option value="constant-value">Constant value</option>
-							<option value="script-expression">Script expression</option>
+							<option value="script-expression">Eval. expression</option>
 							<option value="method-result">Result of method call</option>
 							<option value="flow-result">Result of flow</option>
 						</select>
 					</div>
 
 					<div class="hidden em-parameter-value parameter-constant-value">
-						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
+						<label class="block mb-2" data-comment="Enter a constant value. By default it is interpreted as a string.<br><br>To pass a proper JS object, <code>json({ key: &quot;value&quot;})</code> can be used.<br>To pass the complete dataTransfer object from the mouse event, <code>data()</code> can be used.">Value (constant)</label>
 						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
 					</div>
 
 					<div class="hidden em-parameter-value parameter-script-expression">
-						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
-						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
+						<label class="block mb-2" data-comment="This is mixed-mode content. Plain text and scripting expressions can be mixed. The content will be evaluated and scripts will be processed. The result is passed as parameter value.<br><br>Examples:<br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>\${me.isAdmin}</code> <br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>Hello \${me.name}!</code>">Value expression</label>
+						<input type="text" class="parameter-script-expression-input" placeholder="Eval. expression (Ex.: 'Hello \${me.name}!')" value="${config.value || ''}">
 					</div>
 
 					<div class="hidden em-parameter-value parameter-user-input">

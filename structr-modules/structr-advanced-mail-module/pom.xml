@@ -16,7 +16,7 @@
 			<artifactId>structr-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

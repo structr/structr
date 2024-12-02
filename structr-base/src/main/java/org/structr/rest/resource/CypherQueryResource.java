@@ -19,11 +19,9 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -34,110 +32,109 @@ import org.structr.rest.exception.NotFoundException;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  */
-public class CypherQueryResource extends Resource {
+public class CypherQueryResource extends ExactMatchEndpoint {
+
+	public CypherQueryResource() {
+		super(RESTParameter.forStaticString("cypher", true));
+	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new CypherResourceHandler(call);
+	}
 
-		if ("cypher".equals(part)) {
+	private class CypherResourceHandler extends RESTCallHandler {
 
+		public CypherResourceHandler(final RESTCall call) {
+			super(call);
+		}
+
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			// Admins only
+			if (!securityContext.isSuperUser()) {
+
+				throw new NotAllowedException("Use of the cypher endpoint is restricted to admin users");
+
+			}
+
+			try {
+
+				Object queryObject = securityContext.getRequest().getParameter("query");
+				if (queryObject != null) {
+
+					String query                     = queryObject.toString();
+					Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, Collections.EMPTY_MAP);
+
+					return new PagingIterable<>(getURL(), resultList);
+				}
+
+			} catch (org.structr.api.NotFoundException nfe) {
+
+				throw new NotFoundException("Entity not found for the given query");
+			}
+
+			return PagingIterable.EMPTY_ITERABLE;
+		}
+
+		@Override
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+			// Admins only
+			if (!securityContext.isSuperUser()) {
+
+				throw new NotAllowedException("Use of the cypher endpoint is restricted to admin users");
+			}
+
+			try {
+
+				RestMethodResult result = new RestMethodResult(200);
+				Object queryObject      = propertySet.get("query");
+
+				if (queryObject != null) {
+
+					String query                     = queryObject.toString();
+					Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, propertySet);
+
+					for (Object obj : resultList) {
+
+						result.addContent(obj);
+					}
+
+				}
+
+				return result;
+
+			} catch (org.structr.api.NotFoundException nfe) {
+
+				throw new NotFoundException("Entity not found for the given query");
+			}
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
 			return true;
 		}
 
-		return false;
-
-	}
-
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-
-		// Admins only
-		if (!securityContext.isSuperUser()) {
-
-			throw new NotAllowedException("Use of the cypher endpoint is restricted to admin users");
-
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS", "POST");
 		}
-
-		try {
-
-			Object queryObject = securityContext.getRequest().getParameter("query");
-			if (queryObject != null) {
-
-				String query                     = queryObject.toString();
-				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, Collections.EMPTY_MAP);
-
-				return new PagingIterable<>("/" + getUriPart(), resultList);
-			}
-
-		} catch (org.structr.api.NotFoundException nfe) {
-
-			throw new NotFoundException("Entity not found for the given query");
-		}
-
-		return PagingIterable.EMPTY_ITERABLE;
-	}
-
-	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
-
-		// Admins only
-		if (!securityContext.isSuperUser()) {
-
-			throw new NotAllowedException("Use of the cypher endpoint is restricted to admin users");
-
-		}
-
-		try {
-
-			RestMethodResult result = new RestMethodResult(200);
-			Object queryObject      = propertySet.get("query");
-
-			if (queryObject != null) {
-
-				String query                     = queryObject.toString();
-				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, propertySet);
-
-				for (Object obj : resultList) {
-
-					result.addContent(obj);
-				}
-
-			}
-
-			return result;
-
-		} catch (org.structr.api.NotFoundException nfe) {
-
-			throw new NotFoundException("Entity not found for the given query");
-		}
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public String getUriPart() {
-		return "cypher";
-	}
-
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
-
-	@Override
-	public String getResourceSignature() {
-		return "cypher";
-	}
-
-	@Override
-	public boolean isCollectionResource() throws FrameworkException {
-		return true;
 	}
 }

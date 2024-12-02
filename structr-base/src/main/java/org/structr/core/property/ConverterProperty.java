@@ -37,6 +37,7 @@ import java.util.Map;
  *
  *
  */
+@Deprecated
 public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConverterProperty.class.getName());

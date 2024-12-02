@@ -20,23 +20,24 @@ package org.structr.media;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.JsonInput;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+import org.structr.media.relationship.VideoFileHAS_CONVERTED_VIDEOVideoFile;
+import org.structr.media.relationship.VideoFileHAS_POSTER_IMAGEImage;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Image;
 
 import java.net.URI;
 import java.util.LinkedHashMap;
@@ -48,6 +49,13 @@ import java.util.Map.Entry;
  * A video whose binary data will be stored on disk.
  */
 public interface VideoFile extends File {
+
+	Property<Iterable<VideoFile>> convertedVideosProperty = new EndNodes<>("convertedVideos", VideoFileHAS_CONVERTED_VIDEOVideoFile.class).partOfBuiltInSchema();
+	Property<Image> posterImageProperty                   = new EndNode<>("posterImage", VideoFileHAS_POSTER_IMAGEImage.class).partOfBuiltInSchema();
+	Property<VideoFile> originalVideoProperty             = new StartNode<>("originalVideo", VideoFileHAS_CONVERTED_VIDEOVideoFile.class).partOfBuiltInSchema();
+
+	View defaultView = new View(VideoFile.class, PropertyView.Public, convertedVideosProperty, parentProperty, posterImageProperty);
+	View uiView      = new View(VideoFile.class, PropertyView.Ui,     convertedVideosProperty, originalVideoProperty, posterImageProperty);
 
 	static class Impl { static {
 
@@ -66,10 +74,10 @@ public interface VideoFile extends File {
 		type.addStringProperty("audioCodecName", PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("audioCodec",     PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("audioChannels", PropertyView.Public, PropertyView.Ui);
-		type.addNumberProperty("sampleRate",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addNumberProperty("duration",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addNumberProperty("sampleRate",     PropertyView.Public, PropertyView.Ui);
+		type.addNumberProperty("duration",       PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui);
 
 		type.overrideMethod("onCreation",      true,  "updateVideoInfo(arg0);");
 		type.overrideMethod("onModification",  true,  "updateVideoInfo(arg0);");
@@ -117,9 +125,6 @@ public interface VideoFile extends File {
 			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
-
-		type.relate(type, "HAS_CONVERTED_VIDEO", Cardinality.OneToMany, "originalVideo",      "convertedVideos").setCascadingDelete(Cascade.sourceToTarget);
-		type.relate(img,  "HAS_POSTER_IMAGE",    Cardinality.OneToOne,  "posterImageOfVideo", "posterImage").setCascadingDelete(Cascade.sourceToTarget);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "parent");

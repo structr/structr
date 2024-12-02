@@ -165,6 +165,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 		final ManyEndpoint<T> endpoint = relation.getTarget();
 
+		if (updateCallback != null) {
+			updateCallback.notifyUpdated(obj, collection);
+		}
+
 		return endpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 
@@ -328,7 +332,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 				if (destType == null) {
 
 					final Map<String, Class> interfaces = configuration.getInterfaces();
-					destType = interfaces.get(AbstractNode.class.getName());
+					destType = interfaces.get(AbstractNode.class.getSimpleName());
 				}
 			}
 

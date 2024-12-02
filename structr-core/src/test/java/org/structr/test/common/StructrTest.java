@@ -33,7 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -49,6 +49,11 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.schema.action.EvaluationHints;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -126,23 +131,6 @@ public class StructrTest {
 	@BeforeClass(alwaysRun = true)
 	public void startSystem(@Optional String testDatabaseConnection) {
 
-		final Set<String> htmlTypes = Set.of(
-			"A", "Abbr", "Address", "Area", "Article", "Aside", "Audio", "B", "Base", "Bdi", "Bdo", "Blockquote", "Body", "Br", "Button", "Canvas", "Caption", "Cdata", "Cite", "Code",
-			"Col", "Colgroup", "Command", "Comment", "Component", "Content", "ContentContainer", "ContentItem", "CssDeclaration", "CssRule", "CssSelector", "CssSemanticClass","Data",
-			"Datalist", "Dd", "Del", "Details", "Dfn", "Dialog", "Div", "Dl", "Dt", "Em", "Embed", "Fieldset", "Figcaption", "Figure", "Footer", "Form", "G", "H1", "H2", "H3", "H4",
-			"H5", "H6", "Head", "Header", "Hgroup", "Hr", "Html", "I", "Iframe", "Img", "Input", "Ins", "Kbd", "Keygen", "Label", "Legend", "Li", "Link", "Main", "Map", "Mark", "Menu",
-			"Meta", "Meter", "Nav", "Noscript", "Object", "Ol", "Optgroup", "Option", "Output", "P", "Param", "Person", "Picture", "Pre", "Progress", "Q", "Rp", "Rt", "Ruby", "S","Samp",
-			"Script", "Section", "Select", "Slot", "Small", "Source", "Span", "Strong", "Style", "Sub", "Summary", "Sup", "Table", "Tbody", "Td", "Template", "TemplateElement", "Textarea",
-			"Tfoot", "Th", "Thead", "Time", "Title", "Tr", "Track", "U", "Ul", "Var", "Video", "Wbr", "Widget"
-		);
-		final Set<String> uiTypes = Set.of(
-			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
-			"JavaScriptSource", "LinkSource", "Linkable", "Page", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
-		);
-
-		SchemaService.getBlacklist().addAll(htmlTypes);
-		SchemaService.getBlacklist().addAll(uiTypes);
-
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
 
@@ -161,8 +149,6 @@ public class StructrTest {
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
-
-		//Settings.CypherDebugLogging.setValue(true);
 
 		final Services services = Services.getInstance();
 
@@ -310,11 +296,11 @@ public class StructrTest {
 		}
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final Principal owner) throws FrameworkException {
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PrincipalInterface owner) throws FrameworkException {
 		return (T)createTestNode(type, new PropertyMap(), owner);
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final Principal owner) throws FrameworkException {
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final PrincipalInterface owner) throws FrameworkException {
 
 		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
 
@@ -439,5 +425,22 @@ public class StructrTest {
 
 			onTimeout.run();
 		}
+	}
+
+	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+
+		final AbstractMethod method = Methods.resolveMethod(node.getClass(), methodName);
+		if (method != null) {
+
+			hints.reportExistingKey(methodName);
+
+			return method.execute(securityContext, node, Arguments.fromMap(parameters), new EvaluationHints());
+		}
+
+		if (throwIfNotExists) {
+			throw new FrameworkException(400, "Method " + methodName + " not found in type " + node.getType());
+		}
+
+		return null;
 	}
 }

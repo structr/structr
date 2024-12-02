@@ -45,7 +45,7 @@ public class UuidProperty extends StringProperty {
 		writeOnce();
 		unique(true);
 		notNull(true);
-
+		nodeIndexOnly();
 	}
 
 	@Override

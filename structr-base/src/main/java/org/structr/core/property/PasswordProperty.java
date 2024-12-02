@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.CreationContainer;
 
 import java.util.Date;
@@ -81,46 +81,46 @@ public class PasswordProperty extends StringProperty {
 
 				if (minLength > 0 && clearTextPassword.length() < minLength) {
 
-					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey, minLength));
+					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey.jsonName(), minLength));
 				}
 			}
-			
-					
+
+
 			if (obj instanceof CreationContainer) {
 
 				wrappedObject = ((CreationContainer)obj).getWrappedObject();
 
-				if (wrappedObject != null && wrappedObject instanceof Principal) {
+				if (wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
 
-					final Principal principal   = (Principal)wrappedObject;
-					final String oldSalt        = Principal.getSalt(principal);
-					final String oldEncPassword = Principal.getEncryptedPassword(principal);
+					final PrincipalInterface principal   = (PrincipalInterface)wrappedObject;
+					final String oldSalt        = principal.getSalt();
+					final String oldEncPassword = principal.getEncryptedPassword();
 
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
 					if (passwordChangedOrFirstPassword) {
 
-						obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
+						obj.setProperty(StructrApp.key(PrincipalInterface.class, "passwordChangeDate"), new Date().getTime());
 					}
 				}
 			}
 
 			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
+			obj.setProperty(StructrApp.key(PrincipalInterface.class, "salt"), salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
-			
-			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-				wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+
+			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
+				wrappedObject.removeProperty(StructrApp.key(PrincipalInterface.class, "sessionIds"));
 			}
 
 		} else {
 
 			returnValue = super.setProperty(securityContext, obj, null);
 		}
-		
-		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-			wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+
+		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
+			wrappedObject.removeProperty(StructrApp.key(PrincipalInterface.class, "sessionIds"));
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {
@@ -134,7 +134,6 @@ public class PasswordProperty extends StringProperty {
 
 		final String passwordToCheck  = clearTextPassword == null ? "" : clearTextPassword;
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
-		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
 
 		final int passwordMinLength             = Settings.PasswordComplexityMinLength.getValue();
 		final boolean enforceMinUpperCase       = Settings.PasswordComplexityRequireUpperCase.getValue();
@@ -153,23 +152,23 @@ public class PasswordProperty extends StringProperty {
 		final int otherCharactersInPassword     = (passwordLength - upperCaseCharactersInPassword - lowerCaseCharactersInPassword - digitsInPassword);
 
 		if (passwordLength < passwordMinLength) {
-			errorBuffer.add(new TooShortToken("User", passwordKey, passwordMinLength));
+			errorBuffer.add(new TooShortToken("User", "password", passwordMinLength));
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_uppercase"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_lowercase"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_lowercase"));
 		}
 
 		if (enforceMinDigits && digitsInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_digits"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_digits"));
 		}
 
 		if (enforceMinNonAlphaNumeric && otherCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_non_alpha_numeric"));
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_non_alpha_numeric"));
 		}
 
 		if (errorBuffer.hasError()) {

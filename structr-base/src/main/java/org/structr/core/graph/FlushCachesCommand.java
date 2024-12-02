@@ -20,15 +20,15 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.function.LocalizeFunction;
+import org.structr.core.property.FunctionProperty;
 import org.structr.schema.action.Actions;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.util.Map;
 
@@ -48,21 +48,13 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	public static void flushAll() {
 
-		final Map<String, NodeService> services = Services.getInstance().getServices(NodeService.class);
-		if (services != null) {
-
-			for (final NodeService service : services.values()) {
-
-				final DatabaseService db = service.getDatabaseService();
-				db.clearCaches();
-			}
-		}
-
 		ResourceAccess.clearCache();
 		Actions.clearCache();
+		FunctionProperty.clearCache();
 		AccessPathCache.invalidate();
 		LocalizeFunction.invalidateCache();
 		AbstractSchemaNode.clearCachedSchemaMethods();
+		TransactionCommand.flushCaches();
 
 		StructrApp.getInstance().invalidateCache();
 	}

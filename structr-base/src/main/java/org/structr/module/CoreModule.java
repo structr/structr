@@ -38,6 +38,7 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
+		Functions.put(licenseManager, new RollbackTransactionFunction());
 		Functions.put(licenseManager, new RemoteCypherFunction());
 		Functions.put(licenseManager, new CypherFunction());
 		Functions.put(licenseManager, new MD5Function());
@@ -149,6 +150,9 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new HMACFunction());
 		Functions.put(licenseManager, new OneFunction());
 		Functions.put(licenseManager, new HashFunction());
+		Functions.put(licenseManager, new PrefetchFunction());
+		Functions.put(licenseManager, new AddLabelsFunction());
+		Functions.put(licenseManager, new RemoveLabelsFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());

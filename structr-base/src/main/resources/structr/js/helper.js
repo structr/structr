@@ -331,7 +331,7 @@ let _Helpers = {
 		}
 		return result;
 	},
-	formatBytes: (a, b= 2) => {
+	formatBytes: (a, b = 2) => {
 
 		const sizes = ["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"];
 
@@ -543,6 +543,16 @@ let _Helpers = {
 
 		return dummy.children;
 	},
+	addClasses: (nodeList, classList) => {
+		for (let node of nodeList) {
+			node.classList.add(classList);
+		}
+	},
+	removeClasses: (nodeList, classList) => {
+		for (let node of nodeList) {
+			node.classList.remove(classList);
+		}
+	},
 
 	disableElement: (btn) => {
 		btn.classList.add('disabled');
@@ -633,7 +643,11 @@ let _Helpers = {
 			e.stopPropagation();
 			e.preventDefault();
 		});
-	}
+	},
+	createRandomName: (type = 'object') => `New ${type} ${Math.floor(Math.random() * (999999 - 1))}`,
+	getCSSClassForKey: (key) => {
+		return '___' + key.replace(/\s/g, '_whitespace_');
+	},
 };
 
 /**

@@ -41,7 +41,7 @@ public class ScriptTestHelper {
 			final String script = IOUtils.toString(is, "utf-8");
 			if (script != null) {
 
-				return Scripting.evaluateJavascript(actionContext, null, new Snippet("test", script));
+				return Scripting.evaluateScript(actionContext, null, "js", new Snippet("test", script));
 			}
 
 		} catch (IOException ioex) {

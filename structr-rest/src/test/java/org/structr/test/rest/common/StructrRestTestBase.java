@@ -38,9 +38,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
+import org.structr.web.entity.User;
 import org.testng.annotations.Optional;
 import org.testng.annotations.*;
 
@@ -74,24 +74,6 @@ public abstract class StructrRestTestBase {
 	@BeforeClass(alwaysRun = true)
 	public void setup(@Optional String testDatabaseConnection) {
 
-		final Set<String> htmlTypes = Set.of(
-			"A", "Abbr", "Address", "Area", "Article", "Aside", "Audio", "B", "Base", "Bdi", "Bdo", "Blockquote", "Body", "Br", "Button", "Canvas", "Caption", "Cdata", "Cite", "Code",
-			"Col", "Colgroup", "Command", "Comment", "Component", "Content", "ContentContainer", "ContentItem", "CssDeclaration", "CssRule", "CssSelector", "CssSemanticClass","Data",
-			"Datalist", "Dd", "Del", "Details", "Dfn", "Dialog", "Div", "Dl", "Dt", "Em", "Embed", "Fieldset", "Figcaption", "Figure", "Footer", "Form", "G", "H1", "H2", "H3", "H4",
-			"H5", "H6", "Head", "Header", "Hgroup", "Hr", "Html", "I", "Iframe", "Img", "Input", "Ins", "Kbd", "Keygen", "Label", "Legend", "Li", "Link", "Main", "Map", "Mark", "Menu",
-			"Meta", "Meter", "Nav", "Noscript", "Object", "Ol", "Optgroup", "Option", "Output", "P", "Param", "Picture", "Pre", "Progress", "Q", "Rp", "Rt", "Ruby", "S","Samp",
-			"Script", "Section", "Select", "Slot", "Small", "Source", "Span", "Strong", "Style", "Sub", "Summary", "Sup", "Table", "Tbody", "Td", "Template", "TemplateElement", "Textarea",
-			"Tfoot", "Th", "Thead", "Time", "Title", "Tr", "Track", "U", "Ul", "Var", "Video", "Wbr", "Widget"
-		);
-
-		final Set<String> uiTypes = Set.of(
-			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
-			"JavaScriptSource", "LinkSource", "Linkable", "Page", "ParameterMapping", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
-		);
-
-		SchemaService.getBlacklist().addAll(htmlTypes);
-		SchemaService.getBlacklist().addAll(uiTypes);
-
 		final long timestamp = System.nanoTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
@@ -112,11 +94,9 @@ public abstract class StructrRestTestBase {
 
 		Settings.Servlets.setValue("JsonRestServlet OpenAPIServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.OpenAPIResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
 
@@ -294,6 +274,8 @@ public abstract class StructrRestTestBase {
 	}
 
 	protected String createEntity(String resource, String... body) {
+		
+		RestAssured.basePath = "/structr/rest";
 
 		StringBuilder buf = new StringBuilder();
 
@@ -307,6 +289,21 @@ public abstract class StructrRestTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
+
+	protected Map<String, Object> generalPurposePostMethod(final String resource, final String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(buf.toString())
+			.when().post(resource).getBody().as(Map.class);
 	}
 
 	protected String concat(String... parts) {
@@ -362,7 +359,7 @@ public abstract class StructrRestTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("TestUser");
 
-			type.setExtends(URI.create("#/definitions/Principal"));
+			type.setExtends(User.class);
 			type.overrideMethod("onCreate", true, "set(this, 'name', concat('test', now));");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);

@@ -45,7 +45,7 @@ import java.util.Map;
  */
 public class ListLocalizationsCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(ListActiveElementsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListLocalizationsCommand.class.getName());
 
 	static {
 
@@ -112,7 +112,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 					}
 				}
 
-				Page.render(page, rCtx, 0);
+				page.render(rCtx, 0);
 
 				final List<GraphObjectMap> result = rCtx.getContextStore().getRequestedLocalizations();
 

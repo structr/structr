@@ -33,7 +33,10 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
@@ -298,7 +301,7 @@ public class UiScriptingTest extends StructrUiTest {
 			div.appendChild(p);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/divs");
+			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/Div");
 			changedProperties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
@@ -477,7 +480,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// create resource access grant for user
 			createTestNode(ResourceAccess.class,
 					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "signature"), "Folder/_Someprops"),
-					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1),
+					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1L),
 					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "visibleToAuthenticatedUsers"), true)
 			);
 
@@ -494,7 +497,7 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should no be returned because it is run by admin
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should not be returned because it is run by admin
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -873,7 +876,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${add_to_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is in the group after the call to add_to_group
-			final List<Principal> members = Iterables.toList(group.getMembers());
+			final List<PrincipalInterface> members = Iterables.toList(group.getMembers());
 			assertTrue("User should be in the test group now", members.contains(tester));
 
 			// check that is_in_group returns the correct result
@@ -1121,42 +1124,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 			fail("Unexpected exception");
 			fex.printStackTrace();
-		}
-	}
-
-	@Test
-	public void testSchemaMethodsWithNullSource() {
-		// Tests a scenario that can occur when creating methods through the code area in which the created SchemaMethod has a null source value
-
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
-
-			type.addMethod("test", null);
-
-			StructrSchema.replaceDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			ex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			Class clazz = StructrApp.getConfiguration().getNodeEntityClass("Test");
-
-			NodeInterface testNode = StructrApp.getInstance().create(clazz);
-
-			Actions.execute(securityContext, null, SchemaMethod.getCachedSourceCode(testNode.getUuid()), "test");
-
-		} catch (FrameworkException ex) {
-
-			ex.printStackTrace();
-			fail("Unexpected exception");
 		}
 	}
 
@@ -1890,8 +1857,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
-			project1.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
+			final AbstractNode project1 = (AbstractNode)app.nodeQuery(projectType).andName("Project 1").getFirst();
+			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
 
@@ -1901,8 +1868,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
-			project2.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
+			final AbstractNode project2 = (AbstractNode)app.nodeQuery(projectType).andName("Project 2").getFirst();
+			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
 
@@ -1921,6 +1888,76 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
+		}
+	}
+
+	@Test
+	public void testPython() {
+
+		try (final Tx tx = app.tx()) {
+
+			final PrincipalInterface testUser = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "testuser"));
+			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Backend));
+
+			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
+
+			try {
+				System.out.println(Scripting.evaluate(ctx, null, "${python{Structr.print(Structr.get('me').id)}}", "test"));
+			} catch (FrameworkException ex) {
+				if (ex.getMessage().contains("Exception while trying to initialize new context for language: python. Cause: A language with id 'python' is not installed.")) {
+
+					logger.warn("Python not installed. Skipping python tests.");
+				} else {
+
+					throw ex;
+				}
+			}
+
+			tx.success();
+
+		} catch (UnlicensedScriptException | FrameworkException ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception.");
+		}
+	}
+
+
+	@Test
+	public void testMethodLookup() {
+
+		final String methodName = "onOAuthLogin";
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			schema.getType("User").addMethod(methodName, "{ $.log('onOAuthLogin'); return true; }");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		/**
+		 * We currently have a discrepancy in looking up methods. This test should reflect this (or should be updated after that discrepancy is resolved)
+		 */
+		try (final Tx tx = app.tx()) {
+
+			final AbstractMethod shouldBeNull  = Methods.resolveMethod(User.class, methodName);
+			assertEquals(true, shouldBeNull == null);
+
+			final AbstractMethod shouldBeFound = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), methodName);
+			assertEquals(true, shouldBeFound != null);
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

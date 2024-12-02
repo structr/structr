@@ -62,6 +62,10 @@ export class Frontend {
 				continue;
 			}
 
+            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
+				continue;
+            }
+
 			resolved[key] = this.resolveValue(key, value, data, event, target);
 
 		}
@@ -255,7 +259,7 @@ export class Frontend {
 
 	async handleNotifications(element, parameter, status, options) {
 
-		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth;
+		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth, delay;
 		let id = element.dataset.structrId;
 		const success = this.isSuccess(status);
 
@@ -263,6 +267,8 @@ export class Frontend {
 			mode = element.dataset.structrSuccessNotifications;
 			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : ')');
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
+			delay = element.dataset.structrSuccessNotificationsDelay;
+
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
 				elementWithError.style.borderColor = inputElementBorderColor || '';
 				elementWithError.style.borderWidth = inputElementBorderWidth || '';
@@ -271,6 +277,7 @@ export class Frontend {
 			mode = element.dataset.structrFailureNotifications;
 			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : ')');
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
+			delay = element.dataset.structrFailureNotificationsDelay;
 
 			if (parameter?.errors?.length) {
 				for (const error of parameter.errors) {
@@ -304,7 +311,7 @@ export class Frontend {
 				window.setTimeout(() => {
 					let notificationElement = document.getElementById('notification-for-' + id);
 					if (notificationElement) { notificationElement.remove(); }
-				}, 5000);
+				}, delay);
 				break;
 
 			case 'custom-dialog':
@@ -335,6 +342,11 @@ export class Frontend {
 				}
 				break;
 
+			case 'fire-event':
+				let event = success ? element.dataset.structrSuccessNotificationsEvent : element.dataset.structrFailureNotificationsEvent;
+				element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameter, status: status, element: element } }));
+				break;
+
 			case 'none':
 			default:
 				// Default is do nothing
@@ -348,7 +360,7 @@ export class Frontend {
 
 		if (success && element.dataset.structrSuccessTarget) {
 
-			let successTargets = element.dataset.structrReloadTarget;
+			let successTargets = element.dataset.structrSuccessTarget;
 
 			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
@@ -492,8 +504,8 @@ export class Frontend {
 
 		for (let container of reloadTargets) {
 
-			let data = container.dataset;
-			let id   = data.structrId;
+			let dataset = container.dataset;
+			let id   = dataset.structrId;
 
 			if (!id) {
 
@@ -516,13 +528,13 @@ export class Frontend {
 				}).then(data => {
 					if (data.result && data.result[0]) {
 						let id = data.result[0].id;
-						this.replacePartial(container, id, element, data, parameters, dontRebind);
+						this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 					}
 				});
 
 			} else {
 
-				this.replacePartial(container, id, element, data, parameters, dontRebind);
+				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 			}
 
 		}
@@ -770,6 +782,17 @@ export class Frontend {
 
 		} else if (id) {
 
+
+			// Dialog
+			if(data.structrDialogType === 'okcancel') {
+
+				let dialogMessage = data.structrDialogTitle + '\n\n' + data.structrDialogText;
+				if(!window.confirm(dialogMessage)) {
+					return; // Exit on 'Cancel' doHandleGenericEvent without fire main Event
+				}
+
+			}
+
 			this.fireEvent('start', { target: target, data: data, event: event });
 
 			// server-side
@@ -805,7 +828,7 @@ export class Frontend {
 		//let target       = event.target;
 		let data         = target.dataset;
 		let selector     = data.structrTarget;
-		let reloadTarget = data.structrReloadTarget;
+		let reloadTarget = data.structrSuccessTargets;
 
 		if (!selector) {
 			console.log('Selector not found: ' + selector);

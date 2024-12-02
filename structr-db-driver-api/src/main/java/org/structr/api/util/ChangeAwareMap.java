@@ -30,61 +30,61 @@ import java.util.Set;
  */
 public class ChangeAwareMap {
 
-	private final Map<String, Object> data = new LinkedHashMap<>();
-	private final Set<String> modifiedKeys = new LinkedHashSet<>();
+        private final Map<String, Object> data = new LinkedHashMap<>();
+        private final Set<String> modifiedKeys = new LinkedHashSet<>();
 
-	public ChangeAwareMap() {
-	}
+        public ChangeAwareMap() {
+        }
 
-	public ChangeAwareMap(final Map<String, Object> initialData) {
-		data.putAll(initialData);
-	}
+        public ChangeAwareMap(final Map<String, Object> initialData) {
+                data.putAll(initialData);
+        }
 
-	public ChangeAwareMap(final ChangeAwareMap initialData) {
-		data.putAll(initialData.data);
-	}
+        public ChangeAwareMap(final ChangeAwareMap initialData) {
+                data.putAll(initialData.data);
+        }
 
-	public void putAll(final Map<String, Object> input) {
+        public void putAll(final Map<String, Object> input) {
 
-		for (final Entry<String, Object> entry : input.entrySet()) {
+                for (final Entry<String, Object> entry : input.entrySet()) {
 
-			final String key   = entry.getKey();
-			final Object value = entry.getValue();
+                        final String key   = entry.getKey();
+                        final Object value = entry.getValue();
 
-			put(key, value);
-		}
-	}
+                        put(key, value);
+                }
+        }
 
-	public boolean containsKey(final String key) {
-		return data.containsKey(key);
-	}
+        public boolean containsKey(final String key) {
+                return data.containsKey(key);
+        }
 
-	public Object get(final String key) {
-		return data.get(key);
-	}
+        public Object get(final String key) {
+                return data.get(key);
+        }
 
-	public Object put(final String key, final Object value) {
-		modifiedKeys.add(key);
-		return data.put(key, value);
-	}
+        public Object put(final String key, final Object value) {
+                modifiedKeys.add(key);
+                return data.put(key, value);
+        }
 
-	public Set<String> keySet() {
-		return data.keySet();
-	}
+        public Set<String> keySet() {
+                return data.keySet();
+        }
 
-	public Set<String> getModifiedKeys() {
-		return modifiedKeys;
-	}
+        public Set<String> getModifiedKeys() {
+                return modifiedKeys;
+        }
 
-	public Object remove(final String key) {
-		return data.remove(key);
-	}
+        public Object remove(final String key) {
+                return data.remove(key);
+        }
 
-	public int size() {
-		return data.size();
-	}
+        public int size() {
+                return data.size();
+        }
 
-	public Set<Entry<String, Object>> entrySet() {
-		return data.entrySet();
-	}
+        public Set<Entry<String, Object>> entrySet() {
+                return data.entrySet();
+        }
 }

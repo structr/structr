@@ -131,7 +131,7 @@ public abstract class AbstractCommand {
 			} else {
 
 				if (nodeId == null) {
-					logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
+					logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				}
 
 				final AbstractRelationship rel = getRelationship(id, nodeId);
@@ -180,9 +180,6 @@ public abstract class AbstractCommand {
 	 * with the given nodeId and filtering the relationships.
 	 *
 	 * This avoids the performance issues of getRelationshipById due to missing index support.
-	 *
-	 * If nodeId is null, the method falls back to {@link getRelationship(id)}.
-	 *
 	 *
 	 * @param id
 	 * @param nodeId

@@ -48,7 +48,7 @@ public abstract class AdminConsoleCommand {
 
 			try {
 
-				return cls.newInstance();
+				return cls.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable t) {}
 		}

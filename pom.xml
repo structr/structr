@@ -45,25 +45,26 @@
 	</prerequisites>
 
 	<properties>
-		<java.version>17</java.version>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<java.version>21</java.version>
+		<maven.compiler.source>18</maven.compiler.source>
+		<maven.compiler.target>18</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:4.4</test.neo4j.version>
+		<test.neo4j.version>neo4j:5.16</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
+		<maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 		<tika.version>2.9.1</tika.version>
+		<pulsar.version>3.2.0</pulsar.version>
 	</properties>
 
 	<modules>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
 		<module>structr-memory-driver</module>
-		<module>structr-memgraph-driver</module>
+		<!--module>structr-memgraph-driver</module-->
 		<module>structr-base</module>
 		<module>structr-core</module>
 		<module>structr-rest</module>
@@ -163,7 +164,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
-				<version>1.21</version>
+				<version>1.26.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -176,6 +177,12 @@
 				<groupId>commons-collections</groupId>
 				<artifactId>commons-collections</artifactId>
 				<version>3.2.2</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>commons-collections</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>4.4</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -301,7 +308,7 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.4.0</version>
+				<version>1.4.12</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -323,7 +330,7 @@
 			<dependency>
 				<groupId>io.rest-assured</groupId>
 				<artifactId>rest-assured</artifactId>
-				<version>5.3.0</version>
+				<version>5.4.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -372,10 +379,13 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
-					<source>17</source>
-					<target>17</target>
+					<source>18</source>
+					<target>18</target>
+					<release>18</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
+					<useModulePath>true</useModulePath>
+				 	<showDeprecation>false</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>

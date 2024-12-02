@@ -19,11 +19,13 @@
 package org.structr.test.schema;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -49,7 +51,7 @@ import static org.testng.AssertJUnit.fail;
 public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);
-	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("sourceId", "targetId", "test", "lastModifiedDate", "visibleToAuthenticatedUsers", "relType", "visibleToPublicUsers", "internalTimestamp", "type", "createdDate", "id");
+	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("test");
 	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(10);
 	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
 
@@ -358,7 +360,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 11)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -396,7 +398,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 10)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -451,7 +453,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 11)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -490,7 +492,7 @@ public class IndexManagementTest extends StructrTest {
 
 				// Note: we KNOW that the index will not be removed, so we deliberately test the
 				// wrong thing here in case it changes somehow in the future!
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 11)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -545,7 +547,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 11)) {
+				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -601,27 +603,45 @@ public class IndexManagementTest extends StructrTest {
 
 			final List<IndexInfo> infos = queryIndexes(db, entityType);
 
-			if (infos.size() == expectedEntryCount) {
+			logger.info("Index query result: {}", infos);
+
+			if (!infos.isEmpty()) {
+
+				if (infos.size() != expectedEntryCount) {
+					logger.info("Returning false because infos.size() was {} while expected count was {}", infos.size(), expectedEntryCount);
+					return false;
+				}
 
 				final IndexInfo first = infos.get(0);
 
 				if (isNode && !first.isNode()) {
+					logger.info("Returning false because first entry is not a node index and a node index was expected.");
 					return false;
 				}
 
 				if (isRelationship && !first.isRelationship()) {
+					logger.info("Returning false because first entry is not a relationship index and a relationship index was expected.");
 					return false;
 				}
 
 				if (!entityType.equals(first.getEntityType())) {
+					logger.info("Returning false because returned entity type was {} while expected type was {}", first.getEntityType(), entityType);
 					return false;
 				}
 
 				if (!propertyNames.containsAll(first.getProperties())) {
+					logger.info("Returning false because expected properties did not contain {}.", first.getProperties());
 					return false;
 				}
 
 				// important, this is the only place where the test passes
+				logger.info("Returning true, check successful.");
+				return true;
+
+			} else if (expectedEntryCount == 0) {
+
+				// expected count matches empty result
+				logger.info("Returning true, expected 0 entries and got 0 entries from index query.");
 				return true;
 			}
 
@@ -631,6 +651,7 @@ public class IndexManagementTest extends StructrTest {
 			fex.printStackTrace();
 		}
 
+		logger.info("Returning false at the end of the check method.");
 		return false;
 	}
 
@@ -644,15 +665,20 @@ public class IndexManagementTest extends StructrTest {
 
 			tx.success();
 
-			return infos.size() == expectedNumberOfIndexes;
+			final boolean result = infos.size() == expectedNumberOfIndexes;
+
+			logger.info("Index query result: {}, expected number of indexes was {}, returning {}", infos, expectedNumberOfIndexes, result );
+
+			return result;
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
+		logger.info("Returning false at the end of the check method.");
+
 		return false;
 	}
-
 
 	private List<IndexInfo> queryIndexes(final DatabaseService db, final String labelOrType) {
 
@@ -689,6 +715,11 @@ public class IndexManagementTest extends StructrTest {
 		protected String type        = null;
 		protected List<String> types = null;
 		protected List<String> props = null;
+
+		@Override
+		public String toString() {
+			return getClass().getSimpleName() + "(" + type + ", " + props + ")";
+		}
 
 		public boolean isNode() {
 			return "NODE".equals(this.type);

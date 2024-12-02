@@ -107,12 +107,8 @@ public class IncludeFunction extends UiCommunityFunction {
 			 */
 			for (final DOMNode n : nodeList) {
 
-				if (n.inTrash()) {
-					continue;
-				}
-
 				// IGNORE everything that REFERENCES a shared component!
-				if (n.getProperty(sharedCompKey) == null) {
+				if (n.getProperty(sharedCompKey) == null && !n.inTrash()) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
 					if (node == null) {
@@ -155,6 +151,8 @@ public class IncludeFunction extends UiCommunityFunction {
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node, final boolean useBuffer) throws FrameworkException {
 
 		if (node != null) {
+
+			DOMNode.prefetchDOMNodes(node.getUuid());
 
 			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
 

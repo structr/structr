@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
@@ -57,20 +58,23 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test02PUT() {
 
-		/*
-		{
-			"code": 400,
-			"message": "PUT not allowed on TestOne collection resource",
-			"errors": [
-    			]
-		}
-		*/
+		final List<String> nodeIds = createNodes(1, n -> n.getUuid());
 
-		expectNotOk(400)
-			.body("code",    Matchers.equalTo(400))
-			.body("message", Matchers.equalTo("PUT not allowed on TestOne collection resource"))
+		// test collection resource
+		expectNotOk(405)
+			.body("code",    Matchers.equalTo(405))
+			.body("message", Matchers.equalTo("PUT not allowed on ‛TestOne‛ collection resource"))
 			.when().put("/TestOne");
 
+		// test type + UUID resource
+		expectOk(200)
+			.when()
+			.put("/TestOne/" + nodeIds.get(0));
+
+		// test type + UUID resource
+		expectOk(200)
+			.when()
+			.put("/" + nodeIds.get(0));
 	}
 
 	@Test
@@ -97,7 +101,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test04DELETE() {
 
-		final List<TestOne> nodes = createNodes(100);
+		final List<String> nodeIds = createNodes(100, n -> n.getUuid());
 
 		// delete exactly one element by name
 		expectOk(200).when().delete("/TestOne?name=node055");
@@ -112,7 +116,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 		expectNotOk(200).body("result_count", Matchers.equalTo(70)).when().get("/TestOne");
 
 		// delete 18 elements
-		expectOk(200).when().delete("/" + nodes.get(0).getUuid());
+		expectOk(200).when().delete("/" + nodeIds.get(0));
 		expectNotOk(200).body("result_count", Matchers.equalTo(69)).when().get("/TestOne");
 	}
 
@@ -147,7 +151,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body(createPatchBody(ids))
 
 			.expect()
 				.statusCode(200)
@@ -197,7 +200,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body(createPatchBody(ids))
 
 			.expect()
 				.statusCode(200)
@@ -277,7 +279,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body(createPatchBody(ids))
 
 			.expect()
 				.statusCode(200)
@@ -322,6 +323,68 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.when()
 
 				.patch("/TestOne");
+	}
+
+	@Test
+	public void test05PATCHOnEntityResource() {
+
+		final String id = createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }");
+
+		// do PATCH 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").body("{ name: 'moep1', anInt: 42, aLong: 13 }")
+			.expect().statusCode(200).when().patch("/TestOne/" + id);
+
+		// check result 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result.id",       equalTo(id))
+			.body("result.name",     equalTo("moep1"))
+			.body("result.anInt",    equalTo(42))
+			.body("result.aLong",    equalTo(13))
+			.when().get("/TestOne/" + id);
+
+
+		// do PATCH 2
+		RestAssured.given().contentType("application/json; charset=UTF-8").body("[ { name: 'moep2' }, { anInt: 43 }, { aLong: 14 } ]")
+			.expect().statusCode(200).when().patch("/TestOne/" + id);
+
+		// check result 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result.id",       equalTo(id))
+			.body("result.name",     equalTo("moep2"))
+			.body("result.anInt",    equalTo(43))
+			.body("result.aLong",    equalTo(14))
+			.when().get("/TestOne/" + id);
+	}
+
+	@Test
+	public void test05PATCHOnUuidResource() {
+
+		final String id = createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }");
+
+		// do PATCH 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").body("{ name: 'moep1', anInt: 42, aLong: 13 }")
+			.expect().statusCode(200).when().patch("/TestOne/" + id);
+
+		// check result 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result.id",       equalTo(id))
+			.body("result.name",     equalTo("moep1"))
+			.body("result.anInt",    equalTo(42))
+			.body("result.aLong",    equalTo(13))
+			.when().get("/TestOne/" + id);
+
+
+		// do PATCH 2
+		RestAssured.given().contentType("application/json; charset=UTF-8").body("[ { name: 'moep2' }, { anInt: 43 }, { aLong: 14 } ]")
+			.expect().statusCode(200).when().patch("/" + id);
+
+		// check result 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result.id",       equalTo(id))
+			.body("result.name",     equalTo("moep2"))
+			.body("result.anInt",    equalTo(43))
+			.body("result.aLong",    equalTo(14))
+			.when().get("/" + id);
 	}
 
 	// ----- private methods -----
@@ -404,11 +467,15 @@ public class RestVerbsTest extends StructrRestTestBase {
 	}
 
 	private List<TestOne> createNodes(final int count) {
+		return createNodes(count, null);
+	}
+
+	private <T> List<T> createNodes(final int count, final Function<TestOne, T> mapper) {
 
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final List<TestOne> nodes = createTestNodes(TestOne.class, 100);
+			final List<TestOne> nodes = createTestNodes(TestOne.class, count);
 			int i                     = 0;
 
 			for (final TestOne node : nodes) {
@@ -416,9 +483,22 @@ public class RestVerbsTest extends StructrRestTestBase {
 				node.setProperty(AbstractNode.name, "node" + StringUtils.leftPad(Integer.toString(i++), 3, "0"));
 			}
 
+			if (mapper != null) {
+
+				final List mapped = new LinkedList<>();
+				for (final TestOne node : nodes) {
+
+					mapped.add(mapper.apply(node));
+				}
+
+				tx.success();
+
+				return mapped;
+			}
+
 			tx.success();
 
-			return nodes;
+			return (List)nodes;
 
 		} catch (FrameworkException fex) {
 

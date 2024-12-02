@@ -27,19 +27,19 @@ import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class MaintenanceModeCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-    private static final Logger logger                     = LoggerFactory.getLogger(MaintenanceModeCommand.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MaintenanceModeCommand.class.getName());
 
     static {
 
-        MaintenanceParameterResource.registerMaintenanceCommand("maintenanceMode", MaintenanceModeCommand.class);
+        MaintenanceResource.registerMaintenanceCommand("maintenanceMode", MaintenanceModeCommand.class);
     }
 
     @Override

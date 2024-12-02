@@ -33,11 +33,11 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
+	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
 
-		if (hasOptionalParts) {
+		if (query.getHasOptionalParts()) {
 
 			buf.append("OPTIONAL ");
 		}
@@ -45,7 +45,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		buf.append("MATCH (n");
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
-		if (hasPredicates) {
+		if (query.hasPredicates()) {
 			buf.append(":NodeInterface");
 		}
 
@@ -62,6 +62,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 			buf.append(":");
 			buf.append(typeLabel);
 		}
+
 
 		buf.append(")");
 
@@ -99,7 +100,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+	public Iterable<Node> getResult(final CypherQuery query) {
+		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
 	}
 }

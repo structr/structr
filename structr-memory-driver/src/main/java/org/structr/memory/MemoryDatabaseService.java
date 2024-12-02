@@ -53,18 +53,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void clearCaches() {
-	}
-
-	@Override
-	public void removeNodeFromCache(final Identity id) {
-	}
-
-	@Override
-	public void removeRelationshipFromCache(final Identity id) {
-	}
-
-	@Override
 	public void cleanDatabase() {
 
 		nodes.clear();
@@ -116,6 +104,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 		tx.create(newNode);
 
+		newNode.setProperty("type", type);
 		newNode.setProperties(properties);
 
 		return newNode;
@@ -303,6 +292,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
 		return Map.of();
+	}
+
+	@Override
+	public void flushCaches() {
 	}
 
 	// ----- graph repository methods -----

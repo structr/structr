@@ -40,9 +40,9 @@ import org.structr.common.fulltext.IndexedWord;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Person;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
@@ -89,6 +89,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 				for (int i=0; i<3; i++) {
 
 					try (final Tx tx = app.tx(true, false, false)) {
+
+						SearchCommand.prefetch(Indexable.class, indexableId);
 
 						final Indexable indexable = app.nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
 						if (indexable != null) {
@@ -173,7 +175,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 							tokenizer.write(getName());
 
 							// tokenize owner name
-							final Principal _owner = indexable.getOwnerNode();
+							final PrincipalInterface _owner = indexable.getOwnerNode();
 							if (_owner != null) {
 
 								final String ownerName = _owner.getName();

@@ -106,12 +106,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 			}
 		}
 
-		for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-
-			parameterMap.computeIfAbsent(entry.getKey(), k -> entry.getValue());
-		}
-
-
 		return parameterMap;
 	}
 
@@ -182,7 +176,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String getRealPath(String s) {
-		return request.getRealPath(s);
+		return request.getServletContext().getRealPath(s);
 	}
 
 	@Override

@@ -52,6 +52,8 @@ public abstract class NodeServiceCommand extends Command {
 	protected SecurityContext securityContext         = null;
 	private Writable logWritable                      = null;
 
+	protected NodeServiceCommand() { }
+
 	public Map<String, String> getCustomHeaders () {
 		return customHeaders;
 	}
@@ -321,7 +323,9 @@ public abstract class NodeServiceCommand extends Command {
 	// create uuid producer that fills the queue
 	static {
 
-		boolean replaceDashes = Settings.UUIDv4CreateCompact.getValue();
+		boolean createCompactUUIDsSettings = Settings.UUIDv4CreateCompact.getValue();
+		final String configuredUUIDFormat  = Settings.UUIDv4AllowedFormats.getValue();
+		boolean replaceDashes              = Settings.POSSIBLE_UUID_V4_FORMATS.without_dashes.toString().equals(configuredUUIDFormat) || (Settings.POSSIBLE_UUID_V4_FORMATS.both.toString().equals(configuredUUIDFormat) && createCompactUUIDsSettings);
 
 		Thread uuidProducer = new Thread(new Runnable() {
 

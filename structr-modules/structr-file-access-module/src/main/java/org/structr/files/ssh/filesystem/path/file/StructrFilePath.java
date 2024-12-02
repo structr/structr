@@ -277,17 +277,17 @@ public class StructrFilePath extends StructrPath {
 
 		if (target instanceof StructrFilePath) {
 
-			final App app                       = StructrApp.getInstance(fs.getSecurityContext());
-			final StructrFilePath other    = (StructrFilePath)target;
-			final AbstractFile otherFile        = other.getActualFile();
-			final AbstractFile thisFile         = getActualFile();
-			final String targetName             = target.getFileName().toString();
+			final App app                = StructrApp.getInstance(fs.getSecurityContext());
+			final StructrFilePath other  = (StructrFilePath)target;
+			final AbstractFile otherFile = other.getActualFile();
+			final AbstractFile thisFile  = getActualFile();
+			final String targetName      = target.getFileName().toString();
 
 			try (final Tx tx = app.tx()) {
 
 				final Path otherParent = other.getParent();
 
-				if (otherParent instanceof StructrFilesPath) {
+				if (otherParent instanceof StructrFilesRootPath) {
 
 					// rename & move (parent is null: root path)
 					thisFile.setParent(null);
@@ -324,7 +324,7 @@ public class StructrFilePath extends StructrPath {
 
 	public AbstractFile getActualFile() {
 
-		final String filePath = toString().substring(StructrPath.FILES_DIRECTORY.length() + 1);
+		final String filePath = toString();
 		final App app         = StructrApp.getInstance(fs.getSecurityContext());
 
 		try (final Tx tx = app.tx()) {

@@ -25,6 +25,14 @@ let _Entities = {
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', ' script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	null_prefix: 'null_attr_',
 	collectionPropertiesResultCount: {},
+	exampleShowHideConditions: [
+		{ value: '', text: '(none)' },
+		{ value: 'true' },
+		{ value: 'false' },
+		{ value: 'me.isAdmin' },
+		{ value: 'empty(current)' },
+		{ value: 'not(empty(current))' }
+	],
 	changeBooleanAttribute: (attrElement, value, activeLabel, inactiveLabel) => {
 
 		if (value === true) {
@@ -104,7 +112,6 @@ let _Entities = {
 		let queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
-//			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 
@@ -222,19 +229,14 @@ let _Entities = {
 				}
 				e.target.classList.add('active');
 
-				let queryType = e.target.dataset['queryType'];
+				let queryType   = e.target.dataset['queryType'];
+				let isFlowQuery = (queryType === 'flow');
 
-				if (queryType === 'flow') {
+				saveQueryButton.classList.toggle('hidden', isFlowQuery);
+				queryTextElement.classList.toggle('hidden', isFlowQuery);
+				flowSelector.classList.toggle('hidden', !isFlowQuery);
 
-					saveQueryButton.classList.add('hidden');
-					queryTextElement.classList.add('hidden');
-					flowSelector.classList.remove('hidden');
-
-				} else {
-
-					saveQueryButton.classList.remove('hidden');
-					queryTextElement.classList.remove('hidden');
-					flowSelector.classList.add('hidden');
+				if (!isFlowQuery) {
 					activateEditor(queryType);
 				}
 			};
@@ -395,7 +397,7 @@ let _Entities = {
 
 		_Editors.resizeVisibleEditors();
 	},
-	getSchemaProperties: (type, view, callback) => {
+	getSchemaProperties: (type, view, callback, allowFallback = true) => {
 
 		let url = `${Structr.rootUrl}_schema/${type}/${view}`;
 
@@ -416,14 +418,24 @@ let _Entities = {
 
 				callback?.(properties);
 
-			} else {
+			} else if (allowFallback === false) {
+
 				Structr.errorFromResponse(data, url);
-				console.log(`ERROR: loading Schema ${type}`);
+				console.log(`ERROR: loading Schema ${type} with view ${view}`);
+
+			} else {
+
+				throw new Error(response.status + ': ' + response.statusText);
+			}
+
+		}).catch(e => {
+
+			if (allowFallback === true) {
+				_Entities.getSchemaProperties(type, 'ui', callback, false);
 			}
 		});
-
 	},
-	showProperties: (obj, activeViewOverride) => {
+	showProperties: (obj, activeViewOverride, showDeleteBtn = Structr.isModuleActive(_Crud)) => {
 
 		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 
@@ -472,6 +484,22 @@ let _Entities = {
 					}
 
 					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
+
+					if (showDeleteBtn) {
+						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
+							<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+							</button>
+						`);
+
+						deleteBtn.addEventListener('click', async (e) => {
+							let deleted = await _Crud.crudAskDelete(obj.type, obj.id);
+
+							if (deleted) {
+								_Dialogs.custom.getCloseDialogButton().click();
+							}
+						});
+					}
 
 					dialogText.insertAdjacentHTML('beforeend', `
 						<div id="tabs" class="flex flex-col h-full overflow-hidden">
@@ -1187,9 +1215,6 @@ let _Entities = {
 										if (Structr.isModuleActive(_Pages)) {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
 										}
-										if (Structr.isModuleActive(_Contents)) {
-											_Contents.refreshTree();
-										}
 										if (Structr.isModuleActive(_Files)) {
 											_Files.refreshTree();
 										}
@@ -1393,7 +1418,42 @@ let _Entities = {
 			});
 		}
 	},
-	getArrayValue: function(key, cell) {
+	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
+
+		let val            = _Entities.getArrayValue(key, cell);
+		let isCreateDialog = !objId;
+
+		_Entities.setProperty(objId, key, val, false, (newVal = []) => {
+
+			if (newVal !== oldVal) {
+
+				if (!isCreateDialog) {
+
+					_Helpers.blinkGreen(cell);
+				}
+
+				let valueMsg;
+				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
+				cell.find(`[name="${key}"]`).each(function(i, el) {
+					_Entities.activateInput(el, id, pageId, typeInfo);
+				});
+
+				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+
+				if (!isCreateDialog) {
+
+					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+				}
+
+				if (onUpdateCallback) {
+					onUpdateCallback();
+				}
+			}
+
+			oldVal = newVal;
+		});
+	},
+	getArrayValue: (key, cell) => {
 		let values = [];
 		cell.find('[name="' + key + '"]').each(function(i, el) {
 			let value = $(el).val();
@@ -1405,6 +1465,7 @@ let _Entities = {
 	},
 	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
 
+		let isCreateDialog = !objId;
 		let val;
 		let cell = input.closest('.value');
 		if (cell.length === 0) {
@@ -1435,7 +1496,11 @@ let _Entities = {
 					cell.find(`[name="${key}"]`).each(function(i, el) {
 						_Entities.activateInput(el, id, pageId, typeInfo, onUpdateCallback);
 					});
-					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+
+					if (!isCreateDialog) {
+
+						_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+					}
 
 					onUpdateCallback?.(input, newVal);
 
@@ -1447,33 +1512,21 @@ let _Entities = {
 		}
 
 	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
+	setProperty: (id, key, val, recursive, callback) => {
 
-		let val = _Entities.getArrayValue(key, cell);
+		let isCreateDialog = !id;
 
-		_Entities.setProperty(objId, key, val, false, (newVal) => {
-			if (newVal !== oldVal) {
-				_Helpers.blinkGreen(cell);
-				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
-				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, typeInfo);
-				});
-				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-				_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+		if (isCreateDialog) {
 
-				if (onUpdateCallback) {
-					onUpdateCallback();
-				}
-			}
-			oldVal = newVal;
-		});
+			/* special handling for create-dialogs - simply allow the change and directly call the callback */
+			callback(val);
 
-	},
-	setProperty: function(id, key, val, recursive, callback) {
-		Command.setProperty(id, key, val, recursive, function() {
-			Command.getProperty(id, key, callback);
-		});
+		} else {
+
+			Command.setProperty(id, key, val, recursive, () => {
+				Command.getProperty(id, key, callback);
+			});
+		}
 	},
 	bindAccessControl: function(btn, entity) {
 
@@ -1485,7 +1538,7 @@ let _Entities = {
 	accessControlDialog: (entity, container, typeInfo) => {
 
 		let id = entity.id;
-		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin';
+		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin,blocked';
 
 		let handleGraphObject = (entity) => {
 
@@ -1533,7 +1586,7 @@ let _Entities = {
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
-			fetch(`${Structr.rootUrl}${entity.id}/in`).then(async response => {
+			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/in`).then(async response => {
 
 				let data = await response.json();
 
@@ -1680,7 +1733,7 @@ let _Entities = {
 				}
 
 			} else if (Structr.isModuleActive(_Security)) {
-				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
+				_ResourceAccessPermissions.updateResourcesAccessRow(id, false);
 			}
 		});
 
@@ -1793,7 +1846,7 @@ let _Entities = {
 				}
 			}
 
-			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses));
+			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses, 'Access Control'));
 			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
@@ -1828,11 +1881,7 @@ let _Entities = {
 
 			if (svgKeyIcon.dataset['onlyShowWhenProtected'] === 'true') {
 
-				if (isProtected) {
-					svgKeyIcon.classList.remove('node-action-icon');
-				} else {
-					svgKeyIcon.classList.add('node-action-icon');
-				}
+				svgKeyIcon.classList.toggle('node-action-icon', !isProtected);
 			}
 		}
 	},
@@ -1842,7 +1891,7 @@ let _Entities = {
 		let icon                 = parent.querySelector('.' + contextMenuIconClass);
 
 		if (!icon) {
-			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon']), 'Context-Menu'));
 			parent.appendChild(icon);
 		}
 
@@ -2269,10 +2318,6 @@ let _Entities = {
 //					_Pages.reloadPreviews();
 // 					console.log('reload preview?');
 
-				} else if (Structr.isModuleActive(_Contents)) {
-
-					_Contents.refreshTree();
-
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 
 					let a = element.closest('td').prev().children('a').first();
@@ -2340,7 +2385,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2357,7 +2402,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2374,7 +2419,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2389,7 +2434,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 			},
 			div: async (el, entity) => {
 
@@ -2403,7 +2448,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 			},
 			file: async (el, entity) => {
@@ -2452,7 +2497,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 			},
 			ldapGroup: async (el, entity) => {
@@ -2515,7 +2560,7 @@ let _Entities = {
 				_Entities.basicTab.focusInput(el);
 
 				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
@@ -2611,22 +2656,15 @@ let _Entities = {
 				});
 			});
 		},
-		showShowHideConditionOptions: (el) => {
+		activateShowHideConditionOptions: (el) => {
 
-			let showConditionsInput  = $('input#show-conditions', el);
-			let showConditionsSelect = $('select#show-conditions-templates', el);
-			let hideConditionsInput  = $('input#hide-conditions', el);
-			let hideConditionsSelect = $('select#hide-conditions-templates', el);
-
-			showConditionsSelect.on('change', () => {
-				showConditionsInput.val(showConditionsSelect.val());
-				showConditionsInput[0].dispatchEvent(new Event('change'));
-			});
-
-			hideConditionsSelect.on('change', () => {
-				hideConditionsInput.val(hideConditionsSelect.val());
-				hideConditionsInput[0].dispatchEvent(new Event('change'));
-			});
+			for (let showConditionExample of el[0].querySelectorAll('.example-condition')) {
+				showConditionExample.onclick = function() {
+					let input   = this.closest('.conditions-container').querySelector('input');
+					input.value = this.dataset['value'];
+					input.dispatchEvent(new Event('change'));
+				}
+			}
 		},
 		showChildContentEditor:(el, entity) => {
 
@@ -3100,8 +3138,8 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="selected-values-input">Selected Values Expression</label>
-							<input type="text" id="selected-values-input" name="selectedValues">
+							<label class="block mb-2" for="selected-values-input" data-comment="This is a shortcut to automatically select options based on their appearance in the collection returned by this script expression and is mutually exclusive with the <code>selected</code> attribute. It is mainly intended for database objects. Should the repeater use custom objects, use a scripting expression in the <code>selected</code> attribute like so: <code>\${is(logicStatement, 'selected')}</code>">Selected Values Expression</label>
+							${Structr.templates.autoScriptInput({ inputAttributeString: 'id="selected-values-input" name="selectedValues"', wrapperClassString: 'w-full'})}
 						</div>
 
 						<div>
@@ -3216,16 +3254,16 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="rendering-delay-or-interval">Delay or interval in milliseconds</label>
+							<label class="block mb-2" for="rendering-delay-or-interval" data-comment="Works in conjunction with Load/Update Mode and is required for delayed and periodic modes.">Delay or interval (ms)</label>
 							<input type="number" id="rendering-delay-or-interval" name="data-structr-delay-or-interval">
 						</div>
 					</div>
 				</div>
 			`,
-				repeaterPartial: config => `
+			repeaterPartial: config => `
 				<div>
 					<label class="block mb-2" for="function-query-input">Function Query</label>
-					<input type="text" id="function-query-input" name="functionQuery">
+					${Structr.templates.autoScriptInput({ inputAttributeString: 'id="function-query-input" name="functionQuery"', wrapperClassString: 'w-full'})}
 				</div>
 
 				<div>
@@ -3286,34 +3324,55 @@ let _Entities = {
 
 				</div>
 			`,
-			showHideConditionTemplates: config => `
-				<option value="" disabled selected>Example ${config.type} conditions...</option>
-				<option value="">(none)</option>
-				<option>true</option>
-				<option>false</option>
-				<option>me.isAdmin</option>
-				<option>empty(current)</option>
-				<option>not(empty(current))</option>
-			`,
 			visibilityPartial: config => `
 				<div>
 					<label class="block mb-2" for="show-conditions">Show Conditions</label>
-					<div class="flex">
-						<input id="show-conditions" type="text" name="showConditions">
-						<select id="show-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Entities.basicTab.templates.showHideConditionTemplates({ type: 'show' })}
-						</select>
+					<div class="conditions-container flex">
+
+						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="show-conditions" name="showConditions"', wrapperClassString: 'w-full'})}
+
+						<div class="dropdown-menu dropdown-menu-large">
+							<button class="mr-0 dropdown-select rounded border ml-2">
+								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
+							</button>
+
+							<div class="dropdown-menu-container">
+								<div class="heading-row">
+									<h3>Example show conditions</h3>
+								</div>
+
+								${_Entities.exampleShowHideConditions.map(c => _Entities.basicTab.templates.showConditionEntry(c)).join('')}
+							</div>
+						</div>
 					</div>
+
 				</div>
 
 				<div>
 					<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
-					<div class="flex">
-						<input id="hide-conditions" type="text" name="hideConditions">
-						<select id="hide-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Entities.basicTab.templates.showHideConditionTemplates({ type: 'hide' })}
-						</select>
+					<div class="conditions-container flex">
+
+						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="hide-conditions" name="hideConditions"', wrapperClassString: 'w-full'})}
+
+						<div class="dropdown-menu dropdown-menu-large">
+							<button class="mr-0 dropdown-select rounded ml-2" data-preferred-position-x="left">
+								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
+							</button>
+
+							<div class="dropdown-menu-container">
+								<div class="heading-row">
+									<h3>Example hide conditions</h3>
+								</div>
+
+								${_Entities.exampleShowHideConditions.map(c => _Entities.basicTab.templates.showConditionEntry(c)).join('')}
+							</div>
+						</div>
 					</div>
+				</div>
+			`,
+			showConditionEntry: config => `
+				<div class="row">
+					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
 			`
 		}

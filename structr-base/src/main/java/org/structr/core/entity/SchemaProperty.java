@@ -18,43 +18,36 @@
  */
 package org.structr.core.entity;
 
-import graphql.Scalars;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLOutputType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaExcludedViewProperty;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
 import org.structr.schema.parser.*;
 
 import java.util.*;
 
-import static graphql.schema.GraphQLTypeReference.typeRef;
-import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
-
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
+
+	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
 
 	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<Iterable<SchemaView>> schemaViews         = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
@@ -230,7 +223,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		if (_isCachingEnabled != null && _isCachingEnabled) {
 
 			return true;
-
 		}
 
 		return false;
@@ -266,26 +258,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		boolean valid = super.isValid(errorBuffer);
 
-		// do not take into account for property validity - this will only be enforced in future versions
-		final String futureSchemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
-		final boolean futurePropertyNameValidity     = ValidationHelper.isValidStringMatchingRegex(getProperty(name), futureSchemaPropertyNamePattern);
-
-		if (!futurePropertyNameValidity) {
-
-			final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-			final String typeName           = (parent != null) ? parent.getName() : "[Unknown type]";
-			final String warningMessage     = "Property name \"" + typeName + "." + getProperty(name) + "\" doesn't match strict pattern " + futureSchemaPropertyNamePattern + " that will be enforced in future versions.";
-
-			logger.warn(warningMessage);
-
-			TransactionCommand.simpleBroadcastGenericMessage(
-					Map.of(
-							"type", "WARNING",
-							"title", "Warning",
-							"message", warningMessage
-					)
-			);
-		}
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaPropertyNamePattern, errorBuffer);
 
 		return valid;
 	}
@@ -299,7 +272,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
 		if (parent != null) {
 
-			// register property (so we have a chance to backup an existing builtin property)
+			// register property (so we have a chance to back up an existing builtin property)
 			final ConfigurationProvider conf = StructrApp.getConfiguration();
 			final Class type = conf.getNodeEntityClass(parent.getName());
 
@@ -577,22 +550,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return buf.toString();
 	}
 
-	public GraphQLFieldDefinition getGraphQLField() {
-
-		final GraphQLOutputType outputType = SchemaHelper.getGraphQLOutputTypeForProperty(this);
-		if (outputType != null) {
-
-			return GraphQLFieldDefinition
-				.newFieldDefinition()
-				.name(SchemaHelper.cleanPropertyName(getPropertyName()))
-				.type(outputType)
-				.arguments(SchemaProperty.getGraphQLArgumentsForType(getPropertyType()))
-				.build();
-		}
-
-		return null;
-	}
-
 	public NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (notionPropertyParser == null) {
@@ -737,53 +694,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	// ----- public static methods -----
-	public static List<GraphQLArgument> getGraphQLArgumentsForType(final Type type) {
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		switch (type) {
-
-			case String:
-				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
-				arguments.add(GraphQLArgument.newArgument().name("_contains").type(Scalars.GraphQLString).build());
-				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-				break;
-
-			case Integer:
-				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLInt).build());
-				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-				break;
-
-			case Long:
-				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLLong).build());
-				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-				break;
-		}
-
-		return arguments;
-	}
-
-	public static List<GraphQLArgument> getGraphQLArgumentsForUUID() {
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
-
-		return arguments;
-	}
-
-	public static List<GraphQLArgument> getGraphQLArgumentsForRelatedType(final String relatedType) {
-
-		// related type parameter is unused right now
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		arguments.add(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
-		arguments.add(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLString).build());
-
-		return arguments;
-	}
 
 	// ----- private methods -----
 	private int addContentHash(final PropertyKey key, final int contentHash) {

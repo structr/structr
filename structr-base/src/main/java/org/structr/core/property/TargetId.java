@@ -42,7 +42,6 @@ public class TargetId extends Property<String> {
 
 	public TargetId(final String name) {
 		super(name);
-		passivelyIndexed();
 	}
 
 	@Override

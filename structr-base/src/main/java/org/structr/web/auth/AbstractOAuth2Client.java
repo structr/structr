@@ -32,14 +32,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 
 public abstract class AbstractOAuth2Client implements OAuth2Client {
 
@@ -210,17 +213,22 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
+	public void invokeOnLoginMethod(PrincipalInterface user) throws FrameworkException {
 
-		final Map<String, Object> methodParameters = new LinkedHashMap<>();
-		methodParameters.put("provider", this.provider);
-		methodParameters.put("userinfo", this.getUserInfo());
+		final AbstractMethod method = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), "onOAuthLogin");
+		if (method != null) {
 
-		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParameters, false, new EvaluationHints());
+			final Arguments arguments = new Arguments();
+
+			arguments.add("provider", this.provider);
+			arguments.add("userinfo", this.getUserInfo());
+
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
+		}
 	}
 
 	@Override
-	public void initializeAutoCreatedUser(Principal user) {
+	public void initializeAutoCreatedUser(PrincipalInterface user) {
 
 	}
 }

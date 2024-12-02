@@ -26,6 +26,7 @@ import org.structr.core.entity.Localization;
 import org.structr.core.property.GenericProperty;
 
 import java.util.*;
+import org.structr.common.helper.AdvancedMailContainer;
 
 /**
  * Encapsulates all information stored for Action-/SecurityContexts which are available via scripting

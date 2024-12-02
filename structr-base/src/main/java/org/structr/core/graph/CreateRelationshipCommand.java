@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -29,7 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
@@ -44,8 +42,6 @@ import java.util.Map.Entry;
  *
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
-
-	private static final Logger logger = LoggerFactory.getLogger(CreateRelationshipCommand.class.getName());
 
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
@@ -66,15 +62,13 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final PropertyMap toNotify           = new PropertyMap();
 		final CreationContainer tmp          = new CreationContainer(false);
 		final R template                     = (R)Relation.getInstance(relType);
-		final Node startNode                 = fromNode.getNode();
-		final Node endNode                   = toNode.getNode();
 		final Date now                       = new Date();
-		final Principal user                 = securityContext.getCachedUser();
+		final PrincipalInterface user                 = securityContext.getCachedUser();
 
 		template.ensureCardinality(securityContext, fromNode, toNode);
 
 		// date properties need converter
-		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp());
+		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp(0, 0));
 		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
 		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
 
@@ -108,6 +102,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		}
 
 		// create relationship including initial properties
+		final Node startNode   = fromNode.getNode();
+		final Node endNode     = toNode.getNode();
 		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
 		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
 
@@ -135,9 +131,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			// ensure indexing of newly created node
 			newRel.addToIndex();
-
-			// notify relationship of its creation
-			newRel.onRelationshipCreation();
 
 			// iterate post creation transformations
 			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {

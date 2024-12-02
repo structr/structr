@@ -65,9 +65,11 @@ public interface JsonType extends Comparable<JsonType> {
 
 	JsonType setExtends(final JsonType superType);
 	JsonType setExtends(final URI externalReference);
+	JsonType setExtends(final Class staticType);
 	URI getExtends();
 
 	JsonType setImplements(final URI externalReference);
+	JsonType setImplements(final Class staticReference);
 	Set<URI> getImplements();
 
 	Set<JsonProperty> getProperties();
@@ -101,6 +103,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
 	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
+	JsonLongProperty addCountProperty(final String name, final String... views);
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
 	JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);

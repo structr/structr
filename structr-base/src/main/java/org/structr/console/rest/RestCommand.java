@@ -135,7 +135,7 @@ public abstract class RestCommand {
 		if (cls != null) {
 
 			try {
-				return cls.newInstance();
+				return cls.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable ignore) {}
 		}

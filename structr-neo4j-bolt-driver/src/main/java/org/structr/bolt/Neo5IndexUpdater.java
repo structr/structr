@@ -60,6 +60,8 @@ public class Neo5IndexUpdater {
 
 				try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
+					tx.prefetchHint("Neo5IndexUpdater query");
+
 					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
@@ -80,7 +82,8 @@ public class Neo5IndexUpdater {
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			t.printStackTrace();
+			//logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -136,6 +139,8 @@ public class Neo5IndexUpdater {
 
 								try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
+									tx.prefetchHint("Neo5IndexUpdater drop");
+
 									db.consume("DROP INDEX " + finalIndexName + " IF EXISTS");
 
 									tx.success();
@@ -154,7 +159,8 @@ public class Neo5IndexUpdater {
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							logger.error(ExceptionUtils.getStackTrace(t));
+							t.printStackTrace();
+							//logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -171,6 +177,8 @@ public class Neo5IndexUpdater {
 						executor.submit(() -> {
 
 							try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+
+								tx.prefetchHint("Neo5IndexUpdater update");
 
 								if (indexConfig.createOrDropIndex()) {
 
@@ -214,7 +222,8 @@ public class Neo5IndexUpdater {
 
 							} catch (Throwable t) {
 
-								logger.warn("Unable to update index configuration: {}", t.getMessage());
+								t.printStackTrace();
+								//logger.warn("Unable to update index configuration: {}", t.getMessage());
 							}
 
 						}).get(timeoutSeconds, TimeUnit.SECONDS);
@@ -275,6 +284,8 @@ public class Neo5IndexUpdater {
 
 										try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
+											tx.prefetchHint("Neo5IndexUpdater update");
+
 											// drop index
 											db.consume("DROP INDEX " + indexName + " IF EXISTS");
 											droppedIndexesOfRemovedTypes.incrementAndGet();
@@ -292,7 +303,9 @@ public class Neo5IndexUpdater {
 
 									}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-								} catch (Throwable t) {}
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
 							}
 						}
 					}

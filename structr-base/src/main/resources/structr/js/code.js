@@ -33,6 +33,9 @@ let _Code = {
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
+	methodsFetchExampleStateKey: 'methodsFetchExampleStateKey_' + location.port,
+	methodsCurlExampleStateKey: 'methodsCurlExampleStateKey_' + location.port,
+	methodsScriptingExampleStateKey: 'methodsScriptingExampleStateKey_' + location.port,
 	additionalDirtyChecks: [],
 	defaultPageSize: 10000,
 	defaultPage: 1,
@@ -244,6 +247,8 @@ let _Code = {
 		}
 
 		_Code.tellFirstElementToShowDirtyState(dirty);
+
+		return formContent;
 	},
 	tellFirstElementToShowDirtyState: (dirty) => {
 		if (dirty === true) {
@@ -534,7 +539,7 @@ let _Code = {
 			let defaultEntries = [
 				{
 					id:       path + '/globals',
-					text:     'Global Methods',
+					text:     'User-defined functions',
 					children: true,
 					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'globals' },
@@ -866,7 +871,7 @@ let _Code = {
 		return [
 			{
 				id:       path + '/properties',
-				text:     'Local Properties',
+				text:     'Direct Properties',
 				children: (entity.schemaProperties.length > 0),
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'properties' },
@@ -882,7 +887,7 @@ let _Code = {
 			},
 			{
 				id:       path + '/remoteproperties',
-				text:     'Related Properties',
+				text:     'Linked Properties',
 				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'remoteproperties' },
@@ -930,7 +935,7 @@ let _Code = {
 			{
 				id:       path + '/inheritedproperties',
 				text:     'Inherited Properties',
-				children: true,
+				children: false,
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'inheritedproperties' },
 				data:     {
@@ -1385,8 +1390,12 @@ let _Code = {
 	},
 	displaySchemaMethodContent: (data) => {
 
-		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI,index,exampleValue,parameterType', (result) => {
+
+			let isCallableViaHTTP   = (result.isPrivate !== true);
+			let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
+			let isStaticMethod      = result.isStatic;
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
@@ -1396,6 +1405,32 @@ let _Code = {
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+
+			let buttons = $('#method-buttons');
+
+			let updateVisibilityForAttribute = (attributeName, canSeeAttr) => {
+
+				let element = buttons[0].querySelector(`[data-property="${attributeName}"]`);
+				if (element) {
+					let container = element.closest('.method-config-element');
+
+					container.classList.toggle('hidden', (canSeeAttr === false));
+				}
+			};
+
+			let updateUIForAllAttributes = (currentState) => {
+
+				let isTypeMethod      = (!!currentState.schemaNode);
+				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(currentState);
+				let isCallableViaREST = (currentState.isPrivate !== true);
+
+				updateVisibilityForAttribute('isStatic',        (isTypeMethod && !isLifecycleMethod));
+				updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
+				updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
+				updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+			};
+
+			updateUIForAllAttributes(result);
 
 			// method name input,etc
 			{
@@ -1414,22 +1449,23 @@ let _Code = {
 
 					_Editors.resizeVisibleEditors();
 					_Code.updateDirtyFlag(result);
+
+					let updatedObj = Object.assign({}, result, { name: currentMethodName });
+					updateUIForAllAttributes(updatedObj);
 				};
 
 				methodNameInputElement.addEventListener('keyup', (e) => {
 
 					if (e.key === 'Escape') {
+						methodNameInputElement.value = currentMethodName;
 						setMethodNameInUI(currentMethodName);
 					} else if (e.key === 'Enter') {
 						setMethodNameInUI(methodNameInputElement.value);
 					}
-
-					_Code.updateDirtyFlag(result);
 				});
 
 				methodNameInputElement.addEventListener('blur', (e) => {
-					methodNameInputElement.value = currentMethodName;
-					setMethodNameInUI(currentMethodName);
+					setMethodNameInUI(methodNameInputElement.value);
 				});
 
 				methodNameContainerElement.addEventListener('click', (e) => {
@@ -1458,11 +1494,13 @@ let _Code = {
 			let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
 			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
-			 if (_Code.shouldHideOpenAPITabForMethod(result)) {
+			if (_Code.shouldHideOpenAPITabForMethod(result)) {
 
 				$('li[data-name=api]').hide();
 
-				lastOpenTab = 'source';
+				if (lastOpenTab === 'api') {
+					lastOpenTab = 'source';
+				}
 
 			} else {
 
@@ -1499,14 +1537,18 @@ let _Code = {
 						$('input[data-parameter-property=index]', clone).val(maxCnt);
 					}
 
-					$('input[data-parameter-property]', clone).on('keyup', () => {
+					$('input[data-parameter-property]', clone).on('input', () => {
 						_Code.updateDirtyFlag(result);
 					});
 
 					parameterContainer.append(clone);
 
+					_Editors.resizeVisibleEditors();
+
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
 						clone.remove();
+
+						_Editors.resizeVisibleEditors();
 
 						_Code.updateDirtyFlag(result);
 					});
@@ -1514,18 +1556,15 @@ let _Code = {
 					_Code.updateDirtyFlag(result);
 				};
 
-				Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', { schemaMethod: result.id }, (parameters) => {
+				result.parameters.sort((p1, p2) => (p1.index ?? 0) - (p2.index ?? 0));
 
-					_Code.additionalDirtyChecks.push(() => {
-						return _Code.schemaMethodParametersChanged(parameters);
-					});
+				for (let p of result.parameters) {
+					addParameterRow(p);
+				}
 
-					for (let p of parameters) {
-
-						addParameterRow(p);
-					}
-
-				}, true, null, 'index,name,parameterType,description,exampleValue');
+				_Code.additionalDirtyChecks.push(() => {
+					return _Code.schemaMethodParametersChanged(result.parameters);
+				});
 
 				$('#add-parameter-button').on('click', () => { addParameterRow(); });
 
@@ -1546,7 +1585,7 @@ let _Code = {
 
 				let openAPIReturnTypeMonacoConfig = {
 					language: 'json',
-					lint: true,
+					lint: false,
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 						_Code.updateDirtyFlag(entity);
@@ -1558,13 +1597,160 @@ let _Code = {
 				_Helpers.activateCommentsInElement(apiTab[0]);
 			}
 
+			if (_Code.shouldHideAPIExampleTabForMethod(result)) {
+
+				$('li[data-name=api-usage]').hide();
+
+				if (lastOpenTab === 'api-usage') {
+					lastOpenTab = 'source';
+				}
+
+			} else {
+
+				let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-usage');
+
+				let exampleData      = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
+				let isGet            = (result.httpVerb.toLowerCase() === 'get');
+				let isStatic         = (result.isStatic === true);
+				let url              = _Code.getURLForSchemaMethod(result, true);
+				let queryString      = new URLSearchParams(exampleData).toString();
+				let isUserDefinedFn  = (!result.schemaNode);
+				let isInstanceMethod = (!isStatic && !isUserDefinedMethod);
+
+				let uuidHelpText = 'Note that {uuid} must be replaced with a UUID of a database object of a matching type';
+
+				let getFetchParts = () => {
+
+					let parts = [];
+
+					if (isGet) {
+
+						parts.push(`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`);
+						parts.push('let queryString = new URLSearchParams(parameters).toString();');
+						parts.push('');
+
+						if (isInstanceMethod) {
+							parts.push(`// ${uuidHelpText}`);
+						}
+
+						parts.push(`fetch('${url}?' + queryString).then(response => {`);
+						parts.push('	// handle response');
+						parts.push('	console.log(response);');
+						parts.push('});');
+
+					} else {
+
+						parts.push(`let data = ${JSON.stringify(exampleData, undefined, '\t')};`);
+						parts.push('');
+
+						if (isInstanceMethod) {
+							parts.push(`// ${uuidHelpText}`);
+						}
+
+						parts.push(`fetch('${_Code.getURLForSchemaMethod(result, true)}', {`);
+						parts.push(`	method: '${result.httpVerb.toUpperCase()}',`);
+						parts.push('	body: JSON.stringify(data)');
+						parts.push('}).then(response => {');
+						parts.push('	// handle response');
+						parts.push('	console.log(response);');
+						parts.push('});');
+					}
+
+					return parts;
+				};
+
+				let getCurlParts = () => {
+
+					let parts = [
+						`${isInstanceMethod ? `# ${uuidHelpText}\n` : ''}curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}${(isGet && queryString.length > 0) ? '?' + queryString : ''}"`
+					];
+
+					if (!isGet) {
+						parts.push(`-d '${JSON.stringify(exampleData)}'`);
+					}
+
+					return parts;
+				};
+
+				let getScriptingParts = () => {
+
+					let parts = [];
+
+					if (isUserDefinedFn) {
+
+						parts.push('${{');
+						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+						parts.push(`	let result     = $.${result.name}(parameters);`);
+						parts.push('}}');
+
+					} else if (isStatic) {
+
+						parts.push('${{');
+						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+						parts.push(`	let result     = $.${result.schemaNode.name}.${result.name}(parameters);`);
+						parts.push('}}');
+
+					} else {
+
+						parts.push('${{');
+						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+						parts.push('');
+						parts.push(`	// option a) this instance method can be called from anywhere by looking up a specific object of type "${result.schemaNode.name}" by UUID (or any other means)`);
+						parts.push(`	// ${uuidHelpText}`);
+						parts.push(`	let objectUUID   = '<b>{uuid}</b>';`);
+						parts.push(`	let nodeInstance = $.find('${result.schemaNode.name}', objectUUID);`);
+						parts.push(`	let resultOne    = nodeInstance.${result.name}(parameters);`);
+						parts.push('');
+						parts.push('');
+						parts.push(`	// option b) this instance method can be called if the current scripting context is already a object of type "${result.schemaNode.name}". Then we can use $.this`);
+						parts.push(`	let resultTwo = $.this.${result.name}(parameters);`);
+						parts.push('}}');
+					}
+
+					return parts;
+				}
+
+				let templateConfig = {
+					type: result.type,
+					method: result,
+					exampleData: exampleData,
+					fetchExample: getFetchParts().join('\n'),
+					curlExample: getCurlParts().join(' \\\n\t'),
+					scriptingExample: getScriptingParts().join('\n')
+				};
+				apiExamplesTab.insertAdjacentHTML('beforeend', _Code.templates.schemaMethodAPIExamples(templateConfig));
+
+				for (let copyBtn of apiExamplesTab.querySelectorAll('button[copy-button]')) {
+					copyBtn.addEventListener('click', async (e) => {
+						let text  =copyBtn.closest('details').querySelector('div[usage-text]').textContent;
+						await navigator.clipboard.writeText(text);
+					});
+				}
+
+				apiExamplesTab.querySelector('#fetch-example')?.addEventListener('toggle', (e) => {
+					LSWrapper.setItem(_Code.methodsFetchExampleStateKey, e.newState);
+				});
+
+				apiExamplesTab.querySelector('#curl-example')?.addEventListener('toggle', (e) => {
+					LSWrapper.setItem(_Code.methodsCurlExampleStateKey, e.newState);
+				});
+
+				apiExamplesTab.querySelector('#scripting-example')?.addEventListener('toggle', (e) => {
+					LSWrapper.setItem(_Code.methodsScriptingExampleStateKey, e.newState);
+				});
+			}
+
 			// default buttons
 			_Code.runCurrentEntitySaveAction = () => {
 
 				let storeParametersInFormDataFunction = (formData) => {
+
 					let parametersData = _Code.collectSchemaMethodParameters();
 
-					formData['parameters'] = parametersData;
+					if (parametersData !== null) {
+
+						formData['parameters'] = parametersData;
+					}
 				};
 
 				let afterSaveCallback = () => {
@@ -1578,8 +1764,6 @@ let _Code = {
 
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
 			};
-
-			let buttons = $('#method-buttons');
 
 			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
@@ -1595,34 +1779,23 @@ let _Code = {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
-			// run button
-			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
+			// run button (for user-defined functions and static methods which are callable via HTTP)
+			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
 				});
 			}
 
-			// run button and global schema method flags
-			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
-
-				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
-
-			} else if (result.schemaNode) {
-
-				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
-			}
-
 			_Helpers.activateCommentsInElement(buttons[0]);
 
 			_Code.updateDirtyFlag(result);
 
-			$('input[type=checkbox]', buttons).on('change', () => {
-				_Code.updateDirtyFlag(result);
-			});
+			$('input, select', buttons).on('input', () => {
+				let changes = _Code.updateDirtyFlag(result);
 
-			$('input[type=text]', buttons).on('keyup', () => {
-				_Code.updateDirtyFlag(result);
+				let updatedObj = Object.assign({}, result, changes);
+				updateUIForAllAttributes(updatedObj);
 			});
 
 			if (typeof callback === 'function') {
@@ -1654,17 +1827,18 @@ let _Code = {
 	},
 	shouldHideOpenAPITabForMethod: (entity) => {
 
-		// do all lifecycle methods not have openAPI tab?
-		// could unify code (or at least list of lifecycle methods) with icons code for lifecycle methods
-		// and button generation for lifecycle methods
-		let methodPrefixesWithoutOpenAPITab = [
-			'onCreate',
-			'onSave',
-			'onDelete',
-			'afterCreate'
-		];
+		let isJavaMethod         = (entity.codeType === 'java');
+		let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
+		let isNotCallableViaHTTP = (entity.isPrivate === true);
 
-		return entity.codeType === 'java' || methodPrefixesWithoutOpenAPITab.some(prefix => entity.name.startsWith(prefix));
+		return isJavaMethod || isLifecycleMethod || isNotCallableViaHTTP;
+	},
+	shouldHideAPIExampleTabForMethod: (entity) => {
+
+		let isJavaMethod         = (entity.codeType === 'java');
+		let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
+
+		return isJavaMethod || isLifecycleMethod;
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 
@@ -1683,6 +1857,13 @@ let _Code = {
 		}
 	},
 	collectSchemaMethodParameters: () => {
+
+		let container = _Code.codeContents[0].querySelector('#openapi-options');
+		if (container === null) {
+
+			// we are not showing API tab, do not return anything
+			return null;
+		}
 
 		let parametersData = [];
 		for (let formParam of _Code.codeContents[0].querySelectorAll('.method-parameter')) {
@@ -1991,7 +2172,7 @@ let _Code = {
 			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.recentElements.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
+		_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
@@ -2469,17 +2650,32 @@ let _Code = {
 			}
 		});
 	},
-	getUrlForSchemaMethod: (schemaMethod) => {
-		return Structr.rootUrl +
-			((schemaMethod.schemaNode === null) ? 'maintenance/globalSchemaMethods/' : schemaMethod.schemaNode.name + '/' )+
-			schemaMethod.name;
+	getURLForSchemaMethod: (schemaMethod, absolute = true) => {
+
+		let isStatic              = (schemaMethod.isStatic === true);
+		let isUserDefinedFunction = (schemaMethod.schemaNode === null);
+
+		let parts = [];
+
+		if (!isUserDefinedFunction) {
+			parts.push(schemaMethod.schemaNode.name);
+
+			if (!isStatic) {
+				parts.push('<b>{uuid}</b>');
+			}
+		}
+
+		parts.push(schemaMethod.name);
+		let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
+
+		return url;
 	},
 	runSchemaMethod: (schemaMethod) => {
 
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
-		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
+		let url  = _Code.getURLForSchemaMethod(schemaMethod);
 
-		let { dialogText } = _Dialogs.custom.openDialog(`Run global schema method ${name}`, null, ['run-global-schema-method-dialog']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
 		let runButton = _Dialogs.custom.prependCustomDialogButton(`
 			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -2523,7 +2719,7 @@ let _Code = {
 					<input class="param-name" placeholder="Parameter name">
 					<span class="px-2">=</span>
 					<input class="param-value" placeholder="Parameter value">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
 				</div>
 			`);
 
@@ -2548,12 +2744,21 @@ let _Code = {
 				}
 			}
 
-			let response = await fetch(url, {
-				method: 'POST',
-				body: JSON.stringify(params)
-			});
+			let methodCallUrl = url;
+			let fetchConfig = { method: schemaMethod.httpVerb };
 
-			let text = await response.text();
+			if (schemaMethod.httpVerb === 'GET') {
+
+				methodCallUrl += '?' + new URLSearchParams(params).toString();
+
+			} else {
+
+				fetchConfig.body = JSON.stringify(params);
+			}
+
+			let response = await fetch(methodCallUrl, fetchConfig);
+			let text     = await response.text();
+
 			logOutput.textContent = text + 'Done.';
 		});
 
@@ -2626,11 +2831,8 @@ let _Code = {
 
 			let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
 
-			if (text.length >= _Code.search.searchThreshold) {
-				clearSearchIcon.classList.add('block');
-			} else {
-				clearSearchIcon.classList.remove('block');
-			}
+			let shouldBeBlock = (text.length >= _Code.search.searchThreshold);
+			clearSearchIcon.classList.toggle('block', shouldBeBlock);
 
 			if (text.length >= _Code.search.searchThreshold || (_Code.search.searchTextLength >= _Code.search.searchThreshold && text.length <= _Code.search.searchTextLength)) {
 				tree.refresh();
@@ -2789,13 +2991,10 @@ let _Code = {
 		updateVisibility: () => {
 
 			let codeContext  = document.querySelector('#code-context');
-			if (_Code.recentElements.isVisible()) {
-				codeContext.classList.remove('hidden');
-				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
-			} else {
-				codeContext.classList.add('hidden');
-				document.querySelector('.column-resizer-right')?.classList.add('hidden');
-			}
+			let isHidden     = !_Code.recentElements.isVisible();
+
+			codeContext.classList.toggle('hidden', isHidden);
+			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', isHidden);
 
 			Structr.resize();
 		}
@@ -2871,22 +3070,15 @@ let _Code = {
 			let backDisabled    = stackSize <= 1 || _Code.pathLocations.currentIndex <= 0;
 
 			let forwardButton = _Code.pathLocations.getForwardButton();
+			let backButton    = _Code.pathLocations.getBackwardButton();
+
 			forwardButton.disabled = forwardDisabled;
+			backButton.disabled    = backDisabled;
 
-			if (forwardDisabled) {
-				forwardButton.classList.add('icon-lightgrey');
-			} else {
-				forwardButton.classList.remove('icon-lightgrey');
-			}
-
-			let backButton = _Code.pathLocations.getBackwardButton();
-			backButton.disabled = backDisabled;
-
-			if (backDisabled) {
-				backButton.classList.add('icon-lightgrey');
-			} else {
-				backButton.classList.remove('icon-lightgrey');
-			}
+			forwardButton.classList.toggle('icon-lightgrey', forwardDisabled);
+			forwardButton.classList.toggle('cursor-not-allowed', forwardDisabled);
+			backButton.classList.toggle('icon-lightgrey', backDisabled);
+			backButton.classList.toggle('cursor-not-allowed', backDisabled);
 		},
 	},
 	templates: {
@@ -3036,11 +3228,11 @@ let _Code = {
 			</div>
 		`,
 		globals: config => `
-			<h2>Global schema methods</h2>
+			<h2>User-defined functions</h2>
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
-			<h2>
+			<h2 class="cursor-text">
 				<span id="method-name-container">
 					<span>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '')}</span><span id="method-name-output">${config.method.name}</span><span>()</span>
 				</span>
@@ -3049,10 +3241,34 @@ let _Code = {
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
-					<div class="checkbox hidden entity-method">
-						<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
-							<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
-						</label>
+					<div>
+						<div class="method-config-element hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
+							</label>
+						</div>
+						<div class="method-config-element entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+					</div>
+					<div>
+						<div class="method-config-element entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return result object only
+							</label>
+						</div>
+						<div class="method-config-element entity-method">
+							<select data-property="httpVerb">
+								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
+								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
+								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
+								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
+								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
+							</select>
+							</label>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -3060,6 +3276,7 @@ let _Code = {
 				<ul>
 					<li data-name="source">Code</li>
 					<li data-name="api">API</li>
+					<li data-name="api-usage">Usage</li>
 				</ul>
 				<div id="methods-content" class="flex flex-col flex-grow">
 
@@ -3068,6 +3285,9 @@ let _Code = {
 					</div>
 
 					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api">
+					</div>
+					
+					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api-usage">
 					</div>
 
 				</div>
@@ -3162,12 +3382,40 @@ let _Code = {
 				<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 			</div>
 		`,
+		schemaMethodAPIExamples: config => `
+			
+			<div class="p-2">
+
+				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'fetch-example', stateKey: _Code.methodsFetchExampleStateKey, summary: 'Browser fetch()', text: config.fetchExample }) : ''}
+
+				${(config.method.isPrivate !== true) ? _Code.templates.schemaMethodAPIExampleDetail({ id: 'curl-example', stateKey: _Code.methodsCurlExampleStateKey, summary: 'curl', text: config.curlExample }) : ''}
+
+				${_Code.templates.schemaMethodAPIExampleDetail({ id: 'scripting-example', stateKey: _Code.methodsScriptingExampleStateKey, summary: 'Serverside JavaScript Scripting', text: config.scriptingExample })}
+
+			</div>
+		`,
+		schemaMethodAPIExampleDetail: config => `
+
+			<details id="${config.id}" ${LSWrapper.getItem(config.stateKey, 'closed')} class="py-1">
+
+				<summary class="cursor-pointer">${config.summary}</summary>
+
+				<div class="flex justify-between ml-4 my-2 p-4 rounded-md bg-black text-gray-ddd">
+					<div usage-text class="whitespace-pre-wrap font-mono">${config.text}</div>
+					
+					<div>
+						<button copy-button class="flex items-center bg-gray hover:bg-gray-200 focus:border-gray-666 active:border-green" style="margin: 0;">${_Icons.getSvgIcon(_Icons.iconClipboardPencil, 16, 16, 'mr-2')} Copy</button>
+					</div>
+				</div>
+
+			</details>
+		`,
 		propertiesInherited: config => `
 			<h2>Inherited Attributes of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		propertiesLocal: config => `
-			<h2>Local Properties of type ${config.data.type}</h2>
+			<h2>Direct Properties of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		propertiesRemote: config => `
@@ -3264,15 +3512,6 @@ let _Code = {
 		root: config => `
 			<div id="all-types" style="position: relative; width: 100%; height: 98%;">
 			</div>
-		`,
-		schemaGrantsRow: config => `
-			<tr data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
-				<td>${config.name}</td>
-				<td class="centered"><input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')}/></td>
-				<td class="centered"><input type="checkbox" data-property="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')}/></td>
-				<td class="centered"><input type="checkbox" data-property="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')}/></td>
-				<td class="centered"><input type="checkbox" data-property="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')}/></td>
-			</tr>
 		`,
 		stringProperty: config => `
 			<h2>StringProperty ${config.property.schemaNode.name}.${config.property.name}</h2>

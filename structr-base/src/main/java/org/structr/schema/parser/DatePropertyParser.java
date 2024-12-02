@@ -28,6 +28,8 @@ import org.structr.schema.SchemaHelper.Type;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 
@@ -171,6 +173,32 @@ public class DatePropertyParser extends PropertySourceGenerator {
 			}
 
 			return new SimpleDateFormat(format).format(date);
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * Central method to format a date into a string.
+	 *
+	 * If no format is given, use the (old) default format.
+	 *
+	 * @param date
+	 * @param format optional SimpleDateFormat pattern
+	 * @return
+	 */
+	public static String format(final ZonedDateTime date, String format) {
+
+		if (date != null) {
+
+			if (StringUtils.isBlank(format)) {
+
+				format = DateProperty.getDefaultFormat();
+
+			}
+
+			return DateTimeFormatter.ofPattern(format).format(date);
 		}
 
 		return null;

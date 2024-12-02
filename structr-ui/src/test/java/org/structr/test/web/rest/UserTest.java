@@ -42,17 +42,32 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class UserTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(UserTest.class.getName());
-
 	@Test
 	public void testAdminUserCreation() {
 
 		createEntityAsSuperUser("/User", "{ 'name': 'admin', 'password': 'admin', 'isAdmin': true }");
 		createEntityAsSuperUser("/User", "{ 'name': 'user', 'password': 'password'}");
 
+		// anonymous user is not allowed to create admin user
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ 'name': 'Administrator', 'password': 'test', 'isAdmin': true }")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(401)
+			.when()
+				.post("/User");
+
 		grant("User", UiAuthenticator.NON_AUTH_USER_POST | UiAuthenticator.AUTH_USER_POST, true);
 
-		// anonymous user is not allowed to create admin user
+		// anonymous user is not allowed to create admin user even with grant because isAdmin is read-only
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
@@ -69,7 +84,7 @@ public class UserTest extends StructrUiTest {
 			.when()
 				.post("/User");
 
-		// ordinary user is not allowed to create admin user
+		// ordinary user is not allowed to create admin user even with grant because isAdmin is read-only
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
@@ -121,7 +136,7 @@ public class UserTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
-			final JsonType principal = schema.addType("Principal");
+			final JsonType principal = schema.addType("User");
 
 			principal.addFunctionProperty("funcTest", PropertyView.Public, PropertyView.Ui).setReadFunction("(me)");
 

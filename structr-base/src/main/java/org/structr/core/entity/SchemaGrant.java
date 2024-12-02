@@ -20,12 +20,13 @@ package org.structr.core.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalSchemaGrantRelationship;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
@@ -44,12 +45,12 @@ import org.structr.core.property.StartNode;
 public class SchemaGrant extends SchemaReloadingNode {
 
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaGrant.class.getName());
-	public static final Property<Principal>  principal              = new StartNode<>("principal", PrincipalSchemaGrantRelationship.class);
-	public static final Property<SchemaNode> schemaNode             = new EndNode<>("schemaNode", SchemaGrantSchemaNodeRelationship.class);
-	public static final Property<Boolean> allowRead                 = new BooleanProperty("allowRead");
-	public static final Property<Boolean> allowWrite                = new BooleanProperty("allowWrite");
-	public static final Property<Boolean> allowDelete               = new BooleanProperty("allowDelete");
-	public static final Property<Boolean> allowAccessControl        = new BooleanProperty("allowAccessControl");
+	public static final Property<PrincipalInterface>  principal     = new StartNode<>("principal", PrincipalSchemaGrantRelationship.class).partOfBuiltInSchema();
+	public static final Property<SchemaNode> schemaNode             = new EndNode<>("schemaNode", SchemaGrantSchemaNodeRelationship.class).partOfBuiltInSchema();
+	public static final Property<Boolean> allowRead                 = new BooleanProperty("allowRead").partOfBuiltInSchema();
+	public static final Property<Boolean> allowWrite                = new BooleanProperty("allowWrite").partOfBuiltInSchema();
+	public static final Property<Boolean> allowDelete               = new BooleanProperty("allowDelete").partOfBuiltInSchema();
+	public static final Property<Boolean> allowAccessControl        = new BooleanProperty("allowAccessControl").partOfBuiltInSchema();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
@@ -123,7 +124,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 
 		super.onCreation(securityContext, errorBuffer);
 
-		final Principal p = getProperty(principal);
+		final PrincipalInterface p = getProperty(principal);
 		if (p == null) {
 
 			// no principal => delete
@@ -132,7 +133,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 		}
 
 		// delete this node if principal or schema node are missing
-		if (!TransactionCommand.isDeleted(dbNode) && getProperty(schemaNode) == null) {
+		if (!TransactionCommand.isDeleted(getNode()) && getProperty(schemaNode) == null) {
 			logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
 			StructrApp.getInstance().delete(this);
 		}
@@ -143,7 +144,8 @@ public class SchemaGrant extends SchemaReloadingNode {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		final Principal p = getProperty(principal);
+		final Node dbNode = getNode();
+		final PrincipalInterface p = getProperty(principal);
 		if (p == null) {
 
 			// no principal => delete

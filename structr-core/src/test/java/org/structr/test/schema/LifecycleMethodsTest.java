@@ -52,6 +52,7 @@ public class LifecycleMethodsTest extends StructrTest {
 			final JsonType customer = schema.addType("Customer");
 			final JsonType logEntry = schema.addType("LogEntry");
 
+			customer.addMethod("onNodeCreation", "create('LogEntry', 'name', concat('onNodeCreation: ', this.name))");
 			customer.addMethod("onCreate", "create('LogEntry', 'name', concat('onCreate: ', this.name))");
 			customer.addMethod("afterCreate", "create('LogEntry', 'name', concat('afterCreate: ', this.name))");
 			customer.addMethod("onSave", "create('LogEntry', 'name', concat('onSave: ', this.name))");
@@ -117,13 +118,15 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(AbstractNode.name).getAsList();
 
-			final AbstractNode afterCreate = logEntries.get(0);
-			final AbstractNode afterDelete = logEntries.get(1);
-			final AbstractNode afterSave = logEntries.get(2);
-			final AbstractNode onCreate = logEntries.get(3);
-			final AbstractNode onDelete = logEntries.get(4);
-			final AbstractNode onSave = logEntries.get(5);
+			final AbstractNode afterCreate    = logEntries.get(0);
+			final AbstractNode afterDelete    = logEntries.get(1);
+			final AbstractNode afterSave      = logEntries.get(2);
+			final AbstractNode onCreate       = logEntries.get(3);
+			final AbstractNode onDelete       = logEntries.get(4);
+			final AbstractNode onNodeCreation = logEntries.get(5);
+			final AbstractNode onSave         = logEntries.get(6);
 
+			assertEquals(onNodeCreation.getName(),    "onNodeCreation: Customer");
 			assertEquals(onCreate.getName(),    "onCreate: Customer");
 			assertEquals(afterCreate.getName(), "afterCreate: Customer");
 

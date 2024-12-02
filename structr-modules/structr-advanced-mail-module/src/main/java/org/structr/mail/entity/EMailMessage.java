@@ -18,66 +18,59 @@
  */
 package org.structr.mail.entity;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.graph.PropagationDirection;
-import org.structr.api.graph.PropagationMode;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.MailTemplate;
+import org.structr.core.property.*;
+import org.structr.mail.entity.relationship.EMailMessageHAS_ATTACHMENTFile;
+import org.structr.mail.entity.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.File;
 
-import java.net.URI;
 import java.util.Date;
 
-public interface EMailMessage extends NodeInterface {
+public class EMailMessage extends AbstractNode {
 
-	class Impl { static {
+	public static final Property<Iterable<File>> attachedFilesProperty = new EndNodes<>("attachedFiles", EMailMessageHAS_ATTACHMENTFile.class);
+	public static final Property<Mailbox> mailboxProperty              = new StartNode<>("mailbox", MailboxCONTAINS_EMAILMESSAGESEMailMessage.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("EMailMessage");
-		final JsonObjectType file = schema.addType("File");
+	public static final Property<String> subjectProperty     = new StringProperty("subject").indexed();
+	public static final Property<String> fromProperty        = new StringProperty("from").indexed();
+	public static final Property<String> fromMailProperty    = new StringProperty("fromMail").indexed();
+	public static final Property<String> toProperty          = new StringProperty("to").indexed();
+	public static final Property<String> ccProperty          = new StringProperty("cc").indexed();
+	public static final Property<String> bccProperty         = new StringProperty("bcc").indexed();
+	public static final Property<String> replyToProperty     = new StringProperty("replyTo").indexed();
+	public static final Property<String> contentProperty     = new StringProperty("content");
+	public static final Property<String> htmlContentProperty = new StringProperty("htmlContent");
+	public static final Property<String> folderProperty      = new StringProperty("folder").indexed();
+	public static final Property<String> headerProperty      = new StringProperty("header");
+	public static final Property<String> messageIdProperty   = new StringProperty("messageId").indexed();
+	public static final Property<String> inReplyToProperty   = new StringProperty("inReplyTo").indexed();
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/EMailMessage"));
+	public static final Property<Date> receivedDateProperty = new DateProperty("receivedDate").indexed();
+	public static final Property<Date> sentDateProperty     = new DateProperty("sentDate").indexed();
 
-		type.addStringProperty("subject",          PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("from",             PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("fromMail",         PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("to",               PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("cc",               PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("bcc",              PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("replyTo",          PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("content",          PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("htmlContent",      PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("folder",           PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("header",           PropertyView.Ui).setIndexed(false);
-		type.addStringProperty("messageId",        PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("inReplyTo",        PropertyView.Ui).setIndexed(true);
+	public static final View defaultView = new View(EMailMessage.class, PropertyView.Public,
+		id, type, subjectProperty, fromProperty, fromMailProperty, toProperty, ccProperty, bccProperty, replyToProperty,
+		contentProperty, htmlContentProperty, folderProperty, headerProperty, messageIdProperty, inReplyToProperty,
+		receivedDateProperty, sentDateProperty
+	);
 
-		type.addDateProperty("receivedDate",       PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("sentDate",           PropertyView.Ui).setIndexed(true);
+	public static final View uiView      = new View(EMailMessage.class, PropertyView.Ui,
+		subjectProperty, fromProperty, fromMailProperty, toProperty, ccProperty, bccProperty, replyToProperty,
+		contentProperty, htmlContentProperty, folderProperty, headerProperty, messageIdProperty, inReplyToProperty,
+		receivedDateProperty, sentDateProperty, attachedFilesProperty
+	);
 
-		type.addPropertyGetter("subject",           String.class);
-		type.addPropertyGetter("from",              String.class);
-		type.addPropertyGetter("fromMail",          String.class);
-		type.addPropertyGetter("to",                String.class);
-		type.addPropertyGetter("content",           String.class);
-		type.addPropertyGetter("folder",            String.class);
-		type.addPropertyGetter("header",            String.class);
-		type.addPropertyGetter("messageId",         String.class);
-		type.addPropertyGetter("inReplyTo",         String.class);
-		type.addPropertyGetter("receivedDate",      Date.class);
-		type.addPropertyGetter("sentDate",          Date.class);
+	static {
 
-		JsonReferenceType rel = type.relate(file, "HAS_ATTACHMENT", Cardinality.OneToMany, "attachedMail", "attachedFiles");
-		rel.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
-		rel.setReadPermissionPropagation(PropagationMode.Add);
-		rel.setPermissionPropagation(PropagationDirection.Out);
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("EMailMessage");
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "id,type");
-		type.addViewProperty(PropertyView.Ui,     "id,type,subject,from,fromMail,to,content,htmlContent,folder,receivedDate,sentDate,mailbox,header,messageId,inReplyTo,attachedFiles");
-	}}
-
+		type.setExtends(EMailMessage.class);
+	}
 }

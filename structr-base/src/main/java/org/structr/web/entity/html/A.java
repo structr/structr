@@ -18,34 +18,35 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class A extends DOMElement implements LinkSource {
 
-public interface A extends LinkSource {
+	public static final Property<String> htmlHrefProperty     = new StringProperty("_html_href");
+	public static final Property<String> htmlTargetProperty   = new StringProperty("_html_target");
+	public static final Property<String> htmlPingProperty     = new StringProperty("_html_ping");
+	public static final Property<String> htmlRelProperty      = new StringProperty("_html_rel");
+	public static final Property<String> htmlMediaProperty    = new StringProperty("_html_media");
+	public static final Property<String> htmlHrefLangProperty = new StringProperty("_html_hreflang");
+	public static final Property<String> htmlTypeProperty     = new StringProperty("_html_type");
 
-	static class Impl { static {
+	public static final View htmlView = new View(A.class, PropertyView.Html,
+		htmlHrefProperty, htmlTargetProperty, htmlPingProperty, htmlRelProperty, htmlMediaProperty, htmlHrefLangProperty, htmlTypeProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("A");
+	@Override
+	public boolean avoidWhitespace() {
+		return true;
+	}
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/A"));
-		type.setExtends(URI.create("#/definitions/LinkSource"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_href",     PropertyView.Html);
-		type.addStringProperty("_html_target",   PropertyView.Html);
-		type.addStringProperty("_html_ping",     PropertyView.Html);
-		type.addStringProperty("_html_rel",      PropertyView.Html);
-		type.addStringProperty("_html_media",    PropertyView.Html);
-		type.addStringProperty("_html_hreflang", PropertyView.Html);
-		type.addStringProperty("_html_type",     PropertyView.Html);
-
-		type.overrideMethod("avoidWhitespace", false, "return true;");
-		type.overrideMethod("getHtmlAttributes", false, "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());");
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

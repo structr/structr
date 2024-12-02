@@ -18,45 +18,56 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasCustomTermAttributeCustomTermAttribute;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasDefinitionDefinition;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasEditorialNoteEditorialNote;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasHistoryNoteHistoryNote;
 
-import java.net.URI;
-import java.util.Locale;
+import java.util.Date;
 
 /**
  * Class as defined in ISO 25964 data model
  */
 
-public interface ThesaurusTerm extends NodeInterface {
+public class ThesaurusTerm extends AbstractNode {
 
-	static class Impl { static {
+	public enum Lang {
+		aa, ab, ae, af, ak, am, an, ar, as, av, ay, az, ba, be, bg, bh, bi, bm, bn, bo, br, bs, ca, ce, ch, co, cr, cs, cu, cv, cy, da, de, dv, dz, ee, el, en, eo, es, et, eu, fa, ff, fi, fj, fo, fr, fy, ga, gd, gl, gn, gu, gv, ha, he, hi, ho, hr, ht, hu, hy, hz, ia, id, ie, ig, ii, ik, in, io, is, it, iu, iw, ja, ji, jv, ka, kg, ki, kj, kk, kl, km, kn, ko, kr, ks, ku, kv, kw, ky, la, lb, lg, li, ln, lo, lt, lu, lv, mg, mh, mi, mk, ml, mn, mo, mr, ms, mt, my, na, nb, nd, ne, ng, nl, nn, no, nr, nv, ny, oc, oj, om, or, os, pa, pi, pl, ps, pt, qu, rm, rn, ro, ru, rw, sa, sc, sd, se, sg, si, sk, sl, sm, sn, so, sq, sr, ss, st, su, sv, sw, ta, te, tg, th, ti, tk, tl, tn, to, tr, ts, tt, tw, ty, ug, uk, ur, uz, ve, vi, vo, wa, wo, xh, yi, yo, za, zh, zu
+	}
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
+	;
 
-		final JsonObjectType type                = schema.addType("ThesaurusTerm");
-		final JsonObjectType customTermAttribute = schema.addType("CustomTermAttribute");
-		final JsonObjectType historyNote         = schema.addType("HistoryNote");
-		final JsonObjectType definition          = schema.addType("Definition");
-		final JsonObjectType editorialNote       = schema.addType("EditorialNote");
+	public static final Property<Iterable<CustomTermAttribute>> customTermAttributesProperty = new EndNodes<>("customTermAttributes", ThesaurusTermhasCustomTermAttributeCustomTermAttribute.class);
+	public static final Property<Iterable<HistoryNote>> historyNotesProperty = new EndNodes<>("historyNotes", ThesaurusTermhasHistoryNoteHistoryNote.class);
+	public static final Property<Iterable<Definition>> definitionsProperty = new EndNodes<>("definitions", ThesaurusTermhasDefinitionDefinition.class);
+	public static final Property<Iterable<EditorialNote>> editorialNotesProperty = new EndNodes<>("editorialNotes", ThesaurusTermhasEditorialNoteEditorialNote.class);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusTerm"));
+	public static final Property<String> lexicalValueProperty = new StringProperty("lexicalValue").indexed().notNull();
+	public static final Property<String[]> identifierProperty = new ArrayProperty("identifier", String.class).indexed().notNull();
+	public static final Property<Date> createdProperty = new DateProperty("created");
+	public static final Property<Date> modifiedProperty = new DateProperty("modified");
+	public static final Property<String> sourceProperty = new StringProperty("source");
+	public static final Property<String> statusProperty = new StringProperty("status");
+	public static final Property<String> langProperty = new EnumProperty("lang", Lang.class);
 
-		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("status", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
+	public static final View uiView = new View(ThesaurusTerm.class, PropertyView.Ui,
+		lexicalValueProperty, identifierProperty, createdProperty, modifiedProperty, sourceProperty, statusProperty, langProperty
+	);
 
-		type.relate(customTermAttribute, "hasCustomTermAttribute", Cardinality.OneToMany, "term", "customTermAttributes");
-		type.relate(historyNote,         "hasHistoryNote",         Cardinality.OneToMany, "term", "historyNotes");
-		type.relate(definition,          "hasDefiniton",           Cardinality.OneToMany, "term", "definitions");
-		type.relate(editorialNote,       "hasEditorialNote",       Cardinality.OneToMany, "term", "editorialNotes");
-	}}
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ThesaurusTerm.identifierProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ThesaurusTerm.lexicalValueProperty, errorBuffer);
+
+		return valid;
+	}
 }

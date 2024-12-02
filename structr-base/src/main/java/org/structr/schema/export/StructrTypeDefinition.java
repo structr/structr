@@ -39,6 +39,8 @@ import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
 import org.structr.util.UrlUtils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
@@ -84,7 +86,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.name = name;
 	}
 
-	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException;
+	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException;
 	abstract boolean isBlacklisted(final Set<String> blacklist);
 
 	@Override
@@ -315,6 +317,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonType setExtends(final Class staticType) {
+
+		this.baseTypeReference = StructrApp.getSchemaBaseURI().resolve(getStaticTypeReference(staticType));
+		return this;
+	}
+
+	@Override
 	public URI getExtends() {
 		return baseTypeReference;
 	}
@@ -323,6 +332,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	public JsonType setImplements(final URI uri) {
 
 		implementedInterfaces.add(uri);
+		return this;
+	}
+
+	@Override
+	public JsonType setImplements(final Class staticType) {
+
+		implementedInterfaces.add(StructrApp.getSchemaBaseURI().resolve(getStaticTypeReference(staticType)));
 		return this;
 	}
 
@@ -611,6 +627,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(byteArrayProperty);
 
 		return byteArrayProperty;
+	}
+
+	@Override
+	public JsonCountProperty addCountProperty(final String name, final String... views) {
+
+		final StructrCountProperty countProperty = new StructrCountProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(countProperty);
+
+		return countProperty;
 	}
 
 	@Override
@@ -1108,11 +1136,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {
+	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app) throws FrameworkException {
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
-		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
-		final Map<String, SchemaGrant> schemaGrants        = new TreeMap<>();
 		final PropertyMap createProperties                 = new PropertyMap();
 		final PropertyMap nodeProperties                   = new PropertyMap();
 
@@ -1125,11 +1151,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToPublicUsers);
 		createProperties.put(SchemaNode.defaultVisibleToAuth, visibleToAuthenticatedUsers);
 
-		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
+		final T newSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
 
 		for (final StructrPropertyDefinition property : properties) {
 
-			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, schemaNode);
+			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, newSchemaNode);
 			if (schemaProperty != null) {
 
 				schemaProperties.put(schemaProperty.getName(), schemaProperty);
@@ -1155,15 +1181,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 
-			SchemaView viewNode = app.nodeQuery(SchemaView.class)
-				.and(SchemaView.schemaNode, schemaNode)
-				.and(SchemaView.name, view.getKey())
-				.getFirst();
-
+			SchemaView viewNode = newSchemaNode.getSchemaView(view.getKey());
 			if (viewNode == null) {
 
 				viewNode = app.create(SchemaView.class,
-					new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
+					new NodeAttribute<>(SchemaView.schemaNode, newSchemaNode),
 					new NodeAttribute<>(SchemaView.name, view.getKey())
 				);
 			}
@@ -1183,20 +1205,19 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final StructrMethodDefinition method : methods) {
 
-			final SchemaMethod schemaMethod = method.createDatabaseSchema(app, schemaNode);
-			if (schemaMethod != null) {
+			// FIXME: this is migration code for ancient imports
+			if ("getQoS".equals(method.getName()) && "java".equals(method.getCodeType())) {
 
-				schemaMethods.put(schemaMethod.getName(), schemaMethod);
+				logger.warn("Preventing creation of duplicate getQoS / getQos method pair from legacy import.");
+
+			} else {
+
+				method.createDatabaseSchema(app, newSchemaNode);
 			}
 		}
 
 		for (final StructrGrantDefinition grant : grants) {
-
-			final SchemaGrant schemaGrant = grant.createDatabaseSchema(app, schemaNode);
-			if (schemaGrant != null) {
-
-				schemaGrants.put(schemaGrant.getPrincipalName(), schemaGrant);
-			}
+			grant.createDatabaseSchema(app, newSchemaNode);
 		}
 
 		// extends
@@ -1225,22 +1246,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 						unresolvedSuperclassName = superclass.getName();
 					}
 
-				} else if ("https://structr.org/v1.1/definitions/FileBase".equals(baseTypeReference.toString())) {
+				} else {
 
-					// FileBase doesn't exist any more, but we need to support it for some time..
-					nodeProperties.put(SchemaNode.implementsInterfaces, "org.structr.web.entity.File");
 
-				} else if (!StructrApp.getSchemaBaseURI().relativize(baseTypeReference).isAbsolute()) {
+					final String staticTypeName = resolveStaticType(baseTypeReference);
+					if (staticTypeName != null) {
 
-					// resolve internal type referenced in special URI
-					final URI base          = StructrApp.getSchemaBaseURI().resolve("definitions/");
-					final URI type          = base.relativize(baseTypeReference);
-					final String typeName   = type.getPath();
-					final String parameters = type.getQuery();
-
-					if (StringUtils.isNotBlank(typeName)) {
-
-						nodeProperties.put(SchemaNode.extendsClassInternal, getParameterizedType(typeName, parameters));
+						nodeProperties.put(SchemaNode.extendsClassInternal, staticTypeName);
 					}
 				}
 			}
@@ -1280,6 +1292,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					if (superclass != null) {
 
 						interfaces.add(superclass.getName());
+
+					} else {
+
+						final String staticTypeName = resolveStaticType(implementedInterface);
+						if (staticTypeName != null) {
+
+							interfaces.add(staticTypeName);
+						}
 					}
 				}
 			}
@@ -1288,23 +1308,25 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = schemaNode.getProperty(SchemaNode.tags);
+		final String[] existingTagsArray = newSchemaNode.getProperty(SchemaNode.tags);
 
 		if (existingTagsArray != null) {
 
 			mergedTags.addAll(Arrays.asList(existingTagsArray));
 		}
 
-		// merge tags, don't overwrite
-		nodeProperties.put(SchemaNode.tags,              mergedTags.toArray(new String[0]));
+		if (!mergedTags.isEmpty()) {
+			nodeProperties.put(SchemaNode.tags,              listToArray(mergedTags));
+		}
+
 		nodeProperties.put(SchemaNode.includeInOpenAPI,  includeInOpenAPI());
 		nodeProperties.put(SchemaNode.summary,           getSummary());
 		nodeProperties.put(SchemaNode.description,       getDescription());
 		nodeProperties.put(SchemaNode.icon,              getIcon());
 
-		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
+		newSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
-		return schemaNode;
+		return newSchemaNode;
 	}
 
 	T getSchemaNode() {
@@ -1338,13 +1360,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	void diff(final StructrTypeDefinition other) throws FrameworkException {
+	void diff(final Class nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
-		diffMethods(other);
-		diffProperties(other);
+		diffMethods(nodeType, other);
+		diffProperties(nodeType, other);
 	}
 
-	void diffProperties(final StructrTypeDefinition other) throws FrameworkException {
+	void diffProperties(final Class nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
 		final Map<String, StructrPropertyDefinition> databaseProperties = getMappedProperties();
 		final Map<String, StructrPropertyDefinition> structrProperties  = other.getMappedProperties();
@@ -1361,12 +1383,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			final StructrPropertyDefinition property = databaseProperties.get(key);
 
-			handleRemovedProperty(property);
+			handleRemovedProperty(nodeType, property);
 		}
-
-		// nothing to do for this set, these properties can simply be created without problems
-		//System.out.println(propertiesOnlyInStructrSchema);
-
 
 		// find detailed differences in the intersection of both schemas
 		for (final String name : bothPropertys) {
@@ -1379,7 +1397,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	void diffMethods(final StructrTypeDefinition other) throws FrameworkException {
+	void diffMethods(final Class nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
 		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsBySignature();
 		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsBySignature();
@@ -1396,12 +1414,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			final StructrMethodDefinition method = databaseMethods.get(key);
 
-			handleRemovedMethod(method);
+			handleRemovedMethod(nodeType, method);
 		}
-
-		// nothing to do for this set, these methods can simply be created without problems
-		//System.out.println(methodsOnlyInStructrSchema);
-
 
 		// find detailed differences in the intersection of both schemas
 		for (final String name : bothMethods) {
@@ -1418,8 +1432,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final String name, final Map<String, Object> source) {
 
 		final Map<String, StructrPropertyDefinition> deserializedProperties = new TreeMap<>();
-		final Map<String, StructrMethodDefinition> deserializedMethods      = new TreeMap<>();
-		final Map<String, StructrGrantDefinition> deserializedGrants        = new TreeMap<>();
 		final StructrTypeDefinition typeDefinition                          = StructrTypeDefinition.determineType(root, name, source);
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
@@ -1504,7 +1516,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final StructrMethodDefinition method = StructrMethodDefinition.deserialize(typeDefinition, methodName, (Map)value);
 					if (method != null) {
 
-						deserializedMethods.put(method.getName(), method);
 						typeDefinition.getMethods().add(method);
 					}
 
@@ -1518,7 +1529,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 						final StructrMethodDefinition method = StructrMethodDefinition.deserialize(typeDefinition, methodName, map);
 						if (method != null) {
 
-							deserializedMethods.put(method.getName(), method);
 							typeDefinition.getMethods().add(method);
 						}
 					}
@@ -1542,7 +1552,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final StructrGrantDefinition grant = StructrGrantDefinition.deserialize(typeDefinition, principalName, (Map)value);
 					if (grant != null) {
 
-						deserializedGrants.put(grant.getPrincipalName(), grant);
 						typeDefinition.getGrants().add(grant);
 					}
 
@@ -1760,28 +1769,58 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return mapped;
 	}
 
-	private void handleRemovedMethod(final StructrMethodDefinition method) throws FrameworkException {
+	private void handleRemovedMethod(final Class nodeType, final StructrMethodDefinition method) throws FrameworkException {
+
+		final Set<String> deleteWhitelist = Set.of(
+			"Mailbox.getAvailableFoldersOnServer",
+			"DOMElement.renderStructrAppLib",
+			"MQTTClient.getQoS",
+			"File.getFileOnDisk",
+			"File.getMinificationTargets",
+			"Group.addMember",
+			"Group.removeMember",
+			"Page.setContent"
+		);
 
 		if ("java".equals(method.getCodeType())) {
 
-			if (List.class.getName().equals(method.getReturnType())) {
+			final String typeAndName = getName() + "." + method.getName();
 
-				final SchemaMethod schemaMethod = method.getSchemaMethod();
-				if (schemaMethod != null) {
+			if (method.overridesExisting() || deleteWhitelist.contains(typeAndName)) {
+
+				StructrApp.getInstance().delete(method.getSchemaMethod());
+
+			} else {
+
+				// look for matching method in class
+				final Method staticMethod = getMethodOrNull(nodeType, method);
+				if (staticMethod != null) {
 
 					StructrApp.getInstance().delete(method.getSchemaMethod());
 				}
 			}
 		}
-
-		if ("getQoS".equals(method.getName())) {
-
-			StructrApp.getInstance().delete(method.getSchemaMethod());
-		}
 	}
 
-	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {
-		//logger.warn("Property {}.{} was removed or renamed in the current version of the Structr schema, no action taken.", getName(), property.getName());
+	private void handleRemovedProperty(final Class nodeType, final StructrPropertyDefinition property) throws FrameworkException {
+
+		// do not delete properties that are defined in dynamic types
+		if (nodeType != null && nodeType.getName().startsWith("org.structr.dynamic.")) {
+			return;
+		}
+
+		// check if property has moved to static schema
+		Field field = getFieldOrNull(nodeType, property.getName());
+		if (field == null) {
+
+			// check if property has moved to static schema, with "Property" suffix
+			field = getFieldOrNull(nodeType, property.getName() + "Property");
+		}
+
+		if (field != null || property instanceof DeletedPropertyDefinition) {
+
+			StructrApp.getInstance().delete(property.getSchemaProperty());
+		}
 	}
 
 	// ----- OpenAPI methods -----
@@ -1953,5 +1992,27 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		intersection.retainAll(set2);
 
 		return !intersection.isEmpty();
+	}
+
+	private String resolveStaticType(final URI uri) {
+
+		// The following code allows static Java classes to be used as endpoints for dynamic relationships.
+		// The FQCN of the class is encoded in the sourceType or targetType URI as https://structr.org/v1.1/static/<fqcn>
+		final String prefix = "static/";
+		final int start = prefix.length();
+
+		final URI rel = StructrApp.getSchemaBaseURI().relativize(uri);
+		final String path = rel.toString();
+
+		if (path.startsWith(prefix)) {
+
+			return path.substring(start);
+		}
+
+		return null;
+	}
+
+	protected String getStaticTypeReference(final Class type) {
+		return "static/" + type.getName();
 	}
 }

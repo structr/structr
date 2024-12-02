@@ -29,6 +29,8 @@ public interface PropertyContainer {
 
 	Identity getId();
 
+	default void invalidate() {}
+
 	boolean hasProperty(final String name);
 	Object getProperty(final String name);
 	Object getProperty(final String name, final Object defaultValue);
@@ -40,7 +42,6 @@ public interface PropertyContainer {
 
 	void delete(final boolean deleteRelationships) throws NotInTransactionException;
 
-	boolean isStale();
 	boolean isDeleted();
 
 	default int compare(final String key, final PropertyContainer a, final PropertyContainer b) {

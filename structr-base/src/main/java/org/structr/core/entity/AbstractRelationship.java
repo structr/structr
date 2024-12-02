@@ -24,7 +24,6 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
@@ -42,6 +41,8 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.*;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.graph.TransactionCommand;
 
 
 /**
@@ -55,7 +56,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 	public static final Property<String>        relType            = new RelationshipTypeProperty();
 	public static final SourceId                sourceId           = new SourceId("sourceId");
 	public static final TargetId                targetId           = new TargetId("targetId");
@@ -81,8 +82,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private PropertyKey targetProperty         = null;
 
 	protected SecurityContext securityContext  = null;
-	protected Relationship dbRelationship      = null;
 	protected Class entityType                 = null;
+	protected Identity relationshipId          = null;
 
 	public AbstractRelationship() {}
 
@@ -94,7 +95,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public final void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
 
 		this.transactionId   = transactionId;
-		this.dbRelationship  = dbRel;
+		this.relationshipId  = dbRel.getId();
 		this.entityType      = entityType;
 		this.securityContext = securityContext;
 	}
@@ -108,10 +109,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void onRelationshipCreation() {
-	}
-
-	@Override
 	public Class getEntityType() {
 		return entityType;
 	}
@@ -119,38 +116,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public long getSourceTransactionId() {
 		return transactionId;
-	}
-
-	/**
-	 * Called when a relationship of this combinedType is instantiated. Please note that
-	 * a relationship can (and will) be instantiated several times during a
-	 * normal rendering turn.
-	 */
-	@Override
-	public void onRelationshipInstantiation() {
-
-		try {
-
-			if (dbRelationship != null) {
-
-				Node startNode = dbRelationship.getStartNode();
-				Node endNode   = dbRelationship.getEndNode();
-
-				if ((startNode != null) && (endNode != null) && startNode.hasProperty(GraphObject.id.dbName()) && endNode.hasProperty(GraphObject.id.dbName())) {
-
-					cachedStartNodeId = (String) startNode.getProperty(GraphObject.id.dbName());
-					cachedEndNodeId   = (String) endNode.getProperty(GraphObject.id.dbName());
-
-				}
-
-			}
-
-		} catch (Throwable t) {
-		}
-	}
-
-	@Override
-	public void onRelationshipDeletion() {
 	}
 
 	@Override
@@ -176,15 +141,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
-
-		dbRelationship.removeProperty(key.dbName());
+		getRelationship().removeProperty(key.dbName());
 	}
 
 	@Override
 	public boolean equals(final Object o) {
-
-		return (o != null && new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
-
+		return (o != null && Integer.valueOf(this.hashCode()).equals(o.hashCode()));
 	}
 
 	@Override
@@ -193,7 +155,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		if (uuid != null) {
 			return uuid.hashCode();
 		} else {
-			return dbRelationship.getId().hashCode();
+			return getRelationship().getId().hashCode();
 		}
 	}
 
@@ -232,9 +194,9 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		Map<String, Object> properties = new LinkedHashMap<>();
 
-		for (String key : dbRelationship.getPropertyKeys()) {
+		for (String key : getRelationship().getPropertyKeys()) {
 
-			properties.put(key, dbRelationship.getProperty(key));
+			properties.put(key, getRelationship().getProperty(key));
 		}
 
 		// convert the database properties back to their java types
@@ -306,49 +268,53 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	 */
 	@Override
 	public Relationship getRelationship() {
+		return TransactionCommand.getCurrentTransaction().getRelationship(relationshipId);
+	}
 
-		return dbRelationship;
-
+	@Override
+	public boolean isDeleted() {
+		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(relationshipId.getId());
 	}
 
 	@Override
 	public final T getTargetNode() {
 		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-		return nodeFactory.instantiate(dbRelationship.getEndNode());
+		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
 	public final T getTargetNodeAsSuperUser() {
 		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(dbRelationship.getEndNode());
+		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
 	public final S getSourceNode() {
 		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
-		return nodeFactory.instantiate(dbRelationship.getStartNode());
+		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
 	public final S getSourceNodeAsSuperUser() {
 		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(dbRelationship.getStartNode());
+		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
 	public final NodeInterface getOtherNode(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
-		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
 	}
 
 	public final NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
 	}
 
 	@Override
 	public final RelationshipType getRelType() {
 
+		final Relationship dbRelationship = getRelationship();
 		if (dbRelationship != null) {
 
 			return dbRelationship.getType();
@@ -408,24 +374,39 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public final PropertyContainer getPropertyContainer() {
-		return dbRelationship;
+		return getRelationship();
 	}
 
 	@Override
 	public final String getSourceNodeId() {
+
+		if (cachedStartNodeId == null) {
+
+			final NodeInterface source = getProperty(sourceNode);
+			if (source != null) {
+				cachedStartNodeId = source.getUuid();
+			}
+		}
+
 		return cachedStartNodeId;
 	}
 
 	@Override
 	public final String getTargetNodeId() {
-		return cachedEndNodeId;
 
+		if (cachedEndNodeId == null) {
+
+			final NodeInterface target = getProperty(targetNode);
+			if (target != null) {
+				cachedEndNodeId = target.getUuid();
+			}
+		}
+
+		return cachedEndNodeId;
 	}
 
 	public final String getOtherNodeId(final AbstractNode node) {
-
 		return getOtherNode(node).getProperty(AbstractRelationship.id);
-
 	}
 
 	@Override
@@ -487,6 +468,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
+		final Relationship dbRelationship = getRelationship();
+
 		for (final PropertyKey key : properties.keySet()) {
 
 			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
@@ -494,13 +477,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				// check for system properties
 				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
 				}
 
 				// check for read-only properties
 				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
 				}
 			}
 		}
@@ -526,25 +509,27 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			logger.error("Tried to set property with null key (action was denied)");
 
-			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base));
+			throw new FrameworkException(422, "Tried to set property with null key (action was denied)", new NullArgumentToken(getClass().getSimpleName(), base.jsonName()));
 
 		}
 
 		try {
+
+			final Relationship dbRelationship = getRelationship();
 
 			if (dbRelationship != null && dbRelationship.hasProperty(key.dbName())) {
 
 				// check for system properties
 				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
 
 				}
 
 				// check for read-only properties
 				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
 
 				}
 
@@ -642,11 +627,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				}
 				return value;
 		}
-	}
-
-	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwException, final EvaluationHints hints) throws FrameworkException {
-		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 
 	public void setSourceProperty(final PropertyKey source) {

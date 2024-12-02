@@ -20,10 +20,10 @@ jobs:
             variableName: REST
           - module: structr-db-driver-api
             variableName: DB_DRIVER_API
-          - module: structr-memgraph-driver
-            variableName: MEMGRAPH_DRIVER
-          - module: structr-memory-driver
-            variableName: MEMORY_DRIVER
+#          - module: structr-memgraph-driver
+#            variableName: MEMGRAPH_DRIVER
+#          - module: structr-memory-driver
+#            variableName: MEMORY_DRIVER
           - module: structr-modules
             variableName: MODULES
           - module: structr-neo4j-bolt-driver
@@ -45,17 +45,15 @@ jobs:
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.2'
-          java-version: '17'
-          #components: 'js,python'
-          components: 'js'
+          java-version: '22'
+          distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile and run Tests
         run:  >-
-          mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB && 
+          mvn clean install -q -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
           cd ${{ matrix.module }} && 
-          mvn install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
+          mvn install -q -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
 
       - name: Stop Test Database
         if: always()
@@ -79,17 +77,15 @@ jobs:
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.2'
-          java-version: '17'
-          #components: 'js,python'
-          components: 'js'
+          java-version: '22'
+          distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
       - name: Upload binaries
         run: >-
-          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload > /dev/null 2>&1 &&
-          scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/dev/null 2>&1
+          scp -v structr-binaries/target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
+          scp -v structr-binaries/target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
 
   cleanup-system:
     runs-on: self-hosted

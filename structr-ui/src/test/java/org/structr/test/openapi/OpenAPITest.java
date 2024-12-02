@@ -113,7 +113,7 @@ public class OpenAPITest extends StructrUiTest {
 		assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 		// schemas
-		HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  58);
+		HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  40);
 
 		assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 		assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -359,7 +359,7 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  100);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  85);
 
 			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -389,9 +389,9 @@ public class OpenAPITest extends StructrUiTest {
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStatic/{view}.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParams/{view}.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParamsReturn/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTest.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParams.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParamsReturn.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTest.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParamsReturn.#",  1);
 
 			// check paths
 			checkPaths(response, List.of(
@@ -433,24 +433,24 @@ public class OpenAPITest extends StructrUiTest {
 					Map.of("/Customer/doStaticParamsReturn/{view}", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalOther", Map.of(
+					Map.of("/globalOther", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalTest", Map.of(
+					Map.of("/globalTest", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalTestParams", Map.of(
+					Map.of("/globalTestParams", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalTestParamsReturn", Map.of(
+					Map.of("/globalTestParamsReturn", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					))
 			));
 
 			// check some special cases manually
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn/{view}.post.requestBody.content.application/json.schema.properties.id.type", "string");
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParams.post.requestBody.content.application/json.schema.properties.id.type",    "string");
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParams.post.requestBody.content.application/json.schema.properties.index.type", "integer");
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.id.type",    "string");
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.index.type", "integer");
 
 			// security
 			HttpFunctionsTest.assertMapPathValueIs(response, "security.#",  3);
@@ -528,7 +528,7 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  97);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  79);
 
 			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -556,9 +556,9 @@ public class OpenAPITest extends StructrUiTest {
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStatic/{view}.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParams/{view}.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParamsReturn/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTest.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParams.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParamsReturn.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTest.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParamsReturn.#",  1);
 
 			// check paths
 			checkPaths(response, List.of(
@@ -590,21 +590,21 @@ public class OpenAPITest extends StructrUiTest {
 					Map.of("/Customer/doStaticParamsReturn/{view}", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalTest", Map.of(
+					Map.of("/globalTest", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalTestParams", Map.of(
+					Map.of("/globalTestParams", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalTestParamsReturn", Map.of(
+					Map.of("/globalTestParamsReturn", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					))
 			));
 
 			// check some special cases manually
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn/{view}.post.requestBody.content.application/json.schema.properties.id.type", "string");
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParams.post.requestBody.content.application/json.schema.properties.id.type",    "string");
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalTestParams.post.requestBody.content.application/json.schema.properties.index.type", "integer");
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.id.type",    "string");
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.index.type", "integer");
 
 			// security
 			HttpFunctionsTest.assertMapPathValueIs(response, "security.#",  3);
@@ -682,7 +682,7 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  67);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  52);
 
 			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -704,7 +704,7 @@ public class OpenAPITest extends StructrUiTest {
 			// check number of operations (get, put, post, delete, ...)
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Contact.#",  3);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Contact/{uuid}.#",  3);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./maintenance/globalSchemaMethods/globalOther.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalOther.#",  1);
 
 			// check paths
 			checkPaths(response, List.of(
@@ -718,7 +718,7 @@ public class OpenAPITest extends StructrUiTest {
 							"put",    List.of("description", "operationId", "requestBody",               "responses", "summary", "tags"),
 							"delete", List.of("description", "operationId",                "parameters", "responses", "summary", "tags")
 					)),
-					Map.of("/maintenance/globalSchemaMethods/globalOther", Map.of(
+					Map.of("/globalOther", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					))
 			));

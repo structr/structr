@@ -20,8 +20,6 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
@@ -33,8 +31,6 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  */
 public class LoginLogoutTest extends StructrUiTest {
-
-	private static final Logger logger = LoggerFactory.getLogger(LoginLogoutTest.class.getName());
 
 	@Test
 	public void testLoginLogout() {
@@ -103,5 +99,73 @@ public class LoginLogoutTest extends StructrUiTest {
 			.statusCode(401)
 		.when()
 			.get("/me");
+	}
+
+
+	@Test
+	public void testLoginLogoutMisuse() {
+
+		grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
+
+		// use "username" instead of "name" (basically omitting "name")
+		RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ 'username': 'does_not_matter', 'password': 'does_not_matter'}")
+				.expect()
+				.statusCode(401)
+				.when()
+				.post("/login");
+
+		// omit "password"
+		RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ 'name': 'does_not_matter' }")
+				.expect()
+				.statusCode(401)
+				.when()
+				.post("/login");
+
+		// send numeric password
+		RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ 'name': 'does_not_matter', 'password': 123 }")
+				.expect()
+				.statusCode(401)
+				.when()
+				.post("/login");
+
+		// send all kind of garbage data
+		RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.body("{ 'name': ['does_not_matter'], 'password': 123, 'eMail': { 'test': 123 } }")
+				.expect()
+				.statusCode(401)
+				.when()
+				.post("/login");
+
 	}
 }

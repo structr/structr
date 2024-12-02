@@ -46,24 +46,26 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.test.web.basic.ResourceAccessTest;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class AdvancedSchemaTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
 
-	private final int count1 = 1;
-	private final int count2 = 1;
+	private final int count1 = 4;
+	private final int count2 = 4;
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
@@ -1142,7 +1144,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 	}
 
 
-	@Test
+	//@Test
+	// Disabled because we don't need to allow overriding of built-in methods
+	// in custom classes.
 	public void testIsValidPasswordMethodOfUser() {
 
 		try (final Tx tx = app.tx()) {
@@ -1155,7 +1159,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").overrideMethod("isValidPassword", false, "return true;");
+			schema.getType("User").overrideMethod("isValidPassword", false, "return true;")
+				.addParameter("password", "String")
+				.setReturnType("boolean");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1233,5 +1239,94 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testOnDownloadMethod() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create admin user
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.getType("File");
+
+			type.addMethod("onDownload", "{ $.log('DOWNLOAD!'); $.this.onDownloadCalled = true; }");
+			type.addBooleanProperty("onDownloadCalled");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final File newFile = app.create(File.class, "test.txt");
+
+			try (final PrintWriter writer = new PrintWriter(newFile.getOutputStream())) {
+
+				writer.print("test!");
+			}
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/";
+		RestAssured
+			.given()
+				.header("X-User",     "admin")
+				.header("X-Password", "admin")
+			.expect()
+				.statusCode(200)
+				.body(equalTo("test!"))
+			.when()
+				.get("/test.txt");
+
+
+		// we need to wait for some time before the lifecycle method is called
+		try { Thread.sleep(2000); } catch (Throwable t) {}
+
+		String fileTypeId = null;
+
+		// check downloaded flag
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<Boolean> key = StructrApp.key(File.class, "onDownloadCalled");
+			final File file                = app.nodeQuery(File.class).getFirst();
+
+			// store UUID of SchemaNode with name "File" for later use
+			final SchemaNode fileTypeNode  = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+			fileTypeId = fileTypeNode.getUuid();
+
+			assertTrue("Lifecycle method onDownload was not called!", file.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		// test getGeneratedSourceCode method
+		RestAssured.basePath = "/structr/rest";
+		RestAssured
+			.given()
+				.header("X-User",     "admin")
+				.header("X-Password", "admin")
+			.expect()
+				.statusCode(200)
+				.body("result", startsWith("package org.structr.dynamic;"))
+			.when()
+				.post("/SchemaNode/" + fileTypeId + "/getGeneratedSourceCode");
 	}
 }

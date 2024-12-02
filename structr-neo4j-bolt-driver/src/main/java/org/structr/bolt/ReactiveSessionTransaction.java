@@ -28,12 +28,9 @@ import org.neo4j.driver.internal.shaded.reactor.core.publisher.Mono;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
-import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
@@ -46,12 +43,11 @@ import java.util.*;
  */
 class ReactiveSessionTransaction extends SessionTransaction {
 
-	private static final Logger logger = LoggerFactory.getLogger(ReactiveSessionTransaction.class);
-
 	private BoltDatabaseService db = null;
 	private RxSession session      = null;
 	private RxTransaction tx       = null;
 	private boolean closed         = false;
+	private boolean forcedFailure  = false;
 
 	public ReactiveSessionTransaction(final BoltDatabaseService db, final RxSession session) {
 
@@ -77,6 +73,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 	@Override
 	public void failure() {
+		forcedFailure = true;
 	}
 
 	@Override
@@ -87,25 +84,32 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
+	public boolean isSuccessful() {
+		return success && !forcedFailure;
+	}
+
+	@Override
 	public void close() {
 
-		if (!success) {
+		clearChangeset();
+
+		if (forcedFailure || !success) {
 
 			try {
 
 				Mono.from(tx.rollback()).block();
 
-			} catch (Throwable ignore) {
-			}
-
-			for (final EntityWrapper entity : accessedEntities) {
-
-				entity.rollback(transactionKey);
-				entity.removeFromCache();
-			}
-
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.stale();
+			} catch (TransientException tex) {
+				closed = true;
+				throw new RetryException(tex);
+			} catch (NoSuchRecordException nex) {
+				throw new NotFoundException(nex);
+			} catch (ServiceUnavailableException ex) {
+				throw new NetworkException(ex.getMessage(), ex);
+			} catch (DatabaseException dex) {
+				throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			} catch (ClientException cex) {
+				throw ReactiveSessionTransaction.translateClientException(cex);
 			}
 
 		} else {
@@ -114,18 +118,17 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 				Mono.from(tx.commit()).block();
 
-			} catch (Throwable ignore) {
-			}
-
-			RelationshipWrapper.expunge(deletedRels);
-			NodeWrapper.expunge(deletedNodes);
-
-			for (final EntityWrapper entity : accessedEntities) {
-				entity.commit(transactionKey);
-			}
-
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.clearCaches();
+			} catch (TransientException tex) {
+				closed = true;
+				throw new RetryException(tex);
+			} catch (NoSuchRecordException nex) {
+				throw new NotFoundException(nex);
+			} catch (ServiceUnavailableException ex) {
+				throw new NetworkException(ex.getMessage(), ex);
+			} catch (DatabaseException dex) {
+				throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			} catch (ClientException cex) {
+				throw ReactiveSessionTransaction.translateClientException(cex);
 			}
 		}
 
@@ -144,50 +147,27 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		} finally {
 
-			// Notify all nodes that are modified in this transaction
-			// so that the relationship caches are rebuilt.
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.onClose();
-			}
-
 			// make sure that the resources are freed
 			session.close();
 		}
+
+		super.close();
 	}
 
+	@Override
 	public boolean isClosed() {
 		return closed;
 	}
 
 	@Override
-	public boolean getBoolean(final String statement) {
+	protected Boolean getBoolean(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement);
-			return getBoolean(statement, Collections.EMPTY_MAP);
+			logQuery(query);
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public boolean getBoolean(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
@@ -212,72 +192,22 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public long getLong(final String statement) {
+	protected Long getLong(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement);
-			return getLong(statement, Collections.EMPTY_MAP);
+			logQuery(query);
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public long getLong(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
-			final long value                  = record.get(0).asLong();
-
-			logSummary(Mono.from(result.consume()).block());
-
-			return value;
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public Object getObject(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
-			final RxResult result             = tx.run(statement, map);
-			final Publisher<Record> publisher = result.records();
-			final Record record               = Mono.from(publisher).block();
-			Object value                      = null;
+			Long value                        = null;
 
 			if (record != null) {
 
-				value = record.get(0).asObject();
+				value = record.get(0).asLong();
 			}
 
 			logSummary(Mono.from(result.consume()).block());
@@ -299,47 +229,14 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Entity getEntity(final String statement, final Map<String, Object> map) {
+	protected Node getNode(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
 
-			final RxResult result             = tx.run(statement, map);
-			final Publisher<Record> publisher = result.records();
-			final Record record               = Mono.from(publisher).block();
-			Entity value                      = null;
-
-			if (record != null) {
-
-				value = record.get(0).asEntity();
-			}
-
-			logSummary(Mono.from(result.consume()).block());
-
-			return value;
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public Node getNode(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
@@ -369,12 +266,14 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
+	protected Relationship getRelationship(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
 
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
@@ -404,12 +303,16 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Object collectRecords(final String statement, final Map<String, Object> map, final Object flux) {
+	protected Iterable<Record> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer unused) {
 
 		try {
 
-			logQuery(statement, map);
-			return Flux.from(tx.run(statement, map).records());
+			logQuery(query);
+
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
+
+			return Flux.from(tx.run(statement, map).records()).toIterable();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -426,20 +329,16 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
+	protected Iterable<Map<String, Object>> run(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
 
-			final RxResult result             = tx.run(statement, map);
-			final Publisher<Record> publisher = result.records();
-			final Record record               = Mono.from(publisher).block();
-			final List<String> immutable      = record.get(0).asList(Values.ofString());
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
-			logSummary(Mono.from(result.consume()).block());
-
-			return new LinkedList<>(immutable);
+                        return Iterables.toList(Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable()));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -456,34 +355,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
-			final Iterable<Map<String, Object>> iterable = Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable());
-
-			iterable.iterator().hasNext();
-
-			return iterable;
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public void set(final String statement, final Map<String, Object> map) {
+	protected void set(final String statement, final Map<String, Object> map) {
 
 		try {
 
@@ -508,67 +380,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query) {
 		return new QueryIterable(db, query);
-	}
-
-	// ----- nested classes -----
-	public class IteratorWrapper<T> implements Iterable<T> {
-
-		private Iterator<T> iterator = null;
-
-		public IteratorWrapper(final Iterator<T> iterator) {
-			this.iterator = iterator;
-		}
-
-		@Override
-		public Iterator<T> iterator() {
-			return new CloseableIterator<>(iterator);
-		}
-	}
-
-	public class CloseableIterator<T> implements Iterator<T>, AutoCloseable {
-
-		private Iterator<T> iterator = null;
-
-		public CloseableIterator(final Iterator<T> iterator) {
-			this.iterator = iterator;
-		}
-
-		@Override
-		public boolean hasNext() {
-
-			try {
-				return iterator.hasNext();
-
-			} catch (ClientException dex) {
-				throw ReactiveSessionTransaction.translateClientException(dex);
-			} catch (DatabaseException dex) {
-				throw ReactiveSessionTransaction.translateDatabaseException(dex);
-			}
-		}
-
-		@Override
-		public T next() {
-
-			try {
-
-				return iterator.next();
-
-			} catch (ClientException dex) {
-				throw ReactiveSessionTransaction.translateClientException(dex);
-			} catch (DatabaseException dex) {
-				throw ReactiveSessionTransaction.translateDatabaseException(dex);
-			}
-		}
-
-		@Override
-		public void close() throws Exception {
-
-			if (iterator instanceof Result) {
-
-				logSummary(((Result)iterator).consume());
-			}
-		}
 	}
 }

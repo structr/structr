@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -30,38 +27,18 @@ import org.structr.core.property.PropertyKey;
  */
 public class CompoundToken extends ErrorToken {
 
-	private PropertyKey[] keys = null;
-
 	public CompoundToken(final String type, final PropertyKey[] keys, final String uuid) {
 
-		super(type, null, "already_taken", uuid);
+		super("already_taken");
 
-		this.keys = keys;
+		withType(type);
+		withDetail(uuid);
+
+		with("keys", keys);
 	}
 
 	@Override
 	public Object getValue() {
-		return keys;
-	}
-
-	@Override
-	public JsonObject toJSON() {
-
-		final JsonObject token = new JsonObject();
-		final JsonArray array  = new JsonArray();
-
-		// add all keys that form the compound index
-		for (final PropertyKey key : keys) {
-			array.add(new JsonPrimitive(key.jsonName()));
-		}
-
-		token.add("type",       getStringOrNull(getType()));
-		token.add("properties", array);
-		token.add("token",      getStringOrNull(getToken()));
-
-		// optional
-		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
-
-		return token;
+		return data.get("keys");
 	}
 }

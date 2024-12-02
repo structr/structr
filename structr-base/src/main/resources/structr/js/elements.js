@@ -249,7 +249,6 @@ let _Elements = {
 		let isRootTrashElement    = (entity.parent === null && entity.pageId === null);
 		let hasChildren           = entity.childrenIds && entity.childrenIds.length;
 
-		// store active nodes in special place..
 		let isActiveNode = entity.isActiveNode();
 
 		let elementClasses = ['node', 'element'];
@@ -275,7 +274,7 @@ let _Elements = {
 				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="before-node"></div>'}
 
 				<div class="node-container flex items-center">
-					${_Icons.getSvgIconForElementNode(entity)}
+					${_Icons.getSvgIconForElementNode(entity, [], entity.getActiveNodeInfoAsString())}
 					<span class="abbr-ellipsis abbr-pages-tree"><b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity)}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -365,8 +364,8 @@ let _Elements = {
 		let idString    = entity._html_id;
 		let classString = entity._html_class;
 
-		let htmlIdString    = (idString    ? '#' + idString.replace(/\${.*}/g, '${…}') : '');
-		let htmlClassString = (classString ? '.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') : '');
+		let htmlIdString    = (idString    ? '#' + idString.replace(/\${[^}]*}/g, '${…}') : '');
+		let htmlClassString = (classString ? '.' + classString.replace(/\${[^}]*}/g, '${…}').replace(/ +/g, '.') : '');
 
 		// only display tagname if node has a displayname other than its tagname (otherwise the tagname itself is already displayed in the name field)
 		let displayName = _Helpers.getElementDisplayName(entity);
@@ -830,7 +829,7 @@ let _Elements = {
 				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="before-node"></div>'}
 
 				<div class="node-container flex items-center">
-					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', _Icons.typeIconClassNoChildren])}
+					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', _Icons.typeIconClassNoChildren], entity.getActiveNodeInfoAsString())}
 					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -1032,8 +1031,6 @@ let _Elements = {
 					});
 				});
 			}
-
-			_Editors.enableSpeechToTextForEditor(editor, buttonArea);
 
 			saveButton.addEventListener('click', (e) => {
 				e.stopPropagation();

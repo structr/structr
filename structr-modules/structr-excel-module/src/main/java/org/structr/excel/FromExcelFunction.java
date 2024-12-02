@@ -141,7 +141,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 		final ArrayList<String> headerValues = new ArrayList<>();
 
-		for (int c = headerRow.getFirstCellNum(); c < headerRow.getLastCellNum(); c++) {
+		for (int c = headerRow.getFirstCellNum(); c <= headerRow.getLastCellNum(); c++) {
 			final XSSFCell cell = headerRow.getCell(c);
 
 			if (cell == null) {
@@ -152,7 +152,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 			headerValues.add(getCellValue(cell).toString());
 		}
 
-		for (int r = firstRowNum+1; r < lastRowNum; r++) {
+		for (int r = firstRowNum+1; r <= lastRowNum; r++) {
 
 			final XSSFRow row = sheet.getRow(r);
 

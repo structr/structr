@@ -22,39 +22,26 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.util.FixedSizeCache;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+
 
 /**
  *
  */
 class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relationship> implements Relationship {
 
-	protected static FixedSizeCache<Long, RelationshipWrapper> relationshipCache = null;
-
 	private long sourceNodeId = -1L;
 	private long targetNodeId = -1L;
 	private String type       = null;
 
-	protected RelationshipWrapper() {
-		// nop constructor for cache access
-		super();
-	}
-
-	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
+	public RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
 
 		super(db, relationship);
 
 		this.sourceNodeId = relationship.startNodeId();
 		this.targetNodeId = relationship.endNodeId();
 		this.type         = relationship.type();
-	}
-
-	public static void initialize(final int cacheSize) {
-		relationshipCache = new FixedSizeCache<>("Relationship cache", cacheSize);
 	}
 
 	@Override
@@ -75,58 +62,15 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	}
 
 	@Override
-	public void onRemoveFromCache() {
-		stale = true;
-	}
-
-	public static void expunge(final Set<Long> toRemove) {
-
-		synchronized (relationshipCache) {
-
-			for (final Long id : toRemove) {
-				expunge(id);
-			}
-		}
-	}
-
-	public static void expunge(final Long toRemove) {
-
-		synchronized (relationshipCache) {
-
-			final RelationshipWrapper wrapper = relationshipCache.remove(toRemove);
-			if (wrapper != null) {
-
-				wrapper.clearCaches();
-			}
-		}
-	}
-
-	@Override
-	public void clearCaches() {
-
-		final NodeWrapper startNode = NodeWrapper.getCache().get(sourceNodeId);
-		if (startNode != null) {
-
-			startNode.clearCaches();
-		}
-
-		final NodeWrapper endNode = NodeWrapper.getCache().get(targetNodeId);
-		if (endNode != null) {
-
-			endNode.clearCaches();
-		}
-	}
-
-	@Override
-	public void onClose() {
-	}
-
-	@Override
 	public Node getStartNode() {
 
 		try {
+
 			return db.getNodeById(sourceNodeId);
-		} catch (Throwable t) {}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		return null;
 	}
@@ -135,8 +79,12 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	public Node getEndNode() {
 
 		try {
+
 			return db.getNodeById(targetNodeId);
-		} catch (Throwable t) {}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		return null;
 	}
@@ -159,15 +107,27 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	@Override
 	public void delete(final boolean deleteRelationships) {
 
+		if (!db.getCurrentTransaction().isNodeDeleted(sourceNodeId)) {
+			getStartNode().invalidate();
+		}
+
+		if (!db.getCurrentTransaction().isNodeDeleted(targetNodeId)) {
+			getEndNode().invalidate();
+		}
+
 		super.delete(deleteRelationships);
 
 		final SessionTransaction tx = db.getCurrentTransaction();
-		tx.deleted(this);
 
-		clearCaches();
+		tx.delete(this);
+
+		// invalidate node caches
+		tx.nodes.remove(sourceNodeId);
+		tx.nodes.remove(targetNodeId);
 	}
 
-	public Direction getDirectionForNode(final NodeWrapper node) {
+	@Override
+	public Direction getDirectionForNode(final Node node) {
 
 		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return Direction.OUTGOING;
@@ -176,77 +136,9 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 		return Direction.INCOMING;
 	}
 
-	@Override
-	public void removeFromCache() {
-		RelationshipWrapper.expunge(id);
-	}
-
 	// ----- protected methods -----
 	@Override
 	protected boolean isNode() {
 		return false;
-	}
-
-	// ----- public static methods -----
-	protected static void clearCache() {
-		relationshipCache.clear();
-	}
-
-	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
-
-		RelationshipWrapper wrapper;
-
-		synchronized (relationshipCache) {
-
-			wrapper = relationshipCache.get(relationship.id());
-			if (wrapper == null || wrapper.stale) {
-
-				wrapper = new RelationshipWrapper(db, relationship);
-				relationshipCache.put(relationship.id(), wrapper);
-			}
-		}
-
-		return wrapper;
-	}
-
-	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final long id) {
-
-		RelationshipWrapper wrapper;
-
-		synchronized (relationshipCache) {
-
-			wrapper = relationshipCache.get(id);
-			if (wrapper == null || wrapper.stale) {
-
-				final SessionTransaction tx   = db.getCurrentTransaction();
-				final Map<String, Object> map = new HashMap<>();
-				final StringBuilder buf       = new StringBuilder();
-				final String tenantIdentifier = db.getTenantIdentifier();
-
-				map.put("id", id);
-
-				buf.append("MATCH (");
-
-				if (tenantIdentifier != null) {
-					buf.append(":");
-					buf.append(tenantIdentifier);
-				}
-
-				buf.append(")-[n]-(");
-
-				if (tenantIdentifier != null) {
-					buf.append(":");
-					buf.append(tenantIdentifier);
-				}
-
-				buf.append(") WHERE ID(n) = $id RETURN n");
-
-				wrapper = new RelationshipWrapper(db, tx.getRelationship(buf.toString(), map));
-
-				relationshipCache.put(id, wrapper);
-			}
-		}
-
-		return wrapper;
 	}
 }

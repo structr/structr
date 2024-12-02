@@ -18,38 +18,33 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.*;
+import org.structr.web.entity.html.relationship.LinkSourceLINKLinkable;
 
 /**
  *
  */
 public interface Linkable extends NodeInterface {
 
-	static class Impl { static {
+	Property<Iterable<LinkSource>> linkingElementsProperty = new StartNodes<>("linkingElements", LinkSourceLINKLinkable.class).partOfBuiltInSchema().partOfBuiltInSchema();
+	Property<Iterable<String>> linkinkElementsIdsProperty  = new CollectionIdProperty<>("linkingElementsIds", linkingElementsProperty).partOfBuiltInSchema().partOfBuiltInSchema();
+	Property<Boolean> enableBasicAuthProperty              = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed().partOfBuiltInSchema();
+	Property<String> basicAuthRealmProperty                = new StringProperty("basicAuthRealm").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Linkable");
+	View uiView = new View(Linkable.class, PropertyView.Ui,
+		linkingElementsProperty, linkinkElementsIdsProperty, enableBasicAuthProperty, basicAuthRealmProperty
+	);
 
-		type.setIsInterface();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Linkable"));
-		type.setCategory("ui");
+	default boolean getEnableBasicAuth() {
+		return getProperty(enableBasicAuthProperty);
+	}
 
-		type.addBooleanProperty("enableBasicAuth", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
-		type.addStringProperty("basicAuthRealm",   PropertyView.Ui);
+	default String getBasicAuthRealm() {
+		return getProperty(basicAuthRealmProperty);
+	}
 
-		// view configuration
-		type.addViewProperty(PropertyView.Ui, "linkingElements");
-		type.addViewProperty(PropertyView.Ui, "linkingElementsIds");
-	}}
-
-	boolean getEnableBasicAuth();
-	String getBasicAuthRealm();
-
-	public String getPath();
+	String getPath();
 }

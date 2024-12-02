@@ -24,16 +24,16 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.File;
 
 import java.util.Map;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("dumpDatabase", DumpDatabaseCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("dumpDatabase", DumpDatabaseCommand.class);
 	}
 
 	@Override

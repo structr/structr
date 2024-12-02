@@ -18,41 +18,30 @@
  */
 package org.structr.web.entity.event;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.relationship.ActionMappingPARAMETERParameterMapping;
+import org.structr.web.entity.dom.relationship.DOMElementINPUT_ELEMENTParameterMapping;
 
-import java.net.URI;
+public class ParameterMapping extends AbstractNode {
 
-public interface ParameterMapping extends NodeInterface {
+	public static final Property<ActionMapping> actionMappingProperty = new StartNode<>("actionMapping", ActionMappingPARAMETERParameterMapping.class).partOfBuiltInSchema();
+	public static final Property<DOMElement> inputElement             = new StartNode<>("inputElement", DOMElementINPUT_ELEMENTParameterMapping.class).partOfBuiltInSchema();
 
-	static class Impl { static {
+	// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
+	public static final Property<String> parameterType    = new StringProperty("parameterType").hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...").partOfBuiltInSchema();
+	public static final Property<String> parameterName    = new StringProperty("parameterName").hint("Parameter name").partOfBuiltInSchema();
+	public static final Property<String> constantValue    = new StringProperty("constantValue").hint("Constant value").partOfBuiltInSchema();
+	public static final Property<String> scriptExpression = new StringProperty("scriptExpression").hint("Script expression to be evaluated to result value").partOfBuiltInSchema();
+	public static final Property<String> methodResult     = new StringProperty("methodResult").hint("Method to be evaluated to result value").partOfBuiltInSchema();
+	public static final Property<String> flowResult       = new StringProperty("flowResult").hint("Flow to be evaluated to result value").partOfBuiltInSchema();
 
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("ParameterMapping");
-		final JsonObjectType elem     = schema.addType("DOMElement");
-
-		//type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ParameterMapping"));
-		type.setExtends(URI.create("#/definitions/NodeInterface"));
-
-		type.addStringProperty("parameterType",        PropertyView.Ui).setHint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");
-		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
-
-		type.addStringProperty("parameterName",        PropertyView.Ui).setHint("Parameter name");
-		type.addStringProperty("constantValue",        PropertyView.Ui).setHint("Constant value");
-		type.addStringProperty("scriptExpression",     PropertyView.Ui).setHint("Script expression to be evaluated to result value");
-		type.addStringProperty("methodResult",         PropertyView.Ui).setHint("Method to be evaluated to result value");
-		type.addStringProperty("flowResult",           PropertyView.Ui).setHint("Flow to be evaluated to result value");
-
-		type.relate(elem, "INPUT_ELEMENT",   Cardinality.ManyToOne,"parameterMappings",  "inputElement");
-
-		type.addViewProperty(PropertyView.Ui, "inputElement");
-
-	}}
-
-
+	public static final View uiView = new View(ParameterMapping.class, PropertyView.Ui,
+		parameterType, parameterName, constantValue, scriptExpression, methodResult, flowResult, inputElement
+	);
 }

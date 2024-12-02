@@ -46,9 +46,6 @@ public abstract class StructrPath implements Path {
 
 	public static final String ROOT_DIRECTORY      = "/";
 	public static final String CURRENT_DIRECTORY   = ".";
-	public static final String SCHEMA_DIRECTORY    = "schema";
-	public static final String GRAPH_DIRECTORY     = "graph";
-	public static final String FILES_DIRECTORY     = "files";
 
 	protected StructrFilesystem fs = null;
 	protected StructrPath parent   = null;
@@ -81,15 +78,6 @@ public abstract class StructrPath implements Path {
 
 	// ----- public methods -----
 	public void checkAccess(final AccessMode... modes) {
-
-		//logger.info("{}: {}", new Object[] { toString(), Arrays.asList(modes) });
-	}
-
-	public void enablePropertyFile(final String name) {
-	}
-
-	public boolean hasPropertyFile(final String name) {
-		return true;
 	}
 
 	public boolean dontCache() {
@@ -140,7 +128,11 @@ public abstract class StructrPath implements Path {
 	public Path getRoot() {
 
 		if (isAbsolute()) {
-			return parent.getRoot();
+
+			if (parent != null) {
+
+				return parent.getRoot();
+			}
 		}
 
 		return null;
@@ -279,7 +271,7 @@ public abstract class StructrPath implements Path {
 
 	@Override
 	public URI toUri() {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -295,38 +287,38 @@ public abstract class StructrPath implements Path {
 
 	@Override
 	public Path toRealPath(LinkOption... options) throws IOException {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public File toFile() {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Iterator<Path> iterator() {
 
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public int compareTo(Path other) {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

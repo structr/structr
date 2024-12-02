@@ -27,12 +27,12 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
-//~--- classes ----------------------------------------------------------------
+import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given DOM node
- *
  *
  */
 public class DOMNodeChildrenCommand extends AbstractCommand {
@@ -40,7 +40,6 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(DOMNodeChildrenCommand.class);
-
 	}
 
 	@Override
@@ -48,17 +47,22 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final DOMNode node = getDOMNode(webSocketData.getId());
+		final String id    = webSocketData.getId();
+		final DOMNode node = getDOMNode(id);
 
 		if (node == null) {
 
 			return;
 		}
 
+		prefetch(webSocketData.getId());
+
 		final List<GraphObject> result = new LinkedList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();
 
 		while (currentNode != null) {
+
+			prefetch(currentNode.getUuid());
 
 			result.add(currentNode);
 
@@ -74,13 +78,51 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
-
 		return "DOM_NODE_CHILDREN";
-
 	}
 
+	private void prefetch(final String uuid) {
+
+		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface:DOMNode { id: \"" + uuid + "\" })-[r]-(m)",
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/OWNS",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SECURITY",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/PAGE",
+				"all/OUTGOING/TRIGGERED_BY"
+			),
+
+			Set.of(
+
+				"all/INCOMING/CONTAINS",
+				"all/INCOMING/CONTAINS_NEXT_SIBLING",
+				"all/INCOMING/SUCCESS_TARGET",
+				"all/INCOMING/FAILURE_TARGET",
+				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/INCOMING/RELOADS",
+				"all/INCOMING/FLOW",
+				"all/INCOMING/INPUT_ELEMENT",
+				"all/INCOMING/OWNS",
+				"all/INCOMING/PARAMETER",
+				"all/INCOMING/SECURITY",
+				"all/INCOMING/SYNC",
+				"all/INCOMING/PAGE",
+				"all/INCOMING/TRIGGERED_BY"
+			)
+		);
+	}
 }

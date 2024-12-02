@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -59,6 +58,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.structr.common.helper.PathHelper;
 
 /**
  * Servlet to handle upload and download of application and data deployment files.
@@ -97,7 +97,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	@Override
 	public String getModuleName() {
-		return "deployment";
+		return "core";
 	}
 
 	@Override
@@ -267,7 +267,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			response.setContentType("text/html");
 
-			final String directoryPath                 = "/tmp/" + UUID.randomUUID();
+
+
+			final String directoryPath                 = Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString()).toString();
 			final String filePath                      = directoryPath + ".zip";
 			final File file                            = new File(filePath);
 

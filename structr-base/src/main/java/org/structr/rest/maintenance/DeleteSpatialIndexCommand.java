@@ -29,11 +29,11 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
-import org.structr.rest.resource.MaintenanceParameterResource;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.rest.resource.MaintenanceResource;
 
 
 /**
@@ -46,7 +46,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("deleteSpatialIndex", DeleteSpatialIndexCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("deleteSpatialIndex", DeleteSpatialIndexCommand.class);
 	}
 
 	@Override

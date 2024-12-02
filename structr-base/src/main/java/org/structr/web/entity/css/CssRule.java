@@ -18,36 +18,24 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.web.entity.css.relationship.CssRuleCONTAINSCssRule;
+import org.structr.web.entity.css.relationship.CssRuleHAS_SELECTORCssSelector;
 
-import java.net.URI;
+public class CssRule extends AbstractNode {
 
-public interface CssRule extends NodeInterface {
+	public static final Property<Iterable<CssRule>> childRulesProperty = new EndNodes<>("childRules", CssRuleCONTAINSCssRule.class).partOfBuiltInSchema();
+	public static final Property<CssRule> parentRuleProperty           = new StartNode<>("parentRule", CssRuleCONTAINSCssRule.class).partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final Property<Iterable<CssSelector>> selectorsProperty = new EndNodes<>("selectors", CssRuleHAS_SELECTORCssSelector.class).partOfBuiltInSchema();
 
-		final JsonSchema schema          = SchemaService.getDynamicSchema();
-		final JsonObjectType rule        = schema.addType("CssRule");
-		final JsonObjectType declaration = schema.addType("CssDeclaration");
-		final JsonObjectType selector    = schema.addType("CssSelector");
+	public static final Property<String> cssTextProperty    = new StringProperty("cssText").indexed().partOfBuiltInSchema();
+	public static final Property<Integer>  ruleTypeProperty = new IntProperty("ruleType").indexed().partOfBuiltInSchema();
 
-		rule.setImplements(URI.create("https://structr.org/v1.1/definitions/CssRule"));
-		rule.setCategory("html");
-
-		rule.addStringProperty("cssText",   PropertyView.Ui).setIndexed(true);
-		rule.addIntegerProperty("ruleType", PropertyView.Ui).setIndexed(true);
-
-		rule.relate(rule,        "CONTAINS",        Cardinality.OneToMany,  "parentRule", "childRules");
-		rule.relate(declaration, "HAS_DECLARATION", Cardinality.OneToMany,  "rule",       "declarations");
-		rule.relate(selector,    "HAS_SELECTOR",    Cardinality.ManyToMany, "rules",      "selectors");
-
-		rule.addViewProperty(PropertyView.Ui, "childRules");
-		rule.addViewProperty(PropertyView.Ui, "declarations");
-		rule.addViewProperty(PropertyView.Ui, "selectors");
-	}}
+	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
+		cssTextProperty, ruleTypeProperty, childRulesProperty, parentRuleProperty, selectorsProperty
+	);
 }

@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj);
+					_Entities.showProperties(obj, null, true);
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -219,11 +219,13 @@ let Structr = {
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
+	dynamicClassPrefix: 'org.structr.dynamic.',
+	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
-	moduleAvailabilityCallbacks: [],
+	envInfoAvailableCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
 	subModule: undefined,
@@ -573,6 +575,10 @@ let Structr = {
 			if (additionalParameters.overrideText) {
 				messageBuilder.text(additionalParameters.overrideText);
 			}
+
+			if (additionalParameters.delayDuration) {
+				messageBuilder.delayDuration(additionalParameters.delayDuration);
+			}
 		}
 
 		messageBuilder.show();
@@ -715,18 +721,16 @@ let Structr = {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
+			document.querySelector('.column-resizer-left')?.classList.toggle('hidden', selectedSlideoutWasOpen);
+
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeLeftSlideOuts(otherSlideouts, closeCallback);
 				Structr.slideouts.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
 
-				document.querySelector('.column-resizer-left')?.classList.remove('hidden');
-
 			} else {
 
 				Structr.slideouts.closeLeftSlideOuts([slideoutElement], closeCallback);
-
-				document.querySelector('.column-resizer-left')?.classList.add('hidden');
 			}
 		},
 		openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
@@ -766,18 +770,16 @@ let Structr = {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
+			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
+
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeRightSlideOuts(otherSlideouts, closeCallback);
 				Structr.slideouts.openRightSlideOut(triggerEl, slideoutElement, openCallback);
 
-				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
-
 			} else {
 
 				Structr.slideouts.closeRightSlideOuts([slideoutElement], closeCallback);
-
-				document.querySelector('.column-resizer-right')?.classList.add('hidden');
 			}
 		},
 		openRightSlideOut: (triggerEl, slideoutElement, callback) => {
@@ -921,8 +923,8 @@ let Structr = {
 			}
 
 			// run previously registered callbacks
-			let registeredCallbacks = Structr.moduleAvailabilityCallbacks;
-			Structr.moduleAvailabilityCallbacks = [];
+			let registeredCallbacks = Structr.envInfoAvailableCallbacks;
+			Structr.envInfoAvailableCallbacks = [];
 			registeredCallbacks.forEach((cb) => {
 				cb();
 			});
@@ -965,12 +967,15 @@ let Structr = {
 			if (menuConfig) {
 
 				for (let entry of menuConfig.main) {
-					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`))
+					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`));
 				}
 
 				// sort submenu
 				for (let entry of menuConfig.sub) {
-					submenu.querySelector('li:last-of-type').after(menu.querySelector(`li[data-name="${entry}"]`))
+					let element = submenu.querySelector('li:last-of-type');
+					if (element.length > 0) {
+						element.after(menu.querySelector(`li[data-name="${entry}"]`));
+					}
 				}
 			}
 		},
@@ -1114,15 +1119,15 @@ let Structr = {
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
 	},
-	performModuleDependentAction: (action) => {
+	performActionAfterEnvResourceLoaded: (action) => {
 		if (Structr.isModuleInformationAvailable()) {
 			action();
 		} else {
-			Structr.registerActionAfterModuleInformationIsAvailable(action);
+			Structr.registerActionToRunAfterEnvInfoIsAvailable(action);
 		}
 	},
-	registerActionAfterModuleInformationIsAvailable: (cb) => {
-		Structr.moduleAvailabilityCallbacks.push(cb);
+	registerActionToRunAfterEnvInfoIsAvailable: (cb) => {
+		Structr.envInfoAvailableCallbacks.push(cb);
 	},
 	isAvailableInEdition: (requiredEdition) => {
 		switch (Structr.edition) {
@@ -1250,7 +1255,7 @@ let Structr = {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
-		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessGrantWarningPopupsKey);
+		let showResourceAccessPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
@@ -1382,79 +1387,76 @@ let Structr = {
 				break;
 
 			case 'DEPLOYMENT_IMPORT_STATUS':
-			case 'DEPLOYMENT_DATA_IMPORT_STATUS': {
+			case 'DEPLOYMENT_EXPORT_STATUS':
+			case 'DEPLOYMENT_DATA_IMPORT_STATUS':
+			case 'DEPLOYMENT_DATA_EXPORT_STATUS': {
 
-				let type            = 'Deployment Import';
-				let messageCssClass = 'deployment-import';
-
-				if (data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS') {
-					type            = 'Data Deployment Import';
-					messageCssClass = 'data-deployment-import';
-				}
+				let typeTitles      = {
+					DEPLOYMENT_IMPORT_STATUS:      'Deployment Import',
+					DEPLOYMENT_DATA_IMPORT_STATUS: 'Data Deployment Import',
+					DEPLOYMENT_EXPORT_STATUS:      'Deployment Export',
+					DEPLOYMENT_DATA_EXPORT_STATUS: 'Data Deployment Export',
+				};
+				let type            = typeTitles[data.type];
+				let messageCssClass = 'deployment-message';
+				let isImport        = (data.type === 'DEPLOYMENT_IMPORT_STATUS' || data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS');
 
 				if (data.subtype === 'BEGIN') {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
-						Importing from: <span class="deployment-source">${data.source}</span><br><br>
-						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+						${(isImport ? 'Importing from' : 'Exporting to')}: <span class="deployment-path">${(isImport ? data.source : data.target)}</span><br><br>
+						System performance may be affected during Deployment.<br>
+						Please wait until the process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
+						<ol class="message-steps"></ol>
 					`;
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'ALREADY_RUNNING') {
 
-					let text = `${type} was already running before page was loaded<br><br>
-						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+					type = 'Deployment';
+					let text = `A deployment was already running before page was loaded.<br><br>
+						Please wait until the deployment process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>
+						<ol class="message-steps"></ol>
 					`;
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
+					let chunkInfos     = [
+						(data.curChunkTime)  ? `chunk ${(data.curChunkTime  / 1000).toFixed(2)}s` : '',
+						(data.meanChunkTime) ? `&oslash; ${(data.meanChunkTime / 1000).toFixed(2)}s` : ''
+					].filter(s => (s !== '')).join(', ');
+					let timeInfo      = (chunkInfos.length > 0) ? `(${chunkInfos})` : '';
+					let truncatedType = (data.typeName) ? `<span class="inline-block align-bottom max-w-64 truncate font-bold" title="${data.typeName}">${data.typeName}</span>` : '';
+					let message       = `<li id="${data.messageId ?? ''}">${data.message} ${truncatedType} ${data.progress ?? ''} ${timeInfo}</li>`;
+
+					let infoMessage = new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(message).requiresConfirmation();
+
+					if (data.messageId) {
+
+						infoMessage.replacesElement(`#${data.messageId}`, '.message-steps').show();
+
+					} else {
+
+						infoMessage.appendsText('.message-steps').show();
+					}
 
 				} else if (data.subtype === 'END') {
 
 					let text = `<br>${type} finished: ${new Date(data.end)}<br>
-						Total duration: ${data.duration}<br><br>
-						Reload the page to see the new data.`;
+						Total duration: ${data.duration}
+						${isImport ? '<br><br>Reload the page to see the new data.' : ''}`;
 
-					new SuccessMessage().title(`${type} finished`).uniqueClass(messageCssClass).text(text).specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
+					let finalMessage = new SuccessMessage().title(`${type} finished`).uniqueClass(messageCssClass).text(text).appendsText().requiresConfirmation();
 
-				}
-				break;
-			}
+					if (isImport) {
 
-			case 'DEPLOYMENT_EXPORT_STATUS':
-			case 'DEPLOYMENT_DATA_EXPORT_STATUS': {
+						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').updatesButtons();
+					}
 
-				let type            = 'Deployment Export';
-				let messageCssClass = 'deployment-export';
-
-				if (data.type === 'DEPLOYMENT_DATA_EXPORT_STATUS') {
-					type            = 'Data Deployment Export';
-					messageCssClass = 'data-deployment-export';
-				}
-
-				if (data.subtype === 'BEGIN') {
-
-					let text = `${type} started: ${new Date(data.start)}<br>
-						Exporting to: <span class="deployment-target">${data.target}</span><br><br>
-						System performance may be affected during Export.<br><ol class="message-steps"></ol>
-					`;
-
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
-
-				} else if (data.subtype === 'PROGRESS') {
-
-					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
-
-				} else if (data.subtype === 'END') {
-
-					let text = `<br>${type} finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
-
-					new SuccessMessage().title(`${type} finished`).uniqueClass(messageCssClass).text(text).appendsText().requiresConfirmation().show();
-
+					finalMessage.show();
 				}
 				break;
 			}
@@ -1526,29 +1528,33 @@ let Structr = {
 				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "INFO":
+				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				break;
+
 			case "SCRIPT_JOB_EXCEPTION":
 				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
 			case "RESOURCE_ACCESS":
 
-				if (showResourceAccessGrantPopups) {
+				if (showResourceAccessPopups) {
 
 					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
 
-					let createGrant = (grantData) => {
+					let createPermission = (permissionData) => {
 
 						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
-						let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+						let flags     = _ResourceAccessPermissions.mask[maskIndex] || 0;
 
-						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, grantData);
+						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, permissionData);
 
 						let resourceAccessKey = 'resource-access';
 
-						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
-						if (!grantPagerConfig) {
+						let permissionPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
+						if (!permissionPagerConfig) {
 
-							grantPagerConfig = {
+							permissionPagerConfig = {
 								id: resourceAccessKey,
 								type: resourceAccessKey,
 								page: 1,
@@ -1559,15 +1565,15 @@ let Structr = {
 
 						} else {
 
-							grantPagerConfig = JSON.parse(grantPagerConfig);
+							permissionPagerConfig = JSON.parse(permissionPagerConfig);
 						}
 
-						grantPagerConfig.filters = {
+						permissionPagerConfig.filters = {
 							flags: false,
 							signature: data.signature
 						};
 
-						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(permissionPagerConfig));
 
 						if (Structr.isModuleActive(_Security)) {
 
@@ -1582,12 +1588,15 @@ let Structr = {
 
 					if (data.validUser === false) {
 
-						builder.specialInteractionButton('Create and show grant for <b>public</b> users', () => { createGrant({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
 
 					} else {
 
-						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid }] }) }, 'Dismiss');
-						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+						if (data.isServicePrincipal === false) {
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+						}
+
+						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
 					}
 
 					builder.show();
@@ -1801,29 +1810,7 @@ let Structr = {
 		let reconnectMessage = document.getElementById('reconnect-dialog');
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	ensureShadowPageExists: () => {
-
-		return new Promise((resolve, reject) => {
-
-			if (_Pages.shadowPage) {
-
-				resolve(_Pages.shadowPage);
-
-			} else {
-
-				// wrap getter for shadow document in listComponents so we're sure that shadow document has been created
-				Command.listComponents(1, 1, 'name', 'asc', (result) => {
-
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
-
-						_Pages.shadowPage = entities[0];
-
-						resolve(_Pages.shadowPage);
-					});
-				});
-			}
-		});
-	},
+	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
 
 		let menu = e.target.closest('.dropdown-menu');
@@ -1866,14 +1853,30 @@ let Structr = {
 				if (btn.dataset['preferredPositionX'] === 'left') {
 
 					// position dropdown left of button
-					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+
+				} else {
+
+					// allow positioning to change between openings
+					container.style.right = null;
 				}
 
 				if (btn.dataset['preferredPositionY'] === 'top') {
 
 					// position dropdown over activator button
 					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+
+				} else {
+
+					// allow positioning to change between openings
+					container.style.bottom = null;
 				}
+
+				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
+					bubbles: true,
+					detail: container
+				}));
 			}
 		}
 	},
@@ -1912,7 +1915,6 @@ let Structr = {
 							<ul id="submenu">
 								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
-								<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
@@ -1983,7 +1985,21 @@ let Structr = {
 							</button>
 						</div>
 					</div>
+
 				</form>
+
+				<div id="login-sso" class="mx-4 mt-6 hidden">
+
+					<div class="mb-4 w-full text-center">Or continue with:</div>
+
+					${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
+						<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
+							${_Icons.getSvgIcon(iconId)}
+							${name}
+						</button>
+					`).join('')}
+
+				</div>
 
 				<form id="login-two-factor" action="javascript:void(0);" style="display:none;">
 
@@ -2012,6 +2028,20 @@ let Structr = {
 						</div>
 					</div>
 				</form>
+			</div>
+		`,
+		autoScriptInput: config => `
+			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
+				<input type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.inputClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.inputAttributeString ?? ''}>
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
+			</div>
+		`,
+		autoScriptTextArea: config => `
+			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
+				<textarea type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
 			</div>
 		`
 	}
@@ -2218,6 +2248,150 @@ let _TreeHelper = {
 	}
 };
 
+class LifecycleMethods {
+
+	static onlyAvailableInSchemaNodeContext(schemaNode)      { return (schemaNode ?? null) !== null; }
+	static onlyAvailableWithoutSchemaNodeContext(schemaNode) { return (schemaNode ?? null) === null; }
+
+	// TODO: these functions must be able to detect schemaNodes that inherit from User/File (or any other possible way these lifecycle methods should be available there)
+	static onlyAvailableWithUserNodeContext(schemaNode)      { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'User'); }
+	static onlyAvailableWithFileNodeContext(schemaNode)      { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'File'); }
+
+	static methods = [
+		/** Global */
+		{
+			name: 'onStructrLogin',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `Is called when a (any) user logs in<br><br><strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>user</code></div><div>The user logging in</div>
+				</div>`,
+			isPrefix: false
+		},
+		{
+			name: 'onStructrLogout',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `Is called when a (any) user logs out<br><br><strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>user</code></div><div>The user logging out</div>
+				</div>`,
+			isPrefix: false
+		},
+		{
+			name: 'onAcmeChallenge',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `This method is called when an ACME challenge of type <strong>dns</strong> is triggered, typically by using the maintenance method letsencrypt. The primary use case of this method is creating a DNS TXT record via an external API call to a DNS provider.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>type</code></div><div> The type of the ACME authorisation challenge</div>
+					<div><code>domain</code></div><div> The domain the ACME challenge is created for</div>
+					<div><code>record</code></div><div> The name of the DNS record including prefix <code>_acme-challenge.</code> and suffix <code>.</code> </div>
+					<div><code>digest</code> </div><div> The token string that is probed by the ACME server to validate the challenge </div>
+				</div>`,
+			isPrefix: false
+		},
+		/** AbstractNode */
+		{
+			name: 'onNodeCreation',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: `
+				The <strong>onNodeCreation</strong> method runs immediately after creation of a node, before everything is committed.
+				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.
+			`,
+			isPrefix: true
+		},
+		{
+			name: 'onCreate',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: `
+				The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed.
+				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.
+			`,
+			isPrefix: true
+		},
+		{
+			name: 'afterCreate',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling \'send_html_mail()\' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.',
+			isPrefix: true
+		},
+		{
+			name: 'onSave',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.',
+			isPrefix: true
+		},
+		{
+			name: 'afterSave',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling \'send_html_mail()\' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.',
+			isPrefix: true
+		},
+		{
+			name: 'onDelete',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.',
+			isPrefix: true
+		},
+		{
+			name: 'afterDelete',
+			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
+			comment: 'The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.',
+			isPrefix: true
+		},
+		/** FILE */
+		{
+			name: 'onUpload',
+			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
+			comment: `Is called after a file has been uploaded. This method is being called without parameters.`,
+			isPrefix: false
+		}, {
+			name: 'onDownload',
+			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
+			comment: `Is called after a file has been requested for download. This function can not prevent the download of a file. This method is being called without parameters.`,
+			isPrefix: false
+		},
+		/** USER */
+		{
+			name: 'onOAuthLogin',
+			available: LifecycleMethods.onlyAvailableWithUserNodeContext,
+			comment: `Is called after a user successfully logs into the system via a configured OAuth provider. This function can not prevent the login of a user. The function is called with two parameters:
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>provider</code></div><div>OAuth provider name</div>
+					<div><code>userinfo</code></div><div>information pulled from the userinfo endpoint of the OAuth provider</div>
+				</div>`,
+			isPrefix: false
+		},
+	];
+
+	static getAvailableLifecycleMethods(schemaNode) {
+
+		return LifecycleMethods.methods.filter(m => m.available(schemaNode)).map((method) => {
+			let { name, comment, isPrefix } = method;
+			return { name, comment, isPrefix };
+		});
+	}
+
+	static isLifecycleMethod (method) {
+
+		let isJava = (method.codeType === 'java');
+
+		return !isJava && LifecycleMethods.methods.some(m => {
+
+			let nameMatches = m.isPrefix ? method.name.startsWith(m.name) : (method.name === m.name);
+
+			return nameMatches && m.available(method.schemaNode);
+		})
+	}
+}
+
 class MessageBuilder {
 
 	static types = Object.freeze({
@@ -2248,6 +2422,9 @@ class MessageBuilder {
 			updatesButtons: false,
 			appendsText: false,
 			appendSelector: '',
+			replacesElement: false,
+			replacesSelector: '',
+			replaceInParentSelector: '',
 			incrementsUniqueCount: false,
 			specialInteractionButtons: []
 		};
@@ -2358,12 +2535,15 @@ class MessageBuilder {
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
 
+				let messageTextElement = existingMessage.querySelector('.message-text');
+
 				if (this.params.updatesText) {
 
 					if (titleElement) {
 						titleElement.innerHTML = this.params.title;
 					}
-					existingMessage.querySelector('.message-text').innerHTML = this.params.text;
+
+					messageTextElement.innerHTML = this.params.text;
 
 				} else if (this.params.appendsText) {
 
@@ -2371,8 +2551,27 @@ class MessageBuilder {
 						titleElement.innerHTML = this.params.title;
 					}
 
-					let selector = `.message-text ${((this.params.appendSelector !== '') ? this.params.appendSelector : '')}`;
-					existingMessage.querySelector(selector).insertAdjacentHTML('beforeend', this.params.text);
+					let appendTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.appendSelector) ?? messageTextElement);
+
+					appendTarget.insertAdjacentHTML('beforeend', this.params.text);
+
+				} else if (this.params.replacesElement) {
+
+					if (titleElement) {
+						titleElement.innerHTML = this.params.title;
+					}
+
+					let parentElement =  (this.params.replaceInParentSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.replaceInParentSelector) ?? messageTextElement);
+					let replaceElement = parentElement.querySelector(this.params.replacesSelector);
+
+					if (replaceElement) {
+
+						replaceElement.replaceWith(..._Helpers.createDOMElementsFromHTML(this.params.text));
+
+					} else {
+
+						parentElement.insertAdjacentHTML('beforeend', this.params.text);
+					}
 				}
 
 				if (this.params.updatesButtons) {
@@ -2395,7 +2594,7 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg title">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
 						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
@@ -2461,6 +2660,17 @@ class MessageBuilder {
 		this.params.appendSelector = selector;
 		return this;
 	};
+
+	replacesElement(selector, parentSelector) {
+		if (!selector) {
+			throw new Error("Must provide selector to use replacesElement!");
+		}
+
+		this.params.replacesElement         = true;
+		this.params.replacesSelector        = selector;
+		this.params.replaceInParentSelector = parentSelector;
+		return this;
+	}
 
 	getUniqueCountElement() {
 		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
@@ -2592,12 +2802,12 @@ let UISettings = {
 			settings: {
 				showScriptingErrorPopupsKey: {
 					text: 'Show popups for scripting errors',
-					storageKey: 'showScriptinErrorPopups' + location.port,
+					storageKey: 'showScriptingErrorPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
-				showResourceAccessGrantWarningPopupsKey: {
-					text: 'Show popups for resource access grant warnings',
+				showResourceAccessPermissionWarningPopupsKey: {
+					text: 'Show popups for resource access permission warnings',
 					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
@@ -2608,6 +2818,22 @@ let UISettings = {
 					defaultValue: true,
 					type: 'checkbox'
 				},
+			}
+		},
+		dashboard: {
+			title: 'Dashboard',
+			settings: {
+				useDeploymentWizard: {
+					text: 'Use compact deployment UI',
+					storageKey: 'dashboardUseDeploymentWizard_' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Dashboard)) {
+							_Dashboard.tabs.deployment.wizard.updateWizardVisibility();
+						}
+					}
+				}
 			}
 		},
 		pages: {
@@ -2654,26 +2880,26 @@ let UISettings = {
 						}
 					}
 				},
-				showVisibilityFlagsInGrantsTableKey: {
-					text: 'Show visibility flags in Resource Access Grants table',
+				showVisibilityFlagsInPermissionsTableKey: {
+					text: 'Show visibility flags in Resource Access table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {
 						if (Structr.isModuleActive(_Security)) {
-							_ResourceAccessGrants.refreshResourceAccesses();
+							_ResourceAccessPermissions.refreshResourceAccesses();
 						}
 					}
 				},
-				showBitmaskColumnInGrantsTableKey: {
-					text: 'Show bitmask column in Resource Access Grants table',
-					infoText: 'This is an advanced editing feature to quickly set the grant configuration',
+				showBitmaskColumnInPermissionsTableKey: {
+					text: 'Show bitmask column in Resource Access permissions table',
+					infoText: 'This is an advanced editing feature to quickly set the permission configuration',
 					storageKey: 'showBitmaskColumnInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {
 						if (Structr.isModuleActive(_Security)) {
-							_ResourceAccessGrants.refreshResourceAccesses();
+							_ResourceAccessPermissions.refreshResourceAccesses();
 						}
 					}
 				}

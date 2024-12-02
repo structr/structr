@@ -135,7 +135,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
-		return false;
+		return true;
 	}
 
 	//~--- get methods ----------------------------------------------------

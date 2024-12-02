@@ -154,7 +154,7 @@ let _Security = {
 			$('#resourceAccess').show();
 			$('#usersAndGroups').hide();
 			$('#corsSettings').hide();
-			_ResourceAccessGrants.refreshResourceAccesses();
+			_ResourceAccessPermissions.refreshResourceAccesses();
 
 		} else if (subModule === 'cors-settings') {
 
@@ -202,7 +202,7 @@ let _Security = {
 		functions: config => `
 			<ul id="securityTabsMenu" class="tabs-menu flex-grow">
 			  <li><a href="#security:users-and-groups" id="usersAndGroups_"><span>Users and Groups</span></a></li>
-			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Access Grants</span></a></li>
+			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Access</span></a></li>
 			  <li><a href="#security:cors-settings" id="corsSettings_"><span>CORS Settings</span></a></li>
 			</ul>
 		`,
@@ -236,18 +236,15 @@ let _Security = {
 		`,
 		resourceAccess: config => `
 			<div class="flex items-center">
-				<div id="add-resource-access-grant" class="flex items-center">
+				<div id="add-resource-access-permission" class="flex items-center">
 					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="mr-2">
-					<button class="action add_grant_icon button inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add Grant
+					<button class="action add_permission_icon button inline-flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add Permisson
 					</button>
 				</div>
 
-				<div id="filter-resource-access-grants" class="flex items-center">
+				<div id="filter-resource-access-permissions" class="flex items-center">
 					<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
-					<label class="ui-setting-checkbox inline-flex ml-4">
-						<input type="checkbox" id="show-grants-in-use" ${(Structr.isInMemoryDatabase ? 'disabled title="This feature can not be used when working on an in-memory database"' : 'class="filter" data-attribute="flags"')}> Show only grants in use
-					</label>
 				</div>
 			</div>
 
@@ -255,8 +252,8 @@ let _Security = {
 				<thead>
 					<tr>
 						<th><div id="resourceAccessesPager"></div></th>
-						<th colspan="7" class="center" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is <b>not</b> able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read <b>mutliple</b> grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
-						<th colspan="7" class="center" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
+						<th colspan="7" class="center" data-comment="These flags determine the access permissions for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user does not have read rights to the permission object, access to the resource described by the signature is denied. If the user has <b>multiple</b> permissions for the same signature, the flags for these are combined.">Authenticated users</th>
+						<th colspan="7" class="center" data-comment="These flags determine the access permissions for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
 						<th class="${config.showBitmask ? '' : 'hidden'}"></th>
 						<th colspan="2" class="${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
 						<th></th>
@@ -336,7 +333,7 @@ let _UsersAndGroups = {
 
 	refreshUsers: async () => {
 
-		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
+		let types = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('User'), []);
 
 		_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
 
@@ -348,15 +345,24 @@ let _UsersAndGroups = {
 		let userTypeSelect = document.querySelector('select#user-type');
 		let addUserButton  = document.getElementById('add-user-button');
 
-		addUserButton.addEventListener('click', (e) => {
-			Command.create({ type: userTypeSelect.value }, (user) => {
-				let userModelObj = StructrModel.create(user);
-				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
-			});
+		addUserButton.addEventListener('click', async e => {
+
+			let nodeData = {
+				type: userTypeSelect.value,
+				name: _Helpers.createRandomName(userTypeSelect.value)
+			};
+
+			_Crud.createDialogWithErrorHandling.create(nodeData.type, nodeData, (type, newNodeId) => {
+
+				Command.get(newNodeId, null, userData => {
+					let userModelObj = StructrModel.create(userData);
+					_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
+				});
+			})
 		});
 
 		userTypeSelect.addEventListener('change', () => {
-			addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
+			addUserButton.querySelector('span').textContent = `Add ${userTypeSelect.value}`;
 		});
 
 		let userPager = _Pager.addPager(_Security.usersPagerId, userControls, true, 'User', 'public', (users) => {
@@ -364,7 +370,7 @@ let _UsersAndGroups = {
 				let userModelObj = StructrModel.create(user);
 				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 			}
-		}, null, 'id,isUser,name,type,isAdmin', true);
+		}, null, 'id,isUser,name,eMail,type,isAdmin,blocked', true);
 
 		userPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
@@ -523,7 +529,7 @@ let _UsersAndGroups = {
 	},
 	refreshGroups: async () => {
 
-		let types = await _Schema.getDerivedTypes('org.structr.dynamic.Group', []);
+		let types = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('Group'), []);
 
 		_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());
 
@@ -555,7 +561,7 @@ let _UsersAndGroups = {
 				let groupModelObj = StructrModel.create(group);
 				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
 			}
-		}, undefined, undefined, true);
+		}, undefined, 'id,isGroup,name,type,members,blocked,isAdmin', true);
 
 		groupPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());
@@ -727,9 +733,9 @@ let _UsersAndGroups = {
 	}
 };
 
-let _ResourceAccessGrants = {
+let _ResourceAccessPermissions = {
 
-	defaultResourceAccessGrantAttributes: 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees,isResourceAccess,name',
+	defaultResourceAccessPermissionAttributes: 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees,isResourceAccess,name',
 	getResourceAccessesElement: () => document.querySelector('#resourceAccesses'),
 
 	refreshResourceAccesses: () => {
@@ -737,92 +743,53 @@ let _ResourceAccessGrants = {
 		if (Structr.isInMemoryDatabase === undefined) {
 			// this is loaded from the env resource, thus reload after a bit
 			window.setTimeout(() => {
-				_ResourceAccessGrants.refreshResourceAccesses();
+				_ResourceAccessPermissions.refreshResourceAccesses();
 			}, 500);
 
 			return;
 		}
 
-		let pagerTransportFunction = false && Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
-
-		_Helpers.fastRemoveAllChildren(_ResourceAccessGrants.getResourceAccessesElement());
+		_Helpers.fastRemoveAllChildren(_ResourceAccessPermissions.getResourceAccessesElement());
 
 		let resourceAccessHtml = _Security.templates.resourceAccess({
-			showVisibilityFlags: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey),
-			showBitmask:         UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showBitmaskColumnInGrantsTableKey)
+			showVisibilityFlags: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInPermissionsTableKey),
+			showBitmask:         UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showBitmaskColumnInPermissionsTableKey)
 		});
-		_ResourceAccessGrants.getResourceAccessesElement().insertAdjacentHTML('beforeend', resourceAccessHtml);
+		_ResourceAccessPermissions.getResourceAccessesElement().insertAdjacentHTML('beforeend', resourceAccessHtml);
 
-		_Helpers.activateCommentsInElement(_ResourceAccessGrants.getResourceAccessesElement());
+		_Helpers.activateCommentsInElement(_ResourceAccessPermissions.getResourceAccessesElement());
 
-		let raPager = _Pager.addPager(_Security.resourceAccessesPagerId, _ResourceAccessGrants.getResourceAccessesElement().querySelector('#resourceAccessesPager'), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
+		let raPager = _Pager.addPager(_Security.resourceAccessesPagerId, _ResourceAccessPermissions.getResourceAccessesElement().querySelector('#resourceAccessesPager'), true, 'ResourceAccess', undefined, undefined, null, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
 
 		raPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(document.querySelector('#resourceAccessesTable tbody'));
 		};
 
-		raPager.activateFilterElements(_ResourceAccessGrants.getResourceAccessesElement());
+		raPager.activateFilterElements(_ResourceAccessPermissions.getResourceAccessesElement());
 		raPager.setIsPaused(false);
 		raPager.refresh();
 
-		_ResourceAccessGrants.getResourceAccessesElement().querySelector('.add_grant_icon')?.addEventListener('click', _ResourceAccessGrants.addResourceGrant);
-		_ResourceAccessGrants.getResourceAccessesElement().querySelector('#resource-signature')?.addEventListener('keyup', (e) => {
+		_ResourceAccessPermissions.getResourceAccessesElement().querySelector('.add_permission_icon')?.addEventListener('click', _ResourceAccessPermissions.addResourcePermission);
+		_ResourceAccessPermissions.getResourceAccessesElement().querySelector('#resource-signature')?.addEventListener('keyup', (e) => {
 			if (e.keyCode === 13) {
-				_ResourceAccessGrants.addResourceGrant();
+				_ResourceAccessPermissions.addResourcePermission();
 			}
 		});
 	},
-	customPagerTransportFunction: (type, pageSize, page, filterAttrs, callback) => {
-
-		let filterString = "";
-		let presentFilters = Object.keys(filterAttrs);
-		if (presentFilters.length > 0) {
-			filterString = 'WHERE ' + presentFilters.map((key) => {
-				if (key === 'flags') {
-					return (filterAttrs[key] === true) ? 'n.flags > 0' : 'n.flags >= 0';
-				} else {
-					return `n.${key} =~ "(?i).*${filterAttrs[key]}.*"`;
-				}
-			}).join(' AND ');
-		}
-
-		let fetchCompleteGrantData = (result, count) => {
-
-			let fetchPromises = [];
-
-			for (let r of result) {
-
-				fetchPromises.push(new Promise((resolve, reject) => {
-					Command.get(r.id, _ResourceAccessGrants.defaultResourceAccessGrantAttributes, (grant) => {
-						Object.assign(r, grant);
-						resolve();
-					})
-				}));
-			}
-
-			Promise.all(fetchPromises).then(() => {
-				callback(result, count);
-			});
-		}
-
-		// only fetch the ids at first because we have to re-fetch everything later to get the grantees
-		let query = `MATCH (n:ResourceAccess) ${filterString} WITH n ORDER BY n.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]} RETURN DISTINCT { id: n.id }`;
-		Command.cypher(query, undefined, fetchCompleteGrantData, pageSize, page);
-	},
-	addResourceGrant: () => {
+	addResourcePermission: () => {
 
 		let inp = $('#resource-signature');
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
-		$('.add_grant_icon', $(_ResourceAccessGrants.getResourceAccessesElement())).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_permission_icon', $(_ResourceAccessPermissions.getResourceAccessesElement())).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
 		let reEnableInput = () => {
-			$('.add_grant_icon', $(_ResourceAccessGrants.getResourceAccessesElement())).attr('disabled', null).removeClass('disabled').removeClass('read-only');
+			$('.add_permission_icon', $(_ResourceAccessPermissions.getResourceAccessesElement())).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
 		let sig = inp.val();
 		if (sig) {
-			_ResourceAccessGrants.createResourceAccessGrant(sig, 0, () => {
+			_ResourceAccessPermissions.createResourceAccessPermission(sig, 0, () => {
 				reEnableInput();
 				inp.val('');
 			});
@@ -832,9 +799,9 @@ let _ResourceAccessGrants = {
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
-	createResourceAccessGrant: (signature, flags, callback, additionalData) => {
+	createResourceAccessPermission: (signature, flags, callback, additionalData) => {
 
-		let grantData = {
+		let permissionData = {
 			type: 'ResourceAccess',
 			signature: signature,
 			flags: flags,
@@ -843,10 +810,10 @@ let _ResourceAccessGrants = {
 		};
 
 		if (additionalData) {
-			grantData = Object.assign(grantData, additionalData);
+			permissionData = Object.assign(permissionData, additionalData);
 		}
 
-		Command.create(grantData, callback);
+		Command.create(permissionData, callback);
 	},
 	getVerbFromKey: (key = '') => {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
@@ -870,7 +837,7 @@ let _ResourceAccessGrants = {
 	},
 	appendResourceAccessElement: (resourceAccess, blinkAfterUpdate = true) => {
 
-		if (!_ResourceAccessGrants.getResourceAccessesElement() || !$(_ResourceAccessGrants.getResourceAccessesElement()).is(':visible')) {
+		if (!_ResourceAccessPermissions.getResourceAccessesElement() || !$(_ResourceAccessPermissions.getResourceAccessesElement()).is(':visible')) {
 			return;
 		}
 
@@ -884,48 +851,48 @@ let _ResourceAccessGrants = {
 		let hasAuthFlag      = false;
 		let hasNonAuthFlag   = false;
 
-		for (let key in _ResourceAccessGrants.mask) {
+		for (let key in _ResourceAccessPermissions.mask) {
 
-			let flagIsSet = (flags & _ResourceAccessGrants.mask[key]);
+			let flagIsSet = (flags & _ResourceAccessPermissions.mask[key]);
 
 			let disabledBecauseNotPublic    = (key.startsWith('NON_AUTH_') && resourceAccess.visibleToPublicUsers === false);
 			let disabledBecausePublic       = (key.startsWith('AUTH_')     && resourceAccess.visibleToPublicUsers === true);
 			let disabledBecauseNoAuthAccess = (key.startsWith('AUTH_')     && noAuthAccessPossible);
 
 			if (flagIsSet && disabledBecausePublic) {
-				// CRITICAL: If the grant is visibleToPublicUsers and includes grants for authenticated users it can be a security threat! Disable and WARN
+				// CRITICAL: If the permission is visibleToPublicUsers and includes permissions for authenticated users it can be a security threat! Disable and WARN
 				let arr = flagWarningTexts[key] || [];
-				arr.push('Should <b>not</b> be set because the grant itself is visible to public users. Every authenticated user can also see the grant which is probably not intended.<br><br>This might have a <b>security impact</b> as the resource is accessible with the <b>' + _ResourceAccessGrants.getVerbFromKey(key) + '</b> method (<b>but not the data</b> behind that resource)!<br><br><b>Quick Fix</b>: Remove the visibleToPublicUsers flag from this grant.');
+				arr.push('Should <b>not</b> be set because the permission itself is visible to public users. Every authenticated user can also see the permission which is probably not intended.<br><br>This might have a <b>security impact</b> as the resource is accessible with the <b>' + _ResourceAccessPermissions.getVerbFromKey(key) + '</b> method (<b>but not the data</b> behind that resource)!<br><br><b>Quick Fix</b>: Remove the visibleToPublicUsers flag from this permission.');
 				flagWarningTexts[key] = arr;
 			}
 
 			if (flagIsSet && disabledBecauseNotPublic) {
 				let arr = flagSanityInfos[key] || [];
-				arr.push('Active for public users but grant can not be seen by public users.<br><br>This has no security-impact and is probably only misconfigured.');
+				arr.push('Active for public users but permission can not be seen by public users.<br><br>This has no security-impact and is probably only misconfigured.');
 				flagSanityInfos[key] = arr;
 			}
 
 			if (flagIsSet && disabledBecauseNoAuthAccess) {
 				let arr = flagSanityInfos[key] || [];
-				arr.push('Active for authenticated users but grant can not be seen by authenticated users or a group.<br><br>This has no security-impact and is probably only misconfigured.');
+				arr.push('Active for authenticated users but permission can not be seen by authenticated users or a group.<br><br>This has no security-impact and is probably only misconfigured.');
 				flagSanityInfos[key] = arr;
 			}
 
 			hasNonAuthFlag = hasNonAuthFlag || (flagIsSet && key.startsWith('NON_AUTH_'));
 			hasAuthFlag    = hasAuthFlag    || (flagIsSet && key.startsWith('AUTH_'));
 
-			// currently this function is disabled (would grey out checkboxes if grant is not usable)
+			// currently this function is disabled (would grey out checkboxes if permission is not usable)
 			let isDisabled = false && (disabledBecauseNotPublic || disabledBecauseNoAuthAccess);
 
 			let additionalClasses = [];
 			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('pr-12'); }
 			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('pr-12'); }
 
-			trHtml += `<td class="${additionalClasses.join(' ')}"><input type="checkbox" ${(flagIsSet ? 'checked="checked"' : '')}${(isDisabled ? ' disabled' : '')} data-flag="${_ResourceAccessGrants.mask[key]}" class="resource-access-flag" data-key="${key}"></td>`;
+			trHtml += `<td class="${additionalClasses.join(' ')}"><input type="checkbox" ${(flagIsSet ? 'checked="checked"' : '')}${(isDisabled ? ' disabled' : '')} data-flag="${_ResourceAccessPermissions.mask[key]}" class="resource-access-flag" data-key="${key}"></td>`;
 		}
 
-		let showBitmaskColumn   = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showBitmaskColumnInGrantsTableKey);
-		let showVisibilityFlags = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey);
+		let showBitmaskColumn   = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showBitmaskColumnInPermissionsTableKey);
+		let showVisibilityFlags = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInPermissionsTableKey);
 
 		if (showBitmaskColumn) {
 			trHtml += `<td><input type="text" class="bitmask" size="4" value="${flags}"></td>`;
@@ -943,10 +910,10 @@ let _ResourceAccessGrants = {
 
 		let tr         = $(trHtml);
 		let actionsCol = $('td.actions', tr);
-		_ResourceAccessGrants.appendPrincipalIconOrMargin(actionsCol, resourceAccess);
+		_ResourceAccessPermissions.appendPrincipalIconOrMargin(actionsCol, resourceAccess);
 		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
 
-		actionsCol.append(_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
+		actionsCol.append(_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access']), 'Delete'));
 
 		$('.delete-resource-access', tr).on('click', (e) => {
 			e.stopPropagation();
@@ -956,7 +923,7 @@ let _ResourceAccessGrants = {
 
 		if (hasAuthFlag && hasNonAuthFlag) {
 			_Helpers.appendInfoTextToElement({
-				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
+				text: 'Permission has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two permissions.',
 				element: $('.title-cell b', tr),
 				customToggleIcon: _Icons.iconWarningYellowFilled,
 				customToggleIconClasses: [],
@@ -1009,7 +976,7 @@ let _ResourceAccessGrants = {
 
 			let bitmaskInput = $('.bitmask', tr);
 			bitmaskInput.on('blur', function() {
-				_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
+				_ResourceAccessPermissions.updateResourceAccessFlags(resourceAccess.id, $(this).val());
 			});
 
 			bitmaskInput.keypress(function(e) {
@@ -1026,7 +993,7 @@ let _ResourceAccessGrants = {
 			tr.find('input.resource-access-flag:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});
-			_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, newFlags);
+			_ResourceAccessPermissions.updateResourceAccessFlags(resourceAccess.id, newFlags);
 		});
 
 		$('input[type=checkbox].resource-access-visibility', tr).on('change', function() {
@@ -1035,7 +1002,7 @@ let _ResourceAccessGrants = {
 			let visibilityOptionValue = $(this).prop('checked');
 
 			Command.setProperty(resourceAccess.id, visibilityOptionName, visibilityOptionValue, false, function() {
-				_ResourceAccessGrants.updateResourcesAccessRow(resourceAccess.id);
+				_ResourceAccessPermissions.updateResourcesAccessRow(resourceAccess.id);
 			});
 		});
 
@@ -1044,12 +1011,12 @@ let _ResourceAccessGrants = {
 	updateResourceAccessFlags: (id, newFlags) => {
 
 		Command.setProperty(id, 'flags', newFlags, false, () => {
-			_ResourceAccessGrants.updateResourcesAccessRow(id);
+			_ResourceAccessPermissions.updateResourcesAccessRow(id);
 		});
 	},
 	updateResourcesAccessRow: (id, blinkGreen = true) => {
-		Command.get(id, _ResourceAccessGrants.defaultResourceAccessGrantAttributes, (obj) => {
-			_ResourceAccessGrants.appendResourceAccessElement(obj, blinkGreen);
+		Command.get(id, _ResourceAccessPermissions.defaultResourceAccessPermissionAttributes, (obj) => {
+			_ResourceAccessPermissions.appendResourceAccessElement(obj, blinkGreen);
 		});
 	},
 	appendPrincipalIconOrMargin: (actionsCol, resourceAccess) => {
@@ -1064,7 +1031,7 @@ let _ResourceAccessGrants = {
 		} else {
 
 			let x = _Helpers.appendInfoTextToElement({
-				text: 'This grant has access rights configured for the following users/groups. Click to open the ACL dialog.<br><br>' + resourceAccess.grantees.map(p => p.name).join('<br>'),
+				text: 'This permission has access rights configured for the following users/groups. Click to open the ACL dialog.<br><br>' + resourceAccess.grantees.map(p => p.name).join('<br>'),
 				element: actionsCol,
 				customToggleIcon: _Icons.iconSecurityRegularUser,
 				customToggleIconClasses: [''],
@@ -1111,7 +1078,7 @@ let _CorsSettings = {
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${corsSetting.id}" class="cors-setting">
 				<td class="title-cell"><b>${corsSetting.requestUri}</b></td>
-				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']))}</td>
+				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']), 'Delete')}</td>
 				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
 				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
 				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods || ''}"></td>

@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a property value was not in the expected set of values.
  *
@@ -27,8 +25,11 @@ import org.structr.core.property.PropertyKey;
  */
 public class ValueToken extends SemanticErrorToken {
 
-	public ValueToken(final String type, final PropertyKey propertyKey, final Object[] values) {
-		super(type, propertyKey, "must_be_one_of", ValueToken.getContent(values));
+	public ValueToken(final String type, final String propertyKey, final Object[] values) {
+
+		super(type, propertyKey, "must_be_one_of");
+
+		withDetail(ValueToken.getContent(values));
 	}
 
 	private static String getContent(final Object[] values) {

@@ -37,9 +37,7 @@ public class RelationshipTypeProperty extends StringProperty {
 
 		systemInternal();
 		readOnly();
-		passivelyIndexed();
 		writeOnce();
-
 	}
 
 	@Override

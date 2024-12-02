@@ -34,6 +34,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+import org.structr.web.common.UiModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -528,12 +529,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			relationshipEntityClassCache.put(simpleName, type);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
+
+			// this was previously done by generated code
+			if (PermissionPropagation.class.isAssignableFrom(type)) {
+				SchemaRelationshipNode.registerPropagatingRelationshipType(type, fqcn.startsWith("org.structr.dynamic."));
+			}
 		}
 
 		// interface that extends NodeInterface, must be stored
 		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
 
-			reverseInterfaceMap.putIfAbsent(type.getName(), type);
+			reverseInterfaceMap.putIfAbsent(type.getSimpleName(), type);
 		}
 
 		for (final Class interfaceClass : type.getInterfaces()) {
@@ -780,6 +786,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		// merge dynamic views in as well
 		views.addAll(dynamicViews);
+		views.add("custom");
 
 		return Collections.unmodifiableSet(views);
 	}
@@ -815,10 +822,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
+		Set<PropertyKey> properties = new LinkedHashSet<>();
 
-		if (properties == null) {
-			properties = new LinkedHashSet<>();
+		if ("custom".equals(propertyView)) {
+
+			properties.add(AbstractNode.id);
+			properties.add(AbstractNode.type);
+			properties.add(getPropertyKeyForJSONName(type, "name"));
+		}
+
+		final Set<PropertyKey> keys = propertyViewMap.get(propertyView);
+		if (keys != null) {
+
+			properties.addAll(keys);
 		}
 
 		// read-only
@@ -1152,7 +1168,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					try {
 
 						// we need to make sure that a module is initialized exactly once
-						final StructrModule structrModule = (StructrModule) clazz.newInstance();
+						final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
 						final String moduleName = structrModule.getName();
 
 						if (!modules.containsKey(moduleName)) {
@@ -1171,7 +1187,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					} catch (Throwable t) {
 
 						// log only errors from internal classes
-						if (className.startsWith("org.structr.")) {
+						if (className.startsWith("org.structr.") && !UiModule.class.getName().equals(className)) {
 
 							logger.warn("Unable to instantiate module " + clazz.getName(), t);
 						}
@@ -1263,7 +1279,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 												if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
 
 													// we need to make sure that a module is initialized exactly once
-													final StructrModule structrModule = (StructrModule) clazz.newInstance();
+													final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
 
 													structrModule.registerModuleFunctions(licenseManager);
 
@@ -1348,7 +1364,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		try {
 
-			return (Relation) clazz.newInstance();
+			return (Relation) clazz.getDeclaredConstructor().newInstance();
 
 		} catch (Throwable t) {
 			// ignore

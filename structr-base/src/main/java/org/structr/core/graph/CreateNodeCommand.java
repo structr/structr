@@ -77,7 +77,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	public T execute(final PropertyMap attributes) throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final Principal user          = securityContext.getUser(false);
+		final PrincipalInterface user          = securityContext.getUser(false);
 		T node	                      = null;
 
 		if (graphDb != null) {
@@ -139,10 +139,10 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			properties.remove(AbstractNode.createdDate);
 			properties.remove(AbstractNode.createdBy);
 
-			if (Principal.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
+			if (PrincipalInterface.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
 				// If we are creating a node inheriting from Principal, force existence of password property
 				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-				final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
+				final PropertyKey passwordKey = StructrApp.key(PrincipalInterface.class, "password", false);
 				if (isCreation && !properties.containsKey(passwordKey)) {
 					properties.put(passwordKey, null);
 				}
@@ -196,9 +196,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		if (node != null) {
 
-			// notify node of its creation
-			node.onNodeCreation();
-
 			// iterate post creation transformations
 			final Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
 			for (Transformation<GraphObject> transformation : transformations) {
@@ -216,13 +213,16 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				securityContext.getCreationDetails().add(obj);
 			}
+
+			// notify node of its creation
+			node.onNodeCreation(securityContext);
 		}
 
 		return node;
 	}
 
 	// ----- private methods -----
-	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
+	private Node createNode(final DatabaseService graphDb, final PrincipalInterface user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
@@ -240,7 +240,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			ownsProperties.put(AbstractRelationship.relType.dbName(),            "OWNS");
 			ownsProperties.put(AbstractRelationship.sourceId.dbName(),           userId);
 			ownsProperties.put(AbstractRelationship.targetId.dbName(),           newUuid);
-			ownsProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp());
+			ownsProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp(0, 0));
 
 			// configure SECURITY relationship creation statement for maximum performance
 			securityProperties.put(GraphObject.id.dbName(),                          getNextUuid());
@@ -250,7 +250,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			securityProperties.put(AbstractRelationship.relType.dbName(),            "SECURITY");
 			securityProperties.put(AbstractRelationship.sourceId.dbName(),           userId);
 			securityProperties.put(AbstractRelationship.targetId.dbName(),           newUuid);
-			securityProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp());
+			securityProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp(0, 1));
 			securityProperties.put(Security.allowed.dbName(),                        new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
 			securityProperties.put(Security.principalId.dbName(),                    userId);
 			securityProperties.put(Security.accessControllableId.dbName(),           newUuid);
@@ -308,7 +308,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		return defaultValue;
 	}
 
-	private void notifySecurityRelCreation(final Principal user, final Relationship rel) {
+	private void notifySecurityRelCreation(final PrincipalInterface user, final Relationship rel) {
 
 		final RelationshipFactory<Security> factory = new RelationshipFactory<>(securityContext);
 
@@ -346,7 +346,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 	}
 
-	private void notifyOwnsRelCreation(final Principal user, final Relationship rel) {
+	private void notifyOwnsRelCreation(final PrincipalInterface user, final Relationship rel) {
 
 		final RelationshipFactory<PrincipalOwnsNode> factory = new RelationshipFactory<>(securityContext);
 

@@ -29,15 +29,13 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.StringSetting;
 import org.structr.api.service.*;
-import org.structr.common.AdvancedMailContainer;
-import org.structr.common.DynamicMailAttachment;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
@@ -60,6 +58,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -188,7 +188,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	}
 
 	@Override
-	public ServiceResult initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return new ServiceResult(true);
 	}
 
@@ -228,21 +228,21 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		try (final Tx tx = app.tx()) {
 
 			PropertyMap props = new PropertyMap();
-			props.put(StructrApp.key(EMailMessage.class, "from"),           amc.getDisplayName(amc.getFromName(), amc.getFromAddress()));
-			props.put(StructrApp.key(EMailMessage.class, "fromMail"),       amc.getFromAddress());
-			props.put(StructrApp.key(EMailMessage.class, "to"),             amc.getCombinedDisplayNames(amc.getTo()));
-			props.put(StructrApp.key(EMailMessage.class, "subject"),        amc.getSubject());
-			props.put(StructrApp.key(EMailMessage.class, "content"),        amc.getTextContent());
-			props.put(StructrApp.key(EMailMessage.class, "htmlContent"),    amc.getHtmlContent());
-			props.put(StructrApp.key(EMailMessage.class, "sentDate"),       new Date());
+			props.put(EMailMessage.fromProperty,           amc.getDisplayName(amc.getFromName(), amc.getFromAddress()));
+			props.put(EMailMessage.fromMailProperty,       amc.getFromAddress());
+			props.put(EMailMessage.toProperty,             amc.getCombinedDisplayNames(amc.getTo()));
+			props.put(EMailMessage.subjectProperty,        amc.getSubject());
+			props.put(EMailMessage.contentProperty,        amc.getTextContent());
+			props.put(EMailMessage.htmlContentProperty,    amc.getHtmlContent());
+			props.put(EMailMessage.sentDateProperty,       new Date());
 
-			props.put(StructrApp.key(EMailMessage.class, "messageId"),      messageId);
-			props.put(StructrApp.key(EMailMessage.class, "inReplyTo"),      amc.getInReplyTo());
+			props.put(EMailMessage.messageIdProperty,      messageId);
+			props.put(EMailMessage.inReplyToProperty,      amc.getInReplyTo());
 
-			props.put(StructrApp.key(EMailMessage.class, "header"),         new Gson().toJson(amc.getCustomHeaders()));
+			props.put(EMailMessage.headerProperty,         new Gson().toJson(amc.getCustomHeaders()));
 
-			props.put(StructrApp.key(EMailMessage.class, "replyTo"),        amc.getCombinedDisplayNames(amc.getReplyTo()));
-			props.put(StructrApp.key(EMailMessage.class, "bcc"),            amc.getCombinedDisplayNames(amc.getBcc()));
+			props.put(EMailMessage.replyToProperty,        amc.getCombinedDisplayNames(amc.getReplyTo()));
+			props.put(EMailMessage.bccProperty,            amc.getCombinedDisplayNames(amc.getBcc()));
 
 
 			if (amc.getAttachments().size() > 0) {
@@ -258,7 +258,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 					}
 				}
 
-				props.put(StructrApp.key(EMailMessage.class, "attachedFiles"), concreteAttachedFiles);
+				props.put(EMailMessage.attachedFilesProperty, concreteAttachedFiles);
 			}
 
 			// not setting folder/receivedDate
@@ -294,7 +294,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 			file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), ds.getInputStream(), ds.getContentType(), fileClass, dma.getName(), fileFolder);
 
-			final Principal owner = securityContext.getUser(false);
+			final PrincipalInterface owner = securityContext.getUser(false);
 			if (owner != null) {
 				file.setProperty(AbstractNode.owner, securityContext.getUser(false));
 			}
@@ -574,7 +574,8 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 		@Override
 		public void run() {
-			try {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				String[] folders = mailbox.getFolders();
 
@@ -592,8 +593,9 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 					}
 
 					store.close();
-
 				}
+
+				tx.success();
 
 			} catch (MessagingException ex) {
 				logger.error("Error while updating Mails: ", ex);
@@ -610,136 +612,131 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				try {
 
-					Gson gson = new Gson();
+					final Gson gson = new Gson();
 
 					folder.open(Folder.READ_ONLY);
 
-					Message[] messages = folder.getMessages();
+					final Message[] messages = folder.getMessages();
 
 					ArrayUtils.reverse(messages);
 
-					App app = StructrApp.getInstance();
+					final App app = StructrApp.getInstance();
 
 					for (int i = 0; i < messages.length; i++) {
+
 						// Limit fetched emails
 						if (i >= maxEmails.getValue(25)) {
 							break;
 						}
 
-						Message message = messages[i];
-
-						PropertyMap pm = new PropertyMap();
+						final Message message = messages[i];
+						final PropertyMap pm  = new PropertyMap();
 
 						final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 						final String to   = message.getRecipients(Message.RecipientType.TO) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.TO)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 						final String cc   = message.getRecipients(Message.RecipientType.CC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.CC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 						final String bcc  = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 
-						try (Tx tx = app.tx()) {
+						// Allow mail instance class to be overriden by custom types to enable special mail handling
+						Class<? extends EMailMessage> entityClass = EMailMessage.class;
 
-							// Allow mail instance class to be overriden by custom types to enable special mail handling
-							Class<? extends EMailMessage> entityClass = EMailMessage.class;
+						final String entityType = mailbox.getOverrideMailEntityType();
+						if (entityType != null && entityType.length() > 0) {
+							Class overrideClass = StructrApp.getConfiguration().getNodeEntityClass(entityType);
+							if (overrideClass != null && EMailMessage.class.isAssignableFrom(overrideClass)) {
 
-							final String entityType = mailbox.getOverrideMailEntityType();
-							if (entityType != null && entityType.length() > 0) {
-								Class overrideClass = StructrApp.getConfiguration().getNodeEntityClass(entityType);
-								if (overrideClass != null && EMailMessage.class.isAssignableFrom(overrideClass)) {
+								entityClass = overrideClass;
+							} else {
 
-									entityClass = overrideClass;
-								} else {
+								logger.warn("Mailbox[" + mailbox.getUuid() + "] has invalid overrideMailEntityType set. Given type is not found or does not extend EMailMessage.");
+							}
+						}
 
-									logger.warn("Mailbox[" + mailbox.getUuid() + "] has invalid overrideMailEntityType set. Given type is not found or does not extend EMailMessage.");
-								}
+
+						String messageId = null;
+						String inReplyTo = null;
+
+						Enumeration en = message.getAllHeaders();
+						Map<String, String> headers = new HashMap<>();
+						while (en.hasMoreElements()) {
+							Header header = (Header) en.nextElement();
+							if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
+								messageId = header.getValue();
+							} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
+								inReplyTo = header.getValue();
+							}
+							headers.put(header.getName(), header.getValue());
+						}
+
+						EMailMessage existingEMailMessage = null;
+
+						// Try to match via messageId first
+						if (messageId != null) {
+							existingEMailMessage = app.nodeQuery(entityClass).and(EMailMessage.messageIdProperty, messageId).getFirst();
+						}
+						// If messageId can't be matched, use fallback
+						if (existingEMailMessage == null) {
+							existingEMailMessage = app.nodeQuery(entityClass).and(EMailMessage.subjectProperty, message.getSubject()).and(EMailMessage.fromProperty, from).and(EMailMessage.toProperty, to).and(EMailMessage.receivedDateProperty, message.getReceivedDate()).and(EMailMessage.sentDateProperty, message.getSentDate()).getFirst();
+						}
+
+						if (existingEMailMessage == null) {
+
+							pm.put(EMailMessage.subjectProperty, message.getSubject());
+							pm.put(EMailMessage.fromProperty, from);
+
+
+							final Pattern pattern = Pattern.compile(".* <(.*)>");
+							final Matcher matcher = pattern.matcher(from);
+							if (matcher.matches()) {
+								pm.put(EMailMessage.fromMailProperty, matcher.group(1));
+							} else {
+								pm.put(EMailMessage.fromMailProperty, from);
 							}
 
+							pm.put(EMailMessage.toProperty, to);
+							pm.put(EMailMessage.ccProperty, cc);
+							pm.put(EMailMessage.bccProperty, bcc);
+							pm.put(EMailMessage.folderProperty, message.getFolder().getFullName());
+							pm.put(EMailMessage.receivedDateProperty, message.getReceivedDate());
+							pm.put(EMailMessage.sentDateProperty, message.getSentDate());
+							pm.put(EMailMessage.mailboxProperty, mailbox);
+							pm.put(EMailMessage.headerProperty, gson.toJson(headers));
 
-							String messageId = null;
-							String inReplyTo = null;
-
-							Enumeration en = message.getAllHeaders();
-							Map<String, String> headers = new HashMap<>();
-							while (en.hasMoreElements()) {
-								Header header = (Header) en.nextElement();
-								if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
-									messageId = header.getValue();
-								} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
-									inReplyTo = header.getValue();
-								}
-								headers.put(header.getName(), header.getValue());
-							}
-
-							EMailMessage existingEMailMessage = null;
-
-							// Try to match via messageId first
 							if (messageId != null) {
-								existingEMailMessage = app.nodeQuery(entityClass).and(StructrApp.key(EMailMessage.class, "messageId"), messageId).getFirst();
-							}
-							// If messageId can't be matched, use fallback
-							if (existingEMailMessage == null) {
-								existingEMailMessage = app.nodeQuery(entityClass).and(StructrApp.key(EMailMessage.class, "subject"), message.getSubject()).and(StructrApp.key(EMailMessage.class, "from"), from).and(StructrApp.key(EMailMessage.class, "to"), to).and(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate()).and(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate()).getFirst();
+								pm.put(EMailMessage.messageIdProperty, messageId);
 							}
 
-							if (existingEMailMessage == null) {
-
-								pm.put(StructrApp.key(EMailMessage.class, "subject"), message.getSubject());
-								pm.put(StructrApp.key(EMailMessage.class, "from"), from);
-
-
-								final Pattern pattern = Pattern.compile(".* <(.*)>");
-								final Matcher matcher = pattern.matcher(from);
-								if (matcher.matches()) {
-									pm.put(StructrApp.key(EMailMessage.class, "fromMail"), matcher.group(1));
-								} else {
-									pm.put(StructrApp.key(EMailMessage.class, "fromMail"), from);
-								}
-
-								pm.put(StructrApp.key(EMailMessage.class, "to"), to);
-								pm.put(StructrApp.key(EMailMessage.class, "cc"), cc);
-								pm.put(StructrApp.key(EMailMessage.class, "bcc"), bcc);
-								pm.put(StructrApp.key(EMailMessage.class, "folder"), message.getFolder().getFullName());
-								pm.put(StructrApp.key(EMailMessage.class, "receivedDate"), message.getReceivedDate());
-								pm.put(StructrApp.key(EMailMessage.class, "sentDate"), message.getSentDate());
-								pm.put(StructrApp.key(EMailMessage.class, "mailbox"), mailbox);
-								pm.put(StructrApp.key(EMailMessage.class, "header"), gson.toJson(headers));
-
-								if (messageId != null) {
-									pm.put(StructrApp.key(EMailMessage.class, "messageId"), messageId);
-								}
-
-								if (inReplyTo != null) {
-									pm.put(StructrApp.key(EMailMessage.class, "inReplyTo"), inReplyTo);
-								}
-
-								// Handle content extraction
-								String content = null;
-								String htmlContent = null;
-								final Object contentObj = message.getContent();
-
-								final List<File> attachments = new ArrayList<>();
-
-								if (message.getContentType().contains("multipart")) {
-
-									final Map<String, String> result = handleMultipart(mailbox, message, (Multipart)contentObj, attachments);
-									content = result.get("content");
-									htmlContent = result.get("htmlContent");
-
-								} else if (message.getContentType().contains("text/plain")){
-
-									content = contentObj.toString();
-
-								} else if (message.getContentType().contains("text/html")) {
-
-									htmlContent = contentObj.toString();
-								}
-
-								pm.put(StructrApp.key(EMailMessage.class, "content"), content);
-								pm.put(StructrApp.key(EMailMessage.class, "htmlContent"), htmlContent);
-								pm.put(StructrApp.key(EMailMessage.class, "attachedFiles"), attachments);
-
-								app.create(entityClass, pm);
+							if (inReplyTo != null) {
+								pm.put(EMailMessage.inReplyToProperty, inReplyTo);
 							}
 
-							tx.success();
+							// Handle content extraction
+							String content = null;
+							String htmlContent = null;
+							final Object contentObj = message.getContent();
+
+							final List<File> attachments = new ArrayList<>();
+
+							if (message.getContentType().contains("multipart")) {
+
+								final Map<String, String> result = handleMultipart(mailbox, message, (Multipart)contentObj, attachments);
+								content = result.get("content");
+								htmlContent = result.get("htmlContent");
+
+							} else if (message.getContentType().contains("text/plain")){
+
+								content = contentObj.toString();
+
+							} else if (message.getContentType().contains("text/html")) {
+
+								htmlContent = contentObj.toString();
+							}
+
+							pm.put(EMailMessage.contentProperty, content);
+							pm.put(EMailMessage.htmlContentProperty, htmlContent);
+							pm.put(EMailMessage.attachedFilesProperty, attachments);
+
+							app.create(entityClass, pm);
 						}
 					}
 

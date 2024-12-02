@@ -91,6 +91,39 @@ let _Dialogs = {
 		},
 	},
 	loginDialog: {
+		getOauthProviders: () => [
+			{
+				name: 'Auth0',
+				uriPart: 'auth0',
+				iconId: _Icons.iconLogoAuth0
+			},
+			{
+				name: 'Azure',
+				uriPart: 'azure',
+				iconId: _Icons.iconLogoMicrosoft
+			},
+			{
+				name: 'Facebook',
+				uriPart: 'facebook',
+				iconId: _Icons.iconLogoFacebook
+			},
+			{
+				name: 'Github',
+				uriPart: 'github',
+				iconId: _Icons.iconLogoGithub
+			},
+			{
+				name: 'Google',
+				uriPart: 'google',
+				iconId: _Icons.iconLogoGoogle
+			},
+			{
+				name: 'LinkedIn',
+				uriPart: 'linkedin',
+				iconId: _Icons.iconLogoLinkedIn
+			}
+		],
+		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
 		isOpen: () => {
 			let loginElement = document.querySelector('#login');
 			return (loginElement != null && loginElement.offsetParent !== null);
@@ -109,8 +142,12 @@ let _Dialogs = {
 				Structr.clearMain();
 
 				// show login box
-				_Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
+				let element = _Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
 					width: ''
+				});
+
+				_Helpers.activateCommentsInElement(element, {
+					insertAfter: true
 				});
 
 				document.querySelector('#usernameField').focus();
@@ -127,6 +164,8 @@ let _Dialogs = {
 					});
 					return false;
 				});
+
+				_Dialogs.loginDialog.showSSO();
 
 				document.querySelector('form#login-two-factor').addEventListener('submit', (e) => {
 					e.stopPropagation();
@@ -162,6 +201,33 @@ let _Dialogs = {
 		},
 		removeErrorMessages: () => {
 			[...document.querySelectorAll('#login .login-error-message')].map(m => m.remove());
+		},
+		showSSO: () => {
+
+			let ssoElement   = document.querySelector('#login-sso');
+			let promises     = [];
+			let ssoAvailable = false;
+
+			for (let { name, uriPart, iconId } of _Dialogs.loginDialog.getOauthProviders()) {
+
+				let uri = _Dialogs.loginDialog.getSSOUriForURIPart(uriPart);
+
+				promises.push(fetch(uri, { redirect: "error" }).catch(e => {
+					// redirect => this provider works
+					ssoAvailable = true;
+
+					let btn = document.getElementById(`sso-login-${uriPart}`);
+					btn.classList.add('flex');
+					btn.classList.remove('hidden');
+				}));
+			}
+
+			Promise.all(promises).then(() => {
+				if (ssoAvailable) {
+					ssoElement.classList.remove('hidden');
+				}
+				_Dialogs.basic.centerAll(); // or too jumpy?
+			});
 		},
 		showTwoFactor: (data) => {
 
@@ -575,17 +641,31 @@ let _Dialogs = {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
+		enableSaveButton: () => {
+			if (_Dialogs.custom.elements.dialogSaveButton) {
+				_Helpers.enableElement(_Dialogs.custom.elements.dialogSaveButton);
+			}
+		},
+		disableSaveButton: () => {
+			if (_Dialogs.custom.elements.dialogSaveButton) {
+				_Helpers.disableElement(_Dialogs.custom.elements.dialogSaveButton);
+			}
+		},
 		clickSaveAndCloseButton: () => {
 
 			if (_Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled) {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
+		noConfirmOnEscape: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add('no-confirm-on-escape');
+		},
+		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains('no-confirm-on-escape') ?? false,
 		checkSaveOrCloseOnEscape: () => {
 
-			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled) {
+			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled && !_Dialogs.custom.isNoConfirmOnEscape()) {
 
-				let saveBeforeExit = confirm('Save changes?');
+				let saveBeforeExit = confirm('Save changes before closing?');
 				if (saveBeforeExit) {
 					_Dialogs.custom.clickSaveButton();
 

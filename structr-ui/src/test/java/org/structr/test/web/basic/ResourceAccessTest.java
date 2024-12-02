@@ -21,20 +21,29 @@ package org.structr.test.web.basic;
 import io.restassured.RestAssured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
+import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
@@ -60,7 +69,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			assertNotNull(testFolder);
 
 			// no resource access node at all => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -82,7 +91,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// resource access explicetly set to FORBIDDEN => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
@@ -97,7 +106,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 
 			// allow GET for non-authenticated users => access without user/pass should be allowed
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_GET);
@@ -110,7 +119,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200).when().get("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200).when().get("/Folder");
 
 			tx.success();
 
@@ -131,12 +140,12 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// no resource access node at all => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Folder");
 
 			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
 
 			// resource access explicetly set to FORBIDDEN => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Folder");
 
 			// allow POST for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_POST);
@@ -150,7 +159,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Folder");
 
 			// allow POST for non-authenticated users => access without user/pass should be allowed
 			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
@@ -165,7 +174,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").body("{'name':'Test01'}").expect().statusCode(201).when().post("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").body("{'name':'Test01'}").expect().statusCode(201).when().post("/Folder");
 
 			tx.success();
 
@@ -201,7 +210,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			assertNotNull(testFolder);
 
 			// no resource access node at all => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
 			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
 
@@ -215,7 +224,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// resource access explicitly set to FORBIDDEN => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
 			// allow PUT for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_PUT);
@@ -229,7 +238,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
 			// allow PUT for non-authenticated users =>
 			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
@@ -245,7 +254,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// ownerless non-public node cannot be found by anonymous user
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().put("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().put("/Folder/" + testFolder.getUuid());
 
 			// Prepare for next test
 			final PropertyMap testUserProperties = new PropertyMap();
@@ -266,7 +275,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().put("/folder/" + testFolder.getUuid());
+				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().put("/Folder/" + testFolder.getUuid());
 
 			tx.success();
 
@@ -309,7 +318,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// no resource access node at all => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
 			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
 
@@ -323,7 +332,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// resource access explicitly set to FORBIDDEN => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
 
@@ -336,7 +345,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
 			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
@@ -350,7 +359,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/Folder/" + testFolder.getUuid());
 
 			final PropertyMap changedProperties = new PropertyMap();
 			changedProperties.put(StructrApp.key(User.class, "name"), name);
@@ -372,7 +381,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			// test user owns object now => 200
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());
+				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/Folder/" + testFolder.getUuid());
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -382,6 +391,115 @@ public class ResourceAccessTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void test05ResourceAccessWithUUIDs() {
+
+		// clear resource access objects that are created by the dynamic schema
+		clearResourceAccess();
+
+		createEntityAsSuperUser("/User", "{ name: tester, password: test }");
+
+		String uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("getName", "{ return $.this.name; }");
+			type.addMethod("getName2", "{ return $.this.name + $.methodParameters.param1; }").setHttpVerb("GET").addParameter("param1", "string");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		NodeInterface test = null;
+
+		final Class<NodeInterface> testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(testClass, new NodeAttribute<>(AbstractNode.name, "test123"));
+			uuid = test.getUuid();
+
+			// set owner
+			final PrincipalInterface tester = app.nodeQuery(PrincipalInterface.class).andName("tester").getFirst();
+			test.setProperty(AbstractNode.owner, tester);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			logger.error(fex.toString());
+			fail("Unexpected exception");
+		}
+
+		// test, expect 401
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Test/" + uuid + "/getName");
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Test/" + uuid + "/getName2/param1/param2/123");
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/" + uuid);
+
+		try (final Tx tx = app.tx()) {
+
+			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			logger.error(fex.toString());
+			fail("Unexpected exception");
+		}
+
+		// test, expect 200
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result", equalTo("test123"))
+			.when().post("/Test/" + uuid + "/getName");
+
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result", equalTo("test123undefined"))
+			.when().get("/Test/" + uuid + "/getName2");
+
+		RestAssured.given().headers(Map.of("x-user", "tester", "x-password", "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result", equalTo("test123value1"))
+			.when().get("/Test/" + uuid + "/getName2/value1/value2/123");
+	}
+
+	@Test
+	/**
+	 * We need to make sure to not leak information, i.e. the 401 error must come before any 404 error for a non-existing object.
+	 */
+	public void test06OrderOfErrorCodes() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("myMethod", "{ return 'test!'; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// this should return 401 and NOT 404
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("Test/00000000000000000000000000000000/myMethod");
+	}
 	/**
 	 * Creates a new ResourceAccess entity with the given signature and
 	 * flags in the database.

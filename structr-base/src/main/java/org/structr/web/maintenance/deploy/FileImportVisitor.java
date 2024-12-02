@@ -128,15 +128,19 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			// get properties to find UUID
 			final Map<String, Object> raw = getRawPropertiesForFileOrFolder(path);
+			if (raw != null) {
 
-			final Folder existingFolder = app.get(Folder.class, (String)raw.get("id"));
-			if (existingFolder != null) {
+				final Folder existingFolder = app.get(Folder.class, (String) raw.get("id"));
+				if (existingFolder != null) {
 
-				this.folderCache.put(path, existingFolder);
+					this.folderCache.put(path, existingFolder);
+				}
+
+				return existingFolder;
 			}
-
-			return existingFolder;
 		}
+
+		return null;
 	}
 
 	protected void createFolder(final Path folderObj) {
@@ -251,8 +255,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
 
 						final PropertyMap props = new PropertyMap();
+						Class fileType          = File.class;
 
 						props.put(StructrApp.key(AbstractFile.class, "name"), fileName);
+
+						// make sure the file is created with the same UUID
+						props.put(AbstractNode.id, fileProperties.get(AbstractNode.id));
 
 						if (parent != null) {
 
@@ -266,16 +274,30 @@ public class FileImportVisitor implements FileVisitor<Path> {
 							props.put(StructrApp.key(GraphObject.class, "id"), newFileUuid);
 						}
 
+						if (fileProperties.containsKey(AbstractNode.type)) {
+
+							final Class typeFromConfig = StructrApp.getConfiguration().getNodeEntityClass(fileProperties.get(AbstractNode.type));
+							if (typeFromConfig != null) {
+
+								fileType = typeFromConfig;
+							}
+						}
+
 						// create file in folder structure
-						file                     = FileHelper.createFile(securityContext, fis, File.class, props);
-						final String contentType = file.getContentType();
+						//final String contentType = file.getContentType();
 
 						// modify file type according to content
+						/*
 						if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(file.getProperty(name))) {
 
 							file.unlockSystemPropertiesOnce();
 							file.setProperties(securityContext, new PropertyMap(NodeInterface.type, Image.class.getSimpleName()));
 						}
+
+						 */
+
+						file                     = FileHelper.createFile(securityContext, fis, fileType, props);
+
 
 						newFileUuid = file.getUuid();
 					}

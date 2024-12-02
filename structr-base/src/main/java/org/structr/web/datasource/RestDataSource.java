@@ -34,22 +34,20 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.rest.servlet.ResourceHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
+import org.structr.core.entity.PrincipalInterface;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.web.entity.User;
 
 /**
  * List data source equivalent to a rest resource.
@@ -68,10 +66,15 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final RenderContext renderContext = (RenderContext) actionContext;
 
 		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
-		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
+		String restQuery                       = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
+		}
+
+		// new pattern resolution needs leading slash
+		if (!restQuery.startsWith("/")) {
+			restQuery = "/" + restQuery;
 		}
 
 		return getData(renderContext, restQuery);
@@ -79,44 +82,30 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	public Iterable<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
-		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-		final SecurityContext securityContext                     = renderContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+		final Value<String> propertyView      = new ThreadLocalPropertyView();
+		final PrincipalInterface currentUser           = securityContext.getUser(false);
 
-		ResourceProvider resourceProvider = renderContext.getResourceProvider();
-		if (resourceProvider == null) {
-			try {
-				resourceProvider = UiResourceProvider.class.newInstance();
-			} catch (Throwable t) {
-				logger.error("Couldn't establish a resource provider", t);
-				return Collections.EMPTY_LIST;
-			}
-		}
-
-		// inject resources
-		resourceMap.putAll(resourceProvider.getResources());
-
-		Value<String> propertyView = new ThreadLocalPropertyView();
 		propertyView.set(securityContext, PropertyView.Ui);
 
 		HttpServletRequest request = securityContext.getRequest();
 		if (request == null) {
+
 			request = renderContext.getRequest();
 		}
 
 		// initialize variables
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request, restQuery);
-
-		// store original request
-		final HttpServletRequest origRequest = securityContext.getRequest();
+		final HttpServletRequest origRequest    = securityContext.getRequest();
 
 		// update request in security context
 		securityContext.setRequest(wrappedRequest);
 
-		Resource resource = null;
+		RESTCallHandler handler = null;
 		try {
 
-			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView);
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -124,13 +113,9 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		}
 
-		// reset request to old context
-		securityContext.setRequest(origRequest);
-
-		if (resource == null) {
+		if (handler == null) {
 
 			return Collections.EMPTY_LIST;
-
 		}
 
 		// add sorting & paging
@@ -138,16 +123,22 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final String pageParameter     = wrappedRequest.getParameter(RequestKeywords.PageNumber.keyword());
 		final String[] sortKeyNames    = wrappedRequest.getParameterValues(RequestKeywords.SortKey.keyword());
 		final String[] sortOrders      = wrappedRequest.getParameterValues(RequestKeywords.SortOrder.keyword());
-		final Class type               = resource.getEntityClassOrDefault();
+		final Class type               = handler.getEntityClass(securityContext);
 		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		final int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 
 		try {
-			return resource.doGet(order, pageSize, page);
+			return handler.doGet(securityContext, order, pageSize, page);
 
 		} catch (NotFoundException nfe) {
+
 			logger.warn("No result from internal REST query: {}", restQuery);
+
+		} finally {
+
+			// reset request to old context
+			securityContext.setRequest(origRequest);
 		}
 
 		return Collections.EMPTY_LIST;

@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -234,13 +234,13 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));
 
 		// include owner in content hash generation!
-		final Principal owner = node.getOwnerNode();
+		final PrincipalInterface owner = node.getOwnerNode();
 		if (owner != null) {
 
 			buf.append(valueOrEmpty(owner, AbstractNode.name));
 		}
 
-		// include grants in content hash generation!
+		// include permissions in content hash generation!
 		for (final Security r : node.getSecurityRelationships()) {
 
 			if (r != null) {
@@ -255,9 +255,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideConditions")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showForLocales")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideForLocales")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnIndex")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnDetail")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "renderDetails")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "sharedComponentConfiguration")));
 
 		if (node instanceof DOMNode) {
@@ -273,17 +270,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "dataKey")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "restQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "cypherQuery")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "xpathQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
-
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-reload")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-confirm")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-action")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-attributes")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-attr")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-name")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-hide")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-raw-value")));
 
 		// Content
 		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "contentType")));

@@ -19,6 +19,7 @@
 package org.structr.rest.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,17 +27,17 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
+import org.structr.web.servlet.HtmlServlet;
 
 import java.math.BigInteger;
 import java.net.Inet4Address;
@@ -59,25 +60,25 @@ public class AuthHelper {
 
 
 	/**
-	 * Find a {@link Principal} for the given credential
+	 * Find a {@link PrincipalInterface} for the given credential
 	 *
 	 * @param key
 	 * @param value
 	 * @return principal
 	 */
-	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value) {
+	public static <T> PrincipalInterface getPrincipalForCredential(final PropertyKey<T> key, final T value) {
 
 		return getPrincipalForCredential(key, value, false);
 
 	}
 
-	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value, final boolean isPing) {
+	public static <T> PrincipalInterface getPrincipalForCredential(final PropertyKey<T> key, final T value, final boolean isPing) {
 
 		if (value != null) {
 
 			try {
 
-				return StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).disableSorting().isPing(isPing).getFirst();
+				return StructrApp.getInstance().nodeQuery(PrincipalInterface.class).and(key, value).disableSorting().isPing(isPing).getFirst();
 
 			} catch (FrameworkException fex) {
 
@@ -89,7 +90,7 @@ public class AuthHelper {
 	}
 
 	/**
-	 * Find a {@link Principal} with matching password and given key or name
+	 * Find a {@link PrincipalInterface} with matching password and given key or name
 	 *
 	 * @param key
 	 * @param value
@@ -97,9 +98,9 @@ public class AuthHelper {
 	 * @return principal
 	 * @throws AuthenticationException
 	 */
-	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
+	public static PrincipalInterface getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
-		Principal principal  = null;
+		PrincipalInterface principal  = null;
 
 		final String superuserName = Settings.SuperUserName.getValue();
 		final String superUserPwd  = Settings.SuperUserPassword.getValue();
@@ -126,7 +127,7 @@ public class AuthHelper {
 
 			try {
 
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractNode.name, value).disableSorting().getFirst();
+				principal = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).and().or(key, value).or(AbstractNode.name, value).disableSorting().getFirst();
 
 			} catch (FrameworkException fex) {
 
@@ -229,24 +230,24 @@ public class AuthHelper {
 	}
 
 	/**
-	 * Find a {@link Principal} for the given session id
+	 * Find a {@link PrincipalInterface} for the given session id
 	 *
 	 * @param sessionId
 	 * @return principal
 	 */
-	public static Principal getPrincipalForSessionId(final String sessionId) {
+	public static PrincipalInterface getPrincipalForSessionId(final String sessionId) {
 
 		return getPrincipalForSessionId(sessionId, false);
 
 	}
 
-	public static Principal getPrincipalForSessionId(final String sessionId, final boolean isPing) {
+	public static PrincipalInterface getPrincipalForSessionId(final String sessionId, final boolean isPing) {
 
-		return getPrincipalForCredential(StructrApp.key(Principal.class, "sessionIds"), new String[]{ sessionId }, isPing);
+		return getPrincipalForCredential(StructrApp.key(PrincipalInterface.class, "sessionIds"), new String[]{ sessionId }, isPing);
 
 	}
 
-	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
+	public static void doLogin(final HttpServletRequest request, final PrincipalInterface user) throws FrameworkException {
 
 		if (request.getSession(false) == null) {
 			SessionHelper.newSession(request);
@@ -255,9 +256,10 @@ public class AuthHelper {
 		SessionHelper.clearInvalidSessions(user);
 
 		// We need a session to login a user
-		if (request.getSession(false) != null) {
+		final HttpSession session = request.getSession(false);
+		if (session != null) {
 
-			final String sessionId = request.getSession(false).getId();
+			final String sessionId = session.getId();
 
 			SessionHelper.clearSession(sessionId);
 
@@ -277,7 +279,7 @@ public class AuthHelper {
 		}
 	}
 
-	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
+	public static void doLogout(final HttpServletRequest request, final PrincipalInterface user) throws FrameworkException {
 
 		final String sessionId = SessionHelper.getShortSessionId(request.getRequestedSessionId());
 
@@ -287,18 +289,18 @@ public class AuthHelper {
 		SessionHelper.invalidateSession(sessionId);
 
 		// clear all refreshTokens on logout
-		Principal.clearTokens(user);
+		user.clearTokens();
 
 		RuntimeEventLog.logout("Logout", Map.of("id", user.getUuid(), "name", user.getName()));
 
 		AuthHelper.sendLogoutNotification(user, request);
 	}
 
-	public static void updateLastLoginDate(final Principal user) throws FrameworkException {
+	public static void updateLastLoginDate(final PrincipalInterface user) throws FrameworkException {
 
 		try {
 
-			final PropertyKey<Date> lastLoginDateKey = StructrApp.key(Principal.class, "lastLoginDate");
+			final PropertyKey<Date> lastLoginDateKey = StructrApp.key(PrincipalInterface.class, "lastLoginDate");
 
 			user.setProperty(lastLoginDateKey, new Date());
 
@@ -308,7 +310,7 @@ public class AuthHelper {
 		}
 	}
 
-	public static void sendLoginNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
+	public static void sendLoginNotification (final PrincipalInterface user, final HttpServletRequest request) throws FrameworkException {
 
 		try {
 
@@ -322,7 +324,7 @@ public class AuthHelper {
 		}
 	}
 
-	public static void sendLogoutNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
+	public static void sendLogoutNotification (final PrincipalInterface user, final HttpServletRequest request) throws FrameworkException {
 
 		try {
 
@@ -366,11 +368,11 @@ public class AuthHelper {
 		return Settings.ConfirmationKeyValidWithoutTimestamp.getValue();
 	}
 
-	public static void incrementFailedLoginAttemptsCounter (final Principal principal) {
+	public static void incrementFailedLoginAttemptsCounter (final PrincipalInterface principal) {
 
 		try {
 
-			final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(Principal.class, "passwordAttempts");
+			final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(PrincipalInterface.class, "passwordAttempts");
 
 			Integer failedAttempts = principal.getProperty(passwordAttemptsKey);
 
@@ -388,9 +390,9 @@ public class AuthHelper {
 		}
 	}
 
-	public static void checkTooManyFailedLoginAttempts (final Principal principal) throws TooManyFailedLoginAttemptsException {
+	public static void checkTooManyFailedLoginAttempts (final PrincipalInterface principal) throws TooManyFailedLoginAttemptsException {
 
-		final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(Principal.class, "passwordAttempts");
+		final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(PrincipalInterface.class, "passwordAttempts");
 		final int maximumAllowedFailedAttempts = Settings.PasswordAttempts.getValue();
 
 		if (maximumAllowedFailedAttempts > 0) {
@@ -415,11 +417,11 @@ public class AuthHelper {
 		}
 	}
 
-	public static void resetFailedLoginAttemptsCounter (final Principal principal) {
+	public static void resetFailedLoginAttemptsCounter (final PrincipalInterface principal) {
 
 		try {
 
-			principal.setProperty(StructrApp.key(Principal.class, "passwordAttempts"), 0);
+			principal.setProperty(StructrApp.key(PrincipalInterface.class, "passwordAttempts"), 0);
 
 		} catch (FrameworkException fex) {
 
@@ -427,13 +429,13 @@ public class AuthHelper {
 		}
 	}
 
-	public static void handleForcePasswordChange (final Principal principal) throws PasswordChangeRequiredException {
+	public static void handleForcePasswordChange (final PrincipalInterface principal) throws PasswordChangeRequiredException {
 
 		final boolean forcePasswordChange = Settings.PasswordForceChange.getValue();
 
 		if (forcePasswordChange) {
 
-			final PropertyKey<Date> passwordChangeDateKey  = StructrApp.key(Principal.class, "passwordChangeDate");
+			final PropertyKey<Date> passwordChangeDateKey  = StructrApp.key(PrincipalInterface.class, "passwordChangeDate");
 			final int passwordDays = Settings.PasswordForceChangeDays.getValue();
 
 			final Date now = new Date();
@@ -447,16 +449,16 @@ public class AuthHelper {
 		}
 	}
 
-	public static Principal getUserForTwoFactorToken (final String twoFactorIdentificationToken) throws TwoFactorAuthenticationTokenInvalidException, FrameworkException {
+	public static PrincipalInterface getUserForTwoFactorToken (final String twoFactorIdentificationToken) throws TwoFactorAuthenticationTokenInvalidException, FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
-		Principal principal = null;
+		PrincipalInterface principal = null;
 
-		final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(Principal.class, "twoFactorToken");
+		final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(PrincipalInterface.class, "twoFactorToken");
 
 		try (final Tx tx = app.tx()) {
-			principal = app.nodeQuery(Principal.class).and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
+			principal = app.nodeQuery(PrincipalInterface.class).and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
 			tx.success();
 		}
 
@@ -577,13 +579,13 @@ public class AuthHelper {
 		return false;
 	}
 
-	public static boolean handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
+	public static boolean handleTwoFactorAuthentication (final PrincipalInterface principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
 
 		if (!AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP, Settings.TwoFactorWhitelistedIPs.getValue())) {
 
-			final PropertyKey<String> twoFactorTokenKey      = StructrApp.key(Principal.class, "twoFactorToken");
-			final PropertyKey<Boolean> isTwoFactorUserKey    = StructrApp.key(Principal.class, "isTwoFactorUser");
-			final PropertyKey<Boolean> twoFactorConfirmedKey = StructrApp.key(Principal.class, "twoFactorConfirmed");
+			final PropertyKey<String> twoFactorTokenKey      = StructrApp.key(PrincipalInterface.class, "twoFactorToken");
+			final PropertyKey<Boolean> isTwoFactorUserKey    = StructrApp.key(PrincipalInterface.class, "isTwoFactorUser");
+			final PropertyKey<Boolean> twoFactorConfirmedKey = StructrApp.key(PrincipalInterface.class, "twoFactorConfirmed");
 
 			final int twoFactorLevel   = Settings.TwoFactorLevel.getValue();
 			boolean isTwoFactorUser    = principal.getProperty(isTwoFactorUserKey);
@@ -606,7 +608,7 @@ public class AuthHelper {
 
 					try {
 
-						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(Principal.getTwoFactorSecret(principal), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
+						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(principal.getTwoFactorSecret(), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
 
 						// check two factor authentication
 						if (currentKey.equals(twoFactorCode)) {

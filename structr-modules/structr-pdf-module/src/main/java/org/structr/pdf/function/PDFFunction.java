@@ -24,10 +24,10 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import jakarta.servlet.http.HttpSession;
 import java.util.Calendar;
+
 import org.eclipse.jetty.server.session.Session;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
@@ -68,13 +68,11 @@ public class PDFFunction extends Function<Object, Object> {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-		String baseUrl = null;
-		String userParameter = null;
-
+		String baseUrl         = null;
+		String userParameter   = null;
 		Boolean runWithXserver = false;
 		String xServerSettings = null;
-
-		final String page = sources[0].toString();
+		final String page      = sources[0].toString();
 
 		if (sources.length >= 2) {
 
@@ -101,17 +99,13 @@ public class PDFFunction extends Function<Object, Object> {
 			baseUrl = ActionContext.getBaseUrl(ctx.getSecurityContext().getRequest()) + "/";
 		}
 
-		Principal currentUser = ctx.getSecurityContext().getUser(false);
+		PrincipalInterface currentUser = ctx.getSecurityContext().getUser(false);
 
-		final List<Param> parameterList = new ArrayList<Param>();
+		final List<Param> parameterList = new ArrayList<>();
 
 		if (currentUser instanceof SuperUser) {
 
-			logger.warn("Deprecation Warning! Using the pdf() function in a superuser context (e.g. cron job or doPrivileged) is deprecated. In future versions this will result in an error. This can be easily remedied by using the $.doAs() function to create the pdf as a dedicated user.");
-
-			parameterList.add(new Param("--custom-header", "X-User", "superadmin"));
-			parameterList.add(new Param("--custom-header", "X-Password", Settings.SuperUserPassword.getValue()));
-			parameterList.add(new Param("--custom-header-propagation"));
+			throw new FrameworkException(422, "Error: Using the pdf() function without a user context (e.g. cron job or $.doPrivileged) is deprecated. This can be easily remedied by using the $.doAs() function to create the pdf as a given user.");
 
 		} else {
 
@@ -183,8 +177,11 @@ public class PDFFunction extends Function<Object, Object> {
 		try {
 
 			if (!runWithXserver) {
+
 				return convertPageToPdfWithoutXServer(baseUrl, page, parameterList, baos);
+
 			} else {
+
 				return convertPageToPdfWithXServer(baseUrl, page, parameterList, baos, xServerSettings);
 			}
 
@@ -197,6 +194,7 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	private  String convertPageToPdfWithoutXServer (String baseUrl, String page, List<Param> parameterList, ByteArrayOutputStream baos) {
+
 		Pdf pdf = new Pdf();
 		pdf.addPageFromUrl(baseUrl + page);
 		addParametersToPdf(pdf, parameterList);
@@ -205,11 +203,13 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	private String convertPageToPdfWithXServer (String baseUrl, String page, List<Param> parameterList, ByteArrayOutputStream baos, String xServerSettings) {
+
 		XvfbConfig xc = new XvfbConfig();
 
 		if (xServerSettings == null || xServerSettings.length() == 0) {
 
 			xc.addParams(new Param("--auto-servernum"), new Param("--server-num=1"));
+
 		} else {
 
 			xc.addParams(new Param(xServerSettings));
@@ -226,9 +226,12 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	private String convertPageToPdf (Pdf pdf, ByteArrayOutputStream baos) {
+
 		try {
+
 			baos.write(pdf.getPDF());
 			return baos.toString("ISO-8859-1");
+
 		} catch (IOException e) {
 
 			logger.warn("pdf(): IOException", e);
@@ -236,12 +239,13 @@ public class PDFFunction extends Function<Object, Object> {
 		} catch (InterruptedException e) {
 
 			logger.warn("pdf(): InterruptedException", e);
-
 		}
+
 		return "";
 	}
 
 	private void addParametersToPdf (Pdf pdf, List<Param> paramList) {
+
 		for (Param param : paramList) {
 			pdf.addParam(param);
 		}
@@ -249,7 +253,6 @@ public class PDFFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-
 		return (inJavaScriptContext ? ERROR_MESSAGE_PDF_JS : ERROR_MESSAGE_PDF);
 	}
 

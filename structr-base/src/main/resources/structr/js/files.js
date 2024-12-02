@@ -46,6 +46,16 @@ let _Files = {
 	isViewModeActive: viewMode => (viewMode === _Files.getViewMode()),
 	init: () => {
 
+		_Files.dateFormat = new Intl.DateTimeFormat(navigator.language, {
+			//weekday: 'long',
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: 'numeric',
+			minute: 'numeric',
+			second: 'numeric'
+		});
+
 		_Files.setViewMode(_Files.getViewMode());
 
 		Structr.adaptUiToAvailableFeatures();
@@ -81,8 +91,8 @@ let _Files = {
 
 		let initFunctionBar = async () => {
 
-			let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
-			let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
+			let fileTypes   = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('File'), ['CsvFile']);
+			let folderTypes = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('Folder'), ['Trash']);
 
 			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
 
@@ -216,6 +226,33 @@ let _Files = {
 			if (treeNode) {
 				_Files.getFilesTree().jstree().get_node(node.id).text = node.name;
 				_Files.getFilesTree().jstree().refresh_node(node.id);
+			}
+
+		} else {
+
+			let size                  = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
+			let modifiedDate          = _Files.getFormattedDate(node.lastModifiedDate);
+			let name                  = node.name || '[unnamed]';
+			let listModeActive        = _Files.isViewModeActive('list');
+			let tilesModeActive       = _Files.isViewModeActive('tiles');
+			let imageModeActive       = _Files.isViewModeActive('img');
+			let iconSize              = (tilesModeActive || imageModeActive) ? 40 : 16;
+			let fileIcon              = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
+			let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
+			let ownerString           = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
+
+			let container             = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
+
+			container.querySelector('[data-key=name]')?.replaceChildren(name);
+			container.querySelector('[data-key=name]')?.setAttribute('title', name);
+			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
+			container.querySelector('[data-key=size]')?.replaceChildren(size);
+			container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
+			container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+
+			let svgIcon = container.querySelector('.file-icon a svg');
+			if (svgIcon) {
+				_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
 			}
 		}
 	},
@@ -379,7 +416,7 @@ let _Files = {
 				});
 			}
 
-			Structr.performModuleDependentAction(() => {
+			Structr.performActionAfterEnvResourceLoaded(() => {
 				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
@@ -391,7 +428,7 @@ let _Files = {
 				}
 			});
 
-			Structr.performModuleDependentAction(() => {
+			Structr.performActionAfterEnvResourceLoaded(() => {
 				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
@@ -426,13 +463,13 @@ let _Files = {
 						let files = [...selectedElements].map(el => Structr.entityFromElement(el));
 
 						_Entities.deleteNodes(files, true, () => {
-							_Files.refreshTree();
+							// refresh handled via model
 						});
 
 					} else {
 
 						_Entities.deleteNode(entity, true, () => {
-							_Files.refreshTree();
+							// refresh handled via model
 						});
 					}
 				}
@@ -710,7 +747,7 @@ let _Files = {
 		// store current folder id so we can filter slow requests
 		_Files.getFolderContentsElement().dataset['currentFolder'] = id;
 
-		let handleChildren = (children) => {
+		let handleFileChildren = (children) => {
 
 			let currentFolder = _Files.getFolderContentsElement().dataset['currentFolder'];
 
@@ -736,7 +773,7 @@ let _Files = {
 			}).then(async response => {
 				if (response.ok) {
 					let data = await response.json();
-					handleChildren(data.result);
+					handleFileChildren(data.result);
 				}
 			});
 
@@ -744,7 +781,7 @@ let _Files = {
 
 			let handleFolderChildren = (folders) => {
 
-				handleChildren(folders);
+				handleFileChildren(folders);
 
 				_Files.registerFolderLinks();
 			};
@@ -762,7 +799,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, _Files.defaultFileAttributes, true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = filesPager.el.querySelectorAll('.node.file');
@@ -904,28 +941,26 @@ let _Files = {
 	fileOrFolderDeletionNotificationTimeout: undefined,
 	fileOrFolderDeletionNotification: (deletedFileOrFolder) => {
 
-		// this should only run for inactive windows (the active window should be the originator)
-		// it would be even better to only NOT run for the originator - an active window could be another user on another machine...
-		if (document.hasFocus() === false) {
+		// this can have been called after multi-deleting files/folders, schedule it to probably only run once.
+		window.clearTimeout(_Files.fileOrFolderDeletionNotificationTimeout);
 
-			// this can have been called after multi-deleting files/folders, schedule it to probably only run once.
-			window.clearTimeout(_Files.fileOrFolderDeletionNotificationTimeout);
+		_Files.fileOrFolderDeletionNotificationTimeout = window.setTimeout(() => {
 
-			_Files.fileOrFolderDeletionNotificationTimeout = window.setTimeout(() => {
+			if (deletedFileOrFolder.isFile) {
 
-				if (deletedFileOrFolder.isFile) {
+				// optimistically we should get away with only reloading the tree if a folder was deleted...
+				// ...but that would be a bit more bookkeeping because we are trying to only run once
+				_Files.refreshTree();
 
-					// optimistically we should get away with only reloading the tree if a folder was deleted...
-					// ...but that would be a bit more bookkeeping because we are trying to only run once
-					_Files.refreshTree();
+			} else if (deletedFileOrFolder.isFolder) {
 
-				} else if (deletedFileOrFolder.isFolder) {
+				_Files.refreshTree();
+			}
 
-					_Files.refreshTree();
-				}
-
-			}, 200);
-		}
+		}, 200);
+	},
+	getFormattedDate: (date) => {
+		return _Files.dateFormat.format(new Date(date));
 	},
 	appendFileOrFolder: (d) => {
 
@@ -933,21 +968,9 @@ let _Files = {
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
-		const dateOptions = {
-			//weekday: 'long',
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit',
-			hour: 'numeric',
-			minute: 'numeric',
-			second: 'numeric'
-		};
-
-		const dateFormat          = new Intl.DateTimeFormat(navigator.language, dateOptions);
-
 		let size                  = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
-		let createdDate           = dateFormat.format(new Date(d.createdDate));
-		let modifiedDate          = dateFormat.format(new Date(d.lastModifiedDate));
+		let createdDate           = _Files.getFormattedDate(d.createdDate);
+		let modifiedDate          = _Files.getFormattedDate(d.lastModifiedDate);
 		let progressIndicatorHTML = _Files.templates.progressIndicator({ size });
 		let name                  = d.name || '[unnamed]';
 		let listModeActive        = _Files.isViewModeActive('list');
@@ -958,6 +981,7 @@ let _Files = {
 		let fileIcon              = (d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d));
 		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
 		let parentIdString        = d.parentId ? `data-parent-id="${d.parentId}"` : '';
+		let ownerString           = (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '');
 
 		if (listModeActive) {
 
@@ -976,17 +1000,17 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate"></b>
+							<b class="name_ leading-8 truncate" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
 					<td class="truncate id_ leading-8">${d.id}</td>
 					<td class="truncate date">${createdDate}</td>
-					<td class="truncate date">${modifiedDate}</td>
-					<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
-					<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
-					<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
+					<td class="truncate date" data-key="lastModifiedDate">${modifiedDate}</td>
+					<td class="size whitespace-nowrap" data-key="size">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
+					<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (<span  data-key="contentType">${d.contentType}</span>)` : '')}</td>
+					<td data-key="owner">${ownerString}</td>
 				</tr>
 			`;
 
@@ -995,7 +1019,22 @@ let _Files = {
 
 			_Helpers.fastRemoveElement(tableBody.querySelector(`#${rowId}`));
 
-			tableBody.appendChild(row);
+			// folders are appended after last folder, files are appended at the end
+			if (d.isFile || !tableBody.hasChildNodes()) {
+				tableBody.appendChild(row);
+			} else {
+
+				let lastFolder = [...tableBody.querySelectorAll('.is-folder')].pop()?.closest('tr');
+
+				if (lastFolder) {
+
+					lastFolder.insertAdjacentElement("afterend", row);
+
+				} else {
+
+					tableBody.insertBefore(row, tableBody.firstElementChild);
+				}
+			}
 
 			_Elements.contextMenu.enableContextMenuOnElement(row, d);
 
@@ -1026,7 +1065,7 @@ let _Files = {
 				<div id="${tileId}" class="tile${d.isThumbnail ? ' thumbnail' : ''}${imageModeActive ? ' img-tile' : ''}">
 					<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} relative flex flex-col" draggable="true">
 					${getFileIcon()}
-					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center"></b>
+					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center" data-key="name"></b>
 					${d.isFolder ? '' : progressIndicatorHTML}
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -1037,7 +1076,22 @@ let _Files = {
 
 			_Helpers.fastRemoveElement(tilesContainer.querySelector(`#${tileId}`));
 
-			tilesContainer.appendChild(tile);
+			// folders are appended after last folder, files are appended at the end
+			if (d.isFile || !tilesContainer.hasChildNodes()) {
+				tilesContainer.appendChild(tile);
+			} else {
+
+				let lastFolder = [...tilesContainer.querySelectorAll('.folder')].pop()?.closest('.tile');
+
+				if (lastFolder) {
+
+					lastFolder.insertAdjacentElement("afterend", tile);
+
+				} else {
+
+					tilesContainer.insertBefore(tile, tilesContainer.firstElementChild);
+				}
+			}
 
 			_Elements.contextMenu.enableContextMenuOnElement(tile, d);
 		}

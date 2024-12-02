@@ -73,6 +73,7 @@ public class SearchCommand extends AbstractCommand {
 		Boolean exactSearch = null;
 
 		if (searchString != null) {
+
 			typeString  = webSocketData.getNodeDataStringValue(TYPE_KEY);
 			exactSearch = webSocketData.getNodeDataBooleanValue(EXACT_KEY);
 		}
@@ -80,12 +81,12 @@ public class SearchCommand extends AbstractCommand {
 		final String restQuery    = webSocketData.getNodeDataStringValue(REST_QUERY_KEY);
 		final String cypherQuery  = webSocketData.getNodeDataStringValue(CYPHER_QUERY_KEY);
 		final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
-
-		final int pageSize             = webSocketData.getPageSize();
-		final int page                 = webSocketData.getPage();
+		final int pageSize        = webSocketData.getPageSize();
+		final int page            = webSocketData.getPage();
 
 		Class type = null;
 		if (typeString != null) {
+
 			type = SchemaHelper.getEntityClassForRawType(typeString);
 		}
 
@@ -133,7 +134,15 @@ public class SearchCommand extends AbstractCommand {
 				try {
 					securityContext.setRequest(getWebSocket().getRequest());
 
-					webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
+					if (restQuery.startsWith("/")) {
+
+						webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
+
+					} else {
+
+						webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), "/" + restQuery));
+					}
+
 					getWebSocket().send(webSocketData, true);
 
 					return;
@@ -160,11 +169,8 @@ public class SearchCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			final List<AbstractNode> result = query.getAsList();
-
 			// set full result list
-			webSocketData.setResult(result);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

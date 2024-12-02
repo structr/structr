@@ -82,7 +82,7 @@ let _VirtualTypes = {
 
 		_Helpers.appendInfoTextToElement({
 			element: $('.resource-link'),
-			text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
+			text: `Preview the virtual type in a new window/tab.<br>The request parameter ${Structr.getRequestParameterName('pageSize')}=1 is automatically appended to limit the number of results in the preview.`,
 			css: { marginLeft: "5px" },
 			offsetX: -300,
 			offsetY: 10
@@ -332,7 +332,7 @@ let _VirtualTypes = {
 	},
 	appendVirtualProperty: (optionalProperty) => {
 
-		let propertyRowHtml = _VirtualTypes.templates.propertyRow();
+		let propertyRowHtml = _VirtualTypes.templates.propertyRow(optionalProperty);
 		let row             = $(propertyRowHtml);
 		let removeButton    = $('.remove-virtual-property', row);
 		let saveButton      = $('.save-virtual-property', row);
@@ -496,7 +496,7 @@ let _VirtualTypes = {
 									<input class="property w-full box-border" data-property="sourceType">
 								</td>
 								<td class="px-4">
-									<textarea class="property w-full box-border" data-property="filterExpression"></textarea>
+									${Structr.templates.autoScriptTextArea({ textareaClassString: 'property', textareaAttributeString: 'data-property="filterExpression" cols="25"', wrapperClassString: 'w-full' })}
 								</td>
 								<td class="text-center">
 									<input class="property" type="checkbox" data-property="visibleToPublicUsers">
@@ -550,10 +550,10 @@ let _VirtualTypes = {
 			<div id="virtual-types-pager"></div>
 		`,
 		propertyRow: config => `
-			<tr class="virtual-property odd:bg-white even:bg-gray-75">
+			<tr class="virtual-property odd:bg-white even:bg-gray-75" data-id="${config?.id ?? ''}">
 				<td class="actions px-4">
-					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
-					${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
+					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']), 'Save')}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Delete')}
 				</td>
 				<td class="px-4">
 					<input class="property w-full box-border" data-property="position">
@@ -565,10 +565,10 @@ let _VirtualTypes = {
 					<input class="property w-full box-border" data-property="targetName">
 				</td>
 				<td class="px-4">
-					<textarea class="property w-full box-border" data-property="inputFunction" cols="25"></textarea>
+					${Structr.templates.autoScriptTextArea({ textareaClassString: 'property', textareaAttributeString: 'data-property="inputFunction" cols="25"', wrapperClassString: 'w-full' })}
 				</td>
 				<td class="px-4">
-					<textarea class="property w-full box-border" data-property="outputFunction" cols="25"></textarea>
+					${Structr.templates.autoScriptTextArea({ textareaClassString: 'property', textareaAttributeString: 'data-property="outputFunction" cols="25"', wrapperClassString: 'w-full' })}
 				</td>
 				<td class="text-center">
 					<input class="property" data-property="visibleToPublicUsers" type="checkbox" checked>

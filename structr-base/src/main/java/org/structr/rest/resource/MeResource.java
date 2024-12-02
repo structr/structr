@@ -19,92 +19,98 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
+import org.structr.common.helper.CaseHelper;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.web.entity.User;
 
 /**
  *
  *
  */
-public class MeResource extends TypedIdResource {
-
-	private static final Logger logger = LoggerFactory.getLogger(MeResource.class.getName());
+public class MeResource extends ExactMatchEndpoint {
 
 	public MeResource() {
-		super(null);
-	}
-
-	public MeResource(SecurityContext securityContext) {
-		super(securityContext);
+		super(RESTParameter.forStaticString("me", true, "User"));
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new MeResourceHandler(call);
+	}
 
-		this.securityContext = securityContext;
+	private class MeResourceHandler extends RESTCallHandler {
 
-		if ("me".equalsIgnoreCase(part)) {
+		public MeResourceHandler(final RESTCall call) {
+			super(call);
+		}
 
-			this.typeResource = new TypeResource();
-			this.typeResource.setSecurityContext(securityContext);
-			this.typeResource.checkAndConfigure("user", securityContext, request);
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			Principal user = securityContext.getUser(true);
+			PrincipalInterface user = securityContext.getUser(true);
 			if (user != null) {
 
-				// we need to create synthetic nested constraints
-				this.idResource = new UuidResource();
-				this.idResource.setSecurityContext(securityContext);
-				this.idResource.checkAndConfigure(user.getProperty(GraphObject.id), securityContext, request);
+				return new PagingIterable<>(getURL(), Arrays.asList(user));
 
+			} else {
+
+				throw new NotAllowedException("No user");
 			}
 		}
 
-		return true;
-	}
-
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-
-		Principal user = securityContext.getUser(true);
-		if (user != null) {
-
-			return new PagingIterable<>("/" + getUriPart(), Arrays.asList(user));
-			//return new ResultStream(resultList, isCollectionResource(), isPrimitiveArray());
-
-		} else {
-
-			throw new NotAllowedException("No user");
-		}
-	}
-
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		if (typeResource != null) {
-			return typeResource.doPost(propertySet);
+		@Override
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			return genericPut(securityContext, propertySet);
 		}
 
-		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
-	}
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+			return genericDelete(securityContext);
+		}
 
-	@Override
-	public String getUriPart() {
-		return "me";
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return User.class;
+		}
+
+		@Override
+		public String getResourceSignature() {
+
+			String signature = "User";
+
+			// append requested view to resource signature
+			if (!isDefaultView()) {
+
+				signature += "/_" + CaseHelper.toUpperCamelCase(requestedView);
+			}
+
+			return signature;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
+		}
 	}
 
 }

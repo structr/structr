@@ -239,10 +239,12 @@ public class StructrApp implements App {
 
 			// set type for faster query
 			if (type != null) {
+
 				query.andType(type);
+
 			} else {
 
-				logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time. Please examine the following stack trace and amend.");
+				logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				Thread.dumpStack();
 			}
 
@@ -283,7 +285,7 @@ public class StructrApp implements App {
 
 			} else {
 
-				throw new IllegalStateException("Invalid type " + type + ", cannot be used in query.");
+				throw new IllegalStateException("Invalid type ‛" + type + "‛, cannot be used in query");
 			}
 		}
 
@@ -486,8 +488,7 @@ public class StructrApp implements App {
 
 			} else {
 
-				// next try: interface created from SchemaNode (org.structr.dynamic)
-				final Class iface = config.getInterfaces().get("org.structr.dynamic." + type.getSimpleName());
+				final Class iface = config.getInterfaces().get(type.getSimpleName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
@@ -556,17 +557,36 @@ public class StructrApp implements App {
 
 	public static void initializeSchemaIds() {
 
-		final Map<String, Class> interfaces = StructrApp.getConfiguration().getInterfaces();
+		final Map<String, Class> interfaces                                = StructrApp.getConfiguration().getInterfaces();
+		final Map<String, Class<? extends NodeInterface>> nodeTypes        = StructrApp.getConfiguration().getNodeEntities();
+		final Map<String, Class<? extends RelationshipInterface>> relTypes = StructrApp.getConfiguration().getRelationshipEntities();
 
 		// refresh schema IDs
 		schemaIdMap.clear();
 		typeIdMap.clear();
 
-		// add Structr interfaces here
 		for (final Class type : interfaces.values()) {
 
 			// only register node types
-			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type) && !type.getName().startsWith("org.structr.dynamic.")) {
+			if (!type.getName().startsWith("org.structr.dynamic.")) {
+
+				registerType(type);
+			}
+		}
+
+		for (final Class type : nodeTypes.values()) {
+
+			// only register node types
+			if (!type.getName().startsWith("org.structr.dynamic.")) {
+
+				registerType(type);
+			}
+		}
+
+		for (final Class type : relTypes.values()) {
+
+			// only register node types
+			if (!type.getName().startsWith("org.structr.dynamic.")) {
 
 				registerType(type);
 			}

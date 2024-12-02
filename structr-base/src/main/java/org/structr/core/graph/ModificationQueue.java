@@ -23,16 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.GenericProperty;
@@ -43,6 +41,7 @@ import org.structr.core.property.RelationProperty;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.LinkedList;
 
 /**
  *
@@ -59,6 +58,7 @@ public class ModificationQueue {
 	private final Set<Long> ids                                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
 	private boolean doUpateChangelogIfEnabled                                               = true;
+	private boolean transactionWasSuccessful                                                = false;
 	private CallbackCounter counter                                                         = null;
 	private boolean hasChanges                                                              = false;
 	private long changelogUpdateTime                                                        = 0L;
@@ -124,11 +124,6 @@ public class ModificationQueue {
 
 		// do validation and indexing
 		for (final GraphObjectModificationState state : getSortedModifications()) {
-
-			PropertyContainer container = state.getGraphObject().getPropertyContainer();
-			if (container.isStale()) {
-				continue;
-			}
 
 			// do callback according to entry state
 			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation, counter);
@@ -236,6 +231,7 @@ public class ModificationQueue {
 
 	public void clear() {
 
+		setTransactionWasSuccessful(false);
 		hasChanges = false;
 
 		// clear collections afterwards
@@ -245,7 +241,7 @@ public class ModificationQueue {
 		ids.clear();
 	}
 
-	public void create(final Principal user, final NodeInterface node) {
+	public void create(final PrincipalInterface user, final NodeInterface node) {
 
 		this.hasChanges = true;
 
@@ -257,7 +253,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public <S extends NodeInterface, T extends NodeInterface> void create(final Principal user, final RelationshipInterface relationship) {
+	public <S extends NodeInterface, T extends NodeInterface> void create(final PrincipalInterface user, final RelationshipInterface relationship) {
 
 		this.hasChanges = true;
 
@@ -297,15 +293,7 @@ public class ModificationQueue {
 		getState(node).modifySecurity();
 	}
 
-	public void modifyLocation(NodeInterface node) {
-
-		this.ids.add(node.getNode().getId().getId());
-		this.hasChanges = true;
-
-		getState(node).modifyLocation();
-	}
-
-	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public void modify(final PrincipalInterface user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -317,7 +305,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void modify(final Principal user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+	public void modify(final PrincipalInterface user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
 
 		this.ids.add(relationship.getRelationship().getId().getId());
 		this.hasChanges = true;
@@ -329,7 +317,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void delete(final Principal user, final NodeInterface node) {
+	public void delete(final PrincipalInterface user, final NodeInterface node) {
 
 		this.ids.add(node.getNode().getId().getId());
 		this.hasChanges = true;
@@ -342,7 +330,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void delete(final Principal user, final RelationshipInterface relationship, final boolean passive) {
+	public void delete(final PrincipalInterface user, final RelationshipInterface relationship, final boolean passive) {
 
 		this.ids.add(relationship.getRelationship().getId().getId());
 		this.hasChanges = true;
@@ -534,25 +522,23 @@ public class ModificationQueue {
 	}
 
 	// ----- private methods -----
-	private void modifyEndNodes(final Principal user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
+	private void modifyEndNodes(final PrincipalInterface user, final NodeInterface startNode, final NodeInterface endNode, final RelationshipInterface rel, final boolean isDeletion) {
 
 		// only modify if nodes are accessible
 		if (startNode != null && endNode != null) {
 
 			final RelationshipType relType = rel.getRelType();
 
-			if (RelType.OWNS.equals(relType)) {
+			if ("OWNS".equals(relType.name())) {
 
 				modifyOwner(startNode);
 				modifyOwner(endNode);
-				return;
 			}
 
-			if (RelType.SECURITY.equals(relType)) {
+			if ("SECURITY".equals(relType.name())) {
 
 				modifySecurity(startNode);
 				modifySecurity(endNode);
-				return;
 			}
 
 			final Relation relation  = Relation.getInstance((Class)rel.getClass());
@@ -655,5 +641,13 @@ public class ModificationQueue {
 		});
 
 		return state;
+	}
+
+	public boolean transactionWasSuccessful() {
+		return transactionWasSuccessful;
+	}
+
+	public void setTransactionWasSuccessful(final boolean transactionWasSuccessful) {
+		this.transactionWasSuccessful = transactionWasSuccessful;
 	}
 }

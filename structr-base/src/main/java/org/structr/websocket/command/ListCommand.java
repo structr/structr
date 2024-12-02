@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
@@ -36,6 +37,7 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
@@ -91,21 +93,27 @@ public class ListCommand extends AbstractCommand {
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
 			query.not().and(StructrApp.key(Image.class, "isThumbnail"), true);
 
+			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
+				"all/INCOMING/CONTAINS",
+				"all/OUTGOING/CONFIGURED_BY"
+			));
 		}
 
 		// important
 		if (Folder.class.isAssignableFrom(type) && rootOnly) {
 
 			query.and(StructrApp.key(Folder.class, "hasParent"), false);
+
+			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
+				"all/INCOMING/CONTAINS",
+				"all/OUTGOING/CONFIGURED_BY"
+			));
 		}
 
 		try {
 
-			// do search
-			final List<AbstractNode> result = query.getAsList();
-
 			// set full result list
-			webSocketData.setResult(result);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

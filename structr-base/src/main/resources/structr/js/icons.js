@@ -51,13 +51,15 @@ let _Icons = {
 	iconDOMCommentElement:    'dom-comment',
 	iconDOMTreeActiveElement: 'dom-active-element',
 
-	iconSecurityRegularUser: 'user-normal',
-	iconSecurityAdminUser:   'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
-	iconSecurityLDAPUser:    'user-ldap',
-	iconSecurityGroup:       'user-group',
-	iconSecurityLDAPGroup:   'user-group-ldap',
-	iconGroupAdd:            'group-add',
-	iconUserAdd:             'user-add',
+	iconSecurityRegularUser:        'user-normal',
+	iconSecurityBlockedRegularUser: 'user-blocked',
+	iconSecurityAdminUser:          'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
+	iconSecurityBlockedAdminUser:   'user-blocked',	// possibly 'user-admin-blocked' but color-change to red is preferred at the moment
+	iconSecurityLDAPUser:           'user-ldap',
+	iconSecurityGroup:              'user-group',
+	iconSecurityLDAPGroup:          'user-group-ldap',
+	iconGroupAdd:                   'group-add',
+	iconUserAdd:                    'user-add',
 
 	iconFilesStack:           'file-stack',
 	iconCreateFile:           'file_add',
@@ -135,7 +137,9 @@ let _Icons = {
 	iconGlobe:               'globe-icon',
 	iconOpenInNewPage:       'link_external',
 	iconListWithCog:         'list-cog',
+	iconLightBulb:           'light-bulb',
 	iconSearch:              'magnifying-glass',
+	iconFilterFunnel:        'filter-funnel',
 	iconMicrophone:          'microphone-icon',
 	iconNetwork:             'network-icon',
 	iconRefreshArrows:       'refresh-arrows',
@@ -164,6 +168,13 @@ let _Icons = {
 	iconInfoBlueFilled:      'info-sign-icon-filled',
 	iconWaitingSpinner:      'waiting-spinner',
 	iconHistory:             'history',
+
+	iconLogoAuth0:           'logo-auth0',
+	iconLogoMicrosoft:       'logo-microsoft',
+	iconLogoFacebook:        'logo-facebook',
+	iconLogoGithub:          'logo-github',
+	iconLogoGoogle:          'logo-google',
+	iconLogoLinkedIn:        'logo-linkedin',
 
 	getSvgIcon: (href, width = 16, height = 16, optionalClasses, title = '') => {
 		return _Icons.getSvgIconWithID(null, href, width, height, optionalClasses, title);
@@ -356,9 +367,13 @@ let _Icons = {
 	},
 	getIconForPrincipal: (principal) => {
 
+		// admin group
+
 		if (principal.isGroup) {
 
-			if (principal.type === 'LDAPGroup') {
+			if (principal.isAdmin) {
+				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+			} else if (principal.type === 'LDAPGroup') {
 				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPGroup, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
 			} else {
 				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'mr-2']);
@@ -367,34 +382,32 @@ let _Icons = {
 		} else {
 
 			if (principal.isAdmin) {
-				return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+
+				if (principal.blocked) {
+					return _Icons.getSvgIcon(_Icons.iconSecurityBlockedAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+				} else {
+					return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+				}
+
 			} else if (principal.type === 'LDAPUser') {
+
 				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPUser, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
+
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+
+				if (principal.blocked) {
+					return _Icons.getSvgIcon(_Icons.iconSecurityBlockedRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+				} else {
+					return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+				}
 			}
 		}
-	},
-	isSchemaMethodALifecycleMethod: (method) => {
-
-		let lifecycleMethodPrefixes = [
-			'onCreate',
-			'afterCreate',
-			'onSave',
-			'afterSave',
-			'onDelete',
-			//'afterDelete',  // this is actually "onDelete" currently, thus no access to $.this in that method
-			'onStructrLogin',
-			'onStructrLogout',
-			'onUpload'
-		];
-
-		return lifecycleMethodPrefixes.some(prefix => method.name.startsWith(prefix));
 	},
 	getIconForSchemaNodeType: (entity) => {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
-		let additionalClasses = [];
+		let additionalClasses = ['flex-shrink-0'];
+		let title             = '';
 
 		switch (entity.type) {
 
@@ -405,19 +418,26 @@ let _Icons = {
 					case 'java':
 						icon = _Icons.iconSchemaNodeSchemaMethod;
 						additionalClasses.push('icon-red');
+						title = 'Java method';
 						break;
 
 					default:
 						additionalClasses.push('icon-blue');
 
 						if (entity.isStatic) {
+
 							icon = _Icons.iconSchemaNodeStaticMethod;
+							title = 'Static method';
+
 						} else {
-							let isLifeCycleMethod = _Icons.isSchemaMethodALifecycleMethod(entity);
+
+							let isLifeCycleMethod = LifecycleMethods.isLifecycleMethod(entity);
 							if (isLifeCycleMethod) {
 								icon = _Icons.iconSchemaNodeLifecycleMethod;
+								title = 'Lifecycle method';
 							} else {
 								icon = _Icons.iconSchemaNodeSchemaMethod;
+								title = 'Custom method';
 							}
 						}
 						break;
@@ -437,7 +457,7 @@ let _Icons = {
 				break;
 		}
 
-		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses);
+		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses, title);
 	},
 	getIconForSchemaPropertyType: (propertyType) => {
 
@@ -456,9 +476,12 @@ let _Icons = {
 			case "Long":
 				return _Icons.iconSchemaPropertyNumeric;
 
+			case 'Date':
+			case 'ZonedDateTime':
+				return _Icons.iconSchemaPropertyDate;
+
 			case 'Boolean':      return _Icons.iconSchemaPropertyBoolean;
 			case "Cypher":       return _Icons.iconSchemaPropertyCypher;
-			case 'Date':         return _Icons.iconSchemaPropertyDate;
 			case "Double":       return _Icons.iconSchemaPropertyDouble;
 			case "Enum":         return _Icons.iconSchemaPropertyEnum;
 			case "Function":     return _Icons.iconSchemaPropertyFunction;
@@ -469,7 +492,7 @@ let _Icons = {
 
 		return _Icons.iconSchemaPropertyString;
 	},
-	getSvgIconForContentNode: (content, initialClasses = []) => {
+	getSvgIconForContentNode: (content, initialClasses = [], title) => {
 
 		let isComment    = (content.type === 'Comment');
 		let isTemplate   = (content.type === 'Template');
@@ -478,44 +501,44 @@ let _Icons = {
 
 		if (isComment) {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMCommentElement, 16, 16, ['icon-grey', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMCommentElement, 16, 16, ['icon-grey', ...initialClasses], title);
 
 		} else if (isTemplate) {
 
 			if (isComponent) {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
 			} else if (isActiveNode) {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], content.getActiveNodeInfoAsString());
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses], title);
 			}
 
 		} else {
 
 			if (isComponent) {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
 			} else if (isActiveNode) {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
 			} else {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses]);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses], title);
 			}
 		}
 	},
-	getSvgIconForElementNode: (element, initialClasses = []) => {
+	getSvgIconForElementNode: (element, initialClasses = [], title) => {
 		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
 		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
 
 		if (isActiveNode) {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMTreeActiveElement, 16, 16, ['typeIcon', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeActiveElement, 16, 16, ['typeIcon', ...initialClasses], element.getActiveNodeInfoAsString());
 
 		} else if (isComponent) {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-yellow', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-yellow', ...initialClasses], title);
 
 		} else {
 
-			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-transparent', ...initialClasses]);
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-transparent', ...initialClasses], title);
 		}
 	},
 	getSvgIconForMessageClass: (messageClass) => {

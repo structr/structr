@@ -27,7 +27,7 @@ public interface LicenseManager {
 
 	void logLicenseInfo();
 
-	void refresh(boolean readLicense);
+	void refresh();
 
 	String getEdition();
 

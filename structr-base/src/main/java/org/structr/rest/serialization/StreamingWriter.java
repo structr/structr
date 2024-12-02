@@ -32,10 +32,10 @@ import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -47,6 +47,8 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,25 +74,27 @@ public abstract class StreamingWriter {
 	private boolean renderSerializationTime               = true;
 	private boolean reduceRedundancy                      = false;
 	private int outputNestingDepth                        = 3;
-	private Value<String> propertyView                    = null;
+	private String view                                   = null;
 	protected boolean indent                              = true;
 	protected boolean wrapSingleResultInArray             = false;
 	private int skippedDeletedObjects                     = 0;
 	private Integer overriddenResultCount                 = null;
+	private DateTimeFormatter dateTimeFormatter           = null;
 
 	private boolean reduceNestedObjectsForRestrictedViews = true;
 	private int reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
-	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+	public StreamingWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 
-		this.wrapSingleResultInArray   = wrapSingleResultInArray;
-		this.serializeNulls            = serializeNulls;
-		this.reduceRedundancy          = Settings.JsonRedundancyReduction.getValue(true);
-		this.outputNestingDepth        = outputNestingDepth;
-		this.propertyView              = propertyView;
-		this.indent                    = indent;
+		this.dateTimeFormatter       = DateTimeFormatter.ofPattern(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
+		this.wrapSingleResultInArray = wrapSingleResultInArray;
+		this.serializeNulls          = serializeNulls;
+		this.reduceRedundancy        = Settings.JsonRedundancyReduction.getValue(true);
+		this.outputNestingDepth      = outputNestingDepth;
+		this.view                    = propertyView;
+		this.indent                  = indent;
 
 		serializers.put(GraphObject.class.getName(), root);
 		serializers.put(PropertyMap.class.getName(), new PropertyMapSerializer());
@@ -113,7 +117,6 @@ public abstract class StreamingWriter {
 
 		final Set<Integer> visitedObjects = new LinkedHashSet<>();
 		final RestWriter writer           = getRestWriter(securityContext, output);
-		final String view                 = propertyView.get(securityContext);
 
 		configureWriter(writer);
 
@@ -150,92 +153,101 @@ public abstract class StreamingWriter {
 		rootWriter.setPageSize(pageSize);
 		rootWriter.setPage(page);
 
-		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
-		rootWriter.beginObject();
+		rootWriter.beginDocument(baseUrl, view);
 
-		if (result != null) {
+		if (securityContext.returnRawResult()) {
 
-			rootWriter.name(resultKeyName);
+			root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
-			actualResultCount = root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
+		} else {
 
-			rootWriter.flush();
-		}
+			rootWriter.beginObject();
 
-		if (includeMetadata) {
+			if (result != null) {
 
-			long t1         = System.nanoTime(); // time delta for serialization
-			int resultCount = -1;
-			int pageCount   = -1;
+				rootWriter.name(resultKeyName);
 
-			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+				actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
-				if (page != null) {
+				rootWriter.flush();
+			}
 
-					rootWriter.name("page").value(page);
+			if (includeMetadata) {
+
+				long t1 = System.nanoTime(); // time delta for serialization
+				int resultCount = -1;
+				int pageCount = -1;
+
+				if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+
+					if (page != null) {
+
+						rootWriter.name("page").value(page);
+					}
+
+					rootWriter.name("page_size").value(pageSize);
 				}
 
-				rootWriter.name("page_size").value(pageSize);
-			}
+				if (queryTime != null) {
+					rootWriter.name("query_time").value(queryTime);
+				}
 
-			if (queryTime != null) {
-				rootWriter.name("query_time").value(queryTime);
-			}
+				if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
 
-			if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
-
-				rootWriter.name("info").beginObject();
-				rootWriter.name("message").value("Result size limited");
-				rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
-				rootWriter.name("result_size").value(actualResultCount);
-				rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
-				rootWriter.endObject();
-			}
-
-			// in the future more conditions could be added to show different warnings
-			final boolean hasWarnings = (skippedDeletedObjects > 0);
-
-			if (hasWarnings) {
-
-				rootWriter.name("warnings").beginArray();
-
-				if (skippedDeletedObjects > 0) {
-					rootWriter.beginObject();
-					rootWriter.name("token").value("SKIPPED_OBJECTS");
-					rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
-					rootWriter.name("skipped").value(skippedDeletedObjects);
+					rootWriter.name("info").beginObject();
+					rootWriter.name("message").value("Result size limited");
+					rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
+					rootWriter.name("result_size").value(actualResultCount);
+					rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
 					rootWriter.endObject();
 				}
 
-				rootWriter.endArray();
+				// in the future more conditions could be added to show different warnings
+				final boolean hasWarnings = (skippedDeletedObjects > 0);
+
+				if (hasWarnings) {
+
+					rootWriter.name("warnings").beginArray();
+
+					if (skippedDeletedObjects > 0) {
+						rootWriter.beginObject();
+						rootWriter.name("token").value("SKIPPED_OBJECTS");
+						rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
+						rootWriter.name("skipped").value(skippedDeletedObjects);
+						rootWriter.endObject();
+					}
+
+					rootWriter.endArray();
+				}
+
+				// make output available immediately
+				rootWriter.flush();
+
+				try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
+
+					final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
+
+					resultCount = result.calculateTotalResultCount(watcher, countLimit);
+					pageCount = result.calculatePageCount(watcher, countLimit);
+				}
+
+				if (resultCount >= 0 && pageCount >= 0) {
+
+					rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
+					rootWriter.name("page_count").value(pageCount);
+					rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+
+				}
+
+				if (renderSerializationTime) {
+					rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+				}
 			}
 
-			// make output available immediately
-			rootWriter.flush();
-
-			try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
-
-				final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
-
-				resultCount = result.calculateTotalResultCount(watcher, countLimit);
-				pageCount   = result.calculatePageCount(watcher, countLimit);
-			}
-
-			if (resultCount >= 0 && pageCount >= 0) {
-
-				rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
-				rootWriter.name("page_count").value(pageCount);
-				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
-
-			}
-
-			if (renderSerializationTime) {
-				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
-			}
+			// finished
+			rootWriter.endObject();
 		}
 
-		// finished
-		rootWriter.endObject();
 		rootWriter.endDocument();
 
 		threadPool.shutdown();
@@ -309,13 +321,17 @@ public abstract class StreamingWriter {
 
 		if (value != null) {
 
-			if (value instanceof Number) {
+			if (value instanceof Number n) {
 
-				writer.value((Number)value);
+				writer.value(n);
 
-			} else if (value instanceof Boolean) {
+			} else if (value instanceof Boolean b) {
 
-				writer.value((Boolean)value);
+				writer.value(b);
+
+			} else if (value instanceof ZonedDateTime zdt) {
+
+				writer.value(zdt.format(dateTimeFormatter));
 
 			} else {
 
@@ -447,6 +463,11 @@ public abstract class StreamingWriter {
 						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
 						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
 							keys = idTypeNameOnly;
+						}
+
+						// prefetching hook
+						if (source instanceof NodeInterface n) {
+							n.prefetchPropertySet(keys);
 						}
 
 						for (final PropertyKey key : keys) {

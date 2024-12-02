@@ -98,6 +98,7 @@ public interface Query<T extends GraphObject> {
 	public Query<T> blank(final PropertyKey key);
 	public <P> Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseInsensitive);
 	public <P> Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseInsensitive);
+	public <P> Query<T> matches(final PropertyKey<P> key, final String regex);
 
 	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
@@ -114,6 +115,7 @@ public interface Query<T extends GraphObject> {
 	public SearchAttributeGroup getRootAttributeGroup();
 
 	void overrideFetchSize(final int fetchSizeForThisRequest);
+	Query<T> disablePrefetching();
 
 	public Occurrence getCurrentOccurrence();
 }

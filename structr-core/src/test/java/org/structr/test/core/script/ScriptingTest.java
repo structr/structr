@@ -20,16 +20,14 @@ package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.asciidoctor.internal.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
-import org.structr.common.AccessControllable;
-import org.structr.common.AccessMode;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
@@ -45,6 +43,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.ScriptTestHelper;
@@ -57,6 +56,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.*;
 import org.structr.test.core.entity.TestOne.Status;
+import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -64,7 +64,12 @@ import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 
 import static org.testng.AssertJUnit.*;
 
@@ -199,31 +204,31 @@ public class ScriptingTest extends StructrTest {
 				assertEquals("Invalid getProperty result for scripted association", 5, Iterables.count(iterable));
 			}
 
-			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
-			final EvaluationHints hints  = new EvaluationHints();
+			final AbstractNode sourceNode = (AbstractNode)app.nodeQuery(sourceType).getFirst();
+			final EvaluationHints hints   = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest01", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest02", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest03", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true, hints);
+				invokeMethod(securityContext, sourceNode, "doTest04", Collections.EMPTY_MAP, true, hints);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest05", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -261,7 +266,7 @@ public class ScriptingTest extends StructrTest {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class sourceType             = config.getNodeEntityClass("TestSource");
-		Principal testUser                 = null;
+		PrincipalInterface testUser                 = null;
 
 		// create test node as superuser
 		try (final Tx tx = app.tx()) {
@@ -278,9 +283,9 @@ public class ScriptingTest extends StructrTest {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			testUser = app.create(Principal.class,
-				new NodeAttribute<>(Principal.name,     "test"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "test")
+			testUser = app.create(User.class,
+				new NodeAttribute<>(PrincipalInterface.name,     "test"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
 			);
 
 			tx.success();
@@ -302,7 +307,13 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, new EvaluationHints());
+			final AbstractNode node     = (AbstractNode)app.nodeQuery(sourceType).getFirst();
+			final AbstractMethod method = Methods.resolveMethod(node.getClass(), "doTest01");
+			if (method != null) {
+
+				method.execute(securityContext, node, new Arguments(), new EvaluationHints());
+			}
+
 			tx.success();
 
 		} catch(FrameworkException fex) {
@@ -453,7 +464,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}", "test"));
 
-			assertEquals("Invaliid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}", "test"));
+			assertEquals("Invalid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}", "test"));
 
 			tx.success();
 
@@ -467,21 +478,20 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final Class groupType                          = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<Iterable<Principal>> members = StructrApp.key(groupType, "members");
+		final PropertyKey<Iterable<PrincipalInterface>> members = StructrApp.key(Group.class, "members");
 		Group group                                    = null;
-		Principal user1                                = null;
-		Principal user2                                = null;
+		PrincipalInterface user1                                = null;
+		PrincipalInterface user2                                = null;
 		TestOne testOne                                = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
 
 			group = app.create(Group.class, "Group");
-			user1  = app.create(Principal.class, "Tester1");
-			user2  = app.create(Principal.class, "Tester2");
+			user1  = app.create(User.class, "Tester1");
+			user2  = app.create(User.class, "Tester2");
 
-			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, List.of(user1));
 
 
 			testOne = app.create(TestOne.class);
@@ -500,16 +510,20 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
+			final Object result1 = Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test");
+
+			System.out.println(result1);
+
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
-			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test"));
+			assertEquals("Invalid prerequisite", 1, Iterables.count(group.getProperty(members)));
+			assertEquals("Invalid prerequisite", user2, result1);
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
-			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, Arrays.asList(new PrincipalInterface[] { user1 } ));
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
@@ -607,37 +621,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testPython() {
-
-		try (final Tx tx = app.tx()) {
-
-			final Principal testUser = createTestNode(Principal.class, "testuser");
-			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Backend));
-
-			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
-
-			try {
-				System.out.println(Scripting.evaluate(ctx, null, "${python{Structr.print(Structr.get('me').id)}}", "test"));
-			} catch (FrameworkException ex) {
-				if (ex.getMessage().contains("Exception while trying to initialize new context for language: python. Cause: A language with id 'python' is not installed.")) {
-
-					logger.warn("Python not installed. Skipping python tests.");
-				} else {
-
-					throw ex;
-				}
-			}
-
-			tx.success();
-
-		} catch (UnlicensedScriptException | FrameworkException ex) {
-
-			logger.warn("", ex);
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
 	public void testVariableReplacement() {
 
 		final Date now                    = new Date();
@@ -678,7 +661,7 @@ public class ScriptingTest extends StructrTest {
 
 			// set calendar to 2018-01-01T00:00:00+0000
 			cal.set(2018, 0, 1, 0, 0, 0);
-
+			cal.set(Calendar.MILLISECOND, 0);
 
 			for (final TestSix testSix : testSixs) {
 
@@ -1530,8 +1513,8 @@ public class ScriptingTest extends StructrTest {
 			// find with date range
 			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
-			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, true))}", "range test")).size());
 
@@ -1544,20 +1527,33 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, false))}", "range test")).size());
 
 			// find with date range
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 10, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
 			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, true))}", "range test")).size());
 
 			// find with date range
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 10, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
 			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, false))}", "range test")).size());
+
+			// find with lt,lte,gte,gt
+			assertEquals("Invalid find lt result",    5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index',  lt(5))}", "find lt test")).size());
+			assertEquals("Invalid find lte result",   6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', lte(5))}", "find lte test")).size());
+			assertEquals("Invalid find gte result",  15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', gte(5))}", "find gte test")).size());
+			assertEquals("Invalid find gt result",   14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index',  gt(5))}", "find gt test")).size());
+
+			// find with lt,lte,gte,gt (date range)
+			// starts with 01.01.2018... +3 per TestSix. second object has date "04.01.2018 00:00:00"
+			assertEquals("Invalid find lt date result",    1, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  lt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find lt date test")).size());
+			assertEquals("Invalid find lte date result",   2, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', lte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find lte date test")).size());
+			assertEquals("Invalid find gte date result",  19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', gte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gte date test")).size());
+			assertEquals("Invalid find gt date result",   18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  gt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gt date test")).size());
 
 			// slice with find
 			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  0,  5)}", "slice test");
@@ -2019,17 +2015,17 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
 			// create_or_update()
-			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid3);
 			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid3 + "'), 'name')}"));
 			assertEquals("Invalid create_or_update() result",        newUuid3, Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'New Name')}"));
 			assertEquals("Invalid create_or_update() result",  "New Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid3 + "'), 'name')}"));
-			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid4);
-			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
+			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid5);
 			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid5 + "'), 'name')}"));
-			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
+			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid6);
 			assertEquals("Invalid create_or_update() result", "de_DE", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid6 + "'), 'locale')}"));
 
@@ -2057,7 +2053,7 @@ public class ScriptingTest extends StructrTest {
 	public void testSystemProperties () {
 		try {
 
-			final Principal user  = createTestNode(Principal.class);
+			final PrincipalInterface user  = createTestNode(User.class);
 
 			// create new node
 			TestOne t1 = createTestNode(TestOne.class, user);
@@ -2724,7 +2720,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(Principal.class, "testuser");
+			createTestNode(User.class, "testuser");
 
 			tx.success();
 
@@ -2736,7 +2732,7 @@ public class ScriptingTest extends StructrTest {
 		// Create first object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2752,7 +2748,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this works because the cache is empty
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
@@ -2768,7 +2764,7 @@ public class ScriptingTest extends StructrTest {
 		// create second object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2784,7 +2780,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this does not work because there is a cache entry already and it was not invalidated after creating the last relationship to it
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
@@ -2894,7 +2890,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester    = app.create(Principal.class, "modifications-tester");
+			final PrincipalInterface tester    = app.create(User.class, "modifications-tester");
 			final GraphObject c       = app.nodeQuery(customer).getFirst();
 			final GraphObject p       = app.nodeQuery(project).getFirst();
 			final List<GraphObject> t = app.nodeQuery(task).getAsList();
@@ -2917,7 +2913,7 @@ public class ScriptingTest extends StructrTest {
 		// test modifications
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(Principal.class).andName("modifications-tester").getFirst();
+			final PrincipalInterface tester = app.nodeQuery(User.class).andName("modifications-tester").getFirst();
 			final GraphObject c = app.nodeQuery(customer).getFirst();
 			final GraphObject p = app.nodeQuery(project).getFirst();
 			final GraphObject t = app.nodeQuery(task).getFirst();
@@ -3863,7 +3859,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
-
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t2)); }}", "testFindNewSyntax")).size());
@@ -4142,6 +4137,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
 			//case insensitive
+			System.out.println("#################################");
 			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
@@ -4235,8 +4231,6 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-
-
 
 			List<GraphObject> result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
 
@@ -5249,7 +5243,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input error for property test", fex.getMessage());
+			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input for property 'test'", fex.getMessage());
 		}
 
 	}
@@ -5811,6 +5805,8 @@ public class ScriptingTest extends StructrTest {
 			p1.setTypeHint("int");
 			p2.setTypeHint("int");
 
+			// explanation: $.get('value') return the Map that is given as a parameter to the node creation below, so doTest is called with a map
+			// (and it should be called with two different maps, that contain key1 OR key2, but not both)
 			p1.setWriteFunction("{$.this.doTest($.get('value'));}");
 			p2.setWriteFunction("{$.this.doTest($.get('value'));}");
 
@@ -6175,6 +6171,635 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testStaticCallsBetweenMethods() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("createObject", "{ return { key1: 'value1' }; }").setIsStatic(true);
+			type.addMethod("createDate",   "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("createMap",    "{ return new Map(); }").setIsStatic(true);
+			type.addMethod("createSet",    "{ let mySet = new Set(); mySet.add('initialValue'); return mySet; }").setIsStatic(true);
+
+			// native object created inline
+			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; return map; }").setIsStatic(true); // success
+			type.addMethod("test1",      "{ let map = { key1: 'value1' }; map.set('key2', 123); return map; }").setIsStatic(true); // failure
+
+			// native object created in method
+			type.addMethod("test2",      "{ let map = $.Test.createObject(); map.key2 = 123; return map; }").setIsStatic(true); // success
+			type.addMethod("test3",      "{ let map = $.Test.createObject(); map.set('key2', 123); return map; }").setIsStatic(true); // failure
+
+			// map created inline
+			type.addMethod("test4",      "{ let map = new Map(); map.test = 'ignore'; map.set('key1', 'value1'); return map; }").setIsStatic(true); // success
+			type.addMethod("test5",      "{ let map = new Map(); map.test = 'ignore'; map.key1 = 'value1'; return map; }").setIsStatic(true); // no error but empty map
+
+			// map created in method
+			type.addMethod("test6",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.set('key1', 'value1'); map.set('key2', 123); return map; }").setIsStatic(true);  // success
+			type.addMethod("test7",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.key1 = 'value1'; map.key2 = 123; return map; }").setIsStatic(true); // failure
+
+			// date created inline
+			type.addMethod("test8",      "{ let date = new Date(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+
+			// date created in method
+			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+
+			// set created in method
+			type.addMethod("test10",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet.add('initialValue'); mySet.add('value1'); mySet.add('value2'); return mySet; }").setIsStatic(true);
+			type.addMethod("test11",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet[0] = 'ignore'; mySet.add('value1'); return mySet; }").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// create a native object inline and set some properties => success
+			final Map<String, Object> value0 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test0(); }}", "test0");
+			assertEquals("value1",  value0.get("key1"));
+			assertEquals(123,       value0.get("key2"));
+
+			try {
+
+				// create a native object inline and use obj.set() => failure
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test1(); }}", "test1");
+				//fail("Object access via set() should not work");
+
+			} catch (FrameworkException fex) {
+				assertEquals("Server-side scripting error", fex.getMessage());
+			}
+
+
+
+			// create a native object in a method, return it, and set a property => success
+			final Map<String, Object> value2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test2(); }}", "test0");
+			assertEquals("value1",  value2.get("key1"));
+			assertEquals(123,       value2.get("key2"));
+
+			try {
+				// create a native object in a method, return it, and use obj.set() => failure
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test3(); }}", "test1");
+				//fail("Object access via set() should not work");
+
+			} catch (FrameworkException fex) {
+				assertEquals("Server-side scripting error", fex.getMessage());
+			}
+
+
+
+			// create a native Map inline and set a property via set() => success
+			final Map<String, Object> value4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test4(); }}", "test0");
+			assertEquals("value1",  value4.get("key1"));
+
+			// create a native Map inline and set a property directly => empty map but no error
+			final Map<String, Object> value5 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test5(); }}", "test5");
+			assertEquals(0, value5.size());
+
+
+
+			// create a native Map in a method and set a property via set() => success
+			final Map<String, Object> value6 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test6(); }}", "test6");
+			assertEquals("value1",  value6.get("key1"));
+
+			// create a native Map in a method and set a property directly => empty map but no error
+			final Map<String, Object> value7 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test7(); }}", "test7");
+			assertEquals(0, value7.size());
+
+
+
+			// create a native date, get the month value, add one and convert it to a string => success
+			final Object value8 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test8(); }}", "test8");
+			System.out.println(value8);
+
+
+			// create a native date in a method, get the month value, add one and convert it to a string => success
+			final Object value9 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test9(); }}", "test9");
+			System.out.println(value9);
+
+
+
+			// - crate a native set in a method, and add values via add() => success
+			// - also test for Set functionality where duplicates are not added
+			// - also ignore direct property access (at least in size calculation)
+			final Set<Object> value10 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test10(); }}", "test10");
+			assertEquals(3, value10.size());
+
+			// - create a native set in a method, add values via add() => success
+			// - ignore setting of a value via array-index lookup
+			// - also ignore direct property access (at least in size calculation)
+			final Set<Object> value11 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test11(); }}", "test11");
+			assertEquals(2, value11.size());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testThisInMethodCalls() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("getName", "{ return $.this.name; }");
+
+			// native object created inline
+			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } return names.join(''); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> list = new LinkedList<>();
+
+			for (int i=0; i<3; i++) {
+
+				list.add(app.create(testClass, "Test" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
+			}
+
+			// create a native object inline and set some properties => success
+			final String value = (String)Scripting.evaluate(new ActionContext(securityContext), list.get(0), "${{ return $.this.test(); }}", "test");
+
+			assertEquals("Test00Test01Test02", value);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testThatMethodParametersStillExistAfterMethodCalls() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("method1", "{ $.log($.methodParameters); $.userMethod(); return $.methodParameters; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(AbstractNode.name, "userMethod"),
+				new NodeAttribute<>(SchemaMethod.source, "{ $.log('test'); }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create(testClass, "Test");
+
+			final Map<String, Object> value = (Map)Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
+			assertEquals("value1", value.get("key1"));
+			assertEquals(123,      value.get("key2"));
+
+			System.out.println(value);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMapWrapping() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("method1", "{ let map = new Map(); map.set('key1', 'value1'); return $.this.method2({ test: map }); }");
+			type.addMethod("method2", "{ let map = $.methodParameters.test; return map.get('key1'); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create(testClass, "Test");
+
+			Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testDateWrappingAndFormats() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("getDate",             "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
+			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
+
+			type.addMethod("test1", "{ return { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
+			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
+			type.addMethod("test4", "{ return { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Map<String, Object> result1 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test1(); }}", "test");
+			final Map<String, Object> result2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test2(); }}", "test");
+			final Map<String, Object> result3 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test3(); }}", "test");
+
+			// check values (only need to check first result because we're checking for equality below)
+			final Object value1 = result1.get("test1");
+			final Object value2 = result1.get("test2");
+			final Object value3 = result1.get("test3");
+			final Object value4 = result1.get("test4");
+			final Object value5 = result1.get("test5");
+
+			assertEquals(ZonedDateTime.class, value1.getClass());
+			assertEquals(ZonedDateTime.class, value2.getClass());
+			assertEquals(ZonedDateTime.class, value3.getClass());
+			assertEquals(ZonedDateTime.class, value4.getClass());
+			assertEquals(String.class,        value5.getClass());
+
+			final String zonedDateTimePattern = "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}\\+[0-9]{4}";
+			final String pattern              = ISO8601DateProperty.getDefaultFormat();
+			final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+
+			System.out.println("FORMAT: " + pattern);
+
+			final String formatted1 = formatter.format((ZonedDateTime)value1);
+			final String formatted2 = formatter.format((ZonedDateTime)value2);
+			final String formatted3 = formatter.format((ZonedDateTime)value3);
+			final String formatted4 = formatter.format((ZonedDateTime)value4);
+
+
+			System.out.println(formatted1);
+			System.out.println(formatted2);
+			System.out.println(formatted3);
+			System.out.println(formatted4);
+
+			assertTrue(formatted1.matches(zonedDateTimePattern));
+			assertTrue(formatted2.matches(zonedDateTimePattern));
+			assertTrue(formatted3.matches(zonedDateTimePattern));
+			assertTrue(formatted4.matches(zonedDateTimePattern));
+			assertTrue(value5.toString().matches(zonedDateTimePattern));
+
+			// assert type (!) equality of all result entries (=> there should be no difference in the types dependinPg on their level in the object structure)
+			assertEquals(result1.get("test1").getClass(), result2.get("test1").getClass());
+			assertEquals(result1.get("test2").getClass(), result2.get("test2").getClass());
+			assertEquals(result1.get("test3").getClass(), result2.get("test3").getClass());
+			assertEquals(result1.get("test4").getClass(), result2.get("test4").getClass());
+			assertEquals(result1.get("test5").getClass(), result2.get("test5").getClass());
+			assertEquals(result2.get("test1").getClass(), result3.get("test1").getClass());
+			assertEquals(result2.get("test2").getClass(), result3.get("test2").getClass());
+			assertEquals(result2.get("test3").getClass(), result3.get("test3").getClass());
+			assertEquals(result2.get("test4").getClass(), result3.get("test4").getClass());
+			assertEquals(result2.get("test5").getClass(), result3.get("test5").getClass());
+
+			// test Javascript typeof result
+			final Map<String, Object> result4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test4(); }}", "test");
+
+			assertEquals("object", result4.get("test1"));
+			assertEquals("object", result4.get("test2"));
+			assertEquals("object", result4.get("test3"));
+			assertEquals("object", result4.get("test4"));
+			assertEquals("string", result4.get("test5"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testDateFormatWithZonedDateTime() {
+
+		try (final Tx tx = app.tx()) {
+
+			final String result1 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.dateFormat(new Date(), 'yyyy-MM-dd'); }}", "test1");
+			final String result2 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.dateFormat($.now, 'yyyy-MM-dd'); }}", "test2");
+
+			final String expected = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
+			assertEquals(expected, result1);
+			assertEquals(expected, result2);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEntityBindingAcrossMultipleMethodCalls() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			type.addMethod("onCreate", "{ $.userMethod(); $.log($.this.id); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(AbstractNode.name, "userMethod"),
+					new NodeAttribute<>(SchemaMethod.source, "{ $.log('test'); }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(testClass, "Test");
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception. It is likely that entity in binding has been set incorrectly throughout the call chain.");
+		}
+	}
+
+	@Test
+	public void testInterScriptCallWithMap() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			type.addMethod("t1", "{let context = {map: new Map()}; context.map.set('a', 123); $.Test.t2({context});}").setIsStatic(true);
+			// Explicitly add newline at the end of script to check trimming of source code when determining script language
+			type.addMethod("t2", "{const migrationContext = $.methodParameters.context.map; migrationContext.set('b', 456); migrationContext.forEach((e) => {$.log(e);});}\n").setIsStatic(true);
+			type.addMethod("onCreate", "{ $.Test.t1(); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(testClass, "Test");
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception. Map binding was not currently passed to second context. This could be due to incorrect engine parsing for the source.");
+		}
+	}
+
+	@Test
+	public void testDateConversions() {
+
+		final String src = IOUtils.readFull(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			final Object result1 = Scripting.evaluate(ctx, null, src, "test1");
+
+			final ContextStore store = ctx.getContextStore();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testGetOwnPropertyNames() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("doTest1",             "{ return 'test1'; }");
+			type.addMethod("doTest2",             "{ return 'test2'; }").setIsStatic(true);
+			type.addMethod("doTest3",             "{ return 'test3'; }").setIsPrivate(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test     = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
+			final List<String> result1 = (List) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return Object.getOwnPropertyNames($.this); }}", "test");
+			final Set<String> expected = new LinkedHashSet<>();
+
+			expected.add("name");
+			expected.add("hidden");
+			expected.add("owner");
+			expected.add("ownerId");
+			expected.add("grantees");
+			expected.add("internalEntityContextPath");
+			expected.add("base");
+			expected.add("type");
+			expected.add("id");
+			expected.add("createdDate");
+			expected.add("createdBy");
+			expected.add("lastModifiedDate");
+			expected.add("lastModifiedBy");
+			expected.add("visibleToPublicUsers");
+			expected.add("visibleToAuthenticatedUsers");
+
+			// new: methods (non-lifecycle)
+			expected.add("doTest1");
+			expected.add("doTest2");
+
+			assertTrue("Invalid scripting reflection result", result1.containsAll(expected));
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testFunctionInfoFunction() {
+
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("doTest1", "{ $.log($.functionInfo()); return $.functionInfo(); }").addParameter("id", "string").addParameter("date", "date");
+			type.addMethod("doTest2", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsStatic(true);
+			type.addMethod("doTest3", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsPrivate(true);
+			type.addMethod("doTest4", "{ $.log($.functionInfo()); return $.this.doTest1(); }");
+			type.addMethod("doTest5", "{ $.log($.functionInfo()); return $.this.doTest4(); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject test            = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
+
+			// test successful execution
+			final Map<String, Object> result1 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest1(); }}", "test");
+			final Map<String, Object> result2 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.Test.doTest2(); }}", "test");
+			final Map<String, Object> result3 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest3(); }}", "test");
+			final Map<String, Object> result4 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest4(); }}", "test");
+			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest5(); }}", "test");
+			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test', 'doTest1'); }}", "test");
+
+			final String result7 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('TestWrong', 'doTest1'); }}", "test");
+			final String result8 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test', 'wrongName'); }}", "test");
+			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test'); }}", "test");
+
+
+			assertEquals("Invalid functionInfo() result", "doTest1", result1.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest2", result2.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest3", result3.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest1", result4.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest1", result5.get("name"));
+
+			assertEquals("Invalid functionInfo() result", false, result1.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result1.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", "POST", result1.get("httpVerb"));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result1.get("parameters")).get("id"));
+			assertEquals("Invalid functionInfo() result", "date", ((Map)result1.get("parameters")).get("date"));
+
+			assertEquals("Invalid functionInfo() result", true,  result2.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result2.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false, result3.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", true,  result3.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false, result4.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result4.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false, result5.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false, result5.get("isPrivate"));
+
+			assertEquals("Invalid functionInfo() result", false,    result6.get("isStatic"));
+			assertEquals("Invalid functionInfo() result", false,    result6.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", "POST",   result6.get("httpVerb"));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get("parameters")).get("id"));
+			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get("parameters")).get("date"));
+
+			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result7);
+			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result8);
+			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result9);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

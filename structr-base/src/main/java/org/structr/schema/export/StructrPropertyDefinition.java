@@ -33,6 +33,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -45,19 +46,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrPropertyDefinition.class.getName());
 
-	protected Set<String> transformers = new LinkedHashSet<>();
-	protected Set<String> validators   = new LinkedHashSet<>();
-	protected JsonType parent          = null;
-	protected String format            = null;
-	protected String name              = null;
-	protected String defaultValue      = null;
-	protected String hint              = null;
-	protected String category          = null;
-	protected boolean required         = false;
-	protected boolean compound         = false;
-	protected boolean unique           = false;
-	protected boolean indexed          = false;
-	protected boolean readOnly         = false;
+	protected SchemaProperty schemaProperty = null;
+	protected Set<String> transformers      = new LinkedHashSet<>();
+	protected Set<String> validators        = new LinkedHashSet<>();
+	protected JsonType parent               = null;
+	protected String format                 = null;
+	protected String name                   = null;
+	protected String defaultValue           = null;
+	protected String hint                   = null;
+	protected String category               = null;
+	protected boolean required              = false;
+	protected boolean compound              = false;
+	protected boolean unique                = false;
+	protected boolean indexed               = false;
+	protected boolean readOnly              = false;
 
 	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
@@ -262,18 +264,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		return null;
 	}
 
+	public SchemaProperty getSchemaProperty() {
+		return schemaProperty;
+	}
+
 	// ----- package methods -----
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
-
-		getOrCreateProperties.put(SchemaProperty.name, getName());
-		getOrCreateProperties.put(SchemaProperty.schemaNode, schemaNode);
-
-		SchemaProperty property = app.nodeQuery(SchemaProperty.class).and(getOrCreateProperties).getFirst();
+		SchemaProperty property = schemaNode.getSchemaProperty(getName());
 		if (property == null) {
 
+			final PropertyMap getOrCreateProperties = new PropertyMap();
+
+			getOrCreateProperties.put(SchemaProperty.name, getName());
+			getOrCreateProperties.put(SchemaProperty.schemaNode, schemaNode);
 			getOrCreateProperties.put(SchemaProperty.compound, isCompoundUnique());
 			getOrCreateProperties.put(SchemaProperty.unique, isUnique());
 			getOrCreateProperties.put(SchemaProperty.indexed, isIndexed());
@@ -282,12 +286,14 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(SchemaProperty.format, getFormat());
 			getOrCreateProperties.put(SchemaProperty.hint, getHint());
 			getOrCreateProperties.put(SchemaProperty.category, getCategory());
-			getOrCreateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
-			getOrCreateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
+			getOrCreateProperties.put(SchemaProperty.validators, listToArray(validators));
+			getOrCreateProperties.put(SchemaProperty.transformers, listToArray(transformers));
 			getOrCreateProperties.put(SchemaProperty.defaultValue, defaultValue);
 
 			property = app.create(SchemaProperty.class, getOrCreateProperties);
 		}
+
+		final PropertyMap updateProperties = new PropertyMap();
 
 		if (parent != null) {
 
@@ -365,6 +371,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+
+		this.schemaProperty = property;
 
 		setDefaultValue(property.getDefaultValue());
 		setCompound(property.isCompound());
@@ -671,20 +679,27 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				final Set<String> notionProperties = property.getPropertiesForNotionProperty(schemaNodes);
 				final IdNotionReferenceProperty notionProperty;
 
-				if (property.getNotionMultiplicity(schemaNodes).startsWith("*")) {
+				final String multiplicity = property.getNotionMultiplicity(schemaNodes);
+				if (multiplicity != null) {
 
-					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "array", referenceName);
-					notionProperty.setProperties(notionProperties.toArray(new String[0]));
+					if (multiplicity.startsWith("*")) {
 
-				} else {
+						notionProperty = new IdNotionReferenceProperty(parent, name, reference, "array", referenceName);
+						notionProperty.setProperties(notionProperties.toArray(new String[0]));
 
-					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "object", referenceName);
-					notionProperty.setProperties(notionProperties.toArray(new String[0]));
+					} else {
+
+						notionProperty = new IdNotionReferenceProperty(parent, name, reference, "object", referenceName);
+						notionProperty.setProperties(notionProperties.toArray(new String[0]));
+					}
+
+					notionProperty.deserialize(schemaNodes, property);
+
+					return notionProperty;
 				}
 
-				notionProperty.deserialize(schemaNodes, property);
-
-				return notionProperty;
+				// notion property parsing can fail because of migration
+				return new DeletedPropertyDefinition(parent, name, property);
 			}
 
 			case Password:
@@ -765,6 +780,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				date.setDefaultValue(property.getDefaultValue());
 				return date;
 
+			case ZonedDateTime:
+				final StructrZonedDateTimeProperty zonedDateTimeProperty = new StructrZonedDateTimeProperty(parent, name);
+				zonedDateTimeProperty.deserialize(schemaNodes, property);
+				zonedDateTimeProperty.setFormat(JsonSchema.FORMAT_DATE_TIME);
+				zonedDateTimeProperty.setDefaultValue(property.getDefaultValue());
+				return zonedDateTimeProperty;
+
 			case DateArray:
 				final StructrDateArrayProperty dateArrayProperty = new StructrDateArrayProperty(parent, name);
 				dateArrayProperty.deserialize(schemaNodes, property);
@@ -782,6 +804,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				enumProperty.deserialize(schemaNodes, property);
 				enumProperty.setDefaultValue(property.getDefaultValue());
 				return enumProperty;
+
+			case EnumArray:
+				final StructrEnumProperty enumArrayProperty = new StructrEnumProperty(parent, name);
+				enumArrayProperty.deserialize(schemaNodes, property);
+				enumArrayProperty.setDefaultValue(property.getDefaultValue());
+				return enumArrayProperty;
 
 			case Thumbnail:
 				final StructrThumbnailProperty thumb = new StructrThumbnailProperty(parent, name);

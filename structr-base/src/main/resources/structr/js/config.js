@@ -129,7 +129,7 @@ let _Config = {
 
 				currentTab.append(`
 					<div class="form-group">
-						<label class="bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+						<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
 						<input type="text" name="${name}">
 						<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
 					</div>

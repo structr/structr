@@ -18,24 +18,21 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
+import org.structr.common.View;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -44,29 +41,29 @@ import java.util.regex.Matcher;
  *
  *
  */
-public interface Widget extends NodeInterface {
+public class Widget extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<String> sourceProperty          = new StringProperty("source").partOfBuiltInSchema();
+	public static final Property<String> descriptionProperty     = new StringProperty("description").partOfBuiltInSchema();
+	public static final Property<String> configurationProperty   = new StringProperty("configuration").partOfBuiltInSchema();
+	public static final Property<String> svgIconPathProperty     = new StringProperty("svgIconPath").partOfBuiltInSchema();
+	public static final Property<String> thumbnailPathProperty   = new StringProperty("thumbnailPath").partOfBuiltInSchema();
+	public static final Property<String> treePathProperty        = new StringProperty("treePath").partOfBuiltInSchema();
+	public static final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty("isWidget", true).partOfBuiltInSchema();
+	public static final Property<String[]> selectorsProperty     = new ArrayProperty("selectors", String[].class).partOfBuiltInSchema();
+	public static final Property<Boolean> isPageTemplateProperty = new BooleanProperty("isPageTemplate").partOfBuiltInSchema();
 
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type  = schema.addType("Widget");
+	public static final View defaultView = new View(Widget.class, PropertyView.Public,
+		name, sourceProperty, descriptionProperty, configurationProperty, svgIconPathProperty, thumbnailPathProperty, treePathProperty, isWidgetProperty, selectorsProperty, isPageTemplateProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
-		type.setCategory("ui");
+	public static final View uiView = new View(Widget.class, PropertyView.Ui,
+		sourceProperty, descriptionProperty, configurationProperty, svgIconPathProperty, thumbnailPathProperty, treePathProperty, isWidgetProperty, selectorsProperty, isPageTemplateProperty
+	);
 
-		type.addStringProperty("source",          PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("description",     PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("configuration",   PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("svgIconPath",     PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("thumbnailPath",   PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("treePath",        PropertyView.Ui, PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("isWidget",       PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addStringArrayProperty("selectors",  PropertyView.Ui, PropertyView.Public, "editWidget");
-		type.addBooleanProperty("isPageTemplate", PropertyView.Ui, PropertyView.Public, "editWidget").setIndexed(true);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
+	public static final View editWidgetView = new View(Widget.class, "editWidget",
+		selectorsProperty, isPageTemplateProperty
+	);
 
 	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
@@ -77,7 +74,7 @@ public interface Widget extends NodeInterface {
 
 		if (_source == null) {
 
-			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), StructrApp.key(Widget.class, "source")));
+			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), "source"));
 
 		} else {
 

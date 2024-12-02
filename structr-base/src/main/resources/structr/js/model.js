@@ -209,7 +209,7 @@ let StructrModel = {
 		}
 
 		let node = Structr.node(id);
-		if (node && node.remove && !node.hasClass("schema")) {
+		if (node && node.remove && !node.hasClass("schema") && !node.hasClass("file") && !node.hasClass("folder")) {
 			_Helpers.fastRemoveElement(node[0]);
 		}
 
@@ -390,7 +390,7 @@ let StructrModel = {
 			let iconEl = element.children('.typeIcon');
 			if (element.hasClass('element')) {
 
-				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? [_Icons.typeIconClassNoChildren] : []);
+				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? [_Icons.typeIconClassNoChildren] : [], obj.getActiveNodeInfoAsString());
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('content')) {
@@ -400,7 +400,7 @@ let StructrModel = {
 					iconClasses.push(_Icons.typeIconClassNoChildren)
 				}
 
-				icon   = _Icons.getSvgIconForContentNode(obj, iconClasses);
+				icon   = _Icons.getSvgIconForContentNode(obj, iconClasses, obj.getActiveNodeInfoAsString());
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('file')) {
@@ -722,7 +722,7 @@ StructrResourceAccess.prototype.setProperty = function(key, value, recursive, ca
 
 StructrResourceAccess.prototype.append = function() {
 	if (Structr.isModuleActive(_Security)) {
-		_ResourceAccessGrants.appendResourceAccessElement(this);
+		_ResourceAccessPermissions.appendResourceAccessElement(this);
 	}
 };
 
@@ -904,28 +904,54 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.xpathQuery || this.functionQuery
+	return this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.functionQuery
 		//String attributes
-		|| this["data-structr-action"]
-		|| this["data-structr-attr"]
-		|| this["data-structr-attributes"]
-		|| this["data-structr-custom-options-query"]
-		|| this["data-structr-edit-class"]
-		|| this["data-structr-hide"]
 		|| this["data-structr-id"]
-		|| this["data-structr-name"]
-		|| this["data-structr-options-key"]
-		|| this["data-structr-raw-value"]
-		|| this["data-structr-return"]
-		|| this["data-structr-type"]
 		|| this["eventMapping"]
-		//Boolean attributes
-		|| this["data-structr-append-id"] === true
-		|| this["data-structr-confirm"] === true
-		|| this["data-structr-reload"] === true
 		//Collection attributes
 		|| (this["triggeredActions"] ?? []).length
 		;
+};
+
+StructrElement.prototype.getActiveNodeInfo = function() {
+
+	let list = [];
+
+	if (this.hideConditions) {
+		list.push('Has hide condition');
+	}
+	if (this.showConditions) {
+		list.push('Has show condition');
+	}
+	if (this.dataKey) {
+		list.push('Has data key in repeater configuration');
+	}
+	if (this.restQuery) {
+		list.push('Has REST query in repeater configuration');
+	}
+	if (this.cypherQuery) {
+		list.push('Has cypher query in repeater configuration');
+	}
+	if (this.functionQuery) {
+		list.push('Has function query in repeater configuration');
+	}
+	if (this["data-structr-id"]) {
+		list.push('Has populated data-structr-id attribute');
+	}
+	if (this["eventMapping"]) {
+		list.push('Has event mapping');
+	}
+	if ((this["triggeredActions"] ?? []).length > 0) {
+		list.push('Has triggered actions');
+	}
+	return list;
+};
+
+StructrElement.prototype.getActiveNodeInfoAsString = function() {
+
+	let list = this.getActiveNodeInfo();
+
+	return list.map(s => '- ' + s).join('\n');
 };
 
 /**************************************
@@ -1000,7 +1026,48 @@ StructrContent.prototype.exists = function() {
 };
 
 StructrContent.prototype.isActiveNode = function() {
-	return this.hideOnIndex || this.hideOnDetail || this.hideConditions || this.showConditions || this.dataKey;
+	return this.hideConditions || this.showConditions || this.dataKey;
+};
+
+StructrContent.prototype.getActiveNodeInfo = function() {
+
+	let list = [];
+
+	if (this.hideConditions) {
+		list.push('Has hide condition');
+	}
+	if (this.showConditions) {
+		list.push('Has show condition');
+	}
+	if (this.dataKey) {
+		list.push('Has data key in repeater configuration');
+	}
+	if (this.restQuery) {
+		list.push('Has REST query in repeater configuration');
+	}
+	if (this.cypherQuery) {
+		list.push('Has cypher query in repeater configuration');
+	}
+	if (this.functionQuery) {
+		list.push('Has function query in repeater configuration');
+	}
+	if (this["data-structr-id"]) {
+		list.push('Has populated data-structr-id attribute');
+	}
+	if (this["eventMapping"]) {
+		list.push('Has event mapping');
+	}
+	if ((this["triggeredActions"] ?? []).length > 0) {
+		list.push('Has triggered actions');
+	}
+	return list;
+};
+
+StructrContent.prototype.getActiveNodeInfoAsString = function() {
+
+	let list = this.getActiveNodeInfo();
+
+	return list.map(s => '- ' + s).join('\n');
 };
 
 /**************************************

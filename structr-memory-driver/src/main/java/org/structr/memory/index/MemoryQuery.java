@@ -53,7 +53,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public String toString() {
-		return "MemoryQuery(" + labels.toString() + ")";
+		return "MemoryQuery(" + labels.toString() + ", " + rootPredicate + ")";
 	}
 
 	public void addTypeLabel(final String typeLabel) {
@@ -190,7 +190,6 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 						} else {
 
 							return desc ? 1 : -1;
-
 						}
 					}
 

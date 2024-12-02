@@ -21,10 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.converter.TemporalDateConverter;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.temporal.Temporal;
 import java.util.Date;
 
 public class DateFormatFunction extends CoreFunction {
@@ -66,15 +68,19 @@ public class DateFormatFunction extends CoreFunction {
 
 			} else {
 
-				try {
+				date = TemporalDateConverter.convert(sources[0]);
 
-					// parse with format from IS
-					date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
+				if (date == null) {
+					try {
 
-				} catch (ParseException ex) {
+						// parse with format from IS
+						date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
 
-					logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getReplacement(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources) });
-					return sources[0];
+					} catch (ParseException ex) {
+
+						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getReplacement(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
+						return sources[0];
+					}
 				}
 			}
 

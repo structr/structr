@@ -18,88 +18,93 @@
  */
 package org.structr.text.model;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.core.entity.*;
+import org.structr.core.property.*;
+import org.structr.text.model.relationship.StructuredTextNodeCONTAINSStructuredTextNode;
+import org.structr.text.model.relationship.StructuredTextNodeNEXTStructuredTextNode;
 
-import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 /**
  *
  */
-public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<StructuredTextNode> {
+public class StructuredTextNode extends AbstractNode implements LinkedTreeNode<StructuredTextNode, StructuredTextNode> {
 
-	static class Impl { static {
+	public static final Property<Iterable<StructuredTextNode>> childrenProperty = new EndNodes<>("children", StructuredTextNodeCONTAINSStructuredTextNode.class);
+	public static final Property<StructuredTextNode> parentProperty             = new StartNode<>("parent", StructuredTextNodeCONTAINSStructuredTextNode.class);
 
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("StructuredTextNode");
+	public static final Property<StructuredTextNode> nextSiblingProperty     = new StartNode<>("nextSibling", StructuredTextNodeNEXTStructuredTextNode.class);
+	public static final Property<StructuredTextNode> previousSiblingProperty = new EndNode<>("previousSibling", StructuredTextNodeNEXTStructuredTextNode.class);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/StructuredTextNode"));
-		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.text.model.StructuredTextNode"));
+	public static final Property<String> contentProperty = new StringProperty("content");
+	public static final Property<String> kindProperty    = new StringProperty("kind");
 
-		type.overrideMethod("getSiblingLinkType",          false, "return StructuredTextNodeNEXTStructuredTextNode.class;");
-		type.overrideMethod("getChildLinkType",            false, "return StructuredTextNodeCONTAINSStructuredTextNode.class;");
-		type.overrideMethod("getPositionProperty",         false, "return StructuredTextNodeCONTAINSStructuredTextNode.positionProperty;");
-		type.overrideMethod("onNodeDeletion",              true,  "try { final org.structr.text.model.StructuredTextNode parent = this.treeGetParent(); if (parent != null) { parent.treeRemoveChild(this); } } catch (FrameworkException fex) { fex.printStackTrace(); }");
+	public static final View defaultView = new View(StructuredTextNode.class, PropertyView.Public);
+	public static final View uiView      = new View(StructuredTextNode.class, PropertyView.Ui);
 
-		type.addPropertyGetter("content", String.class);
-		type.addPropertySetter("content", String.class);
+	// ----- abstract method implementations -----
+	@Override
+	public <R extends Relation<StructuredTextNode, StructuredTextNode, OneStartpoint<StructuredTextNode>, ManyEndpoint<StructuredTextNode>>> Class<R> getChildLinkType() {
+		return (Class<R>) StructuredTextNodeCONTAINSStructuredTextNode.class;
+	}
 
-		type.addStringProperty("content");
-		type.addStringProperty("kind");
+	@Override
+	public <R extends Relation<StructuredTextNode, StructuredTextNode, OneStartpoint<StructuredTextNode>, OneEndpoint<StructuredTextNode>>> Class<R> getSiblingLinkType() {
+		return (Class<R>) StructuredTextNodeNEXTStructuredTextNode.class;
+	}
 
-		final JsonReferenceType parent   = type.relate(type, "CONTAINS", Cardinality.OneToMany, "parent",           "children");
-		final JsonReferenceType siblings = type.relate(type, "NEXT",     Cardinality.OneToOne,  "previousSibling",  "nextSibling");
+	@Override
+	public Property<Integer> getPositionProperty() {
+		return StructuredTextNodeCONTAINSStructuredTextNode.position;
+	}
 
-		// sort position of children in page
-		parent.addIntegerProperty("position");
-		parent.setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
+	@Override
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 
-		type.addMethod("getChildren")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.List<org.structr.text.model.StructuredTextNode>")
-			.setSource("return this.treeGetChildren();")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+		super.onNodeDeletion(securityContext);
 
-		// combine method
-		type.addMethod("combine")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + StructuredTextNode.class.getName() + ".combine(this, parameters);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+		try {
+			final org.structr.text.model.StructuredTextNode parent = this.treeGetParent();
+			if (parent != null) {
 
-		// split method
-		type.addMethod("split")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + StructuredTextNode.class.getName() + ".split(this, parameters);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	}}
+				parent.treeRemoveChild(this);
+			}
 
-	void setContent(final String content) throws FrameworkException;
-	String getContent();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
 
-	static Map<String, Object> combine(final StructuredTextNode thisNode, final Map<String, Object> parameters) throws FrameworkException {
+	// ----- property getters and setters -----
+	public String getContent() {
+		return getProperty(contentProperty);
+	}
+
+	public void setContent(final String content) throws FrameworkException {
+		setProperty(contentProperty, content);
+	}
+
+	// ----- exported methods -----
+	@Export
+	public List<StructuredTextNode> getChildren(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
+		return treeGetChildren();
+	}
+
+	@Export
+	public Map<String, Object> combine(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final String id = stringOrDefault(parameters.get("id"), null);
 		if (id != null) {
 
-			final App app                      = StructrApp.getInstance(thisNode.getSecurityContext());
+			final App app                      = StructrApp.getInstance(securityContext);
 			final StructuredTextNode otherNode = app.get(StructuredTextNode.class, id);
 
 			if (otherNode != null) {
@@ -107,12 +112,12 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 				final String separator = stringOrDefault(parameters.get("separator"), " ");
 				final boolean delete   = booleanOrDefault(parameters.get("delete"), Boolean.FALSE);
 
-				thisNode.setContent(thisNode.getContent() + separator + otherNode.getContent());
+				this.setContent(this.getContent() + separator + otherNode.getContent());
 
 				if (delete) {
 
 					// remove from parent
-					final StructuredTextNode parent = thisNode.treeGetParent();
+					final StructuredTextNode parent = this.treeGetParent();
 					if (parent != null) {
 
 						parent.treeRemoveChild(otherNode);
@@ -134,14 +139,15 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 		return null;
 	}
 
-	static Map<String, Object> split(final StructuredTextNode thisNode, final Map<String, Object> parameters) throws FrameworkException {
+	@Export
+	public Map<String, Object> split(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(thisNode.getSecurityContext());
+		final App app = StructrApp.getInstance(securityContext);
 		final Integer pos = integerOrDefault(parameters.get("position"), null);
 
 		if (pos != null) {
 
-			final String content = thisNode.getContent();
+			final String content = getContent();
 			if (pos <= 0 || pos >= content.length()) {
 
 				throw new FrameworkException(422, "Invalid parameters for split() method, parameter 'position' is out of range.");
@@ -157,17 +163,17 @@ public interface StructuredTextNode extends NodeInterface, LinkedTreeNode<Struct
 					part2 = part2.trim();
 				}
 
-				thisNode.setContent(part1);
+				setContent(part1);
 
 				// create new node
-				final StructuredTextNode newNode = app.create(thisNode.getClass());
+				final StructuredTextNode newNode = app.create(getClass());
 				newNode.setContent(part2);
 
 				// link into parent/child structure
-				final StructuredTextNode parent = thisNode.treeGetParent();
+				final StructuredTextNode parent = treeGetParent();
 				if (parent != null) {
 
-					parent.treeInsertAfter(newNode, thisNode);
+					parent.treeInsertAfter(newNode, this);
 				}
 			}
 

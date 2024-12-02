@@ -30,15 +30,13 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class CreateCommand extends AbstractCommand {
@@ -50,8 +48,6 @@ public class CreateCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(CreateCommand.class);
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -88,8 +84,6 @@ public class CreateCommand extends AbstractCommand {
 
 		}
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

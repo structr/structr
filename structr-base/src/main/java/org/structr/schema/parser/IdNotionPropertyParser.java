@@ -19,6 +19,8 @@
 package org.structr.schema.parser;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -37,6 +39,8 @@ import java.util.Set;
  *
  */
 public class IdNotionPropertyParser extends PropertySourceGenerator {
+
+	private static final Logger logger = LoggerFactory.getLogger(IdNotionPropertyParser.class);
 
 	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;
@@ -81,7 +85,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 		if (StringUtils.isBlank(expression)) {
 
 			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
-			throw new FrameworkException(422, "Empty notion property expression for property " + source.getPropertyName() +  ".", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression."));
+			throw new FrameworkException(422, "Empty notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression."));
 		}
 
 		final StringBuilder buf = new StringBuilder();
@@ -140,7 +144,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid notion property expression for property " + source.getPropertyName() + ".", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression."));
+				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression."));
 			}
 		}
 

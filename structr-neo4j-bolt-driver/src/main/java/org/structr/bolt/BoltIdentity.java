@@ -30,6 +30,7 @@ public class BoltIdentity implements Identity {
 		this.id = id;
 	}
 
+	@Override
 	public long getId() {
 		return id;
 	}

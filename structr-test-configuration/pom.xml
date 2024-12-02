@@ -44,7 +44,7 @@
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms4g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+							<argLine>-Xms12g -Xmx12g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
@@ -91,7 +91,7 @@
 												<env>
 													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
 													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-													<NEO4J_dbms_memory_heap_max__size>8G</NEO4J_dbms_memory_heap_max__size>
+													<NEO4J_dbms_memory_heap_max__size>12G</NEO4J_dbms_memory_heap_max__size>
 													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
 												</env>
 											</run>
@@ -133,7 +133,7 @@
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms4g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+							<argLine>-Xms8g -Xmx8g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>

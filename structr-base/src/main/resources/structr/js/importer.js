@@ -785,7 +785,7 @@ let Importer = {
 					Object.keys(config).forEach(function(k) {
 						configuration[k] = config[k];
 
-						switch (configuration[k].action) {
+						switch (configuration[k]?.action) {
 							case 'createNode':
 								Importer.updateStructureSelector('', k, configuration[k].type);
 								break;
@@ -795,7 +795,7 @@ let Importer = {
 								break;
 
 							default:
-								console.log("Unknown action: ", configuration[k].action);
+								console.log("Unknown action: ", configuration[k]?.action ?? k);
 						}
 					});
 				}

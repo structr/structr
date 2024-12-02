@@ -18,15 +18,18 @@
  */
 package org.structr.core.entity;
 
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
@@ -40,6 +43,8 @@ import org.structr.schema.action.ActionEntry;
 
 import java.lang.reflect.*;
 import java.util.*;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.User;
 
 /**
  *
@@ -47,49 +52,61 @@ import java.util.*;
  */
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
-	public static final String schemaMethodNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
+	public static final String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
 
-	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
-	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
-	public static final Property<String>             signature               = new StringProperty("signature").indexed();
-	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
-	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
-	public static final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
-	public static final Property<String>             source                  = new StringProperty("source");
-	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
-	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
-	public static final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
-	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
-	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
-	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
-	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
-	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
-	public static final Property<String>             summary                 = new StringProperty("summary");
-	public static final Property<String>             description             = new StringProperty("description");
-	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
+	public enum HttpVerb {
+		GET, PUT, POST, PATCH, DELETE
+	}
+
+	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class).partOfBuiltInSchema();
+	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType)).partOfBuiltInSchema();
+	public static final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
+	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
+	public static final Property<String>             returnType              = new StringProperty("returnType").indexed().partOfBuiltInSchema();
+	public static final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed().partOfBuiltInSchema();
+	public static final Property<String>             source                  = new StringProperty("source").partOfBuiltInSchema();
+	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed().partOfBuiltInSchema();
+	public static final Property<String>             codeType                = new StringProperty("codeType").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed().partOfBuiltInSchema();
+	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed().partOfBuiltInSchema();
+	public static final Property<String>             summary                 = new StringProperty("summary").partOfBuiltInSchema();
+	public static final Property<String>             description             = new StringProperty("description").partOfBuiltInSchema();
+	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false).partOfBuiltInSchema();
+	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty().partOfBuiltInSchema();
+	public static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false).partOfBuiltInSchema();
+	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST).partOfBuiltInSchema();
+	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
 	// property which is only used to mark a schema method as "will be deleted"
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic
+		name, schemaNode, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
 	);
+
+	public Iterable<SchemaMethodParameter> getParameters() {
+		return getProperty(parameters);
+	}
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
@@ -141,6 +158,18 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return getProperty(isStatic);
 	}
 
+	public boolean isPrivateMethod() {
+		return getProperty(isPrivate);
+	}
+
+	public boolean returnRawResult() {
+		return getProperty(returnRawResult);
+	}
+
+	public HttpVerb getHttpVerb() {
+		return getProperty(httpVerb);
+	}
+
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
 	}
@@ -152,7 +181,58 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
 
+		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
+		final String thisMethodName     = getProperty(AbstractNode.name);
+
+		if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
+			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
+		}
+
+		// check case-insensitive name uniqueness on current level (type or user-defined functions)
+		final AbstractSchemaNode parentOrNull = this.getProperty(SchemaMethod.schemaNode);
+
+		try {
+
+			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, parentOrNull).getAsList();
+			final List<SchemaMethodParameter> params       = Iterables.toList(this.getParameters());
+			// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
+			final String paramsAsString                    = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
+
+			for (final SchemaMethod otherSchemaMethod : methodsOnCurrentLevel) {
+
+				final boolean isDifferentMethod = !(this.getUuid().equals(otherSchemaMethod.getUuid()));
+
+				if (isDifferentMethod) {
+
+					final boolean isSameNameIgnoringCase                = thisMethodName.equalsIgnoreCase(otherSchemaMethod.getName());
+					final List<SchemaMethodParameter> otherMethodParams = Iterables.toList(otherSchemaMethod.getParameters());
+					final String otherParamsAsString                    = otherMethodParams.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
+
+					final boolean hasSameParameters = (params.size() == otherMethodParams.size() && paramsAsString.equals(otherParamsAsString));
+
+					if (isSameNameIgnoringCase && hasSameParameters) {
+
+						errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
+						valid = false;
+					}
+				}
+			}
+
+		} catch (FrameworkException fex) {
+
+			errorBuffer.add(new SemanticErrorToken(this.getType(),"none", "exception_occurred").withValue(thisMethodName).withDetail("Exception occurred while checking uniqueness of method name - please retry. Cause: " + fex.getMessage()));
+			valid = false;
+		}
+
 		return valid;
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+
+		handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
 	}
 
 	@Override
@@ -161,7 +241,12 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		if (Boolean.TRUE.equals(getProperty(deleteMethod))) {
+
 			StructrApp.getInstance().delete(this);
+
+		} else {
+
+			handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
 		}
 
 		final String uuid = getUuid();
@@ -172,14 +257,37 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
-		if (!TransactionCommand.isDeleted(this.dbNode)) {
-			AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+		if (!TransactionCommand.isDeleted(getNode())) {
+
+			final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
 			if (schemaNode != null) {
 
 				schemaNode.clearCachedSchemaMethodsForInstance();
 
 				this.clearMethodCacheOfExtendingNodes();
 			}
+		}
+	}
+
+	private void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final boolean isLifeCycleMethod = isLifecycleMethod();
+		final boolean isTypeMethod      = (getProperty(SchemaMethod.schemaNode) != null);
+
+		// - lifecycle methods can never be static
+		// - user-defined functions can also not be static (? or should always be static?)
+		if (!isTypeMethod || isLifeCycleMethod) {
+			setProperty(SchemaMethod.isStatic, false);
+		}
+
+		// lifecycle methods are NEVER callable via REST
+		if (isLifeCycleMethod) {
+			setProperty(SchemaMethod.isPrivate, true);
+		}
+
+		// a method which is not callable via REST should not be present in OpenAPI
+		if (getProperty(SchemaMethod.isPrivate) == true) {
+			setProperty(SchemaMethod.includeInOpenAPI, false);
 		}
 	}
 
@@ -215,6 +323,18 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	public SchemaMethodParameter getSchemaMethodParameter(final String name) {
+
+		for (final SchemaMethodParameter param : getProperty(SchemaMethod.parameters)) {
+
+			if (name.equals(param.getName())) {
+				return param;
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----
@@ -275,12 +395,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				final SchemaNode typeNode = schemaNodes.get(shortTypeName);
 				if (typeNode != null && !typeNode.equals(schemaEntity)) {
 
-					// try to identify overridden schema method from database
-					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)
-						.and(SchemaMethod.schemaNode, typeNode)
-						.and(SchemaMethod.name, methodName)
-						.getFirst();
-
+					final SchemaMethod superMethod = typeNode.getSchemaMethod(methodName);
 					if (superMethod != null) {
 
 						final ActionEntry superEntry = superMethod.getActionEntry(schemaNodes, typeNode);
@@ -320,6 +435,72 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				}
 			}
 		}
+	}
+
+	public boolean isLifecycleMethod () {
+
+		final AbstractSchemaNode parent = getProperty(SchemaMethod.schemaNode);
+		final boolean hasParent         = (parent != null);
+		final String methodName         = getName();
+
+		if (hasParent) {
+
+			final List<String> typeBasedLifecycleMethods = List.of("onNodeCreation", "onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
+			final List<String> fileLifecycleMethods      = List.of("onUpload", "onDownload");
+			final List<String> userLifecycleMethods      = List.of("onOAuthLogin");
+
+			for (final String lifecycleMethodPrefix : typeBasedLifecycleMethods) {
+
+				if (methodName.startsWith(lifecycleMethodPrefix)) {
+					return true;
+				}
+			}
+
+			boolean inheritsFromFile = false;
+			boolean inheritsFromUser = false;
+
+			final Class type = SchemaHelper.getEntityClassForRawType(parent.getName());
+
+			if (type != null) {
+
+				inheritsFromFile = AbstractFile.class.isAssignableFrom(type);
+				inheritsFromUser = User.class.isAssignableFrom(type);
+			}
+
+			if (inheritsFromFile) {
+
+				for (final String lifecycleMethodName : fileLifecycleMethods) {
+
+					if (methodName.equals(lifecycleMethodName)) {
+						return true;
+					}
+				}
+			}
+
+			if (inheritsFromUser) {
+
+				for (final String lifecycleMethodName : userLifecycleMethods) {
+
+					if (methodName.equals(lifecycleMethodName)) {
+						return true;
+					}
+				}
+			}
+
+		} else {
+
+			final List<String> globalLifecycleMethods = List.of("onStructrLogin", "onStructrLogout", "onAcmeChallenge");
+
+			for (final String lifecycleMethodName : globalLifecycleMethods) {
+
+				if (methodName.equals(lifecycleMethodName)) {
+					return true;
+				}
+			}
+
+		}
+
+		return false;
 	}
 
 	// ----- interface Favoritable -----
@@ -440,6 +621,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	// ----- private static methods -----
 	public static String getCachedSourceCode(final String uuid) throws FrameworkException {
+
+		// this method is called from generated Java code in ActionEntry.java line 242
 
 		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
 		if (method != null) {

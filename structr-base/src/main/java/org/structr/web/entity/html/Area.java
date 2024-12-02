@@ -18,24 +18,12 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Area extends DOMElement {
 
-public interface Area extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Area");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Area"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.overrideMethod("isVoidElement", false, "return true;");
-	}}
+	@Override
+	public boolean isVoidElement() {
+		return true;
+	}
 }

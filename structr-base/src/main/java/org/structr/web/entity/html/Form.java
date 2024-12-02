@@ -18,34 +18,30 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Form extends DOMElement {
 
-public interface Form extends DOMElement {
+	public static final Property<String> htmlAcceptCharsetProperty = new StringProperty("_html_accept-charset").partOfBuiltInSchema();
+	public static final Property<String> htmlActionProperty        = new StringProperty("_html_action").partOfBuiltInSchema();
+	public static final Property<String> htmlAutocompleteProperty  = new StringProperty("_html_autocomplete").partOfBuiltInSchema();
+	public static final Property<String> htmlEnctypeProperty       = new StringProperty("_html_enctype").partOfBuiltInSchema();
+	public static final Property<String> htmlMethodProperty        = new StringProperty("_html_method").partOfBuiltInSchema();
+	public static final Property<String> htmlNameProperty          = new StringProperty("_html_name").partOfBuiltInSchema();
+	public static final Property<String> htmlNovalidateProperty    = new StringProperty("_html_novalidate").partOfBuiltInSchema();
+	public static final Property<String> htmlTargetProperty        = new StringProperty("_html_target").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Form.class, PropertyView.Html,
+		htmlAcceptCharsetProperty, htmlActionProperty, htmlAutocompleteProperty, htmlEnctypeProperty, htmlMethodProperty, htmlNameProperty, htmlNovalidateProperty, htmlTargetProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Form");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Form"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_accept-charset", PropertyView.Html);
-		type.addStringProperty("_html_action",         PropertyView.Html);
-		type.addStringProperty("_html_autocomplete",   PropertyView.Html);
-		type.addStringProperty("_html_enctype",        PropertyView.Html);
-		type.addStringProperty("_html_method",         PropertyView.Html);
-		type.addStringProperty("_html_name",           PropertyView.Html);
-		type.addStringProperty("_html_novalidate",     PropertyView.Html);
-		type.addStringProperty("_html_target",         PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

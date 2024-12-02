@@ -24,217 +24,147 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.*;
+import org.structr.common.AccessControllable;
+import org.structr.common.EMailValidator;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaService;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-public interface Principal extends NodeInterface, AccessControllable {
+public abstract class Principal extends AbstractNode implements PrincipalInterface, AccessControllable {
 
-	static class Impl { static {
-
-		final JsonSchema schema          = SchemaService.getDynamicSchema();
-		final JsonObjectType principal   = schema.addType("Principal");
-		final JsonObjectType favoritable = (JsonObjectType)schema.getType("Favoritable");
-
-		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
-		principal.setCategory("core");
-
-		principal.addBooleanProperty("isAdmin").setIndexed(true).setReadOnly(true);
-		principal.addBooleanProperty("blocked", PropertyView.Ui);
-
-		// FIXME: indexedWhenEmpty() is not possible here, but needed?
-		principal.addStringArrayProperty("sessionIds").setIndexed(true);
-		principal.addStringArrayProperty("refreshTokens").setIndexed(true);
-
-		principal.addStringProperty("sessionData");
-
-		principal.addStringProperty("eMail")
-			.setIndexed(true)
-			.setUnique(true)
-			.addValidator(EMailValidator.class.getName())
-			.addTransformer(LowercaseTransformator.class.getName())
-			.addTransformer(TrimTransformator.class.getName());
-
-		principal.addPasswordProperty("password");
-
-		// Password Policy
-		principal.addDateProperty("passwordChangeDate");
-		principal.addPropertySetter("passwordChangeDate", Date.class);
-		principal.addPropertyGetter("passwordChangeDate", Date.class);
-
-		principal.addIntegerProperty("passwordAttempts");
-		principal.addPropertySetter("passwordAttempts", Integer.class);
-		principal.addPropertyGetter("passwordAttempts", Integer.class);
-
-		principal.addDateProperty("lastLoginDate");
-		principal.addPropertySetter("lastLoginDate", Date.class);
-		principal.addPropertyGetter("lastLoginDate", Date.class);
-
-		// Two Factor Authentication
-		principal.addStringProperty("twoFactorSecret");
-
-		principal.addStringProperty("twoFactorToken").setIndexed(true);
-		principal.addPropertySetter("twoFactorToken", String.class);
-		principal.addPropertyGetter("twoFactorToken", String.class);
-
-		principal.addBooleanProperty("isTwoFactorUser");
-		principal.addPropertySetter("isTwoFactorUser", Boolean.TYPE);
-		principal.addPropertyGetter("isTwoFactorUser", Boolean.TYPE);
-
-		principal.addBooleanProperty("twoFactorConfirmed");
-		principal.addPropertySetter("twoFactorConfirmed", Boolean.TYPE);
-		principal.addPropertyGetter("twoFactorConfirmed", Boolean.TYPE);
-
-
-		principal.addStringProperty("salt");
-		principal.addStringProperty("locale");
-		principal.addStringProperty("publicKey");
-		principal.addStringProperty("proxyUrl");
-		principal.addStringProperty("proxyUsername");
-		principal.addStringProperty("proxyPassword");
-
-		//type.addStringArrayProperty("sessionIds");
-		principal.addStringArrayProperty("publicKeys");
-
-		principal.addStringProperty("customPermissionQueryRead");
-		principal.addStringProperty("customPermissionQueryWrite");
-		principal.addStringProperty("customPermissionQueryDelete");
-		principal.addStringProperty("customPermissionQueryAccessControl");
-
-		principal.addPropertyGetter("locale", String.class);
-		principal.addPropertyGetter("sessionData", String.class);
-		principal.addPropertyGetter("favorites", Iterable.class);
-		principal.addPropertyGetter("groups", Iterable.class);
-		principal.addPropertyGetter("eMail", String.class);
-
-		principal.addPropertySetter("sessionData", String.class);
-		principal.addPropertySetter("favorites", Iterable.class);
-		principal.addPropertySetter("password", String.class);
-		principal.addPropertySetter("isAdmin", Boolean.TYPE);
-		principal.addPropertySetter("eMail", String.class);
-		principal.addPropertySetter("salt", String.class);
-
-		principal.overrideMethod("shouldSkipSecurityRelationships", false, "return false;");
-		principal.overrideMethod("isAdmin",                         false, "return getProperty(isAdminProperty);");
-		principal.overrideMethod("isBlocked",                       false, "return getProperty(blockedProperty);");
-		principal.overrideMethod("getParents",                      false, "return " + Principal.class.getName() + ".getParents(this);");
-		principal.overrideMethod("getParentsPrivileged",            false, "return " + Principal.class.getName() + ".getParentsPrivileged(this);");
-		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
-
-		principal.overrideMethod("addSessionId",                    false, "return " + Principal.class.getName() + ".addSessionId(this, arg0);");
-		principal.overrideMethod("addRefreshToken",                 false, "return " + Principal.class.getName() + ".addRefreshToken(this, arg0);");
-
-		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
-		principal.overrideMethod("removeRefreshToken",              false, Principal.class.getName() + ".removeRefreshToken(this, arg0);");
-
-		principal.overrideMethod("onAuthenticate",                  false, "");
-
-		// override getProperty
-		principal.addMethod("getProperty")
-			.setReturnType("<T> T")
-			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
-			.addParameter("arg1", Predicate.class.getName() + "<GraphObject>")
-			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty) || arg0.equals(twoFactorSecretProperty)) { return (T) Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
-
-		// override setProperty final PropertyKey<T> key, final T value)
-		principal.addMethod("setProperty")
-			.setReturnType("<T> java.lang.Object")
-			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
-			.addParameter("arg1", "T")
-			.addException(FrameworkException.class.getName())
-			.setSource("AbstractNode.clearCaches(); return super.setProperty(arg0, arg1);");
-
-		// create relationships
-		principal.relate(favoritable, "FAVORITE", Cardinality.ManyToMany, "favoriteUsers", "favorites");
-	}}
-
-	public static final Object HIDDEN                            = "****** HIDDEN ******";
-	public static final String SUPERUSER_ID                      = "00000000000000000000000000000000";
-	public static final String ANONYMOUS                         = "anonymous";
-	public static final String ANYONE                            = "anyone";
-
-	public static final Property<Iterable<NodeInterface>> ownedNodes   = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	public static final Property<Iterable<NodeInterface>> grantedNodes = new EndNodes<>("grantedNodes", Security.class).partOfBuiltInSchema();
-
-	Iterable<Favoritable> getFavorites();
-	Iterable<Group> getGroups();
-
-	Iterable<Principal> getParents();
-	Iterable<Principal> getParentsPrivileged();
-
-	boolean isValidPassword(final String password);
-
-	boolean addSessionId(final String sessionId);
-	void removeSessionId(final String sessionId);
-
-	boolean addRefreshToken(final String refreshToken);
-	void removeRefreshToken(final String refreshToken);
-
-	String getSessionData();
-	String getEMail();
-	void setSessionData(final String sessionData) throws FrameworkException;
-
-	boolean isAdmin();
-	boolean isBlocked();
-	boolean shouldSkipSecurityRelationships();
-
-	default void onAuthenticate() {}
-
-	void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException;
-	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
-	void setPassword(final String password) throws FrameworkException;
-	void setEMail(final String eMail) throws FrameworkException;
-	void setSalt(final String salt) throws FrameworkException;
-
-	String getLocale();
-
-	public static Iterable<Principal> getParents(final Principal principal) {
-		return principal.getProperty(StructrApp.key(Principal.class, "groups"));
+	public Iterable<Favoritable> getFavorites() {
+		return getProperty(favoritesProperty);
 	}
 
-	public static Iterable<Principal> getParentsPrivileged(final Principal principal) {
+	public Iterable<Group> getGroups() {
+		return getProperty(groupsProperty);
+	}
+
+	public String getSessionData() {
+		return getProperty(sessionDataProperty);
+	}
+
+	public String getEMail() {
+		return getProperty(eMailProperty);
+	}
+
+	public void setSessionData(final String sessionData) throws FrameworkException {
+		setProperty(sessionDataProperty, sessionData);
+	}
+
+	public boolean isAdmin() {
+		return getProperty(isAdminProperty);
+	}
+
+	public boolean isBlocked() {
+		return getProperty(blockedProperty);
+	}
+
+	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
+		setProperty(favoritesProperty, favorites);
+	}
+
+	public void setIsAdmin(final boolean isAdmin) throws FrameworkException {
+		setProperty(isAdminProperty, isAdmin);
+	}
+
+	public void setPassword(final String password) throws FrameworkException {
+		setProperty(passwordProperty, password);
+	}
+
+	public void setEMail(final String eMail) throws FrameworkException {
+		setProperty(eMailProperty, eMail);
+	}
+
+	public void setSalt(final String salt) throws FrameworkException {
+		setProperty(saltProperty, salt);
+	}
+
+	public String getLocale() {
+		return getProperty(localeProperty);
+	}
+
+	public boolean shouldSkipSecurityRelationship() {
+		return false;
+	}
+
+	public void onAuthenticate() {
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidUniqueProperty(this, Principal.eMailProperty, errorBuffer);
+		valid &= new EMailValidator().isValid(this, errorBuffer);
+
+		return valid;
+	}
+
+	@Override
+	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
+
+		if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) {
+
+			return (T) Principal.HIDDEN;
+
+		} else {
+
+			return super.getProperty(key, predicate);
+		}
+	}
+
+	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+
+		AbstractNode.clearCaches();
+
+		return super.setProperty(key, value);
+	}
+
+	public Iterable<PrincipalInterface> getParents() {
+		return (Iterable)getProperty(Principal.groupsProperty);
+	}
+
+	public Iterable<PrincipalInterface> getParentsPrivileged() {
 
 		try {
 
 			final App app                       = StructrApp.getInstance();
-			final Principal privilegedPrincipal = app.get(Principal.class, principal.getUuid());
+			final Principal privilegedPrincipal = app.get(Principal.class, getUuid());
 
-			return privilegedPrincipal.getProperty(StructrApp.key(Principal.class, "groups"));
+			return (Iterable)privilegedPrincipal.getProperty(Principal.groupsProperty);
 
 		} catch (FrameworkException fex) {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
 
-			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
+			logger.warn("Caught exception while fetching groups for user '{}' ({})", getName(), getUuid());
 			logger.warn(ExceptionUtils.getStackTrace(fex));
 
 			return Collections.emptyList();
 		}
 	}
 
-	public static boolean addSessionId(final Principal principal, final String sessionId) {
+	public boolean addSessionId(final String sessionId) {
 
 		try {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
-			final String[] ids              = principal.getProperty(key);
+			final String[] ids              = getProperty(key);
 
 			if (ids != null) {
 
@@ -250,12 +180,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 						return false;
 					}
 
-					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), sessionId));
+					setProperty(key, (String[]) ArrayUtils.add(getProperty(key), sessionId));
 				}
 
 			} else {
 
-				principal.setProperty(key, new String[] {  sessionId } );
+				setProperty(key, new String[] {  sessionId } );
 			}
 
 			return true;
@@ -269,11 +199,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 
-	public static boolean addRefreshToken(final Principal principal, final String refreshToken) {
+	public boolean addRefreshToken(final String refreshToken) {
+
 		try {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-			final String[] refreshTokens    = principal.getProperty(key);
+			final String[] refreshTokens    = getProperty(key);
 
 			if (refreshTokens != null) {
 
@@ -289,12 +220,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 						return false;
 					}
 
-					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), refreshToken));
+					setProperty(key, (String[]) ArrayUtils.add(getProperty(key), refreshToken));
 				}
 
 			} else {
 
-				principal.setProperty(key, new String[] {  refreshToken } );
+				setProperty(key, new String[] {  refreshToken } );
 			}
 
 			return true;
@@ -308,12 +239,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 
-	public static void removeSessionId(final Principal principal, final String sessionId) {
+	public void removeSessionId(final String sessionId) {
 
 		try {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
-			final String[] ids              = principal.getProperty(key);
+			final String[] ids              = getProperty(key);
 
 			if (ids != null) {
 
@@ -321,7 +252,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 				sessionIds.remove(sessionId);
 
-				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				setProperty(key, (String[]) sessionIds.toArray(new String[0]));
 			}
 
 		} catch (FrameworkException ex) {
@@ -331,12 +262,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 
-	public static void removeRefreshToken(final Principal principal, final String refreshToken) {
+	public void removeRefreshToken(final String refreshToken) {
 
 		try {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-			final String[] refreshTokens    = principal.getProperty(key);
+			final String[] refreshTokens    = getProperty(key);
 
 			if (refreshTokens != null) {
 
@@ -344,7 +275,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 				refreshTokenSet.remove(refreshToken);
 
-				principal.setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
+				setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
 			}
 
 		} catch (FrameworkException ex) {
@@ -354,7 +285,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 
-	public static void clearTokens(final Principal principal) {
+	public void clearTokens() {
 
 		try {
 
@@ -363,21 +294,21 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			properties.put(refreshTokensKey, new String[0]);
 
-			principal.setProperties(SecurityContext.getSuperUserInstance(), properties);
+			setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		} catch (FrameworkException ex) {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
-			logger.error("Could not clear refreshTokens of user {}", principal, ex);
+			logger.error("Could not clear refreshTokens of user {}", this, ex);
 		}
 	}
 
-	public static boolean isValidPassword(final Principal principal, final String password) {
+	public boolean isValidPassword(final String password) {
 
-		final String encryptedPasswordFromDatabase = getEncryptedPassword(principal);
+		final String encryptedPasswordFromDatabase = getEncryptedPassword();
 		if (encryptedPasswordFromDatabase != null) {
 
-			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt(principal));
+			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
 
 			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
 				return true;
@@ -387,9 +318,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return false;
 	}
 
-	public static String getEncryptedPassword(final Principal principal) {
+	public String getEncryptedPassword() {
 
-		final Node dbNode = principal.getNode();
+		final Node dbNode = getNode();
 		if (dbNode.hasProperty("password")) {
 
 			return (String)dbNode.getProperty("password");
@@ -398,9 +329,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return null;
 	}
 
-	public static String getSalt(final Principal principal) {
+	public String getSalt() {
 
-		final Node dbNode = principal.getNode();
+		final Node dbNode = getNode();
 		if (dbNode.hasProperty("salt")) {
 
 			return (String) dbNode.getProperty("salt");
@@ -409,9 +340,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return null;
 	}
 
-	public static String getTwoFactorSecret(final Principal principal) {
+	public String getTwoFactorSecret() {
 
-		final Node dbNode = principal.getNode();
+		final Node dbNode = getNode();
 		if (dbNode.hasProperty("twoFactorSecret")) {
 
 			return (String) dbNode.getProperty("twoFactorSecret");
@@ -420,14 +351,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return null;
 	}
 
-	public static String getTwoFactorUrl(final Principal principal) {
-
-		if (principal == null) {
-
-			LoggerFactory.getLogger(Principal.class).warn("Cannot fetch twofactor URL from user, user is null!");
-
-			return null;
-		}
+	public String getTwoFactorUrl() {
 
 		final String twoFactorIssuer    = Settings.TwoFactorIssuer.getValue();
 		final String twoFactorAlgorithm = Settings.TwoFactorAlgorithm.getValue();
@@ -436,18 +360,18 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		final StringBuilder path = new StringBuilder("/").append(twoFactorIssuer);
 
-		final String eMail = principal.getProperty(StructrApp.key(Principal.class, "eMail"));
+		final String eMail = getProperty(StructrApp.key(Principal.class, "eMail"));
 		if (eMail != null) {
 			path.append(":").append(eMail);
 		} else {
-			path.append(":").append(principal.getName());
+			path.append(":").append(getName());
 		}
 
-		final StringBuilder query = new StringBuilder("secret=").append(Principal.getTwoFactorSecret(principal))
-				.append("&issuer=").append(twoFactorIssuer)
-				.append("&algorithm=").append(twoFactorAlgorithm)
-				.append("&digits=").append(twoFactorDigits)
-				.append("&period=").append(twoFactorPeriod);
+		final StringBuilder query = new StringBuilder("secret=").append(getTwoFactorSecret())
+			.append("&issuer=").append(twoFactorIssuer)
+			.append("&algorithm=").append(twoFactorAlgorithm)
+			.append("&digits=").append(twoFactorDigits)
+			.append("&period=").append(twoFactorPeriod);
 
 		try {
 

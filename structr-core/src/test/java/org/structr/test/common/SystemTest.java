@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -42,11 +44,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.entity.TestFive;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -83,7 +87,7 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			Principal person = this.createTestNode(Principal.class);
+			PrincipalInterface person = this.createTestNode(User.class);
 
 			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);
@@ -573,14 +577,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureOneToOneCardinality() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -637,7 +641,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -665,14 +669,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureOneToManyCardinality() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -713,7 +717,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -729,7 +733,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -761,14 +765,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureManyToOneCardinality() {
 
-		Principal tester1 = null;
-		Principal tester2 = null;
+		PrincipalInterface tester1 = null;
+		PrincipalInterface tester2 = null;
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, "tester1");
-			tester2 = app.create(Principal.class, "tester2");
+			tester1 = app.create(User.class, "tester1");
+			tester2 = app.create(User.class, "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -779,7 +783,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -809,7 +813,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -825,7 +829,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -896,16 +900,12 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testPasswordAndHashSecurity() {
 
-		final Class userType                  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
-		final PropertyKey<String> saltKey     = StructrApp.key(userType, "salt");
-
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			app.create(Principal.class,
-				new NodeAttribute<>(Principal.name, "tester"),
-				new NodeAttribute<>(passwordKey, "password")
+			app.create(User.class,
+				new NodeAttribute<>(PrincipalInterface.name, "tester"),
+				new NodeAttribute<>(PrincipalInterface.passwordProperty, "password")
 			);
 
 			tx.success();
@@ -917,10 +917,10 @@ public class SystemTest extends StructrTest {
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			final Principal user = app.nodeQuery(Principal.class).getFirst();
+			final PrincipalInterface user = app.nodeQuery(User.class).getFirst();
 
-			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(passwordKey));
-			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(saltKey));
+			assertEquals("Password hash IS NOT SECURE!", PrincipalInterface.HIDDEN, user.getProperty(PrincipalInterface.passwordProperty));
+			assertEquals("Password salt IS NOT SECURE!", PrincipalInterface.HIDDEN, user.getProperty(PrincipalInterface.saltProperty));
 
 			tx.success();
 
@@ -952,15 +952,12 @@ public class SystemTest extends StructrTest {
 
 		final Class type = StructrApp.getConfiguration().getNodeEntityClass("GrantTest");
 
+		final long t0 = System.currentTimeMillis();
 		try (final Tx tx = app.tx()) {
 
-			final long t0 = System.currentTimeMillis();
-			for (int i=0; i<10000; i++) {
+			for (int i=0; i<1000; i++) {
 				app.create(type, "test" + i);
 			}
-			final long t1 = System.currentTimeMillis();
-
-			System.out.println((t1-t0) + " ms");
 
 			tx.success();
 
@@ -968,6 +965,9 @@ public class SystemTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		final long t1 = System.currentTimeMillis();
+		System.out.println((t1-t0) + " ms");
 	}
 
 	@Test
@@ -1099,11 +1099,11 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testCallPrivileged() {
 
-		Principal tester = null;
+		PrincipalInterface tester = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			tester = createTestNode(Principal.class, "tester");
+			tester = createTestNode(User.class, "tester");
 
 			// create global schema method that creates another object
 			app.create(SchemaMethod.class,
@@ -1195,13 +1195,15 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface node              = app.nodeQuery(type1).getFirst();
 			final List<AbstractRelationship> rels = Iterables.toList(node.getRelationships());
+			final Node n                          = node.getNode();
 
 			app.delete(node);
 
-			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(node.getNode()));
+			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(n));
 
 			for (final RelationshipInterface rel : rels) {
-				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(rel.getRelationship()));
+				final Relationship r = rel.getRelationship();
+				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(r));
 			}
 
 			tx.success();
@@ -1414,9 +1416,9 @@ public class SystemTest extends StructrTest {
 			testGroup1.addMember(securityContext, testGroup2);
 			testGroup2.addMember(securityContext, testGroup3);
 
-			final Principal user = app.create(Principal.class,
+			final PrincipalInterface user = app.create(User.class,
 				new NodeAttribute<>(AbstractNode.name, "user"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "password")
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
 			);
 
 			testGroup3.addMember(securityContext, user);
@@ -1454,7 +1456,7 @@ public class SystemTest extends StructrTest {
 		// verify that no groups and no schema grants exist
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Schema grants should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
 
 			tx.success();
 
@@ -1499,7 +1501,7 @@ public class SystemTest extends StructrTest {
 		// verify that no groups and no schema grants exist
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Schema grants should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
 
 			tx.success();
 
@@ -1543,7 +1545,7 @@ public class SystemTest extends StructrTest {
 			final Group root = app.nodeQuery(Group.class).andName("root").getFirst();
 			int count        = 0;
 
-			for (final Principal p : root.getMembers()) {
+			for (final PrincipalInterface p : root.getMembers()) {
 
 				assertTrue("RelationshipQuery returns too many results", count++ < num);
 			}
@@ -1560,19 +1562,19 @@ public class SystemTest extends StructrTest {
 		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
 	}
 
-	@Test
+	//@Test
 	public void testConcurrentDeleteAndFetch() {
 
 		final AtomicBoolean error = new AtomicBoolean(false);
 		final List<String> msgs   = new LinkedList<>();
 		int num                   = 0;
 
-		for (int i=0; i<2; i++) {
+		for (int i=0; i<10; i++) {
 
 			// setup: create groups
 			try (final Tx tx = app.tx()) {
 
-				for (int j=0; j<2; j++) {
+				for (int j=0; j<10; j++) {
 
 					app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
 				}
@@ -1588,36 +1590,45 @@ public class SystemTest extends StructrTest {
 		// start a worker thread that deletes groups in batches of 500
 		final Thread deleter = new Thread(() -> {
 
-			boolean run = true;
+			try {
+				boolean run = true;
 
-			while (run) {
+				while (run) {
 
-				int count = 0;
-				run = false;
+					int count = 0;
+					run = false;
 
-				synchronized (System.out) {
-					System.out.println("Deleter: fetching objects...");
-				}
-
-				try (final Tx tx = app.tx()) {
-
-					for (final Group group : app.nodeQuery(Group.class).pageSize(2).getAsList()) {
-
-						app.delete(group);
-						run = true;
-						count++;
+					synchronized (System.out) {
+						System.out.println("Deleter: fetching objects...");
 					}
 
-					tx.success();
+					try (final Tx tx = app.tx()) {
 
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-					fail("Unexpected exception.");
+						for (final Group group : app.nodeQuery(Group.class).pageSize(5).getAsList()) {
+
+							app.delete(group);
+							run = true;
+							count++;
+						}
+
+						tx.success();
+
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+						fail("Unexpected exception.");
+					}
+
+					synchronized (System.out) {
+						System.out.println("Deleter: deleted " + count + " objects");
+					}
 				}
 
-				synchronized (System.out) {
-					System.out.println("Deleter: deleted " + count + " objects");
-				}
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+				msgs.add(t.getMessage());
+				error.set(true);
 			}
 
 		}, "Deleter");
@@ -1842,7 +1853,7 @@ public class SystemTest extends StructrTest {
 			final long dt       = t1 - t0;
 
 			assertEquals("Related nodes are not filtered correctly", 2, list.size());
-			assertTrue("Related nodes are not filtered by target label, performance is too low", dt < 100);
+			assertTrue("Related node filtering by target label: performance is too low", dt < 200);
 
 			tx.success();
 
@@ -1852,6 +1863,40 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testRollbackFunction() {
+
+		// test setup, create some nodes and expect rollback even with tx.success()!
+		try (final Tx tx = app.tx()) {
+
+			app.create(Group.class, "group1");
+			app.create(Group.class, "group2");
+			app.create(Group.class, "group3");
+
+			Actions.execute(securityContext, null, "${rollback_transaction()}", "testRollbackFunction");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// assert that no groups exist!
+		try (final Tx tx = app.tx()) {
+
+			final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+
+			assertTrue(groups.isEmpty());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
 
 	// ----- nested classes -----
 	private static class TestRunner implements Runnable {

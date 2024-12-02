@@ -33,6 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
+import org.structr.web.entity.User;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
@@ -93,74 +94,68 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testQuerySoftLimit() {
 
-		try {
-			Settings.ResultCountSoftLimit.setValue(100);
-			Settings.FetchSize.setValue(100);
+		Settings.ResultCountSoftLimit.setValue(100);
+		Settings.FetchSize.setValue(100);
 
-			final int num = 3234;
-			int total     = 0;
+		final int num = 3234;
+		int total     = 0;
 
-			System.out.println("Creating " + num + " elements..");
+		System.out.println("Creating " + num + " elements..");
 
-			try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx()) {
 
-				for (int i=0; i<num; i++) {
-					app.create(TestSix.class);
-				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
+			for (int i=0; i<num; i++) {
+				app.create(TestSix.class);
 			}
 
-			System.out.println("Done.");
+			tx.success();
 
-			try (final Tx tx = app.tx()) {
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 
-				int count = 0;
+		System.out.println("Done.");
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+		try (final Tx tx = app.tx()) {
 
-					for (TestSix test : results) {
-						count++;
-					}
+			int count = 0;
 
-					total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+				for (TestSix test : results) {
+					count++;
 				}
 
-				System.out.println(count + " / " + total);
-
-				assertEquals("Invalid result count", num, count);
-				assertEquals("Invalid total count", num, total);
-
-				tx.success();
-
-			} catch (Exception fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
+				total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
 			}
 
-			try (final Tx tx = app.tx()) {
+			System.out.println(count + " / " + total);
 
-				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+			assertEquals("Invalid result count", num, count);
+			assertEquals("Invalid total count", num, total);
 
-					if (results.iterator().hasNext()) {
-						results.iterator().next();
-					}
+			tx.success();
+
+		} catch (Exception fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+				if (results.iterator().hasNext()) {
+					results.iterator().next();
 				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-				fail("Unexpected exception");
 			}
 
-		} finally {
+			tx.success();
 
-			Settings.CypherDebugLogging.setValue(false);
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 
@@ -230,6 +225,7 @@ public class BasicTest extends StructrTest {
 			final TestOne testOne  = createTestNode(TestOne.class);
 			final TestSix testSix  = createTestNode(TestSix.class);
 			SixOneOneToOne rel     = null;
+			String uuid             = null;
 
 			assertNotNull(testOne);
 			assertNotNull(testSix);
@@ -237,6 +233,8 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				uuid = rel.getUuid();
+
 				tx.success();
 			}
 
@@ -249,9 +247,6 @@ public class BasicTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (NotInTransactionException e) {}
 
-			// Relationship still there
-			assertNotNull(rel);
-
 			try (final Tx tx = app.tx()) {
 
 				app.delete(rel);
@@ -260,8 +255,9 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				String uuid = rel.getUuid();
-				fail("Deleted entity should have thrown an exception on access.");
+				List result = app.relationshipQuery().uuid(uuid).getAsList();
+
+				assertEquals("Relationship should have been deleted", 0, result.size());
 
 			} catch (NotFoundException iex) {
 			}
@@ -814,6 +810,10 @@ public class BasicTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.CONSTRAINT_BASED))
 			);
 
+			try {
+				System.out.println(t1.getGeneratedSourceCode(securityContext));
+			} catch (Throwable t) {}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1213,6 +1213,8 @@ public class BasicTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+
 			fail("Creating duplicate relationships via app.create() should NOT throw an exception.");
 		}
 
@@ -1487,10 +1489,10 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			TestOne a = createTestNode(TestOne.class);
-			TestOne b = createTestNode(TestOne.class);
-
 			try (final Tx tx = app.tx()) {
+
+				final TestOne a = createTestNode(TestOne.class);
+				final TestOne b = createTestNode(TestOne.class);
 
 				Comparator comp = TestOne.anInt.sorted(false);
 
@@ -1557,9 +1559,7 @@ public class BasicTest extends StructrTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
 
 	@Test
@@ -1665,7 +1665,11 @@ public class BasicTest extends StructrTest {
 			final OneTwoOneToOne rel = testOne.getOutgoingRelationship(OneTwoOneToOne.class);
 			final TestTwo testTwo2   = rel.getTargetNode();
 
+			logger.info("set property");
+
 			testTwo1.setProperty(AbstractNode.name, "test");
+
+			logger.info("get property");
 
 			assertEquals("Cache invalidation failure!", "test", testTwo2.getProperty(AbstractNode.name));
 
@@ -1757,7 +1761,7 @@ public class BasicTest extends StructrTest {
 			// create two OWNS relationships with different end node types
 			final TestOne testOne     = app.create(TestOne.class, "testone");
 			final TestThree testThree = app.create(TestThree.class, "testthree");
-			final Principal testUser  = app.create(Principal.class, "testuser");
+			final User testUser       = app.create(User.class, "testuser");
 
 			testOne.setProperty(TestOne.testThree, testThree);
 			testThree.setProperty(TestThree.owner, testUser);
@@ -1790,13 +1794,13 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testRelationshipsOnNodeCreation() {
 
-		Principal user = null;
+		User user = null;
 		TestOne test  = null;
 
 		// create user
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(Principal.class, "tester");
+			user = app.create(User.class, "tester");
 
 			tx.success();
 
@@ -1866,13 +1870,13 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testRelationshipsOnNodeCreationAfterRollback() {
 
-		Principal user = null;
+		User user = null;
 		TestThirteen test  = null;
 
 		// create user
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(Principal.class, "tester");
+			user = app.create(User.class, "tester");
 
 			tx.success();
 

@@ -20,15 +20,17 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PagingHelper;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.*;
 import org.structr.websocket.StructrWebSocket;
@@ -37,6 +39,9 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import org.structr.common.helper.PagingHelper;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent
@@ -57,22 +62,12 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final int pageSize = webSocketData.getPageSize();
-		final int page = webSocketData.getPage();
-
-		final App app = StructrApp.getInstance(securityContext);
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			// do search
-			List<NodeInterface> filteredResults = getUnattachedNodes(app, securityContext, webSocketData);
-
-			// save raw result count
-			int resultCountBeforePaging = filteredResults.size();
-
-			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(getUnattachedNodes(app, securityContext, webSocketData));
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -98,58 +93,27 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	protected static List<NodeInterface> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
+	protected static Iterable<DOMNode> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey   = webSocketData.getSortKey();
+		final Set<String> types    = SearchCommand.getAllSubtypesAsStringSet("Page");
+		final String sortOrder     = webSocketData.getSortOrder();
+		final String sortKey       = webSocketData.getSortKey();
+		final int pageSize         = webSocketData.getPageSize();
+		final int page             = webSocketData.getPage();
 
-		Query query;
+		final Query<DOMNode> query = app.nodeQuery(DOMNode.class)
+			.includeHidden()
+			.pageSize(pageSize)
+			.page(page)
+			.and(DOMNode.ownerDocumentProperty, null)
+			.and(DOMNode.parentProperty, null);
+
 		if (sortKey != null) {
 
-			final PropertyKey sortProperty = StructrApp.key(DOMNode.class, sortKey);
-			query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
-
-		} else {
-
-			query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden();
+			query.sort(StructrApp.key(DOMNode.class, sortKey), "desc".equals(sortOrder));
 		}
 
-		query.orTypes(DOMElement.class);
-		query.orType(Content.class);
-		query.orType(Template.class);
-
-		// do search
-		final List<NodeInterface> filteredResults = new LinkedList();
-		List<? extends GraphObject> resultList    = null;
-
-		try (final Tx tx = app.tx()) {
-
-			resultList = query.getAsList();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Exception occured", fex);
-		}
-
-		if (resultList != null) {
-
-			// determine which of the nodes have no incoming CONTAINS relationships and no page id
-			for (GraphObject obj : resultList) {
-
-				if (obj instanceof DOMNode) {
-
-					DOMNode node = (DOMNode) obj;
-
-					if (!node.hasIncomingRelationships(node.getChildLinkType()) && node.getOwnerDocument() == null && !(node instanceof ShadowDocument)) {
-
-						filteredResults.add(node);
-					}
-				}
-			}
-		}
-
-		return filteredResults;
-
+		return Iterables.filter(n -> !types.contains(n.getType()), query.getResultStream());
 	}
 
 	@Override

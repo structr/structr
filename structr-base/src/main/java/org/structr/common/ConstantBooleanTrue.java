@@ -44,6 +44,6 @@ public class ConstantBooleanTrue implements Transformer<Boolean> {
 			typeName = declaringClass.getSimpleName();
 		}
 
-		throw new FrameworkException(422, typeName + "." + key.jsonName() + " is_read_only_property", new ReadOnlyPropertyToken(typeName, key));
+		throw new FrameworkException(422, typeName + "." + key.jsonName() + " is_read_only_property", new ReadOnlyPropertyToken(typeName, key.jsonName()));
 	}
 }

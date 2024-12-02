@@ -18,14 +18,15 @@
  */
 package org.structr.core.entity;
 
+import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.SchemaExcludedViewProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
@@ -68,6 +69,32 @@ public class SchemaView extends SchemaReloadingNode {
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaViewNamePattern, errorBuffer);
+
+		// check case-insensitive name uniqueness on current type
+		final String thisViewName       = getProperty(AbstractNode.name);
+		final AbstractSchemaNode parent = this.getProperty(SchemaView.schemaNode);
+
+		try {
+
+			final List<SchemaView> viewsOnParent = StructrApp.getInstance().nodeQuery(SchemaView.class).and(SchemaView.name, thisViewName).and(SchemaView.schemaNode, parent).getAsList();
+
+			for (final SchemaView schemaView : viewsOnParent) {
+
+				final boolean isSameNode             = this.getUuid().equals(schemaView.getUuid());
+				final boolean isSameNameIgnoringCase = thisViewName.equalsIgnoreCase(schemaView.getName());
+
+				if (!isSameNode && isSameNameIgnoringCase) {
+
+					errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisViewName).withDetail("Multiple views with identical names (case-insensitive) are not supported on the same level"));
+					valid = false;
+				}
+			}
+
+		} catch (FrameworkException fex) {
+
+			errorBuffer.add(new SemanticErrorToken(this.getType(),"none", "exception_occurred").withValue(thisViewName).withDetail("Exception occurred while checking uniqueness of view name - please retry. Cause: " + fex.getMessage()));
+			valid = false;
+		}
 
 		return valid;
 	}

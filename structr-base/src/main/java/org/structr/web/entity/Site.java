@@ -18,37 +18,52 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.*;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.relationship.SiteCONTAINSPage;
+import org.structr.web.servlet.HtmlServlet;
 
-import java.net.URI;
+public class Site extends AbstractNode {
 
-public interface Site extends NodeInterface {
+	public static final Property<Iterable<Page>> pagesProperty = new EndNodes<>("pages", SiteCONTAINSPage.class).partOfBuiltInSchema();
+	public static final Property<String> hostnameProperty      = new StringProperty("hostname").indexed().partOfBuiltInSchema();
+	public static final Property<Integer> portProperty         = new IntProperty("port").indexed().partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View defaultView = new View(Site.class, PropertyView.Public,
+		pagesProperty, hostnameProperty, portProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Site");
+	public static final View uiView = new View(Site.class, PropertyView.Ui,
+		pagesProperty, hostnameProperty, portProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Site"));
-		type.setCategory("ui");
+	public String getHostname() {
+		return getProperty(hostnameProperty);
+	}
 
-		type.addStringProperty("hostname", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("port",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
+	public Integer getPort() {
+		return getProperty(portProperty);
+	}
 
-		type.addPropertyGetter("hostname", String.class);
-		type.addPropertyGetter("port",     Integer.class);
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		super.onCreation(securityContext, errorBuffer);
+	}
 
-		// view configuration
-		type.addViewProperty(PropertyView.Ui, "pages");
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
 
-		type.addViewProperty(PropertyView.Public, "pages");
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
-
-	String getHostname();
-	Integer getPort();
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		super.onDeletion(securityContext, errorBuffer, properties);
+	}
 }

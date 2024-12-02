@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
@@ -33,7 +32,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -51,6 +49,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.helper.PathHelper;
+import org.structr.rest.resource.MaintenanceResource;
 
 /**
  *
@@ -61,7 +61,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("directFileImport", DirectFileImportCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("directFileImport", DirectFileImportCommand.class);
 	}
 
 	private enum Mode     { COPY, MOVE }
@@ -318,7 +318,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				}
 
 				if (mode.equals(Mode.MOVE)) {
-					
+
 					Files.delete(file);
 				}
 

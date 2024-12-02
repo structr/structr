@@ -37,80 +37,83 @@ let _Localization = {
 	},
 	onload: () => {
 
-		_Localization.init();
+		Structr.performActionAfterEnvResourceLoaded(() => {
 
-		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('localization'));
+			_Localization.init();
 
-		Structr.setMainContainerHTML(_Localization.templates.main());
-		Structr.setFunctionBarHTML(_Localization.templates.functions());
+			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('localization'));
 
-		document.getElementById('add-new-translation').addEventListener('click', (event) => {
-			event.preventDefault();
-			_Localization.createNewLocalizationEntry();
+			Structr.setMainContainerHTML(_Localization.templates.main());
+			Structr.setFunctionBarHTML(_Localization.templates.functions());
+
+			document.getElementById('add-new-translation').addEventListener('click', (event) => {
+				event.preventDefault();
+				_Localization.createNewLocalizationEntry();
+			});
+
+			// UISettings.showSettingsForCurrentModule();
+
+			let keyPreselect    = document.getElementById('localization-key-preselect');
+			let domainPreselect = document.getElementById('localization-domain-preselect');
+			let localePreselect = document.getElementById('localization-locale-preselect');
+
+			keyPreselect.addEventListener('keyup', (e) => {
+
+				if (e.code === 'Escape' || e.keyCode === 27) {
+					keyPreselect.value = '';
+					LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
+				}
+				return false;
+			});
+
+			domainPreselect.addEventListener('keyup', (e) => {
+
+				if (e.code === 'Escape' || e.keyCode === 27) {
+					domainPreselect.value = '';
+					LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
+				}
+				return false;
+			});
+
+			//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
+			domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
+			localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
+
+			document.getElementById('create-localization-form').addEventListener('submit', (e) => {
+				e.preventDefault();
+
+				_Localization.showMain();
+
+				let preselectData = {
+					name: keyPreselect.value,
+				};
+
+				if (domainPreselect.value.length > 0) {
+					preselectData.domain = domainPreselect.value;
+				}
+
+				let preselectLocalesString = localePreselect.value.trim();
+
+				LSWrapper.setItem(_Localization.localizationPreselectNameKey, preselectData.name);
+				LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
+				LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
+
+				let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
+
+				_Localization.createNewLocalizationKey(preselectData, preselectLocales);
+			});
+
+			_Localization.listKeysAndDomains();
+
+			document.querySelector('#localization-fields-save').addEventListener('click', _Localization.saveButtonAction);
+
+			Structr.mainMenu.unblock(100);
+
+			_Localization.moveResizer();
+			Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
+
+			Structr.resize();
 		});
-
-		// UISettings.showSettingsForCurrentModule();
-
-		let keyPreselect    = document.getElementById('localization-key-preselect');
-		let domainPreselect = document.getElementById('localization-domain-preselect');
-		let localePreselect = document.getElementById('localization-locale-preselect');
-
-		keyPreselect.addEventListener('keyup', (e) => {
-
-			if (e.code === 'Escape' || e.keyCode === 27) {
-				keyPreselect.value = '';
-				LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
-			}
-			return false;
-		});
-
-		domainPreselect.addEventListener('keyup', (e) => {
-
-			if (e.code === 'Escape' || e.keyCode === 27) {
-				domainPreselect.value = '';
-				LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
-			}
-			return false;
-		});
-
-		//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
-		domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
-		localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
-
-		document.getElementById('create-localization-form').addEventListener('submit', (e) => {
-			e.preventDefault();
-
-			_Localization.showMain();
-
-			let preselectData = {
-				name: keyPreselect.value,
-			};
-
-			if (domainPreselect.value.length > 0) {
-				preselectData.domain = domainPreselect.value;
-			}
-
-			let preselectLocalesString = localePreselect.value.trim();
-
-			LSWrapper.setItem(_Localization.localizationPreselectNameKey,   preselectData.name);
-			LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
-			LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
-
-			let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
-
-			_Localization.createNewLocalizationKey(preselectData, preselectLocales);
-		});
-
-		_Localization.listKeysAndDomains();
-
-		document.querySelector('#localization-fields-save').addEventListener('click', _Localization.saveButtonAction);
-
-		Structr.mainMenu.unblock(100);
-
-		_Localization.moveResizer();
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
-
-		Structr.resize();
 	},
 	uiElements: {
 		getLocalizationListContainer: () => {
@@ -189,16 +192,20 @@ let _Localization = {
 
 		_Pager.initPager('localizations', 'Localization', 1, 25, 'name', 'asc');
 
-		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction, undefined, true);
+		let customPagerFunction = Structr.isInMemoryDatabase ? null : _Localization.customPagerTransportFunction;
 
-		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
-		_Localization.keyAndDomainPager.appendFilterElements(`
-			<span class="mr-1">Filters:</span>
-			<input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
-			<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
-			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
-		`);
-		_Localization.keyAndDomainPager.activateFilterElements();
+		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, customPagerFunction, undefined, true);
+
+		if (Structr.isInMemoryDatabase === false) {
+			_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
+			_Localization.keyAndDomainPager.appendFilterElements(`
+				<span class="mr-1">Filters:</span>
+				<input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
+				<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
+				<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
+			`);
+			_Localization.keyAndDomainPager.activateFilterElements();
+		}
 		_Localization.keyAndDomainPager.setIsPaused(false);
 		_Localization.keyAndDomainPager.refresh();
 
@@ -732,7 +739,7 @@ let _Localization = {
 				</div>
 			</form>
 
-				<div id="localization-pager"></div>
+			<div id="localization-pager"></div>
 		`,
 		typeRow: config => `
 			<tr class="localization-row key-domain-pair" id="${config.localization.htmlId}">

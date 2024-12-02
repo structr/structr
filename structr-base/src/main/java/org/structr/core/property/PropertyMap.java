@@ -385,7 +385,7 @@ public class PropertyMap {
 
 							// allow custom attributes on DOMNode
 
-						} else if ("Principal".equals(entity.getSimpleName()) && "allowed".equals(key)) {
+						} else if ("PrincipalInterface".equals(entity.getSimpleName()) && "allowed".equals(key)) {
 
 							// allow "allowed" property for grantees
 

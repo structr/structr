@@ -19,29 +19,35 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
-import org.structr.rest.exception.NotFoundException;
 import org.structr.schema.SchemaHelper;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.common.helper.CaseHelper;
+import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * Represents a type-constrained ID match. A TypedIdResource will always
@@ -49,166 +55,142 @@ import java.util.Map;
  *
  *
  */
-public class TypedIdResource extends FilterableResource {
+public class TypedIdResource extends ExactMatchEndpoint {
 
-	private GraphObject entity          = null;
-	protected TypeResource typeResource = null;
-	protected UuidResource idResource   = null;
+	public TypedIdResource() {
 
-	protected TypedIdResource(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-		// empty protected constructor
-	}
-
-	public TypedIdResource(SecurityContext securityContext, UuidResource idResource, TypeResource typeResource) {
-		this.securityContext = securityContext;
-		this.typeResource = typeResource;
-		this.idResource = idResource;
+		super(
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false)
+		);
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-		return false;	// we will not accept URI parts directly
-	}
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		return new PagingIterable<>("/" + getUriPart(), Arrays.asList(getEntity()));
-	}
+		String typeName   = call.get("type");
+		final String uuid = call.get("uuid");
 
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("POST not allowed on " + typeResource.getRawType() + " element resource");
-	}
+		if (typeName != null && uuid != null) {
 
-	@Override
-	public Class getEntityClass() {
-		return typeResource.getEntityClass();
-	}
+			// test if resource class exists
+			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
+			if (entityClass != null) {
 
-	public TypeResource getTypeResource() {
-		return typeResource;
-	}
-
-	public UuidResource getIdResource() {
-		return idResource;
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		if (next instanceof SchemaMethodResource) {
-
-			// make this type resource available to the next resource
-			((SchemaMethodResource)next).wrapResource(this);
-
-		} else if (next instanceof TypeResource) {
-
-			// next constraint is a type constraint
-			// => follow predefined statc relationship
-			//    between the two types
-			return new StaticRelationshipResource(securityContext, this, (TypeResource)next);
-
-		} else if (next instanceof RelationshipResource) {
-
-			// make rel constraint wrap this
-			((RelationshipResource)next).wrapResource(this);
-			return next;
+				return new EntityResourceHandler(call, entityClass, typeName, uuid);
+			}
 		}
 
-		return super.tryCombineWith(next);
+		// only return a handler if there is actually a type with the requested name
+		return null;
 	}
 
-	@Override
-	public String getUriPart() {
-		return typeResource.getUriPart().concat("/").concat(idResource.getUriPart());
-	}
+	private class EntityResourceHandler extends RESTCallHandler {
 
-	@Override
-	public String getResourceSignature() {
-		return typeResource.getResourceSignature();
-	}
+		private Class entityClass = null;
+		private String typeName   = null;
+		private String uuid       = null;
 
-	@Override
-	public boolean isCollectionResource() {
-		return false;
-	}
+		public EntityResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid) {
 
-	// ----- public methods -----
-	public GraphObject getEntity() throws FrameworkException {
+			super(call);
 
-		if (entity == null) {
+			this.entityClass = entityClass;
+			this.typeName    = typeName;
+			this.uuid        = uuid;
+		}
 
-			final App app    = StructrApp.getInstance(securityContext);
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(securityContext, entityClass, typeName, uuid)));
+		}
 
-			final Class type  = typeResource.entityClass;
-			final String uuid = idResource.getUuid();
+		@Override
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("POST not allowed on " + typeName + " entity resource", getAllowedHttpMethodsForOptionsCall());
+		}
 
-			if (type == null) {
-				if (uuid != null) {
-					throw new NotFoundException("Type " + typeResource.getRawType() + " does not exist for request with entity ID " + uuid);
-				} else {
-					throw new NotFoundException("Request specifies no value for type and entity ID");
-				}
+		@Override
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			return genericPut(securityContext, propertySet);
+		}
+
+		@Override
+		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
+
+			// flatten input (not sure if good, but existing behaviour..)
+			final Map<String, Object> flattenedInputs = new HashMap<>();
+
+			for (Map<String, Object> propertySet : propertySets) {
+
+				flattenedInputs.putAll(propertySet);
 			}
 
-			entity = app.nodeQuery(type).uuid(uuid).getFirst();
-			if (entity == null) {
+			// redirect to doPut
+			return doPut(securityContext, flattenedInputs);
+		}
 
-				entity = app.relationshipQuery(type).uuid(uuid).getFirst();
-			}
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
 
-			if (entity == null) {
-				throw new NotFoundException("Entity with ID " + uuid + " not found");
-			}
+			final App app = StructrApp.getInstance(securityContext);
 
-			final String rawType    = SchemaHelper.normalizeEntityName(typeResource.getRawType());
-			final String entityType = entity.getClass().getSimpleName();
+			try (final Tx tx = app.tx(true, true, false)) {
 
-			if (GenericNode.class.equals(entity.getClass()) || SearchCommand.getAllSubtypesAsStringSet(rawType).contains(entityType)) {
-				return entity;
-			}
+				final GraphObject obj = getEntity(securityContext, entityClass, typeName, uuid);
 
-			// reset cached value
-			entity = null;
+				if (obj.isNode()) {
 
-			throw new NotFoundException("Entity with ID " + idResource.getUuid() + " of type " +  typeResource.getRawType() +  " does not exist");
-}
+					final NodeInterface node = (NodeInterface)obj;
 
-		return entity;
-	}
+					if (!node.isGranted(Permission.delete, securityContext)) {
 
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
+						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-		final App app = StructrApp.getInstance(securityContext);
+					} else {
 
-		try (final Tx tx = app.tx(true, true, false)) {
+						app.delete(node);
 
-			final GraphObject obj = getEntity();
-
-			if (obj.isNode()) {
-
-				final NodeInterface node = (NodeInterface)obj;
-
-				if (!node.isGranted(Permission.delete, securityContext)) {
-
-					return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+					}
 
 				} else {
 
-					app.delete(node);
-
+					app.delete((RelationshipInterface) obj);
 				}
 
-			} else {
-
-				app.delete((RelationshipInterface) obj);
+				tx.success();
 			}
 
-			tx.success();
+			return new RestMethodResult(HttpServletResponse.SC_OK);
 		}
 
-		return new RestMethodResult(HttpServletResponse.SC_OK);
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return entityClass;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public String getResourceSignature() {
+
+			String signature = call.get("type");
+
+			// append requested view to resource signature
+			if (!isDefaultView()) {
+
+				signature += "/_" + CaseHelper.toUpperCamelCase(requestedView);
+			}
+
+			return signature;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
+		}
 	}
 }

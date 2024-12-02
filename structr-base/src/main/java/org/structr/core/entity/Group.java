@@ -18,102 +18,96 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
-import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Export;
+import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
+import org.structr.core.property.ConstantBooleanProperty;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 
-import java.net.URI;
 import java.util.List;
 
 /**
  */
-public interface Group extends Principal {
+public class Group extends Principal {
 
-	static class Impl { static {
+	public static final Property<Iterable<PrincipalInterface>> membersProperty = new EndNodes<>("members", GroupCONTAINSPrincipal.class).partOfBuiltInSchema();
+	public static final Property<String> jwksReferenceIdProperty      = new StringProperty("jwksReferenceId").indexed().unique().partOfBuiltInSchema();
+	public static final Property<String> nameProperty                 = new StringProperty("name").indexed().notNull().unique().partOfBuiltInSchema();
+	public static final Property<Boolean> isGroupProperty             = new ConstantBooleanProperty("isGroup", true).partOfBuiltInSchema();
 
-		final JsonSchema schema        = SchemaService.getDynamicSchema();
-		final JsonObjectType group     = schema.addType("Group");
-		final JsonObjectType principal = schema.addType("Principal");
+	static {
 
-		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
-		group.setExtends(URI.create("#/definitions/Principal"));
-		group.setCategory("core");
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("Group");
 
-		group.addStringProperty("name")
-			.setIndexed(true)
-			.setRequired(true)
-			.setUnique(true);
+		type.setExtends(Group.class);
+	}
 
-		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		group.addPropertyGetter("members", Iterable.class);
+	public static final View defaultView = new View(Group.class, PropertyView.Public,
+		nameProperty, isGroupProperty, membersProperty, blockedProperty
+	);
 
-		group.addMethod("addMember")
-				.setSource(Group.class.getName() + ".addMember(this, member, ctx);")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("member", Principal.class.getName())
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
+	public static final View uiView = new View(Group.class, PropertyView.Ui,
+		isGroupProperty, jwksReferenceIdProperty, membersProperty
+	);
 
-		group.addMethod("removeMember")
-				.setSource(Group.class.getName() + ".removeMember(this, member, ctx);")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("member", Principal.class.getName())
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
+	public Iterable<PrincipalInterface> getMembers() {
+		return getProperty(membersProperty);
+	}
 
-		// create relationship
-		group.relate(principal, "CONTAINS", Cardinality.ManyToMany, "groups", "members");
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		// view configuration
-		group.addViewProperty(PropertyView.Ui, "members");
-		group.addViewProperty(PropertyView.Ui, "customPermissionQueryRead");
-		group.addViewProperty(PropertyView.Ui, "customPermissionQueryWrite");
-		group.addViewProperty(PropertyView.Ui, "customPermissionQueryDelete");
-		group.addViewProperty(PropertyView.Ui, "customPermissionQueryAccessControl");
+		boolean valid = super.isValid(errorBuffer);
 
-		group.addViewProperty(PropertyView.Public, "members");
-		group.addViewProperty(PropertyView.Public, "blocked");
-		group.addViewProperty(PropertyView.Public, "name");
-	}}
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Group.nameProperty, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, Group.nameProperty, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, Group.jwksReferenceIdProperty, errorBuffer);
 
-	void addMember(final SecurityContext ctx, final Principal member) throws FrameworkException;
-	void removeMember(final SecurityContext ctx, final Principal member) throws FrameworkException;
-	Iterable<Principal> getMembers();
+		return valid;
+	}
 
-
-	public static void addMember(final Group group, final Principal user, final SecurityContext ctx) throws FrameworkException {
+	@Export
+	public void addMember(final SecurityContext securityContext, final PrincipalInterface user) throws FrameworkException {
 
 		if (user == null) {
-			throw new FrameworkException(422, "Unable to add user " + user + " to group " + group);
+			throw new FrameworkException(422, "Unable to add user " + user + " to group " + this);
 		}
 
-		final PropertyKey<Iterable<Principal>> key = StructrApp.key(group.getClass(), "members");
-		final List<Principal> _users               = Iterables.toList(group.getProperty(key));
+		final List<PrincipalInterface> _users = Iterables.toList(getProperty(membersProperty));
 
 		_users.add(user);
 
-		group.setProperty(key, _users);
+		setProperty(membersProperty, _users);
 	}
 
-	public static void removeMember(final Group group, final Principal member, final SecurityContext ctx) throws FrameworkException {
+	@Export
+	public void removeMember(final SecurityContext securityContext, final PrincipalInterface member) throws FrameworkException {
 
 		if (member == null) {
-			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + group);
+			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + this);
 		}
 
-		final PropertyKey<Iterable<Principal>> key = StructrApp.key(group.getClass(), "members");
-		final List<Principal> _users               = Iterables.toList(group.getProperty(key));
+		final List<PrincipalInterface> _users = Iterables.toList(getProperty(membersProperty));
 
 		_users.remove(member);
 
-		group.setProperty(key, _users);
+		setProperty(membersProperty, _users);
+	}
+
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
+		return isAdmin();
 	}
 }

@@ -26,6 +26,7 @@ import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
@@ -44,23 +45,23 @@ import java.util.TreeMap;
  */
 public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<SchemaRelationshipNode> implements JsonReferenceType {
 
-	private JsonReferenceProperty sourceReference = null;
-	private JsonReferenceProperty targetReference = null;
-	private String sourcePropertyName             = null;
-	private String targetPropertyName             = null;
-	private String relationshipType               = null;
-	private URI sourceType                        = null;
-	private URI targetType                        = null;
-	private Cardinality cardinality               = null;
-	private Cascade cascadingDelete               = null;
-	private Cascade cascadingCreate               = null;
-	private PropagationDirection permissionPropagation       = PropagationDirection.None;
-	private PropagationMode readPropagation           = PropagationMode.Remove;
-	private PropagationMode writePropagation          = PropagationMode.Remove;
-	private PropagationMode deletePropagation         = PropagationMode.Remove;
-	private PropagationMode accessControlPropagation  = PropagationMode.Remove;
-	private String aclHiddenProperties            = null;
-	private boolean isPartOfBuiltInSchema         = false;
+	private JsonReferenceProperty sourceReference      = null;
+	private JsonReferenceProperty targetReference      = null;
+	private String sourcePropertyName                  = null;
+	private String targetPropertyName                  = null;
+	private String relationshipType                    = null;
+	private URI sourceType                             = null;
+	private URI targetType                             = null;
+	private Cardinality cardinality                    = null;
+	private Cascade cascadingDelete                    = null;
+	private Cascade cascadingCreate                    = null;
+	private PropagationDirection permissionPropagation = PropagationDirection.None;
+	private PropagationMode readPropagation            = PropagationMode.Remove;
+	private PropagationMode writePropagation           = PropagationMode.Remove;
+	private PropagationMode deletePropagation          = PropagationMode.Remove;
+	private PropagationMode accessControlPropagation   = PropagationMode.Remove;
+	private String aclHiddenProperties                 = null;
+	private boolean isPartOfBuiltInSchema              = false;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -247,7 +248,6 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		map.put(JsonSchema.KEY_SOURCE_NAME, sourcePropertyName);
 		map.put(JsonSchema.KEY_TARGET_NAME, targetPropertyName);
 
-
 		// only write values that differ from the default
 		if (!PropagationDirection.None.equals(permissionPropagation)) {
 
@@ -426,12 +426,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 		final SchemaNode sourceNode = schemaNode.getProperty(SchemaRelationshipNode.sourceNode);
 		final SchemaNode targetNode = schemaNode.getProperty(SchemaRelationshipNode.targetNode);
-		final String sourceNodeType = sourceNode.getClassName();
-		final String targetNodeType = targetNode.getClassName();
+		final String sourceNodeType = sourceNode != null ? sourceNode.getClassName() : schemaNode.getProperty(SchemaRelationshipNode.sourceType);
+		final String targetNodeType = targetNode != null ? targetNode.getClassName() : schemaNode.getProperty(SchemaRelationshipNode.targetType);
 
+		this.sourceType                = sourceNode != null ? root.getId().resolve("definitions/" + sourceNodeType) : StructrApp.getSchemaBaseURI().resolve("static/" + sourceNodeType);
+		this.targetType                = targetNode != null ? root.getId().resolve("definitions/" + targetNodeType) : StructrApp.getSchemaBaseURI().resolve("static/" + targetNodeType);
 
-		this.sourceType                = root.getId().resolve("definitions/" + sourceNodeType);
-		this.targetType                = root.getId().resolve("definitions/" + targetNodeType);
 		this.relationshipType          = schemaNode.getProperty(SchemaRelationshipNode.relationshipType);
 		this.sourcePropertyName        = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
 		this.targetPropertyName        = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
@@ -491,10 +491,10 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 
 	@Override
-	SchemaRelationshipNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException {
+	SchemaRelationshipNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
 
 		final PropertyMap properties       = new PropertyMap();
-		SchemaRelationshipNode _schemaNode = app.nodeQuery(SchemaRelationshipNode.class).andName(getName()).getFirst();
+		SchemaRelationshipNode _schemaNode = schemaRels.get(getName());
 		if (_schemaNode == null) {
 
 			_schemaNode = app.create(SchemaRelationshipNode.class, getName());
@@ -593,17 +593,53 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final SchemaNode sourceSchemaNode = resolveSchemaNode(schemaNodes, app, sourceType);
 		final SchemaNode targetSchemaNode = resolveSchemaNode(schemaNodes, app, targetType);
 
-		if (sourceSchemaNode != null && targetSchemaNode != null) {
+		final AbstractSchemaNode thisSchemaRelationship = getSchemaNode();
+		if (thisSchemaRelationship != null) {
 
-			final AbstractSchemaNode thisSchemaRelationship = getSchemaNode();
-			if (thisSchemaRelationship != null) {
+			final String prefix = "static/";
+			final int start     = prefix.length();
+
+			if (sourceSchemaNode != null) {
 
 				thisSchemaRelationship.setProperty(SchemaRelationshipNode.sourceNode, sourceSchemaNode);
+
+			} else {
+
+				// The following code allows static Java classes to be used as endpoints for dynamic relationships.
+				// The FQCN of the class is encoded in the sourceType or targetType URI as https://structr.org/v1.1/static/<fqcn>
+				final URI rel     = StructrApp.getSchemaBaseURI().relativize(sourceType);
+				final String path = rel.toString();
+
+				if (path.startsWith(prefix)) {
+
+					thisSchemaRelationship.setProperty(SchemaRelationshipNode.sourceType, path.substring(start));
+
+				} else {
+
+					throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName() + ": " + sourceType);
+				}
+			}
+
+			if (targetSchemaNode != null) {
+
 				thisSchemaRelationship.setProperty(SchemaRelationshipNode.targetNode, targetSchemaNode);
 
 			} else {
 
-				throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName());
+				// The following code allows static Java classes to be used as endpoints for dynamic relationships.
+				// The FQCN of the class is encoded in the sourceType or targetType URI as https://structr.org/v1.1/static/<fqcn>
+
+				final URI rel     = StructrApp.getSchemaBaseURI().relativize(targetType);
+				final String path = rel.toString();
+
+				if (path.startsWith(prefix)) {
+
+					thisSchemaRelationship.setProperty(SchemaRelationshipNode.targetType, path.substring(start));
+
+				} else {
+
+					throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName() + ": " + targetType);
+				}
 			}
 
 		} else {

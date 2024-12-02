@@ -44,10 +44,11 @@ import java.util.regex.Pattern;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
-	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
-	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.*) TO (.*)\\]");
+	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
+	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
 
-	protected List<String> transformators                  = new LinkedList<>();
+	protected final List<String> transformators            = new LinkedList<>();
+	protected UpdateCallback<T> updateCallback             = null;
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -63,6 +64,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean dynamic                              = false;
 	protected boolean isPartOfBuiltInSchema                = false;
 	protected boolean cachingEnabled                       = false;
+	protected boolean nodeOnly                             = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -179,6 +181,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed() {
 
 		this.indexed = true;
+
+		return this;
+	}
+
+	@Override
+	public Property<T> nodeIndexOnly() {
+
+		this.nodeOnly = true;
 
 		return this;
 	}
@@ -393,10 +403,23 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	/**
+	 * Register a callback that gets notified when this property is set.
+	 * Note that this is currently only implemented in the StartNode,
+	 * EndNode, StartNodes and EndNodes properties!
+	 *
+	 * @param callback
+	 * @return
+	 */
+	public Property<T> updateCallback(final UpdateCallback<T> callback) {
+		this.updateCallback = callback;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 
-		// make hashCode funtion work for subtypes that override jsonName() etc. as well
+		// make hashCode function work for subtypes that override jsonName() etc. as well
 		if (dbName() != null && jsonName() != null) {
 			return (dbName().hashCode() * 31) + jsonName().hashCode();
 		}
@@ -447,6 +470,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isIndexed() {
 		return indexed;
+	}
+
+	@Override
+	public boolean isNodeIndexOnly() {
+		return nodeOnly;
 	}
 
 	@Override
@@ -620,7 +648,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
 			// check for existence of range query string
-			Matcher matcher = rangeQueryPattern.matcher(requestParameter);
+			Matcher matcher = RANGE_QUERY_PATTERN.matcher(requestParameter);
 			if (matcher.matches()) {
 
 				if (matcher.groupCount() == 2) {

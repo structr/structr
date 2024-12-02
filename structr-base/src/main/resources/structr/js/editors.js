@@ -16,7 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-require.config({ paths: { 'vs': 'js/lib/monaco-editor/min/vs' }});
+require.config({
+	baseUrl: location.origin + location.pathname,
+	paths: {
+		vs: 'js/lib/monaco-editor/min/vs'
+	}
+});
 require(['vs/editor/editor.main'], () => {
 	_Editors.setupMonacoAutoCompleteOnce();
 
@@ -257,7 +262,7 @@ let _Editors = {
 					let id      = runtimeEvent.data.id;
 
 					if (
-						(!id || (entity.id && id === entity.id)) &&
+						(id === entity.id) &&
 						(!type || type === schemaType) &&
 						name === errorAttributeName
 					) {
@@ -326,7 +331,13 @@ let _Editors = {
 	resizeEditor: (monacoEditor) => {
 
 		// resize editor to minimal size...
-		monacoEditor.layout({ width: 1, height: 1 });
+		let editorMinimumHeight = 200;
+		let editorMinimumWidth  = 200;
+
+		monacoEditor.layout({
+			width: editorMinimumWidth,
+			height: editorMinimumHeight
+		});
 
 		// ... so that editor auto-layout works
 		monacoEditor.layout();
@@ -520,11 +531,11 @@ let _Editors = {
 		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
 		if (customConfig.lint === true) {
 
-			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
 
 			// onFocus handler
 			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
 			}));
 		}
 
@@ -561,7 +572,34 @@ let _Editors = {
 			}));
 		}
 
+		storageContainer.instanceDisposables.push(monacoInstance.addAction({
+			id: `editor-toggle-fullscreen-action-${entity.id}-${propertyName}`,
+			label: 'Toggle Maximized',
+			keybindings: [
+				monaco.KeyMod.Shift | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF
+			],
+			precondition: null,
+			keybindingContext: null,
+			// uncomment the following lines to add to context menu
+			// contextMenuGroupId: '1_modification',
+			// contextMenuOrder: 1.5,
+			run: (editor) => {
+
+				_Editors.toggleFullscreen(editor);
+			}
+		}));
+
 		return monacoInstance;
+	},
+	toggleFullscreen: (editor) => {
+
+		let fullscreenClass = 'monaco-editor-maximized';
+		let containerNode   = editor.getContainerDomNode();
+		let toggle          = containerNode.classList.contains(fullscreenClass);
+
+		containerNode.classList.toggle(fullscreenClass, !toggle);
+
+		_Editors.resizeEditor(editor);
 	},
 	isAutoFocusAllowed: () => {
 
@@ -624,110 +662,6 @@ let _Editors = {
 			newLanguage = _Editors.getMonacoEditorModeForContent(editor.getValue(), entity);
 		}
 		monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
-	},
-	enableSpeechToTextForEditor: (editor, buttonArea) => {
-
-		// Experimental speech recognition, works only in Chrome 25+
-		if (typeof(webkitSpeechRecognition) === 'function') {
-
-			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconMicrophone, 18, 18)}</button>`);
-
-			let speechToTextButton = buttonArea.querySelector('.speechToText');
-			let speechBtn          = $(speechToTextButton);
-
-			_Speech.init(speechBtn, function(interim, finalResult) {
-
-				if (_Speech.isCommand('save', interim)) {
-
-					_Dialogs.custom.clickSaveButton();
-
-				} else if (_Speech.isCommand('saveAndClose', interim)) {
-
-					_Speech.toggleStartStop(speechBtn, function() {
-						_Dialogs.custom.clickSaveAndCloseButton();
-					});
-
-				} else if (_Speech.isCommand('close', interim)) {
-
-					_Speech.toggleStartStop(speechBtn, function() {
-						buttonArea.querySelector('.closeButton').click();
-					});
-
-				} else if (_Speech.isCommand('stop', interim)) {
-
-					_Speech.toggleStartStop(speechBtn, function() {
-						//
-					});
-
-				} else if (_Speech.isCommand('clearAll', interim)) {
-
-					editor.setValue('');
-					editor.focus();
-					editor.execCommand('goDocEnd');
-
-				} else if (_Speech.isCommand('deleteLastParagraph', interim)) {
-
-					var text = editor.getValue();
-					editor.setValue(text.substring(0, text.lastIndexOf('\n')));
-					editor.focus();
-					editor.execCommand('goDocEnd');
-
-				} else if (_Speech.isCommand('deleteLastSentence', interim)) {
-
-					var text = editor.getValue();
-					editor.setValue(text.substring(0, text.lastIndexOf('.')+1));
-					editor.focus();
-					editor.execCommand('goDocEnd');
-
-				} else if (_Speech.isCommand('deleteLastWord', interim)) {
-
-					var text = editor.getValue();
-					editor.setValue(text.substring(0, text.lastIndexOf(' ')));
-					editor.focus();
-					editor.execCommand('goDocEnd');
-
-				} else if (_Speech.isCommand('deleteLine', interim)) {
-
-					editor.execCommand('deleteLine');
-
-				} else if (_Speech.isCommand('deleteLineLeft', interim)) {
-
-					editor.execCommand('deleteLineLeft');
-
-				} else if (_Speech.isCommand('deleteLineRight', interim)) {
-
-					editor.execCommand('killLine');
-
-				} else if (_Speech.isCommand('lineUp', interim)) {
-
-					editor.execCommand('goLineUp');
-
-				} else if (_Speech.isCommand('lineDown', interim)) {
-
-					editor.execCommand('goLineDown');
-
-				} else if (_Speech.isCommand('wordLeft', interim)) {
-
-					editor.execCommand('goWordLeft');
-
-				} else if (_Speech.isCommand('wordRight', interim)) {
-
-					editor.execCommand('goWordRight');
-
-				} else if (_Speech.isCommand('left', interim)) {
-
-					editor.execCommand('goCharLeft');
-
-				} else if (_Speech.isCommand('right', interim)) {
-
-					editor.execCommand('goCharRight');
-
-				} else {
-
-					editor.replaceSelection(interim);
-				}
-			});
-		}
 	},
 	addEscapeKeyHandlersToPreventPopupClose: (editor) => {
 
@@ -902,6 +836,26 @@ let _Editors = {
 							<option>full</option>
 							<option>brackets</option>
 							<option>keep</option>
+						</select>
+					</div>
+
+					<div class="editor-setting flex items-center p-1">
+						<label class="flex-grow">Auto-Surround</label>
+						<select name="autoSurround" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>languageDefined</option>
+							<option>never</option>
+							<option>quotes</option>
+							<option>brackets</option>
+						</select>
+					</div>
+
+					<div class="editor-setting flex items-center p-1">
+						<label class="flex-grow">Auto-Closing Quotes</label>
+						<select name="autoClosingQuotes" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>always</option>
+							<option>languageDefined</option>
+							<option>beforeWhitespace</option>
+							<option>never</option>
 						</select>
 					</div>
 

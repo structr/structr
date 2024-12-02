@@ -26,6 +26,9 @@ package org.structr.common.error;
 public class DuplicateRelationshipToken extends SemanticErrorToken {
 
 	public DuplicateRelationshipToken(final String type, final String errorMessage) {
-		super(type, null, "duplicate_relationship", errorMessage);
+
+		super(type, null, "duplicate_relationship");
+
+		withDetail(errorMessage);
 	}
 }

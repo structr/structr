@@ -65,6 +65,8 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.api.config.Settings;
+import org.structr.web.importer.Importer;
 import static org.testng.AssertJUnit.*;
 
 
@@ -497,8 +499,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		// create a folder and a subfolder
 
-		String folder01 = createEntityAsSuperUser("/folder", "{ name: 'folder 01', visibleToPublicUsers: true }");
-		String folder02 = createEntityAsSuperUser("/folder", "{ name: 'folder 02', visibleToPublicUsers: true, parent: '" + folder01 + "'}");
+		String folder01 = createEntityAsSuperUser("/Folder", "{ name: 'folder 01', visibleToPublicUsers: true }");
+		String folder02 = createEntityAsSuperUser("/Folder", "{ name: 'folder 02', visibleToPublicUsers: true, parent: '" + folder01 + "'}");
 
 		grant("Folder", 4095, true);
 
@@ -522,7 +524,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder01))
 
 			.when()
-				.get("/folder?name=folder 01");
+				.get("/Folder?name=folder 01");
 
 
 		// find subfolder by name
@@ -545,7 +547,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder02))
 
 			.when()
-				.get("/folder?name=folder 02");
+				.get("/Folder?name=folder 02");
 
 		// find folder by path
 		RestAssured
@@ -567,7 +569,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder01))
 
 			.when()
-				.get("/folder?path=/folder 01");
+				.get("/Folder?path=/folder 01");
 
 		// find subfolder by path
 		RestAssured
@@ -589,7 +591,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder02))
 
 			.when()
-				.get("/folder?path=/folder 01/folder 02");
+				.get("/Folder?path=/folder 01/folder 02");
 	}
 
 	@Test
@@ -1070,7 +1072,6 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -1079,7 +1080,6 @@ public class DOMAndPageTest extends StructrUiTest {
 			.statusCode(200)
 			.when()
 			.get("/html/testExceptionHandling");
-
 	}
 
 	@Test
@@ -1107,16 +1107,14 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
-			.body("html.body.div",   Matchers.equalTo("content"))
+			.body("html.body.div", Matchers.equalTo("content"))
 			.statusCode(200)
 			.when()
 			.get("/html/testExceptionHandling");
-
 	}
 
 	@Test
@@ -1152,6 +1150,102 @@ public class DOMAndPageTest extends StructrUiTest {
 		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(404).when().get("/html/pub");
 		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(200).when().get("/html/auth");
 
+	}
+
+	@Test
+	public void testPagePerformance() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String address    = "http://structr.github.io/structr/getbootstrap.com/docs/3.3/examples/jumbotron/";
+			final Importer importer = new Importer(securityContext, null, address, "test", true, true, false, false);
+
+			importer.parse();
+
+			// create page from source
+			final Page test = importer.readPage();
+
+			setFlagsRecursively(test, true, false);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		long average = 0;
+		long count   = 0;
+
+		// test anonymous user
+		for (int i=0; i<100; i++) {
+
+			final long t0 = System.currentTimeMillis();
+
+			RestAssured.given().expect().statusCode(200).when().get("/html/test");
+
+			final long t1 = System.currentTimeMillis();
+
+			average += (t1 - t0);
+			count++;
+		}
+
+		logger.info("Rendering a test page {} times took {} ms on average", count, (average / count));
+	}
+
+	@Test
+	public void testDetailsObjectInPageUrlWithCaching() {
+
+		String uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page test  = Page.createSimplePage(securityContext, "test");
+			final Text text  = test.createTextNode(" / ${current.id}");
+
+			test.getElementsByTagName("div").item(0).appendChild(text);
+
+			final User user = app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			);
+
+			uuid = user.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.expect()
+			.body("html.body.div",   Matchers.equalTo("Initial body text / " + uuid))
+			.statusCode(200)
+			.when()
+			.get("/html/test/" + uuid);
+
+		// make sure that the second request (which comes from the cache) also contains the details object!
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.expect()
+			.body("html.body.div",   Matchers.equalTo("Initial body text / " + uuid))
+			.statusCode(200)
+			.when()
+			.get("/html/test/" + uuid);
 	}
 
 	// ----- private methods -----

@@ -30,10 +30,8 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -45,8 +43,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
-import org.structr.rest.resource.MaintenanceParameterResource;
-import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.*;
@@ -68,12 +64,13 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import org.structr.common.helper.VersionHelper;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -86,6 +83,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
+	protected static final Set<String> ambiguousPrincipals     = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
 
@@ -94,7 +92,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE = "parent";
 	private final static String DEPLOYMENT_VERSION_KEY                                  = "structr-version";
-	private final static String DEPLOYMENT_DATE_KEY                                     = "deployment-date";
+	private final static String DEPLOYMENT_UUID_FORMAT_KEY                              = "uuid-format";
 
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
@@ -106,7 +104,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX  = ".writeFunction";
 	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY   = "source";
 
-
 	private final static String DEPLOYMENT_CONF_FILE_PATH                             = "deployment.conf";
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
@@ -116,7 +113,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String WIDGETS_FILE_PATH                                     = "widgets.json";
 	private final static String LOCALIZATIONS_FILE_PATH                               = "localizations.json";
 	private final static String APPLICATION_CONFIGURATION_DATA_FILE_PATH              = "application-configuration-data.json";
-	private final static String FILES_FILE_PATH                                       = "files.json";
+	protected final static String FILES_FILE_PATH                                     = "files.json";
 	private final static String PAGES_FILE_PATH                                       = "pages.json";
 	private final static String COMPONENTS_FILE_PATH                                  = "components.json";
 	private final static String TEMPLATES_FILE_PATH                                   = "templates.json";
@@ -125,7 +122,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String SITES_FILE_PATH                                       = "sites.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
-	private final static String FILES_FOLDER_PATH                                     = "files";
+	protected final static String FILES_FOLDER_PATH                                   = "files";
 	private final static String PAGES_FOLDER_PATH                                     = "pages";
 	private final static String SECURITY_FOLDER_PATH                                  = "security";
 	private final static String TEMPLATES_FOLDER_PATH                                 = "templates";
@@ -135,7 +132,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("deploy", DeployCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("deploy", DeployCommand.class);
 	}
 
 	@Override
@@ -200,9 +197,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return new HashMap<>();
 	}
 
-	public StreamingJsonWriter getJsonWriter() {
-		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false, true);
-	}
+//	public StreamingJsonWriter getJsonWriter() {
+//		return new StreamingJsonWriter(PropertyView.All, true, 1, false, true);
+//	}
 
 	public Gson getGson() {
 		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).serializeNulls().create();
@@ -262,6 +259,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try {
 
 			missingPrincipals.clear();
+			ambiguousPrincipals.clear();
 			missingSchemaFile.clear();
 			deferredLogTexts.clear();
 
@@ -347,25 +345,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Map<String, String> deploymentConf = readDeploymentConfigurationFile(deploymentConfFile);
 			final boolean relativeVisibility         = isDOMNodeVisibilityRelativeToParent(deploymentConf);
 
-			// version check (don't import deployment exports from newer versions!)
-			if (!acceptDeploymentExportVersion(deploymentConf)) {
-
-				final String currentVersion = VersionHelper.getFullVersionInfo();
-				final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
-
-				final String title = "Incompatible Deployment Import";
-				final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
-						+ "which is not supported because of incompatible changes in the deployment format.\n"
-						+ "Current version: " + currentVersion + "\n"
-						+ "Export version:  " + exportVersion;
-				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
-						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
-						+ "<tr><td class=\"bold pr-2\">Current version:</td><td>" + currentVersion + "</td></tr>"
-						+ "<tr><td class=\"bold pr-2\">Export version:</td><td>" + exportVersion + "</td></tr>"
-						+ "</table>";
-
-				throw new ImportPreconditionFailedException(title, text, htmlText);
-			}
+			checkDeploymentExportVersionIsCompatible(deploymentConf);
+			checkDeploymentExportUUIDFormatIsCompatible(deploymentConf);
 
 			final String message = "Read deployment config file '" + deploymentConfFile + "': " + deploymentConf.size() + " entries.";
 			logger.info(message);
@@ -397,20 +378,42 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
+			// migrate imported app
+			MigrationService.execute();
+
 			if (!missingPrincipals.isEmpty()) {
 
 				final String title = "Missing Principal(s)";
-				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>deployment</b>.<br>"
-						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
-						+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+				final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>deployment</b>.<br>"
+						+ "Because of these missing permissions/ownerships, <b>the functionality is not identical to the export you just imported</b>."
+						+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
-						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
-						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
-						+ "\t" + String.join("\n\t",  missingPrincipals)
+						+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
+						+ "\tBecause of these missing permissions/ownerships, the functionality is not identical to the export you just imported.\n\n"
+						+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
+						+ "###############################################################################"
+				);
+				publishWarningMessage(title, text);
+			}
+
+			if (!ambiguousPrincipals.isEmpty()) {
+
+				final String title = "Ambiguous Principal(s)";
+				final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>deployment</b>.<br>"
+						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
+						+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+						+ "Consider clearing up such ambiguities in the database.";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during deployment.\n"
+						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
+						+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 						+ "###############################################################################"
 				);
 				publishWarningMessage(title, text);
@@ -420,16 +423,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final String title = "Missing Schema file(s)";
 				final String text = "The following schema methods/functions require file(s) to be present in the tree-based schema export.<br>"
-						+ "Because those files are missing, the functionality will not be available after importing!<br>"
+						+ "Because those files are missing, the functionality will not be available after importing.<br>"
 						+ "The most common cause is that someone forgot to add these files to the repository."
-						+ "<ul><li>" + String.join("</li><li>",  missingSchemaFile) + "</li></ul>";
+						+ "<ul><li>" + missingSchemaFile.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following schema methods/functions require file(s) to be present in the tree-based schema export.\n"
-						+ "\tBecause those files are missing, the functionality will not be available after importing!\n"
+						+ "\tBecause those files are missing, the functionality will not be available after importing.\n"
 						+ "\tThe most common cause is that someone forgot to add these files to the repository.\n\n"
-						+ "\t" + String.join("\n\t",  missingSchemaFile)
+						+ "\t" + missingSchemaFile.stream().sorted().collect(Collectors.joining("\n\t"))
 						+ "\n###############################################################################"
 				);
 				publishWarningMessage(title, text);
@@ -468,10 +471,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			setCommandStatusCode(422);
 			setCustomCommandResult(ipfe.getTitle() + ": " + ipfe.getMessage());
 
+		} catch (FrameworkException fex) {
+
+			final String title          = "Fatal Error";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex.toString();
+
+			publishWarningMessage(title, warningMessage);
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(title + ": " + warningMessage);
+
+			throw fex;
+
 		} catch (Throwable t) {
 
 			final String title          = "Fatal Error";
-			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.";
 
 			publishWarningMessage(title, warningMessage);
 
@@ -482,7 +497,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} finally {
 
-			// log collected warnings at the end so they dont get lost
+			// log collected warnings at the end, so they do not get lost
 			for (final String logText : deferredLogTexts) {
 				logger.info(logText);
 			}
@@ -760,7 +775,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
-
 		final Map<String, Object> properties = new TreeMap<>();
 
 		Files.createDirectories(path);
@@ -776,6 +790,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Collections.sort(folders, AbstractNode.name.sorted(false));
 
 		for (final Folder child : folders) {
+
 			exportFilesAndFolders(path, child, config);
 		}
 
@@ -783,6 +798,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Collections.sort(files, AbstractNode.name.sorted(false));
 
 		for (final File file : files) {
+
 			exportFile(path, file, config);
 		}
 	}
@@ -808,7 +824,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				IOUtils.copy(file.getInputStream(), new FileOutputStream(targetPath.toFile()));
+
 			} catch (IOException ioex) {
+
 				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
 			}
 		}
@@ -816,6 +834,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
+
 			String filePath = file.getPath();
 			config.put(filePath, properties);
 		}
@@ -1096,14 +1115,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
 
-				// move global schema methods to files
-				final List<Map<String, Object>> globalSchemaMethods = schema.getGlobalMethods();
+				// move user-defined functions to files
+				final List<Map<String, Object>> userDefinedFunctions = schema.getUserDefinedFunctions();
 
-				if (!globalSchemaMethods.isEmpty()) {
+				if (!userDefinedFunctions.isEmpty()) {
 
 					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER));
 
-					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
+					for (Map<String, Object> schemaMethod : userDefinedFunctions) {
 
 						final String methodName            = (String) schemaMethod.get("name");
 
@@ -1307,7 +1326,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export owner
 		final Map<String, Object> map = new HashMap<>();
-		final Principal owner         = node.getOwnerNode();
+		final PrincipalInterface owner         = node.getOwnerNode();
 
 		if (owner != null) {
 
@@ -1357,12 +1376,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
-				final String ownerName = (String) ((Map)entry.get("owner")).get("name");
-				final Principal owner = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getFirst();
+				final String ownerName           = (String) ((Map)entry.get("owner")).get("name");
+				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(ownerName).getAsList();
 
-				if (owner == null) {
-					logger.warn("Unknown owner {}, ignoring.", ownerName);
+				if (principals.isEmpty()) {
+
+					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", ownerName);
 					DeployCommand.addMissingPrincipal(ownerName);
+
+					entry.remove("owner");
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
+					DeployCommand.addAmbiguousPrincipal(ownerName);
 
 					entry.remove("owner");
 				}
@@ -1379,13 +1406,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Map<String, Object> grantee : grantees) {
 
-				final String granteeName = (String) grantee.get("name");
-				final Principal owner    = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getFirst();
+				final String granteeName         = (String) grantee.get("name");
+				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(granteeName).getAsList();
 
-				if (owner == null) {
+				if (principals.isEmpty()) {
 
-					logger.warn("Unknown grantee {}, ignoring.", granteeName);
+					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", granteeName);
 					DeployCommand.addMissingPrincipal(granteeName);
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), granteeName);
+					DeployCommand.addAmbiguousPrincipal(granteeName);
 
 				} else {
 
@@ -1623,28 +1655,39 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (!parameterMappings.isEmpty()) {
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
+				putData(entry, "event",        				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
+				putData(entry, "action",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
+				putData(entry, "method",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
+				putData(entry, "dataType",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
+				putData(entry, "idExpression",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
 
-				putData(entry, "event",        actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
-				putData(entry, "action",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
-				putData(entry, "method",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
-				putData(entry, "dataType",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
-				putData(entry, "idExpression", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
+				putData(entry, "dialogType",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogType")));
+				putData(entry, "dialogTitle",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogTitle")));
+				putData(entry, "dialogText",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogText")));
 
-				putData(entry, "successBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
-				putData(entry, "successPartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
-				putData(entry, "successURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
-				putData(entry, "successEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
+				putData(entry, "successBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
+				putData(entry, "successEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
+				putData(entry, "successNotifications",   		actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotifications")));
+				putData(entry, "successNotificationsEvent",   	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent")));
+				putData(entry, "successNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial")));
+				putData(entry, "successNotificationsDelay", 	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay")));
+				putData(entry, "successPartial",   			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
+				putData(entry, "successURL",       			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
 
-				putData(entry, "failureBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
-				putData(entry, "failurePartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
-				putData(entry, "failureURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
-				putData(entry, "successEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
-
+				putData(entry, "failureBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
+				putData(entry, "failureEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
+				putData(entry, "failureNotifications",     	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications")));
+				putData(entry, "failureNotificationsEvent",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent")));
+				putData(entry, "failureNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial")));
+				putData(entry, "failureNotificationsDelay",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsDelay")));
+				putData(entry, "failurePartial",				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
+				putData(entry, "failureURL",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
 			}
+
+			tx.success();
 		}
 
 		writeJsonToFile(target, actionMappings);
-
 	}
 
 	private void exportParameterMapping(final Path target) throws FrameworkException {
@@ -2365,18 +2408,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
-						// detect tree-based export (absence of folder "File")
-						final boolean isTreeBasedExport = Files.exists(schemaFolder.resolve("File"));
+						final StructrSchemaDefinition schema   = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						final boolean shouldLoadSourceFromFile = schema.hasMethodSourceCodeInFiles();
 
-						final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						// The following block takes the relative file name in the source property of a schema method
+						// and loads the actual source code from a file on disk.
 
-						if (isTreeBasedExport) {
+						if (shouldLoadSourceFromFile) {
 
 							final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
 
 							if (Files.exists(globalMethodsFolder)) {
 
-								for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
+								for (Map<String, Object> schemaMethod : schema.getUserDefinedFunctions()) {
 
 									final String methodName = (String) schemaMethod.get("name");
 
@@ -2484,6 +2528,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (ImportFailureException fex) {
 
 				logger.warn("Unable to import schema: {}", fex.getMessage());
+				if (fex.getCause() instanceof FrameworkException) {
+					logger.warn("Caused by: {}", fex.getCause().toString());
+				}
 				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
 			} catch (Throwable t) {
@@ -2537,8 +2584,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final PropertiesConfiguration config = new PropertiesConfiguration();
 
 			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
-			config.setProperty(DEPLOYMENT_DATE_KEY,                            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date()));
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
+			config.setProperty(DEPLOYMENT_UUID_FORMAT_KEY,                     Settings.UUIDv4AllowedFormats.getValue());
 
 			config.save(confFile.toFile());
 
@@ -2645,12 +2692,86 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return false;
 	}
 
-	private boolean acceptDeploymentExportVersion(final Map<String, String> deploymentConfig) {
+	private void checkDeploymentExportVersionIsCompatible(final Map<String, String> deploymentConf) throws ImportPreconditionFailedException {
+
+		// version check (don't import deployment exports from newer versions!)
+		if (!acceptDeploymentExportVersion(deploymentConf)) {
+
+			final String currentVersion = VersionHelper.getFullVersionInfo();
+			final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
+
+			final String title = "Incompatible Deployment Import";
+			final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
+					+ "which is not supported because of incompatible changes in the deployment format.\n"
+					+ "Current version: " + currentVersion + "\n"
+					+ "Export version:  " + exportVersion;
+
+			final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
+					+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
+					+ "<tr><td class=\"font-bold pr-2\">Current version:</td><td>" + currentVersion + "</td></tr>"
+					+ "<tr><td class=\"font-bold pr-2\">Export version:</td><td>" + exportVersion + "</td></tr>"
+					+ "</table>";
+
+			throw new ImportPreconditionFailedException(title, text, htmlText);
+		}
+	}
+
+	private boolean acceptDeploymentExportVersion(final Map<String, String> deploymentConf) {
 
 		final int currentVersion = parseVersionString(VersionHelper.getFullVersionInfo());
-		final int exportVersion  = parseVersionString(deploymentConfig.get(DEPLOYMENT_VERSION_KEY));
+		final int exportVersion  = parseVersionString(deploymentConf.get(DEPLOYMENT_VERSION_KEY));
 
 		return currentVersion >= exportVersion;
+	}
+
+	private void checkDeploymentExportUUIDFormatIsCompatible(final Map<String, String> deploymentConfig) throws ImportPreconditionFailedException {
+
+		final String uuidFormatInDeployment = deploymentConfig.get(DEPLOYMENT_UUID_FORMAT_KEY);
+		final String ourUUIDFormat          = Settings.UUIDv4AllowedFormats.getValue();
+
+		// allow importing older exports without the entry
+		if (uuidFormatInDeployment == null) {
+
+			final String message     = "Deployment configuration does not contain information about the UUIDv4 format. If you know the deployment data to be originating from an identically configured instance you can safely ignore this message. With the next export, this setting will be written to the export folder. " +
+					"Otherwise, make sure that your current configuration '" + Settings.UUIDv4AllowedFormats.getKey() + "=" + ourUUIDFormat + "' is compatible with the UUIDv4 format of the export data! " +
+					"Continuing with import - if there are any problems, check the UUIDv4 format setting against the data in the export and configure this instance accordingly. If the formats differ, it might be advisable to start with a fresh database.";
+			final String htmlMessage = "Deployment configuration does not contain information about the UUIDv4 format. If you know the deployment data to be originating from an identically configured instance you can safely ignore this message. With the next export, this setting will be written to the export folder.<br><br>" +
+					"Otherwise, make sure that your current configuration '<b>" + Settings.UUIDv4AllowedFormats.getKey() + "=" + ourUUIDFormat + "</b>' is compatible with the UUIDv4 format of the export data!<br><br>" +
+					"Continuing with import - if there are any problems, check the UUIDv4 format setting against the data in the export and configure this instance accordingly. If the formats differ, it might be advisable to start with a fresh database.";
+
+			logger.info(message);
+
+			publishInfoMessage("UUIDv4 format of export unknown", htmlMessage);
+
+		} else if (!ourUUIDFormat.equals(uuidFormatInDeployment)) {
+
+			if (Settings.POSSIBLE_UUID_V4_FORMATS.both.toString().equals(ourUUIDFormat)) {
+
+				final String message     = "The export data is configured as having UUIDv4 format '" + uuidFormatInDeployment + "'. This instance is configured to accept both supported kinds of UUIDv4 formats. This should only ever be a temporary state to consolidate nodes to a single UUIDv4 format. Keeping this configuration permanently is neither encouraged nor supported.";
+				final String htmlMessage = "The export data is configured as having UUIDv4 format '<b>" + uuidFormatInDeployment + "</b>'. This instance is configured to accept <b>both</b> supported kinds of UUIDv4 formats.<br><br>This should only ever be a temporary state to consolidate nodes to a single UUIDv4 format. Keeping this configuration permanently is neither encouraged nor supported.";
+
+				// the current instance can handle both - allow import but complain
+				logger.warn(message);
+
+				publishWarningMessage("UUIDv4 format setting '" + ourUUIDFormat + "' active", htmlMessage);
+
+			} else {
+
+				final String title = "Incompatible Deployment Import";
+				final String text = "The deployment export data currently being imported uses a different UUIDv4 format than this instance has configured. This makes the data incompatible. Please re-configure the instance to allow for the UUIDv4 format in the export.\n"
+						+ "If there is already data in this instance, the UUIDv4 format of those nodes should be updated to reflect the export data (or vice versa)."
+						+ "Export UUIDv4 format:  " + uuidFormatInDeployment + "\n"
+						+ "Configured UUIDv4 format: " + ourUUIDFormat;
+
+				final String htmlText = "The deployment export data currently being imported uses a different UUIDv4 format than this instance has configured. This makes the data incompatible. Please re-configure the instance to allow for the UUIDv4 format in the export.<br><br>"
+						+ "If there is already data in this instance, the UUIDv4 format of those nodes should be updated to reflect the export data (or vice versa).<br><br><table>"
+						+ "<tr><td class=\"font-bold pr-2\">Export UUIDv4 format:</td><td>" + uuidFormatInDeployment + "</td></tr>"
+						+ "<tr><td class=\"font-bold pr-2\">Configured UUIDv4 format:</td><td>" + ourUUIDFormat + "</td></tr>"
+						+ "</table>";
+
+				throw new ImportPreconditionFailedException(title, text, htmlText);
+			}
+		}
 	}
 
 	private int parseVersionString(final String source) {
@@ -2703,7 +2824,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
 
-		if (deferredPageLinks.containsKey(initialUUID)) {
+		if (deferredPageLinks.containsKey(initialUUID) && !initialUUID.equals(correctUUID)) {
 			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
 			deferredPageLinks.remove(initialUUID);
 		}
@@ -2711,6 +2832,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingPrincipal (final String principalName) {
 		missingPrincipals.add(principalName);
+	}
+
+	public static void addAmbiguousPrincipal (final String principalName) {
+		ambiguousPrincipals.add(principalName);
 	}
 
 	public static void addMissingSchemaFile (final String fileName) {

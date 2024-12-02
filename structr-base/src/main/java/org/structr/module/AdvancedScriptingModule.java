@@ -47,6 +47,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new ChangelogFunction());
 		Functions.put(licenseManager, new UserChangelogFunction());
 		Functions.put(licenseManager, new ServerLogFunction());
+		Functions.put(licenseManager, new GetAvailableServerLogsFunction());
 
 		Functions.put(licenseManager, new GrantFunction());
 		Functions.put(licenseManager, new RevokeFunction());
@@ -77,6 +78,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new InstantiateFunction());
 
 		Functions.put(licenseManager, new PropertyInfoFunction());
+		Functions.put(licenseManager, new FunctionInfoFunction());
 		Functions.put(licenseManager, new TypeInfoFunction());
 		Functions.put(licenseManager, new EnumInfoFunction());
 		Functions.put(licenseManager, new StructrEnvFunction());
@@ -101,7 +103,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new EncryptFunction());
 		Functions.put(licenseManager, new DecryptFunction());
 
-		Functions.put(licenseManager, new RangeFunction());
+		Functions.put(licenseManager, new FindRangeFunction());
 		Functions.put(licenseManager, new FindWithinDistanceFunction());
 		Functions.put(licenseManager, new FindEmptyFunction());
 		Functions.put(licenseManager, new FindEqualsFunction());
@@ -113,6 +115,10 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindPageFunction());
 		Functions.put(licenseManager, new FindStartsWithFunction());
 		Functions.put(licenseManager, new FindEndsWithFunction());
+		Functions.put(licenseManager, new FindLtFunction());
+		Functions.put(licenseManager, new FindLteFunction());
+		Functions.put(licenseManager, new FindGteFunction());
+		Functions.put(licenseManager, new FindGtFunction());
 	}
 
 	@Override

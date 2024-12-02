@@ -21,76 +21,75 @@ package org.structr.messaging.engine.entities;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-public interface MessageSubscriber extends NodeInterface {
+public class MessageSubscriber extends AbstractNode {
 
-	class Impl {
+	public static final Property<Iterable<MessageClient>> clientsProperty = new StartNodes<>("clients", MessageClientHASMessageSubscriber.class);
 
-		static {
+	public static final Property<String> topicProperty    = new StringProperty("topic").indexed();
+	public static final Property<String> callbackProperty = new StringProperty("callback");
 
-			final JsonSchema schema = SchemaService.getDynamicSchema();
-			final JsonObjectType type = schema.addType("MessageSubscriber");
+	public static final View defaultView = new View(MessageSubscriber.class, PropertyView.Public,
+		topicProperty, callbackProperty, clientsProperty
+	);
 
-			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageSubscriber"));
+	public static final View uiView = new View(MessageSubscriber.class, PropertyView.Ui,
+		topicProperty, callbackProperty, clientsProperty
+	);
 
-			type.addStringProperty("topic", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-			type.addStringProperty("callback", PropertyView.Public, PropertyView.Ui);
-
-			type.addPropertyGetter("topic", String.class);
-			type.addPropertyGetter("callback", String.class);
-			type.addPropertyGetter("clients", Iterable.class);
-
-			type.overrideMethod("onCreation", true, MessageSubscriber.class.getName() + ".onCreation(this, arg0, arg1);");
-			type.overrideMethod("onModification", true, MessageSubscriber.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-
-			type.addMethod("onMessage")
-				.setReturnType(RestMethodResult.class.getName())
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("topic", String.class.getName())
-				.addParameter("message", String.class.getName())
-				.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-			type.addViewProperty(PropertyView.Public, "clients");
-			type.addViewProperty(PropertyView.Ui, "clients");
-		}
+	public String getTopic() {
+		return getProperty(topicProperty);
 	}
 
-	String getTopic();
-	String getCallback();
-	Iterable<MessageClient> getClients();
+	public String getCallback() {
+		return getProperty(callbackProperty);
+	}
 
-	static void subscribeOnAllClients(MessageSubscriber thisSubscriber, final SecurityContext securityContext) {
+	public Iterable<MessageClient> getClients() {
+		return getProperty(clientsProperty);
+	}
 
-		if (!StringUtils.isEmpty(thisSubscriber.getTopic()) && (thisSubscriber.getTopic() != null)) {
-			Map<String, Object> params = new HashMap<>();
-			params.put("topic", thisSubscriber.getTopic());
+	public void subscribeOnAllClients(final SecurityContext securityContext) {
 
-			Iterable<MessageClient> clientsList = thisSubscriber.getClients();
+		if (!StringUtils.isEmpty(this.getTopic()) && (this.getTopic() != null)) {
+
+			Iterable<MessageClient> clientsList = this.getClients();
 			clientsList.forEach(client -> {
 
 				try {
 
-					client.invokeMethod(securityContext, "subscribeTopic", params, false, new EvaluationHints());
+					final AbstractMethod method = Methods.resolveMethod(client.getClass(), "subscribeTopic");
+					if (method != null) {
+
+						final Arguments params = new Arguments();
+
+						params.add("topic", this.getTopic());
+
+						method.execute(securityContext, client, params, new EvaluationHints());
+					}
 
 				} catch (FrameworkException e) {
 
@@ -101,27 +100,33 @@ public interface MessageSubscriber extends NodeInterface {
 		}
 	}
 
-	static void onCreation(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	@Override
+	public  void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (thisSubscriber.getProperty(StructrApp.key(MessageSubscriber.class, "topic")) != null) {
-			subscribeOnAllClients(thisSubscriber, securityContext);
+		super.onCreation(securityContext, errorBuffer);
+
+		if (this.getProperty(StructrApp.key(MessageSubscriber.class, "topic")) != null) {
+			subscribeOnAllClients(securityContext);
+		}
+	}
+
+	@Override
+	public  void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		if (modificationQueue.isPropertyModified(this, StructrApp.key(MessageSubscriber.class, "topic")) || modificationQueue.isPropertyModified(this, StructrApp.key(MessageSubscriber.class, "topic"))) {
+			subscribeOnAllClients(securityContext);
 		}
 
 	}
 
-	static void onModification(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	@Export
+	public  RestMethodResult onMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException {
 
-		if (modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic")) || modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic"))) {
-			subscribeOnAllClients(thisSubscriber, securityContext);
-		}
+		if (!StringUtils.isEmpty(this.getCallback())) {
 
-	}
-
-	static RestMethodResult onMessage(MessageSubscriber thisSubscriber, final String topic, final String message, final SecurityContext securityContext) throws FrameworkException {
-
-		if (!StringUtils.isEmpty(thisSubscriber.getCallback())) {
-
-			String script = "${" + thisSubscriber.getCallback().trim() + "}";
+			String script = "${" + this.getCallback().trim() + "}";
 
 			Map<String, Object> params = new HashMap<>();
 			params.put("topic", topic);
@@ -132,7 +137,7 @@ public interface MessageSubscriber extends NodeInterface {
 			ac.setConstant("message", message);
 
 			// FIXME: the code source in this call should be the schema method that this subscriber was compiled from.
-			Scripting.evaluate(ac, thisSubscriber, script, "onMessage", null);
+			Scripting.evaluate(ac, this, script, "onMessage", null);
 		}
 
 		return new RestMethodResult(200);

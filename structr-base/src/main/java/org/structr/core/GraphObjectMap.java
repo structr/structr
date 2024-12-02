@@ -268,11 +268,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 		return null;
 	}
 
-	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
-		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
-	}
-
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() {

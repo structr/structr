@@ -21,6 +21,7 @@ package org.structr.test.rest.document;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
@@ -29,6 +30,7 @@ import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -65,7 +67,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(422)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		// post document: expect failure (Task -> Project)
 		RestAssured
@@ -77,7 +79,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(422)
 			.when()
-			.post("/tasks");
+			.post("/Task");
 
 	}
 
@@ -99,7 +101,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		// post document: expect failure (Task -> Project)
 		RestAssured
@@ -111,7 +113,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(422)
 			.when()
-			.post("/tasks");
+			.post("/Task");
 
 
 	}
@@ -134,7 +136,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(422)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		// post document: expect failure (Task -> Project)
 		RestAssured
@@ -146,7 +148,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/tasks");
+			.post("/Task");
 
 
 	}
@@ -169,7 +171,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		// post document: expect failure (Task -> Project)
 		RestAssured
@@ -181,7 +183,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/tasks");
+			.post("/Task");
 	}
 
 	@Test
@@ -201,19 +203,19 @@ public class DocumentTest extends StructrRestTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _tasks\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + projectNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _project, _subtasks, _parentTask, _worker\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + taskNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _tasks\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + workerNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
 
 		// post document
 		RestAssured
@@ -225,7 +227,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		// check result
 		RestAssured
@@ -246,7 +248,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].subtasks[1].name",        equalTo("Subtask1.2"))
 			.body("result[0].tasks[0].subtasks[1].worker.name", equalTo("Worker2"))
 			.when()
-			.get("/projects/test?name=Project1&_sort=name");
+			.get("/Project/test?name=Project1&_sort=name");
 
 		// post document
 		RestAssured
@@ -258,7 +260,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		// check result
 		RestAssured
@@ -278,7 +280,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].subtasks[1].name",        equalTo("Subtask2.2"))
 			.body("result[0].tasks[0].subtasks[1].worker.name", equalTo("Worker3"))
 			.when()
-			.get("/projects/test?name=Project2&_sort=name");
+			.get("/Project/test?name=Project2&_sort=name");
 
 		// check workers
 		RestAssured
@@ -297,7 +299,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[1].name",                    equalTo("Subtask2.1"))
 			.body("result[0].tasks[2].name",                    equalTo("Task2"))
 			.when()
-			.get("/workers/test?name=Worker2&_sort=name");
+			.get("/Worker/test?name=Worker2&_sort=name");
 	}
 
 	@Test
@@ -319,25 +321,25 @@ public class DocumentTest extends StructrRestTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _tasks\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + projectNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _subtasks, _worker\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + taskNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _tasks, _company\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + workerNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _workers\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + companyNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + companyNodeId);
 
 		String jsonBody =
                 "{"
@@ -538,7 +540,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 
 
@@ -572,7 +574,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[4].worker.name",                                 equalTo("Worker5"))
 
 			.when()
-			.get("/projects/test?name=Project1&_sort=name");
+			.get("/Project/test?name=Project1&_sort=name");
 
 		// check Task1
 		RestAssured
@@ -603,7 +605,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.name",             equalTo("Company2"))
 
 			.when()
-			.get("/tasks/test?name=Task1&_sort=name");
+			.get("/Task/test?name=Task1&_sort=name");
 
 		// check Task2
 		RestAssured
@@ -621,7 +623,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.name",                         equalTo("Company1"))
 
 			.when()
-			.get("/tasks/test?name=Task2&_sort=name");
+			.get("/Task/test?name=Task2&_sort=name");
 
 
 		// check Task3
@@ -640,7 +642,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.name",                         equalTo("Company2"))
 
 			.when()
-			.get("/tasks/test?name=Task3&_sort=name");
+			.get("/Task/test?name=Task3&_sort=name");
 
 
 		// check Task4
@@ -672,7 +674,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.name",             equalTo("Company3"))
 
 			.when()
-			.get("/tasks/test?name=Task4&_sort=name");
+			.get("/Task/test?name=Task4&_sort=name");
 
 
 		// check Task5
@@ -706,7 +708,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[1].subtasks[1].worker.name",         equalTo("Worker4"))
 
 			.when()
-			.get("/tasks/test?name=Task5&_sort=name");
+			.get("/Task/test?name=Task5&_sort=name");
 
 
 		// check Subtask5.1
@@ -732,7 +734,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[1].worker.company.name",             equalTo("Company3"))
 
 			.when()
-			.get("/tasks/test?name=Subtask5.1&_sort=name");
+			.get("/Task/test?name=Subtask5.1&_sort=name");
 
 
 		// check Subtask5.2
@@ -758,7 +760,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[1].worker.company.name",             equalTo("Company3"))
 
 			.when()
-			.get("/tasks/test?name=Subtask5.2&_sort=name");
+			.get("/Task/test?name=Subtask5.2&_sort=name");
 
 
 		// check companies
@@ -777,7 +779,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[2].name", equalTo("Company3"))
 
 			.when()
-			.get("/companies/test?_sort=name");
+			.get("/Company/test?_sort=name");
 
 		// check workers
 		RestAssured
@@ -802,7 +804,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[4].company.name", equalTo("Company3"))
 
 			.when()
-			.get("/workers/test?_sort=name");
+			.get("/Worker/test?_sort=name");
 
 	}
 
@@ -825,25 +827,25 @@ public class DocumentTest extends StructrRestTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _tasks\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + projectNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _subtasks, _worker\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + taskNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _tasks, _company\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + workerNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _workers\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + companyNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + companyNodeId);
 
 		String jsonBody1 =
                 "{"
@@ -988,7 +990,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects")
+			.post("/Project")
 			.getHeader("Location"));
 
 		String jsonBody2 =
@@ -1142,7 +1144,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.put("/projects/" + projectId);
+			.put("/Project/" + projectId);
 
 		RestAssured
 			.given()
@@ -1177,7 +1179,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[3].worker.description",                          equalTo("new workerDescription4"))
 
 			.when()
-			.get("/projects/test?name=Project1&_sort=name");
+			.get("/Project/test?name=Project1&_sort=name");
 
 		// check Task1
 		RestAssured
@@ -1223,7 +1225,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.description",      equalTo("new companyDescription2"))
 
 			.when()
-			.get("/tasks/test?name=Task1&_sort=name");
+			.get("/Task/test?name=Task1&_sort=name");
 
 		// check Task2
 		RestAssured
@@ -1244,7 +1246,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.description",                  equalTo("new companyDescription1"))
 
 			.when()
-			.get("/tasks/test?name=Task2&_sort=name");
+			.get("/Task/test?name=Task2&_sort=name");
 
 
 		// check Task3
@@ -1266,7 +1268,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.description",                  equalTo("new companyDescription2"))
 
 			.when()
-			.get("/tasks/test?name=Task3&_sort=name");
+			.get("/Task/test?name=Task3&_sort=name");
 
 
 		// check Task4
@@ -1313,7 +1315,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.description",      equalTo("new companyDescription3"))
 
 			.when()
-			.get("/tasks/test?name=Task4&_sort=name");
+			.get("/Task/test?name=Task4&_sort=name");
 
 		// check companies
 		RestAssured
@@ -1334,7 +1336,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[2].description", equalTo("new companyDescription3"))
 
 			.when()
-			.get("/companies/test?_sort=name");
+			.get("/Company/test?_sort=name");
 
 		// check workers
 		RestAssured
@@ -1369,7 +1371,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[4].company.description", equalTo("new companyDescription3"))
 
 			.when()
-			.get("/workers/test?_sort=name");
+			.get("/Worker/test?_sort=name");
 
 	}
 
@@ -1391,7 +1393,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
@@ -1403,7 +1405,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(201)
 			.when()
-			.post("/projects");
+			.post("/Project");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -1673,6 +1675,8 @@ public class DocumentTest extends StructrRestTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
 
+			type.setExtends(GroupCONTAINSPrincipal.class);
+
 			type.addStringProperty("test", PropertyView.Public);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -1727,35 +1731,35 @@ public class DocumentTest extends StructrRestTestBase {
 		final String companyNodeId     = createSchemaNode("Company", new Pair("_name", "+String!"), new Pair("_description", "String"));
 
 		// create relationships
-		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "1", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
-		createSchemaRelationships(taskNodeId, taskNodeId,      "SUBTASK",  "1", "*", "parentTask", "subtasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
-		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "1", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
-		createSchemaRelationships(workerNodeId, companyNodeId, "WORKS_AT", "*", "1", "workers",    "company",  Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(projectNodeId, taskNodeId,    "TASK",     "1", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(taskNodeId,    taskNodeId,    "SUBTASK",  "1", "*", "parentTask", "subtasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(workerNodeId,  taskNodeId,    "WORKS_ON", "1", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(workerNodeId,  companyNodeId, "WORKS_AT", "*", "1", "workers",    "company",  Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 
 		// create views
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _tasks\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + projectNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _subtasks, _worker\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + taskNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _tasks, _company\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + workerNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ \"__test\": \"_name, _description, _workers\" }")
-			.expect().statusCode(200).when().put("/schema_nodes/" + companyNodeId);
+			.expect().statusCode(200).when().put("/SchemaNode/" + companyNodeId);
 
 		String jsonBody1 =
                 "{"
@@ -1923,7 +1927,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[19].type", equalTo("Task"))
 			.body("result[20].type", equalTo("Project"))
 			.when()
-			.post("/projects");
+			.post("/Project");
 	}
 
 
@@ -1965,13 +1969,13 @@ public class DocumentTest extends StructrRestTestBase {
 
 		buf.append(" }");
 
-		return createEntity("/schema_nodes", buf.toString());
+		return createEntity("/SchemaNode", buf.toString());
 	}
 
 	private String createSchemaRelationships(final String sourceId, final String targetId, final String relationshipType, final String sourceMultiplicity, final String targetMultiplicity, final String sourceJsonName, final String targetJsonName, final int autocreate, final int cascadingDelete) {
 
 		return createEntity(
-			"/schema_relationship_nodes",
+			"/SchemaRelationshipNode",
 			"{ \"sourceId\": \"" + sourceId + "\"" +
 			", \"targetId\": \"" + targetId + "\"" +
 			", \"relationshipType\": \"" + relationshipType + "\"" +

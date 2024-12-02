@@ -200,6 +200,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isNodeIndexOnly() {
+		return propertyKey.isNodeIndexOnly();
+	}
+
+	@Override
 	public boolean isPassivelyIndexed() {
 		return propertyKey.isPassivelyIndexed();
 	}
@@ -275,6 +280,11 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> indexed() {
 		return propertyKey.indexed();
+	}
+
+	@Override
+	public Property<T> nodeIndexOnly() {
+		return propertyKey.nodeIndexOnly();
 	}
 
 	@Override

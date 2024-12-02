@@ -29,23 +29,23 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -58,15 +58,18 @@ public class ActionContext {
 	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// Regular members
-	private final Map<String, Context> scriptingContexts = new HashMap<>();
-	private ContextStore temporaryContextStore           = new ContextStore();
+	private Map<String, Context> scriptingContexts = new HashMap<>();
+	private final ContextStore temporaryContextStore     = new ContextStore();
+	private final StringBuilder outputBuffer             = new StringBuilder();
 	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
-	private StringBuilder outputBuffer                   = new StringBuilder();
 	private Locale locale                                = Locale.getDefault();
+	private AbstractMethod currentMethod                 = null;
 	private SecurityContext securityContext              = null;
 	private Predicate predicate                          = null;
 	private boolean disableVerboseExceptionLogging       = false;
 	private boolean javaScriptContext                    = false;
+
+	public int level = 0;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -139,8 +142,16 @@ public class ActionContext {
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {
 
-			String key = parts[i];
-			_data      = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+			final String key = parts[i];
+
+			if (_data instanceof GraphObject obj) {
+
+				_data = obj.evaluate(this, key, null, hints, row, column);
+
+			} else {
+
+				_data = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+			}
 
 			// stop evaluation on null
 			if (_data == null) {
@@ -287,23 +298,22 @@ public class ActionContext {
 
 				if (data != null) {
 
-					if (data instanceof GraphObject) {
+					if (data instanceof GraphObject graphObject) {
 
-						value = ((GraphObject) data).evaluate(this, key, defaultValue, hints, row, column);
+						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
 
-					} else if (data instanceof Class) {
+					} else if (data instanceof Class clazz) {
 
-						// static method?
-						final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType((Class) data);
-						if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
+						final AbstractMethod method = Methods.resolveMethod(clazz, key);
+						if (method != null) {
 
 							hints.reportExistingKey(key);
 
 							final ContextStore contextStore = getContextStore();
-							final Map<String, Object> parameters = contextStore.getTemporaryParameters();
-							final Method method = methods.get(key);
+							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
+							final Arguments arguments       = Arguments.fromMap(temp);
 
-							return AbstractNode.invokeMethod(securityContext, method, null, parameters, hints);
+							return method.execute(securityContext, null, arguments, hints);
 						}
 
 					} else {
@@ -442,7 +452,7 @@ public class ActionContext {
 
 						case "now":
 							hints.reportExistingKey(key);
-							return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
+							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyParser.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
 							hints.reportExistingKey(key);
@@ -518,54 +528,6 @@ public class ActionContext {
 		return null;
 	}
 
-	public static String getBaseUrl() {
-		return getBaseUrl(null);
-	}
-
-	public static String getBaseUrl(final HttpServletRequest request) {
-		return getBaseUrl(request, false);
-	}
-
-	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
-
-		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
-
-		if (StringUtils.isNotEmpty(baseUrlOverride)) {
-			return baseUrlOverride;
-		}
-
-		final StringBuilder sb = new StringBuilder("http");
-
-		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
-		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
-
-		if (httpsEnabled) {
-			sb.append("s");
-		}
-
-		sb.append("://");
-		sb.append(name);
-
-		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
-		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
-			sb.append(":").append(port);
-		}
-
-		return sb.toString();
-	}
-
-	public static String getRemoteAddr(HttpServletRequest request) {
-
-		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
-
-		if (remoteAddress == null) {
-			return request.getRemoteAddr();
-		}
-
-		return remoteAddress;
-	}
-
 	public void print(final Object[] objects, final Object caller) {
 
 		for (final Object obj : objects) {
@@ -634,8 +596,72 @@ public class ActionContext {
 		scriptingContexts.put(language, context);
 	}
 
+	public void setScriptingContexts(final Map<String, Context> contexts) {
+		scriptingContexts = contexts;
+	}
+
+	public Map<String,Context> getScriptingContexts() {
+		return scriptingContexts;
+	}
+
 	public boolean isRenderContext() {
 		return false;
+	}
 
+	public void setCurrentMethod(final AbstractMethod currentMethod) {
+		this.currentMethod = currentMethod;
+	}
+
+	public AbstractMethod getCurrentMethod() {
+		return currentMethod;
+	}
+
+	// ----- public static methods -----
+	public static String getBaseUrl() {
+		return getBaseUrl(null);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request) {
+		return getBaseUrl(request, false);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
+
+		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
+
+		if (StringUtils.isNotEmpty(baseUrlOverride)) {
+			return baseUrlOverride;
+		}
+
+		final StringBuilder sb = new StringBuilder("http");
+
+		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
+		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
+		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
+		if (httpsEnabled) {
+			sb.append("s");
+		}
+
+		sb.append("://");
+		sb.append(name);
+
+		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
+		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
+			sb.append(":").append(port);
+		}
+
+		return sb.toString();
+	}
+
+	public static String getRemoteAddr(HttpServletRequest request) {
+
+		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+
+		if (remoteAddress == null) {
+			return request.getRemoteAddr();
+		}
+
+		return remoteAddress;
 	}
 }

@@ -18,106 +18,175 @@
  */
 package org.structr.rest.resource;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.rest.exception.IllegalPathException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * Represents an exact UUID match.
  */
-public class UuidResource extends FilterableResource {
+public class UuidResource extends ExactMatchEndpoint {
 
-	private String uuid = null;
+	public UuidResource() {
 
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-
-		GraphObject obj = getEntity();
-		if (obj != null) {
-
-			return new PagingIterable<>("/" + getUriPart(), Arrays.asList(obj));
-
-		}
-
-		throw new NotFoundException("Entity with ID " + getUuid() + " not found");
+		super(RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false));
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
-		this.securityContext = securityContext;
+		final String uuid = call.get("uuid");
+		if (uuid != null) {
 
-		this.setUuid(part);
-
-		return true;
-
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		// do not allow nesting of "bare" uuid resource with type resource
-		// as this will not do what the user expects to do.
-		if (next instanceof TypeResource) {
-
-			throw new IllegalPathException("Cannot resolve URL path, no type resource expected here");
+			return new UuidResourceHandler(call, uuid);
 		}
 
-		return super.tryCombineWith(next);
+		// only return a handler if there is actually a type with the requested name
+		return null;
 	}
 
-	public GraphObject getEntity() throws FrameworkException {
+	private class UuidResourceHandler extends RESTCallHandler {
 
-		final App app = StructrApp.getInstance(securityContext);
+		private String uuid = null;
 
-		GraphObject entity = app.nodeQuery().uuid(uuid).getFirst();
-		if (entity == null) {
+		public UuidResourceHandler(final RESTCall call, final String uuid) {
 
-			entity = app.relationshipQuery().uuid(uuid).getFirst();
+			super(call);
+
+			this.uuid = uuid;
 		}
 
-		if (entity == null) {
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			GraphObject obj = getEntity(securityContext);
+			if (obj != null) {
+
+				return new PagingIterable<>("/" + getURL(), Arrays.asList(obj));
+
+			}
+
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 		}
 
-		return entity;
-	}
+		@Override
+		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
 
-	public String getUuid() {
+			GraphObject obj = getEntity(securityContext);
+			if (obj != null) {
 
-		return uuid;
-	}
+				final Map<String, Object> flattenedInputs = new HashMap<>();
 
-	@Override
-	public String getUriPart() {
+				for (final Map<String, Object> input : propertySets) {
 
-		return uuid;
-	}
+					flattenedInputs.putAll(input);
+				}
 
-	@Override
-	public String getResourceSignature() {
+				// PATCH on UUID resource redirects to PUT with flattened inputs
+				return genericPut(securityContext, flattenedInputs);
 
-		return "/";
-	}
+			}
 
-	@Override
-	public boolean isCollectionResource() {
+			throw new NotFoundException("Entity with ID " + uuid + " not found");
+		}
 
-		return false;
-	}
+		@Override
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			return genericPut(securityContext, propertySet);
+		}
 
-	public void setUuid(String uuid) {
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
 
-		this.uuid = uuid;
+			final App app = StructrApp.getInstance(securityContext);
+
+			try (final Tx tx = app.tx(true, true, false)) {
+
+				final GraphObject obj = getEntity(securityContext);
+
+				if (obj.isNode()) {
+
+					final NodeInterface node = (NodeInterface)obj;
+
+					if (!node.isGranted(Permission.delete, securityContext)) {
+
+						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+
+					} else {
+
+						app.delete(node);
+
+					}
+
+				} else {
+
+					app.delete((RelationshipInterface) obj);
+				}
+
+				tx.success();
+			}
+
+			return new RestMethodResult(HttpServletResponse.SC_OK);
+		}
+
+		public GraphObject getEntity(final SecurityContext securityContext) throws FrameworkException {
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			GraphObject entity = app.nodeQuery().uuid(uuid).getFirst();
+			if (entity == null) {
+
+				entity = app.relationshipQuery().uuid(uuid).getFirst();
+			}
+
+			if (entity == null) {
+				throw new FrameworkException(404, "Entity with ID " + uuid + " not found.");
+			}
+
+			return entity;
+		}
+
+		@Override
+		public String getURL() {
+			return uuid;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return null;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
+		}
 	}
 }

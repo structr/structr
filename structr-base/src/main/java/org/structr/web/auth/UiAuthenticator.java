@@ -22,20 +22,24 @@ import com.github.scribejava.core.model.OAuth2AccessToken;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeServiceCommand;
@@ -47,17 +51,14 @@ import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
-import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
+import org.structr.common.helper.PathHelper;
+import org.structr.web.resource.RegistrationResourceHandler;
 
 /**
  *
@@ -82,7 +83,6 @@ public class UiAuthenticator implements Authenticator {
 		methods.put("PATCH", Method.PATCH);
 		methods.put("DELETE", Method.DELETE);
 		methods.put("OPTIONS", Method.OPTIONS);
-
 	}
 
 	// access flags
@@ -106,6 +106,8 @@ public class UiAuthenticator implements Authenticator {
 	public static final long AUTH_USER_PATCH	= 4096;
 	public static final long NON_AUTH_USER_PATCH	= 8192;
 
+	private static final String BACKEND_SSO_LOGIN_INDICATOR = "isBackendOAuthLogin";
+
 	/**
 	 * Examine request and try to find a user.
 	 *
@@ -120,7 +122,17 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
-		Principal user = checkExternalAuthentication(request, response);
+		// prefetch
+		/*
+		TransactionCommand.getCurrentTransaction().prefetch(
+			"(p1:PrincipalInterface)-[r:CONTAINS*0..1]-(p2:PrincipalInterface)",
+			Set.of("PrincipalInterface/all/OUTGOING/CONTAINS", "Group/all/OUTGOING/CONTAINS"),
+			Set.of("PrincipalInterface/all/INCOMING/CONTAINS", "Group/all/INCOMING/CONTAINS")
+		);
+
+		 */
+
+		PrincipalInterface user = checkExternalAuthentication(request, response);
 		SecurityContext securityContext;
 
 		String authorizationToken = getAuthorizationToken(request);
@@ -200,12 +212,32 @@ public class UiAuthenticator implements Authenticator {
 		final String requestedMethod  = request.getHeader("Access-Control-Request-Method");
 		final String requestUri       = request.getRequestURI();
 
-		String acceptedOriginsString  = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAcceptedOrigins.getKey(),  CorsSetting.acceptedOrigins);
-		final Integer maxAge          = (Integer) getEffectiveCorsSettingValue(request, Settings.AccessControlMaxAge.getKey(),           CorsSetting.maxAge);
-		final String allowMethods     = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowMethods.getKey(),     CorsSetting.allowMethods);
-		final String allowHeaders     = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowHeaders.getKey(),     CorsSetting.allowHeaders);
-		final String allowCredentials = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowCredentials.getKey(), CorsSetting.allowCredentials);
-		final String exposeHeaders    = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlExposeHeaders.getKey(),    CorsSetting.exposeHeaders);
+		String acceptedOriginsString  = Settings.AccessControlAcceptedOrigins.getValue();
+		Integer maxAge                = Settings.AccessControlMaxAge.getValue();
+		String allowMethods           = Settings.AccessControlAllowMethods.getValue();
+		String allowHeaders           = Settings.AccessControlAllowHeaders.getValue();
+		String allowCredentials       = Settings.AccessControlAllowCredentials.getValue();
+		String exposeHeaders          = Settings.AccessControlExposeHeaders.getValue();
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
+			if (corsSettingObjectFromDatabase != null) {
+
+				acceptedOriginsString = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.acceptedOrigins,  acceptedOriginsString);
+				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.maxAge,           maxAge);
+				allowMethods          = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowMethods,     allowMethods);
+				allowHeaders          = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowHeaders,     allowHeaders);
+				allowCredentials      = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.allowCredentials, allowCredentials);
+				exposeHeaders         = (String) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase,  CorsSetting.exposeHeaders,    exposeHeaders);
+			}
+
+			tx.success();
+
+		}  catch (FrameworkException t) {
+
+			logger.error("Exception while processing request", t);
+		}
 
 		final List<String> acceptedOrigins = Arrays.stream(acceptedOriginsString.split(",")).map(String::trim).collect(Collectors.toList());
 		final boolean wildcardAllowed = acceptedOrigins.contains("*");
@@ -252,8 +284,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
 
-		final Principal user    = securityContext.getUser(false);
-		final boolean validUser = (user != null);
+		final PrincipalInterface user             = securityContext.getUser(false);
+		final boolean validUser          = (user != null);
 
 		// super user is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
@@ -261,45 +293,51 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		// only necessary for non-admin users!
-		final List<ResourceAccess> grants = ResourceAccess.findGrants(securityContext, rawResourceSignature);
-		final Method method               = methods.get(request.getMethod());
+		final List<ResourceAccess> permissions = ResourceAccess.findPermissions(securityContext, rawResourceSignature);
+		final Method method                    = methods.get(request.getMethod());
 
-		// flatten grants
-		long combinedFlags = 0;
-		int grantsFound    = 0;
+		// flatten permissons
+		long combinedFlags   = 0;
+		int permissionsFound = 0;
 
-		if (grants != null) {
+		if (permissions != null) {
 
-			// combine allowed flags for grants user is allowed to see
-			for (final ResourceAccess grant : grants) {
+			// combine allowed flags for permissions user is allowed to see
+			for (final ResourceAccess permission : permissions) {
 
-				if (securityContext.isReadable(grant, false, false)) {
+				if (securityContext.isReadable(permission, false, false)) {
 
-					grantsFound++;
-					combinedFlags = combinedFlags | grant.getFlags();
+					permissionsFound++;
+					combinedFlags = combinedFlags | permission.getFlags();
 				}
 			}
 		}
 
-		// no grants => no access rights
-		if (grantsFound == 0) {
+		// no permissions => no access rights
+		if (permissionsFound == 0) {
 
-			final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
-			final String errorMessage = "Found no resource access grant for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
-			final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+			final boolean isServicePrincipal = validUser && (user instanceof ServicePrincipal);
+
+			final String userInfo     = (validUser ? (isServicePrincipal ? "service principal '" + user.getName() + "'" : "user '" + user.getName() + "'") : "anonymous users");
+			final String errorMessage = "Found no resource access permission for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
+			final Map eventLogMap     = new HashMap(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal));
+			if (validUser) {
+				eventLogMap.put("userName", user.getName());
+			}
 
 			logger.info(errorMessage);
-			RuntimeEventLog.resourceAccess("No grant", eventLogMap);
+			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-				"type", "RESOURCE_ACCESS",
-				"message", errorMessage,
-				"uri", securityContext.getCompoundRequestURI(),
-				"signature", rawResourceSignature,
-				"method", method,
-				"validUser", validUser,
-				"userid",    (validUser ? user.getUuid() : ""),
-				"username",  (validUser ? user.getName() : "")
+				"type",           "RESOURCE_ACCESS",
+				"message",            errorMessage,
+				"uri",                securityContext.getCompoundRequestURI(),
+				"signature",          rawResourceSignature,
+				"method",             method,
+				"validUser",          validUser,
+				"isServicePrincipal", isServicePrincipal,
+				"userid",             (validUser ? user.getUuid() : ""),
+				"username",           (validUser ? user.getName() : "")
 			));
 
 			throw new UnauthorizedException("Access denied");
@@ -400,7 +438,7 @@ public class UiAuthenticator implements Authenticator {
 
 		final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
 		final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
-		final String errorMessage = "Found " + grantsFound + " resource access grant" + (grantsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
+		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
 
 		logger.info(errorMessage);
 
@@ -421,11 +459,11 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
+	public PrincipalInterface doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
 		final PropertyKey<String> confKey  = StructrApp.key(User.class, "confirmationKey");
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+		final PrincipalInterface user      = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
 
@@ -445,10 +483,10 @@ public class UiAuthenticator implements Authenticator {
 	public void doLogout(final HttpServletRequest request) {
 
 		try {
-			final Principal user = getUser(request, false);
+			final PrincipalInterface user = getUser(request, false);
 			if (user != null) {
 
-				Services.getInstance().broadcastLogout(user);
+				Services.getInstance().broadcastLogout(user.getNode().getId().getId());
 
 				AuthHelper.doLogout(request, user);
 			}
@@ -501,38 +539,19 @@ public class UiAuthenticator implements Authenticator {
 	/**
 	 * Get effective CORS setting
 	 */
-	private <T> Object getEffectiveCorsSettingValue(final HttpServletRequest request, final String corsAttributeKey, final PropertyKey<T> corsSettingPropertyKey) throws FrameworkException {
+	private <T> Object getEffectiveCorsSettingValue(final CorsSetting corsSettingObjectFromDatabase, final PropertyKey<T> corsSettingPropertyKey, final T defaultValue) throws FrameworkException {
 
-		// Default is value from Settings
-		Object effectiveCorsSettingValue = Settings.getSetting(corsAttributeKey).getValue();
+		if (corsSettingObjectFromDatabase != null) {
 
-		logger.debug("Settings value for {} from config: {}", corsAttributeKey, effectiveCorsSettingValue);
+			final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
+			if (corsSettingValueFromDatabase != null) {
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			final String requestUri       = request.getRequestURI();
-			CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
-
-			if (corsSettingObjectFromDatabase != null) {
-
-				final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
-
-				if (corsSettingValueFromDatabase != null) {
-					// Overwrite config setting
-					effectiveCorsSettingValue = corsSettingValueFromDatabase;
-				}
-				logger.debug("Settings value for {} from database: {}", corsAttributeKey, effectiveCorsSettingValue);
+				// Overwrite config setting
+				return corsSettingValueFromDatabase;
 			}
-
-			tx.success();
-			return effectiveCorsSettingValue;
-
-		}  catch (FrameworkException t) {
-
-			logger.error("Exception while processing request", t);
 		}
 
-		return null;
+		return defaultValue;
 	}
 
 	/**
@@ -542,7 +561,7 @@ public class UiAuthenticator implements Authenticator {
 	 * @param response
 	 * @return user
 	 */
-	protected Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
+	protected PrincipalInterface checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		final String path = PathHelper.clean(request.getPathInfo());
 		final String[] uriParts = PathHelper.getParts(path);
@@ -560,28 +579,39 @@ public class UiAuthenticator implements Authenticator {
 
 		OAuth2Client oAuth2Client = null;
 
-		switch (name) {
-			case "auth0":
-				oAuth2Client = new Auth0AuthClient(request);
-				break;
-			case "facebook":
-				oAuth2Client = new FacebookAuthClient(request);
-				break;
-			case "github":
-				oAuth2Client = new GithubAuthClient(request);
-				break;
-			case "google":
-				oAuth2Client = new GoogleAuthClient(request);
-				break;
-			case "linkedin":
-				oAuth2Client = new LinkedInAuthClient(request);
-				break;
-			case "azure":
-				oAuth2Client = new AzureAuthClient(request);
-				break;
-			default:
-				logger.error("Could not initialize oAuth2Client for provider {}", name);
-				return null;
+		try {
+
+			switch (name) {
+				case "auth0":
+					oAuth2Client = new Auth0AuthClient(request);
+					break;
+				case "facebook":
+					oAuth2Client = new FacebookAuthClient(request);
+					break;
+				case "github":
+					oAuth2Client = new GithubAuthClient(request);
+					break;
+				case "google":
+					oAuth2Client = new GoogleAuthClient(request);
+					break;
+				case "linkedin":
+					oAuth2Client = new LinkedInAuthClient(request);
+					break;
+				case "azure":
+					oAuth2Client = new AzureAuthClient(request);
+					break;
+				default:
+
+					logger.error("Unable to initialize oAuth2Client for provider {}", name);
+					return null;
+			}
+
+		} catch (IllegalArgumentException iae) {
+
+			// always throw exception, but handle it silently for backend SSO probes
+			final boolean treatSilently = (request.getParameter(BACKEND_SSO_LOGIN_INDICATOR) != null);
+
+			throw new OAuthException("Unable to initialize OAuth client '" + name + "': " + iae.getMessage(), treatSilently);
 		}
 
 		if ("login".equals(action)) {
@@ -638,7 +668,7 @@ public class UiAuthenticator implements Authenticator {
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
 					// first try: literal, unchanged value from oauth provider
-					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					PrincipalInterface user = AuthHelper.getPrincipalForCredential(credentialKey, value);
 					if (user == null) {
 
 						// since e-mail addresses are stored in lower case, we need
@@ -655,7 +685,7 @@ public class UiAuthenticator implements Authenticator {
 
 							logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
 
-							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+							user = RegistrationResourceHandler.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
 							// let oauth implementation augment user info
 							oAuth2Client.initializeAutoCreatedUser(user);
@@ -681,19 +711,23 @@ public class UiAuthenticator implements Authenticator {
 
 							URIBuilder uriBuilder = new URIBuilder();
 							if (originalRequestParameters != null) {
-								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-									for (String parameterEntry : entry.getValue()) {
+
+								for (final Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+
+									for (final String parameterEntry : entry.getValue()) {
 
 										final String entryKey = entry.getKey();
 
 										if (StringUtils.equals(entryKey, "createTokens") && StringUtils.equals(parameterEntry, "true")) {
+
 											isTokenLogin = true;
 
-											Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
+											final Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 
 											uriBuilder.addParameter("access_token", tokenMap.get("access_token"));
 											uriBuilder.addParameter("refresh_token", tokenMap.get("refresh_token"));
-										} else {
+
+										} else if (!BACKEND_SSO_LOGIN_INDICATOR.equals(entry.getKey())) {
 
 											uriBuilder.addParameter(entry.getKey(), parameterEntry);
 										}
@@ -703,26 +737,37 @@ public class UiAuthenticator implements Authenticator {
 
 							logger.debug("Logging in user {}", user);
 
-							if(!isTokenLogin) {
+							if (!isTokenLogin) {
+
 								AuthHelper.doLogin(request, user);
 							}
+
 							HtmlServlet.setNoCacheHeaders(response);
 
 							oAuth2Client.invokeOnLoginMethod(user);
 
 							logger.debug("HttpServletResponse status: {}", response.getStatus());
 
-							final String configuredReturnUri = oAuth2Client.getReturnURI();
-							if (StringUtils.startsWith(configuredReturnUri, "http")) {
+							boolean isBackendSSOLogin = (originalRequestParameters.get(BACKEND_SSO_LOGIN_INDICATOR) != null);
+							if (!isBackendSSOLogin) {
 
-								URI redirectUri = new URI(configuredReturnUri);
-								uriBuilder.setHost(redirectUri.getHost());
-								uriBuilder.setPath(redirectUri.getPath());
-								uriBuilder.setPort(redirectUri.getPort());
-								uriBuilder.setScheme(redirectUri.getScheme());
+								final String configuredReturnUri = oAuth2Client.getReturnURI();
+								if (StringUtils.startsWith(configuredReturnUri, "http")) {
+
+									URI redirectUri = new URI(configuredReturnUri);
+									uriBuilder.setHost(redirectUri.getHost());
+									uriBuilder.setPath(redirectUri.getPath());
+									uriBuilder.setPort(redirectUri.getPort());
+									uriBuilder.setScheme(redirectUri.getScheme());
+
+								} else {
+
+									uriBuilder.setPath(configuredReturnUri);
+								}
 
 							} else {
-								uriBuilder.setPath(configuredReturnUri);
+
+								uriBuilder.setPath("/structr/");
 							}
 
 							response.resetBuffer();
@@ -785,9 +830,9 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
+	public PrincipalInterface getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
-		Principal user = null;
+		PrincipalInterface user = null;
 
 		String authorizationToken = getAuthorizationToken(request);
 

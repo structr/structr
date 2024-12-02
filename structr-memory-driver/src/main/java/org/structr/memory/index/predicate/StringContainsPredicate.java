@@ -25,13 +25,20 @@ import org.structr.api.graph.PropertyContainer;
  */
 public class StringContainsPredicate<T extends PropertyContainer> implements Predicate<T> {
 
-	private String key          = null;
-	private String desiredValue = null;
+	private String key              = null;
+	private String desiredValue     = null;
+	private boolean caseInsensitive = false;
 
-	public StringContainsPredicate(final String key, final String desiredValue) {
+	public StringContainsPredicate(final String key, final String desiredValue, final boolean caseInsensitive) {
 
-		this.key          = key;
-		this.desiredValue = desiredValue;
+		this.key             = key;
+		this.desiredValue    = desiredValue;
+		this.caseInsensitive = caseInsensitive;
+	}
+
+	@Override
+	public String toString() {
+		return "CONTAINS(" + key + ", " + desiredValue + ", case " + (caseInsensitive ? "insensitive" : "sensitive") + ")";
 	}
 
 	@Override
@@ -40,9 +47,18 @@ public class StringContainsPredicate<T extends PropertyContainer> implements Pre
 		final Object value = entity.getProperty(key);
 		if (value != null) {
 
-			final String string = value.toString().toLowerCase();
+			if (caseInsensitive) {
 
-			return value != null && string.contains(desiredValue.toLowerCase());
+				final String string = value.toString().toLowerCase();
+
+				return value != null && string.contains(desiredValue.toLowerCase());
+
+			} else {
+
+				final String string = value.toString();
+
+				return value != null && string.contains(desiredValue);
+			}
 		}
 
 		return false;

@@ -40,12 +40,12 @@ import java.util.Map;
  */
 public class FixedSizeCache<K, V> {
 
-	private LRUMap<K, V> cache          = null;
-	private String name                 = null;
+	private LRUMap<K, V> cache = null;
+	private String name        = null;
 
 	public FixedSizeCache(final String name, final int maxSize) {
 
-		this.cache       = new InvalidatingLRUMap<>(maxSize);
+		this.cache       = new LRUMap<>(maxSize);
 		this.name        = name;
 	}
 
@@ -83,25 +83,5 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized boolean containsKey(final K key) {
 		return cache.containsKey(key);
-	}
-
-	// ----- nested classes -----
-	private static class InvalidatingLRUMap<K, V> extends LRUMap<K, V> {
-
-		public InvalidatingLRUMap(final int maxSize) {
-			super(maxSize, true);
-		}
-
-		@Override
-		protected boolean removeLRU(final LinkEntry<K, V> entry) {
-
-			final V value = entry.getValue();
-			if (value != null && value instanceof Cachable) {
-
-				((Cachable)value).onRemoveFromCache();
-			}
-
-			return true;
-		}
 	}
 }

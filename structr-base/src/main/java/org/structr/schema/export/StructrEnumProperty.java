@@ -28,13 +28,16 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 
+import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -116,13 +119,11 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 		} else {
 
-			logger.warn("Missing enum values of {}.{}, trying to find information in the local schema.", this.parent.getName(), this.name);
-
 			final String typeName = this.parent.getName();
 			if (typeName != null) {
 
 				final JsonSchema builtInSchema = SchemaService.getDynamicSchema();
-				final JsonType type            = builtInSchema.getType(typeName);
+				final JsonType type            = builtInSchema.getType(typeName, false);
 
 				if (type != null) {
 
@@ -133,11 +134,44 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 							if (prop instanceof StructrEnumProperty) {
 
-								StructrEnumProperty e = (StructrEnumProperty)prop;
+								StructrEnumProperty e = (StructrEnumProperty) prop;
 
 								this.fqcn = e.fqcn;
 							}
 						}
+					}
+				}
+
+				if (this.fqcn == null) {
+
+					final Class staticType = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+					if (staticType != null) {
+
+						try {
+
+							Field enumField = getFieldOrNull(staticType, getName());
+							if (enumField == null) {
+
+								enumField = getFieldOrNull(staticType, getName() + "Property");
+							}
+
+							if (enumField != null) {
+
+								enumField.setAccessible(true);
+
+								final EnumProperty enumProperty = (EnumProperty) enumField.get(null);
+								final Class enumType = enumProperty.valueType();
+
+								if (enumType != null) {
+
+									// Enum types are often defined inside of classes, and getName() returns
+									// the wrong string for these enums, e.g. my.pkg.MyClass$MyEnum, whereas
+									// getCanonicalName() correctly returns my.pkg.MyClass.MyEnum.
+									this.fqcn = enumType.getCanonicalName();
+								}
+							}
+
+						} catch (Throwable ignore) {}
 					}
 				}
 			}

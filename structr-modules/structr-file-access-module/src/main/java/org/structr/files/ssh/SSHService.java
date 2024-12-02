@@ -20,7 +20,6 @@ package org.structr.files.ssh;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.sshd.common.Factory;
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
@@ -50,14 +49,13 @@ import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -86,7 +84,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		logger.info("Setting up SSH server..");
 
@@ -205,7 +203,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				try {
 
-					Principal principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+					PrincipalInterface principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
 
 					if (principal != null) {
 
@@ -264,7 +262,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			try {
 
-				final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
+				final PrincipalInterface principal = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(username).getFirst();
 				if (principal != null) {
 
 					if (principal.isAdmin()) {
@@ -272,7 +270,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
 						// check single (main) pubkey
-						final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
+						final String pubKeyData = principal.getProperty(StructrApp.key(PrincipalInterface.class, "publicKey"));
 						if (pubKeyData != null) {
 
 							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
@@ -281,7 +279,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						}
 
 						// check array of pubkeys for this user
-						final String[] pubKeysData = principal.getProperty(StructrApp.key(Principal.class, "publicKeys"));
+						final String[] pubKeysData = principal.getProperty(StructrApp.key(PrincipalInterface.class, "publicKeys"));
 						if (pubKeysData != null) {
 
 							for (final String k : pubKeysData) {
@@ -465,7 +463,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ---- interface ShellFactory -----
 	@Override
 	public org.apache.sshd.server.command.Command createShell(ChannelSession channelSession) throws IOException {
-		return new StructrShellCommand();
+		return new StructrConsoleCommand(securityContext );
 	}
 	// ----- -----
 
