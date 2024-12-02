@@ -466,7 +466,7 @@ public abstract class RESTCallHandler {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					throw new FrameworkException(403, GraphObjectTraitImplementation.getModificationNotPermittedExceptionString(obj, securityContext));
+					throw new FrameworkException(403, GraphObjectTraitDefinition.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);

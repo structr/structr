@@ -37,7 +37,7 @@ import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 import java.util.Map;
 import java.util.Set;
 
-public class NodeInterfaceTraitImplementation extends AbstractTraitImplementation {
+public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 
 	// properties
 	private static final PropertyKey<String>  nameProperty                 = new StringProperty("name").indexed().partOfBuiltInSchema();
@@ -46,7 +46,7 @@ public class NodeInterfaceTraitImplementation extends AbstractTraitImplementatio
 	private static final Property<Principal> ownerProperty                 = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
 	private static final PropertyKey<String> ownerIdProperty               = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
 
-	private static final PropertyKey<Iterable<Principal>> granteesProperty = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	private static final PropertyKey<Iterable<Principal>> granteesProperty = new StartNodes<>("grantees", SecurityRelationship.class).partOfBuiltInSchema();
 	private static final PropertyKey<String> internalPathProperty          = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 	@Override

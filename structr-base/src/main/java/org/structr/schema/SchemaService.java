@@ -42,6 +42,7 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.AccessControllableTraitDefinition;
 import org.structr.schema.compiler.*;
 import org.structr.schema.export.StructrSchema;
 
@@ -334,7 +335,7 @@ public class SchemaService implements Service {
 							AbstractNode.clearRelationshipTemplateInstanceCache();
 
 							// clear permission cache
-							.clearCaches();
+							AccessControllableTraitDefinition.clearCaches();
 
 							// inject views in configuration provider
 							config.registerDynamicViews(dynamicViews);

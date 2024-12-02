@@ -36,9 +36,9 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 
 import java.util.*;
 
-public final class GraphObjectTraitImplementation extends AbstractTraitImplementation {
+public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTraitImplementation.class);
+	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTraitDefinition.class);
 
 	private static final String SYSTEM_CATEGORY     = "System";
 	private static final String VISIBILITY_CATEGORY = "Visibility";
@@ -56,8 +56,9 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			IsValid.class,
 			new IsValid() {
 
 				@Override
@@ -85,8 +86,9 @@ public final class GraphObjectTraitImplementation extends AbstractTraitImplement
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Set.of(
+		return Map.of(
 
+			IndexPassiveProperties.class,
 			new IndexPassiveProperties() {
 
 				@Override
