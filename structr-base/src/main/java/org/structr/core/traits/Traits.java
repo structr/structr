@@ -29,19 +29,24 @@ import java.util.*;
  */
 public class Traits {
 
-	private static final Map<String, TraitDefinition> types = new LinkedHashMap<>();
+	private static final Map<String, Traits> globalTraitMap       = new LinkedHashMap<>();
+	private static final Map<String, TraitDefinition> types       = new LinkedHashMap<>();
 
 	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
-	private final Map<Class, Set> composableMethods                     = new LinkedHashMap<>();
-	private final Map<String, PropertyKey> propertyKeys                 = new LinkedHashMap<>();
+	private final Map<Class, Set> composableMethods               = new LinkedHashMap<>();
+	private final Map<String, PropertyKey> propertyKeys           = new LinkedHashMap<>();
 
 	private final boolean isNodeType;
 	private final String typeName;
+	private final boolean isRelationshipType;
 
-	Traits(final String typeName, final boolean isNodeType) {
+	Traits(final String typeName, final boolean isNodeType, final boolean isRelationshipType) {
 
-		this.typeName   = typeName;
-		this.isNodeType = isNodeType;
+		this.typeName           = typeName;
+		this.isNodeType         = isNodeType;
+		this.isRelationshipType = isRelationshipType;
+
+		globalTraitMap.put(typeName, this);
 	}
 
 	public Set<String> getLabels() {
@@ -74,6 +79,10 @@ public class Traits {
 
 	public boolean isNodeType() {
 		return isNodeType;
+	}
+
+	public boolean isRelationshipType() {
+		return isRelationshipType;
 	}
 
 	public Set<PropertyKey> getPropertySet(final String propertyView) {
@@ -129,7 +138,6 @@ public class Traits {
 
 	// ----- static methods -----
 	public static Traits of(final String name) {
-		//return typeToTraitsMap.get(name);
-		return null;
+		return globalTraitMap.get(name);
 	}
 }

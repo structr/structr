@@ -51,6 +51,7 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 	private static final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
 	private static final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
 	private static final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
 
 
 	@Override
@@ -121,7 +122,8 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 			createdByProperty,
 			lastModifiedDateProperty,
 			lastModifiedByProperty,
-			visibleToPublicUsersProperty
+			visibleToPublicUsersProperty,
+			visibleToAuthenticatedUsers
 		);
 	}
 

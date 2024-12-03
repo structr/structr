@@ -39,7 +39,7 @@ import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -50,6 +50,9 @@ import java.util.Map.Entry;
 public class CreateNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
+
+	private final PropertyKey<String> idKey   = Traits.of("GraphObject").key("id");
+	private final PropertyKey<String> typeKey = Traits.of("GraphObject").key("type");
 
 	public NodeInterface execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
@@ -86,21 +89,21 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final PropertyMap properties  = new PropertyMap(attributes);
 			final PropertyMap toNotify    = new PropertyMap();
 			final Object typeObject       = properties.get(AbstractNode.type);
-			final Class nodeType          = getTypeOrGeneric(typeObject);
-			final String typeName         = nodeType.getSimpleName();
+			final Traits nodeType         = Traits.of(typeObject.toString());
+			final String typeName         = nodeType.getName();
 			final Set<String> labels      = TypeProperty.getLabelsForType(nodeType);
 			final CreationContainer tmp   = new CreationContainer(true);
 			final Date now                = new Date();
 			final boolean isCreation      = true;
 
 			// use user-supplied UUID?
-			String uuid = properties.get(GraphObject.id);
+			String uuid = properties.get(idKey);
 			if (uuid == null) {
 
 				// no, create new one
 				uuid = getNextUuid();
 
-				properties.put(GraphObject.id, uuid);
+				properties.put(idKey, uuid);
 
 			} else {
 
@@ -110,8 +113,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			// use property keys to set property values on creation dummy
 			// set default values for common properties in creation query
-			GraphObject.id.setProperty(securityContext, tmp, uuid);
-			GraphObject.type.setProperty(securityContext, tmp, typeName);
+			idKey.setProperty(securityContext, tmp, uuid);
+			typeKey.setProperty(securityContext, tmp, typeName);
 			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
 			AbstractNode.lastModifiedDate.setProperty(securityContext, tmp, now);
 
@@ -122,7 +125,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			if (user != null) {
 
-				final String userId = user.getProperty(GraphObject.id);
+				final String userId = user.getProperty(idKey);
 
 				AbstractNode.createdBy.setProperty(securityContext, tmp, userId);
 				AbstractNode.lastModifiedBy.setProperty(securityContext, tmp, userId);
@@ -233,8 +236,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final String userId = user.getUuid();
 
 			// configure OWNS relationship creation statement for maximum performance
-			ownsProperties.put(GraphObject.id.dbName(),                          getNextUuid());
-			ownsProperties.put(GraphObject.type.dbName(),                        PrincipalOwnsNode.class.getSimpleName());
+			ownsProperties.put(idKey.dbName(),                          getNextUuid());
+			ownsProperties.put(typeKey.dbName(),                        PrincipalOwnsNode.class.getSimpleName());
 			ownsProperties.put(GraphObject.visibleToPublicUsers.dbName(),        false);
 			ownsProperties.put(GraphObject.visibleToAuthenticatedUsers.dbName(), false);
 			ownsProperties.put(AbstractRelationship.relType.dbName(),            "OWNS");
@@ -243,8 +246,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			ownsProperties.put(AbstractRelationship.internalTimestamp.dbName(),  graphDb.getInternalTimestamp(0, 0));
 
 			// configure SECURITY relationship creation statement for maximum performance
-			securityProperties.put(GraphObject.id.dbName(),                          getNextUuid());
-			securityProperties.put(GraphObject.type.dbName(),                        SecurityRelationship.class.getSimpleName());
+			securityProperties.put(idKey.dbName(),                          getNextUuid());
+			securityProperties.put(typeKey.dbName(),                        SecurityRelationship.class.getSimpleName());
 			securityProperties.put(GraphObject.visibleToPublicUsers.dbName(),        false);
 			securityProperties.put(GraphObject.visibleToAuthenticatedUsers.dbName(), false);
 			securityProperties.put(AbstractRelationship.relType.dbName(),            "SECURITY");
@@ -288,15 +291,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		}
 	}
 
-	private Class getTypeOrGeneric(final Object typeObject) {
-
-		if (typeObject != null) {
-			return SchemaHelper.getEntityClassForRawType(typeObject.toString());
-		}
-
-		return StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
-	}
-
 	private <T> T getOrDefault(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
 
 		final T value = src.get(key);
@@ -333,7 +327,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			try {
 
 				// try again
-				final RelationshipInterface<NodeInterface, NodeInterface> securityRelationship = factory.instantiate(rel);
+				final RelationshipInterface securityRelationship = factory.instantiate(rel);
 				if (securityRelationship != null) {
 
 					TransactionCommand.relationshipCreated(user, securityRelationship);

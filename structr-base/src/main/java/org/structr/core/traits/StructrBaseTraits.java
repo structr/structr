@@ -31,9 +31,16 @@ public class StructrBaseTraits {
 		StructrBaseTraits.registerPrincipal();
 	}
 
+	private static void registerGraphObject() {
+
+		final Traits traits = new Traits("GraphObject", false, false);
+
+		traits.registerImplementation(graphObjectTraitImplementation);
+	}
+
 	private static void registerPrincipal() {
 
-		final Traits traits = new Traits("Principal", true);
+		final Traits traits = new Traits("Principal", true, false);
 
 		// Principal consists of the following traits
 		traits.registerImplementation(propertyContainerTraitImplementation);
@@ -44,7 +51,7 @@ public class StructrBaseTraits {
 
 	private static void registerDynamicNodeType(final String typeName) {
 
-		final Traits traits = new Traits(typeName, true);
+		final Traits traits = new Traits(typeName, true, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(propertyContainerTraitImplementation);
@@ -55,7 +62,7 @@ public class StructrBaseTraits {
 
 	private static void registerDynamicRelationshipType(final String typeName) {
 
-		final Traits traits = new Traits(typeName, false);
+		final Traits traits = new Traits(typeName, false, true);
 
 		// Relationship types consist of at least the following traits
 		traits.registerImplementation(propertyContainerTraitImplementation);
