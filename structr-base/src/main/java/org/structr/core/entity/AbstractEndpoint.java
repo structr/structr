@@ -78,7 +78,7 @@ public abstract class AbstractEndpoint {
 		if (notionPropertyMap != null) {
 
 			final Traits traits                = Traits.of(type);
-			final Set<PropertyKey> keySet      = traits.getPropertySet(PropertyView.Public);
+			final Set<PropertyKey> keySet      = traits.getFullPropertySet(PropertyView.Public);
 			final PropertyMap notionProperties = notionPropertyMap.get(storageKey);
 
 			if (notionProperties != null) {

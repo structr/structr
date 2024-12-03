@@ -96,7 +96,7 @@ public interface Query<T> {
 	<P> Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseInsensitive);
 	<P> Query<T> matches(final PropertyKey<P> key, final String regex);
 
-	<P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
+	<P> Query<T> andRange(final String key, final P rangeStart, final P rangeEnd);
 	<P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
 	<P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	<P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);

@@ -18,6 +18,8 @@
  */
 package org.structr.core.traits;
 
+import org.structr.core.entity.SessionDataNode;
+
 public class StructrBaseTraits {
 
 	private static final PropertyContainerTraitDefinition propertyContainerTraitImplementation   = new PropertyContainerTraitDefinition();
@@ -28,7 +30,12 @@ public class StructrBaseTraits {
 
 	static {
 
+		StructrBaseTraits.registerGraphObject();
 		StructrBaseTraits.registerPrincipal();
+
+
+		// core types
+		StructrBaseTraits.registerDynamicNodeType("SessionDataNode", new SessionDataNode());
 	}
 
 	private static void registerGraphObject() {
@@ -49,7 +56,7 @@ public class StructrBaseTraits {
 		traits.registerImplementation(accessControllableTraitImplementation);
 	}
 
-	private static void registerDynamicNodeType(final String typeName) {
+	private static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, true, false);
 
@@ -58,6 +65,10 @@ public class StructrBaseTraits {
 		traits.registerImplementation(graphObjectTraitImplementation);
 		traits.registerImplementation(nodeInterfaceTraitImplementation);
 		traits.registerImplementation(accessControllableTraitImplementation);
+
+		for (final TraitDefinition definition : definitions) {
+			traits.registerImplementation(definition);
+		}
 	}
 
 	private static void registerDynamicRelationshipType(final String typeName) {

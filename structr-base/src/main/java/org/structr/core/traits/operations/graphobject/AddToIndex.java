@@ -16,11 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.operations.graphobject;
 
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.GraphObject;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-public interface RelationshipTrait  {
+public abstract class AddToIndex extends FrameworkMethod {
 
-	RelationshipInterface getRelationship();
+	public abstract void addToIndex(final GraphObject graphObject);
 }

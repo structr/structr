@@ -1257,7 +1257,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Traits traits = node.getTraits();
 
 		// export all dynamic properties
-		for (final PropertyKey key : traits.getPropertySet(PropertyView.All)) {
+		for (final PropertyKey key : traits.getFullPropertySet(PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {

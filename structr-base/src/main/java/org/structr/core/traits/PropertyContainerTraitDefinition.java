@@ -79,7 +79,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 				public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
 
 					final Traits traits = graphObject.getTraits();
-					return traits.getPropertySet(propertyView);
+					return traits.getFullPropertySet(propertyView);
 				}
 			},
 
@@ -95,7 +95,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					if (securityContext != null && securityContext.hasCustomView()) {
 
 						final String view                = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-						final Set<PropertyKey> keys      = new LinkedHashSet<>(graphObject.getPropertySet(view));
+						final Set<PropertyKey> keys      = new LinkedHashSet<>(graphObject.getFullPropertySet(view));
 						final Set<String> customView     = securityContext.getCustomView();
 
 						for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
@@ -109,7 +109,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					}
 
 					// this is the default if no application/json; properties=[...] content-type header is present on the request
-					return graphObject.getPropertySet(propertyView);
+					return graphObject.getFullPropertySet(propertyView);
 				}
 			},
 

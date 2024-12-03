@@ -246,7 +246,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertySet(String propertyView) {
+	public Set<PropertyKey> getFullPropertySet(String propertyView) {
 		return Set.of();
 	}
 

@@ -40,7 +40,7 @@ import java.util.*;
 /**
  *
  */
-public class CreationContainer<T extends Comparable> implements GraphObject {
+public class CreationContainer<T extends Comparable> implements GraphObject, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
@@ -64,12 +64,21 @@ public class CreationContainer<T extends Comparable> implements GraphObject {
 	}
 
 	@Override
+	public Identity getId() {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
 	public String getUuid() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, PropertyContainer dbObject, Class type, long sourceTransactionId) {
+	public void clearCaches() {
+	}
+
+	@Override
+	public void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId) {
 	}
 
 	public Traits getTraits() {
@@ -107,8 +116,8 @@ public class CreationContainer<T extends Comparable> implements GraphObject {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertySet(final String propertyView) {
-		return wrappedObj.getPropertySet(propertyView);
+	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
+		return wrappedObj.getFullPropertySet(propertyView);
 	}
 
 	@Override
@@ -245,6 +254,11 @@ public class CreationContainer<T extends Comparable> implements GraphObject {
 	}
 
 	@Override
+	public void addToIndex() {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -328,5 +342,58 @@ public class CreationContainer<T extends Comparable> implements GraphObject {
 				filtered.put(key, value);
 			}
 		}
+	}
+
+	// ----- interface PropertyContainer -----
+	@Override
+	public boolean hasProperty(String name) {
+		return data.containsKey(name);
+	}
+
+	@Override
+	public Object getProperty(String name) {
+		return data.get(name);
+	}
+
+	@Override
+	public Object getProperty(String name, Object defaultValue) {
+
+		final Object value = getProperty(name);
+		if (value != null) {
+
+			return value;
+		}
+
+		return defaultValue;
+	}
+
+	@Override
+	public void setProperty(String name, Object value) {
+		data.put(name, value);
+	}
+
+	@Override
+	public void setProperties(Map<String, Object> values) {
+		data.putAll(values);
+	}
+
+	@Override
+	public void removeProperty(String name) {
+		data.remove(name);
+	}
+
+	@Override
+	public Iterable<String> getPropertyKeys() {
+		return data.keySet();
+	}
+
+	@Override
+	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public boolean isDeleted() {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 }
