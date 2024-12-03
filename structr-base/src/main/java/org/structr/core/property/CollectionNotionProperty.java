@@ -110,7 +110,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		try {
 
@@ -138,12 +138,12 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return collectionProperty.relatedType();
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 

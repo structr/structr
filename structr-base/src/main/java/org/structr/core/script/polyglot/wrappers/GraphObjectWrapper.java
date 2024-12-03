@@ -95,7 +95,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			// Lookup method, if it's not in cache
-			final AbstractMethod method = Methods.resolveMethod(node.getClass(), key);
+			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), key);
 			if (method != null) {
 
 				// dont call static methods here, but warn instead
@@ -169,7 +169,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				members.addAll(keys.stream().map(k -> k.jsonName()).collect(Collectors.toList()));
 			}
 
-			for (final Map.Entry<String, AbstractMethod> entry : Methods.getAllMethods(node.getClass()).entrySet()) {
+			for (final Map.Entry<String, AbstractMethod> entry : Methods.getAllMethods(node.getTraits()).entrySet()) {
 
 				final AbstractMethod method = entry.getValue();
 				if (method != null && !method.isPrivate()) {

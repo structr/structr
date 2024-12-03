@@ -69,8 +69,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public Class valueType() {
-		return Double.class;
+	public String valueType() {
+		return "Double";
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getName(), jsonName(), source)
 					);
 				}
 			}

@@ -30,6 +30,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 
 import java.util.Collections;
@@ -65,13 +66,13 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 
 	@Override
-	public Class relatedType() {
-		return AbstractRelationship.class;
+	public String relatedType() {
+		return "RelationshipInterface";
 	}
 
 	@Override
@@ -90,7 +91,7 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 		return (T)((AbstractRelationship)obj).getSourceNode();
 	}
 

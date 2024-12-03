@@ -43,19 +43,19 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 	private Aggregation aggregation = null;
 
-	public AggregatorProperty(String name, Aggregation aggregator) {
+	public AggregatorProperty(final String name, final Aggregation aggregator) {
 		super(name);
 
 		this.aggregation = aggregator;
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject currentObject, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 
@@ -65,7 +65,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			// 1. step: add all nodes
 			for(Property property : aggregation.getAggregationProperties()) {
 
-				Object obj = sourceNode.getProperty(property);
+				Object obj = sourceNode.getProperty(property.jsonName());
 				if (obj != null && obj instanceof Iterable) {
 
 					Iterables.addAll(nodes, (Iterable)obj);
@@ -106,12 +106,12 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public Class relatedType() {
-		return AbstractNode.class;
+	public String relatedType() {
+		return "NodeInterface";
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 

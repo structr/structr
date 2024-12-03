@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
@@ -54,7 +55,7 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		final String value = super.getProperty(securityContext, obj, applyConverter, predicate);
 		if (value != null) {
@@ -82,8 +83,8 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public Class valueType() {
-		return String.class;
+	public String valueType() {
+		return "String";
 	}
 
 	@Override

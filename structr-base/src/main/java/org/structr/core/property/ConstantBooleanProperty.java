@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Map;
 
@@ -53,9 +54,9 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
-		if (declaringTrait.isAssignableFrom(obj.getClass())) {
+		if (obj.getTraits().contains(declaringTrait.getName())) {
 			return this.constantValue;
 		}
 
@@ -78,8 +79,8 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public Class valueType() {
-		return Boolean.class;
+	public String valueType() {
+		return "Boolean";
 	}
 
 	@Override

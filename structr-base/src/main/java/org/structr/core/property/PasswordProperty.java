@@ -28,6 +28,7 @@ import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.Date;
 
@@ -53,7 +54,7 @@ public class PasswordProperty extends StringProperty {
 	}
 
 	@Override
-	public void registrationCallback(Class entityType) {
+	public void registrationCallback(final TraitDefinition trait) {
 
 		if (validationInfo != null && validationInfo.getErrorKey() == null) {
 			validationInfo.setErrorKey(this);
@@ -99,19 +100,19 @@ public class PasswordProperty extends StringProperty {
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
 					if (passwordChangedOrFirstPassword) {
 
-						obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
+						obj.setProperty("passwordChangeDate", new Date().getTime());
 					}
 				}
 			}
 
 			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
+			obj.setProperty("salt", salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
 			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-				wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+				wrappedObject.removeProperty("sessionIds");
 			}
 
 		} else {
@@ -120,7 +121,7 @@ public class PasswordProperty extends StringProperty {
 		}
 
 		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-			wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+			wrappedObject.removeProperty("sessionIds");
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {

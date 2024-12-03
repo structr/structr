@@ -26,59 +26,42 @@ import org.structr.core.converter.RelationshipEndNodeConverter;
 
 import java.util.Map;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A property that returns the end node of a relationship.
- *
- *
  */
 public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	public EndNodeProperty(final String name) {
-
 		super(name);
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
-
 		return databaseConverter(securityContext, null);
-
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
-
 		return new RelationshipEndNodeConverter(securityContext, entity);
-
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
-
 		return null;
-
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
-
 		return null;
-
 	}
 
 	@Override
 	public String typeName() {
-
 		return null;
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return null;
 	}
 

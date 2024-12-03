@@ -29,7 +29,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -112,7 +114,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return propertyKey.valueType();
 	}
 
@@ -170,7 +172,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Class<? extends GraphObject> relatedType() {
+	public String relatedType() {
 		return propertyKey.relatedType();
 	}
 
@@ -220,11 +222,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringClass(Class declaringClass) {
+	public void setDeclaringTrait(final TraitDefinition declaringTrait) {
 	}
 
 	@Override
-	public Class<? extends GraphObject> getDeclaringTrait() {
+	public TraitDefinition getDeclaringTrait() {
 		return propertyKey.getDeclaringTrait();
 	}
 
@@ -239,7 +241,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 		return propertyKey.getProperty(securityContext, obj, applyConverter);
 	}
 
@@ -254,7 +256,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void registrationCallback(Class entityType) {
+	public void registrationCallback(final TraitDefinition traitDefinition) {
 	}
 
 	@Override

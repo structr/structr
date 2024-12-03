@@ -71,8 +71,8 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
-	public Class valueType() {
-		return Date.class;
+	public String valueType() {
+		return "Date";
 	}
 
 	@Override
@@ -187,14 +187,14 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 						throw new PropertyInputParsingException(
 							jsonName(),
-							new DateFormatToken(declaringTrait.getSimpleName(), jsonName()).withDetail(source)
+							new DateFormatToken(declaringTrait.getName(), jsonName()).withDetail(source)
 						);
 
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getSimpleName(), jsonName()).withDetail(source));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getName(), jsonName()).withDetail(source));
 
 				}
 			}

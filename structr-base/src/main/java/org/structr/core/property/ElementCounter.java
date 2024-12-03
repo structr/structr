@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Collection;
 import java.util.Map;
@@ -54,13 +55,13 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		int count = 0;
 
 		if(obj != null) {
 
-			Object toCount = obj.getProperty(collectionProperty);
+			Object toCount = obj.getProperty(collectionProperty.jsonName);
 			if(toCount != null) {
 
 				if (toCount instanceof Collection) {
@@ -85,13 +86,13 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
 	@Override
-	public Class valueType() {
-		return Integer.class;
+	public String valueType() {
+		return "Integer";
 	}
 
 	@Override

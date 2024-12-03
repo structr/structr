@@ -60,8 +60,8 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
-	public Class valueType() {
-		return Boolean.class;
+	public String valueType() {
+		return "Boolean";
 	}
 
 	@Override

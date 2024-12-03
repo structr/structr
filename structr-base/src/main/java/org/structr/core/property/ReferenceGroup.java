@@ -33,9 +33,11 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -51,11 +53,11 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	private static final Logger logger = LoggerFactory.getLogger(ReferenceGroup.class.getName());
 
 	// indicates whether this group property is
-	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();
-	protected Class<? extends GraphObject> entityClass = null;
+	protected Map<String, String> propertyKeys        = new LinkedHashMap<>();
+	protected String entityClass                       = null;
 	protected Property<Boolean> nullValuesOnlyProperty = null;
 
-	public ReferenceGroup(String name, Class<? extends GraphObject> entityClass, Reference... properties) {
+	public ReferenceGroup(final String name, final String entityClass, final Reference... properties) {
 
 		super(name);
 
@@ -231,7 +233,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
 
@@ -258,11 +260,11 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public void setDeclaringClass(Class declaringClass) {
+	public void setDeclaringTrait(final TraitDefinition declaringClass) {
 
 		for (PropertyKey key : propertyKeys.values()) {
 
-			key.setDeclaringClass(declaringClass);
+			key.setDeclaringTrait(declaringClass);
 		}
 	}
 

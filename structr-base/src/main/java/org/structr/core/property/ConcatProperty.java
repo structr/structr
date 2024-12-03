@@ -18,12 +18,16 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -33,14 +37,14 @@ import java.util.TreeMap;
  */
 public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
-	private PropertyKey<String>[] propertyKeys = null;
+	private Set<String> propertyKeys = null;
 	private String separator = null;
 
-	public ConcatProperty(String name, String separator, PropertyKey<String>... propertyKeys) {
+	public ConcatProperty(String name, String separator, String... propertyKeys) {
 
 		super(name);
 
-		this.propertyKeys = propertyKeys;
+		this.propertyKeys.addAll(Arrays.asList(propertyKeys));
 		this.separator = separator;
 	}
 
@@ -50,30 +54,18 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-		StringBuilder combinedPropertyValue = new StringBuilder();
-		int len = propertyKeys.length;
-
-		for(int i=0; i<len; i++) {
-
-			combinedPropertyValue.append(obj.getProperty(propertyKeys[i]));
-			if(i < len-1) {
-				combinedPropertyValue.append(separator);
-			}
-		}
-
-		return combinedPropertyValue.toString();
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+		return StringUtils.join(propertyKeys.stream().map(k -> obj.getProperty(k)).toList(), separator);
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
 	@Override
-	public Class valueType() {
-		return String.class;
+	public String valueType() {
+		return "String";
 	}
 
 	@Override
@@ -102,11 +94,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final Class valueType         = valueType();
+		final String valueType         = valueType();
 
 		if (valueType != null) {
 
-			map.put("type",    valueType.getSimpleName().toLowerCase());
+			map.put("type",    valueType.toLowerCase());
 			map.put("example", getExampleValue(type, viewName));
 
 			if (this.readOnly) {
@@ -121,11 +113,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final Class valueType         = valueType();
+		final String valueType        = valueType();
 
 		if (valueType != null) {
 
-			map.put("type", valueType.getSimpleName().toLowerCase());
+			map.put("type", valueType.toLowerCase());
 			map.put("readOnly",    true);
 			map.put("example", getExampleValue(type, viewName));
 		}

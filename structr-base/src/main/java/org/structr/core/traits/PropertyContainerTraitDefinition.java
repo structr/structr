@@ -53,6 +53,10 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitDefinition.class);
 
+	public PropertyContainerTraitDefinition() {
+		super("PropertyContainer");
+	}
+
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 		return Map.of();
@@ -94,12 +98,12 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					// check for custom view in content-type field
 					if (securityContext != null && securityContext.hasCustomView()) {
 
-						final String view                = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-						final Set<PropertyKey> keys      = new LinkedHashSet<>(graphObject.getFullPropertySet(view));
-						final Set<String> customView     = securityContext.getCustomView();
+						final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
+						final Set<String> keys       = new LinkedHashSet<>(graphObject.getFullPropertySet(view));
+						final Set<String> customView = securityContext.getCustomView();
 
-						for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
-							if (!customView.contains(it.next().jsonName())) {
+						for (Iterator<String> it = keys.iterator(); it.hasNext();) {
+							if (!customView.contains(it.next())) {
 
 								it.remove();
 							}

@@ -102,14 +102,14 @@ public class SessionDataNode extends AbstractTraitDefinition {
 	private void incrementVersion(final GraphObject graphObject) throws FrameworkException {
 
 		// increment version on each change
-		final Long version = graphObject.getProperty(versionProperty);
+		final Long version = graphObject.getProperty("version");
 		if (version == null) {
 
-			graphObject.setProperty(versionProperty, 1L);
+			graphObject.setProperty("version", 1L);
 
 		} else {
 
-			graphObject.setProperty(versionProperty,  version + 1);
+			graphObject.setProperty("version",  version + 1);
 		}
 	}
 }

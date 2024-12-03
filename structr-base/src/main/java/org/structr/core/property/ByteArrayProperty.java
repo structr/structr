@@ -74,14 +74,10 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		// This trick results in returning the proper array class for array properties.
 		// Necessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Byte.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
-		return Byte[].class;
+		return "[L" + Byte.class.getName() + ";";
 	}
 
 	@Override

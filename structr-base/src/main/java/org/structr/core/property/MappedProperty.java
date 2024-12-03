@@ -52,7 +52,7 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return mappedKey.valueType();
 	}
 

@@ -65,8 +65,8 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public Class valueType() {
-		return String.class;
+	public String valueType() {
+		return "String";
 	}
 
 	@Override

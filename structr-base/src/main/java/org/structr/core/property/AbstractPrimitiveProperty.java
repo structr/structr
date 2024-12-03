@@ -34,6 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.Transformer;
 
@@ -55,7 +56,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	protected SecurityContext securityContext = null;
 	protected GraphObject entity              = null;
 
-
 	public AbstractPrimitiveProperty(final String name) {
 		super(name);
 	}
@@ -74,7 +74,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		Object value = null;
 
@@ -179,7 +179,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					);
 				}
 
-				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
+				internalSystemPropertiesUnlocked = obj.systemPropertiesUnlocked();
 
 			} else if (obj instanceof AbstractRelationship) {
 
@@ -239,7 +239,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -253,14 +253,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final Class valueType         = valueType();
+		final String valueType        = valueType();
 
 		final Map<String, String> openApiTypeMap = new HashMap<>();
 		openApiTypeMap.put("image", "object");
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
-			String simpleName = valueType.getSimpleName().toLowerCase();
+			String simpleName = valueType.toLowerCase();
 
 			if (openApiTypeMap.containsKey(simpleName)) {
 				simpleName = openApiTypeMap.get(simpleName);
@@ -281,11 +281,11 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final Class valueType         = valueType();
+		final String valueType        = valueType();
 
 		if (valueType != null) {
 
-			String valueTypeName = valueType.getSimpleName().toLowerCase();
+			String valueTypeName = valueType.toLowerCase();
 
 			if (StringUtils.equals(valueTypeName, "double")) {
 				valueTypeName = "number";
@@ -324,10 +324,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						modifiedById = user.getUuid();
 					}
 
-					propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(), modifiedById);
+					propertyContainer.setProperty("lastModifiedBy", modifiedById);
 				}
 
-				propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+				propertyContainer.setProperty("lastModifiedDate", System.currentTimeMillis());
 			}
 
 

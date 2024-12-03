@@ -22,6 +22,7 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -44,13 +45,13 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
 	@Override
-	public Class valueType() {
-		return Integer.class;
+	public String valueType() {
+		return "Integer";
 	}
 
 	@Override
@@ -64,13 +65,13 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		int sum = 0;
 
 		for (Property<Integer> prop : sumProperties) {
 
-			Integer value = obj.getProperty(prop);
+			Integer value = obj.getProperty(prop.jsonName());
 
 			if (value != null) {
 

@@ -270,7 +270,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void registrationCallback(final Class type) {
+	public void registrationCallback(final TraitDefinition trait) {
 	}
 
 	@Override
@@ -519,7 +519,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isPropertyTypeIndexable() {
 
-		final Class valueType = valueType();
+		final String valueType = valueType();
 		if (valueType != null) {
 
 			if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
@@ -672,7 +672,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 						}
 					}
 
-					query.andRange(this, rangeStartConverted, rangeEndConverted);
+					query.andRange(jsonName(), rangeStartConverted, rangeEndConverted);
 
 					return;
 				}
@@ -687,7 +687,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 						// requestParameter contains only [],
 						// which we use as a "not-blank" selector
-						query.notBlank(this);
+						query.notBlank(jsonName());
 
 						return;
 
@@ -716,7 +716,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 				for (final String part : requestParameter.split("[;]+")) {
 
-					query.or(this, convertSearchValue(securityContext, part), exactMatch);
+					query.or(jsonName(), convertSearchValue(securityContext, part), exactMatch);
 				}
 
 				// ascend to the last group
@@ -724,7 +724,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			} else {
 
-				query.or(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+				query.or(jsonName(), convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 		} else if (requestParameter.contains(",")) {
@@ -734,7 +734,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			for (final String part : requestParameter.split("[,]+")) {
 
-				query.and(this, convertSearchValue(securityContext, part), exactMatch);
+				query.and(jsonName(), convertSearchValue(securityContext, part), exactMatch);
 			}
 
 			// ascend to the last group
@@ -742,7 +742,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		} else {
 
-			query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+			query.and(jsonName(), convertSearchValue(securityContext, requestParameter), exactMatch);
 		}
 	}
 

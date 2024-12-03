@@ -22,6 +22,7 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Map;
 
@@ -31,10 +32,10 @@ import java.util.Map;
  */
 public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
-	private EndNodes<?, ?> collectionProperty = null;
-	private Property<Long> valueProperty                = null;
+	private EndNodes collectionProperty  = null;
+	private Property<Long> valueProperty = null;
 
-	public LongSumProperty(String name, EndNodes<?, ?> collectionProperty, Property<Long> valueProperty, Long defaultValue) {
+	public LongSumProperty(String name, EndNodes collectionProperty, Property<Long> valueProperty, Long defaultValue) {
 
 		super(name, defaultValue);
 
@@ -44,13 +45,13 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
 	@Override
-	public Class valueType() {
-		return Long.class;
+	public String valueType() {
+		return "Long";
 	}
 
 	@Override
@@ -59,16 +60,16 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	}
 
 	@Override
-	public Long getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Long getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
-		final Iterable<? extends GraphObject> collection = obj.getProperty(collectionProperty);
+		final Iterable<? extends GraphObject> collection = obj.getProperty(collectionProperty.jsonName());
 		if (collection != null) {
 
 			long sum = 0L;
 
 			for (GraphObject element : collection) {
 
-				Long value = element.getProperty(valueProperty);
+				Long value = element.getProperty(valueProperty.jsonName);
 				if (value != null) {
 
 					sum += value.longValue();

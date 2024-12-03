@@ -29,6 +29,16 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache = new FixedSizeCache<>("Relationship template cache", 1000);
 
 	protected final Map<String, PropertyKey> properties = new HashMap<>();
+	protected final String name;
+
+	public AbstractTraitDefinition(final String name) {
+		this.name = name;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String view) {

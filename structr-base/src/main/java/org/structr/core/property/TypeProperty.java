@@ -32,8 +32,6 @@ import org.structr.core.traits.Traits;
 import java.util.*;
 
 /**
- *
- *
  */
 public class TypeProperty extends StringProperty {
 

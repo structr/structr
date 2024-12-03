@@ -24,6 +24,7 @@ import org.structr.common.ContextAwareEntity;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Favoritable;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Map;
 
@@ -36,12 +37,12 @@ public class InternalPathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public Class valueType() {
-		return String.class;
+	public String valueType() {
+		return "String";
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -51,7 +52,7 @@ public class InternalPathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		// instanceof returns false for null objects
 		if (obj instanceof ContextAwareEntity) {

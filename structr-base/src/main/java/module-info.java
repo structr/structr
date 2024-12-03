@@ -110,6 +110,7 @@ module structr.base {
         requires org.apache.groovy;
 	requires org.apache.poi.poi;
 	requires org.glassfish.jaxb.runtime;
+	requires org.eclipse.jgit;
 
 	exports org.structr;
     exports org.structr.agent;

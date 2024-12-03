@@ -21,6 +21,7 @@ package org.structr.core.property;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +32,7 @@ import org.structr.core.converter.PropertyConverter;
 import java.util.Map;
 import java.util.TreeMap;
 import org.structr.common.error.PropertyInputParsingException;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * A property that stores and retrieves a simple Long value.
@@ -51,8 +53,8 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
-	public Class valueType() {
-		return Long.class;
+	public String valueType() {
+		return "Long";
 	}
 
 	@Override
@@ -116,7 +118,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getName(), jsonName(), source)
 					);
 				}
 			}

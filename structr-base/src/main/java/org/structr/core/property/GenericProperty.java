@@ -45,11 +45,11 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public String typeName() {
-		return valueType().getSimpleName();
+		return valueType();
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 
 		ParameterizedType pType = (ParameterizedType) getClass().getGenericSuperclass();
 
@@ -87,7 +87,7 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Class<? extends GraphObject> relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
