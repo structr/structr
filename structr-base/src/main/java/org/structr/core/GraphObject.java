@@ -61,20 +61,20 @@ public interface GraphObject {
 
 	// property container methods
 	PropertyContainer getPropertyContainer();
-	Set<PropertyKey> getFullPropertySet(final String propertyView);
-	Set<PropertyKey> getPropertyKeys(final String propertyView);
+	Set<String> getFullPropertySet(final String propertyView);
+	Set<String> getPropertyKeys(final String propertyView);
 	long getSourceTransactionId();
-	<T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
-	<T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
+	<T> Object setProperty(final String key, T value) throws FrameworkException;
+	<T> Object setProperty(final String key, T value, final boolean isCreation) throws FrameworkException;
 	void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
 	void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
 
 	boolean isNode();
 	boolean isRelationship();
 
-	<V> V getProperty(final PropertyKey<V> propertyKey);
-	<V> V getProperty(final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter);
-	void removeProperty(final PropertyKey key) throws FrameworkException;
+	<V> V getProperty(final String propertyKey);
+	<V> V getProperty(final String propertyKey, final Predicate<GraphObject> filter);
+	void removeProperty(final String key) throws FrameworkException;
 
 	boolean systemPropertiesUnlocked();
 	void unlockSystemPropertiesOnce();
@@ -103,7 +103,7 @@ public interface GraphObject {
 	void propagatedModification(final SecurityContext securityContext);
 
 	// misc. methods
-	String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
+	String getPropertyWithVariableReplacement(final ActionContext renderContext, final String key) throws FrameworkException;
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
 	List<GraphObject> getSyncData() throws FrameworkException;
 

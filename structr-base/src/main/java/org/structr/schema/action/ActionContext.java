@@ -42,6 +42,7 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
@@ -477,7 +478,7 @@ public class ActionContext {
 							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
 							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
-								final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
+								final Traits type = Traits.of(key);
 								if (type != null) {
 
 									hints.reportExistingKey(key);

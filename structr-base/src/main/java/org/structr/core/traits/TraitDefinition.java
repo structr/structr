@@ -31,6 +31,8 @@ import java.util.Set;
  */
 public interface TraitDefinition {
 
+	String getName();
+
 	boolean hasKey(final String name);
 	PropertyKey key(final String name);
 

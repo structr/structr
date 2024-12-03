@@ -68,8 +68,8 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Class valueType() {
-		return enumType;
+	public String valueType() {
+		return enumType.getSimpleName();
 	}
 
 	@Override
@@ -223,7 +223,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getSimpleName(), jsonName(), enumType.getEnumConstants()));
+					throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getName(), jsonName(), enumType.getEnumConstants()));
 				}
 			}
 

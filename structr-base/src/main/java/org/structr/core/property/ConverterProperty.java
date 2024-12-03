@@ -68,7 +68,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return null;
 	}
 
@@ -83,21 +83,21 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObjectTraits entity) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return createConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 		return null;
 	}
 
-	private PropertyConverter createConverter(SecurityContext securityContext, GraphObjectTraits entity) {
+	private PropertyConverter createConverter(final SecurityContext securityContext, final GraphObject entity) {
 
 		try {
 

@@ -37,211 +37,223 @@ import java.util.function.BinaryOperator;
 
 public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty<T[]> {
 
-    private static final Logger logger = LoggerFactory.getLogger(EnumProperty.class.getName());
-    private Class<T> enumType          = null;
+	private static final Logger logger = LoggerFactory.getLogger(EnumProperty.class.getName());
+	private Class<T> enumType = null;
 
-    public EnumArrayProperty(final String name, final Class<T> enumType) {
-        this(name, enumType, null);
-    }
+	public EnumArrayProperty(final String name, final Class<T> enumType) {
+		this(name, enumType, null);
+	}
 
-    public EnumArrayProperty(final String jsonName, final String dbName, final Class<T> enumType) {
-        this(jsonName, dbName, enumType, null);
-    }
+	public EnumArrayProperty(final String jsonName, final String dbName, final Class<T> enumType) {
+		this(jsonName, dbName, enumType, null);
+	}
 
-    public EnumArrayProperty(final String name, final Class<T> enumType, final T[] defaultValue) {
-        this(name, name, enumType, defaultValue);
-    }
+	public EnumArrayProperty(final String name, final Class<T> enumType, final T[] defaultValue) {
+		this(name, name, enumType, defaultValue);
+	}
 
-    public EnumArrayProperty(final String jsonName, final String dbName, final Class<T> enumType, final T[] defaultValue) {
+	public EnumArrayProperty(final String jsonName, final String dbName, final Class<T> enumType, final T[] defaultValue) {
 
-        super(jsonName, dbName, defaultValue);
+		super(jsonName, dbName, defaultValue);
 
-        this.enumType = enumType;
-        addEnumValuesToFormat();
-    }
+		this.enumType = enumType;
+		addEnumValuesToFormat();
+	}
 
-    @Override
-    public String typeName() {
-        return "Enum[]";
-    }
+	@Override
+	public String typeName() {
+		return "Enum[]";
+	}
 
-    @Override
-    public Class valueType() {
-        return enumType;
-    }
+	@Override
+	public String valueType() {
+		return enumType.getSimpleName();
+	}
 
-    @Override
-    public SortType getSortType() {
-        return SortType.Default;
-    }
+	@Override
+	public SortType getSortType() {
+		return SortType.Default;
+	}
 
-    @Override
-    public PropertyConverter<T[], String> databaseConverter(SecurityContext securityContext) {
-        return databaseConverter(securityContext, null);
-    }
+	@Override
+	public PropertyConverter<T[], String> databaseConverter(SecurityContext securityContext) {
+		return databaseConverter(securityContext, null);
+	}
 
-    @Override
-    public PropertyConverter<T[], String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-        return new DatabaseConverter(securityContext, entity);
-    }
+	@Override
+	public PropertyConverter<T[], String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new DatabaseConverter(securityContext, entity);
+	}
 
-    @Override
-    public PropertyConverter<String, T[]> inputConverter(SecurityContext securityContext) {
-        return new InputConverter(securityContext);
-    }
+	@Override
+	public PropertyConverter<String, T[]> inputConverter(SecurityContext securityContext) {
+		return new InputConverter(securityContext);
+	}
 
-    @Override
-    public Object fixDatabaseProperty(Object value) {
+	@Override
+	public Object fixDatabaseProperty(Object value) {
 
-        if (value != null) {
+		if (value != null) {
 
-            if (value instanceof String) {
-                return value;
-            }
-        }
+			if (value instanceof String) {
+				return value;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public Class<T> getEnumType() {
-        return enumType;
-    }
+	public Class<T> getEnumType() {
+		return enumType;
+	}
 
-    // ----- OpenAPI -----
-    @Override
-    public Object getExampleValue(final String type, final String viewName) {
-        return "a,b,c";
-    }
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return "a,b,c";
+	}
 
-    @Override
-    public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
-        return null;
-    }
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
 
-    // ----- OpenAPI -----
-    @Override
-    public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
-        final Map<String, Object> items = new TreeMap<>();
-        final Map<String, Object> map   = new TreeMap<>();
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map = new TreeMap<>();
 
-        map.put("type", "array");
-        map.put("items", items);
+		map.put("type", "array");
+		map.put("items", items);
 
-        if (this.isReadOnly()) {
-            map.put("readOnly", true);
-        }
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
-        items.put("type", "string");
-        items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+		items.put("type", "string");
+		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
 
-        return map;
-    }
+		return map;
+	}
 
-    @Override
-    public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
-        final Map<String, Object> items = new TreeMap<>();
-        final Map<String, Object> map   = new TreeMap<>();
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map = new TreeMap<>();
 
-        map.put("type", "array");
-        map.put("items", items);
+		map.put("type", "array");
+		map.put("items", items);
 
-        if (this.isReadOnly()) {
-            map.put("readOnly", true);
-        }
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
-        items.put("type", "string");
-        items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+		items.put("type", "string");
+		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
 
-        return map;
-    }
+		return map;
+	}
 
-    protected class DatabaseConverter extends PropertyConverter<T[], String> {
+	protected class DatabaseConverter extends PropertyConverter<T[], String> {
 
-        public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
-            super(securityContext, entity);
-        }
+		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+			super(securityContext, entity);
+		}
 
-        @Override
-        public T[] revert(String source) throws FrameworkException {
+		@Override
+		public T[] revert(String source) throws FrameworkException {
 
-            if (StringUtils.isNotBlank(source)) {
+			if (StringUtils.isNotBlank(source)) {
 
-                try {
-                    BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {l.add(e); return l;};
-                    BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {acc.addAll(cur); return acc;};
-                    return (T[]) Arrays.stream(source.split(",")).map(s -> (T)Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
-                } catch (Throwable t) {
+				try {
+					BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {
+						l.add(e);
+						return l;
+					};
+					BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {
+						acc.addAll(cur);
+						return acc;
+					};
+					return (T[]) Arrays.stream(source.split(",")).map(s -> (T) Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
+				} catch (Throwable t) {
 
-                    logger.warn("Cannot convert database value '{}' on object {} to enum of type '{}', ignoring.", new Object[] { source, this.currentObject.getUuid(), enumType.getSimpleName() } );
-                }
-            }
+					logger.warn("Cannot convert database value '{}' on object {} to enum of type '{}', ignoring.", new Object[]{source, this.currentObject.getUuid(), enumType.getSimpleName()});
+				}
+			}
 
-            return null;
+			return null;
 
-        }
+		}
 
-        @Override
-        public String convert(T[] source) throws FrameworkException {
+		@Override
+		public String convert(T[] source) throws FrameworkException {
 
-            if (source != null) {
+			if (source != null) {
 
-                return String.join(",", Arrays.stream(source).map(Enum::toString).toList());
-            }
+				return String.join(",", Arrays.stream(source).map(Enum::toString).toList());
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-    }
+	}
 
-    protected class InputConverter extends PropertyConverter<String, T[]> {
+	protected class InputConverter extends PropertyConverter<String, T[]> {
 
-        public InputConverter(SecurityContext securityContext) {
-            super(securityContext, null);
-        }
+		public InputConverter(SecurityContext securityContext) {
+			super(securityContext, null);
+		}
 
-        @Override
-        public String revert(T[] source) throws FrameworkException {
+		@Override
+		public String revert(T[] source) throws FrameworkException {
 
-            if (source != null) {
+			if (source != null) {
 
-                return String.join(",", Arrays.stream(source).map(Enum::toString).toList());
-            }
+				return String.join(",", Arrays.stream(source).map(Enum::toString).toList());
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-        @Override
-        public T[] convert(String source) throws FrameworkException {
+		@Override
+		public T[] convert(String source) throws FrameworkException {
 
-            if (StringUtils.isNotBlank(source)) {
+			if (StringUtils.isNotBlank(source)) {
 
-                try {
-                    BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {l.add(e); return l;};
-                    BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {acc.addAll(cur); return acc;};
-                    return (T[]) Arrays.stream(source.split(",")).map(s -> (T)Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
+				try {
+					BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {
+						l.add(e);
+						return l;
+					};
+					BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {
+						acc.addAll(cur);
+						return acc;
+					};
+					return (T[]) Arrays.stream(source.split(",")).map(s -> (T) Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
 
-                } catch (Throwable t) {
+				} catch (Throwable t) {
 
-                    throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringTrait.getSimpleName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
-                }
-            }
+					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringTrait.getName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
+				}
+			}
 
-            return null;
+			return null;
 
-        }
+		}
 
-    }
+	}
 
-    private void addEnumValuesToFormat() {
+	private void addEnumValuesToFormat() {
 
-        this.format = "";
+		this.format = "";
 
-        for (T enumConst : enumType.getEnumConstants()) {
-            this.format += (enumConst.toString()) + ",";
-        }
+		for (T enumConst : enumType.getEnumConstants()) {
+			this.format += (enumConst.toString()) + ",";
+		}
 
-        this.format = this.format.substring(0, this.format.length() - 1);
-    }
+		this.format = this.format.substring(0, this.format.length() - 1);
+	}
 }

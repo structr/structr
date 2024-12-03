@@ -31,6 +31,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -163,8 +164,7 @@ public class StructrBinding implements ProxyObject {
 				}
 
 				// static type?
-				final Map<String, Class<? extends NodeInterface>> entityClasses = StructrApp.getConfiguration().getNodeEntities();
-				final Class nodeType                                            = entityClasses.get(name);
+				final Traits nodeType = Traits.of(name);
 
 				if (nodeType != null) {
 

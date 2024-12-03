@@ -54,7 +54,7 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return null;
 	}
 

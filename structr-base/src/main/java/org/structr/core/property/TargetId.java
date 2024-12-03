@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
 import java.util.Collections;
@@ -45,7 +46,7 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -55,7 +56,7 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 
@@ -111,8 +112,8 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public Class valueType() {
-		return String.class;
+	public String valueType() {
+		return "String";
 	}
 
 	@Override

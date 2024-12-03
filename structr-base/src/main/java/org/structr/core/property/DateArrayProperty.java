@@ -78,14 +78,8 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 	}
 
 	@Override
-	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Necessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Date.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
-		return Date.class;
+	public String valueType() {
+		return "[L" + Date.class.getName() + ";";
 	}
 
 	@Override

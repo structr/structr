@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -55,7 +56,7 @@ public class JoinProperty extends StringProperty {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate){
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate){
 
 		final ArrayList<Object> arguments = new ArrayList<>();
 

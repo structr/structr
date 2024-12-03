@@ -29,6 +29,7 @@ import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -186,15 +187,15 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean requiresSynchronization();
 	String getSynchronizationKey();
 
-	void setDeclaringClass(final Class declaringClass);
-	Class getDeclaringClass();
+	void setDeclaringTrait(final TraitDefinition declaringTrait);
+	TraitDefinition getDeclaringTrait();
 	String getSourceUuid();
 
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate);
 	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
-	void registrationCallback(final String entityType);
+	void registrationCallback(final TraitDefinition entityType);
 
 	/**
 	 * Indicates whether this property is an unvalidated property or not.

@@ -295,7 +295,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
-		final String destTypeName = destType.getName();
+		final String destTypeName = destType;
 
 		if ("org.structr.core.graph.NodeInterface".equals(destTypeName) || "org.structr.flow.impl.FlowContainer".equals(destTypeName) ) {
 

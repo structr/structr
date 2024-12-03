@@ -51,8 +51,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public Class valueType() {
-		return Integer.class;
+	public String valueType() {
+		return "Integer";
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getName(), jsonName(), source)
 					);
 				}
 			}
@@ -153,7 +153,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringTrait.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getName(), jsonName(), source)
 					);
 				}
 			}

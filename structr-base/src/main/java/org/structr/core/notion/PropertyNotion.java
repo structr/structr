@@ -30,11 +30,11 @@ public class PropertyNotion extends Notion {
 
 	private PropertyKey propertyKey = null;
 	
-	public PropertyNotion(PropertyKey propertyKey) {
+	public PropertyNotion(final PropertyKey propertyKey) {
 		this(propertyKey, false);
 	}
 	
-	public PropertyNotion(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public PropertyNotion(final PropertyKey propertyKey, final boolean createIfNotExisting) {
 
 		super(
 			new PropertySerializationStrategy(propertyKey),

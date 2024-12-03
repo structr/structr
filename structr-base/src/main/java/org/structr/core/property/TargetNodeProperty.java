@@ -46,7 +46,7 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -56,7 +56,7 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 
@@ -104,8 +104,8 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public Class valueType() {
-		return String.class;
+	public String valueType() {
+		return "String";
 	}
 
 	@Override

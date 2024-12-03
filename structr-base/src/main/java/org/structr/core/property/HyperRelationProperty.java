@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -56,16 +57,16 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
-		Iterable<S> connectors = obj.getProperty(step1);
+		Iterable<S> connectors = obj.getProperty(step1.jsonName());
 		List<T> endNodes       = new LinkedList<>();
 
 		if (connectors != null) {
 
 			for (AbstractNode node : connectors) {
 
-				endNodes.add(node.getProperty(step2));
+				endNodes.add(node.getProperty(step2.jsonName()));
 			}
 		}
 
@@ -73,12 +74,12 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return step2.relatedType();
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 

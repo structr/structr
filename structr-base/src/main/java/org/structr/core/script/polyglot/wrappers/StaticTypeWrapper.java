@@ -24,24 +24,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 public class StaticTypeWrapper implements ProxyObject {
 
 	private final static Logger logger = LoggerFactory.getLogger(StaticTypeWrapper.class);
-	private final Class referencedClass;
 	private final ActionContext actionContext;
+	private final Traits traits;
 
-	public StaticTypeWrapper(final ActionContext actionContext, final Class referencedClass) {
+	public StaticTypeWrapper(final ActionContext actionContext, final Traits traits) {
 
-		this.actionContext   = actionContext;
-		this.referencedClass = referencedClass;
+		this.actionContext = actionContext;
+		this.traits        = traits;
 	}
 
 	@Override
 	public Object getMember(final String key) {
 
-		final AbstractMethod method = Methods.resolveMethod(referencedClass, key);
+		final AbstractMethod method = Methods.resolveMethod(traits, key);
 		if (method != null && method.isStatic()) {
 
 			return method.getProxyExecutable(actionContext, null);

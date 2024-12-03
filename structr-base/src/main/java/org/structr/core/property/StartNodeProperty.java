@@ -61,7 +61,7 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return null;
 	}
 

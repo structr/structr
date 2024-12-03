@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import com.google.gson.GsonBuilder;
+import org.eclipse.jgit.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -30,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -79,7 +81,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -89,7 +91,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject target, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject target, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
 
 		try {
 
@@ -189,22 +191,22 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 
 		if (typeHint != null) {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": return Boolean.class;
-				case "string":  return String.class;
-				case "int":     return Integer.class;
-				case "long":    return Long.class;
-				case "double":  return Double.class;
-				case "date":    return Date.class;
+				case "boolean": return "Boolean";
+				case "string":  return "String";
+				case "int":     return "Integer";
+				case "long":    return "Long";
+				case "double":  return "Double";
+				case "date":    return "Date";
 			}
 		}
 
-		return Object.class;
+		return "Object";
 	}
 
 	@Override
@@ -214,7 +216,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public String typeName() {
-		return valueType().getSimpleName();
+		return valueType();
 	}
 
 
@@ -370,7 +372,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	public SchemaProperty getCodeSource() throws FrameworkException {
-		return StructrApp.getInstance().getNodeById(SchemaProperty.class, sourceUuid);
+		return (SchemaProperty)StructrApp.getInstance().getNodeById("SchemaProperty", sourceUuid);
 	}
 
 	// ----- OpenAPI -----

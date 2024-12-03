@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -48,13 +49,13 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
 	@Override
-	public Class valueType() {
-		return GraphObject.class;
+	public String valueType() {
+		return "GraphObject";
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	}
 
 	@Override
-	public Iterable<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+	public Iterable<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<NodeInterface> predicate) {
 
 		if (obj instanceof AbstractNode) {
 
