@@ -85,7 +85,14 @@ public class Traits {
 		return isRelationshipType;
 	}
 
-	public Set<PropertyKey> getPropertySet(final String propertyView) {
+	/**
+	 * Returns the combined property set of all traits that
+	 * this type contains.
+	 *
+	 * @param propertyView
+	 * @return
+	 */
+	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 

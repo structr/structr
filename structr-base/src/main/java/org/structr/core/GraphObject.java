@@ -18,57 +18,34 @@
  */
 package org.structr.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.UnknownClientException;
-import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.search.SortOrder;
 import org.structr.common.Permission;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.*;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
-import org.structr.core.property.*;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.List;
+import java.util.Set;
 
 
 /**
  * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
  *
- *
  */
 public interface GraphObject {
-
-
-	/*
-
-	public static final Property<String>  base                        = new StringProperty("base").partOfBuiltInSchema();
-	public static final Property<String>  type                        = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	public static final Property<String>  id                          = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-
-	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-
-	 */
 
 	Traits getTraits();
 
@@ -84,7 +61,7 @@ public interface GraphObject {
 
 	// property container methods
 	PropertyContainer getPropertyContainer();
-	Set<PropertyKey> getPropertySet(final String propertyView);
+	Set<PropertyKey> getFullPropertySet(final String propertyView);
 	Set<PropertyKey> getPropertyKeys(final String propertyView);
 	long getSourceTransactionId();
 	<T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
@@ -112,6 +89,7 @@ public interface GraphObject {
 	boolean isValid(final ErrorBuffer errorBuffer);
 
 	void indexPassiveProperties();
+	void addToIndex();
 
 	void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 	void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;

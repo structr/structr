@@ -55,8 +55,7 @@ import java.util.Map;
  */
 public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> extends AbstractGraphObject<Relationship> implements Comparable<AbstractRelationship>, RelationshipInterface<S, T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
-
+	/*
 	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 	public static final Property<String>        relType            = new RelationshipTypeProperty();
 	public static final SourceId                sourceId           = new SourceId("sourceId");
@@ -71,6 +70,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
 		id, typeHandler, relType, sourceId, targetId
 	);
+	*/
 
 	public boolean internalSystemPropertiesUnlocked = false;
 
@@ -451,4 +451,89 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public RelationshipInterface getSyncRelationship() {
 		return this;
 	}
+
+	/*
+
+
+	@Override
+	public Class determineRelationshipType(Relationship relationship) {
+
+		if (TransactionCommand.isDeleted(relationship)) {
+			return null;
+		}
+
+		final String type = GraphObject.type.dbName();
+
+		final Node startNode = relationship.getStartNode();
+		final Node endNode   = relationship.getEndNode();
+
+		if (startNode == null || startNode.isDeleted()) {
+			return null;
+		}
+
+		if (endNode == null || endNode.isDeleted()) {
+			return null;
+		}
+
+		// first try: duck-typing
+		final String sourceType = startNode.hasProperty(type) ? startNode.getProperty(type).toString() : "";
+		final String targetType = endNode.hasProperty(type) ? endNode.getProperty(type).toString() : "";
+		final String relType    = relationship.getType().name();
+		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
+
+		if (entityType != null) {
+
+			logger.debug("Class for assembled combined {}", entityType.getName());
+			return entityType;
+		}
+
+		// first try: type property
+		if (relationship.hasProperty(type)) {
+
+			Object obj =  relationship.getProperty(type);
+			if (obj != null) {
+
+				Class relationClass = StructrApp.getConfiguration().getRelationshipEntityClass(obj.toString());
+				if (relationClass != null) {
+
+					StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+					return relationClass;
+				}
+			}
+		}
+
+		// fallback to old type
+		final String combinedTypeName = "combinedType";
+		if (relationship.hasProperty(combinedTypeName)) {
+
+			Object obj =  relationship.getProperty(combinedTypeName);
+			if (obj != null) {
+
+				Class classForCombinedType = getClassForCombinedType(obj.toString());
+				if (classForCombinedType != null) {
+
+					return classForCombinedType;
+				}
+			}
+		}
+
+		// logger.warn("No instantiable class for relationship found for {} {} {}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
+
+		return getGenericRelationshipType();
+	}
+
+	private Class getClassForCombinedType(final String combinedType) {
+
+		final String[] parts = StringUtils.split(combinedType, COMBINED_RELATIONSHIP_KEY_SEP);
+		final String sourceType = parts[0];
+		final String relType    = parts[1];
+		final String targetType = parts[2];
+
+		return getClassForCombinedType(sourceType, relType, targetType);
+	}
+
+	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
+		return StructrApp.getConfiguration().getRelationClassForCombinedType(sourceType, relType, targetType);
+	}
+	 */
 }

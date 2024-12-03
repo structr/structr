@@ -23,26 +23,34 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.DateProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+import org.structr.core.traits.AbstractNodeTraitDefinition;
+import org.structr.core.traits.AbstractTraitDefinition;
+import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Storage object for session data.
  */
 
-public class SessionDataNode extends AbstractNode {
+public class SessionDataNode extends AbstractTraitDefinition {
 
-	public static final Property<String>               sessionId    = new StringProperty("sessionId").indexed();
-	public static final Property<String>               contextPath  = new StringProperty("cpath");
-	public static final Property<String>               vhost        = new StringProperty("vhost");
-	public static final Property<Date>                 lastAccessed = new DateProperty("lastAccessed").indexed();
-	public static final Property<Long>                 version      = new LongProperty("version");
+	private static final Property<String>               sessionIdProperty    = new StringProperty("sessionId").indexed();
+	private static final Property<String>               contextPathProperty  = new StringProperty("cpath");
+	private static final Property<String>               vhostProperty        = new StringProperty("vhost");
+	private static final Property<Date>                 lastAccessedProperty = new DateProperty("lastAccessed").indexed();
+	private static final Property<Long>                 versionProperty      = new LongProperty("version");
 
+	/*
 	public static final View uiView = new View(SessionDataNode.class, PropertyView.Ui,
 		sessionId, contextPath, vhost, lastAccessed, version
 	);
@@ -50,33 +58,58 @@ public class SessionDataNode extends AbstractNode {
 	public static final View publicView = new View(SessionDataNode.class, PropertyView.Public,
 		sessionId, contextPath, vhost, lastAccessed, version
 	);
+	*/
 
 	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
-		super.onCreation(securityContext, errorBuffer);
-		incrementVersion();
+		return Map.of(
+			OnCreation.class, new OnCreation() {
+
+				@Override
+				public void onCreation(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+					incrementVersion(graphObject);
+				}
+			},
+
+			OnModification.class, new OnModification() {
+
+				@Override
+				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+					incrementVersion(graphObject);
+				}
+			}
+		);
 	}
 
 	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
 
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-		incrementVersion();
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of(
+			sessionIdProperty,
+			contextPathProperty,
+			vhostProperty,
+			lastAccessedProperty,
+			versionProperty
+		);
 	}
 
 	// ----- private methods -----
-	private void incrementVersion() throws FrameworkException {
+	private void incrementVersion(final GraphObject graphObject) throws FrameworkException {
 
 		// increment version on each change
-		final Long version = getProperty(SessionDataNode.version);
+		final Long version = graphObject.getProperty(versionProperty);
 		if (version == null) {
 
-			setProperty(SessionDataNode.version, 1L);
+			graphObject.setProperty(versionProperty, 1L);
 
 		} else {
-			
-			setProperty(SessionDataNode.version,  version + 1);
+
+			graphObject.setProperty(versionProperty,  version + 1);
 		}
 	}
 }

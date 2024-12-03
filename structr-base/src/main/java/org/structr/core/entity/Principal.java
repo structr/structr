@@ -19,13 +19,13 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.NodeTrait;
 
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public interface Principal {
+public interface Principal extends NodeTrait {
 
 	String HIDDEN                            = "****** HIDDEN ******";
 	String SUPERUSER_ID                      = "00000000000000000000000000000000";

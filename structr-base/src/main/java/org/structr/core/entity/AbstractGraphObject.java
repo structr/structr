@@ -81,7 +81,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final Class entityType, final long sourceTransactionId) {
+	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final String entityType, final long sourceTransactionId) {
 
 		// FIXME: unchecked type cast will fail for non-Structr nodes
 		this.typeHandler         = Traits.of((String)propertyContainer.getProperty("type"));
@@ -149,6 +149,14 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 		}
 
 		return andValue;
+	}
+
+	@Override
+	public void addToIndex() {
+
+		for (final AddToIndex callback : typeHandler.getMethods(AddToIndex.class)) {
+			callback.addToIndex(this);
+		}
 	}
 
 	@Override
@@ -308,7 +316,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertySet(final String propertyView) {
+	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
 		return typeHandler.getMethod(GetPropertySet.class).getPropertySet(this, propertyView);
 	}
 

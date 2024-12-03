@@ -51,8 +51,15 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
 
-	private final PropertyKey<String> idKey   = Traits.of("GraphObject").key("id");
-	private final PropertyKey<String> typeKey = Traits.of("GraphObject").key("type");
+	private final PropertyKey<String> idKey                           = Traits.of("GraphObject").key("id");
+	private final PropertyKey<String> typeKey                         = Traits.of("GraphObject").key("type");
+	private final PropertyKey<Date> createdDateKey                    = Traits.of("GraphObject").key("createdDate");
+	private final PropertyKey<Date> lastModifiedDateKey               = Traits.of("GraphObject").key("lastModifiedDate");
+	private final PropertyKey<String> createdByKey                    = Traits.of("GraphObject").key("createdBy");
+	private final PropertyKey<String> lastModifiedByKey               = Traits.of("GraphObject").key("lastModifiedBy");
+	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.of("GraphObject").key("visibleToPublicUsers");
+	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.of("GraphObject").key("visibleToAuthenticatedUsers");
+	private final PropertyKey<Boolean> hiddenKey                      = Traits.of("NodeInterface").key("hidden");
 
 	public NodeInterface execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
@@ -81,17 +88,17 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		final Principal user          = securityContext.getUser(false);
-		NodeInterface node	                      = null;
+		NodeInterface node	      = null;
 
 		if (graphDb != null) {
 
 			final NodeFactory nodeFactory = new NodeFactory(securityContext);
 			final PropertyMap properties  = new PropertyMap(attributes);
 			final PropertyMap toNotify    = new PropertyMap();
-			final Object typeObject       = properties.get(AbstractNode.type);
+			final Object typeObject       = properties.get(typeKey);
 			final Traits nodeType         = Traits.of(typeObject.toString());
 			final String typeName         = nodeType.getName();
-			final Set<String> labels      = TypeProperty.getLabelsForType(nodeType);
+			final Set<String> labels      = nodeType.getLabels();
 			final CreationContainer tmp   = new CreationContainer(true);
 			final Date now                = new Date();
 			final boolean isCreation      = true;
@@ -115,37 +122,37 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			// set default values for common properties in creation query
 			idKey.setProperty(securityContext, tmp, uuid);
 			typeKey.setProperty(securityContext, tmp, typeName);
-			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
-			AbstractNode.lastModifiedDate.setProperty(securityContext, tmp, now);
+			createdDateKey.setProperty(securityContext, tmp, now);
+			lastModifiedDateKey.setProperty(securityContext, tmp, now);
 
 			// default property values
-			AbstractNode.visibleToPublicUsers.setProperty(securityContext, tmp,        getOrDefault(properties, AbstractNode.visibleToPublicUsers, false));
-			AbstractNode.visibleToAuthenticatedUsers.setProperty(securityContext, tmp, getOrDefault(properties, AbstractNode.visibleToAuthenticatedUsers, false));
-			AbstractNode.hidden.setProperty(securityContext, tmp,                      getOrDefault(properties, AbstractNode.hidden, false));
+			visibleToPublicUsersKey.setProperty(securityContext, tmp,        getOrDefault(properties, visibleToPublicUsersKey, false));
+			visibleToAuthenticatedUsersKey.setProperty(securityContext, tmp, getOrDefault(properties, visibleToAuthenticatedUsersKey, false));
+			hiddenKey.setProperty(securityContext, tmp,                      getOrDefault(properties, hiddenKey, false));
 
 			if (user != null) {
 
-				final String userId = user.getProperty(idKey);
+				final String userId = user.getUuid();
 
-				AbstractNode.createdBy.setProperty(securityContext, tmp, userId);
-				AbstractNode.lastModifiedBy.setProperty(securityContext, tmp, userId);
+				createdByKey.setProperty(securityContext, tmp, userId);
+				lastModifiedByKey.setProperty(securityContext, tmp, userId);
 			}
 
 			// prevent double setting of properties
-			properties.remove(AbstractNode.id);
-			properties.remove(AbstractNode.typeHandler);
-			properties.remove(AbstractNode.visibleToPublicUsers);
-			properties.remove(AbstractNode.visibleToAuthenticatedUsers);
-			properties.remove(AbstractNode.hidden);
-			properties.remove(AbstractNode.lastModifiedDate);
-			properties.remove(AbstractNode.lastModifiedBy);
-			properties.remove(AbstractNode.createdDate);
-			properties.remove(AbstractNode.createdBy);
+			properties.remove(idKey);
+			properties.remove(typeKey);
+			properties.remove(visibleToPublicUsersKey);
+			properties.remove(visibleToAuthenticatedUsersKey);
+			properties.remove(hiddenKey);
+			properties.remove(lastModifiedDateKey);
+			properties.remove(lastModifiedByKey);
+			properties.remove(createdDateKey);
+			properties.remove(createdByKey);
 
-			if (Principal.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
+			if (nodeType.contains("Principal") && !nodeType.contains("Group")) {
 				// If we are creating a node inheriting from Principal, force existence of password property
 				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-				final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
+				final PropertyKey<String> passwordKey = nodeType.key("password");
 				if (isCreation && !properties.containsKey(passwordKey)) {
 					properties.put(passwordKey, null);
 				}
@@ -155,7 +162,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 			// collect default values and try to set them on creation
-			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(nodeType, PropertyView.All)) {
+			for (final PropertyKey key : nodeType.getFullPropertySet(PropertyView.All)) {
 
 				if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 
@@ -167,7 +174,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				}
 			}
 
-			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), nodeType, null, isCreation);
+			node = nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), typeName, null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -238,8 +245,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			// configure OWNS relationship creation statement for maximum performance
 			ownsProperties.put(idKey.dbName(),                          getNextUuid());
 			ownsProperties.put(typeKey.dbName(),                        PrincipalOwnsNode.class.getSimpleName());
-			ownsProperties.put(GraphObject.visibleToPublicUsers.dbName(),        false);
-			ownsProperties.put(GraphObject.visibleToAuthenticatedUsers.dbName(), false);
+			ownsProperties.put(visibleToPublicUsersKey.dbName(),        false);
+			ownsProperties.put(visibleToAuthenticatedUsersKey.dbName(), false);
 			ownsProperties.put(AbstractRelationship.relType.dbName(),            "OWNS");
 			ownsProperties.put(AbstractRelationship.sourceId.dbName(),           userId);
 			ownsProperties.put(AbstractRelationship.targetId.dbName(),           newUuid);
@@ -248,8 +255,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			// configure SECURITY relationship creation statement for maximum performance
 			securityProperties.put(idKey.dbName(),                          getNextUuid());
 			securityProperties.put(typeKey.dbName(),                        SecurityRelationship.class.getSimpleName());
-			securityProperties.put(GraphObject.visibleToPublicUsers.dbName(),        false);
-			securityProperties.put(GraphObject.visibleToAuthenticatedUsers.dbName(), false);
+			securityProperties.put(visibleToPublicUsersKey.dbName(),        false);
+			securityProperties.put(visibleToAuthenticatedUsersKey.dbName(), false);
 			securityProperties.put(AbstractRelationship.relType.dbName(),            "SECURITY");
 			securityProperties.put(AbstractRelationship.sourceId.dbName(),           userId);
 			securityProperties.put(AbstractRelationship.targetId.dbName(),           newUuid);
@@ -260,13 +267,16 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			try {
 
-				final NodeWithOwnerResult result = graphDb.createNodeWithOwner(user.getNode().getId(), type, labels, properties, ownsProperties, securityProperties);
-				final Relationship securityRel   = result.getSecurityRelationship();
-				final Relationship ownsRel       = result.getOwnsRelationship();
-				final Node newNode               = result.getNewNode();
+				final RelationshipFactory factory = new RelationshipFactory(securityContext);
+				final NodeInterface userNode      = user.getWrappedNode();
+				final Node userDatabaseNode       = userNode.getNode();
+				final NodeWithOwnerResult result  = graphDb.createNodeWithOwner(userDatabaseNode.getId(), type, labels, properties, ownsProperties, securityProperties);
+				final Relationship securityRel    = result.getSecurityRelationship();
+				final Relationship ownsRel        = result.getOwnsRelationship();
+				final Node newNode                = result.getNewNode();
 
-				notifySecurityRelCreation(user, securityRel);
-				notifyOwnsRelCreation(user, ownsRel);
+				notifySecurityRelCreation(factory, user, securityRel);
+				notifyOwnsRelCreation(factory, user, ownsRel);
 
 				return newNode;
 
@@ -302,9 +312,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		return defaultValue;
 	}
 
-	private void notifySecurityRelCreation(final Principal user, final Relationship rel) {
+	private void notifySecurityRelCreation(final RelationshipFactory factory, final Principal user, final Relationship rel) {
 
-		final RelationshipFactory<NodeInterface, NodeInterface, RelationshipInterface factory = new RelationshipFactory<>(securityContext);
 
 		try {
 
@@ -340,9 +349,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		}
 	}
 
-	private void notifyOwnsRelCreation(final Principal user, final Relationship rel) {
-
-		final RelationshipFactory factory = new RelationshipFactory(securityContext);
+	private void notifyOwnsRelCreation(final RelationshipFactory factory, final Principal user, final Relationship rel) {
 
 		try {
 

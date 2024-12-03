@@ -27,10 +27,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.*;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.graphobject.AddToIndex;
 import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
@@ -89,6 +91,26 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 
 		return Map.of(
 
+			AddToIndex.class,
+			new AddToIndex() {
+
+				@Override
+				public void addToIndex(final GraphObject graphObject) {
+
+					final Set<PropertyKey> indexKeys = new LinkedHashSet<>();
+
+					for (PropertyKey key : graphObject.getPropertyKeys(PropertyView.All)) {
+
+						if (key.isIndexed()) {
+
+							indexKeys.add(key);
+						}
+					}
+
+					GraphObjectTraitDefinition.this.addToIndex(graphObject, indexKeys);
+				}
+			},
+
 			IndexPassiveProperties.class,
 			new IndexPassiveProperties() {
 
@@ -105,7 +127,7 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 						}
 					}
 
-					addToIndex(graphObject, passiveIndexingKeys);
+					GraphObjectTraitDefinition.this.addToIndex(graphObject, passiveIndexingKeys);
 				}
 			}
 		);
