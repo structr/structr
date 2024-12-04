@@ -55,7 +55,7 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		final String value = super.getProperty(securityContext, obj, applyConverter, predicate);
 		if (value != null) {

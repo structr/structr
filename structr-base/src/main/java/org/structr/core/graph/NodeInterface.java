@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTrait;
 
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
+
+	<T extends NodeTrait> T as(final Class<T> type);
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
@@ -67,7 +70,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	RelationshipInterface getIncomingRelationship(final String type);
 	RelationshipInterface getIncomingRelationshipAsSuperUser(final String type);
 	Iterable<RelationshipInterface> getIncomingRelationships(final String type);
-	Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<NodeInterface> predicate);
+	Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<GraphObject> predicate);
 
 	RelationshipInterface getOutgoingRelationship(final String type);
 	RelationshipInterface getOutgoingRelationshipAsSuperUser(final String type);

@@ -18,16 +18,10 @@
  */
 package org.structr.core.entity;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.*;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -35,7 +29,9 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.*;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -47,13 +43,9 @@ import java.util.Map;
 
 
 /**
- * Abstract base class for all relationship entities in structr.
- *
- *
- * @param <S>
- * @param <T>
+ * Abstract base class for all relationship entities in Structr.
  */
-public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> extends AbstractGraphObject<Relationship> implements Comparable<AbstractRelationship>, RelationshipInterface<S, T> {
+public final class AbstractRelationship extends AbstractGraphObject<Relationship> implements Comparable<AbstractRelationship>, RelationshipInterface {
 
 	/*
 	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
@@ -86,18 +78,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	protected Class entityType                 = null;
 	protected Identity relationshipId          = null;
 
-	public AbstractRelationship() {}
-
-	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId) {
-		init(securityContext, dbRel, entityType, transactionId);
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final String entityType, final long transactionId) {
+		super(securityContext, dbRel, entityType, transactionId);
 	}
 
-	public Property<String> getSourceIdProperty() {
-		return sourceId;
-	}
-
-	public Property<String> getTargetIdProperty() {
-		return targetId;
+	@Override
+	public <T extends RelationshipTrait> T as(Class<T> type) {
+		return null;
 	}
 
 	@Override
@@ -181,26 +168,26 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public final T getTargetNode() {
-		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+	public final NodeInterface getTargetNode() {
+		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
-	public final T getTargetNodeAsSuperUser() {
-		NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+	public final NodeInterface getTargetNodeAsSuperUser() {
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
-	public final S getSourceNode() {
-		NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
+	public final NodeInterface getSourceNode() {
+		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
-	public final S getSourceNodeAsSuperUser() {
-		NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+	public final NodeInterface getSourceNodeAsSuperUser() {
+		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
@@ -227,14 +214,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return null;
 	}
 
-	public final Map<String, Long> getRelationshipInfo(Direction direction) {
-		return null;
-	}
-
-	public final List<AbstractRelationship> getRelationships(String type, Direction dir) {
-		return null;
-	}
-
 	@Override
 	public final String getType() {
 		return getRelType().name();
@@ -245,7 +224,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		if (cachedStartNodeId == null) {
 
-			final NodeInterface source = getProperty(sourceNode);
+			final NodeInterface source = getSourceNode();
 			if (source != null) {
 				cachedStartNodeId = source.getUuid();
 			}
@@ -259,7 +238,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		if (cachedEndNodeId == null) {
 
-			final NodeInterface target = getProperty(targetNode);
+			final NodeInterface target = getTargetNode();
 			if (target != null) {
 				cachedEndNodeId = target.getUuid();
 			}
@@ -269,18 +248,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	public final String getOtherNodeId(final AbstractNode node) {
-		return getOtherNode(node).getProperty(AbstractRelationship.id);
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-
-		boolean valid = true;
-
-		valid &= ValidationHelper.isValidStringNotBlank(this, AbstractRelationship.id, errorBuffer);
-
-		return valid;
-
+		return getOtherNode(node).getUuid();
 	}
 
 	@Override
@@ -295,9 +263,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		final NodeInterface newStartNode = app.getNodeById(sourceNodeId);
 		final NodeInterface endNode      = getTargetNode();
-		final Class relationType         = getClass();
+		final String type                = typeHandler.getName();
 		final PropertyMap _props         = getProperties();
-		final String type                = this.getClass().getSimpleName();
 
 		if (newStartNode == null) {
 			throw new FrameworkException(404, "Node with ID " + sourceNodeId + " not found", new IdNotFoundToken(type, sourceNodeId));
@@ -307,7 +274,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		app.delete(this);
 
 		// create new relationship
-		app.create(newStartNode, endNode, relationType, _props);
+		app.create(newStartNode, endNode, type, _props);
 	}
 
 	@Override
@@ -322,9 +289,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		final NodeInterface newTargetNode = app.getNodeById(targetNodeId);
 		final NodeInterface startNode     = getSourceNode();
-		final Class relationType          = getClass();
+		final String type                 = typeHandler.getName();
 		final PropertyMap _props          = getProperties();
-		final String type                 = this.getClass().getSimpleName();
 
 		if (newTargetNode == null) {
 			throw new FrameworkException(404, "Node with ID " + targetNodeId + " not found", new IdNotFoundToken(type, targetNodeId));
@@ -334,7 +300,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		app.delete(this);
 
 		// create new relationship and store here
-		app.create(startNode, newTargetNode, relationType, _props);
+		app.create(startNode, newTargetNode, type, _props);
 	}
 
 	@Override
@@ -351,7 +317,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			default:
 
 				// evaluate object value or return default
-				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
+				final Object value = getProperty(typeHandler.key(key), actionContext.getPredicate());
 				if (value == null) {
 
 					return Function.numberOrString(defaultValue);
@@ -381,65 +347,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return true;
 	}
 
-	// ----- protected methods -----
-	protected final Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
-
-		// FIXME: this method will most likely not do what it's supposed to do..
-		if (sourceType.equals(type) && targetType.equals(type)) {
-			return Direction.BOTH;
-		}
-
-		if (sourceType.equals(type)) {
-			return Direction.OUTGOING;
-		}
-
-		if (targetType.equals(type)) {
-			return Direction.INCOMING;
-		}
-
-		/* one of these blocks is wrong...*/
-		if (sourceType.isAssignableFrom(type) && targetType.isAssignableFrom(type)) {
-			return Direction.BOTH;
-		}
-
-		if (sourceType.isAssignableFrom(type)) {
-			return Direction.OUTGOING;
-		}
-
-		if (targetType.isAssignableFrom(type)) {
-			return Direction.INCOMING;
-		}
-
-		/* one of these blocks is wrong...*/
-		if (type.isAssignableFrom(sourceType) && type.isAssignableFrom(targetType)) {
-			return Direction.BOTH;
-		}
-
-		if (type.isAssignableFrom(sourceType)) {
-			return Direction.OUTGOING;
-		}
-
-		if (type.isAssignableFrom(targetType)) {
-			return Direction.INCOMING;
-		}
-
-		return Direction.BOTH;
-	}
-
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() {
 		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
-	}
-
-	@Override
-	public boolean isNode() {
-		return false;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return true;
 	}
 
 	@Override
@@ -451,89 +362,4 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public RelationshipInterface getSyncRelationship() {
 		return this;
 	}
-
-	/*
-
-
-	@Override
-	public Class determineRelationshipType(Relationship relationship) {
-
-		if (TransactionCommand.isDeleted(relationship)) {
-			return null;
-		}
-
-		final String type = GraphObject.type.dbName();
-
-		final Node startNode = relationship.getStartNode();
-		final Node endNode   = relationship.getEndNode();
-
-		if (startNode == null || startNode.isDeleted()) {
-			return null;
-		}
-
-		if (endNode == null || endNode.isDeleted()) {
-			return null;
-		}
-
-		// first try: duck-typing
-		final String sourceType = startNode.hasProperty(type) ? startNode.getProperty(type).toString() : "";
-		final String targetType = endNode.hasProperty(type) ? endNode.getProperty(type).toString() : "";
-		final String relType    = relationship.getType().name();
-		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
-
-		if (entityType != null) {
-
-			logger.debug("Class for assembled combined {}", entityType.getName());
-			return entityType;
-		}
-
-		// first try: type property
-		if (relationship.hasProperty(type)) {
-
-			Object obj =  relationship.getProperty(type);
-			if (obj != null) {
-
-				Class relationClass = StructrApp.getConfiguration().getRelationshipEntityClass(obj.toString());
-				if (relationClass != null) {
-
-					StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
-					return relationClass;
-				}
-			}
-		}
-
-		// fallback to old type
-		final String combinedTypeName = "combinedType";
-		if (relationship.hasProperty(combinedTypeName)) {
-
-			Object obj =  relationship.getProperty(combinedTypeName);
-			if (obj != null) {
-
-				Class classForCombinedType = getClassForCombinedType(obj.toString());
-				if (classForCombinedType != null) {
-
-					return classForCombinedType;
-				}
-			}
-		}
-
-		// logger.warn("No instantiable class for relationship found for {} {} {}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
-
-		return getGenericRelationshipType();
-	}
-
-	private Class getClassForCombinedType(final String combinedType) {
-
-		final String[] parts = StringUtils.split(combinedType, COMBINED_RELATIONSHIP_KEY_SEP);
-		final String sourceType = parts[0];
-		final String relType    = parts[1];
-		final String targetType = parts[2];
-
-		return getClassForCombinedType(sourceType, relType, targetType);
-	}
-
-	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
-		return StructrApp.getConfiguration().getRelationClassForCombinedType(sourceType, relType, targetType);
-	}
-	 */
 }

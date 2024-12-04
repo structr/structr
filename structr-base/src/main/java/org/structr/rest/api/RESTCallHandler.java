@@ -54,7 +54,6 @@ import org.structr.core.traits.*;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -73,7 +72,7 @@ public abstract class RESTCallHandler {
 
 	public abstract Set<String> getAllowedHttpMethodsForOptionsCall();
 	public abstract boolean isCollection();
-	public abstract Class getEntityClass(final SecurityContext securityContext) throws FrameworkException;
+	public abstract String getTypeName(final SecurityContext securityContext) throws FrameworkException;
 
 	public void setRequestedView(final String view) {
 		this.requestedView = view;
@@ -201,7 +200,7 @@ public abstract class RESTCallHandler {
 
 		try {
 
-			final Class entityClass = getEntityClass(securityContext);
+			final Class entityClass = getTypeName(securityContext);
 			if (entityClass != null) {
 
 				return entityClass;
@@ -384,10 +383,11 @@ public abstract class RESTCallHandler {
 
 			final boolean exactSearch          = !(parseInteger(request.getParameter(RequestKeywords.Inexact.keyword())) == 1);
 			final List<PropertyKey> searchKeys = new LinkedList<>();
+			final Traits traits                = Traits.of(type);
 
 			for (final String name : request.getParameterMap().keySet()) {
 
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
+				final PropertyKey key = traits.key(getFirstPartOfString(name));
 				if (key != null) {
 
 					// add to list of searchable keys
@@ -456,18 +456,18 @@ public abstract class RESTCallHandler {
 
 		if (results != null && !results.isEmpty()) {
 
-			final Class type = results.get(0).getClass();
+			final Traits traits = results.get(0).getTraits();
 
 			// instruct deserialization strategies to set properties on related nodes
 			securityContext.setAttribute("setNestedProperties", true);
 
-			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, traits.getName(), propertySet);
 
 			for (final org.structr.core.GraphObject obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					throw new FrameworkException(403, GraphObjectTraitDefinition.getModificationNotPermittedExceptionString(obj, securityContext));
+					throw new FrameworkException(403, getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);
@@ -547,7 +547,7 @@ public abstract class RESTCallHandler {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final String entityClass, final String typeName) throws FrameworkException {
+	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets,final String typeName) throws FrameworkException {
 
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
@@ -564,7 +564,7 @@ public abstract class RESTCallHandler {
 				while (iterator.hasNext() && count++ < batchSize) {
 
 					final Map<String, Object> propertySet = iterator.next();
-					String localType                      = entityClass;
+					String localType                      = typeName;
 
 					overallCount++;
 
@@ -573,11 +573,10 @@ public abstract class RESTCallHandler {
 					if (typeSource != null && typeSource instanceof String) {
 
 						final String typeString = (String)typeSource;
+						final Traits traits     = Traits.of(typeString);
+						if (traits != null) {
 
-						Class type = SchemaHelper.getEntityClassForRawType(typeString);
-						if (type != null) {
-
-							localType = type;
+							localType = traits.getName();
 						}
 					}
 
@@ -598,7 +597,7 @@ public abstract class RESTCallHandler {
 							if (obj != null) {
 
 								// test
-								localType = obj.getClass();
+								localType = obj.getType();
 
 								propertySet.remove("id");
 
@@ -618,7 +617,7 @@ public abstract class RESTCallHandler {
 
 					} else {
 
-						createNode(securityContext, entityClass, typeName, propertySet);
+						createNode(securityContext, typeName, propertySet);
 					}
 				}
 

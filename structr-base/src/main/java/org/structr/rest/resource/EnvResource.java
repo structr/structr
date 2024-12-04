@@ -70,7 +70,7 @@ public class EnvResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

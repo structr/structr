@@ -51,19 +51,20 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
 
-	private final PropertyKey<String> idKey                           = Traits.of("GraphObject").key("id");
-	private final PropertyKey<String> typeKey                         = Traits.of("GraphObject").key("type");
-	private final PropertyKey<Date> createdDateKey                    = Traits.of("GraphObject").key("createdDate");
-	private final PropertyKey<Date> lastModifiedDateKey               = Traits.of("GraphObject").key("lastModifiedDate");
-	private final PropertyKey<String> createdByKey                    = Traits.of("GraphObject").key("createdBy");
-	private final PropertyKey<String> lastModifiedByKey               = Traits.of("GraphObject").key("lastModifiedBy");
-	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.of("GraphObject").key("visibleToPublicUsers");
-	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.of("GraphObject").key("visibleToAuthenticatedUsers");
-	private final PropertyKey<Boolean> hiddenKey                      = Traits.of("NodeInterface").key("hidden");
+	private final PropertyKey<String> idKey                           = Traits.key("GraphObject", "id");
+	private final PropertyKey<String> typeKey                         = Traits.key("GraphObject", "type");
+	private final PropertyKey<Date> createdDateKey                    = Traits.key("GraphObject", "createdDate");
+	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key("GraphObject", "lastModifiedDate");
+	private final PropertyKey<String> createdByKey                    = Traits.key("GraphObject", "createdBy");
+	private final PropertyKey<String> lastModifiedByKey               = Traits.key("GraphObject", "lastModifiedBy");
+	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
+	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
+	private final PropertyKey<Boolean> hiddenKey                      = Traits.key("NodeInterface", "hidden");
+	private final PropertyKey<String> passwordKey                     = Traits.key("Principal", "password");
 
 	public NodeInterface execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
-		PropertyMap properties = new PropertyMap();
+		final PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
 
 			properties.put(attribute.getKey(), attribute.getValue());
@@ -75,7 +76,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	public NodeInterface execute(final NodeAttribute<?>... attributes) throws FrameworkException {
 
-		PropertyMap properties = new PropertyMap();
+		final PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
 
 			properties.put(attribute.getKey(), attribute.getValue());
@@ -95,7 +96,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final NodeFactory nodeFactory = new NodeFactory(securityContext);
 			final PropertyMap properties  = new PropertyMap(attributes);
 			final PropertyMap toNotify    = new PropertyMap();
-			final Object typeObject       = properties.get("type");
+			final Object typeObject       = properties.get(typeKey);
 			final Traits nodeType         = Traits.of(typeObject.toString());
 			final String typeName         = nodeType.getName();
 			final Set<String> labels      = nodeType.getLabels();
@@ -104,13 +105,13 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final boolean isCreation      = true;
 
 			// use user-supplied UUID?
-			String uuid = properties.get("id");
+			String uuid = properties.get(idKey);
 			if (uuid == null) {
 
 				// no, create new one
 				uuid = getNextUuid();
 
-				properties.put("id", uuid);
+				properties.put(idKey, uuid);
 
 			} else {
 
@@ -120,15 +121,15 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 			// use property keys to set property values on creation dummy
 			// set default values for common properties in creation query
-			idKey.setProperty(securityContext, tmp, uuid);
-			typeKey.setProperty(securityContext, tmp, typeName);
-			createdDateKey.setProperty(securityContext, tmp, now);
+			idKey.setProperty(securityContext,               tmp, uuid);
+			typeKey.setProperty(securityContext,             tmp, typeName);
+			createdDateKey.setProperty(securityContext,      tmp, now);
 			lastModifiedDateKey.setProperty(securityContext, tmp, now);
 
 			// default property values
-			visibleToPublicUsersKey.setProperty(securityContext, tmp,        getOrDefault(properties, "visibleToPublicUser", false));
-			visibleToAuthenticatedUsersKey.setProperty(securityContext, tmp, getOrDefault(properties, "visibleToAuthenticatedUsers", false));
-			hiddenKey.setProperty(securityContext, tmp,                      getOrDefault(properties, "hidden", false));
+			visibleToPublicUsersKey.setProperty(securityContext,        tmp, getOrDefault(properties, visibleToPublicUsersKey,false));
+			visibleToAuthenticatedUsersKey.setProperty(securityContext, tmp, getOrDefault(properties, visibleToAuthenticatedUsersKey, false));
+			hiddenKey.setProperty(securityContext,                      tmp, getOrDefault(properties, hiddenKey,false));
 
 			if (user != null) {
 
@@ -139,21 +140,21 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			}
 
 			// prevent double setting of properties
-			properties.remove("id");
-			properties.remove("type");
-			properties.remove("visibleToPublicUsers");
-			properties.remove("visibleToAuthenticatedUsers");
-			properties.remove("hidden");
-			properties.remove("lastModifiedDate");
-			properties.remove("lastModifiedBy");
-			properties.remove("createdDate");
-			properties.remove("createdBy");
+			properties.remove(idKey);
+			properties.remove(typeKey);
+			properties.remove(visibleToPublicUsersKey);
+			properties.remove(visibleToAuthenticatedUsersKey);
+			properties.remove(hiddenKey);
+			properties.remove(lastModifiedDateKey);
+			properties.remove(lastModifiedByKey);
+			properties.remove(createdDateKey);
+			properties.remove(createdByKey);
 
 			if (nodeType.contains("Principal") && !nodeType.contains("Group")) {
 				// If we are creating a node inheriting from Principal, force existence of password property
 				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-				if (isCreation && !properties.containsKey("password")) {
-					properties.put("password", null);
+				if (isCreation && !properties.containsKey(passwordKey)) {
+					properties.put(passwordKey, null);
 				}
 			}
 
@@ -183,10 +184,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				securityContext.enableModificationOfAccessTime();
 
 				// ensure modification callbacks are called (necessary for validation)
-				for (final Entry<String, Object> entry : toNotify.entrySet()) {
+				for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
 
-					final String key   = entry.getKey();
-					final Object value = entry.getValue();
+					final PropertyKey key = entry.getKey();
+					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
 						TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)node, key, null, value);
@@ -235,34 +236,34 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
-		final String newUuid                         = (String)properties.get("id");
+		final String newUuid                         = (String)properties.get(idKey);
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
 			final String userId = user.getUuid();
 
 			// configure OWNS relationship creation statement for maximum performance
-			ownsProperties.put("id",                             getNextUuid());
-			ownsProperties.put("type",                           "PrincipalOwnsNode");
-			ownsProperties.put("visibleToPublicUsersKey",        false);
-			ownsProperties.put("visibleToAuthenticatedUsersKey", false);
-			ownsProperties.put("relType",                        "OWNS");
-			ownsProperties.put("sourceId",                       userId);
-			ownsProperties.put("targetId",                       newUuid);
-			ownsProperties.put("internalTimestamp",              graphDb.getInternalTimestamp(0, 0));
+			ownsProperties.put(idKey.dbName(),                             getNextUuid());
+			ownsProperties.put(typeKey.dbName(),                           "PrincipalOwnsNode");
+			ownsProperties.put(visibleToPublicUsersKey.dbName(),           false);
+			ownsProperties.put(visibleToAuthenticatedUsersKey.dbName(),    false);
+			ownsProperties.put(relTypeKey.dbName(),                        "OWNS");
+			ownsProperties.put(sourceIdKey.dbName(),                       userId);
+			ownsProperties.put(targetIdKey.dbName(),                       newUuid);
+			ownsProperties.put(internalTimestampKey.dbName(),              graphDb.getInternalTimestamp(0, 0));
 
 			// configure SECURITY relationship creation statement for maximum performance
-			securityProperties.put("idKey",                          getNextUuid());
-			securityProperties.put("typeKey",                        SecurityRelationship.class.getSimpleName());
-			securityProperties.put("visibleToPublicUsersKey",        false);
-			securityProperties.put("visibleToAuthenticatedUsersKey", false);
-			securityProperties.put("relType",                        "SECURITY");
-			securityProperties.put("sourceId",                       userId);
-			securityProperties.put("targetId",                       newUuid);
-			securityProperties.put("internalTimestamp",              graphDb.getInternalTimestamp(0, 1));
-			securityProperties.put("allowed",                        new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
-			securityProperties.put("principalId",                    userId);
-			securityProperties.put("accessControllableId",           newUuid);
+			securityProperties.put(idKey.dbName(),                          getNextUuid());
+			securityProperties.put(typeKey.dbName(),                        SecurityRelationship.class.getSimpleName());
+			securityProperties.put(visibleToPublicUsersKey.dbName(),        false);
+			securityProperties.put(visibleToAuthenticatedUsersKey.dbName(), false);
+			securityProperties.put(relTypeKey.dbName(),                     "SECURITY");
+			securityProperties.put(sourceIdKey.dbName(),                    userId);
+			securityProperties.put(targetIdKey.dbName(),                    newUuid);
+			securityProperties.put(internalTimestampKey.dbName(),           graphDb.getInternalTimestamp(0, 1));
+			securityProperties.put(allowedKey.dbName(),                     new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
+			securityProperties.put(principalIdKey.dbName(),                 userId);
+			securityProperties.put(accessControllableIdKey.dbName(),        newUuid);
 
 			try {
 
@@ -300,7 +301,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		}
 	}
 
-	private <T> T getOrDefault(final PropertyMap src, final String key, final T defaultValue) {
+	private <T> T getOrDefault(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
 
 		final T value = src.get(key);
 		if (value != null) {

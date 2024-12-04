@@ -27,13 +27,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class NodeAttribute<T> {
 
-	private String key = null;
-	private T value    = null;
+	private PropertyKey<T> key = null;
+	private T value            = null;
 
 	public NodeAttribute() {
 	}
 
-	public NodeAttribute(final String key, final T value) {
+	public NodeAttribute(final PropertyKey<T> key, final T value) {
 		this.key   = key;
 		this.value = value;
 	}
@@ -41,14 +41,14 @@ public class NodeAttribute<T> {
 	/**
 	 * @return the key
 	 */
-	public String getKey() {
+	public PropertyKey<T> getKey() {
 		return key;
 	}
 
 	/**
 	 * @param key the key to set
 	 */
-	public void setKey(final String key) {
+	public void setKey(final PropertyKey<T> key) {
 		this.key = key;
 	}
 
@@ -72,7 +72,7 @@ public class NodeAttribute<T> {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("NodeAttribute('");
-		buf.append(key != null ? key : "[null]");
+		buf.append(key != null ? key.dbName() : "[null]");
 		buf.append("', '");
 		buf.append(value);
 		buf.append("')");
@@ -94,7 +94,7 @@ public class NodeAttribute<T> {
 	public boolean equals(Object obj) {
 
 		if(obj instanceof NodeAttribute) {
-			return obj.hashCode() == hashCode();
+			return ((NodeAttribute)obj).hashCode() == hashCode();
 		}
 
 		return false;

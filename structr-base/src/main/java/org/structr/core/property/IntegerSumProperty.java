@@ -65,13 +65,13 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int sum = 0;
 
 		for (Property<Integer> prop : sumProperties) {
 
-			Integer value = obj.getProperty(prop.jsonName());
+			Integer value = obj.getProperty(prop);
 
 			if (value != null) {
 

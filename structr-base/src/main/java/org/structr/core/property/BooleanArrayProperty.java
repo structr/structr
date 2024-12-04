@@ -49,7 +49,7 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 
 		// We can only try to fix a String and convert it into a String[]
 		if (value != null && value instanceof String) {
@@ -163,7 +163,7 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Boolean[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Boolean[] searchValue, final boolean exactMatch, final Query query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {

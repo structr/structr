@@ -20,6 +20,7 @@ package org.structr.core.traits;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.wrappers.PrincipalTrait;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -52,5 +53,10 @@ public class UserTrait extends PrincipalTrait implements User {
 	@Override
 	public String getLocalStorage() {
 		return nodeInterface.getProperty(traits.key("localStorage"));
+	}
+
+	@Override
+	public String getConfirmationKey() {
+		return nodeInterface.getProperty(traits.key("confirmationKey"));
 	}
 }

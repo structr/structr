@@ -19,9 +19,6 @@
 package org.structr.rest.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -31,24 +28,27 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.GraphObject;
-import org.structr.core.traits.NodeInterface;
-import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -57,17 +57,15 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeResource.class.getName());
 
-	private Traits entityClass = null;
 	private String typeName    = null;
 	private boolean isNode     = true;
 
-	public CollectionResourceHandler(final RESTCall call, final Traits entityClass, final String typeName, final boolean isNode) {
+	public CollectionResourceHandler(final RESTCall call, String typeName, final boolean isNode) {
 
 		super(call);
 
-		this.entityClass       = entityClass;
-		this.typeName          = typeName;
-		this.isNode            = isNode;
+		this.typeName = typeName;
+		this.isNode   = isNode;
 	}
 
 	@Override
@@ -78,13 +76,13 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 		if (typeName != null) {
 
-			if (entityClass == null) {
+			if (Traits.of(typeName) == null) {
 				throw new NotFoundException("Type " + typeName + " does not exist");
 			}
 
-			final Query query = createQuery(StructrApp.getInstance(securityContext), entityClass, isNode);
+			final Query query = createQuery(StructrApp.getInstance(securityContext), typeName, isNode);
 
-			collectSearchAttributes(securityContext, entityClass, query);
+			collectSearchAttributes(securityContext, typeName, query);
 
 			return query
 				.includeHidden(includeHidden)
@@ -108,7 +106,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		if (isNode) {
 
 			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			final org.structr.core.graph.NodeInterface newNode   = createNode(securityContext, entityClass, typeName, propertySet);
+			final org.structr.core.graph.NodeInterface newNode   = createNode(securityContext, typeName, propertySet);
 
 			if (newNode != null) {
 
@@ -122,22 +120,23 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		} else {
 
 			final App app                         = StructrApp.getInstance(securityContext);
-			final Relation template               = getRelationshipTemplate();
+			final Traits traits                   = Traits.of(typeName);
+			final Relation template               = traits.getRelation();
 			final ErrorBuffer errorBuffer         = new ErrorBuffer();
 
 			if (template != null) {
 
 				final NodeInterface sourceNode        = identifyStartNode(securityContext, template, propertySet);
 				final NodeInterface targetNode        = identifyEndNode(securityContext, template, propertySet);
-				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, typeName, propertySet);
 				RelationshipInterface newRelationship = null;
 
 				if (sourceNode == null) {
-					errorBuffer.add(new EmptyPropertyToken(entityClass.getName(), template.getSourceIdProperty().jsonName()));
+					errorBuffer.add(new EmptyPropertyToken(typeName, template.getSourceIdProperty().jsonName()));
 				}
 
 				if (targetNode == null) {
-					errorBuffer.add(new EmptyPropertyToken(entityClass.getName(), template.getTargetIdProperty().jsonName()));
+					errorBuffer.add(new EmptyPropertyToken(typeName, template.getTargetIdProperty().jsonName()));
 				}
 
 				if (errorBuffer.hasError()) {
@@ -146,7 +145,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 				template.ensureCardinality(securityContext, sourceNode, targetNode);
 
-				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
+				newRelationship = app.create(sourceNode, targetNode, typeName, properties);
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				if (newRelationship != null) {
@@ -166,7 +165,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
-		return genericPatch(securityContext, propertySets, entityClass, typeName);
+		return genericPatch(securityContext, propertySets, typeName);
 	}
 
 	@Override
@@ -181,8 +180,8 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) {
-		return entityClass;
+	public String getTypeName(final SecurityContext securityContext) {
+		return typeName;
 	}
 
 	@Override
@@ -196,23 +195,10 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	}
 
 	// ----- private methods -----
-	private Relation getRelationshipTemplate() {
-
-		try {
-
-			return (Relation)entityClass.getDeclaredConstructor().newInstance();
-
-		} catch (Throwable t) {
-
-		}
-
-		return null;
-	}
-
 	private NodeInterface identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> sourceIdProperty = template.getSourceIdProperty();
-		final TraitDefinition<?> sourceType               = template.getSourceType();
+		final String sourceType                 = template.getSourceType();
 		final Notion notion                     = template.getStartNodeNotion();
 
 		notion.setType(sourceType);
@@ -235,7 +221,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	private NodeInterface identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> targetIdProperty = template.getTargetIdProperty();
-		final TraitDefinition<?> targetType               = template.getTargetType();
+		final String targetType                 = template.getTargetType();
 		final Notion notion                     = template.getEndNodeNotion();
 
 		notion.setType(targetType);
@@ -254,28 +240,13 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	private int intOrDefault(final String source, final int defaultValue) {
-
-		if (source != null) {
-
-			try {
-
-				return Integer.parseInt(source);
-
-			} catch (Throwable t) {}
-
-		}
-
-		return defaultValue;
-	}
-
-	private <T extends GraphObject> Query<T> createQuery(final App app, final Traits type, final boolean isNode) {
+	private <T extends GraphObject> Query<T> createQuery(final App app, final String type, final boolean isNode) {
 
 		if (isNode) {
 
-			return app.nodeQuery(type);
+			return (Query<T>)app.nodeQuery(type);
 		}
 
-		return app.relationshipQuery(type);
+		return (Query<T>)app.relationshipQuery(type);
 	}
 }

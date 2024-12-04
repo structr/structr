@@ -100,8 +100,6 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 	S getSource();
 	T getTarget();
 
-	Property<String> getSourceIdProperty();
-	Property<String> getTargetIdProperty();
 	Notion getEndNodeNotion();
 	Notion getStartNodeNotion();
 
@@ -110,52 +108,12 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 
 	void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 
+	Property<String> getSourceIdProperty();
+	Property<String> getTargetIdProperty();
+
 	void setSourceProperty(final PropertyKey source);
 	void setTargetProperty(final PropertyKey target);
 
 	PropertyKey getSourceProperty();
 	PropertyKey getTargetProperty();
-
-	Map<Class, Relation> relationCache = new LinkedHashMap<>();
-
-	static Relation getInstance(final Class<? extends Relation> type) {
-
-		Relation instance = relationCache.get(type);
-		if (instance == null) {
-
-			try {
-
-				instance = type.getDeclaredConstructor().newInstance();
-				relationCache.put(type, instance);
-
-
-			} catch (Throwable t) {
-				LoggerFactory.getLogger(Relation.class).error("{}", ExceptionUtils.getStackTrace(t));
-			}
-		}
-
-		return instance;
-	}
-
-	static Cardinality getCardinality(final Relation relation) {
-
-		final Multiplicity sm = relation.getSourceMultiplicity();
-		final Multiplicity tm = relation.getTargetMultiplicity();
-
-		switch (sm) {
-
-			case One:
-				switch (tm) {
-					case One: return Cardinality.OneToOne;
-					case Many: return Cardinality.OneToMany;
-				}
-			case Many:
-				switch (tm) {
-					case One: return Cardinality.ManyToOne;
-					case Many: return Cardinality.ManyToMany;
-				}
-		}
-
-		return null;
-	}
 }

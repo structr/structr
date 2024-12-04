@@ -30,14 +30,13 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.Actions;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.math.BigInteger;
 import java.net.Inet4Address;
@@ -78,7 +77,11 @@ public class AuthHelper {
 
 			try {
 
-				return StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).disableSorting().isPing(isPing).getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery("Principal").and(key, value).disableSorting().isPing(isPing).getFirst();
+				if (node != null) {
+
+					return node.as(Principal.class);
+				}
 
 			} catch (FrameworkException fex) {
 
@@ -127,7 +130,11 @@ public class AuthHelper {
 
 			try {
 
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractNode.name, value).disableSorting().getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery("Principal").and().or(key, value).or(Traits.nameProperty(), value).disableSorting().getFirst();
+				if (node != null) {
+
+					principal = node.as(Principal.class);
+				}
 
 			} catch (FrameworkException fex) {
 
@@ -243,7 +250,7 @@ public class AuthHelper {
 
 	public static Principal getPrincipalForSessionId(final String sessionId, final boolean isPing) {
 
-		return getPrincipalForCredential(StructrApp.key(Principal.class, "sessionIds"), new String[]{ sessionId }, isPing);
+		return getPrincipalForCredential(Traits.of("Principal").key("sessionIds"), new String[]{ sessionId }, isPing);
 
 	}
 
@@ -370,8 +377,6 @@ public class AuthHelper {
 
 		try {
 
-			final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(Principal.class, "passwordAttempts");
-
 			Integer failedAttempts = principal.getPasswordAttempts();
 
 			if (failedAttempts == null) {
@@ -390,7 +395,6 @@ public class AuthHelper {
 
 	public static void checkTooManyFailedLoginAttempts (final Principal principal) throws TooManyFailedLoginAttemptsException {
 
-		final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(Principal.class, "passwordAttempts");
 		final int maximumAllowedFailedAttempts = Settings.PasswordAttempts.getValue();
 
 		if (maximumAllowedFailedAttempts > 0) {
@@ -433,7 +437,6 @@ public class AuthHelper {
 
 		if (forcePasswordChange) {
 
-			final PropertyKey<Date> passwordChangeDateKey  = StructrApp.key(Principal.class, "passwordChangeDate");
 			final int passwordDays = Settings.PasswordForceChangeDays.getValue();
 
 			final Date now                = new Date();
@@ -453,10 +456,16 @@ public class AuthHelper {
 
 		Principal principal = null;
 
-		final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(Principal.class, "twoFactorToken");
+		final PropertyKey<String> twoFactorTokenKey = Traits.of("Principal").key("twoFactorToken");
 
 		try (final Tx tx = app.tx()) {
-			principal = app.nodeQuery(Principal.class).and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
+
+			final NodeInterface node = app.nodeQuery("Principal").and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
+			if (node != null) {
+
+				principal = node.as(Principal.class);
+			}
+
 			tx.success();
 		}
 

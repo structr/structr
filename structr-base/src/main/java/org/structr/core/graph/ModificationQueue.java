@@ -410,9 +410,9 @@ public class ModificationQueue {
 
 		for (GraphObjectModificationState state : getSortedModifications()) {
 
-			for (PropertyKey k : state.getModifiedProperties().keySet()) {
+			for (final PropertyKey k : state.getModifiedProperties().keySet()) {
 
-				if (k.equals(key) && graphObject.getUuid().equals(state.getGraphObject().getUuid()) ) {
+				if (k.equals(key.jsonName()) && graphObject.getUuid().equals(state.getGraphObject().getUuid()) ) {
 
 					return true;
 
@@ -442,7 +442,7 @@ public class ModificationQueue {
 
 		for (GraphObjectModificationState state : getSortedModifications()) {
 
-			for (PropertyKey key : state.getModifiedProperties().keySet()) {
+			for (final PropertyKey key : state.getModifiedProperties().keySet()) {
 
 				if (!modifiedKeys.contains(key)) {
 
@@ -488,6 +488,7 @@ public class ModificationQueue {
 	private void addLocalProperties(final GraphObjectMap map, final PropertyMap data) {
 
 		data.getRawMap().forEach((key, value) -> {
+
 			if ( !(key instanceof RelationProperty) ) {
 				map.put(key, value);
 			}
@@ -541,7 +542,7 @@ public class ModificationQueue {
 				modifySecurity(endNode);
 			}
 
-			final Relation relation  = Relation.getInstance((Class)rel.getClass());
+			final Relation relation  = rel.getTraits().getRelation();
 			final PropertyKey source = relation.getSourceProperty();
 			final PropertyKey target = relation.getTargetProperty();
 			final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;

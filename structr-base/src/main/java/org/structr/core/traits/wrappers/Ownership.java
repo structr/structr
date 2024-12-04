@@ -16,17 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity.relationship;
+package org.structr.core.traits.wrappers;
 
 import org.structr.core.entity.Principal;
-import org.structr.core.traits.NodeInterface;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.RelationshipTrait;
 
 /**
  *
  *
  */
-public interface Ownership {
+public interface Ownership extends RelationshipTrait {
 
-	public Principal getSourceNode();
-	public NodeInterface getTargetNode();
+	Principal getSourceNode();
+	NodeInterface getTargetNode();
 }

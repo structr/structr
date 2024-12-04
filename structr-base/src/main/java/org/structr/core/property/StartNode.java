@@ -38,6 +38,7 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
@@ -55,9 +56,10 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	private static final Logger logger = LoggerFactory.getLogger(StartNode.class.getName());
 
 	// relationship members
-	private Relation<OneStartpoint, ? extends Target> relation = null;
-	private String destType                                    = null;
-	private Notion notion                                      = null;
+	private final Relation<OneStartpoint, ? extends Target> relation;
+	private final Traits traits;
+	private final String destType;
+	private final Notion notion;
 
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -65,10 +67,10 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	 * flag.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 */
-	public StartNode(final String name, Class<? extends Relation<OneStartpoint, ? extends Target>> relationClass) {
-		this(name, relationClass, new ObjectNotion());
+	public StartNode(final String name, final String type) {
+		this(name, type, new ObjectNotion());
 	}
 
 	/**
@@ -78,14 +80,15 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	 * delete flag.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 * @param notion
 	 */
-	public StartNode(String name, Class<? extends Relation<OneStartpoint, ? extends Target>> relationClass, Notion notion) {
+	public StartNode(final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.relation = Relation.getInstance(relationClass);
+		this.traits   = Traits.of(type);
+		this.relation = traits.getRelation();
 		this.notion   = notion;
 		this.destType = relation.getSourceType();
 
@@ -93,8 +96,6 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
 		this.relation.setSourceProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -133,7 +134,7 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	}
 
 	@Override
-	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		final OneStartpoint startpoint = relation.getSource();
 
@@ -270,7 +271,8 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
-		return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
+		//return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
+		return Map.of();
 	}
 
 	@Override

@@ -46,9 +46,6 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 
 		this.step1 = step1;
 		this.step2 = step2;
-
-		// make us known to the Collection context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -57,16 +54,16 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		Iterable<S> connectors = obj.getProperty(step1.jsonName());
+		Iterable<S> connectors = obj.getProperty(step1);
 		List<T> endNodes       = new LinkedList<>();
 
 		if (connectors != null) {
 
 			for (AbstractNode node : connectors) {
 
-				endNodes.add(node.getProperty(step2.jsonName()));
+				endNodes.add(node.getProperty(step2));
 			}
 		}
 

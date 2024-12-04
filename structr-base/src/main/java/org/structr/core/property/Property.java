@@ -672,7 +672,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 						}
 					}
 
-					query.andRange(jsonName(), rangeStartConverted, rangeEndConverted);
+					query.andRange(this, rangeStartConverted, rangeEndConverted);
 
 					return;
 				}
@@ -687,7 +687,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 						// requestParameter contains only [],
 						// which we use as a "not-blank" selector
-						query.notBlank(jsonName());
+						query.notBlank(this);
 
 						return;
 
@@ -716,7 +716,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 				for (final String part : requestParameter.split("[;]+")) {
 
-					query.or(jsonName(), convertSearchValue(securityContext, part), exactMatch);
+					query.or(this, convertSearchValue(securityContext, part), exactMatch);
 				}
 
 				// ascend to the last group
@@ -724,7 +724,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			} else {
 
-				query.or(jsonName(), convertSearchValue(securityContext, requestParameter), exactMatch);
+				query.or(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 		} else if (requestParameter.contains(",")) {
@@ -734,7 +734,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 			for (final String part : requestParameter.split("[,]+")) {
 
-				query.and(jsonName(), convertSearchValue(securityContext, part), exactMatch);
+				query.and(this, convertSearchValue(securityContext, part), exactMatch);
 			}
 
 			// ascend to the last group
@@ -742,7 +742,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		} else {
 
-			query.and(jsonName(), convertSearchValue(securityContext, requestParameter), exactMatch);
+			query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 		}
 	}
 

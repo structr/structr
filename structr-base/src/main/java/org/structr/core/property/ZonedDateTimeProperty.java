@@ -52,21 +52,21 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 	@Override
 	public String valueType() {
-		return ZonedDateTime.class;
+		return "ZonedDateTime";
 	}
 
 	@Override
-	public PropertyConverter<ZonedDateTime, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<ZonedDateTime, ?> databaseConverter(final SecurityContext securityContext) {
 		return new DatabaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<ZonedDateTime, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<ZonedDateTime, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, ZonedDateTime> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, ZonedDateTime> inputConverter(final SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
 

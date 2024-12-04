@@ -91,7 +91,7 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return (T)((AbstractRelationship)obj).getTargetNode();
 	}
 

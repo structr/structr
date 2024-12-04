@@ -28,6 +28,7 @@ import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.TraitDefinition;
 
 import java.util.Date;
@@ -91,9 +92,9 @@ public class PasswordProperty extends StringProperty {
 
 				wrappedObject = ((CreationContainer)obj).getWrappedObject();
 
-				if (wrappedObject != null && wrappedObject instanceof Principal) {
+				if (wrappedObject != null && wrappedObject instanceof NodeInterface node) {
 
-					final Principal principal   = (Principal)wrappedObject;
+					final Principal principal   = node.as(Principal.class);
 					final String oldSalt        = principal.getSalt();
 					final String oldEncPassword = principal.getEncryptedPassword();
 

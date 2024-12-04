@@ -40,6 +40,7 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
@@ -57,19 +58,10 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNode.class.getName());
 
-	private Relation<? extends Source, OneEndpoint> relation = null;
-	private Notion notion                                    = null;
-	private String destType                                  = null;
-
-	/**
-	 * Constructs an entity property with the given name.
-	 *
-	 * @param name
-	 * @param fqcn
-	 */
-	public EndNode(final String name, final String fqcn) {
-		this(name, getClass(fqcn), new ObjectNotion());
-	}
+	private final Relation<? extends Source, OneEndpoint> relation;
+	private final Traits traits;
+	private final Notion notion;
+	private final String destType;
 
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -77,10 +69,10 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	 * flag.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 */
-	public EndNode(String name, Class<? extends Relation<? extends Source, OneEndpoint>> relationClass) {
-		this(name, relationClass, new ObjectNotion());
+	public EndNode(final String name, final String type) {
+		this(name, type, new ObjectNotion());
 	}
 
 	/**
@@ -88,22 +80,21 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	 * the given relationship type, the given direction and the given notion.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 * @param notion
 	 */
-	public EndNode(String name, Class<? extends Relation<? extends Source, OneEndpoint>> relationClass, Notion notion) {
+	public EndNode(final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.relation  = Relation.getInstance(relationClass);
+		this.traits    = Traits.of(type);
+		this.relation  = traits.getRelation();
 		this.notion    = notion;
 		this.destType  = relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
 		this.relation.setTargetProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -137,7 +128,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		OneEndpoint endpoint  = relation.getTarget();
 
@@ -297,6 +288,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 		final String destTypeName = destType;
 
+		/*
 		if ("org.structr.core.graph.NodeInterface".equals(destTypeName) || "org.structr.flow.impl.FlowContainer".equals(destTypeName) ) {
 
 			final ConfigurationProvider configuration = StructrApp.getConfiguration();
@@ -310,6 +302,9 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 		}
 
 		return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
+		*/
+
+		return Map.of();
 	}
 
 	@Override

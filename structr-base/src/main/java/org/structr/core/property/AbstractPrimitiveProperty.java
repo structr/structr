@@ -74,7 +74,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Object value = null;
 

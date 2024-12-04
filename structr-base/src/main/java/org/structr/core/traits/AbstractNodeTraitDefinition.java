@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -26,6 +27,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
+
+	public AbstractNodeTraitDefinition() {
+		super("AbstractNode");
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -40,8 +45,18 @@ public class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, TraitFactory> getTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 		return Set.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	// ----- private methods -----

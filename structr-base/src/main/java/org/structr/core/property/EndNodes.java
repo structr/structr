@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -30,9 +28,7 @@ import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
@@ -42,10 +38,9 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 import java.util.*;
 
@@ -56,63 +51,40 @@ import java.util.*;
  */
 public class EndNodes extends Property<Iterable<NodeInterface>> implements RelationProperty {
 
-	private static final Logger logger = LoggerFactory.getLogger(EndNodes.class.getName());
-
-	private Relation<? extends Source, ManyEndpoint> relation = null;
-	private Notion notion                                     = null;
-	private String destType                                   = null;
+	private final Relation<? extends Source, ManyEndpoint> relation;
+	private final Traits traits;
+	private final Notion notion;
+	private final String destType;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<? extends Source, ManyEndpoint>> relationClass) {
-		this(name, relationClass, new ObjectNotion());
+	public EndNodes(final String name, final String type) {
+		this(name, type, new ObjectNotion());
 	}
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 * @param notion
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<? extends Source, ManyEndpoint>> relationClass, final Notion notion) {
+	public EndNodes(final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.relation = Relation.getInstance(relationClass);
+		this.traits   = Traits.of(type);
+		this.relation = traits.getRelation();
 		this.notion   = notion;
-		this.destType = relation.getTargetType();
+		this.destType = this.relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
 		this.relation.setTargetProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
-	 *
-	 * @param name
-	 * @param relation
-	 * @param notion
-	 */
-	public EndNodes(final String name, final Relation<? extends Source, ManyEndpoint> relation, final Notion notion) {
-
-		super(name);
-
-		this.relation = relation;
-		this.notion   = notion;
-		this.destType = relation.getTargetType();
-
-		this.notion.setType(destType);
-		this.notion.setRelationProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -146,7 +118,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		ManyEndpoint endpoint = relation.getTarget();
 
@@ -247,7 +219,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 				}
 			}
 
-			return (Iterable<T>)inputConverter.convert(sources);
+			return (Iterable<NodeInterface>)inputConverter.convert(sources);
 		}
 
 		return null;
@@ -313,6 +285,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 		final Map<String, Object> items = new TreeMap<>();
 		final Map<String, Object> map   = new TreeMap<>();
 
+		/*
 		if (destType != null) {
 
 			map.put("type", "array");
@@ -336,6 +309,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 			items.putAll(new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1));
 		}
+		*/
 
 		return map;
 	}

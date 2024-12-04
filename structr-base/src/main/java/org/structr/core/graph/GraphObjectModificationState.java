@@ -172,8 +172,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 		updateCache();
 	}
 
-	public void modify(final Principal user, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public void modify(final Principal user, final PropertyKey propertyKey, final Object previousValue, final Object newValue) {
 
+		final String key = propertyKey.jsonName();
 		int statusBefore = status;
 
 		status |= STATE_MODIFIED;
@@ -188,7 +189,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			if (key != null) {
 
 				modifiedProperties.put(key, newValue);
-				updateChangeLog(user, Verb.change, key, previousValue, newValue);
+				updateChangeLog(user, Verb.change, propertyKey, previousValue, newValue);
 			}
 
 			modified = true;
@@ -197,7 +198,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			if (key != null) {
 				newProperties.put(key, newValue);
-				updateChangeLog(user, Verb.change, key, previousValue, newValue);
+				updateChangeLog(user, Verb.change, propertyKey, previousValue, newValue);
 			}
 		}
 
@@ -229,7 +230,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if (status != statusBefore) {
 
 			// copy all properties on deletion
-			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
+			for (final String key : object.getPropertyKeys(PropertyView.Public)) {
 				removedProperties.put(key, object.getProperty(key));
 			}
 
@@ -717,7 +718,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException {
-		return PropertyMap.javaTypeToInputType(securityContext, object.getClass(), modifiedProperties);
+		return PropertyMap.javaTypeToInputType(securityContext, object.getType(), modifiedProperties);
 	}
 
 	@Override

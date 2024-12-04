@@ -192,7 +192,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	String getSourceUuid();
 
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
-	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate);
+	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
 	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
 	void registrationCallback(final TraitDefinition entityType);

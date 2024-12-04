@@ -22,10 +22,12 @@ package org.structr.core.graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * A factory for structr relationships. This class exists because we need a fast
@@ -55,21 +57,6 @@ public class RelationshipFactory extends Factory<Relationship, RelationshipInter
 	}
 
 	@Override
-	public RelationshipInterface instantiate(final Relationship relationship) {
-		return instantiate(relationship, null);
-	}
-
-	@Override
-	public RelationshipInterface instantiate(final Relationship relationship, final Identity pathSegmentId) {
-
-		if (relationship == null || TransactionCommand.isDeleted(relationship) || relationship.isDeleted()) {
-			return null;
-		}
-
-		return instantiateWithType(relationship, relationshipType, pathSegmentId, false);
-	}
-
-	@Override
 	public RelationshipInterface instantiateWithType(final Relationship relationship, final String relClass, final Identity pathSegmentId, final boolean isCreation) {
 
 		// cannot instantiate relationship without type
@@ -79,38 +66,22 @@ public class RelationshipFactory extends Factory<Relationship, RelationshipInter
 
 		logger.debug("Instantiate relationship with type {}", relClass);
 
-		RelationshipInterface newRel          = null;
-
-		try {
-
-			newRel = relClass.getDeclaredConstructor().newInstance();
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-			newRel = null;
-		}
-
-		if (newRel == null) {
-			logger.warn("newRel was null, using generic relationship for {}", relationship);
-			newRel = (RelationshipInterface)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
-		}
-
-		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
-
-		return newRel;
+		return new AbstractRelationship(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
 	}
 
+	// ----- protected methods -----
 	@Override
-	public RelationshipInterface adapt(final Relationship relationship) {
-		return instantiate(relationship);
-	}
+	protected String determineActualType(final Relationship relationship) {
 
-	@Override
-	public RelationshipInterface instantiate(final Relationship obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
+		if (relationship.hasProperty("type")) {
 
-		this.includeHidden = includeHidden;
-		this.publicOnly    = publicOnly;
+			final Object obj =  relationship.getProperty("type");
+			if (obj != null) {
 
-		return instantiate(obj);
+				return obj.toString();
+			}
+		}
+
+		return null;
 	}
 }

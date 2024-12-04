@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -73,6 +74,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public boolean equals(final Object other) {
 		return other.hashCode() == hashCode();
+	}
+
+	@Override
+	public <T extends NodeTrait> T as(Class<T> type) {
+		return null;
 	}
 
 	@Override
@@ -176,7 +182,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<NodeInterface> predicate) {
+	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<GraphObject> predicate) {
 		return null;
 	}
 
@@ -216,11 +222,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, PropertyContainer dbObject, String type, long sourceTransactionId) {
-
-	}
-
-	@Override
 	public Traits getTraits() {
 		return null;
 	}
@@ -246,32 +247,32 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Set<PropertyKey> getFullPropertySet(String propertyView) {
+	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
 		return Set.of();
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
+	public <T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey, final Predicate<GraphObject> filter) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -286,7 +287,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+	public boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation) {
 		return false;
 	}
 
@@ -306,7 +307,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void removeProperty(PropertyKey key) throws FrameworkException {
+	public void removeProperty(final PropertyKey key) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -342,6 +343,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public void indexPassiveProperties() {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void addToIndex() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

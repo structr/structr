@@ -60,7 +60,6 @@ module structr.base {
     requires jgroups;
     requires jmimemagic;
     requires json.path;
-    requires json;
     requires jwks.rsa;
     requires metadata.extractor;
     requires opencsv;
@@ -134,7 +133,6 @@ module structr.base {
     exports org.structr.core.cypher;
     exports org.structr.core.datasources;
     exports org.structr.core.entity;
-    exports org.structr.core.entity.relationship;
     exports org.structr.core.function;
     exports org.structr.core.function.search;
     exports org.structr.core.graph;
@@ -223,5 +221,8 @@ module structr.base {
 	exports org.structr.core.traits;
 	exports org.structr.core.traits.operations;
 	exports org.structr.core.traits.operations.graphobject;
+	exports org.structr.core.traits.relationships;
+    exports org.structr.core.traits.nodes;
+    exports org.structr.core.traits.wrappers;
 
 }

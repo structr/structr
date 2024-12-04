@@ -295,7 +295,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 					retry = false;
 
-					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getEntityClass(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
+					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getTypeName(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
 
 					if (handler.createPostTransaction()) {
 

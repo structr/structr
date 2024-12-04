@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -83,7 +84,14 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 				public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
 
 					final Traits traits = graphObject.getTraits();
-					return traits.getFullPropertySet(propertyView);
+					final Set<PropertyKey> keys = new LinkedHashSet<>();
+
+					for (final PropertyKey k : traits.getFullPropertySet(propertyView)) {
+
+						keys.add(k);
+					}
+
+					return keys;
 				}
 			},
 
@@ -99,11 +107,12 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					if (securityContext != null && securityContext.hasCustomView()) {
 
 						final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-						final Set<String> keys       = new LinkedHashSet<>(graphObject.getFullPropertySet(view));
+						final Set<PropertyKey> keys  = new LinkedHashSet<>(graphObject.getFullPropertySet(view));
 						final Set<String> customView = securityContext.getCustomView();
 
-						for (Iterator<String> it = keys.iterator(); it.hasNext();) {
-							if (!customView.contains(it.next())) {
+						for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
+
+							if (!customView.contains(it.next().jsonName())) {
 
 								it.remove();
 							}
@@ -121,14 +130,14 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 			new GetProperty() {
 
 				@Override
-				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter) {
+				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> filter) {
 
 					// early null check, this should not happen...
-					if (propertyKey == null || propertyKey.dbName() == null) {
+					if (key == null) {
 						return null;
 					}
-
-					return propertyKey.getProperty(graphObject.getSecurityContext(), graphObject, true, filter);
+					
+					return key.getProperty(graphObject.getSecurityContext(), graphObject, true, filter);
 				}
 			},
 
@@ -139,7 +148,6 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
 					final SecurityContext securityContext = graphObject.getSecurityContext();
-					final Traits traits                   = graphObject.getTraits();
 
 					// clear function property cache in security context since we are about to invalidate past results
 					if (securityContext != null) {
@@ -147,7 +155,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					}
 
 					// allow setting of ID without permissions
-					if (!key.equals(traits.key("id"))) {
+					if (!"id".equals(key.jsonName())) {
 
 						if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
 
@@ -164,7 +172,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 						T oldValue = isCreation ? null : (T)graphObject.getProperty(key);
 
 						// no old value exists  OR  old value exists and is NOT equal => set property
-						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
+						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || key instanceof FunctionProperty)) {
 
 							return setPropertyInternal(graphObject, key, value);
 						}
@@ -228,7 +236,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 			new RemoveProperty() {
 
 				@Override
-				public void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException {
+				public <T> void removeProperty(final GraphObject graphObject, final PropertyKey<T> key) throws FrameworkException {
 
 					final SecurityContext securityContext = graphObject.getSecurityContext();
 
@@ -289,8 +297,18 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, TraitFactory> getTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 		return Set.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	private static <T> Object setPropertyInternal(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {
@@ -341,27 +359,27 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 
 		for (final Map.Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-			final PropertyKey key = attr.getKey();
-			final Object value    = attr.getValue();
+			final PropertyKey propertyKey = attr.getKey();
+			final Object value            = attr.getValue();
 
-			if (value != null && key.isPropertyTypeIndexable() && key.relatedType() == null) {
+			if (value != null && propertyKey.isPropertyTypeIndexable() && propertyKey.relatedType() == null) {
 
-				final Object oldValue = graphObject.getProperty(key);
+				final Object oldValue = graphObject.getProperty(propertyKey);
 				if (!Objects.deepEquals(value, oldValue)) {
 
 					atLeastOnePropertyChanged = true;
 
 					// bulk set possible, store in container
-					key.setProperty(securityContext, container, value);
+					propertyKey.setProperty(securityContext, container, value);
 
 					if (graphObject.isNode()) {
 
-						if (!key.isUnvalidated()) {
+						if (!propertyKey.isUnvalidated()) {
 
-							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)graphObject, key, oldValue, value);
+							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)graphObject, propertyKey, oldValue, value);
 						}
 
-						if (key instanceof TypeProperty) {
+						if (propertyKey instanceof TypeProperty) {
 
 							if (graphObject instanceof NodeInterface node) {
 
@@ -372,9 +390,9 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 
 					} else if (graphObject.isRelationship()) {
 
-						if (!key.isUnvalidated()) {
+						if (!propertyKey.isUnvalidated()) {
 
-							TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)graphObject, key, oldValue, value);
+							TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)graphObject, propertyKey, oldValue, value);
 						}
 					}
 				}
@@ -382,11 +400,11 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 			} else {
 
 				// bulk set NOT possible, set on entity
-				if (key.isSystemInternal()) {
+				if (propertyKey.isSystemInternal()) {
 					graphObject.unlockSystemPropertiesOnce();
 				}
 
-				graphObject.setProperty(key, value, isCreation);
+				graphObject.setProperty(propertyKey, value, isCreation);
 			}
 		}
 

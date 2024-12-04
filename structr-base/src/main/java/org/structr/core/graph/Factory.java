@@ -21,6 +21,8 @@ package org.structr.core.graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -34,7 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
+public abstract class Factory<S extends PropertyContainer, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
 	private static final Logger logger          = LoggerFactory.getLogger(Factory.class.getName());
 	public static final ExecutorService service = Executors.newCachedThreadPool();
@@ -70,10 +72,30 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		this.page            = page;
 	}
 
-	public abstract T instantiate(final S obj);
-	public abstract T instantiate(final S obj, final Identity pathSegmentId);
-	public abstract T instantiateWithType(final S obj, final String type, final Identity pathSegmentId, boolean isCreation) throws FrameworkException;
-	public abstract T instantiate(final S obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException;
+	public abstract T instantiateWithType(final S obj, final String type, final Identity pathSegmentId, boolean isCreation);
+
+	protected abstract String determineActualType(final S obj);
+
+	public T instantiate(final S node) {
+		return instantiate(node, null);
+	}
+
+	public T instantiate(final S node, final Identity pathSegmentId) {
+
+		if (node == null || TransactionCommand.isDeleted(node) || node.isDeleted()) {
+			return null;
+		}
+
+		return instantiateWithType(node, determineActualType(node), pathSegmentId, false);
+	}
+
+	public T instantiate(final S node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
+
+		this.includeHidden = includeHidden;
+		this.publicOnly    = publicOnly;
+
+		return instantiate(node);
+	}
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
@@ -99,9 +121,5 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	public void disablePaging() {
 		this.disablePaging = true;
-	}
-
-	protected Class<T> getClassForName(final String rawType) {
-		return SchemaHelper.getEntityClassForRawType(rawType);
 	}
 }

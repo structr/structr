@@ -60,16 +60,16 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	}
 
 	@Override
-	public Long getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Long getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		final Iterable<? extends GraphObject> collection = obj.getProperty(collectionProperty.jsonName());
+		final Iterable<? extends GraphObject> collection = obj.getProperty(collectionProperty);
 		if (collection != null) {
 
 			long sum = 0L;
 
 			for (GraphObject element : collection) {
 
-				Long value = element.getProperty(valueProperty.jsonName);
+				Long value = element.getProperty(valueProperty);
 				if (value != null) {
 
 					sum += value.longValue();

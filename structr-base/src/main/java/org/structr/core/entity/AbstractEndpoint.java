@@ -28,6 +28,7 @@ import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -57,7 +58,7 @@ public abstract class AbstractEndpoint {
 		return null;
 	}
 
-	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final String otherNodeType, final Predicate<NodeInterface> predicate) {
+	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final String otherNodeType, final Predicate<GraphObject> predicate) {
 		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
 	}
 

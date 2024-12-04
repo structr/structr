@@ -303,9 +303,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		prefetched.clear();
 	}
 
-	// ----- protected methods -----
 	@Override
-	protected boolean isNode() {
+	public boolean isNode() {
 		return true;
 	}
 

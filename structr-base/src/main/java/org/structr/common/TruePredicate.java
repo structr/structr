@@ -19,6 +19,7 @@
 package org.structr.common;
 
 import org.structr.api.Predicate;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 
 import java.util.Comparator;
@@ -26,21 +27,21 @@ import java.util.Comparator;
 /**
  * A predicate that accepts all inputs and supports a comparator.
  */
-public class TruePredicate implements Predicate<NodeInterface> {
+public class TruePredicate implements Predicate<GraphObject> {
 
-	private Comparator<NodeInterface> comparator = null;
+	private Comparator<GraphObject> comparator = null;
 
-	public TruePredicate(final Comparator<NodeInterface> comparator) {
+	public TruePredicate(final Comparator<GraphObject> comparator) {
 		this.comparator = comparator;
 	}
 
 	@Override
-	public boolean accept(final NodeInterface value) {
+	public boolean accept(final GraphObject value) {
 		return true;
 	}
 
 	@Override
-	public Comparator<NodeInterface> comparator() {
+	public Comparator<GraphObject> comparator() {
 		return comparator;
 	}
 }

@@ -61,7 +61,7 @@ public class EncryptedStringProperty extends StringProperty {
 	}
 
 	@Override
-	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		final String encryptedString = super.getProperty(securityContext, obj, applyConverter, predicate);
 		if (encryptedString != null) {

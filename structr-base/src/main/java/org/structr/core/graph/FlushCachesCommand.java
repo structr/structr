@@ -24,9 +24,10 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.ResourceAccessDefinition;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.FunctionProperty;
+import org.structr.core.traits.wrappers.ResourceAccessTrait;
 import org.structr.schema.action.Actions;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -48,7 +49,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	public static void flushAll() {
 
-		ResourceAccess.clearCache();
+		ResourceAccessTrait.clearCache();
 		Actions.clearCache();
 		FunctionProperty.clearCache();
 		AccessPathCache.invalidate();

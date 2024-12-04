@@ -22,7 +22,7 @@ package org.structr.core.graph;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * A factory for Structr nodes.
@@ -46,25 +46,6 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 	}
 
 	@Override
-	public NodeInterface instantiate(final Node node) {
-		return instantiate(node, null);
-	}
-
-	@Override
-	public NodeInterface instantiate(final Node node, final Identity pathSegmentId) {
-
-		if (node == null) {
-			return null;
-		}
-
-		if (TransactionCommand.isDeleted(node)) {
-			return instantiateWithType(node, null, pathSegmentId, false);
-		}
-
-		return instantiateWithType(node, determineNodeType(node), pathSegmentId, false);
-	}
-
-	@Override
 	public NodeInterface instantiateWithType(final Node node, final String nodeClass, final Identity pathSegmentId, boolean isCreation) {
 
 		// cannot instantiate node without type
@@ -72,9 +53,8 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 			return null;
 		}
 
-		NodeInterface newNode                       = null;
+		final AbstractNode newNode = new AbstractNode(securityContext, node, nodeClass, TransactionCommand.getCurrentTransactionId());
 
-		newNode.init(securityContext, node, nodeClass, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
 
@@ -87,17 +67,9 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 		return null;
 	}
 
+	// ----- protected methods -----
 	@Override
-	public NodeInterface instantiate(final Node node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
-
-		this.includeHidden = includeHidden;
-		this.publicOnly    = publicOnly;
-
-		return instantiate(node);
-	}
-
-	// ----- private methods -----
-	private String determineNodeType(final Node node) {
+	protected String determineActualType(final Node node) {
 
 		// check deletion first
 		if (TransactionCommand.isDeleted(node)) {

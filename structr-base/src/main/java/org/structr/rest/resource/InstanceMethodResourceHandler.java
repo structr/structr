@@ -144,7 +144,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) throws FrameworkException {
+	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
 		final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
 		if (entity != null) {

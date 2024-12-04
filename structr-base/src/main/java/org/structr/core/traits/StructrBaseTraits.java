@@ -18,7 +18,11 @@
  */
 package org.structr.core.traits;
 
-import org.structr.core.entity.SessionDataNode;
+import org.structr.core.entity.CorsSettingDefinition;
+import org.structr.core.entity.ResourceAccessDefinition;
+import org.structr.core.entity.SessionDataNodeDefinition;
+import org.structr.core.traits.nodes.PrincipalTraitDefinition;
+import org.structr.core.traits.relationships.*;
 
 public class StructrBaseTraits {
 
@@ -30,33 +34,53 @@ public class StructrBaseTraits {
 
 	static {
 
-		StructrBaseTraits.registerGraphObject();
-		StructrBaseTraits.registerPrincipal();
+		StructrBaseTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
+		StructrBaseTraits.registerRelationshipType("PrincipalFAVORITEFavoritable",      new PrincipalFAVORITEFavoritableDefinition());
+		StructrBaseTraits.registerRelationshipType("PrincipalSchemaGrantRelationship",  new PrincipalSchemaGrantRelationshipDefinition());
+		StructrBaseTraits.registerRelationshipType("GroupCONTAINSPrincipal",            new GroupContainsPrincipalDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaExcludedViewProperty",        new SchemaExcludedViewPropertyDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaGrantSchemaNodeRelationship", new SchemaGrantSchemaNodeRelationshipDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaMethodParameters",            new SchemaMethodParametersDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaNodeExtendsSchemaNode",       new SchemaNodeExtendsSchemaNodeDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaNodeMethod",                  new SchemaNodeMethodDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaNodeProperty",                new SchemaNodePropertyDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaNodeView",                    new SchemaNodeViewDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaRelationshipSourceNode",      new SchemaRelationshipSourceNodeDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaRelationshipTargetNode",      new SchemaRelationshipTargetNodeDefinition());
+		StructrBaseTraits.registerRelationshipType("SchemaViewProperty",                new SchemaViewPropertyDefinition());
+
+		StructrBaseTraits.registerBaseTypes();
+
+		StructrBaseTraits.registerNodeType("Principal",
+			new PrincipalTraitDefinition()
+		);
 
 
 		// core types
-		StructrBaseTraits.registerDynamicNodeType("SessionDataNode", new SessionDataNode());
+		StructrBaseTraits.registerNodeType("CorsSetting",           new CorsSettingDefinition());
+		StructrBaseTraits.registerNodeType("ResourceAccess",        new ResourceAccessDefinition("ResourceAccess"));
+		StructrBaseTraits.registerNodeType("DynamicResourceAccess", new ResourceAccessDefinition("DynamicResourceAccess"));
+		StructrBaseTraits.registerNodeType("SessionDataNode",       new SessionDataNodeDefinition());
 	}
 
-	private static void registerGraphObject() {
+	private static void registerBaseTypes() {
 
-		final Traits traits = new Traits("GraphObject", false, false);
+		final Traits graphObjectTraits   = new Traits("GraphObject",   false, false);
+		final Traits nodeInterfaceTraits = new Traits("NodeInterface", true, false);
 
-		traits.registerImplementation(graphObjectTraitImplementation);
+		graphObjectTraits.registerImplementation(graphObjectTraitImplementation);
+
+		// NodeInterface extends GraphObject
+		nodeInterfaceTraits.registerImplementation(graphObjectTraitImplementation);
+		nodeInterfaceTraits.registerImplementation(nodeInterfaceTraitImplementation);
 	}
 
 	private static void registerPrincipal() {
 
-		final Traits traits = new Traits("Principal", true, false);
-
-		// Principal consists of the following traits
-		traits.registerImplementation(propertyContainerTraitImplementation);
-		traits.registerImplementation(graphObjectTraitImplementation);
-		traits.registerImplementation(nodeInterfaceTraitImplementation);
-		traits.registerImplementation(accessControllableTraitImplementation);
+		registerNodeType("Principal");
 	}
 
-	private static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {
+	private static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, true, false);
 
@@ -71,7 +95,7 @@ public class StructrBaseTraits {
 		}
 	}
 
-	private static void registerDynamicRelationshipType(final String typeName) {
+	private static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, false, true);
 
@@ -79,5 +103,9 @@ public class StructrBaseTraits {
 		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
 		//traits.registerImplementation(relationshipInterfaceTraitImplementation);
+
+		for (final TraitDefinition definition : definitions) {
+			traits.registerImplementation(definition);
+		}
 	}
 }

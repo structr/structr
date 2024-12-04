@@ -35,6 +35,7 @@ import org.structr.schema.action.ActionContext;
 
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.traits.Traits;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -200,10 +201,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return true;
 				}
 
-				final Class type          = node.getClass();
-				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);
+				final Traits traits       = node.getTraits();
+				final PropertyKey propKey = traits.key(key);
 
-				return Methods.resolveMethod(type, key) != null || (propKey != null && !(propKey instanceof GenericProperty<?>));
+				return Methods.resolveMethod(traits, key) != null || (propKey != null && !(propKey instanceof GenericProperty<?>));
 
 			} else {
 

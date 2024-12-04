@@ -20,6 +20,7 @@ package org.structr.core.traits.operations.nodeinterface;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.RelationshipType;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -44,7 +45,7 @@ public abstract class GetRelationships extends FrameworkMethod<GetRelationships>
 	public abstract RelationshipInterface getIncomingRelationship(final NodeInterface node, final String type);
 	public abstract RelationshipInterface getIncomingRelationshipAsSuperUser(final NodeInterface node, final String type);
 	public abstract Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node, final String type);
-	public abstract Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<NodeInterface> predicate);
+	public abstract Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<GraphObject> predicate);
 
 	public abstract RelationshipInterface getOutgoingRelationship(final NodeInterface node, final String type);
 	public abstract RelationshipInterface getOutgoingRelationshipAsSuperUser(final NodeInterface node, final String type);

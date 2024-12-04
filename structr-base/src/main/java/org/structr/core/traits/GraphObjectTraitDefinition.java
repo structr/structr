@@ -29,9 +29,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AddToIndex;
 import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -40,9 +41,7 @@ import java.util.*;
 
 public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Logger logger = LoggerFactory.getLogger(GraphObjectTraitDefinition.class);
-
-	private static final String SYSTEM_CATEGORY     = "System";
+	static final String SYSTEM_CATEGORY     = "System";
 	private static final String VISIBILITY_CATEGORY = "Visibility";
 
 	private static final PropertyKey<String> baseProperty                  = new StringProperty("base").partOfBuiltInSchema();
@@ -55,6 +54,9 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 	private static final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
 	private static final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
 
+	public GraphObjectTraitDefinition() {
+		super("GraphObject");
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -134,6 +136,11 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, TraitFactory> getTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
@@ -149,8 +156,13 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 		);
 	}
 
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
 	// ----- private methods -----
-	private void addToIndex(final org.structr.core.GraphObject obj, final Set<PropertyKey> indexKeys) {
+	private void addToIndex(final GraphObject obj, final Set<PropertyKey> indexKeys) {
 
 		final Map<String, Object> values = new LinkedHashMap<>();
 
@@ -171,7 +183,7 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 				} catch (FrameworkException ex) {
 
 					final Logger logger = LoggerFactory.getLogger(org.structr.core.GraphObject.class);
-					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
+					logger.warn("Unable to convert property {} of type {}: {}", key, getClass().getSimpleName(), ex.getMessage());
 					logger.warn("Exception", ex);
 				}
 

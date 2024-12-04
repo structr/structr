@@ -99,4 +99,5 @@ public interface Principal extends NodeTrait {
 			recursiveCollectParentUuids(parent, uuids);
 		}
 	}
+
 }

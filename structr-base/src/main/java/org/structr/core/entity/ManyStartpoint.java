@@ -53,7 +53,7 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 	}
 
 	@Override
-	public Iterable<NodeInterface> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<NodeInterface> predicate) {
+	public Iterable<NodeInterface> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
 		final NodeFactory nodeFactory     = new NodeFactory(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
@@ -167,16 +167,16 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 	}
 
 	@Override
-	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate) {
+	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getMultiple(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType(), predicate);
 	}
 
-	public Relationship getRawTarget(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate) {
+	public Relationship getRawTarget(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override
-	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate) {
+	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();
 	}
 }

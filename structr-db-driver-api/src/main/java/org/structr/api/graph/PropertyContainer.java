@@ -43,6 +43,7 @@ public interface PropertyContainer {
 	void delete(final boolean deleteRelationships) throws NotInTransactionException;
 
 	boolean isDeleted();
+	boolean isNode();
 
 	default int compare(final String key, final PropertyContainer a, final PropertyContainer b) {
 

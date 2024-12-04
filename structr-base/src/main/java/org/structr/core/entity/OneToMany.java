@@ -28,12 +28,17 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.property.*;
 
 /**
  *
  *
  */
-public abstract class OneToMany implements Relation<OneStartpoint, ManyEndpoint> {
+public abstract class OneToMany extends AbstractRelation implements Relation<OneStartpoint, ManyEndpoint> {
+
+	public OneToMany(final Property<String> sourceId, final Property<String> targetId) {
+		super(sourceId, targetId);
+	}
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -101,8 +106,7 @@ public abstract class OneToMany implements Relation<OneStartpoint, ManyEndpoint>
 
 	@Override
 	public Direction getDirectionForType(final String type) {
-		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
-		return null;
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 
 	@Override

@@ -39,6 +39,7 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
@@ -52,61 +53,40 @@ import java.util.*;
  */
 public class StartNodes extends Property<Iterable<NodeInterface>> implements RelationProperty {
 
-	private Relation<ManyStartpoint, ? extends Target> relation = null;
-	private Notion notion                                       = null;
-	private String destType                                     = null;
+	private final Relation<ManyStartpoint, ? extends Target> relation;
+	private final Traits traits;
+	private final Notion notion;
+	private final String destType;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 */
-	public  StartNodes(final String name, final Class<? extends Relation<ManyStartpoint, ? extends Target>> relationClass) {
-		this(name, relationClass, new ObjectNotion());
+	public  StartNodes(final String name, final String type) {
+		this(name, type, new ObjectNotion());
 	}
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 * @param notion
 	 */
-	public StartNodes(final String name, final Class<? extends Relation<ManyStartpoint, ? extends Target>> relationClass, final Notion notion) {
+	public StartNodes(final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.relation = Relation.getInstance(relationClass);
+		this.traits   = Traits.of(type);
+		this.relation = traits.getRelation();
 		this.notion   = notion;
 		this.destType = relation.getSourceType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
 		this.relation.setSourceProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
-	 *
-	 * @param name
-	 * @param relation
-	 * @param notion
-	 */
-	public StartNodes(final String name, final Relation<ManyStartpoint, ? extends Target> relation, final Notion notion) {
-
-		super(name);
-
-		this.relation = relation;
-		this.notion   = notion;
-		this.destType = relation.getSourceType();
-
-		this.notion.setType(destType);
-		this.notion.setRelationProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -115,7 +95,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 
@@ -145,9 +125,9 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Iterable<NodeInterface> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		ManyStartpoint<S> startpoint = relation.getSource();
+		ManyStartpoint startpoint = relation.getSource();
 
 		if (predicate != null) {
 
@@ -304,6 +284,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 		final Map<String, Object> items = new TreeMap<>();
 		final Map<String, Object> map   = new TreeMap<>();
 
+		/*
 		if (destType != null) {
 
 			map.put("type", "array");
@@ -311,6 +292,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 			items.putAll(new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1));
 		}
+		*/
 
 		return map;
 	}
