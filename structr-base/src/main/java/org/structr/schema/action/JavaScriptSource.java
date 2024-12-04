@@ -18,22 +18,22 @@
  */
 package org.structr.schema.action;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
+import org.structr.core.traits.NodeTrait;
 
 /**
  *
  */
-public interface JavaScriptSource extends NodeInterface {
+public interface JavaScriptSource extends NodeTrait {
 
 	Property<Boolean> useAsJavascriptLibrary = new BooleanProperty("useAsJavascriptLibrary").indexed();
 
+	/*
 	View uiView = new View(JavaScriptSource.class, PropertyView.Ui,
 		useAsJavascriptLibrary
 	);
+	*/
 
 	String getJavascriptLibraryCode();
 	String getContentType();

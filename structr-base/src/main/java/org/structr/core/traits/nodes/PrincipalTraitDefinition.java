@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.nodes;
 
 import org.structr.api.Predicate;
 import org.structr.common.EMailValidator;
@@ -27,17 +27,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.SecurityRelationship;
-import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
-import org.structr.core.entity.relationship.PrincipalFAVORITEFavoritable;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.AbstractTraitDefinition;
+import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.TraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
+import org.structr.core.traits.wrappers.PrincipalTrait;
 
 import java.util.Date;
 import java.util.Map;
@@ -45,10 +47,11 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> favoritesProperty    = new EndNodes("favorites", PrincipalFAVORITEFavoritable.class);
-	private static final Property<Iterable<NodeInterface>> groupsProperty       = new StartNodes("groups", GroupCONTAINSPrincipal.class);
-	private static final Property<Iterable<NodeInterface>> ownedNodesProperty   = new EndNodes("ownedNodes", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> grantedNodesProperty = new EndNodes("grantedNodes", SecurityRelationship.class).partOfBuiltInSchema();
+	private static final Property<Iterable<NodeInterface>> favoritesProperty    = new EndNodes("favorites", "PrincipalFAVORITEFavoritable");
+	private static final Property<Iterable<NodeInterface>> groupsProperty       = new StartNodes("groups", "GroupCONTAINSPrincipal");
+	private static final Property<Iterable<NodeInterface>> ownedNodesProperty   = new EndNodes("ownedNodes", "PrincipalOwnsNode").partOfBuiltInSchema();
+	private static final Property<Iterable<NodeInterface>> grantedNodesProperty = new EndNodes("grantedNodes", "SecurityRelationship").partOfBuiltInSchema();
+
 	private static final Property<Boolean> isAdminProperty                      = new BooleanProperty("isAdmin").indexed().readOnly();
 	private static final Property<Boolean> blockedProperty                      = new BooleanProperty("blocked");
 	private static final Property<String> sessionIdsProperty                    = new ArrayProperty("sessionIds", String.class).indexed();
@@ -70,6 +73,10 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	private static final Property<String> proxyUsernameProperty                 = new StringProperty("proxyUsername");
 	private static final Property<String> proxyPasswordProperty                 = new StringProperty("proxyPassword");
 	private static final Property<String> publicKeysProperty                    = new ArrayProperty("publicKeys", String.class);
+
+	public PrincipalTraitDefinition() {
+		super("Principal");
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -130,6 +137,14 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, TraitFactory> getTraitFactories() {
+
+		return Map.of(
+			Principal.class, (traits, node) -> new PrincipalTrait(traits, node)
+		);
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
@@ -161,5 +176,10 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 			proxyPasswordProperty,
 			publicKeysProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

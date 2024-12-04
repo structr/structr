@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -33,12 +34,10 @@ public interface TraitDefinition {
 
 	String getName();
 
-	boolean hasKey(final String name);
-	PropertyKey key(final String name);
-
-	Set<PropertyKey> getPropertyKeys(final String view);
-
 	Map<Class, LifecycleMethod> getLifecycleMethods();
 	Map<Class, FrameworkMethod> getFrameworkMethods();
+	Map<Class, TraitFactory> getTraitFactories();
 	Set<PropertyKey> getPropertyKeys();
+
+	Relation getRelation();
 }

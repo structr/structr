@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Relationship type class for SECURITY relationships.
  */
-public class SecurityRelationship extends ManyToMany implements Security {
+public class SecurityRelationship extends ManyToMany {
 
 	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
 
@@ -60,7 +60,6 @@ public class SecurityRelationship extends ManyToMany implements Security {
 
 		return keys;
 	}
-	*/
 
 	@Override
 	public boolean isAllowed(final Permission permission) {
@@ -101,6 +100,7 @@ public class SecurityRelationship extends ManyToMany implements Security {
 	public void removePermissions(final Set<Permission> permissions) {
 		SecurityDelegate.removePermissions(this, SecurityRelationship.allowed, permissions);
 	}
+	*/
 
 	// ----- class Relation -----
 	@Override

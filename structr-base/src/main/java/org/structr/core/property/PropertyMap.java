@@ -43,8 +43,9 @@ import java.util.Map.Entry;
  */
 public class PropertyMap {
 
-	private static final Logger logger       = LoggerFactory.getLogger(PropertyMap.class.getName());
-	protected Map<String, Object> properties = new LinkedHashMap<>();
+	private static final Logger logger = LoggerFactory.getLogger(PropertyMap.class.getName());
+
+	protected Map<PropertyKey, Object> properties = new LinkedHashMap<>();
 
 	public PropertyMap() {
 	}
@@ -53,7 +54,7 @@ public class PropertyMap {
 		putAll(source);
 	}
 
-	public <T> PropertyMap(final String key, final T value) {
+	public <T> PropertyMap(final PropertyKey<T> key, final T value) {
 		properties.put(key, value);
 	}
 
@@ -70,7 +71,7 @@ public class PropertyMap {
 		return properties.isEmpty();
 	}
 
-	public <T> boolean containsKey(final String key) {
+	public <T> boolean containsKey(final PropertyKey<T> key) {
 		return properties.containsKey(key);
 	}
 
@@ -78,15 +79,15 @@ public class PropertyMap {
 		return properties.containsValue(value);
 	}
 
-	public <T> T get(final String key) {
+	public <T> T get(final PropertyKey<T> key) {
 		return (T)properties.get(key);
 	}
 
-	public <T> T put(final String key, final T value) {
+	public <T> T put(final PropertyKey<T> key, final T value) {
 		return (T)properties.put(key, value);
 	}
 
-	public <T> T putIfAbsent(final String key, final T value) {
+	public <T> T putIfAbsent(final PropertyKey<T> key, final T value) {
 		return (T)properties.putIfAbsent(key, value);
 	}
 
@@ -94,15 +95,13 @@ public class PropertyMap {
 
 		if (source != null) {
 
-			for (Entry<String, Object> entry : source.entrySet()) {
+			for (Entry<PropertyKey, Object> entry : source.entrySet()) {
 				properties.put(entry.getKey(), entry.getValue());
 			}
-
 		}
-
 	}
 
-	public <T> T remove(final String key) {
+	public <T> T remove(final PropertyKey<T> key) {
 		return (T)properties.remove(key);
 	}
 
@@ -110,7 +109,7 @@ public class PropertyMap {
 		properties.clear();
 	}
 
-	public Set<String> keySet() {
+	public Set<PropertyKey> keySet() {
 		return properties.keySet();
 	}
 
@@ -118,11 +117,11 @@ public class PropertyMap {
 		return properties.values();
 	}
 
-	public Set<Entry<String, Object>> entrySet() {
+	public Set<Entry<PropertyKey, Object>> entrySet() {
 		return properties.entrySet();
 	}
 
-	public Map<String, Object> getRawMap() {
+	public Map<PropertyKey, Object> getRawMap() {
 		return properties;
 	}
 
@@ -130,12 +129,57 @@ public class PropertyMap {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 
-		for (final Entry<String, Object> entry : properties.entrySet()) {
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			result.put(entry.getKey(), entry.getValue());
+			result.put(entry.getKey().jsonName(), entry.getValue());
 		}
 
 		return result;
+	}
+
+	/**
+	 * Calculates a hash code for the contents of this PropertyMap.
+	 *
+	 * @param comparableKeys the set of property keys to use for hash code calculation, or null to use the whole keySet
+	 * @param includeSystemProperties whether to include system properties in the calculation
+	 * @return hash code
+	 */
+	public int contentHashCode(final Set<PropertyKey> comparableKeys, final boolean includeSystemProperties) {
+
+		Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
+		int hashCode                       = 42;
+
+		sortedMap.putAll(properties);
+
+		if (comparableKeys == null) {
+
+			// calculate hash code for all properties in this map
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				if (includeSystemProperties || !entry.getKey().isUnvalidated()) {
+
+					hashCode ^= entry.hashCode();
+				}
+			}
+
+		} else {
+
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				PropertyKey key = entry.getKey();
+
+				if (comparableKeys.contains(key)) {
+
+					if (includeSystemProperties || !key.isUnvalidated()) {
+
+						hashCode ^= entry.hashCode();
+					}
+				}
+			}
+		}
+
+
+		return hashCode;
 	}
 
 	// ----- static methods -----
@@ -143,6 +187,7 @@ public class PropertyMap {
 
 		final PropertyMap resultMap = new PropertyMap();
 		final GraphObject entity    = unwrap(wrapped);
+		final Traits traits         = entity.getTraits();
 
 		if (source != null) {
 
@@ -153,15 +198,14 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey     = entity.getTraits().key(key);
+					final PropertyKey propertyKey     = traits.key(key);
 					final PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
 
 						try {
-							final Object propertyValue = converter.convert(value);
-
-							resultMap.put(key, propertyValue);
+							Object propertyValue = converter.convert(value);
+							resultMap.put(propertyKey, propertyValue);
 
 						} catch(ClassCastException cce) {
 
@@ -170,7 +214,7 @@ public class PropertyMap {
 
 					} else {
 
-						resultMap.put(key, value);
+						resultMap.put(propertyKey, value);
 					}
 				}
 			}
@@ -183,6 +227,7 @@ public class PropertyMap {
 
 		final PropertyMap resultMap = new PropertyMap();
 		final GraphObject entity    = unwrap(wrapped);
+		final Traits traits         = entity.getTraits();
 
 		if (source != null) {
 
@@ -193,14 +238,14 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey     = entity.getTraits().key(key);
+					final PropertyKey propertyKey     = traits.key(key);
 					final PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
 
 						try {
 							Object propertyValue = converter.revert(value);
-							resultMap.put(key, propertyValue);
+							resultMap.put(propertyKey, propertyValue);
 
 						} catch(ClassCastException cce) {
 
@@ -209,7 +254,7 @@ public class PropertyMap {
 
 					} else {
 
-						resultMap.put(key, value);
+						resultMap.put(propertyKey, value);
 					}
 				}
 			}
@@ -218,9 +263,10 @@ public class PropertyMap {
 		return resultMap;
 	}
 
-	public static PropertyMap databaseTypeToJavaType(final SecurityContext securityContext, Traits traits, final Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap databaseTypeToJavaType(final SecurityContext securityContext, final String entityType, Map<String, Object> source) throws FrameworkException {
 
 		final PropertyMap resultMap = new PropertyMap();
+		final Traits traits         = Traits.of(entityType);
 
 		if (source != null) {
 
@@ -231,14 +277,14 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					final PropertyKey propertyKey = traits.key(key);
-					PropertyConverter converter   = propertyKey.databaseConverter(securityContext);
+					PropertyKey propertyKey     = traits.key(key);
+					PropertyConverter converter = propertyKey.databaseConverter(securityContext);
 
 					if (converter != null) {
 
 						try {
-							final Object propertyValue = converter.revert(value);
-							resultMap.put(key, propertyValue);
+							Object propertyValue = converter.revert(value);
+							resultMap.put(propertyKey, propertyValue);
 
 						} catch(ClassCastException cce) {
 
@@ -247,7 +293,7 @@ public class PropertyMap {
 
 					} else {
 
-						resultMap.put(key, value);
+						resultMap.put(propertyKey, value);
 					}
 				}
 			}
@@ -263,8 +309,8 @@ public class PropertyMap {
 			Object typeName = source.get("type");
 			if (typeName != null) {
 
-				final Traits type = Traits.of(typeName.toString());
-				if (type != null) {
+				final Traits traits = Traits.of(typeName.toString());
+				if (traits != null) {
 
 					return inputTypeToJavaType(securityContext, typeName.toString(), source);
 
@@ -325,12 +371,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey = traits.key(key);
-					if (propertyKey == null) {
-
-						// fixme
-						propertyKey = new GenericProperty(key);
-					}
+					final PropertyKey propertyKey = traits.key(key);
 
 					if (propertyKey instanceof GenericProperty) {
 
@@ -370,6 +411,7 @@ public class PropertyMap {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
+						// fixme
 						if (converter != null && value != null) { // && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
 
 							try {
@@ -378,7 +420,7 @@ public class PropertyMap {
 								converter.setContext(source);
 
 								Object propertyValue = converter.convert(value);
-								resultMap.put(key, propertyValue);
+								resultMap.put(propertyKey, propertyValue);
 
 							} catch (ClassCastException cce) {
 
@@ -387,7 +429,7 @@ public class PropertyMap {
 
 						} else {
 
-							resultMap.put(key, value);
+							resultMap.put(propertyKey, value);
 						}
 					}
 				}
@@ -399,14 +441,12 @@ public class PropertyMap {
 
 	public static Map<String, Object> javaTypeToDatabaseType(final SecurityContext securityContext, final String type, final PropertyMap properties) throws FrameworkException {
 
-		final Map<String, Object> databaseTypedProperties = new LinkedHashMap<>();
-		final Traits traits                               = Traits.of(type);
+		Map<String, Object> databaseTypedProperties = new LinkedHashMap<>();
 
-		for (Entry<String, Object> entry : properties.entrySet()) {
+		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			final String key                  = entry.getKey();
-			final PropertyKey propertyKey     = traits.key(key);
-			final PropertyConverter converter = propertyKey.databaseConverter(securityContext);
+			PropertyKey propertyKey     = entry.getKey();
+			PropertyConverter converter = propertyKey.databaseConverter(securityContext);
 
 			if (converter != null) {
 
@@ -430,19 +470,17 @@ public class PropertyMap {
 
 	public static Map<String, Object> javaTypeToInputType(final SecurityContext securityContext, final String type, final PropertyMap properties) throws FrameworkException {
 
-		final Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
-		final Traits traits                            = Traits.of(type);
+		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
 
-		for (Entry<String, Object> entry : properties.entrySet()) {
+		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			final String key                  = entry.getKey();
-			final PropertyKey propertyKey     = traits.key(key);
-			final PropertyConverter converter = propertyKey.inputConverter(securityContext);
+			PropertyKey propertyKey     = entry.getKey();
+			PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 			if (converter != null) {
 
 				try {
-					final Object propertyValue = converter.revert(entry.getValue());
+					Object propertyValue = converter.revert(entry.getValue());
 					inputTypedProperties.put(propertyKey.jsonName(), propertyValue);
 
 				} catch(ClassCastException cce) {
@@ -458,14 +496,15 @@ public class PropertyMap {
 
 		return inputTypedProperties;
 	}
-
-	private static PropertyMap fallbackPropertyMap(final Map<String, Object> source) {
+	private static PropertyMap fallbackPropertyMap(Map<String, Object> source) {
 
 		PropertyMap map = new PropertyMap();
 
 		logger.error("Using GenericProperty for input {}", source);
+		//Thread.dumpStack();
 
 		if (source != null) {
+
 
 			for (Entry<String, Object> entry : source.entrySet()) {
 
@@ -474,12 +513,20 @@ public class PropertyMap {
 
 				if (key != null && value != null) {
 
-					map.put(key, value);
+					map.put(new GenericProperty(key), value);
 				}
 			}
 		}
 
 		return map;
+	}
+
+	private static class PropertyKeyComparator implements Comparator<PropertyKey> {
+
+		@Override
+		public int compare(final PropertyKey o1, final PropertyKey o2) {
+			return o1.jsonName().compareTo(o2.jsonName());
+		}
 	}
 
 	public static GraphObject unwrap(final GraphObject source) {

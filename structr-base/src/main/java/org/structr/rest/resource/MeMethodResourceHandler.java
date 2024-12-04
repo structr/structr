@@ -127,7 +127,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) throws FrameworkException {
+	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
 		final GraphObject entity = securityContext.getUser(false);
 		if (entity != null) {

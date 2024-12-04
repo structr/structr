@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -44,21 +45,11 @@ public class TypeResource extends ExactMatchEndpoint {
 		final String typeName = call.get("type");
 		if (typeName != null) {
 
-			// note: this check is carried out with SuperUser permissions!
-			final App app = StructrApp.getInstance();
-
 			// test if resource class exists
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-			if (entityClass != null) {
+			final Traits traits = Traits.of(typeName);
+			if (traits != null) {
 
-				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
-
-					return new CollectionResourceHandler(call, entityClass, typeName, false);
-
-				} else {
-
-					return new CollectionResourceHandler(call, entityClass, typeName, true);
-				}
+				return new CollectionResourceHandler(call, typeName, traits.isNodeType());
 			}
 		}
 

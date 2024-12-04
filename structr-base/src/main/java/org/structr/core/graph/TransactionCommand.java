@@ -26,6 +26,7 @@ import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNetworkException;
@@ -523,6 +524,15 @@ public class TransactionCommand {
 
 		RuntimeEventLog.transaction("Not in transaction");
 		throw new NotInTransactionException("Not in transaction.");
+	}
+
+	public static boolean isDeleted(final PropertyContainer propertyContainer) {
+
+		if (propertyContainer.isNode()) {
+			return isDeleted((Node)propertyContainer);
+		}
+
+		return isDeleted((Relationship)propertyContainer);
 	}
 
 	public static boolean isDeleted(final Node node) {

@@ -24,6 +24,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
@@ -42,7 +43,7 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 	}
 
 	@Override
-	public NodeInterface get(final SecurityContext securityContext, final NodeInterface node, final Predicate<NodeInterface> predicate) {
+	public NodeInterface get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
 		final NodeFactory nodeFactory = new NodeFactory(securityContext);
 		final Relationship rel        = getRawSource(securityContext, node.getNode(), predicate);
@@ -81,12 +82,12 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 	}
 
 	@Override
-	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate) {
+	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getSingle(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType());
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<NodeInterface> predicate) {
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
 		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

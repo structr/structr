@@ -18,14 +18,10 @@
  */
 package org.structr.core.traits;
 
-import org.structr.api.graph.PropertyContainer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
 import org.structr.web.entity.relationship.UserHOME_DIRFolder;
 import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
@@ -42,6 +38,10 @@ public class UserTraitDefinition extends AbstractTraitDefinition {
 	public static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
 	public static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
 	public static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
+
+	public UserTraitDefinition() {
+		super("User");
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {

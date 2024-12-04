@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.NonIndexed;
 
 /**
@@ -33,7 +34,7 @@ import org.structr.schema.NonIndexed;
  */
 public interface RelationshipInterface extends GraphObject, NonIndexed {
 
-	void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId);
+	<T extends RelationshipTrait> T as(final Class<T> type);
 
 	NodeInterface getSourceNode();
 	NodeInterface getTargetNode();
@@ -41,7 +42,6 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 	NodeInterface getTargetNodeAsSuperUser();
 	NodeInterface getOtherNode(final NodeInterface thisNode);
 
-	Relation getRelation();
 	RelationshipType getRelType();
 
 	Relationship getRelationship();
@@ -54,8 +54,5 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 	String getTargetNodeId();
 	void setTargetNodeId(final String targetIdNode) throws FrameworkException;
 
-	int getCascadingDeleteFlag();
-
-	boolean isInternal();
 	boolean isDeleted();
 }

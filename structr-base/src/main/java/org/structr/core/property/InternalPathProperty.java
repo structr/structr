@@ -52,7 +52,7 @@ public class InternalPathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		// instanceof returns false for null objects
 		if (obj instanceof ContextAwareEntity) {

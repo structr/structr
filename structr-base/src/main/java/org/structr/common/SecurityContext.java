@@ -41,6 +41,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -113,7 +114,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(Principal user, HttpServletRequest request, AccessMode accessMode) {
+	private SecurityContext(final Principal user, final HttpServletRequest request, final AccessMode accessMode) {
 
 		this(request);
 
@@ -121,7 +122,7 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 	}
 
-	private SecurityContext(HttpServletRequest request) {
+	private SecurityContext(final HttpServletRequest request) {
 
 		this.request = request;
 
@@ -563,9 +564,6 @@ public class SecurityContext {
 	 * It should *not* be used to check accessibility of child nodes because
 	 * it might send a 401 along with a request for basic authentication.
 	 *
-	 * For those, use
-	 * {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
-	 *
 	 * @param node
 	 * @return isVisible
 	 */
@@ -963,9 +961,9 @@ public class SecurityContext {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-							.and(JavaScriptSource.name, fileName)
-							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+					final List<NodeInterface> jsFiles = app.nodeQuery("JavaScriptSource")
+							.and(Traits.key("JavaScriptSource", "name"), fileName)
+							.and(Traits.key("JavaScriptSource", "useAsJavascriptLibrary"), true)
 							.getAsList();
 
 					if (jsFiles.isEmpty()) {
@@ -977,9 +975,11 @@ public class SecurityContext {
 						logger.warn("Multiple JavaScript library files found with fileName: {}. This may cause problems!", fileName );
 					}
 
-					for (final JavaScriptSource jsLibraryFile : jsFiles) {
+					for (final NodeInterface node : jsFiles) {
 
-						final String contentType = jsLibraryFile.getContentType();
+						final JavaScriptSource jsLibraryFile = node.as(JavaScriptSource.class);
+						final String contentType             = jsLibraryFile.getContentType();
+
 						if (contentType != null) {
 
 							final String lowerCaseContentType = contentType.toLowerCase();
@@ -992,12 +992,12 @@ public class SecurityContext {
 
 							} else {
 
-								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript, application/javascript or application/javascript+module for ES modules.", new Object[] { jsLibraryFile.getName(), contentType } );
+								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript, application/javascript or application/javascript+module for ES modules.", new Object[] { node.getName(), contentType } );
 							}
 
 						} else {
 
-							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { node.getName(), contentType } );
 						}
 					}
 

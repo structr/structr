@@ -37,10 +37,10 @@ import java.util.TreeMap;
  */
 public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
-	private Set<String> propertyKeys = null;
-	private String separator = null;
+	private Set<PropertyKey> propertyKeys = null;
+	private String separator              = null;
 
-	public ConcatProperty(String name, String separator, String... propertyKeys) {
+	public ConcatProperty(String name, String separator, PropertyKey... propertyKeys) {
 
 		super(name);
 
@@ -54,7 +54,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return StringUtils.join(propertyKeys.stream().map(k -> obj.getProperty(k)).toList(), separator);
 	}
 

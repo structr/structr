@@ -110,7 +110,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		try {
 

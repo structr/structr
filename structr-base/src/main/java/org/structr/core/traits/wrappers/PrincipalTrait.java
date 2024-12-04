@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.wrappers;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -35,30 +35,17 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.AbstractTraitWrapper;
+import org.structr.core.traits.Traits;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-public class PrincipalTrait implements Principal {
+public class PrincipalTrait extends AbstractTraitWrapper implements Principal {
 
-	protected final NodeInterface nodeInterface;
-	protected final Traits traits;
-
-	public PrincipalTrait(final Traits traits, final NodeInterface nodeInterface) {
-
-		this.nodeInterface = nodeInterface;
-		this.traits        = traits;
-	}
-
-	@Override
-	public String getUuid() {
-		return nodeInterface.getUuid();
-	}
-
-	@Override
-	public String getName() {
-		return nodeInterface.getName();
+	public PrincipalTrait(Traits traits, NodeInterface nodeInterface) {
+		super(traits, nodeInterface);
 	}
 
 	@Override
@@ -127,7 +114,7 @@ public class PrincipalTrait implements Principal {
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
-		return false;
+		return nodeInterface.getProperty(traits.key("skipSecurityRelationships"));
 	}
 
 	@Override
@@ -443,5 +430,10 @@ public class PrincipalTrait implements Principal {
 
 			return "URISyntaxException for " + path + "?" + query;
 		}
+	}
+
+	@Override
+	public NodeInterface getWrappedNode() {
+		return nodeInterface;
 	}
 }

@@ -34,10 +34,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
-import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -1300,7 +1300,7 @@ public class AccessControlTest extends StructrTest {
 			t1.setProperty(AbstractNode.owner, group1);
 			assertEquals(group1, t1.getProperty(AbstractNode.owner));
 
-			Ownership ownerRel = t1.getIncomingRelationship(PrincipalOwnsNode.class);
+			RelationshipInterface ownerRel = t1.getIncomingRelationship("PrincipalOwnsNode");
 			assertNotNull(ownerRel);
 
 			// Do additional low-level check here to ensure cardinality!
@@ -1688,7 +1688,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccess.class).getAsList()) {
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
 				app.delete(access);
 			}
 

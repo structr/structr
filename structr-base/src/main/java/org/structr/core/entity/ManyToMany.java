@@ -25,12 +25,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.property.Property;
 
 /**
  *
  *
  */
-public abstract class ManyToMany implements Relation<ManyStartpoint, ManyEndpoint> {
+public abstract class ManyToMany extends AbstractRelation implements Relation<ManyStartpoint, ManyEndpoint> {
+
+	public ManyToMany(final Property<String> sourceId, final Property<String> targetId) {
+		super(sourceId, targetId);
+	}
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -91,12 +96,6 @@ public abstract class ManyToMany implements Relation<ManyStartpoint, ManyEndpoin
 	}
 
 	@Override
-	public Direction getDirectionForType(final String type) {
-		//return super.getDirectionForType(getSourceType(), getTargetType(), type);
-		return null;
-	}
-
-	@Override
 	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
@@ -107,5 +106,10 @@ public abstract class ManyToMany implements Relation<ManyStartpoint, ManyEndpoin
 		}
 
 		return null;
+	}
+
+	@Override
+	public Direction getDirectionForType(String type) {
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 }

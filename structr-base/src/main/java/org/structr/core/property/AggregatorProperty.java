@@ -55,7 +55,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject currentObject, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject currentObject, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 
@@ -65,7 +65,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			// 1. step: add all nodes
 			for(Property property : aggregation.getAggregationProperties()) {
 
-				Object obj = sourceNode.getProperty(property.jsonName());
+				Object obj = sourceNode.getProperty(property);
 				if (obj != null && obj instanceof Iterable) {
 
 					Iterables.addAll(nodes, (Iterable)obj);

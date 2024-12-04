@@ -308,7 +308,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 
 			if (entityClass == null && propertyKey != null) {
 

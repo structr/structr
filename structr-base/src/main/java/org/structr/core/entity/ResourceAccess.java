@@ -18,159 +18,18 @@
  */
 package org.structr.core.entity;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.*;
+import org.structr.core.traits.NodeTrait;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.structr.common.helper.ValidationHelper;
+public interface ResourceAccess extends NodeTrait {
 
-/**
- * Controls access to REST resources.
- *
- * Objects of this class act as a doorkeeper for REST resources
- * that match the signature string in the 'signature' field.
- * <p>
- * A ResourceAccess object defines access permissions granted
- * <ul>
- * <li>to everyone (public)
- * <li>to authenticated principals
- * <li>to individual principals (when connected to a {link @Principal} node
- * </ul>
- *
- * <p>'flags' is a sum of any combination of the following values:
- *
- *  FORBIDDEN             = 0
- *  AUTH_USER_GET         = 1
- *  AUTH_USER_PUT         = 2
- *  AUTH_USER_POST        = 4
- *  AUTH_USER_DELETE      = 8
- *  NON_AUTH_USER_GET     = 16
- *  NON_AUTH_USER_PUT     = 32
- *  NON_AUTH_USER_POST    = 64
- *  NON_AUTH_USER_DELETE  = 128
- *  AUTH_USER_OPTIONS     = 256
- *  NON_AUTH_USER_OPTIONS = 512
- *
- *
- *
- */
-public class ResourceAccess extends AbstractNode {
-
-	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();
-	private static final Logger logger                                = LoggerFactory.getLogger(ResourceAccess.class.getName());
-
-	public static final Property<String>               signature          = new StringProperty("signature").indexed().partOfBuiltInSchema();
-	public static final Property<Long>                 flags              = new LongProperty("flags").indexed().partOfBuiltInSchema();
-	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true).partOfBuiltInSchema();
-
-	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
-		signature, flags, isResourceAccess
-	);
-
-	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
-		signature, flags, isResourceAccess
-	);
-
-	// non-static members
-	private String cachedResourceSignature = null;
-	private Long cachedFlags               = null;
-
-	public boolean hasFlag(long flag) {
-		return (getFlags() & flag) == flag;
-	}
-
-	public static boolean hasFlag(long flag, long flags) {
+	static boolean hasFlag(long flag, long flags) {
 		return (flags & flag) == flag;
 	}
 
-	public void setFlag(final long flag) throws FrameworkException {
-
-		cachedFlags = null;
-
-		setProperty(ResourceAccess.flags, getFlags() | flag);
-	}
-
-	public void clearFlag(final long flag) throws FrameworkException {
-
-		cachedFlags = null;
-
-		setProperty(ResourceAccess.flags, getFlags() & ~flag);
-	}
-
-	public long getFlags() {
-
-		if (cachedFlags == null) {
-			cachedFlags = getProperty(ResourceAccess.flags);
-		}
-
-		if (cachedFlags != null) {
-			return cachedFlags;
-		}
-
-		return 0;
-	}
-
-	public String getResourceSignature() {
-
-		if (cachedResourceSignature == null) {
-			cachedResourceSignature = getProperty(ResourceAccess.signature);
-		}
-
-		return cachedResourceSignature;
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
-		permissionsCache.clear();
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidStringNotBlank(this,  ResourceAccess.signature, errorBuffer);
-		valid &= ValidationHelper.isValidPropertyNotNull(this, ResourceAccess.flags, errorBuffer);
-
-		return valid;
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-		permissionsCache.clear();
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) throws FrameworkException {
-		permissionsCache.clear();
-	}
-
-	public static List<ResourceAccess> findPermissions(final SecurityContext securityContext, final String signature) throws FrameworkException {
-
-		List<ResourceAccess> permissions = permissionsCache.get(signature);
-		if (permissions == null) {
-
-			// Ignore securityContext here (so we can cache all permissions for a signature independent of a user)
-			permissions = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getAsList();
-			if (!permissions.isEmpty()) {
-
-				permissionsCache.put(signature, permissions);
-			}
-		}
-
-		return permissions;
-	}
-
-	public static void clearCache() {
-		permissionsCache.clear();
-	}
+	boolean hasFlag(final long flag);
+	void setFlag(final long flag) throws FrameworkException;
+	void clearFlag(final long flag) throws FrameworkException;
+	long getFlags();
+	String getResourceSignature();
 }

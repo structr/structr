@@ -25,5 +25,5 @@ import org.structr.core.traits.operations.FrameworkMethod;
 
 public abstract class RemoveProperty extends FrameworkMethod<RemoveProperty> {
 
-	public abstract void removeProperty(final GraphObject graphObject, final PropertyKey key) throws FrameworkException;
+	public abstract <T> void removeProperty(final GraphObject graphObject, final PropertyKey<T> key) throws FrameworkException;
 }

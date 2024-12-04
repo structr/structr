@@ -33,6 +33,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -54,27 +55,25 @@ public interface GraphObject {
 
 	void clearCaches();
 
-	void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId);
-
 	void setSecurityContext(final SecurityContext securityContext);
 	SecurityContext getSecurityContext();
 
 	// property container methods
 	PropertyContainer getPropertyContainer();
-	Set<String> getFullPropertySet(final String propertyView);
-	Set<String> getPropertyKeys(final String propertyView);
+	Set<PropertyKey> getFullPropertySet(final String propertyView);
+	Set<PropertyKey> getPropertyKeys(final String propertyView);
 	long getSourceTransactionId();
-	<T> Object setProperty(final String key, T value) throws FrameworkException;
-	<T> Object setProperty(final String key, T value, final boolean isCreation) throws FrameworkException;
+	<T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
+	<T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
 	void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
 	void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
 
 	boolean isNode();
 	boolean isRelationship();
 
-	<V> V getProperty(final String propertyKey);
-	<V> V getProperty(final String propertyKey, final Predicate<GraphObject> filter);
-	void removeProperty(final String key) throws FrameworkException;
+	<V> V getProperty(final PropertyKey<V> propertyKey);
+	<V> V getProperty(final PropertyKey<V> propertyKey, final Predicate<GraphObject> filter);
+	void removeProperty(final PropertyKey key) throws FrameworkException;
 
 	boolean systemPropertiesUnlocked();
 	void unlockSystemPropertiesOnce();
@@ -103,7 +102,7 @@ public interface GraphObject {
 	void propagatedModification(final SecurityContext securityContext);
 
 	// misc. methods
-	String getPropertyWithVariableReplacement(final ActionContext renderContext, final String key) throws FrameworkException;
+	String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
 	List<GraphObject> getSyncData() throws FrameworkException;
 

@@ -160,7 +160,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

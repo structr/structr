@@ -1027,20 +1027,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting resource access grants");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
+		final Traits traits                    = Traits.of("ResourceAccess");
+		final PropertyKey<String> signatureKey = traits.key("signature");
+		final PropertyKey<Integer> flagsKey    = traits.key("flags");
 		final App app                          = StructrApp.getInstance();
 
 		final List<String> unreachableGrants = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
+			for (final NodeInterface res : app.nodeQuery("ResourceAccessDefinition").sort(traits.key("signature")).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put("id",        res.getProperty(ResourceAccess.id));
-				grant.put("signature", res.getProperty(ResourceAccess.signature));
-				grant.put("flags",     res.getProperty(ResourceAccess.flags));
+				grant.put("id",                          res.getProperty(Traits.idProperty()));
+				grant.put("signature",                   res.getProperty(signatureKey));
+				grant.put("flags",                       res.getProperty(flagsKey));
 				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
 				grant.put("visibleToAuthenticatedUsers", res.isVisibleToAuthenticatedUsers());
 
@@ -1048,8 +1051,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final List grantees = (List)grant.get("grantees");
 
-				if (res.getProperty(ResourceAccess.flags) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
-					unreachableGrants.add(res.getProperty(ResourceAccess.signature));
+				if (res.getProperty(flagsKey) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+					unreachableGrants.add(res.getProperty(signatureKey));
 				}
 			}
 
@@ -1078,23 +1081,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting CORS Settings");
 
 		final List<Map<String, Object>> corsSettings = new LinkedList<>();
-		final App app                           = StructrApp.getInstance();
+		final Traits traits                          = Traits.of("CorsSetting");
+		final App app                                = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final CorsSetting corsSetting : app.nodeQuery(CorsSetting.class).sort(CorsSetting.requestUri).getAsList()) {
+			for (final NodeInterface corsSetting : app.nodeQuery("CorsSetting").sort(traits.key("requestUri")).getAsList()) {
 
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(CorsSetting.id));
-				putData(entry, "requestUri",       corsSetting.getProperty(StructrApp.key(CorsSetting.class, "requestUri")));
-				putData(entry, "acceptedOrigins",  corsSetting.getProperty(StructrApp.key(CorsSetting.class, "acceptedOrigins")));
-				putData(entry, "maxAge",           corsSetting.getProperty(StructrApp.key(CorsSetting.class, "maxAge")));
-				putData(entry, "allowMethods",     corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowMethods")));
-				putData(entry, "allowHeaders",     corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowHeaders")));
-				putData(entry, "allowCredentials", corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowCredentials")));
-				putData(entry, "exposeHeaders",    corsSetting.getProperty(StructrApp.key(CorsSetting.class, "exposeHeaders")));
+				putData(entry, "id",               corsSetting.getProperty(Traits.idProperty()));
+				putData(entry, "requestUri",       corsSetting.getProperty(traits.key("requestUri")));
+				putData(entry, "acceptedOrigins",  corsSetting.getProperty(traits.key("acceptedOrigins")));
+				putData(entry, "maxAge",           corsSetting.getProperty(traits.key("maxAge")));
+				putData(entry, "allowMethods",     corsSetting.getProperty(traits.key("allowMethods")));
+				putData(entry, "allowHeaders",     corsSetting.getProperty(traits.key("allowHeaders")));
+				putData(entry, "allowCredentials", corsSetting.getProperty(traits.key("allowCredentials")));
+				putData(entry, "exposeHeaders",    corsSetting.getProperty(traits.key("exposeHeaders")));
 			}
 
 			tx.success();
@@ -1818,7 +1822,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
+	private <T extends NodeInterface> void importListData(final String type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		context.setDoTransactionNotifications(false);
@@ -1828,7 +1832,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final T toDelete : app.nodeQuery(type).getAsList()) {
+			for (final NodeInterface toDelete : app.nodeQuery(type).getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -1852,7 +1856,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage(), fex);
+			logger.error("Unable to import {}, aborting with {}", type, fex.getMessage(), fex);
 
 			throw fex;
 		}
@@ -1883,7 +1887,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final ResourceAccess toDelete : app.nodeQuery(ResourceAccess.class).getAsList()) {
+			for (final ResourceAccess toDelete : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -1937,9 +1941,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					checkOwnerAndSecurity(entry);
 				}
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, ResourceAccess.class, entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, ResourceAccessDefinition.class, entry);
 
-				app.create(ResourceAccess.class, map);
+				app.create(ResourceAccessDefinition.class, map);
 			}
 
 			tx.success();

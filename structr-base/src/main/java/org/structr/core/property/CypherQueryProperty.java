@@ -59,12 +59,12 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	}
 
 	@Override
-	public Iterable<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<GraphObject> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<NodeInterface> predicate) {
+	public Iterable<GraphObject> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof AbstractNode) {
 

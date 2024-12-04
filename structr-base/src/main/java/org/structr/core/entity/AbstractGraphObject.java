@@ -61,6 +61,14 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	protected Traits typeHandler                              = null;
 	protected Identity id                                     = null;
 
+	public AbstractGraphObject(final SecurityContext securityContext, final PropertyContainer propertyContainer, final String entityType, final long sourceTransactionId) {
+
+		this.typeHandler         = Traits.of((String)propertyContainer.getProperty("type"));
+		this.sourceTransactionId = sourceTransactionId;
+		this.securityContext     = securityContext;
+		this.id                  = propertyContainer.getId();
+	}
+
 	@Override
 	public Traits getTraits() {
 		return typeHandler;
@@ -78,16 +86,6 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 			clearCaches.clearCaches();
 		}
-	}
-
-	@Override
-	public void init(final SecurityContext securityContext, final PropertyContainer propertyContainer, final String entityType, final long sourceTransactionId) {
-
-		// FIXME: unchecked type cast will fail for non-Structr nodes
-		this.typeHandler         = Traits.of((String)propertyContainer.getProperty("type"));
-		this.sourceTransactionId = sourceTransactionId;
-		this.securityContext     = securityContext;
-		this.id                  = propertyContainer.getId();
 	}
 
 	@Override
@@ -304,7 +302,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	/**
 	 * Returns the property set for the given view as an Iterable.
-	 *
+	 * <p>
 	 * If a custom view is set via header, this can only include properties that are also included in the current view!
 	 *
 	 * @param propertyView
@@ -376,7 +374,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
 
-		final Object value = getProperty(key);
+		final String value = getProperty(key);
 		String result      = null;
 
 		try {
@@ -385,7 +383,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 		} catch (Throwable t) {
 
-			logger.warn("Scripting error in {} {}:\n{}", key.dbName(), getUuid(), value, t);
+			logger.warn("Scripting error in {} {}:\n{}", key, getUuid(), value, t);
 
 		}
 

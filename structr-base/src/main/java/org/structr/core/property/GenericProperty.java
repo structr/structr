@@ -55,13 +55,13 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		if ("T".equals(pType.getRawType().toString())) {
 
-			Class<? extends GraphObject> relType = relatedType();
+			final String relType = relatedType();
 
 			return relType != null ? relType : null;
 
 		}
 
-		return pType.getRawType().getClass();
+		return pType.getRawType().getClass().getSimpleName();
 	}
 
 	@Override

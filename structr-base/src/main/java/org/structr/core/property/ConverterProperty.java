@@ -57,9 +57,6 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 				name
 			});
 		}
-
-		// make us known to the entity context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override

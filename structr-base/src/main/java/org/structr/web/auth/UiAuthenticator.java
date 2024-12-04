@@ -47,13 +47,12 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.ResourceAccessTrait;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
-import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.io.IOException;
@@ -147,7 +146,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (user == null && StringUtils.isNotBlank(authorizationToken)) {
 
-			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+			final PropertyKey<String> eMailKey = Traits.of("User").key("eMail");
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
@@ -173,7 +172,7 @@ public class UiAuthenticator implements Authenticator {
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
 
 				// overwrite superuser context in user
-				user.setSecurityContext(securityContext);
+				user.getWrappedNode().setSecurityContext(securityContext);
 			}
 		}
 
@@ -209,6 +208,8 @@ public class UiAuthenticator implements Authenticator {
 
 	public void checkCORS(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
+		final Traits traits = Traits.of("CorsSetting");
+
 		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 		final String origin           = request.getHeader("Origin");
 		final String requestedHeaders = request.getHeader("Access-Control-Request-Headers");
@@ -224,15 +225,15 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery("CorsSetting").and(CorsSetting.requestUri, requestUri).getFirst();
+			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery("CorsSetting").and(traits.key("requestUri"), requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
-				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.acceptedOrigins,  acceptedOriginsString);
-				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.maxAge,           maxAge);
-				allowMethods          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.allowMethods,     allowMethods);
-				allowHeaders          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.allowHeaders,     allowHeaders);
-				allowCredentials      = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.allowCredentials, allowCredentials);
-				exposeHeaders         = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSetting.exposeHeaders,    exposeHeaders);
+				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "acceptedOrigins",  acceptedOriginsString);
+				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "maxAge",           maxAge);
+				allowMethods          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "allowMethods",     allowMethods);
+				allowHeaders          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "allowHeaders",     allowHeaders);
+				allowCredentials      = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "allowCredentials", allowCredentials);
+				exposeHeaders         = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "exposeHeaders",    exposeHeaders);
 			}
 
 			tx.success();
@@ -296,7 +297,7 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		// only necessary for non-admin users!
-		final List<ResourceAccess> permissions = ResourceAccess.findPermissions(securityContext, rawResourceSignature);
+		final List<ResourceAccess> permissions = ResourceAccessTrait.findPermissions(securityContext, rawResourceSignature);
 		final Method method                    = methods.get(request.getMethod());
 
 		// flatten permissons
@@ -308,7 +309,7 @@ public class UiAuthenticator implements Authenticator {
 			// combine allowed flags for permissions user is allowed to see
 			for (final ResourceAccess permission : permissions) {
 
-				if (securityContext.isReadable(permission, false, false)) {
+				if (securityContext.isReadable(permission.getWrappedNode(), false, false)) {
 
 					permissionsFound++;
 					combinedFlags = combinedFlags | permission.getFlags();
@@ -462,16 +463,15 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws FrameworkException {
 
-		final PropertyKey<String> confKey  = TraitDefinition.of(User.class).key("confirmationKey");
-		final PropertyKey<String> eMailKey = TraitDefinition.of(User.class).key("eMail");
+		final PropertyKey<String> eMailKey = Traits.of("User").key("eMail");
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
-			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
+			if (user.getConfirmationKey() != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as '{}' not allowed before confirmation.", user.getName());
 				RuntimeEventLog.failedLogin("Login attempt before confirmation", Map.of("id", user.getUuid(), "name", user.getName()));
@@ -489,7 +489,7 @@ public class UiAuthenticator implements Authenticator {
 			final Principal user = getUser(request, false);
 			if (user != null) {
 
-				Services.getInstance().broadcastLogout(user.getNode().getId().getId());
+				Services.getInstance().broadcastLogout(user.getWrappedNode().getNode().getId().getId());
 
 				AuthHelper.doLogout(request, user);
 			}
@@ -542,11 +542,13 @@ public class UiAuthenticator implements Authenticator {
 	/**
 	 * Get effective CORS setting
 	 */
-	private <T> Object getEffectiveCorsSettingValue(final NodeInterface corsSettingObjectFromDatabase, final PropertyKey<T> corsSettingPropertyKey, final T defaultValue) throws FrameworkException {
+	private <T> Object getEffectiveCorsSettingValue(final NodeInterface corsSettingObjectFromDatabase, final String corsSettingPropertyKey, final T defaultValue) throws FrameworkException {
 
 		if (corsSettingObjectFromDatabase != null) {
 
-			final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
+			final Traits traits                       = Traits.of("CorsSetting");
+			final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(traits.key(corsSettingPropertyKey));
+
 			if (corsSettingValueFromDatabase != null) {
 
 				// Overwrite config setting
@@ -666,7 +668,7 @@ public class UiAuthenticator implements Authenticator {
 
 				if (value != null) {
 
-					final PropertyKey credentialKey = TraitDefinition.of(User.class).key("eMail");
+					final PropertyKey credentialKey = Traits.of("User").key("eMail");
 
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
@@ -850,7 +852,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if (authorizationToken != null) {
 
-			final PropertyKey<String> eMailKey = TraitDefinition.of(User.class).key("eMail");
+			final PropertyKey<String> eMailKey = Traits.of("User").key("eMail");
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
@@ -872,11 +874,11 @@ public class UiAuthenticator implements Authenticator {
 
 					try {
 
-						user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
+						user = AuthHelper.getPrincipalForPassword(Traits.nameProperty(), userName, password);
 
 					} catch (AuthenticationException ex) {
 
-						final PropertyKey<String> eMailKey = TraitDefinition.of(User.class).key("eMail");
+						final PropertyKey<String> eMailKey = Traits.of("User").key("eMail");
 						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
 					}
 				}

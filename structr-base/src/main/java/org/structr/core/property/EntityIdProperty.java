@@ -22,6 +22,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.traits.Traits;
 
 /**
  * A property that wraps a PropertyNotion with the entity's UUID around an EntityProperty.
@@ -37,6 +38,6 @@ public class EntityIdProperty<S extends NodeInterface> extends EntityNotionPrope
 	
 	public EntityIdProperty(final String name, final Property<S> base, final boolean createIfNotExisting) {
 		
-		super(name, base, new PropertyNotion(GraphObject.id, createIfNotExisting));
+		super(name, base, new PropertyNotion(Traits.idProperty(), createIfNotExisting));
 	}
 }

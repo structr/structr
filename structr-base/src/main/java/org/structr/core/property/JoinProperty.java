@@ -56,7 +56,7 @@ public class JoinProperty extends StringProperty {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate){
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		final ArrayList<Object> arguments = new ArrayList<>();
 

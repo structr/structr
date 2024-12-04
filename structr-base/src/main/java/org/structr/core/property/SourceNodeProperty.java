@@ -56,7 +56,7 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 

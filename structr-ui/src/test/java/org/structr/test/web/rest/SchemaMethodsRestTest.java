@@ -22,9 +22,7 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
@@ -32,8 +30,7 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import org.structr.common.error.ErrorToken;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -71,10 +68,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create(ResourceAccess.class,
-				new NodeAttribute<>(ResourceAccess.signature, "myTestMethod01"),
-				new NodeAttribute<>(ResourceAccess.flags, 64L),
-				new NodeAttribute<>(ResourceAccess.visibleToPublicUsers, true)
+			app.create(ResourceAccessDefinition.class,
+				new NodeAttribute<>(ResourceAccessDefinition.signature, "myTestMethod01"),
+				new NodeAttribute<>(ResourceAccessDefinition.flags, 64L),
+				new NodeAttribute<>(ResourceAccessDefinition.visibleToPublicUsers, true)
 			);
 
 			tx.success();
@@ -131,10 +128,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create(ResourceAccess.class,
-				new NodeAttribute<>(ResourceAccess.signature, "MyTestType/testTypeMethod01"),
-				new NodeAttribute<>(ResourceAccess.flags, 64L),
-				new NodeAttribute<>(ResourceAccess.visibleToPublicUsers, true)
+			app.create(ResourceAccessDefinition.class,
+				new NodeAttribute<>(ResourceAccessDefinition.signature, "MyTestType/testTypeMethod01"),
+				new NodeAttribute<>(ResourceAccessDefinition.flags, 64L),
+				new NodeAttribute<>(ResourceAccessDefinition.visibleToPublicUsers, true)
 			);
 
 			tx.success();

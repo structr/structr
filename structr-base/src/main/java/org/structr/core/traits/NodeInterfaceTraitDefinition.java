@@ -23,15 +23,15 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.entity.*;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 
 import java.util.Map;
@@ -43,11 +43,15 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 	private static final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed().partOfBuiltInSchema();
 	private static final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	private static final Property<NodeInterface> ownerProperty                 = new StartNode("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	private static final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode").partOfBuiltInSchema();
 	private static final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
 
-	private static final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", SecurityRelationship.class).partOfBuiltInSchema();
+	private static final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship").partOfBuiltInSchema();
 	private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
+
+	public NodeInterfaceTraitDefinition() {
+		super("NodeInterface");
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -176,7 +180,7 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 				}
 
 				@Override
-				public  Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<NodeInterface> predicate) {
+				public  Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<GraphObject> predicate) {
 
 					final SecurityContext suContext            = SecurityContext.getSuperUserInstance();
 					final RelationshipFactory factory          = new RelationshipFactory(suContext);
@@ -228,6 +232,11 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, TraitFactory> getTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
@@ -238,5 +247,10 @@ public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 			granteesProperty,
 			internalPathProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

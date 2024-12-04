@@ -136,9 +136,8 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 		return Direction.INCOMING;
 	}
 
-	// ----- protected methods -----
 	@Override
-	protected boolean isNode() {
+	public boolean isNode() {
 		return false;
 	}
 }

@@ -28,6 +28,7 @@ public interface User extends Principal {
         Folder getWorkingDirectory();
         void setLocalStorage(final String localStorage) throws FrameworkException;
         String getLocalStorage();
+        String getConfirmationKey();
 
 	/*
 

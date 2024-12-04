@@ -42,10 +42,6 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 		super(name);
 
 		this.handler = handler;
-
-		// make us known to the entity context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
-
 	}
 
 	@Override

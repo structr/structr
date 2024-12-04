@@ -25,14 +25,15 @@ import org.structr.common.View;
  *
  *
  */
-public class DynamicResourceAccess extends ResourceAccess {
+public class DynamicResourceAccess extends ResourceAccessDefinition {
 
-	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
+	/*
+	public static final View uiView = new View(ResourceAccessDefinition.class, PropertyView.Ui,
 		signature, flags, isResourceAccess
 	);
 
-	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
+	public static final View publicView = new View(ResourceAccessDefinition.class, PropertyView.Public,
 		signature, flags, isResourceAccess
 	);
-
+	 */
 }

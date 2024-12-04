@@ -31,20 +31,20 @@ import java.util.Map;
  *
  *
  */
-public class CollectionSumProperty<S extends Number> extends AbstractReadOnlyProperty<S> {
+public class CollectionSumProperty<T extends NodeInterface, S extends Number> extends AbstractReadOnlyProperty<S> {
 
-	private String collectionKey = null;
-	private String valueKey      = null;
-	private Predicate predicate  = null;
+	private Property<List<T>> collectionKey = null;
+	private Property<S> valueKey            = null;
+	private Predicate<T> predicate          = null;
 
-	public CollectionSumProperty(final String name, final String collectionKey, final String valueKey) {
+	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey) {
 		super(name);
 
 		this.collectionKey = collectionKey;
 		this.valueKey = valueKey;
 	}
 
-	public CollectionSumProperty(final String name, final String collectionKey, final String valueKey, final Predicate predicate) {
+	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey, Predicate<T> predicate) {
 
 		this(name, collectionKey, valueKey);
 		this.predicate = predicate;
@@ -57,7 +57,7 @@ public class CollectionSumProperty<S extends Number> extends AbstractReadOnlyPro
 
 	@Override
 	public String valueType() {
-		return "Integer";
+		return valueKey.valueType();
 	}
 
 	@Override
@@ -71,23 +71,22 @@ public class CollectionSumProperty<S extends Number> extends AbstractReadOnlyPro
 	}
 
 	@Override
-	public S getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> pred) {
+	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int     intSum    = 0;
 		long    longSum   = 0L;
 		double  doubleSum = 0.0d;
 		float   floatSum  = 0.0f;
 
-		final Iterable<NodeInterface> coll = obj.getProperty(collectionKey);
 		Class cls = Integer.class;
 
-		for (final NodeInterface collectionObj : coll) {
+		for (T collectionObj : obj.getProperty(collectionKey)) {
 
-			if (predicate != null && !predicate.accept(collectionObj)) {
+			if (this.predicate != null && !this.predicate.accept(collectionObj)) {
 				continue;
 			}
 
-			Object value = collectionObj.getProperty(valueKey);
+			S value = collectionObj.getProperty(valueKey);
 
 			if (value instanceof Integer) {
 

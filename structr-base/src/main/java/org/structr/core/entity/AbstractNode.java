@@ -18,22 +18,29 @@
  */
 package org.structr.core.entity;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.*;
-import org.structr.api.util.FixedSizeCache;
-import org.structr.common.*;
+import org.structr.common.AccessControllable;
+import org.structr.common.ContextStore;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.*;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.operations.accesscontrollable.*;
-import org.structr.core.traits.operations.nodeinterface.*;
+import org.structr.core.traits.operations.nodeinterface.GetRelationships;
+import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
+import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
+import org.structr.core.traits.operations.nodeinterface.OnNodeInstantiation;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -43,9 +50,7 @@ import java.util.*;
 /**
  * Abstract base class for all node entities in Structr.
  */
-public class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
-
-	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
+public final class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
 
 	/*
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
@@ -58,16 +63,18 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 
 	private Identity rawPathSegmentId = null;
 
+	public AbstractNode(final SecurityContext securityContext, final PropertyContainer propertyContainer, final String entityType, final long sourceTransactionId) {
+		super(securityContext, propertyContainer, entityType, sourceTransactionId);
+	}
+
 	@Override
 	public String getType() {
 		return getProperty(typeHandler.key("type"));
 	}
 
 	@Override
-	public void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId) {
-
-
-
+	public <T extends NodeTrait> T as(final Class<T> type) {
+		return typeHandler.as(type, this);
 	}
 
 	@Override
@@ -271,7 +278,7 @@ public class AbstractNode extends AbstractGraphObject<Node> implements NodeInter
 	}
 
 	@Override
-	public final Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<NodeInterface> predicate) {
+	public final Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<GraphObject> predicate) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipsAsSuperUser(this, type, predicate);
 	}
 

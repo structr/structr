@@ -109,7 +109,7 @@ public class LogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class<? extends GraphObject> getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return GraphObject.class;
 		}
 

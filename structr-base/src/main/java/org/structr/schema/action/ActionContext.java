@@ -303,9 +303,9 @@ public class ActionContext {
 
 						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
 
-					} else if (data instanceof Class clazz) {
+					} else if (data instanceof Traits traits) {
 
-						final AbstractMethod method = Methods.resolveMethod(clazz, key);
+						final AbstractMethod method = Methods.resolveMethod(traits, key);
 						if (method != null) {
 
 							hints.reportExistingKey(key);

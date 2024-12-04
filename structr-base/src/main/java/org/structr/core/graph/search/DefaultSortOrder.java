@@ -24,6 +24,7 @@ import org.structr.api.search.SortType;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 
 import java.util.LinkedList;
@@ -36,7 +37,7 @@ public class DefaultSortOrder implements SortOrder {
 	public DefaultSortOrder() {
 	}
 
-	public DefaultSortOrder(final Class type, final String[] sortKeyNames, final String[] sortOrders) {
+	public DefaultSortOrder(final String type, final String[] sortKeyNames, final String[] sortOrders) {
 
 		if (sortKeyNames != null) {
 
@@ -45,7 +46,7 @@ public class DefaultSortOrder implements SortOrder {
 
 			for (int i=0; i<length; i++) {
 
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, sortKeyNames[i]);
+				final PropertyKey key = Traits.of(type).key(sortKeyNames[i]);
 				if (key != null) {
 
 					specs.add(new PropertySortSpec(key, sortOrders != null && sortOrders.length > i && "desc".equals(sortOrders[i])));

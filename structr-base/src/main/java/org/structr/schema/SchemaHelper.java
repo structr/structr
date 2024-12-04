@@ -220,65 +220,6 @@ public class SchemaHelper {
 		return begin.concat(WORD_SEPARATOR).concat(lastWord);
 	}
 
-	public static Class getEntityClassForRawType(final String rawType) {
-
-		// first try: raw name
-		Class type = getEntityClassForRawType(rawType, false);
-		if (type == null) {
-
-			// second try: normalized name
-			type = getEntityClassForRawType(rawType, true);
-		}
-
-		return type;
-	}
-
-	private static Class getEntityClassForRawType(final String rawType, final boolean normalize) {
-
-		final String normalizedEntityName = normalize ? normalizeEntityName(rawType) : rawType;
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-
-		// first try: node entity
-		Class type = configuration.getNodeEntities().get(normalizedEntityName);
-
-		// second try: relationship entity
-		if (type == null) {
-			type = configuration.getRelationshipEntities().get(normalizedEntityName);
-		}
-
-		// third try: interface
-		if (type == null) {
-			type = configuration.getInterfaces().get(normalizedEntityName);
-		}
-
-		// store type but only if it exists!
-		if (type != null) {
-			normalizedEntityNameCache.put(rawType, type.getSimpleName());
-		}
-
-		// fallback to support queries on internal types
-		if (type == null) {
-
-			if (AbstractNode.class.getSimpleName().equals(rawType)) {
-				return AbstractNode.class;
-			}
-
-			if (NodeInterface.class.getSimpleName().equals(rawType)) {
-				return NodeInterface.class;
-			}
-
-			if (AbstractRelationship.class.getSimpleName().equals(rawType)) {
-				return AbstractRelationship.class;
-			}
-
-			if (RelationshipInterface.class.getSimpleName().equals(rawType)) {
-				return RelationshipInterface.class;
-			}
-		}
-
-		return type;
-	}
-
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload, final boolean notifyCluster) {
 		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
 	}

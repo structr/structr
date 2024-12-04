@@ -21,6 +21,7 @@ package org.structr.core.property;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.traits.Traits;
 
 /**
  * A property that wraps a PropertyNotion with the entity's UUID around a CollectionProperty.
@@ -36,6 +37,6 @@ public class CollectionIdProperty<T extends NodeInterface> extends CollectionNot
 
 	public CollectionIdProperty(String name, Property<Iterable<T>> base, boolean createIfNotExisting) {
 
-		super(name, base, new PropertyNotion(GraphObject.id, createIfNotExisting));
+		super(name, base, new PropertyNotion(Traits.idProperty(), createIfNotExisting));
 	}
 }

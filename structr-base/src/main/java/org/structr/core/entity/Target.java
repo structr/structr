@@ -22,6 +22,7 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -30,10 +31,10 @@ import org.structr.core.graph.NodeInterface;
  */
 public interface Target<R, T> {
 
-	T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<NodeInterface> predicate);
+	T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate);
 
 	Object set(final SecurityContext securityContext, final NodeInterface node, final T value) throws FrameworkException;
 
-	R getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate);
-	boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate);
+	R getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
+	boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
 }

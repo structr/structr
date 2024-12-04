@@ -18,17 +18,14 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
-import org.structr.core.traits.AbstractNodeTraitDefinition;
 import org.structr.core.traits.AbstractTraitDefinition;
-import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.TraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -42,13 +39,17 @@ import java.util.Set;
  * Storage object for session data.
  */
 
-public class SessionDataNode extends AbstractTraitDefinition {
+public class SessionDataNodeDefinition extends AbstractTraitDefinition {
 
 	private static final Property<String>               sessionIdProperty    = new StringProperty("sessionId").indexed();
 	private static final Property<String>               contextPathProperty  = new StringProperty("cpath");
 	private static final Property<String>               vhostProperty        = new StringProperty("vhost");
 	private static final Property<Date>                 lastAccessedProperty = new DateProperty("lastAccessed").indexed();
 	private static final Property<Long>                 versionProperty      = new LongProperty("version");
+
+	public SessionDataNodeDefinition() {
+		super("SessionDataNode");
+	}
 
 	/*
 	public static final View uiView = new View(SessionDataNode.class, PropertyView.Ui,
@@ -88,6 +89,11 @@ public class SessionDataNode extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, TraitFactory> getTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 		return Set.of(
 			sessionIdProperty,
@@ -98,18 +104,23 @@ public class SessionDataNode extends AbstractTraitDefinition {
 		);
 	}
 
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
 	// ----- private methods -----
 	private void incrementVersion(final GraphObject graphObject) throws FrameworkException {
 
 		// increment version on each change
-		final Long version = graphObject.getProperty("version");
+		final Long version = graphObject.getProperty(versionProperty);
 		if (version == null) {
 
-			graphObject.setProperty("version", 1L);
+			graphObject.setProperty(versionProperty, 1L);
 
 		} else {
 
-			graphObject.setProperty("version",  version + 1);
+			graphObject.setProperty(versionProperty,  version + 1);
 		}
 	}
 }

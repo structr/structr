@@ -19,7 +19,6 @@
 package org.structr.core;
 
 import org.structr.api.Predicate;
-import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -33,6 +32,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -44,20 +44,30 @@ import java.util.Map.Entry;
  *
  *
  */
-public class GraphObjectMap extends PropertyMap implements GraphObject<PropertyContainer> {
+public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(GraphObject.id);
+		return getProperty(Traits.idProperty());
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, PropertyContainer dbObject, Class type, long sourceTransactionId) {
+	public void clearCaches() {
+
+	}
+
+	@Override
+	public void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId) {
+	}
+
+	@Override
+	public Traits getTraits() {
+		return null;
 	}
 
 	@Override
 	public String getType() {
-		return getProperty(GraphObject.id);
+		return getProperty(Traits.idProperty());
 	}
 
 	@Override
@@ -102,8 +112,18 @@ public class GraphObjectMap extends PropertyMap implements GraphObject<PropertyC
 	}
 
 	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
+	}
+
+	@Override
 	public void removeProperty(final PropertyKey key) throws FrameworkException {
 		properties.remove(key);
+	}
+
+	@Override
+	public boolean systemPropertiesUnlocked() {
+		return false;
 	}
 
 	@Override
@@ -111,7 +131,22 @@ public class GraphObjectMap extends PropertyMap implements GraphObject<PropertyC
 	}
 
 	@Override
+	public void lockReadOnlyProperties() {
+
+	}
+
+	@Override
 	public void unlockSystemPropertiesOnce() {
+	}
+
+	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
 	}
 
 	public static GraphObjectMap fromMap(final Map<String, Object> map) {
@@ -159,7 +194,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject<PropertyC
 	}
 
 	@Override
-	public Object put(PropertyKey key, Object value) {
+	public Object put(final PropertyKey key, final Object value) {
 		return properties.put(key, value);
 	}
 
@@ -189,7 +224,62 @@ public class GraphObjectMap extends PropertyMap implements GraphObject<PropertyC
 	}
 
 	@Override
+	public Set<PropertyKey> getFullPropertySet(String propertyView) {
+		return Set.of();
+	}
+
+	@Override
 	public void addToIndex() {
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
+
 	}
 
 	@Override
@@ -215,7 +305,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject<PropertyC
 
 		for (final PropertyKey propertyKey : properties.keySet()) {
 
-			if (key.equals(propertyKey.jsonName())) {
+			if (key.equals(propertyKey)) {
 
 				return properties.get(propertyKey);
 			}

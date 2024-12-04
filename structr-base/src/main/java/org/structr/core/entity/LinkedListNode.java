@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyMap;
  */
 public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
 
-	<R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> Class<R> getSiblingLinkType();
+	String getSiblingLinkType();
 
 	/**
 	 * Returns the predecessor of the given element in the list structure
@@ -45,7 +45,7 @@ public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
 	 */
 	default T listGetPrevious(final T currentElement) {
 
-		RelationshipInterface<T, T> prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
+		RelationshipInterface prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
 		if (prevRel != null) {
 
 			return (T)prevRel.getSourceNode();
@@ -63,7 +63,7 @@ public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
 	 */
 	default T listGetNext(final T currentElement) {
 
-		RelationshipInterface<T, T> nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
+		RelationshipInterface nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
 		if (nextRel != null) {
 
 			return (T)nextRel.getTargetNode();

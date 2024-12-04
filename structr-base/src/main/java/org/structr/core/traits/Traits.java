@@ -18,9 +18,11 @@
  */
 package org.structr.core.traits;
 
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.*;
 
@@ -31,14 +33,19 @@ public class Traits {
 
 	private static final Map<String, Traits> globalTraitMap       = new LinkedHashMap<>();
 	private static final Map<String, TraitDefinition> types       = new LinkedHashMap<>();
+	private static PropertyKey<String> cachedNameProperty         = null;
+	private static PropertyKey<String> cachedTypeProperty         = null;
+	private static PropertyKey<String> cachedIdProperty           = null;
 
 	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
+	private final Map<Class, TraitFactory> traitFactories         = new LinkedHashMap<>();
 	private final Map<Class, Set> composableMethods               = new LinkedHashMap<>();
 	private final Map<String, PropertyKey> propertyKeys           = new LinkedHashMap<>();
 
 	private final boolean isNodeType;
 	private final String typeName;
 	private final boolean isRelationshipType;
+	private Relation relation;
 
 	Traits(final String typeName, final boolean isNodeType, final boolean isRelationshipType) {
 
@@ -62,15 +69,7 @@ public class Traits {
 	}
 
 	public <T> PropertyKey<T> key(final String name) {
-
-		for (final TraitDefinition trait : types.values()) {
-
-			if (trait.hasKey(name)) {
-				return trait.key(name);
-			}
-		}
-
-		return null;
+		return propertyKeys.get(name);
 	}
 
 	public String getName() {
@@ -96,9 +95,9 @@ public class Traits {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
-		for (final TraitDefinition trait : types.values()) {
+		for (final PropertyKey key : propertyKeys.values()) {
 
-			set.addAll(trait.getPropertyKeys(propertyView));
+			set.add(key);
 		}
 
 		return set;
@@ -110,6 +109,17 @@ public class Traits {
 
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
 		return (T) overwritableMethods.get(type);
+	}
+
+	public <T> T as(final Class<T> type, final NodeInterface node) {
+
+		final TraitFactory factory = traitFactories.get(type);
+		if (factory != null) {
+
+			return (T)factory.newInstance(this, node);
+		}
+
+		return null;
 	}
 
 	public void registerImplementation(final TraitDefinition trait) {
@@ -141,10 +151,59 @@ public class Traits {
 
 			propertyKeys.put(key.jsonName(), key);
 		}
+
+		// trait implementations
+		this.traitFactories.putAll(trait.getTraitFactories());
+
+		// relation (for relationship types)
+		this.relation = trait.getRelation();
+	}
+
+	public Relation getRelation() {
+		return relation;
 	}
 
 	// ----- static methods -----
 	public static Traits of(final String name) {
 		return globalTraitMap.get(name);
+	}
+
+	public static <T> PropertyKey<T> key(final String type, final String name) {
+
+		final Traits traits = Traits.of(type);
+		if (traits != null) {
+
+			return traits.key(name);
+		}
+
+		// fixme
+		return null;
+	}
+
+	public static PropertyKey<String> idProperty() {
+
+		if (cachedIdProperty == null) {
+			cachedIdProperty = Traits.key("GraphObject", "id");
+		}
+
+		return cachedIdProperty;
+	}
+
+	public static PropertyKey<String> nameProperty() {
+
+		if (cachedNameProperty == null) {
+			cachedNameProperty = Traits.key("GraphObject", "name");
+		}
+
+		return cachedNameProperty;
+	}
+
+	public static PropertyKey<String> typeProperty() {
+
+		if (cachedTypeProperty == null) {
+			cachedTypeProperty = Traits.key("GraphObject", "type");
+		}
+
+		return cachedTypeProperty;
 	}
 }

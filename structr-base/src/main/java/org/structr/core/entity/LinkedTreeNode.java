@@ -34,12 +34,12 @@ import java.util.*;
  */
 public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface> extends LinkedListNode<T> {
 
-	<R extends Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>>> Class<R> getChildLinkType();
+	String getChildLinkType();
 	Property<Integer> getPositionProperty();
 
 	default T treeGetParent() {
 
-		RelationshipInterface<S, T> prevRel = getIncomingRelationship(getChildLinkType());
+		RelationshipInterface prevRel = getIncomingRelationship(getChildLinkType());
 		if (prevRel != null) {
 
 			return (T) prevRel.getSourceNode();
@@ -68,7 +68,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 
 	default void treeInsertBefore(final T newChild, final T refChild) throws FrameworkException {
 
-		final List<RelationshipInterface<S, T>> rels = treeGetChildRelationships();
+		final List<RelationshipInterface> rels = treeGetChildRelationships();
 		boolean found = false;
 		int position = 0;
 
@@ -84,7 +84,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 			return;
 		}
 
-		for (RelationshipInterface<S, T> rel : rels) {
+		for (RelationshipInterface rel : rels) {
 
 			T node = (T)rel.getTargetNode();
 			if (node.equals(refChild)) {
@@ -118,7 +118,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 
 	default void treeInsertAfter(final T newChild, final T refChild) throws FrameworkException {
 
-		final List<RelationshipInterface<S, T>> rels = treeGetChildRelationships();
+		final List<RelationshipInterface> rels = treeGetChildRelationships();
 		int position = 0;
 
 		// when there are no child rels, this is an append operation
@@ -128,7 +128,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 			return;
 		}
 
-		for (final RelationshipInterface<S, T> rel : rels) {
+		for (final RelationshipInterface rel : rels) {
 
 			T node = (T)rel.getTargetNode();
 
@@ -204,7 +204,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 
 	default T treeGetChild(final int position) {
 
-		for (final RelationshipInterface<S, T> rel : getOutgoingRelationships(getChildLinkType())) {
+		for (final RelationshipInterface rel : getOutgoingRelationships(getChildLinkType())) {
 
 			Integer pos = rel.getProperty(getPositionProperty());
 
@@ -219,7 +219,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 
 	default int treeGetChildPosition(final T child) {
 
-		final RelationshipInterface<S, T> rel = child.getIncomingRelationship(getChildLinkType());
+		final RelationshipInterface rel = child.getIncomingRelationship(getChildLinkType());
 		if (rel != null) {
 
 			Integer pos = rel.getProperty(getPositionProperty());
@@ -236,7 +236,7 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 
 		List<T> abstractChildren = new ArrayList<>();
 
-		for (final RelationshipInterface<S, T> rel : treeGetChildRelationships()) {
+		for (final RelationshipInterface rel : treeGetChildRelationships()) {
 
 			abstractChildren.add((T)rel.getTargetNode());
 		}
@@ -248,16 +248,16 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 		return Iterables.count(getOutgoingRelationships(getChildLinkType()));
 	}
 
-	default List<RelationshipInterface<S, T>> treeGetChildRelationships() {
+	default List<RelationshipInterface> treeGetChildRelationships() {
 
 		// fetch all relationships
-		List<RelationshipInterface<S, T>> childRels = Iterables.toList(getOutgoingRelationships(getChildLinkType()));
+		List<RelationshipInterface> childRels = Iterables.toList(getOutgoingRelationships(getChildLinkType()));
 
 		// sort relationships by position
-		Collections.sort(childRels, new Comparator<RelationshipInterface<S, T>>() {
+		Collections.sort(childRels, new Comparator<RelationshipInterface>() {
 
 			@Override
-			public int compare(RelationshipInterface<S, T> o1, RelationshipInterface<S, T> o2) {
+			public int compare(RelationshipInterface o1, RelationshipInterface o2) {
 
 				Integer pos1 = o1.getProperty(getPositionProperty());
 				Integer pos2 = o2.getProperty(getPositionProperty());
@@ -286,25 +286,25 @@ public interface LinkedTreeNode<S extends NodeInterface, T extends NodeInterface
 	 */
 	private void ensureCorrectChildPositions() throws FrameworkException {
 
-		final List<RelationshipInterface<S, T>> childRels = treeGetChildRelationships();
+		final List<RelationshipInterface> childRels = treeGetChildRelationships();
 		int position = 0;
 
-		for (RelationshipInterface<S, T> childRel : childRels) {
+		for (RelationshipInterface childRel : childRels) {
 			childRel.setProperty(getPositionProperty(), position++);
 		}
 	}
 
-	default <R extends Relation<S, T, ?, ?>> void linkChildren(final S startNode, final T endNode) throws FrameworkException {
+	default <R extends Relation<?, ?>> void linkChildren(final S startNode, final T endNode) throws FrameworkException {
 		linkChildren(startNode, endNode, null);
 	}
 
-	default <R extends Relation<S, T, ?, ?>> void linkChildren(final S startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
+	default <R extends Relation<?, ?>> void linkChildren(final S startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
 		StructrApp.getInstance(getSecurityContext()).create(startNode, endNode, getChildLinkType(), properties);
 	}
 
-	private <R extends Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>>> void unlinkChildren(final S startNode, final T endNode) throws FrameworkException {
+	private <R extends Relation<OneStartpoint, ManyEndpoint>> void unlinkChildren(final S startNode, final T endNode) throws FrameworkException {
 
-		final List<RelationshipInterface<S, T>> list = Iterables.toList(startNode.getRelationships(getChildLinkType()));
+		final List<RelationshipInterface> list = Iterables.toList(startNode.getRelationships(getChildLinkType()));
 		final App app      = StructrApp.getInstance(getSecurityContext());
 
 		for (RelationshipInterface rel : list) {

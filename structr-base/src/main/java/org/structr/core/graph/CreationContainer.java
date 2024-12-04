@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
@@ -35,7 +34,10 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -63,6 +65,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 		return data;
 	}
 
+	// ----- interface GraphObject -----
 	@Override
 	public Identity getId() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
@@ -75,19 +78,21 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public void clearCaches() {
+
 	}
 
 	@Override
-	public void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId) {
+	public void init(SecurityContext securityContext, PropertyContainer dbObject, String type, long sourceTransactionId) {
+
 	}
 
+	@Override
 	public Traits getTraits() {
-		return wrappedObj.getTraits();
+		return null;
 	}
 
 	@Override
 	public String getType() {
-
 		if (wrappedObj == null) {
 			return null;
 		} else {
@@ -107,17 +112,17 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
-		return wrappedObj.getPropertyContainer();
+		return this;
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
-		return wrappedObj.getPropertyKeys(propertyView);
+	public Set<PropertyKey> getFullPropertySet(String propertyView) {
+		return Set.of();
 	}
 
 	@Override
-	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
-		return wrappedObj.getFullPropertySet(propertyView);
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
@@ -249,12 +254,12 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public void indexPassiveProperties() {
+	public void addToIndex() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void addToIndex() {
+	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -298,50 +303,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public long getSourceTransactionId() {
-
-		if (wrappedObj != null) {
-			return wrappedObj.getSourceTransactionId();
-		}
-
-		return -1L;
-	}
-
-	@Override
-	public boolean changelogEnabled() {
-
-		if (wrappedObj != null) {
-			return wrappedObj.changelogEnabled();
-		}
-
-		return true;
-	}
-
-	public void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {
-
-		for (final Iterator<Map.Entry<PropertyKey, Object>> iterator = src.entrySet().iterator(); iterator.hasNext();) {
-
-			final Map.Entry<PropertyKey, Object> attr = iterator.next();
-			final PropertyKey key                 = attr.getKey();
-			final Object value                    = attr.getValue();
-
-			if (key instanceof FunctionProperty) {
-				continue;
-			}
-
-			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
-
-				// value can be set directly, move to creation container
-				key.setProperty(securityContext, indexable, value);
-				iterator.remove();
-
-				// store value to do notifications later
-				filtered.put(key, value);
-			}
-		}
 	}
 
 	// ----- interface PropertyContainer -----
@@ -395,5 +356,25 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	@Override
 	public boolean isDeleted() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+
+		if (wrappedObj != null) {
+			return wrappedObj.getSourceTransactionId();
+		}
+
+		return -1L;
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+
+		if (wrappedObj != null) {
+			return wrappedObj.changelogEnabled();
+		}
+
+		return true;
 	}
 }

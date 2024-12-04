@@ -92,7 +92,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 		NodeInterface node = (NodeInterface)obj;
 		return (Iterable)node.getRelationships(type);
 	}

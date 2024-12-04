@@ -25,6 +25,7 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
@@ -48,7 +49,7 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 	}
 
 	@Override
-	public Iterable<NodeInterface> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<NodeInterface> predicate) {
+	public Iterable<NodeInterface> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
 		final NodeFactory nodeFactory     = new NodeFactory(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
@@ -158,12 +159,12 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 	}
 
 	@Override
-	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<NodeInterface> predicate) {
+	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getMultiple(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType(), predicate);
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<NodeInterface> predicate) {
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
 		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();
 	}
 }

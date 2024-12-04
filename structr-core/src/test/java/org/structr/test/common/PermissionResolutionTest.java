@@ -633,7 +633,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccess.class).getAsList()) {
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
 				app.delete(access);
 			}
 

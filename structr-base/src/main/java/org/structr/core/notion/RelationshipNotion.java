@@ -30,7 +30,7 @@ public class RelationshipNotion extends Notion {
 
 	private PropertyKey propertyKey = null;
 
-	public RelationshipNotion(PropertyKey propertyKey) {
+	public RelationshipNotion(final PropertyKey propertyKey) {
 
 		super(
 			new PropertySerializationStrategy(propertyKey),

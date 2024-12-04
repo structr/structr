@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -65,8 +66,8 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 
-		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
-		String restQuery                       = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
+		final PropertyKey<String> restQueryKey = Traits.of("DOMNode").key("restQuery");
+		String restQuery                       = referenceNode.getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
@@ -123,7 +124,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final String pageParameter     = wrappedRequest.getParameter(RequestKeywords.PageNumber.keyword());
 		final String[] sortKeyNames    = wrappedRequest.getParameterValues(RequestKeywords.SortKey.keyword());
 		final String[] sortOrders      = wrappedRequest.getParameterValues(RequestKeywords.SortOrder.keyword());
-		final Class type               = handler.getEntityClass(securityContext);
+		final String type              = handler.getTypeName(securityContext);
 		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		final int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);

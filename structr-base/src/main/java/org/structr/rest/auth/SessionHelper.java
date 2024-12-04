@@ -33,8 +33,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.rest.service.HttpService;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -119,14 +121,14 @@ public class SessionHelper {
 		}
 
 		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final Query<Principal> query    = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
+		final PropertyKey<String[]> sessionIdKey = Traits.of("Principal").key("sessionIds");
+		final Query<NodeInterface> query         = app.nodeQuery("Principal").and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
 
-			for (final Principal p : query.getAsList()) {
+			for (final NodeInterface p : query.getAsList()) {
 
-				p.removeSessionId(sessionId);
+				p.as(Principal.class).removeSessionId(sessionId);
 			}
 
 		} catch (Exception fex) {
@@ -151,8 +153,7 @@ public class SessionHelper {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final String[] sessionIds                = user.getProperty(sessionIdKey);
+		final String[] sessionIds = user.getSessionIds();
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
@@ -177,14 +178,11 @@ public class SessionHelper {
 	 */
 	public static void clearAllSessions(final Principal user) {
 
-		final Class groupClass = StructrApp.getConfiguration().getNodeEntityClass("Group");
-
-		if (!groupClass.isAssignableFrom(user.getClass())) {
+		if (!user.getWrappedNode().getTraits().contains("Group")) {
 
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
-			final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-			final String[] sessionIds                = user.getProperty(sessionIdKey);
+			final String[] sessionIds = user.getSessionIds();
 
 			if (sessionIds != null && sessionIds.length > 0) {
 
@@ -207,8 +205,8 @@ public class SessionHelper {
 
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
-			for (final Principal user : StructrApp.getInstance().nodeQuery(Principal.class).getAsList()) {
-				clearAllSessions(user);
+			for (final NodeInterface user : StructrApp.getInstance().nodeQuery("Principal").getAsList()) {
+				clearAllSessions(user.as(Principal.class));
 			}
 
 			tx.success();

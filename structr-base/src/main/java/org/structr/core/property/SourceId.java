@@ -56,7 +56,7 @@ public class SourceId extends Property<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 

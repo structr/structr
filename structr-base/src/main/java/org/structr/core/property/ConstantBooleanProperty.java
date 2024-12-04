@@ -54,7 +54,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj.getTraits().contains(declaringTrait.getName())) {
 			return this.constantValue;

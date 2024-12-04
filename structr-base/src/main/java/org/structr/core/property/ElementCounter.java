@@ -39,29 +39,29 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 	private Property<? extends Iterable> collectionProperty = null;
 
-	public ElementCounter(String name) {
+	public ElementCounter(final String name) {
 		this(name, null);
 	}
 
-	public ElementCounter(String name, Property<? extends Iterable> collectionProperty) {
+	public ElementCounter(final String name, final Property<? extends Iterable> collectionProperty) {
 		super(name);
 
 		this.collectionProperty = collectionProperty;
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<NodeInterface> predicate) {
+	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int count = 0;
 
 		if(obj != null) {
 
-			Object toCount = obj.getProperty(collectionProperty.jsonName);
+			Object toCount = obj.getProperty(collectionProperty);
 			if(toCount != null) {
 
 				if (toCount instanceof Collection) {
