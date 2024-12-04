@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.*;
 import org.structr.websocket.StructrWebSocket;
@@ -94,7 +95,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	 */
 	protected static Iterable<DOMNode> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final Set<String> types    = Set.of("Page", "ShadowDocument");
+		final Set<String> types    = SearchCommand.getAllSubtypesAsStringSet("Page");
 		final String sortOrder     = webSocketData.getSortOrder();
 		final String sortKey       = webSocketData.getSortKey();
 		final int pageSize         = webSocketData.getPageSize();

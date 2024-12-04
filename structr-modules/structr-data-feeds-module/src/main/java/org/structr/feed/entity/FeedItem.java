@@ -35,8 +35,8 @@ import org.structr.rest.common.HttpHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Date;
-
 /**
  * Represents a single item of a data feed.
  *
@@ -107,8 +107,11 @@ public class FeedItem extends AbstractFeedItem {
 			final String remoteUrl = getUrl();
 			if (StringUtils.isNotBlank(remoteUrl)) {
 
-				return HttpHelper.getAsStream(remoteUrl);
+				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
 
+					return (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+				}
 			}
 		}
 

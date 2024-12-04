@@ -47,6 +47,7 @@ import org.structr.web.entity.User;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Servlet for proxy requests.
@@ -195,8 +196,14 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
-			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final Map<String, Object> responseData = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true);
+			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+			if (body == null) {
+				throw new FrameworkException(422, "Request returned empty body");
+			}
+
+			content =  body.replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 		} catch (Throwable t) {
 
