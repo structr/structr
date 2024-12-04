@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.traits.Traits;
 import org.structr.rest.api.RESTCall;
 import org.structr.core.property.*;
 import org.structr.rest.api.RESTCallHandler;
@@ -60,19 +61,19 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 	@Override
 	public RESTCallHandler handleTypeIdName(final RESTCall call, final String typeName, final String uuid, final String name) {
 
-		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-		if (entityClass != null) {
+		final Traits traits = Traits.of(typeName);
+		if (traits != null) {
 
-			PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityClass, name, false);
+			PropertyKey key = traits.key(name);
 			if (key == null) {
 
 				// try to convert raw name into lower-case variable name
-				key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityClass, CaseHelper.toLowerCamelCase(name), false);
+				key = traits.key(CaseHelper.toLowerCamelCase(name));
 			}
 
 			if (key != null) {
 
-				return new PropertyResourceHandler(call, entityClass, uuid, key);
+				return new PropertyResourceHandler(call, typeName, uuid, key);
 			}
 		}
 
@@ -216,7 +217,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, typeName, uuid);
 			final App app                  = StructrApp.getInstance(securityContext);
 
 			// fetch static relationship definition
@@ -253,7 +254,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 			if (sourceEntity != null && propertyKey instanceof RelationProperty) {
 
 				final RelationProperty relationProperty = (RelationProperty) propertyKey;
-				final Class sourceNodeType              = sourceEntity.getClass();
+				final String sourceNodeType             = sourceEntity.getType();
 				NodeInterface newNode                   = null;
 
 				if (propertyKey.isReadOnly()) {
@@ -282,7 +283,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 					newNode = createNode(securityContext, relatedType, propertySet);
 					if (newNode != null) {
 
-						relationProperty.addSingleElement(securityContext, sourceEntity, newNode);
+						relationProperty.addSingleElement(securityContext, (NodeInterface) sourceEntity, newNode);
 					}
 				}
 
@@ -310,12 +311,12 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
 
-			if (entityClass == null && propertyKey != null) {
+			if (typeName == null && propertyKey != null) {
 
 				return propertyKey.relatedType();
 			}
 
-			return entityClass;
+			return typeName;
 		}
 
 		@Override

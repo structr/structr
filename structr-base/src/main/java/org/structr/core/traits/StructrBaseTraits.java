@@ -18,9 +18,7 @@
  */
 package org.structr.core.traits;
 
-import org.structr.core.entity.CorsSettingDefinition;
-import org.structr.core.entity.ResourceAccessDefinition;
-import org.structr.core.entity.SessionDataNodeDefinition;
+import org.structr.core.entity.*;
 import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.core.traits.relationships.*;
 
@@ -35,6 +33,7 @@ public class StructrBaseTraits {
 	static {
 
 		StructrBaseTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
+		StructrBaseTraits.registerRelationshipType("Security",                          new SecurityDefinition());
 		StructrBaseTraits.registerRelationshipType("PrincipalFAVORITEFavoritable",      new PrincipalFAVORITEFavoritableDefinition());
 		StructrBaseTraits.registerRelationshipType("PrincipalSchemaGrantRelationship",  new PrincipalSchemaGrantRelationshipDefinition());
 		StructrBaseTraits.registerRelationshipType("GroupCONTAINSPrincipal",            new GroupContainsPrincipalDefinition());
@@ -51,10 +50,16 @@ public class StructrBaseTraits {
 
 		StructrBaseTraits.registerBaseTypes();
 
-		StructrBaseTraits.registerNodeType("Principal",
-			new PrincipalTraitDefinition()
+		StructrBaseTraits.registerNodeType("Principal", new PrincipalTraitDefinition());
+
+		// group extends principal
+		StructrBaseTraits.registerNodeType("Group",
+			new PrincipalTraitDefinition(),
+			new GroupTraitDefinition()
 		);
 
+		// core interfaces
+		StructrBaseTraits.registerNodeType("Favoritable",           new FavoritableTraitDefinition());
 
 		// core types
 		StructrBaseTraits.registerNodeType("CorsSetting",           new CorsSettingDefinition());

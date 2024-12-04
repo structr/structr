@@ -28,6 +28,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.*;
 import org.structr.schema.export.StructrSchema;
@@ -294,10 +295,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 3000 Groups here
-				assertEquals(3000, app.nodeQuery(Group.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(GroupTraitDefinition.class).getAsList().size());
 
 				// check nodes
-				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+				for (final GroupTraitDefinition group : app.nodeQuery(GroupTraitDefinition.class).getResultStream()) {
 
 					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
 					assertNotNull("No UUID was set by BulkSetUUIDCommand", group.getUuid());
@@ -357,10 +358,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(3000, app.nodeQuery(Group.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(GroupTraitDefinition.class).getAsList().size());
 
 				// check nodes
-				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+				for (final Group group : app.nodeQuery(GroupTraitDefinition.class).getResultStream()) {
 
 					final Set<String> labels = new TreeSet<>(Iterables.toSet(group.getNode().getLabels()));
 
@@ -515,7 +516,7 @@ public class MaintenanceTest extends StructrTest {
 			createTestNodes(test1, 100);
 			createTestNodes(test2, 100);
 
-			app.create(Group.class, "Group1");
+			app.create(GroupTraitDefinition.class, "Group1");
 
 			tx.success();
 
@@ -545,7 +546,7 @@ public class MaintenanceTest extends StructrTest {
 
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test1).getFirst());
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test2).getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(Group.class).getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(GroupTraitDefinition.class).getFirst());
 
 			tx.success();
 

@@ -48,7 +48,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.ResourceAccessTrait;
+import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -297,7 +297,7 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		// only necessary for non-admin users!
-		final List<ResourceAccess> permissions = ResourceAccessTrait.findPermissions(securityContext, rawResourceSignature);
+		final List<ResourceAccess> permissions = ResourceAccessTraitWrapper.findPermissions(securityContext, rawResourceSignature);
 		final Method method                    = methods.get(request.getMethod());
 
 		// flatten permissons

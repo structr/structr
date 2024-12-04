@@ -18,124 +18,17 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.Predicate;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.CreationContainer;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.traits.NodeTrait;
 
-public interface Favoritable extends NodeInterface {
-
-	Property<Boolean> isFavoritableProperty      = new ConstantBooleanProperty("isFavoritable", true).partOfBuiltInSchema();
-	Property<String> favoriteContentTypeProperty = new FavoriteContentTypeProperty("favoriteContentType").typeHint("String").partOfBuiltInSchema();
-	Property<String> favoriteContentProperty     = new FavoriteContentProperty("favoriteContent").typeHint("String").partOfBuiltInSchema();
-	Property<String> favoriteContextProperty     = new FavoriteContextProperty("favoriteContext").typeHint("String").partOfBuiltInSchema();
-	Property<String> relationshipIdProperty      = new FunctionProperty("relationshipId").format("this._path.id").typeHint("String").readOnly().partOfBuiltInSchema();
-
-	View defaultView = new View(Favoritable.class, PropertyView.Public, isFavoritableProperty);
-	View uiView      = new View(Favoritable.class, PropertyView.Ui,     isFavoritableProperty);
-
-	View favView     = new View(Favoritable.class, "fav",
-		id, type, name, favoriteContentTypeProperty, favoriteContentProperty, favoriteContextProperty, relationshipIdProperty
-	);
+public interface Favoritable extends NodeTrait {
 
 	String getContext();
 	String getFavoriteContent();
 	String getFavoriteContentType();
 	void setFavoriteContent(final String content) throws FrameworkException;
-
-	class FavoriteContentProperty extends StringProperty {
-
-		public FavoriteContentProperty(final String name) {
-			super(name);
-		}
-
-		@Override
-		public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-			final Favoritable favoritable = Favoritable.getFavoritable(obj);
-			if (favoritable != null) {
-
-				return favoritable.getFavoriteContent();
-
-			}
-
-			throw new IllegalStateException("Cannot use Favoritable.getFavoriteContent() on type " + obj.getClass().getName());
-		}
-
-		@Override
-		public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final String value) throws FrameworkException {
-
-			final Favoritable favoritable = Favoritable.getFavoritable(obj);
-			if (favoritable != null) {
-
-				favoritable.setFavoriteContent(value);
-
-			} else {
-
-				throw new IllegalStateException("Cannot use Favoritable.setFavoriteContent() on type " + obj.getClass().getName());
-			}
-
-			return null;
-		}
-	}
-
-	class FavoriteContentTypeProperty extends StringProperty {
-
-		public FavoriteContentTypeProperty(final String name) {
-			super(name);
-		}
-
-		@Override
-		public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-			final Favoritable favoritable = Favoritable.getFavoritable(obj);
-			if (favoritable != null) {
-
-				return favoritable.getFavoriteContentType();
-
-			}
-
-			throw new IllegalStateException("Cannot use Favoritable.getFavoriteContentType() on type " + obj.getClass().getName());
-		}
-
-		@Override
-		public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final String value) throws FrameworkException {
-			throw new FrameworkException(422, "Cannot set content type via Favoritable interface.");
-		}
-	}
-
-	class FavoriteContextProperty extends StringProperty {
-
-		public FavoriteContextProperty(final String name) {
-			super(name);
-		}
-
-		@Override
-		public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-			final Favoritable favoritable = Favoritable.getFavoritable(obj);
-			if (favoritable != null) {
-
-				return favoritable.getContext();
-
-			}
-
-			throw new IllegalStateException("Cannot use Favoritable.getContext() on type " + obj.getClass().getName());
-		}
-
-		@Override
-		public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final String value) throws FrameworkException {
-			throw new FrameworkException(422, "Cannot set context via Favoritable interface.");
-		}
-	}
 
 	static Favoritable getFavoritable(final GraphObject obj) {
 

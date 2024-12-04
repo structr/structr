@@ -23,6 +23,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.flow.impl.*;
@@ -146,10 +147,10 @@ public class FlowTest extends StructrUiTest {
 			);
 
 			// create some test data
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group1"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group2"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group3"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group4"));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group1"));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group2"));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group3"));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group4"));
 
 			// create flow
 			final FlowContainer flowContainer = app.create(FlowContainer.class, "test");

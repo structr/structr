@@ -91,10 +91,12 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final RelationshipInterface security : this.getIncomingRelationships("Security")) {
+		for (final RelationshipInterface rel : this.getIncomingRelationships("Security")) {
 
 			final Set<Permission> permissions = new HashSet();
-			final NodeInterface principal     = security.getSourceNode();
+			final Security security           = rel.as(Security.class);
+			final NodeInterface sourceNode    = rel.getSourceNode();
+			final Principal principal         = sourceNode.as(Principal.class);
 
 			for (final String perm : security.getPermissions()) {
 

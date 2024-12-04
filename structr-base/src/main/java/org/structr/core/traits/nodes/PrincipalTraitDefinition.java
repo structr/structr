@@ -31,15 +31,13 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.AbstractTraitDefinition;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.TraitFactory;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
-import org.structr.core.traits.wrappers.PrincipalTrait;
+import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
 
 import java.util.Date;
 import java.util.Map;
@@ -140,7 +138,7 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	public Map<Class, TraitFactory> getTraitFactories() {
 
 		return Map.of(
-			Principal.class, (traits, node) -> new PrincipalTrait(traits, node)
+			Principal.class, (traits, node) -> new PrincipalTraitWrapper(traits, node)
 		);
 	}
 

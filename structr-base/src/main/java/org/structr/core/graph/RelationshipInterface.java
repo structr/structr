@@ -43,6 +43,7 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 	NodeInterface getOtherNode(final NodeInterface thisNode);
 
 	RelationshipType getRelType();
+	Relation getRelation();
 
 	Relationship getRelationship();
 

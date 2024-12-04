@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
@@ -60,7 +61,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 				return EventSourceServlet.sendEvent(name, message, (User)sources[1]);
 
-			} else if (sources[2] instanceof Group) {
+			} else if (sources[2] instanceof GroupTraitDefinition) {
 
 				return EventSourceServlet.sendEvent(name, message, (Group)sources[2]);
 

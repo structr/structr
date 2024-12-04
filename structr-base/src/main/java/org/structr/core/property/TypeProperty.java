@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.traits.Traits;
@@ -61,23 +62,6 @@ public class TypeProperty extends StringProperty {
 		return null;
 	}
 
-	public static Set<String> getLabelsForType(final Class type) {
-
-		final Set<String> result = new LinkedHashSet<>();
-
-		// collect new labels
-		for (final Class supertype : SearchCommand.typeAndAllSupertypes(type)) {
-
-			final String supertypeName = supertype.getName();
-
-			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-				result.add(supertype.getSimpleName());
-			}
-		}
-
-		return result;
-	}
-
 	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Traits inputType, final boolean removeUnused) {
 
 		final Set<String> intersection = new LinkedHashSet<>();
@@ -95,16 +79,15 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// initialize type property from single label on unknown nodes
-		if (node instanceof GenericNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
+		if (node instanceof AbstractNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
 			final String singleLabelTypeName = labels.get(0);
-			final Class typeCandidate        = StructrApp.getConfiguration().getNodeEntityClass(singleLabelTypeName);
+			final Traits typeCandidate       = Traits.of(singleLabelTypeName);
 
 			if (typeCandidate != null) {
-				singleLabelType = typeCandidate;
-			}
 
-			dbNode.setProperty("type", labels.get(0));
+				dbNode.setProperty("type", singleLabelTypeName);
+			}
 		}
 
 		// collect labels that are already present on a node
@@ -113,14 +96,7 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// collect new labels
-		for (final Class supertype : SearchCommand.typeAndAllSupertypes(singleLabelType)) {
-
-			final String supertypeName = supertype.getName();
-
-			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-				toAdd.add(supertype.getSimpleName());
-			}
-		}
+		toAdd.addAll(inputType.getLabels());
 
 		// calculate intersection
 		intersection.addAll(toAdd);

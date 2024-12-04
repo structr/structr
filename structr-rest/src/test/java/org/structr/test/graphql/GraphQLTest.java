@@ -64,18 +64,18 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		RestAssured.basePath = "/structr/graphql";
 
-		Group group      = null;
+		GroupTraitDefinition group      = null;
 		Principal tester = null;
 		String groupId   = null;
 		String testerId  = null;
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<List> membersKey = StructrApp.key(Group.class, "members");
+			final PropertyKey<List> membersKey = StructrApp.key(GroupTraitDefinition.class, "members");
 
 			tester = app.create(User.class, new NodeAttribute<>(User.name, "tester"));
-			group  = app.create(Group.class,
-				new NodeAttribute<>(Group.name, "TestGroup"),
+			group  = app.create(GroupTraitDefinition.class,
+				new NodeAttribute<>(GroupTraitDefinition.name, "TestGroup"),
 				new NodeAttribute<>(membersKey, Arrays.asList(tester))
 			);
 
@@ -161,7 +161,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<List> membersKey = StructrApp.key(Group.class, "members");
+			final PropertyKey<List> membersKey = StructrApp.key(GroupTraitDefinition.class, "members");
 
 			final Principal christian2 = app.create(User.class, new NodeAttribute<>(User.name, "Christian"));
 			final Principal susanne    = app.create(User.class, new NodeAttribute<>(User.name, "Susanne"));
@@ -183,13 +183,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 			team.add(susanne);
 			team.add(tobias);
 
-			group  = app.create(Group.class,
-				new NodeAttribute<>(Group.name, "Structr Team"),
+			group  = app.create(GroupTraitDefinition.class,
+				new NodeAttribute<>(GroupTraitDefinition.name, "Structr Team"),
 				new NodeAttribute<>(membersKey, team)
 			);
 
-			app.create(Group.class,
-				new NodeAttribute<>(Group.name, "All teams"),
+			app.create(GroupTraitDefinition.class,
+				new NodeAttribute<>(GroupTraitDefinition.name, "All teams"),
 				new NodeAttribute<>(membersKey, Arrays.asList(group))
 			);
 

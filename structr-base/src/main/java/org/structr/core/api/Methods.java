@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 
@@ -59,9 +60,9 @@ public class Methods {
 		} else {
 
 			try {
-				for (final SchemaMethod globalMethod : StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).getResultStream()) {
+				for (final NodeInterface globalMethod : StructrApp.getInstance().nodeQuery("SchemaMethod").and(SchemaMethod.schemaNode, null).getResultStream()) {
 
-					allMethods.put(globalMethod.getName(), new ScriptMethod(globalMethod));
+					allMethods.put(globalMethod.getName(), new ScriptMethod(globalMethod.as(SchemaMethod.class)));
 				}
 
 			} catch (FrameworkException fex) {
@@ -93,10 +94,10 @@ public class Methods {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					final SchemaMethod method = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(methodName).and(SchemaMethod.schemaNode, null).getFirst();
+					final NodeInterface method = StructrApp.getInstance().nodeQuery("SchemaMethod").andName(methodName).and(SchemaMethod.schemaNode, null).getFirst();
 					if (method != null) {
 
-						cacheEntry.method = new ScriptMethod(method);
+						cacheEntry.method = new ScriptMethod(method.as(SchemaMethod.class));
 					}
 
 				} catch (FrameworkException fex) {
@@ -147,10 +148,10 @@ public class Methods {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					final SchemaMethod schemaMethod = StructrApp.getInstance().getNodeById(SchemaMethod.class, id);
+					final NodeInterface schemaMethod = StructrApp.getInstance().getNodeById("SchemaMethod", id);
 					if (schemaMethod != null) {
 
-						cacheEntry.method = new ScriptMethod(schemaMethod);
+						cacheEntry.method = new ScriptMethod(schemaMethod.as(SchemaMethod.class));
 					}
 
 					tx.success();

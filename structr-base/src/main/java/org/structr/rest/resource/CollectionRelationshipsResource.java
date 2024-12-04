@@ -88,7 +88,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 		public RelationshipsResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final Direction direction) {
 
-			super(call, entityClass, typeName, true);
+			super(call, typeName, true);
 
 			this.direction = direction;
 		}
@@ -138,7 +138,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 							for (final RelationshipInterface rel : relationships) {
 
-								if (!rel.isInternal()) {
+								if (!rel.getRelation().isInternal()) {
 									resultList.add(rel);
 								}
 							}

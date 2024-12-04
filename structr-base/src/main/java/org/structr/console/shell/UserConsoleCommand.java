@@ -29,6 +29,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.util.Writable;
 
 import java.io.IOException;
@@ -100,42 +101,22 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 	// ----- private methods -----
 	private void handleList(final SecurityContext securityContext, final Writable writable) throws FrameworkException, IOException{
 
-		final Class<NodeInterface> type = StructrApp.getConfiguration().getNodeEntityClass("User");
-		final App app                   = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
-		if (type != null) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			for (final NodeInterface user : app.nodeQuery("User").sort(Traits.nameProperty()).getResultStream()) {
 
-				final List<NodeInterface> users = app.nodeQuery(type).sort(AbstractNode.name).getAsList();
-				for (final Iterator<NodeInterface> it = users.iterator(); it.hasNext();) {
+				final String name = user.getName();
 
-					final NodeInterface user = it.next();
-					final String name        = user.getProperty(AbstractNode.name);
+				writable.print(name);
 
-					if (name != null) {
-
-						writable.print(name);
-
-					} else {
-
-						writable.print(user.getUuid());
-					}
-
-					if (it.hasNext()) {
-
-						writable.print(", ");
-					}
-				}
-
-				writable.println();
-
-				tx.success();
+				writable.print(", ");
 			}
 
-		} else {
+			writable.println();
 
-			throw new FrameworkException(422, "Cannot list users, no User class found.");
+			tx.success();
 		}
 	}
 
@@ -145,33 +126,25 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 			throw new FrameworkException(422, "Missing user name for add command.");
 		}
 
-		final App app    = StructrApp.getInstance(securityContext);
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("User");
+		final App app = StructrApp.getInstance(securityContext);
 
-		if (type != null) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			final NodeInterface user = app.create("User", new NodeAttribute<>(Traits.nameProperty(), name));
 
-				final Principal user = (Principal)app.create(type, new NodeAttribute<>(AbstractNode.name, name));
-
-				// set e-mail address
-				if (eMail != null && !"isAdmin".equals(eMail)) {
-					user.setEMail(eMail);
-				}
-
-				// set isAdmin flag
-				if ("isAdmin".equals(eMail) || "isAdmin".equals(isAdmin)) {
-					user.setIsAdmin(true);
-				}
-
-				writable.println("User created.");
-
-				tx.success();
+			// set e-mail address
+			if (eMail != null && !"isAdmin".equals(eMail)) {
+				user.setEMail(eMail);
 			}
 
-		} else {
+			// set isAdmin flag
+			if ("isAdmin".equals(eMail) || "isAdmin".equals(isAdmin)) {
+				user.setIsAdmin(true);
+			}
 
-			throw new FrameworkException(422, "Cannot create user, no User class found.");
+			writable.println("User created.");
+
+			tx.success();
 		}
 	}
 

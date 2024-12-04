@@ -4,7 +4,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.ResourceAccessDefinition;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ResourceAccessTrait extends AbstractTraitWrapper implements ResourceAccess {
+public class ResourceAccessTraitWrapper extends AbstractTraitWrapper implements ResourceAccess {
 
 	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();
 
@@ -22,7 +21,7 @@ public class ResourceAccessTrait extends AbstractTraitWrapper implements Resourc
 	private String cachedResourceSignature = null;
 	private Long cachedFlags               = null;
 
-	public ResourceAccessTrait(final Traits traits, final NodeInterface nodeInterface) {
+	public ResourceAccessTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
 	}
 

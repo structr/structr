@@ -42,9 +42,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-public class PrincipalTrait extends AbstractTraitWrapper implements Principal {
+public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Principal {
 
-	public PrincipalTrait(Traits traits, NodeInterface nodeInterface) {
+	public PrincipalTraitWrapper(Traits traits, NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
 	}
 
@@ -114,7 +114,8 @@ public class PrincipalTrait extends AbstractTraitWrapper implements Principal {
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
-		return nodeInterface.getProperty(traits.key("skipSecurityRelationships"));
+		// fixme: this should be overridable
+		//return nodeInterface.getProperty(traits.key("skipSecurityRelationships"));
 	}
 
 	@Override
@@ -180,7 +181,7 @@ public class PrincipalTrait extends AbstractTraitWrapper implements Principal {
 
 			final App app             = StructrApp.getInstance();
 			final NodeInterface node  = app.getNodeById("Principal", nodeInterface.getUuid());
-			final Principal principal = new PrincipalTrait(null, node);
+			final Principal principal = new PrincipalTraitWrapper(null, node);
 
 			return principal.getGroups();
 
@@ -430,10 +431,5 @@ public class PrincipalTrait extends AbstractTraitWrapper implements Principal {
 
 			return "URISyntaxException for " + path + "?" + query;
 		}
-	}
-
-	@Override
-	public NodeInterface getWrappedNode() {
-		return nodeInterface;
 	}
 }

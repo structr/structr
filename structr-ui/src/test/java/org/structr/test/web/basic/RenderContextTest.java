@@ -726,19 +726,19 @@ public class RenderContextTest extends StructrUiTest {
 			user = app.create(User.class, "user1");
 			test = app.create(TestOne.class, "test1");
 
-			app.create(Group.class,
+			app.create(GroupTraitDefinition.class,
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group1"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
+				new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
-			final Group group2 = app.create(Group.class,
+			final Group group2 = app.create(GroupTraitDefinition.class,
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group2"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
+				new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
-			app.create(Group.class,
+			app.create(GroupTraitDefinition.class,
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group3"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
+				new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			test.setProperty(AbstractNode.owner, group2);

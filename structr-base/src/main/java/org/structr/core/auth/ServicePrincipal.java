@@ -24,10 +24,7 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Security;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.NonIndexed;
@@ -94,7 +91,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 					for (final String id : jwksReferenceIds) {
 
-						groups.addAll(StructrApp.getInstance().nodeQuery(Group.class).and(StructrApp.key(Group.class, "jwksReferenceId"), id).getAsList());
+						groups.addAll(StructrApp.getInstance().nodeQuery(GroupTraitDefinition.class).and(StructrApp.key(GroupTraitDefinition.class, "jwksReferenceId"), id).getAsList());
 					}
 
 				} catch (FrameworkException fex) {
@@ -256,7 +253,7 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	// ----- private methods -----
 	private boolean recursivelyCheckForAdminPermissions(final Iterable<Group> parents) {
 
-		for (final Group parent : parents) {
+		for (final GroupTraitDefinition parent : parents) {
 
 			if (parent.isAdmin()) {
 				return true;

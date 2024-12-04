@@ -1448,14 +1448,14 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				node = app.create(Group.class, props);
+				node = app.create(GroupTraitDefinition.class, props);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
 				// Check defaults
-				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.typeHandler));
+				assertEquals(GroupTraitDefinition.class.getSimpleName(), node.getProperty(AbstractNode.typeHandler));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
 				assertTrue(node.getProperty(key));
 			}
