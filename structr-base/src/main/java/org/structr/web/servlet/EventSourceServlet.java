@@ -32,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -226,7 +227,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		final Set<User> uniqueUsers = new HashSet<>();
 
 		if (membersKey == null) {
-			membersKey = StructrApp.key(Group.class, "members");
+			membersKey = StructrApp.key(GroupTraitDefinition.class, "members");
 		}
 
 		for (Principal member : group.getProperty(membersKey)) {

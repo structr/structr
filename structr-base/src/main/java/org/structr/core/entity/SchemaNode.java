@@ -249,7 +249,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		staticTypes.put("User", User.class);
 		staticTypes.put("Page", Page.class);
 		staticTypes.put("MailTemplate", MailTemplate.class);
-		staticTypes.put("Group", Group.class);
+		staticTypes.put("Group", GroupTraitDefinition.class);
 
 		final String name = getName();
 

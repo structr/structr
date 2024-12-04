@@ -662,7 +662,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final Page page       = Page.createSimplePage(securityContext, "test");
 			final Div div         = (Div) page.getElementsByTagName("div").item(0);
 			final Content content = (Content) div.getFirstChild();
-			final Group group     = app.create(Group.class, "TestGroup");
+			final GroupTraitDefinition group     = app.create(GroupTraitDefinition.class, "TestGroup");
 
 			// setup scripting repeater
 			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Group/${current.id}");
@@ -852,7 +852,7 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			// create test group
-			group = createTestNode(Group.class, new NodeAttribute<>(StructrApp.key(Group.class, "name"), "test"));
+			group = createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "name"), "test"));
 
 			tx.success();
 

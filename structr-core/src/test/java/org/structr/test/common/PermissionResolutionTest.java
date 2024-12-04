@@ -436,9 +436,9 @@ public class PermissionResolutionTest extends StructrTest {
 		// setup 2 - schema grant
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1 = app.create(Group.class, "Group1");
-			final Group testGroup2 = app.create(Group.class, "Group2");
-			final Group testGroup3 = app.create(Group.class, "Group3");
+			final Group testGroup1 = app.create(GroupTraitDefinition.class, "Group1");
+			final GroupTraitDefinition testGroup2 = app.create(GroupTraitDefinition.class, "Group2");
+			final GroupTraitDefinition testGroup3 = app.create(GroupTraitDefinition.class, "Group3");
 			final Principal tester = app.nodeQuery(User.class).andName("tester").getFirst();
 
 			// create group hierarchy for test user
@@ -510,7 +510,7 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete Group2 which links tester to granted Group1
-			app.delete(app.nodeQuery(Group.class).andName("Group2").getFirst());
+			app.delete(app.nodeQuery(GroupTraitDefinition.class).andName("Group2").getFirst());
 			tx.success();
 
 		} catch (Throwable t) {
@@ -573,9 +573,9 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Group group1 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group1"));
-			final Group group2 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group2"));
-			final Group group3 = app.create(Group.class, new NodeAttribute<>(Group.name, "Group3"));
+			final GroupTraitDefinition group1 = app.create(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "Group1"));
+			final GroupTraitDefinition group2 = app.create(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "Group2"));
+			final GroupTraitDefinition group3 = app.create(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "Group3"));
 
 			// Group1 is the admin group
 			group1.setIsAdmin(true);
@@ -585,7 +585,7 @@ public class PermissionResolutionTest extends StructrTest {
 			group2.addMember(ctx, group3);
 
 			// Group3 has jwksReferenceId for ServicePrincipal
-			group3.setProperty(StructrApp.key(Group.class, "jwksReferenceId"), "admin_group");
+			group3.setProperty(StructrApp.key(GroupTraitDefinition.class, "jwksReferenceId"), "admin_group");
 
 			tx.success();
 

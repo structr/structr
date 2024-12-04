@@ -18,26 +18,11 @@
  */
 package org.structr.ldap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
-import org.structr.core.Services;
-import org.structr.core.entity.Group;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.entity.GroupTraitDefinition;
 
 /**
  */
-public interface LDAPGroup extends Group {
+public interface LDAPGroup extends GroupTraitDefinition {
 
 	String getDistinguishedName();
 	String getPath();

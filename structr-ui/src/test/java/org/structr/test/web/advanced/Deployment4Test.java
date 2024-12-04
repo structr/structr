@@ -519,9 +519,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup 2 - schema grant
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1       = app.create(Group.class, "Group1");
-			final Group testGroup2       = app.create(Group.class, "Group2");
-			final Group testGroup3       = app.create(Group.class, "Group3");
+			final Group testGroup1       = app.create(GroupTraitDefinition.class, "Group1");
+			final GroupTraitDefinition testGroup2       = app.create(GroupTraitDefinition.class, "Group2");
+			final GroupTraitDefinition testGroup3       = app.create(GroupTraitDefinition.class, "Group3");
 
 			// create group hierarchy
 			testGroup1.addMember(securityContext, testGroup2);
@@ -612,7 +612,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// test again but delete group hierarchy first
 		try (final Tx tx = app.tx()) {
 
-			final Group group2 = app.nodeQuery(Group.class).andName("Group2").getFirst();
+			final Group group2 = app.nodeQuery(GroupTraitDefinition.class).andName("Group2").getFirst();
 
 			// Group2 connects the schema grant group (Group1) with the user in Group3,
 			// so we expect the user to not see any Projects after this

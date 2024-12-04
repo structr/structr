@@ -33,7 +33,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.PropertyKey;
@@ -330,7 +330,7 @@ public class WebsocketController implements StructrTransactionListener {
 							message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
 						}
 
-					} else if (endNode instanceof User || endNode instanceof Group) {
+					} else if (endNode instanceof User || endNode instanceof GroupTraitDefinition) {
 
 						message.setCommand("APPEND_MEMBER");
 						message.setNodeData("refId", startNode.getUuid());

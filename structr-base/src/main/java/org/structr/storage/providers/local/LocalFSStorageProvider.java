@@ -89,7 +89,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getAbstractFile().getProperty(StructrApp.key(File.class, "contentType"));
+		return getAbstractFile().getContentType();
 	}
 
 	@Override

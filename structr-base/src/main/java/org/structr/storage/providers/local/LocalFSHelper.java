@@ -57,7 +57,7 @@ public class LocalFSHelper {
 			final AbstractFile configSupplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
 			final Path relativeParentPath     = parentFolder != null ? Path.of(configSupplier.getPath()).relativize(Path.of(parentFolder.getPath())) : Path.of("/");
 
-			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getProperty(File.name));
+			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getName());
 			final java.io.File fileOnDisk     = new java.io.File(fullPath);
 
 			fileOnDisk.getParentFile().mkdirs();

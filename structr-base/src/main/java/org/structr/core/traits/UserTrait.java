@@ -20,11 +20,11 @@ package org.structr.core.traits;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.wrappers.PrincipalTrait;
+import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
-public class UserTrait extends PrincipalTrait implements User {
+public class UserTrait extends PrincipalTraitWrapper implements User {
 
 	public UserTrait(final Traits traits, final NodeInterface node) {
 		super(traits, node);

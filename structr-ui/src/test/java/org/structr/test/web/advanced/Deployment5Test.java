@@ -70,7 +70,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			// Create a group with name "SchemaAccess" and allow access to all nodes of type "MailTemplate"
 			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("MailTemplate").getFirst();
-			final Group group           = app.create(Group.class, "SchemaAccess");
+			final Group group           = app.create(GroupTraitDefinition.class, "SchemaAccess");
 			final User user             = app.create(User.class, "tester");
 
 			group.addMember(securityContext, user);
@@ -123,7 +123,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final Group group = app.create(Group.class, "SchemaAccess");
+					final Group group = app.create(GroupTraitDefinition.class, "SchemaAccess");
 					final User user   = app.create(User.class, "tester");
 
 					group.addMember(securityContext, user);
@@ -174,11 +174,11 @@ public class Deployment5Test extends DeploymentTestBase {
 				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
 			);
 
-			final Group parent       = app.create(Group.class, "parent");
+			final GroupTraitDefinition parent       = app.create(GroupTraitDefinition.class, "parent");
 			final List<Group> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
-				groups.add(app.create(Group.class, "group0" + i));
+				groups.add(app.create(GroupTraitDefinition.class, "group0" + i));
 			}
 
 			uuid = parent.getUuid();
@@ -257,11 +257,11 @@ public class Deployment5Test extends DeploymentTestBase {
 				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
 			);
 
-			final Group parent       = app.create(Group.class, "parent");
+			final GroupTraitDefinition parent       = app.create(GroupTraitDefinition.class, "parent");
 			final List<Group> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
-				groups.add(app.create(Group.class, "group0" + i));
+				groups.add(app.create(GroupTraitDefinition.class, "group0" + i));
 			}
 
 			uuid = parent.getUuid();

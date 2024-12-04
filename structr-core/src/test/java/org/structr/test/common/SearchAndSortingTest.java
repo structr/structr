@@ -40,6 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -1872,10 +1873,10 @@ public class SearchAndSortingTest extends StructrTest {
 			}
 
 			final Group group1 = groups.get(0);
-			final Group group2 = groups.get(1);
-			final Group group3 = groups.get(2);
-			final Group group4 = groups.get(3);
-			final Group group5 = groups.get(4);
+			final GroupTraitDefinition group2 = groups.get(1);
+			final GroupTraitDefinition group3 = groups.get(2);
+			final GroupTraitDefinition group4 = groups.get(3);
+			final GroupTraitDefinition group5 = groups.get(4);
 
 			group1.addMember(securityContext, group2);
 			group2.addMember(securityContext, group3);
@@ -1891,15 +1892,15 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// search for a group with empty list of parents
-			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
+			final List<Group> result1 = app.nodeQuery(GroupTraitDefinition.class).and(groupsKey, new LinkedList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent
-			final List<Group> result2 = app.nodeQuery(Group.class).and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<Group> result2 = app.nodeQuery(GroupTraitDefinition.class).and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 2, result2.size());
 
 			// search for a group with group2 as a parent and a given name
-			final List<Group> result3 = app.nodeQuery(Group.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<Group> result3 = app.nodeQuery(GroupTraitDefinition.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
 			tx.success();
@@ -1973,7 +1974,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<Group> list = app.nodeQuery(Group.class)
+			List<Group> list = app.nodeQuery(GroupTraitDefinition.class)
 					.or()
 						.andName("aaa")
 						.not().andName("bbb").parent()
@@ -2052,7 +2053,7 @@ public class SearchAndSortingTest extends StructrTest {
 			rootGroup.add(secondaryMatchingGroup);
 			attributes.add(rootGroup);
 
-			final List<Group> list = app.nodeQuery(Group.class)
+			final List<Group> list = app.nodeQuery(GroupTraitDefinition.class)
 					.attributes(attributes)
 					.sort(AbstractNode.name, false)
 					.getAsList();
@@ -2532,7 +2533,7 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testSortWithPathResolution() {
 
-		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Group.class, "name");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(GroupTraitDefinition.class, "name");
 
 		try (final Tx tx = app.tx()) {
 
@@ -2541,11 +2542,11 @@ public class SearchAndSortingTest extends StructrTest {
 			final Principal ownerA = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "A"));
 			final Principal ownerE = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "E"));
 
-			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "zzz"));
-			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));
-			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "ttt"), new NodeAttribute<>(AbstractNode.owner, ownerE));
-			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "xxx"), new NodeAttribute<>(AbstractNode.owner, ownerC));
-			createTestNode(Group.class, new NodeAttribute<>(AbstractNode.name, "bbb"), new NodeAttribute<>(AbstractNode.owner, ownerD));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(AbstractNode.name, "zzz"));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(AbstractNode.name, "ttt"), new NodeAttribute<>(AbstractNode.owner, ownerE));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(AbstractNode.name, "xxx"), new NodeAttribute<>(AbstractNode.owner, ownerC));
+			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(AbstractNode.name, "bbb"), new NodeAttribute<>(AbstractNode.owner, ownerD));
 
 			tx.success();
 

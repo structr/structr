@@ -657,7 +657,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create some nodes with identical names
-			app.create(Group.class,   "unique");
+			app.create(GroupTraitDefinition.class,   "unique");
 			app.create(TestOne.class, "unique");
 
 			tx.success();
@@ -2161,7 +2161,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
-			final Group group           = app.create(Group.class, "Group1");
+			final Group group           = app.create(GroupTraitDefinition.class, "Group1");
 
 			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));
 			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));
@@ -2189,8 +2189,8 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a second group with name Group1
-			app.create(Group.class, "Group1");
-			app.create(Group.class, "Group1");
+			app.create(GroupTraitDefinition.class, "Group1");
+			app.create(GroupTraitDefinition.class, "Group1");
 
 			tx.success();
 
@@ -2214,7 +2214,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a second group with name Group1
-			app.create(Group.class);
+			app.create(GroupTraitDefinition.class);
 
 			tx.success();
 

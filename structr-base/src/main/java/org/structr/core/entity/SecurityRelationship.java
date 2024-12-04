@@ -61,47 +61,6 @@ public class SecurityRelationship extends ManyToMany {
 		return keys;
 	}
 
-	@Override
-	public boolean isAllowed(final Permission permission) {
-		return SecurityDelegate.isAllowed(this, SecurityRelationship.allowed, permission);
-	}
-
-	@Override
-	public void setAllowed(final Set<String> allowed) {
-		SecurityDelegate.setAllowed(this, SecurityRelationship.allowed, allowed);
-	}
-
-	@Override
-	public void setAllowed(final Permission... allowed) {
-		SecurityDelegate.setAllowed(this, SecurityRelationship.allowed, allowed);
-	}
-
-	@Override
-	public Set<String> getPermissions() {
-		return SecurityDelegate.getPermissions(this, SecurityRelationship.allowed);
-	}
-
-	@Override
-	public void addPermission(final Permission permission) {
-		SecurityDelegate.addPermission(this, SecurityRelationship.allowed, permission);
-	}
-
-	@Override
-	public void addPermissions(final Set<Permission> permissions) {
-		SecurityDelegate.addPermissions(this, SecurityRelationship.allowed, permissions);
-	}
-
-	@Override
-	public void removePermission(final Permission permission) {
-		SecurityDelegate.removePermission(this, SecurityRelationship.allowed, permission);
-	}
-
-	@Override
-	public void removePermissions(final Set<Permission> permissions) {
-		SecurityDelegate.removePermissions(this, SecurityRelationship.allowed, permissions);
-	}
-	*/
-
 	// ----- class Relation -----
 	@Override
 	public String getSourceType() {

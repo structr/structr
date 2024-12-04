@@ -32,7 +32,7 @@ import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.AfterModification;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
-import org.structr.core.traits.wrappers.ResourceAccessTrait;
+import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -111,7 +111,7 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
-					ResourceAccessTrait.clearCache();
+					ResourceAccessTraitWrapper.clearCache();
 				}
 			},
 
@@ -120,7 +120,7 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 
 				@Override
 				public void afterCreation(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
-					ResourceAccessTrait.clearCache();
+					ResourceAccessTraitWrapper.clearCache();
 				}
 			},
 
@@ -129,7 +129,7 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 
 				@Override
 				public void afterModification(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
-					ResourceAccessTrait.clearCache();
+					ResourceAccessTraitWrapper.clearCache();
 				}
 			}
 		);
@@ -144,7 +144,7 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 	public Map<Class, TraitFactory> getTraitFactories() {
 
 		return Map.of(
-			ResourceAccess.class, (traits, node) -> new ResourceAccessTrait(traits, node)
+			ResourceAccess.class, (traits, node) -> new ResourceAccessTraitWrapper(traits, node)
 		);
 	}
 

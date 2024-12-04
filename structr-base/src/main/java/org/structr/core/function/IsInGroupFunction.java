@@ -24,6 +24,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
@@ -53,7 +54,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
-			if (!(sources[0] instanceof Group)) {
+			if (!(sources[0] instanceof GroupTraitDefinition)) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
@@ -94,7 +95,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 		if (!isInGroup && checkHierarchy) {
 
-			for (final Group principalGroup : principal.getGroups()) {
+			for (final GroupTraitDefinition principalGroup : principal.getGroups()) {
 
 				if (!isInGroup && !seenGroups.contains(principalGroup.getUuid())) {
 

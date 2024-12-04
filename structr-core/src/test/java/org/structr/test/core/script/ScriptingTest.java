@@ -439,7 +439,7 @@ public class ScriptingTest extends StructrTest {
 			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', { name: 'Group1' } ); }}", "test");
 			Scripting.evaluate(actionContext, context, "${{ Structr.create('Group', 'name', 'Group2'); }}", "test");
 
-			assertEquals("Invalid unwrapping result", 2, app.nodeQuery(Group.class).getAsList().size());
+			assertEquals("Invalid unwrapping result", 2, app.nodeQuery(GroupTraitDefinition.class).getAsList().size());
 
 
 			tx.success();
@@ -478,8 +478,8 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final PropertyKey<Iterable<Principal>> members = StructrApp.key(Group.class, "members");
-		Group group                                    = null;
+		final PropertyKey<Iterable<Principal>> members = StructrApp.key(GroupTraitDefinition.class, "members");
+		GroupTraitDefinition group                                    = null;
 		Principal user1                                = null;
 		Principal user2                                = null;
 		TestOne testOne                                = null;
@@ -487,7 +487,7 @@ public class ScriptingTest extends StructrTest {
 		// setup phase
 		try (final Tx tx = app.tx()) {
 
-			group = app.create(Group.class, "Group");
+			group = app.create(GroupTraitDefinition.class, "Group");
 			user1  = app.create(User.class, "Tester1");
 			user2  = app.create(User.class, "Tester2");
 
@@ -3453,7 +3453,7 @@ public class ScriptingTest extends StructrTest {
 
 			int index = 1;
 
-			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
+			for (final GroupTraitDefinition group : app.nodeQuery(GroupTraitDefinition.class).sort(GroupTraitDefinition.name).getAsList()) {
 
 				System.out.println(group.getName());
 
@@ -4485,7 +4485,7 @@ public class ScriptingTest extends StructrTest {
 
 			while (cnt < 10) {
 
-				app.create(Group.class, new NodeAttribute<>(Group.name, "node" + cnt));
+				app.create(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "node" + cnt));
 				cnt++;
 			}
 
@@ -4501,7 +4501,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testNodeCount = StructrApp.getInstance().nodeQuery(Group.class).getAsList().size();
+			final int testNodeCount = StructrApp.getInstance().nodeQuery(GroupTraitDefinition.class).getAsList().size();
 
 			assertEquals("All groups should be returned", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group').length; }}", ""));
 			assertEquals("All groups should be returned with 'node' in their name", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'node')).length; }}", ""));
@@ -4753,10 +4753,10 @@ public class ScriptingTest extends StructrTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(Group.class, "group1");
-			app.create(Group.class, "group2");
-			app.create(Group.class, "group3");
-			app.create(Group.class, "group4");
+			app.create(GroupTraitDefinition.class, "group1");
+			app.create(GroupTraitDefinition.class, "group2");
+			app.create(GroupTraitDefinition.class, "group3");
+			app.create(GroupTraitDefinition.class, "group4");
 
 			tx.success();
 
@@ -4768,8 +4768,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Group group1   = app.nodeQuery(Group.class).andName("group1").getFirst();
-			final Group group2   = app.nodeQuery(Group.class).andName("group2").getFirst();
+			final GroupTraitDefinition group1   = app.nodeQuery(GroupTraitDefinition.class).andName("group1").getFirst();
+			final GroupTraitDefinition group2   = app.nodeQuery(GroupTraitDefinition.class).andName("group2").getFirst();
 			final String script1 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group1.getUuid() + "')) }}); }}";
 			final String script2 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group2.getUuid() + "')) }}); }}";
 
@@ -4978,8 +4978,8 @@ public class ScriptingTest extends StructrTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(Group.class, "group1");
-			app.create(Group.class, "group2");
+			app.create(GroupTraitDefinition.class, "group1");
+			app.create(GroupTraitDefinition.class, "group2");
 
 			tx.success();
 
@@ -4991,12 +4991,12 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+			final List<Group> groups = app.nodeQuery(GroupTraitDefinition.class).getAsList();
 
 			assertEquals("Invalid number of groups in test setup", 2, groups.size());
 
-			final Group group1    = groups.get(0);
-			final Group group2    = groups.get(1);
+			final GroupTraitDefinition group1    = groups.get(0);
+			final GroupTraitDefinition group2    = groups.get(1);
 			final String expected = "[" + group1.getUuid() + ", " + group2.getUuid() + "]";
 
 			assertEquals("Invalid print output", expected,         Scripting.evaluate(ctx, group1, "${print(find('Group'))}", "test1"));
@@ -5257,14 +5257,14 @@ public class ScriptingTest extends StructrTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			groups.add(app.create(Group.class, "group4"));
-			groups.add(app.create(Group.class, "group2"));
-			groups.add(app.create(Group.class, "group1"));
-			groups.add(app.create(Group.class, "group5"));
-			groups.add(app.create(Group.class, "group7"));
-			groups.add(app.create(Group.class, "group6"));
-			groups.add(app.create(Group.class, "group3"));
-			groups.add(app.create(Group.class, "group8"));
+			groups.add(app.create(GroupTraitDefinition.class, "group4"));
+			groups.add(app.create(GroupTraitDefinition.class, "group2"));
+			groups.add(app.create(GroupTraitDefinition.class, "group1"));
+			groups.add(app.create(GroupTraitDefinition.class, "group5"));
+			groups.add(app.create(GroupTraitDefinition.class, "group7"));
+			groups.add(app.create(GroupTraitDefinition.class, "group6"));
+			groups.add(app.create(GroupTraitDefinition.class, "group3"));
+			groups.add(app.create(GroupTraitDefinition.class, "group8"));
 
 			tx.success();
 
@@ -6093,9 +6093,9 @@ public class ScriptingTest extends StructrTest {
 
 			final List<Group> groups = new LinkedList<>();
 
-			groups.add(app.create(Group.class, "Group1"));
-			groups.add(app.create(Group.class, "Group2"));
-			groups.add(app.create(Group.class, "Group3"));
+			groups.add(app.create(GroupTraitDefinition.class, "Group1"));
+			groups.add(app.create(GroupTraitDefinition.class, "Group2"));
+			groups.add(app.create(GroupTraitDefinition.class, "Group3"));
 
 			final String result = Scripting.replaceVariables(new ActionContext(securityContext), null, "${concat(';', \"'\", '\\r\\n')}");
 
@@ -6114,7 +6114,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Group group = app.create(Group.class, "Group1");
+			final GroupTraitDefinition group = app.create(GroupTraitDefinition.class, "Group1");
 
 			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.doInNewTransaction(function() { $.log('In doInNewTransaction()'); }); $.log($.this.name); }}");
 

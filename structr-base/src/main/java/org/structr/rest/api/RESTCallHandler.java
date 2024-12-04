@@ -196,14 +196,14 @@ public abstract class RESTCallHandler {
 		return true;
 	}
 
-	public Class getEntityClassOrDefault(final SecurityContext securityContext) {
+	public String getEntityClassOrDefault(final SecurityContext securityContext) {
 
 		try {
 
-			final Class entityClass = getTypeName(securityContext);
-			if (entityClass != null) {
+			final String typeName = getTypeName(securityContext);
+			if (typeName != null) {
 
-				return entityClass;
+				return typeName;
 			}
 
 		} catch (FrameworkException fex) {
@@ -211,7 +211,7 @@ public abstract class RESTCallHandler {
 			fex.printStackTrace();
 		}
 
-		return AbstractNode.class;
+		return "NodeInterface";
 	}
 
 	public org.structr.core.graph.NodeInterface createNode(final SecurityContext securityContext, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {

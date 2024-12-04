@@ -608,7 +608,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group = user1App.create(Group.class, "group");
+			GroupTraitDefinition group = user1App.create(GroupTraitDefinition.class, "group");
 			groupId = group.getUuid();
 
 			user1App.create(TestOne.class, "testone");
@@ -634,7 +634,7 @@ public class AccessControlTest extends StructrTest {
 
 			assertNotNull(test);
 
-			Group group = user1App.get(Group.class, groupId);
+			GroupTraitDefinition group = user1App.get(GroupTraitDefinition.class, groupId);
 			test.grant(Permission.read, group);
 
 			tx.success();
@@ -669,7 +669,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group = user1App.get(Group.class, groupId);
+			Group group = user1App.get(GroupTraitDefinition.class, groupId);
 
 			User user2 = user1App.get(User.class, user2Id);
 			assertNotNull(user2);
@@ -748,7 +748,7 @@ public class AccessControlTest extends StructrTest {
 			final TestOne test = app.nodeQuery(TestOne.class).getFirst();
 			assertNotNull("Group should be readable for members", test);
 
-			Group group = user1App.get(Group.class, groupId);
+			GroupTraitDefinition group = user1App.get(GroupTraitDefinition.class, groupId);
 			test.grant(Permission.write, group);
 
 			tx.success();
@@ -782,7 +782,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group     = user1App.get(Group.class, groupId);
+			Group group     = user1App.get(GroupTraitDefinition.class, groupId);
 			User user2 = user1App.get(User.class, user2Id);
 
 			group.removeMember(user1Context, user2);
@@ -844,7 +844,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group = user1App.get(Group.class, groupId);
+			Group group = user1App.get(GroupTraitDefinition.class, groupId);
 
 			User user2 = user1App.get(User.class, user2Id);
 			assertNotNull(user2);
@@ -913,10 +913,10 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group1 = user1App.create(Group.class, "group1");
+			GroupTraitDefinition group1 = user1App.create(GroupTraitDefinition.class, "group1");
 			group1Id = group1.getUuid();
 
-			Group group2 = user1App.create(Group.class, "group2");
+			GroupTraitDefinition group2 = user1App.create(GroupTraitDefinition.class, "group2");
 			group2Id = group2.getUuid();
 
 			group1.addMember(user1Context, group2);
@@ -944,7 +944,7 @@ public class AccessControlTest extends StructrTest {
 
 			assertNotNull(test);
 
-			Group group1 = user1App.get(Group.class, group1Id);
+			GroupTraitDefinition group1 = user1App.get(GroupTraitDefinition.class, group1Id);
 			test.grant(Permission.read, group1);
 
 			tx.success();
@@ -979,7 +979,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group2 = user1App.get(Group.class, group2Id);
+			Group group2 = user1App.get(GroupTraitDefinition.class, group2Id);
 
 			User user2 = user1App.get(User.class, user2Id);
 			assertNotNull(user2);
@@ -1032,8 +1032,8 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group1 = user1App.get(Group.class, group1Id);
-			Group group2 = user1App.get(Group.class, group2Id);
+			Group group1 = user1App.get(GroupTraitDefinition.class, group1Id);
+			GroupTraitDefinition group2 = user1App.get(GroupTraitDefinition.class, group2Id);
 
 			group1.removeMember(user1Context, group2);
 
@@ -1091,7 +1091,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group = user1App.create(Group.class, "group");
+			Group group = user1App.create(GroupTraitDefinition.class, "group");
 			User user1 = user1App.get(User.class, user1Id);
 			assertNotNull("User should be readable", user1);
 
@@ -1117,7 +1117,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user2App.tx()) {
 
-			final Group testGroup = user2App.nodeQuery(Group.class).andName("group").getFirst();
+			final GroupTraitDefinition testGroup = user2App.nodeQuery(GroupTraitDefinition.class).andName("group").getFirst();
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
@@ -1136,7 +1136,7 @@ public class AccessControlTest extends StructrTest {
 		String testType = "";
 		try (final Tx tx = user2App.tx()) {
 
-			final Group testGroup = user2App.nodeQuery(Group.class).andName("group").getFirst();
+			final GroupTraitDefinition testGroup = user2App.nodeQuery(GroupTraitDefinition.class).andName("group").getFirst();
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
@@ -1144,7 +1144,7 @@ public class AccessControlTest extends StructrTest {
 			testId = testGroup.getProperty(AbstractNode.id);
 			testType = testGroup.getProperty(AbstractNode.typeHandler);
 
-			testGroup.setProperty(Group.name, "dontchangeme");
+			testGroup.setProperty(GroupTraitDefinition.name, "dontchangeme");
 
 			fail("Group name should not be writable for members");
 
@@ -1293,7 +1293,7 @@ public class AccessControlTest extends StructrTest {
 
 			final List<User> users = createTestNodes(User.class, 2);
 			final User user1       = (User) users.get(0);
-			final Group group1         = createTestNode(Group.class, "test group");
+			final Group group1         = createTestNode(GroupTraitDefinition.class, "test group");
 			final TestOne t1           = createTestNode(TestOne.class);
 
 			t1.setProperty(AbstractNode.owner, user1);
@@ -1407,7 +1407,7 @@ public class AccessControlTest extends StructrTest {
 	/**
 	 * Test whether users are allowed to add themselves to a group they don't have write access for (they shouldn't).
 	 *
-	 * This method uses the {@link Group#addMember} method.
+	 * This method uses the {@link GroupTraitDefinition#addMember} method.
 	 */
 	@Test
 	public void test11GroupMembership() {
@@ -1450,7 +1450,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user2App.tx()) {
 
-			Group group = user2App.create(Group.class, "group");
+			GroupTraitDefinition group = user2App.create(GroupTraitDefinition.class, "group");
 
 			assertEquals("Invalid group owner", user2, group.getOwnerNode());
 
@@ -1471,7 +1471,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group = user1App.get(Group.class, groupId);
+			Group group = user1App.get(GroupTraitDefinition.class, groupId);
 
 			assertNotNull(group);
 
@@ -1492,7 +1492,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Group group = app.get(Group.class, groupId);
+			Group group = app.get(GroupTraitDefinition.class, groupId);
 
 			// Grant write permission on group to user1
 			group.grant(Permission.write, user1);
@@ -1511,7 +1511,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group = user1App.get(Group.class, groupId);
+			Group group = user1App.get(GroupTraitDefinition.class, groupId);
 
 			// Add user1 to group
 			group.addMember(user1Context, user1);
@@ -1554,9 +1554,9 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Group read        = app.create(Group.class, "READ");
-			final Group write       = app.create(Group.class, "WRITE");
-			final Group delete      = app.create(Group.class, "DELETE");
+			final GroupTraitDefinition read        = app.create(GroupTraitDefinition.class, "READ");
+			final GroupTraitDefinition write       = app.create(GroupTraitDefinition.class, "WRITE");
+			final GroupTraitDefinition delete      = app.create(GroupTraitDefinition.class, "DELETE");
 			final User owner   = app.create(User.class, "owner");
 
 			deleter = app.create(User.class, "deleter");

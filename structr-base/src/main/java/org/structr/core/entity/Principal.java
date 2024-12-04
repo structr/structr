@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 
 import java.util.Date;
@@ -81,22 +82,24 @@ public interface Principal extends NodeTrait {
 	default void onAuthenticate() {}
 
 
-	default Set<String> getOwnAndRecursiveParentsUuids() {
+	default Set<String> getOwnAndRecursiveParentsUuids(final Principal principal) {
 
 		final Set<String> uuids = new LinkedHashSet<>();
 
-		recursiveCollectParentUuids(this, uuids);
+		recursiveCollectParentUuids(principal.getWrappedNode(), uuids);
 
 		return uuids;
 	}
 
-	default void recursiveCollectParentUuids(final Principal principal, final Set<String> uuids) {
+	default void recursiveCollectParentUuids(final NodeInterface node, final Set<String> uuids) {
+
+		final Principal principal = node.as(Principal.class);
 
 		uuids.add(principal.getUuid());
 
-		for (final Principal parent : principal.getParentsPrivileged()) {
+		for (final Group parent : principal.getParentsPrivileged()) {
 
-			recursiveCollectParentUuids(parent, uuids);
+			recursiveCollectParentUuids(parent.getWrappedNode(), uuids);
 		}
 	}
 

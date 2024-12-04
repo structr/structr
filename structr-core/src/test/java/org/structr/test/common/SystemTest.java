@@ -936,7 +936,7 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test group
-			app.create(Group.class, "group");
+			app.create(GroupTraitDefinition.class, "group");
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
 			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this, 'read')");
@@ -1036,8 +1036,8 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(Group.class).getAsList();
-			app.nodeQuery(Group.class).andName("test").getAsList();
+			app.nodeQuery(GroupTraitDefinition.class).getAsList();
+			app.nodeQuery(GroupTraitDefinition.class).andName("test").getAsList();
 
 			tx.success();
 
@@ -1408,9 +1408,9 @@ public class SystemTest extends StructrTest {
 		// setup 2 - schema grant
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1       = app.create(Group.class, "Group1");
-			final Group testGroup2       = app.create(Group.class, "Group2");
-			final Group testGroup3       = app.create(Group.class, "Group3");
+			final Group testGroup1       = app.create(GroupTraitDefinition.class, "Group1");
+			final GroupTraitDefinition testGroup2       = app.create(GroupTraitDefinition.class, "Group2");
+			final GroupTraitDefinition testGroup3       = app.create(GroupTraitDefinition.class, "Group3");
 
 			// create group hierarchy
 			testGroup1.addMember(securityContext, testGroup2);
@@ -1444,7 +1444,7 @@ public class SystemTest extends StructrTest {
 		// test - delete groups => should work and remove schema grant as well
 		try (final Tx tx = app.tx()) {
 
-			app.deleteAllNodesOfType(Group.class);
+			app.deleteAllNodesOfType(GroupTraitDefinition.class);
 
 			tx.success();
 
@@ -1468,7 +1468,7 @@ public class SystemTest extends StructrTest {
 		// setup schema grant again
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1       = app.create(Group.class, "Group1");
+			final Group testGroup1       = app.create(GroupTraitDefinition.class, "Group1");
 			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
 
 			app.create(SchemaGrant.class,
@@ -1519,12 +1519,12 @@ public class SystemTest extends StructrTest {
 		// setup: create groups
 		try (final Tx tx = app.tx()) {
 
-			final Group root      = app.create(Group.class, "root");
-			final PropertyKey key = StructrApp.key(Group.class, "groups");
+			final Group root      = app.create(GroupTraitDefinition.class, "root");
+			final PropertyKey key = StructrApp.key(GroupTraitDefinition.class, "groups");
 
 			for (int i=0; i<num; i++) {
 
-				app.create(Group.class,
+				app.create(GroupTraitDefinition.class,
 					new NodeAttribute<>(AbstractNode.name, "child" + i),
 					new NodeAttribute<>(key, Arrays.asList(root))
 				);
@@ -1542,7 +1542,7 @@ public class SystemTest extends StructrTest {
 		// test: load all groups
 		try (final Tx tx = app.tx()) {
 
-			final Group root = app.nodeQuery(Group.class).andName("root").getFirst();
+			final Group root = app.nodeQuery(GroupTraitDefinition.class).andName("root").getFirst();
 			int count        = 0;
 
 			for (final Principal p : root.getMembers()) {
@@ -1576,7 +1576,7 @@ public class SystemTest extends StructrTest {
 
 				for (int j=0; j<10; j++) {
 
-					app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
+					app.create(GroupTraitDefinition.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
 				}
 
 				tx.success();
@@ -1604,7 +1604,7 @@ public class SystemTest extends StructrTest {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Group group : app.nodeQuery(Group.class).pageSize(5).getAsList()) {
+						for (final Group group : app.nodeQuery(GroupTraitDefinition.class).pageSize(5).getAsList()) {
 
 							app.delete(group);
 							run = true;
@@ -1653,7 +1653,7 @@ public class SystemTest extends StructrTest {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+						for (final Group group : app.nodeQuery(GroupTraitDefinition.class).getResultStream()) {
 
 							run = true;
 							count++;
@@ -1708,7 +1708,7 @@ public class SystemTest extends StructrTest {
 
 			for (int i=0; i<100; i++) {
 
-				app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(i), 5));
+				app.create(GroupTraitDefinition.class, "Group" + StringUtils.leftPad(String.valueOf(i), 5));
 			}
 
 			tx.success();
@@ -1724,7 +1724,7 @@ public class SystemTest extends StructrTest {
 
 				System.out.println(Thread.currentThread().getName() + ": fetching groups");
 
-				final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+				final List<Group> groups = app.nodeQuery(GroupTraitDefinition.class).getAsList();
 
 				for (int i=0; i<10; i++) {
 
@@ -1732,7 +1732,7 @@ public class SystemTest extends StructrTest {
 					Thread.sleep(1000);
 				}
 
-				for (final Group g : groups) {
+				for (final GroupTraitDefinition g : groups) {
 					System.out.println(Thread.currentThread().getName() + ": " + g.getName());
 				}
 
@@ -1756,7 +1756,7 @@ public class SystemTest extends StructrTest {
 
 				System.out.println(Thread.currentThread().getName() + ": fetching single group");
 
-				final Group group = app.nodeQuery(Group.class).getFirst();
+				final Group group = app.nodeQuery(GroupTraitDefinition.class).getFirst();
 
 				System.out.println(Thread.currentThread().getName() + ": deleting group");
 
@@ -1869,9 +1869,9 @@ public class SystemTest extends StructrTest {
 		// test setup, create some nodes and expect rollback even with tx.success()!
 		try (final Tx tx = app.tx()) {
 
-			app.create(Group.class, "group1");
-			app.create(Group.class, "group2");
-			app.create(Group.class, "group3");
+			app.create(GroupTraitDefinition.class, "group1");
+			app.create(GroupTraitDefinition.class, "group2");
+			app.create(GroupTraitDefinition.class, "group3");
 
 			Actions.execute(securityContext, null, "${rollback_transaction()}", "testRollbackFunction");
 
@@ -1885,7 +1885,7 @@ public class SystemTest extends StructrTest {
 		// assert that no groups exist!
 		try (final Tx tx = app.tx()) {
 
-			final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+			final List<Group> groups = app.nodeQuery(GroupTraitDefinition.class).getAsList();
 
 			assertTrue(groups.isEmpty());
 
