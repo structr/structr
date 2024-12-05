@@ -37,6 +37,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
@@ -72,7 +73,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 	}
 
 	@Override
-	public void addToFulltextIndex(final Indexable node) throws FrameworkException {
+	public void addToFulltextIndex(final NodeInterface node) throws FrameworkException {
 		StructrApp.getInstance(node.getSecurityContext()).processTasks(new FulltextIndexingTask(node.getUuid()));
 	}
 
@@ -215,7 +216,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 	// ----- interface ContentAnalyzer -----
 	@Override
-	public Map<String, Object> analyzeContent(final Indexable indexable) throws FrameworkException {
+	public Map<String, Object> analyzeContent(final NodeInterface indexable) throws FrameworkException {
 
 		final Map<String, Object> data = new LinkedHashMap<>();
 

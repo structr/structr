@@ -20,11 +20,12 @@ package org.structr.common.fulltext;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.graph.NodeInterface;
 
 /**
  */
 public interface FulltextIndexer {
 
-	void addToFulltextIndex(final Indexable indexable) throws FrameworkException;
+	void addToFulltextIndex(final NodeInterface indexable) throws FrameworkException;
 	GraphObjectMap getContextObject(final String searchTerm, final String text, final int contextLength);
 }

@@ -52,7 +52,7 @@ import java.nio.charset.Charset;
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
  * All methods in the W3C Text interface are based on the raw database content.
  */
-public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
+public class Content extends DOMNode implements Text, NonIndexed {
 
 	public static final Property<String> contentProperty     = new StringProperty("content").indexed().partOfBuiltInSchema();
 	public static final Property<String> contentTypeProperty = new StringProperty("contentType").indexed().partOfBuiltInSchema();
