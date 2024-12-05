@@ -29,7 +29,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.List;
 
-public class GroupTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Group {
+public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 
 	public GroupTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);

@@ -30,7 +30,7 @@ import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.ResourceAccessTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;

@@ -94,6 +94,16 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 		}
 
 		@Override
+		public String getSourceType() {
+			return null;
+		}
+
+		@Override
+		public String getTargetType() {
+			return null;
+		}
+
+		@Override
 		public int hashCode() {
 			return name.hashCode();
 		}

@@ -36,7 +36,7 @@ class SimpleCypherQuery implements CypherQuery {
 	private final QueryContext queryContext = new QueryContext();
 	private Map<String, Object> params      = null;
 	private QueryTimer queryTimer           = null;
-	private Class type                      = null;
+	private String type                     = null;
 	private String statement                = null;
 	private String relationshipType         = null;
 	private boolean outgoing                = false;
@@ -113,7 +113,7 @@ class SimpleCypherQuery implements CypherQuery {
 		return queryTimer;
 	}
 
-	public void storeRelationshipInfo(final Class type, final RelationshipType relationshipType, final Direction direction) {
+	public void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction) {
 
 		if (relationshipType != null) {
 
@@ -123,7 +123,7 @@ class SimpleCypherQuery implements CypherQuery {
 		}
 	}
 
-	public Class getType() {
+	public String getType() {
 		return type;
 	}
 

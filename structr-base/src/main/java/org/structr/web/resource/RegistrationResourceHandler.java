@@ -42,7 +42,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.PersonTraitDefinition;
+import org.structr.core.traits.definitions.PersonTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;

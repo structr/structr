@@ -32,12 +32,13 @@ import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 
 /**
  *
  *
  */
-public class SchemaView extends SchemaReloadingNode {
+public class SchemaView extends SchemaReloadingNodeTraitDefinition {
 
 	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 

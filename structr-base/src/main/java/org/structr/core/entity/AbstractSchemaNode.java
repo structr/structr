@@ -30,6 +30,7 @@ import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.graph.*;
 import org.structr.core.property.*;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
 
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  *
  *
  */
-public abstract class AbstractSchemaNode extends SchemaReloadingNode implements Schema {
+public abstract class AbstractSchemaNode extends SchemaReloadingNodeTraitDefinition implements Schema {
 
 	private static final Map<String, Iterable<SchemaMethod>> cachedSchemaMethods = new HashMap<>();
 

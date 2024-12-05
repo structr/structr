@@ -24,11 +24,12 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 
 /**
  * The typed parameter of a schema method.
  */
-public class SchemaMethodParameter extends SchemaReloadingNode {
+public class SchemaMethodParameter extends SchemaReloadingNodeTraitDefinition {
 
 	public static final Property<SchemaMethod> schemaMethod = new StartNode<>("schemaMethod", SchemaMethodParameters.class);
 	public static final Property<String> parameterType      = new StringProperty("parameterType");

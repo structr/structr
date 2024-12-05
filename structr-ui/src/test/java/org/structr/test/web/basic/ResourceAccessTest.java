@@ -30,7 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.ResourceAccessTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
