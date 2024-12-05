@@ -1,0 +1,516 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.core.traits.definitions;
+
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedTypeException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Export;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.*;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
+import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaService;
+import org.structr.schema.SourceFile;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Page;
+
+import java.util.*;
+
+/**
+ *
+ *
+ */
+public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
+
+	public static final String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
+
+	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
+		"Relation", "Property"
+	}));
+
+	public static final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes("relatedTo", "SchemaRelationshipSourceNode");
+	public static final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes("relatedFrom", "SchemaRelationshipTargetNode");
+	public static final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes("schemaGrants", "SchemaGrantSchemaNodeRelationship");
+	public static final Property<NodeInterface>                    extendsClass           = new EndNode("extendsClass", "SchemaNodeExtendsSchemaNode");
+	public static final Property<Iterable<NodeInterface>>          extendedByClasses      = new StartNodes("extendedByClasses", "SchemaNodeExtendsSchemaNode");
+	public static final Property<String>                           extendsClassInternal   = new StringProperty("extendsClassInternal").indexed();
+	public static final Property<String>                           implementsInterfaces   = new StringProperty("implementsInterfaces").indexed();
+	public static final Property<String>                           defaultSortKey         = new StringProperty("defaultSortKey");
+	public static final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty("defaultVisibleToPublic").readOnly().indexed();
+	public static final Property<Boolean>                          defaultVisibleToAuth   = new BooleanProperty("defaultVisibleToAuth").readOnly().indexed();
+	public static final Property<Boolean>                          isBuiltinType          = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	public static final Property<Integer>                          hierarchyLevel         = new IntProperty("hierarchyLevel").indexed();
+	public static final Property<Integer>                          relCount               = new IntProperty("relCount").indexed();
+	public static final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
+	public static final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
+	public static final Property<String>                           category               = new StringProperty("category").indexed();
+	public static final Property<String[]>                         tags                   = new ArrayProperty("tags", String.class).indexed();
+	public static final Property<Boolean>                          includeInOpenAPI       = new BooleanProperty("includeInOpenAPI").indexed();
+	public static final Property<String>                           summary                = new StringProperty("summary").indexed();
+	public static final Property<String>                           description            = new StringProperty("description").indexed();
+
+
+	/*
+	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
+		id, typeHandler, name, icon, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
+	);
+
+	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
+		id, typeHandler, name, owner, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
+	);
+
+	public static final View schemaView = new View(SchemaNode.class, "schema",
+		id, typeHandler, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, extendsClassInternal, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
+	);
+
+	public static final View exportView = new View(SchemaNode.class, "export",
+		id, typeHandler, name, icon, description, changelogDisabled, extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
+	);
+	*/
+
+	public SchemaNodeTraitDefinition() {
+		super("SchemaNode");
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(GraphObject obj, ErrorBuffer errorBuffer) {
+
+					boolean valid = true;
+
+					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.nameProperty(), errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty() , schemaNodeNamePattern, errorBuffer);
+
+					return valid;
+				}
+			},
+
+			OnCreation.class,
+			new OnCreation() {
+
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					throwExceptionIfTypeAlreadyExists(graphObject);
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					if (modificationQueue.isPropertyModified(graphObject, Traits.nameProperty())) {
+						throwExceptionIfTypeAlreadyExists(graphObject);
+					}
+				}
+			}
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			SchemaNode.class, (traits, node) -> new SchemaNodeTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		return Set.of(
+			relatedTo,
+			relatedFrom,
+			schemaGrants,
+			extendsClass,
+			extendedByClasses,
+			extendsClassInternal,
+			implementsInterfaces,
+			defaultSortKey,
+			defaultSortOrder,
+			defaultVisibleToPublic,
+			defaultVisibleToAuth,
+			isBuiltinType,
+			hierarchyLevel,
+			relCount,
+			isInterface,
+			isAbstract,
+			category,
+			tags,
+			includeInOpenAPI,
+			summary,
+			description
+		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
+	/*
+	@Override
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
+
+		final List<PropertyKey> propertyKeys = Iterables.toList(super.getPropertyKeys(propertyView));
+
+		// add "custom" property keys as String properties
+		for (final String key : SchemaHelper.getProperties(getNode())) {
+
+			final PropertyKey newKey = new StringProperty(key);
+			newKey.setDeclaringClass(getClass());
+
+			propertyKeys.add(newKey);
+		}
+
+		Collections.sort(propertyKeys, (o1, o2) -> { return o1.jsonName().compareTo(o2.jsonName()); });
+
+		return new LinkedHashSet<>(propertyKeys);
+	}
+
+	@Override
+	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck) {
+
+		String multiplicity = getMultiplicity(this, propertyNameToCheck);
+
+		if (multiplicity == null) {
+
+			// check if property is defined in parent class
+			final SchemaNode parentSchemaNode = getProperty(SchemaNode.extendsClass);
+			if (parentSchemaNode != null) {
+
+				multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
+			}
+		}
+
+		if (multiplicity != null) {
+			return multiplicity;
+		}
+
+		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
+		if (key != null) {
+
+
+			// return "extended" multiplicity when the falling back to a NodeInterface property
+			// to signal the code generator that it must not append "Property" to the name of
+			// the generated NotionProperty parameter, i.e. NotionProperty(owner, ...) instead
+			// of NotionProperty(ownerProperty, ...)..
+
+			if (key instanceof StartNode || key instanceof EndNode) {
+				return "1X";
+			}
+
+			if (key instanceof StartNodes || key instanceof EndNodes) {
+				return "*X";
+			}
+		}
+
+		return null;
+	}
+
+	private String getMultiplicity(final SchemaNode schemaNode, final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = schemaNode.getProperty(name);
+
+		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getMultiplicity(true);
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getMultiplicity(false);
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck) {
+
+		String relatedType = getRelatedType(this, propertyNameToCheck);
+		if (relatedType == null) {
+
+			// check if property is defined in parent class
+			final SchemaNode parentSchemaNode = getProperty(SchemaNode.extendsClass);
+			if (parentSchemaNode != null) {
+
+				relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
+
+			}
+		}
+
+		if (relatedType != null) {
+			return relatedType;
+		}
+
+		// fallback, search NodeInterface (this allows the owner relationship to be used in Notions!)
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(NodeInterface.class, propertyNameToCheck, false);
+		if (key != null) {
+
+			final Class relatedTypeClass = key.relatedType();
+			if (relatedTypeClass != null) {
+
+				return relatedTypeClass.getSimpleName();
+			}
+		}
+
+		return null;
+	}
+
+	public void handleMigration(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
+
+		final Map<String, Class> staticTypes = new LinkedHashMap<>();
+
+		staticTypes.put("User", User.class);
+		staticTypes.put("Page", Page.class);
+		staticTypes.put("MailTemplate", MailTemplate.class);
+		staticTypes.put("Group", GroupTraitDefinition.class);
+
+		final String name = getName();
+
+		if (staticTypes.keySet().contains(name)) {
+
+			final Class type = staticTypes.get(name);
+
+			// migrate fully dynamic types to static types
+			setProperty(SchemaNode.extendsClass, null);
+			setProperty(SchemaNode.implementsInterfaces, null);
+			setProperty(SchemaNode.extendsClassInternal, type.getName());
+
+		} else {
+
+			final String extendsClassInternalValue = getProperty(SchemaNode.extendsClassInternal);
+			if (extendsClassInternalValue != null && extendsClassInternalValue.startsWith("LinkedTreeNodeImpl<")) {
+
+				setProperty(SchemaNode.extendsClassInternal, null);
+			}
+
+			final String previousExtendsClassValue = (String) this.getNode().getProperty("extendsClass");
+			if (previousExtendsClassValue != null) {
+
+				final String extendsClass = StringUtils.substringBefore(previousExtendsClassValue, "<"); // remove optional generic parts from class name
+				final String className = StringUtils.substringAfterLast(extendsClass, ".");
+
+				final SchemaNode baseType = schemaNodes.get(className);
+				if (baseType != null) {
+
+					setProperty(SchemaNode.extendsClass, baseType);
+					this.getNode().setProperty("extendsClass", null);
+
+				} else {
+
+					setProperty(SchemaNode.extendsClassInternal, previousExtendsClassValue);
+				}
+			}
+
+			// migrate dynamic classes that extend static types (that were dynamic before)
+			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.", "org.structr.mail.entity.");
+			final String ifaces           = getProperty(SchemaNode.implementsInterfaces);
+			final List<String> interfaces = new LinkedList<>();
+			String extendsClass           = null;
+
+			if (StringUtils.isNotBlank(ifaces) && !getProperty(isBuiltinType)) {
+
+				final String[] parts = ifaces.split("[, ]+");
+				for (final String part : parts) {
+
+					for (final String prefix : prefixes) {
+
+						if (part.startsWith(prefix)) {
+
+							final String typeName = part.substring(prefix.length());
+							final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+
+							if (type != null) {
+
+								extendsClass = type.getName();
+								break;
+							}
+						}
+					}
+
+					// re-add interface if no extending class was found
+					if (extendsClass == null) {
+						interfaces.add(part);
+					}
+				}
+
+				if (extendsClass != null) {
+					setProperty(SchemaNode.extendsClassInternal, extendsClass);
+				}
+
+				if (interfaces.isEmpty()) {
+
+					setProperty(SchemaNode.implementsInterfaces, null);
+
+				} else {
+
+					final String implementsInterfaces = StringUtils.join(interfaces, ", ");
+
+					setProperty(SchemaNode.implementsInterfaces, implementsInterfaces);
+				}
+			}
+
+			// migrate extendsClass relationship from dynamic to static
+		}
+
+		// remove "all" view since it is internal and shouldn't be updated explicitly
+		for (final SchemaView view : getProperty(SchemaNode.schemaViews)) {
+
+			if ("all".equals(view.getName())) {
+
+				StructrApp.getInstance().delete(view);
+			}
+		}
+	}
+
+	@Export
+	public String getGeneratedSourceCode(final SecurityContext securityContext) throws FrameworkException, UnlicensedTypeException {
+
+		final SourceFile sourceFile               = new SourceFile("");
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+
+		// collect list of schema nodes
+		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		// return generated source code for this class
+		SchemaHelper.getSource(sourceFile, this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
+
+		return sourceFile.getContent();
+	}
+
+	// ----- private methods -----
+	private String addToList(final String source, final String value) {
+
+		final List<String> list = new LinkedList<>();
+
+		if (source != null) {
+
+			list.addAll(Arrays.asList(source.split(",")));
+		}
+
+		list.add(value);
+
+		return StringUtils.join(list, ",");
+	}
+
+
+	private String getRelatedType(final SchemaNode schemaNode, final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+		final String _className                 = schemaNode.getProperty(name);
+
+		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
+
+			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
+				return outRel.getSchemaNodeTargetType();
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
+				return inRel.getSchemaNodeSourceType();
+			}
+		}
+
+		return null;
+	}
+	*/
+
+	/**
+	* If the system is fully initialized (and no schema replacement is currently active), we disallow overriding (known) existing types so we can prevent unwanted behavior.
+	* If a user were to create a type 'Html', he could cripple Structrs Page rendering completely.
+	* This is a fix for all types in the Structr context - this does not help if the user creates a type named 'String' or 'Object'.
+	* That could still lead to unexpected behavior.
+	*
+	* @throws FrameworkException if a pre-existing type is encountered
+	*/
+	private void throwExceptionIfTypeAlreadyExists(final GraphObject graphObject) throws FrameworkException {
+
+		if (Services.getInstance().isInitialized() && ! Services.getInstance().isOverridingSchemaTypesAllowed()) {
+
+			final String typeName = graphObject.getProperty(Traits.nameProperty());
+
+			// add type names to list of forbidden entity names
+			if (EntityNameBlacklist.contains(typeName)) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
+
+			/*
+			// add type names to list of forbidden entity names
+			if (StructrApp.getConfiguration().getNodeEntities().containsKey(typeName)) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
+
+			// add interfaces to list of forbidden entity names
+			if (StructrApp.getConfiguration().getInterfaces().containsKey(typeName)) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
+			*/
+		}
+	}
+}
