@@ -63,9 +63,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public interface AbstractFile extends NodeInterface {
 
-	Property<StorageConfiguration> storageConfigurationProperty = new EndNode<>("storageConfiguration", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
-	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema().updateCallback(AbstractFile::updateHasParent);
-	Property<String> parentIdProperty                           = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
+	Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration").partOfBuiltInSchema();
+	Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").partOfBuiltInSchema().updateCallback(AbstractFile::updateHasParent);
+	Property<String> parentIdProperty                    = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
 
 	View uiView = new View(AbstractFile.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
 

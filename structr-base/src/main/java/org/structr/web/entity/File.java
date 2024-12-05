@@ -47,6 +47,7 @@ import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.Property;
@@ -87,9 +88,15 @@ import java.util.Map.Entry;
  *
  *
  */
-public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, Favoritable, DataSource {
+public interface File extends AbstractFile, Linkable, JavaScriptSource, DataSource {
 
-	Property<Folder> fileParentProperty = new StartNode<>("fileParent", FolderCONTAINSFile.class).partOfBuiltInSchema();
+	/*
+	Property<String> contentTypeProperty = new StringProperty("contentType").partOfBuiltInSchema();
+	InputStream getInputStream();
+	String getContentType();
+	*/
+
+	Property<NodeInterface> fileParentProperty = new StartNode("fileParent", "FolderCONTAINSFile").partOfBuiltInSchema();
 
 	class Impl { static {
 
@@ -97,10 +104,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final JsonObjectType type = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
-		type.setImplements(Indexable.class);
 		type.setImplements(Linkable.class);
 		type.setImplements(JavaScriptSource.class);
-		type.setImplements(Favoritable.class);
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
 		type.setCategory("ui");
 

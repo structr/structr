@@ -27,7 +27,7 @@ import org.structr.web.common.RenderContext;
  */
 public interface Renderable {
 
-	public void render(RenderContext renderContext, int depth) throws FrameworkException;
-	public void renderContent(RenderContext renderContext, int depth) throws FrameworkException;
+	void render(RenderContext renderContext, int depth) throws FrameworkException;
+	void renderContent(RenderContext renderContext, int depth) throws FrameworkException;
 
 }
