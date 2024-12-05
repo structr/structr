@@ -45,7 +45,12 @@ public class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
 

@@ -33,7 +33,7 @@ public class StructrBaseTraits {
 	static {
 
 		StructrBaseTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
-		StructrBaseTraits.registerRelationshipType("Security",                          new SecurityDefinition());
+		StructrBaseTraits.registerRelationshipType("Security",                          new SecurityRelationshipDefinition());
 		StructrBaseTraits.registerRelationshipType("PrincipalFAVORITEFavoritable",      new PrincipalFAVORITEFavoritableDefinition());
 		StructrBaseTraits.registerRelationshipType("PrincipalSchemaGrantRelationship",  new PrincipalSchemaGrantRelationshipDefinition());
 		StructrBaseTraits.registerRelationshipType("GroupCONTAINSPrincipal",            new GroupContainsPrincipalDefinition());

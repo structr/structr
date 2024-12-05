@@ -2,33 +2,86 @@ package org.structr.core.traits.wrappers;
 
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.Permission;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Security;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
-public class SecurityTraitWrapper extends AbstractTraitWrapper implements Security {
+public class SecurityTraitWrapper extends AbstractTraitWrapper<RelationshipInterface> implements Security {
 
-	public SecurityTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
+	private PropertyKey<String[]> allowedKey = null;
 
-		super(traits, nodeInterface);
+	public SecurityTraitWrapper(final Traits traits, final RelationshipInterface relationshipInterface) {
+
+		super(traits, relationshipInterface);
+
+		this.allowedKey = traits.key("allowed");
 	}
 
-	public boolean isAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+	@Override
+	public RelationshipInterface getRelationship() {
+		return wrappedObject;
+	}
+
+	@Override
+	public boolean isAllowed(final Permission permission) {
+		return isAllowed(wrappedObject, allowedKey, permission);
+	}
+
+	@Override
+	public void setAllowed(final Set<String> allowed) {
+		setAllowed(wrappedObject, allowedKey, allowed);
+	}
+
+	@Override
+	public void setAllowed(final Permission... allowed) {
+		setAllowed(wrappedObject, allowedKey, allowed);
+	}
+
+	@Override
+	public Set<String> getPermissions() {
+		return getPermissions(wrappedObject, allowedKey);
+	}
+
+	@Override
+	public void addPermission(final Permission permission) {
+		addPermission(wrappedObject, allowedKey, permission);
+	}
+
+	@Override
+	public void addPermissions(final Set<Permission> permissions) {
+		addPermissions(wrappedObject, allowedKey, permissions);
+	}
+
+	@Override
+	public void removePermission(final Permission permission) {
+		removePermission(wrappedObject, allowedKey, permission);
+	}
+
+	@Override
+	public void removePermissions(final Set<Permission> permissions) {
+		removePermissions(wrappedObject, allowedKey, permissions);
+	}
+
+	// ----- private methods -----
+	private boolean isAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
 		return getPermissions(graphObject, key).contains(permission.name());
 	}
 
-	public void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<String> allowed) {
+	private void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<String> allowed) {
 
 		String[] permissions = (String[]) allowed.toArray(new String[allowed.size()]);
 		setAllowed(graphObject, key, permissions);
 	}
 
-	public void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission... permissions) {
+	private void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission... permissions) {
 
 		Set<String> permissionSet = new HashSet<>();
 
@@ -44,7 +97,7 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper implements Securi
 
 		if (allowed.length == 0) {
 
-			StructrApp.getInstance().delete((RelationshipInterface)graphObject);
+			StructrApp.getInstance().delete(graphObject);
 
 		} else {
 
@@ -54,18 +107,18 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper implements Securi
 		}
 	}
 
-	public Set<String> getPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key) {
+	private Set<String> getPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key) {
 
 		final PropertyContainer propertyContainer = graphObject.getPropertyContainer();
 		return getPermissionSet(propertyContainer, key);
 	}
 
-	public void addPermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+	private void addPermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
 
 		addPermissions(graphObject, key, Collections.singleton(permission));
 	}
 
-	public void addPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
+	private void addPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
 
@@ -85,7 +138,7 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper implements Securi
 		}
 	}
 
-	public void removePermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+	private void removePermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
 
@@ -98,7 +151,7 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper implements Securi
 		setAllowed(graphObject, key, permissionSet);
 	}
 
-	public void removePermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
+	private void removePermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
 
@@ -118,7 +171,7 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper implements Securi
 		}
 	}
 
-	public Set<String> getPermissionSet(final PropertyContainer propertyContainer, final PropertyKey<String[]> key) {
+	private Set<String> getPermissionSet(final PropertyContainer propertyContainer, final PropertyKey<String[]> key) {
 
 		final Set<String> permissionSet = new HashSet<>();
 
@@ -133,45 +186,4 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper implements Securi
 
 		return permissionSet;
 	}
-
-	@Override
-	public boolean isAllowed(final Permission permission) {
-		return SecurityDelegate.isAllowed(this, SecurityRelationship.allowed, permission);
-	}
-
-	@Override
-	public void setAllowed(final Set<String> allowed) {
-		SecurityDelegate.setAllowed(this, SecurityRelationship.allowed, allowed);
-	}
-
-	@Override
-	public void setAllowed(final Permission... allowed) {
-		SecurityDelegate.setAllowed(this, SecurityRelationship.allowed, allowed);
-	}
-
-	@Override
-	public Set<String> getPermissions() {
-		return SecurityDelegate.getPermissions(this, SecurityRelationship.allowed);
-	}
-
-	@Override
-	public void addPermission(final Permission permission) {
-		SecurityDelegate.addPermission(this, SecurityRelationship.allowed, permission);
-	}
-
-	@Override
-	public void addPermissions(final Set<Permission> permissions) {
-		SecurityDelegate.addPermissions(this, SecurityRelationship.allowed, permissions);
-	}
-
-	@Override
-	public void removePermission(final Permission permission) {
-		SecurityDelegate.removePermission(this, SecurityRelationship.allowed, permission);
-	}
-
-	@Override
-	public void removePermissions(final Set<Permission> permissions) {
-		SecurityDelegate.removePermissions(this, SecurityRelationship.allowed, permissions);
-	}
-	*/
 }

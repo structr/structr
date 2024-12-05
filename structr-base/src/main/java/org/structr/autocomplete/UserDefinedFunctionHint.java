@@ -20,17 +20,17 @@ package org.structr.autocomplete;
 
 public class UserDefinedFunctionHint extends MethodHint {
 
-    public UserDefinedFunctionHint(String name, String summary, String description) {
-        super(name, summary, description);
-    }
+	public UserDefinedFunctionHint(final String name, final String summary, final String description) {
+		super(name, summary, description);
+	}
 
-    @Override
-    public String getReplacement() {
-        return getDisplayName();
-    }
+	@Override
+	public String getReplacement() {
+		return getDisplayName();
+	}
 
-    @Override
-    public String getType() {
-        return "User-defined function";
-    }
+	@Override
+	public String getType() {
+		return "User-defined function";
+	}
 }

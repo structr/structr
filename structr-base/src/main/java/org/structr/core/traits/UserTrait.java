@@ -32,31 +32,31 @@ public class UserTrait extends PrincipalTraitWrapper implements User {
 
 	@Override
 	public Folder getHomeDirectory() {
-		return nodeInterface.getProperty(traits.key("homeDirectory"));
+		return wrappedObject.getProperty(traits.key("homeDirectory"));
 	}
 
 	@Override
 	public void setWorkingDirectory(final Folder workDir) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("workingDirectory"), workDir);
+		wrappedObject.setProperty(traits.key("workingDirectory"), workDir);
 	}
 
 	@Override
 	public Folder getWorkingDirectory() {
-		return nodeInterface.getProperty(traits.key("workingDirectory"));
+		return wrappedObject.getProperty(traits.key("workingDirectory"));
 	}
 
 	@Override
 	public void setLocalStorage(final String localStorage) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("localStorage"), localStorage);
+		wrappedObject.setProperty(traits.key("localStorage"), localStorage);
 	}
 
 	@Override
 	public String getLocalStorage() {
-		return nodeInterface.getProperty(traits.key("localStorage"));
+		return wrappedObject.getProperty(traits.key("localStorage"));
 	}
 
 	@Override
 	public String getConfirmationKey() {
-		return nodeInterface.getProperty(traits.key("confirmationKey"));
+		return wrappedObject.getProperty(traits.key("confirmationKey"));
 	}
 }

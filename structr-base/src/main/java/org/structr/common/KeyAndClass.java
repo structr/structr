@@ -23,34 +23,23 @@ import org.structr.core.property.PropertyKey;
 /**
  * Simple class to hold a {@link PropertyKey} and a {@link Class}
  *
- *
  */
 public class KeyAndClass<T> {
 
-	private Class<T> cls;
-	private PropertyKey<T> key;
-
-	//~--- constructors ---------------------------------------------------
+	private final Class<T> cls;
+	private final PropertyKey<T> key;
 
 	public KeyAndClass(final PropertyKey<T> key, final Class<T> cls) {
 
 		this.key = key;
 		this.cls = cls;
-
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	public PropertyKey<T> getPropertyKey() {
-
 		return key;
-
 	}
 
 	public Class<T> getCls() {
-
 		return cls;
-
 	}
-
 }

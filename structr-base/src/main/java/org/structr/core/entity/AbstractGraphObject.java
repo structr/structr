@@ -34,9 +34,9 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.*;
-import org.structr.core.traits.operations.graphobject.*;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.accesscontrollable.IsGranted;
+import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.propertycontainer.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -70,7 +70,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public Traits getTraits() {
+	public final Traits getTraits() {
 		return typeHandler;
 	}
 
@@ -89,7 +89,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public long getSourceTransactionId() {
+	public final long getSourceTransactionId() {
 		return sourceTransactionId;
 	}
 
@@ -150,7 +150,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public void addToIndex() {
+	public final void addToIndex() {
 
 		for (final AddToIndex callback : typeHandler.getMethods(AddToIndex.class)) {
 			callback.addToIndex(this);
@@ -158,7 +158,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public void indexPassiveProperties() {
+	public final void indexPassiveProperties() {
 
 		for (final IndexPassiveProperties callback : typeHandler.getMethods(IndexPassiveProperties.class)) {
 			callback.indexPassiveProperties(this);
@@ -166,7 +166,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public final void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		for (final OnCreation callback : typeHandler.getMethods(OnCreation.class)) {
 			callback.onCreation(this, securityContext, errorBuffer);
@@ -264,12 +264,12 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public boolean readOnlyPropertiesUnlocked() {
+	public final boolean readOnlyPropertiesUnlocked() {
 		return readOnlyPropertiesUnlocked;
 	}
 
 	@Override
-	public boolean systemPropertiesUnlocked() {
+	public final boolean systemPropertiesUnlocked() {
 		return internalSystemPropertiesUnlocked;
 	}
 

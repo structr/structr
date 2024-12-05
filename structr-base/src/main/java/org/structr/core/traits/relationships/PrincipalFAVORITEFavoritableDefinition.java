@@ -21,7 +21,7 @@ package org.structr.core.traits.relationships;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.RelationshipTraitDefinition;
-import org.structr.core.traits.TraitFactory;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
@@ -47,7 +47,7 @@ public class PrincipalFAVORITEFavoritableDefinition extends RelationshipTraitDef
 	}
 
 	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
 

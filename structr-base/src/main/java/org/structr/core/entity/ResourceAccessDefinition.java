@@ -25,7 +25,7 @@ import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.property.*;
 import org.structr.core.traits.AbstractTraitDefinition;
-import org.structr.core.traits.TraitFactory;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
@@ -141,7 +141,7 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
 			ResourceAccess.class, (traits, node) -> new ResourceAccessTraitWrapper(traits, node)

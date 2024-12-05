@@ -136,7 +136,7 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
 

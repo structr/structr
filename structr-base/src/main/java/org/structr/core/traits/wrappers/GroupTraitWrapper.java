@@ -21,7 +21,6 @@ package org.structr.core.traits.wrappers;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
@@ -31,7 +30,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.List;
 
-public class GroupTraitWrapper extends AbstractTraitWrapper implements Group {
+public class GroupTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Group {
 
 	public GroupTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
@@ -39,7 +38,7 @@ public class GroupTraitWrapper extends AbstractTraitWrapper implements Group {
 
 	@Override
 	public Iterable<Principal> getMembers() {
-		return nodeInterface.getProperty(traits.key("members"));
+		return wrappedObject.getProperty(traits.key("members"));
 	}
 
 	@Override
@@ -50,11 +49,11 @@ public class GroupTraitWrapper extends AbstractTraitWrapper implements Group {
 		}
 
 		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
-		final List<NodeInterface> _users = Iterables.toList(nodeInterface.getProperty(members));
+		final List<NodeInterface> _users = Iterables.toList(wrappedObject.getProperty(members));
 
 		_users.add(user.getWrappedNode());
 
-		nodeInterface.setProperty(members, _users);
+		wrappedObject.setProperty(members, _users);
 	}
 
 	@Override
@@ -65,10 +64,10 @@ public class GroupTraitWrapper extends AbstractTraitWrapper implements Group {
 		}
 
 		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
-		final List<NodeInterface> _users = Iterables.toList(nodeInterface.getProperty(members));
+		final List<NodeInterface> _users = Iterables.toList(wrappedObject.getProperty(members));
 
 		_users.remove(member);
 
-		nodeInterface.setProperty(members, _users);
+		wrappedObject.setProperty(members, _users);
 	}
 }

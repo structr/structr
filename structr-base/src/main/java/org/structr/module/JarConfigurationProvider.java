@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
-import org.structr.common.DefaultFactoryDefinition;
-import org.structr.common.FactoryDefinition;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
@@ -79,7 +77,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
 
-	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
 	private LicenseManager licenseManager                                                          = null;
 
 	// ----- interface ConfigurationProvider -----

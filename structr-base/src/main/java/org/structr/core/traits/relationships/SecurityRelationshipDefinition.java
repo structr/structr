@@ -18,28 +18,35 @@
  */
 package org.structr.core.traits.relationships;
 
+import org.structr.api.graph.Relationship;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Security;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.RelationshipTraitDefinition;
-import org.structr.core.traits.TraitFactory;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
 import org.structr.core.traits.wrappers.SecurityTraitWrapper;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SecurityDefinition extends RelationshipTraitDefinition {
+public class SecurityRelationshipDefinition extends RelationshipTraitDefinition {
 
 	private static final SourceId principalId          = new SourceId("principalId");
 	private static final TargetId accessControllableId = new TargetId("accessControllableId");
 	private static final Property<String[]> allowed    = new ArrayProperty("allowed", String.class);
 
-	public SecurityDefinition() {
-		super("Security");
+	public SecurityRelationshipDefinition() {
+		super("SecurityRelationship");
 	}
 
 	@Override
@@ -49,19 +56,61 @@ public class SecurityDefinition extends RelationshipTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
 
-	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
 		return Map.of(
-			Security.class, (traits, node) -> new SecurityTraitWrapper(traits, node)
+
+			GetPropertyKeys.class,
+			new GetPropertyKeys() {
+
+				@Override
+				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
+
+					final Set<PropertyKey> keys = new LinkedHashSet<>();
+					final Traits traits         = graphObject.getTraits();
+
+					keys.addAll(getSuper().getPropertyKeys(graphObject, propertyView));
+
+					keys.add(principalId);
+					keys.add(accessControllableId);
+
+					final Relationship dbRelationship = ((RelationshipInterface) graphObject).getRelationship();
+					if (dbRelationship != null) {
+
+						for (String key : dbRelationship.getPropertyKeys()) {
+
+							final PropertyKey propertyKey = traits.key(key);
+							if (propertyKey != null) {
+
+								keys.add(propertyKey);
+							}
+						}
+					}
+
+					return keys;
+				}
+			}
 		);
 	}
 
 	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of(
+			Security.class, (traits, rel) -> new SecurityTraitWrapper(traits, rel)
+		);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
+		return Set.of(
+			principalId,
+			accessControllableId,
+			allowed
+		);
 	}
 
 	@Override

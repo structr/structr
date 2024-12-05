@@ -22,6 +22,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.Traits;
 import org.structr.schema.Transformer;
 
 /**
@@ -36,12 +38,12 @@ public class ConstantBooleanTrue implements Transformer<Boolean> {
 	@Override
 	public Boolean setProperty(final GraphObject entity, final PropertyKey<Boolean> key, final Boolean value) throws FrameworkException {
 
-		final Class declaringClass = key.getDeclaringTrait();
-		String typeName            = GraphObject.class.getSimpleName();
+		final TraitDefinition declaringClass = key.getDeclaringTrait();
+		String typeName                      = GraphObject.class.getSimpleName();
 
 		if (declaringClass != null) {
 
-			typeName = declaringClass.getSimpleName();
+			typeName = declaringClass.getName();
 		}
 
 		throw new FrameworkException(422, typeName + "." + key.jsonName() + " is_read_only_property", new ReadOnlyPropertyToken(typeName, key.jsonName()));

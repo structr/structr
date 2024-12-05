@@ -25,5 +25,5 @@ import org.structr.api.Predicate;
  */
 public interface Filter<T> extends Predicate<T> {
 
-	public void setSecurityContext(final SecurityContext securityContext);
+	void setSecurityContext(final SecurityContext securityContext);
 }

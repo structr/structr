@@ -42,136 +42,141 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Principal {
+public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Principal {
 
 	public PrincipalTraitWrapper(Traits traits, NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
 	}
 
 	@Override
+	public String getName() {
+		return wrappedObject.getName();
+	}
+
+	@Override
 	public Iterable<Favoritable> getFavorites() {
-		return nodeInterface.getProperty(traits.key("favorites"));
+		return wrappedObject.getProperty(traits.key("favorites"));
 	}
 
 	@Override
 	public Iterable<Group> getGroups() {
-		return nodeInterface.getProperty(traits.key("groups"));
+		return wrappedObject.getProperty(traits.key("groups"));
 	}
 
 	@Override
 	public String getSessionData() {
-		return nodeInterface.getProperty(traits.key("sessionDataProperty"));
+		return wrappedObject.getProperty(traits.key("sessionDataProperty"));
 	}
 
 	@Override
 	public String getEMail() {
-		return nodeInterface.getProperty(traits.key("eMail"));
+		return wrappedObject.getProperty(traits.key("eMail"));
 	}
 
 	@Override
 	public void setSessionData(final String sessionData) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("sessionData"), sessionData);
+		wrappedObject.setProperty(traits.key("sessionData"), sessionData);
 	}
 
 	@Override
 	public boolean isAdmin() {
-		return nodeInterface.getProperty(traits.key("isAdmin"));
+		return wrappedObject.getProperty(traits.key("isAdmin"));
 	}
 
 	public boolean isBlocked() {
-		return nodeInterface.getProperty(traits.key("blocked"));
+		return wrappedObject.getProperty(traits.key("blocked"));
 	}
 
 	@Override
 	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("favorites"), favorites);
+		wrappedObject.setProperty(traits.key("favorites"), favorites);
 	}
 
 	@Override
 	public void setIsAdmin(final boolean isAdmin) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("isAdmin"), isAdmin);
+		wrappedObject.setProperty(traits.key("isAdmin"), isAdmin);
 	}
 
 	@Override
 	public void setPassword(final String password) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("password"), password);
+		wrappedObject.setProperty(traits.key("password"), password);
 	}
 
 	@Override
 	public void setEMail(final String eMail) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("eMail"), eMail);
+		wrappedObject.setProperty(traits.key("eMail"), eMail);
 	}
 
 	@Override
 	public void setSalt(final String salt) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("salt"), salt);
+		wrappedObject.setProperty(traits.key("salt"), salt);
 	}
 
 	@Override
 	public String getLocale() {
-		return nodeInterface.getProperty(traits.key("locale"));
+		return wrappedObject.getProperty(traits.key("locale"));
 	}
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
 		// fixme: this should be overridable
-		//return nodeInterface.getProperty(traits.key("skipSecurityRelationships"));
+		return wrappedObject.getProperty(traits.key("skipSecurityRelationships"));
 	}
 
 	@Override
 	public void setTwoFactorConfirmed(final boolean b) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("twoFactorConfirmed"), b);
+		wrappedObject.setProperty(traits.key("twoFactorConfirmed"), b);
 	}
 
 	@Override
 	public void setTwoFactorToken(final String token) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("twoFactorToken"), token);
+		wrappedObject.setProperty(traits.key("twoFactorToken"), token);
 	}
 
 	@Override
 	public boolean isTwoFactorUser() {
-		return nodeInterface.getProperty(traits.key("isTwoFactorUser"));
+		return wrappedObject.getProperty(traits.key("isTwoFactorUser"));
 	}
 
 	@Override
 	public void setIsTwoFactorUser(final boolean b) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("isTwoFactorUser"), b);
+		wrappedObject.setProperty(traits.key("isTwoFactorUser"), b);
 
 	}
 
 	@Override
 	public boolean isTwoFactorConfirmed() {
-		return nodeInterface.getProperty(traits.key("isTwoFactorConfirmed"));
+		return wrappedObject.getProperty(traits.key("isTwoFactorConfirmed"));
 	}
 
 	@Override
 	public Integer getPasswordAttempts() {
-		return nodeInterface.getProperty(traits.key("passwordAttempts"));
+		return wrappedObject.getProperty(traits.key("passwordAttempts"));
 	}
 
 	@Override
 	public Date getPasswordChangeDate() {
-		return nodeInterface.getProperty(traits.key("passwordChangeDate"));
+		return wrappedObject.getProperty(traits.key("passwordChangeDate"));
 	}
 
 	@Override
 	public void setPasswordAttempts(int num) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("passwordAttempts"), num);
+		wrappedObject.setProperty(traits.key("passwordAttempts"), num);
 	}
 
 	@Override
 	public void setLastLoginDate(final Date date) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("lastLoginDate"), date);
+		wrappedObject.setProperty(traits.key("lastLoginDate"), date);
 	}
 
 	@Override
 	public String[] getSessionIds() {
-		return nodeInterface.getProperty(traits.key("sessionIds"));
+		return wrappedObject.getProperty(traits.key("sessionIds"));
 	}
 
 	@Override
 	public Iterable<Group> getParents() {
-		return nodeInterface.getProperty(traits.key("groups"));
+		return wrappedObject.getProperty(traits.key("groups"));
 	}
 
 	@Override
@@ -180,7 +185,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 		try {
 
 			final App app             = StructrApp.getInstance();
-			final NodeInterface node  = app.getNodeById("Principal", nodeInterface.getUuid());
+			final NodeInterface node  = app.getNodeById("Principal", wrappedObject.getUuid());
 			final Principal principal = new PrincipalTraitWrapper(null, node);
 
 			return principal.getGroups();
@@ -189,7 +194,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
 
-			logger.warn("Caught exception while fetching groups for user '{}' ({})", nodeInterface.getName(), nodeInterface.getUuid());
+			logger.warn("Caught exception while fetching groups for user '{}' ({})", wrappedObject.getName(), wrappedObject.getUuid());
 			logger.warn(ExceptionUtils.getStackTrace(fex));
 
 			return Collections.emptyList();
@@ -218,12 +223,12 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 						return false;
 					}
 
-					nodeInterface.setProperty(key, (String[]) ArrayUtils.add(nodeInterface.getProperty(key), sessionId));
+					wrappedObject.setProperty(key, (String[]) ArrayUtils.add(wrappedObject.getProperty(key), sessionId));
 				}
 
 			} else {
 
-				nodeInterface.setProperty(key, new String[] {  sessionId } );
+				wrappedObject.setProperty(key, new String[] {  sessionId } );
 			}
 
 			return true;
@@ -243,7 +248,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 		try {
 
 			final PropertyKey<String[]> key = traits.key("refreshTokens");
-			final String[] refreshTokens    = nodeInterface.getProperty(key);
+			final String[] refreshTokens    = wrappedObject.getProperty(key);
 
 			if (refreshTokens != null) {
 
@@ -259,12 +264,12 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 						return false;
 					}
 
-					nodeInterface.setProperty(key, (String[]) ArrayUtils.add(nodeInterface.getProperty(key), refreshToken));
+					wrappedObject.setProperty(key, (String[]) ArrayUtils.add(wrappedObject.getProperty(key), refreshToken));
 				}
 
 			} else {
 
-				nodeInterface.setProperty(key, new String[] {  refreshToken } );
+				wrappedObject.setProperty(key, new String[] {  refreshToken } );
 			}
 
 			return true;
@@ -284,7 +289,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 		try {
 
 			final PropertyKey<String[]> key = traits.key("sessionIds");
-			final String[] ids              = nodeInterface.getProperty(key);
+			final String[] ids              = wrappedObject.getProperty(key);
 
 			if (ids != null) {
 
@@ -292,7 +297,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 
 				sessionIds.remove(sessionId);
 
-				nodeInterface.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				wrappedObject.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
 			}
 
 		} catch (FrameworkException ex) {
@@ -308,7 +313,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 		try {
 
 			final PropertyKey<String[]> key = traits.key("refreshTokens");
-			final String[] refreshTokens    = nodeInterface.getProperty(key);
+			final String[] refreshTokens    = wrappedObject.getProperty(key);
 
 			if (refreshTokens != null) {
 
@@ -316,7 +321,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 
 				refreshTokenSet.remove(refreshToken);
 
-				nodeInterface.setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
+				wrappedObject.setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
 			}
 
 		} catch (FrameworkException ex) {
@@ -336,7 +341,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 
 			properties.put(refreshTokensKey, new String[0]);
 
-			nodeInterface.setProperties(SecurityContext.getSuperUserInstance(), properties);
+			wrappedObject.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		} catch (FrameworkException ex) {
 
@@ -364,7 +369,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 	@Override
 	public String getEncryptedPassword() {
 
-		final Node dbNode = nodeInterface.getNode();
+		final Node dbNode = wrappedObject.getNode();
 		if (dbNode.hasProperty("password")) {
 
 			return (String)dbNode.getProperty("password");
@@ -376,7 +381,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 	@Override
 	public String getSalt() {
 
-		final Node dbNode = nodeInterface.getNode();
+		final Node dbNode = wrappedObject.getNode();
 		if (dbNode.hasProperty("salt")) {
 
 			return (String) dbNode.getProperty("salt");
@@ -388,7 +393,7 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 	@Override
 	public String getTwoFactorSecret() {
 
-		final Node dbNode = nodeInterface.getNode();
+		final Node dbNode = wrappedObject.getNode();
 		if (dbNode.hasProperty("twoFactorSecret")) {
 
 			return (String) dbNode.getProperty("twoFactorSecret");
@@ -407,11 +412,11 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper implements Princ
 
 		final StringBuilder path = new StringBuilder("/").append(twoFactorIssuer);
 
-		final String eMail = nodeInterface.getProperty(traits.key("eMail"));
+		final String eMail = wrappedObject.getProperty(traits.key("eMail"));
 		if (eMail != null) {
 			path.append(":").append(eMail);
 		} else {
-			path.append(":").append(nodeInterface.getName());
+			path.append(":").append(wrappedObject.getName());
 		}
 
 		final StringBuilder query = new StringBuilder("secret=").append(getTwoFactorSecret())
