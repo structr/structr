@@ -18,7 +18,7 @@
  */
 package org.structr.core.traits;
 
-import org.structr.core.entity.*;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.core.traits.relationships.*;
@@ -50,12 +50,15 @@ public class StructrBaseTraits {
 
 		StructrBaseTraits.registerBaseTypes();
 
-		StructrBaseTraits.registerNodeType("Principal",    new PrincipalTraitDefinition());
-		StructrBaseTraits.registerNodeType("Group",        new PrincipalTraitDefinition(), new GroupTraitDefinition());
-		StructrBaseTraits.registerNodeType("Localization", new LocalizationTraitDefinition());
-		StructrBaseTraits.registerNodeType("Location",     new LocationTraitDefinition());
-		StructrBaseTraits.registerNodeType("MailTemplate", new MailTemplateTraitDefinition());
-		StructrBaseTraits.registerNodeType("Person",       new PersonTraitDefinition());
+		StructrBaseTraits.registerNodeType("Principal",           new PrincipalTraitDefinition());
+		StructrBaseTraits.registerNodeType("Group",               new PrincipalTraitDefinition(), new GroupTraitDefinition());
+		StructrBaseTraits.registerNodeType("Localization",        new LocalizationTraitDefinition());
+		StructrBaseTraits.registerNodeType("Location",            new LocationTraitDefinition());
+		StructrBaseTraits.registerNodeType("MailTemplate",        new MailTemplateTraitDefinition());
+		StructrBaseTraits.registerNodeType("Person",              new PersonTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaReloadingNode", new SchemaReloadingNodeTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaGrant",         new SchemaReloadingNodeTraitDefinition(), new SchemaGrantTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaMethod",        new SchemaReloadingNodeTraitDefinition(), new SchemaMethodTraitDefinition());
 
 		// core interfaces
 

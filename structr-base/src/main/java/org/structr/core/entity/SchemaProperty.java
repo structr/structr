@@ -36,6 +36,7 @@ import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
@@ -43,7 +44,7 @@ import org.structr.schema.parser.*;
 
 import java.util.*;
 
-public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
+public class SchemaProperty extends SchemaReloadingNodeTraitDefinition implements PropertyDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 

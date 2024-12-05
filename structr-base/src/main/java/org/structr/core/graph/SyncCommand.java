@@ -33,7 +33,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
@@ -506,7 +506,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
-			if (nodeObject instanceof SchemaReloadingNode) {
+			if (nodeObject instanceof SchemaReloadingNodeTraitDefinition) {
 				continue;
 			}
 

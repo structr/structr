@@ -21,15 +21,12 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.SchemaReloadingNode;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.schema.Schema;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
-import java.util.Set;
 
 import org.structr.core.graph.TransactionCommand;
 
@@ -66,7 +63,7 @@ public class GetCommand extends AbstractCommand {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
 
-			if (graphObject instanceof SchemaReloadingNode) {
+			if (graphObject instanceof SchemaReloadingNodeTraitDefinition) {
 				SchemaService.prefetchSchemaNodes(TransactionCommand.getCurrentTransaction());
 			}
 

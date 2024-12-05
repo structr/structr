@@ -25,7 +25,7 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
@@ -84,7 +84,7 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 
 						if (handled == false) {
 
-							final SchemaReloadingNode schemaNode = app.nodeQuery(SchemaReloadingNode.class).andName(type).getFirst();
+							final SchemaReloadingNodeTraitDefinition schemaNode = app.nodeQuery(SchemaReloadingNodeTraitDefinition.class).andName(type).getFirst();
 
 							if (schemaNode != null) {
 
