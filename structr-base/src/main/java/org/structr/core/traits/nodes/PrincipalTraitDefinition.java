@@ -31,7 +31,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.AbstractTraitDefinition;
-import org.structr.core.traits.TraitFactory;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -135,7 +135,7 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
 			Principal.class, (traits, node) -> new PrincipalTraitWrapper(traits, node)

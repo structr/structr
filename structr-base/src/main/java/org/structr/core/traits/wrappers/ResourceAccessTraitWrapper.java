@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ResourceAccessTraitWrapper extends AbstractTraitWrapper implements ResourceAccess {
+public class ResourceAccessTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ResourceAccess {
 
 	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();
 
@@ -35,7 +35,7 @@ public class ResourceAccessTraitWrapper extends AbstractTraitWrapper implements 
 
 		cachedFlags = null;
 
-		nodeInterface.setProperty(traits.key("flags"), getFlags() | flag);
+		wrappedObject.setProperty(traits.key("flags"), getFlags() | flag);
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class ResourceAccessTraitWrapper extends AbstractTraitWrapper implements 
 
 		cachedFlags = null;
 
-		nodeInterface.setProperty(traits.key("flags"), getFlags() & ~flag);
+		wrappedObject.setProperty(traits.key("flags"), getFlags() & ~flag);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class ResourceAccessTraitWrapper extends AbstractTraitWrapper implements 
 
 		if (cachedFlags == null) {
 
-			cachedFlags = nodeInterface.getProperty(traits.key("flags"));
+			cachedFlags = wrappedObject.getProperty(traits.key("flags"));
 		}
 
 		if (cachedFlags != null) {
@@ -65,7 +65,7 @@ public class ResourceAccessTraitWrapper extends AbstractTraitWrapper implements 
 	public String getResourceSignature() {
 
 		if (cachedResourceSignature == null) {
-			cachedResourceSignature = nodeInterface.getProperty(traits.key("signature"));
+			cachedResourceSignature = wrappedObject.getProperty(traits.key("signature"));
 		}
 
 		return cachedResourceSignature;

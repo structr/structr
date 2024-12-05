@@ -41,7 +41,7 @@ import java.io.InputStream;
  */
 public interface Indexable extends NodeInterface {
 
-	Property<Iterable<IndexedWord>> wordsProperty   = new EndNodes<>("words", IndexableINDEXED_WORDIndexedWord.class).partOfBuiltInSchema();
+	Property<Iterable<NodeInterface>> wordsProperty = new EndNodes("words", "IndexableINDEXED_WORDIndexedWord").partOfBuiltInSchema();
 	Property<Iterable<String>> indexedWordsProperty = new CollectionNotionProperty<>("indexedWords", wordsProperty, new PropertyNotion(AbstractNode.name, true)).partOfBuiltInSchema();
 	Property<String> contentTypeProperty            = new StringProperty("contentType").partOfBuiltInSchema();
 	Property<String> extractedContentProperty       = new StringProperty("extractedContent").partOfBuiltInSchema();

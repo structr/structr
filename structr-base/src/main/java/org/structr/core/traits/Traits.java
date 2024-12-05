@@ -31,14 +31,15 @@ import java.util.*;
  */
 public class Traits {
 
-	private static final Map<String, Traits> globalTraitMap       = new LinkedHashMap<>();
-	private static final Map<String, TraitDefinition> types       = new LinkedHashMap<>();
-	private static PropertyKey<String> cachedNameProperty         = null;
-	private static PropertyKey<String> cachedTypeProperty         = null;
-	private static PropertyKey<String> cachedIdProperty           = null;
+	private static final Map<String, Traits> globalTraitMap    = new LinkedHashMap<>();
+	private static final Map<String, TraitDefinition> types    = new LinkedHashMap<>();
+	private static PropertyKey<Date> cachedCreatedDateProperty = null;
+	private static PropertyKey<String> cachedNameProperty      = null;
+	private static PropertyKey<String> cachedTypeProperty      = null;
+	private static PropertyKey<String> cachedIdProperty        = null;
 
 	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
-	private final Map<Class, TraitFactory> traitFactories         = new LinkedHashMap<>();
+	private final Map<Class, NodeTraitFactory> traitFactories         = new LinkedHashMap<>();
 	private final Map<Class, Set> composableMethods               = new LinkedHashMap<>();
 	private final Map<String, PropertyKey> propertyKeys           = new LinkedHashMap<>();
 
@@ -88,10 +89,9 @@ public class Traits {
 	 * Returns the combined property set of all traits that
 	 * this type contains.
 	 *
-	 * @param propertyView
 	 * @return
 	 */
-	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
+	public Set<PropertyKey> getFullPropertySet() {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
@@ -113,7 +113,7 @@ public class Traits {
 
 	public <T> T as(final Class<T> type, final NodeInterface node) {
 
-		final TraitFactory factory = traitFactories.get(type);
+		final NodeTraitFactory factory = traitFactories.get(type);
 		if (factory != null) {
 
 			return (T)factory.newInstance(this, node);
@@ -153,7 +153,7 @@ public class Traits {
 		}
 
 		// trait implementations
-		this.traitFactories.putAll(trait.getTraitFactories());
+		this.traitFactories.putAll(trait.getNodeTraitFactories());
 
 		// relation (for relationship types)
 		this.relation = trait.getRelation();
@@ -205,5 +205,14 @@ public class Traits {
 		}
 
 		return cachedTypeProperty;
+	}
+
+	public static PropertyKey<Date> createdDateProperty() {
+
+		if (cachedCreatedDateProperty == null) {
+			cachedCreatedDateProperty = Traits.key("GraphObject", "createdDate");
+		}
+
+		return cachedCreatedDateProperty;
 	}
 }

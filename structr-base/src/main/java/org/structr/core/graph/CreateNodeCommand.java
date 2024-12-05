@@ -30,15 +30,12 @@ import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.TypeProperty;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -162,7 +159,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 			// collect default values and try to set them on creation
-			for (final PropertyKey key : nodeType.getFullPropertySet(PropertyView.All)) {
+			for (final PropertyKey key : nodeType.getFullPropertySet()) {
 
 				if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 
@@ -206,13 +203,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		if (node != null) {
 
-			// iterate post creation transformations
-			final Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
-			for (Transformation<GraphObject> transformation : transformations) {
-
-				transformation.apply(securityContext, node);
-			}
-
 			// return creation details?
 			if (securityContext.returnDetailedCreationResults()) {
 
@@ -240,21 +230,30 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
-			final String userId = user.getUuid();
+			final Traits relationshipTraits                   = Traits.of("RelationshipInterface");
+			final Traits securityTraits                       = Traits.of("SecurityRelationship");
+			final PropertyKey<String> internalTimestampKey    = relationshipTraits.key("internalTimestamp");
+			final PropertyKey<String> sourceIdKey             = relationshipTraits.key("sourceId");
+			final PropertyKey<String> targetIdKey             = relationshipTraits.key("targetId");
+			final PropertyKey<String> relTypeKey              = relationshipTraits.key("relType");
+			final PropertyKey<String> principalIdKey          = securityTraits.key("allowed");
+			final PropertyKey<String> accessControllableIdKey = securityTraits.key("allowed");
+			final PropertyKey<String[]> allowedKey            = securityTraits.key("allowed");
+			final String userId                               = user.getUuid();
 
 			// configure OWNS relationship creation statement for maximum performance
-			ownsProperties.put(idKey.dbName(),                             getNextUuid());
-			ownsProperties.put(typeKey.dbName(),                           "PrincipalOwnsNode");
-			ownsProperties.put(visibleToPublicUsersKey.dbName(),           false);
-			ownsProperties.put(visibleToAuthenticatedUsersKey.dbName(),    false);
-			ownsProperties.put(relTypeKey.dbName(),                        "OWNS");
-			ownsProperties.put(sourceIdKey.dbName(),                       userId);
-			ownsProperties.put(targetIdKey.dbName(),                       newUuid);
-			ownsProperties.put(internalTimestampKey.dbName(),              graphDb.getInternalTimestamp(0, 0));
+			ownsProperties.put(idKey.dbName(),                          getNextUuid());
+			ownsProperties.put(typeKey.dbName(),                        "PrincipalOwnsNode");
+			ownsProperties.put(visibleToPublicUsersKey.dbName(),        false);
+			ownsProperties.put(visibleToAuthenticatedUsersKey.dbName(), false);
+			ownsProperties.put(relTypeKey.dbName(),                     "OWNS");
+			ownsProperties.put(sourceIdKey.dbName(),                    userId);
+			ownsProperties.put(targetIdKey.dbName(),                    newUuid);
+			ownsProperties.put(internalTimestampKey.dbName(),           graphDb.getInternalTimestamp(0, 0));
 
 			// configure SECURITY relationship creation statement for maximum performance
 			securityProperties.put(idKey.dbName(),                          getNextUuid());
-			securityProperties.put(typeKey.dbName(),                        SecurityRelationship.class.getSimpleName());
+			securityProperties.put(typeKey.dbName(),                        "SecurityRelationship");
 			securityProperties.put(visibleToPublicUsersKey.dbName(),        false);
 			securityProperties.put(visibleToAuthenticatedUsersKey.dbName(), false);
 			securityProperties.put(relTypeKey.dbName(),                     "SECURITY");

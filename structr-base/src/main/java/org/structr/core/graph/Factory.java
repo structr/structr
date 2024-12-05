@@ -21,16 +21,12 @@ package org.structr.core.graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
-import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.schema.SchemaHelper;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

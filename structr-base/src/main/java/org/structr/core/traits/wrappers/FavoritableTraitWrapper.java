@@ -24,7 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
-public class FavoritableTraitWrapper extends AbstractTraitWrapper implements Favoritable {
+public class FavoritableTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Favoritable {
 
 	public FavoritableTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
@@ -32,21 +32,21 @@ public class FavoritableTraitWrapper extends AbstractTraitWrapper implements Fav
 
 	@Override
 	public String getContext() {
-		return nodeInterface.getProperty(traits.key("favoriteContext"));
+		return wrappedObject.getProperty(traits.key("favoriteContext"));
 	}
 
 	@Override
 	public String getFavoriteContent() {
-		return nodeInterface.getProperty(traits.key("favoriteContent"));
+		return wrappedObject.getProperty(traits.key("favoriteContent"));
 	}
 
 	@Override
 	public String getFavoriteContentType() {
-		return nodeInterface.getProperty(traits.key("favoriteContentType"));
+		return wrappedObject.getProperty(traits.key("favoriteContentType"));
 	}
 
 	@Override
 	public void setFavoriteContent(String content) throws FrameworkException {
-		nodeInterface.setProperty(traits.key("favoriteContentType"), content);
+		wrappedObject.setProperty(traits.key("favoriteContentType"), content);
 	}
 }

@@ -36,7 +36,8 @@ public interface TraitDefinition {
 
 	Map<Class, LifecycleMethod> getLifecycleMethods();
 	Map<Class, FrameworkMethod> getFrameworkMethods();
-	Map<Class, TraitFactory> getTraitFactories();
+	Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories();
+	Map<Class, NodeTraitFactory> getNodeTraitFactories();
 
 	// FIXME
 	//Set<String> requiredTraits();

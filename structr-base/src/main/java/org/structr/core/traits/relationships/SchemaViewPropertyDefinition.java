@@ -21,7 +21,7 @@ package org.structr.core.traits.relationships;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.RelationshipTraitDefinition;
-import org.structr.core.traits.TraitFactory;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
-import static org.structr.core.entity.Relation.Multiplicity.One;
 
 public class SchemaViewPropertyDefinition extends RelationshipTraitDefinition {
 
@@ -48,7 +47,7 @@ public class SchemaViewPropertyDefinition extends RelationshipTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, TraitFactory> getTraitFactories() {
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
 

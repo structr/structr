@@ -24,7 +24,6 @@ import org.structr.api.graph.Relationship;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
@@ -32,6 +31,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.Date;
 import java.util.Map.Entry;
@@ -43,6 +43,15 @@ import java.util.Map.Entry;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
+	private final PropertyKey<String> idKey                           = Traits.key("GraphObject", "id");
+	private final PropertyKey<String> typeKey                         = Traits.key("GraphObject", "type");
+	private final PropertyKey<Date> createdDateKey                    = Traits.key("GraphObject", "createdDate");
+	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key("GraphObject", "lastModifiedDate");
+	private final PropertyKey<String> createdByKey                    = Traits.key("GraphObject", "createdBy");
+	private final PropertyKey<String> lastModifiedByKey               = Traits.key("GraphObject", "lastModifiedBy");
+	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
+	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
+
 	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
 	}
@@ -51,45 +60,51 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	private RelationshipInterface createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap attributes) throws FrameworkException {
+	private RelationshipInterface createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final String entityType, final PropertyMap attributes) throws FrameworkException {
 
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 
-		final DatabaseService db          = (DatabaseService)this.getArgument("graphDb");
-		final RelationshipFactory factory = new RelationshipFactory(securityContext);
-		final PropertyMap properties      = new PropertyMap(attributes);
-		final PropertyMap toNotify        = new PropertyMap();
-		final CreationContainer tmp       = new CreationContainer(false);
-		final Relation template           = Relation.getInstance(relType);
-		final Date now                    = new Date();
-		final Principal user              = securityContext.getCachedUser();
+		final Traits relationshipTraits                = Traits.of("RelationshipInterface");
+		final PropertyKey<String> internalTimestampKey = relationshipTraits.key("internalTimestamp");
+		final PropertyKey<String> sourceIdKey          = relationshipTraits.key("sourceId");
+		final PropertyKey<String> targetIdKey          = relationshipTraits.key("targetId");
+		final PropertyKey<String> relTypeKey           = relationshipTraits.key("relType");
+		final DatabaseService db                       = (DatabaseService)this.getArgument("graphDb");
+		final RelationshipFactory factory              = new RelationshipFactory(securityContext);
+		final PropertyMap properties                   = new PropertyMap(attributes);
+		final PropertyMap toNotify                     = new PropertyMap();
+		final CreationContainer tmp                    = new CreationContainer(false);
+		final Traits traits                            = Traits.of(entityType);
+		final Relation relation                        = traits.getRelation();
+		final Date now                                 = new Date();
+		final Principal user                           = securityContext.getCachedUser();
 
-		template.ensureCardinality(securityContext, fromNode, toNode);
+		relation.ensureCardinality(securityContext, fromNode, toNode);
 
 		// date properties need converter
-		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp(0, 0));
-		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
-		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
+		internalTimestampKey.setProperty(securityContext, tmp, db.getInternalTimestamp(0, 0));
+		createdDateKey.setProperty(securityContext, tmp, now);
+		lastModifiedDateKey.setProperty(securityContext, tmp, now);
 
 		// set initial properties manually (caution, this can only be used for primitive properties!)
-		tmp.getData().put(GraphObject.id.jsonName(), getNextUuid());
-		tmp.getData().put(GraphObject.type.jsonName(), relType.getSimpleName());
-		tmp.getData().put(AbstractRelationship.relType.jsonName(), template.name());
-		tmp.getData().put(AbstractRelationship.sourceId.jsonName(), fromNode.getUuid());
-		tmp.getData().put(AbstractRelationship.targetId.jsonName(), toNode.getUuid());
-		tmp.getData().put(AbstractRelationship.visibleToPublicUsers.jsonName(), false);
-		tmp.getData().put(AbstractRelationship.visibleToAuthenticatedUsers.jsonName(), false);
+		tmp.getData().put(idKey.dbName(), getNextUuid());
+		tmp.getData().put(typeKey.dbName(), entityType);
+		tmp.getData().put(relTypeKey.dbName(), relation.name());
+		tmp.getData().put(sourceIdKey.dbName(), fromNode.getUuid());
+		tmp.getData().put(targetIdKey.dbName(), toNode.getUuid());
+		tmp.getData().put(visibleToPublicUsersKey.dbName(), false);
+		tmp.getData().put(visibleToAuthenticatedUsersKey.dbName(), false);
 
 		if (user != null) {
-			tmp.getData().put(AbstractRelationship.createdBy.jsonName(), user.getUuid());
+			tmp.getData().put(createdByKey.dbName(), user.getUuid());
 		}
 
 		// move properties to creation container that can be set directly on creation
 		tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 		// collect default values and try to set them on creation
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(relType, PropertyView.All)) {
+		for (final PropertyKey key : traits.getFullPropertySet()) {
 
 			if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 
@@ -104,8 +119,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		// create relationship including initial properties
 		final Node startNode               = fromNode.getNode();
 		final Node endNode                 = toNode.getNode();
-		final Relationship rel             = startNode.createRelationshipTo(endNode, template, tmp.getData());
-		final RelationshipInterface newRel = factory.instantiateWithType(rel, relType, null, true);
+		final Relationship rel             = startNode.createRelationshipTo(endNode, relation, tmp.getData());
+		final RelationshipInterface newRel = factory.instantiateWithType(rel, entityType, null, true);
 
 		if (newRel != null) {
 
@@ -132,11 +147,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			// ensure indexing of newly created node
 			newRel.addToIndex();
 
-			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
-
-				transformation.apply(securityContext, newRel);
-			}
 		}
 
 		// enable access time update again for subsequent calls

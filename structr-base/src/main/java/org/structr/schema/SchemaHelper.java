@@ -1329,12 +1329,12 @@ public class SchemaHelper {
 	}
 
 	// ----- public static methods -----
-	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
+	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String typeName, final String propertyView) throws FrameworkException {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		List<GraphObjectMap> resultList    = new LinkedList<>();
 
-		if (type != null) {
+		if (typeName != null) {
 
 			if (propertyView != null) {
 

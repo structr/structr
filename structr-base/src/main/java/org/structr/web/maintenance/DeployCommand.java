@@ -1352,14 +1352,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
-		for (final RelationshipInterface<Principal, NodeInterface> security : node.getSecurityRelationships()) {
+		for (final Security security : node.getSecurityRelationships()) {
 
 			if (security != null) {
 
+				final String allowedActions     = StringUtils.join(security.getPermissions(), ",");
 				final Map<String, Object> grant = new TreeMap<>();
 
-				grant.put("name", security.getSourceNode().getName());
-				final String allowedActions = StringUtils.join(security.getPermissions(), ",");
+				grant.put("name", security.getRelationship().getSourceNode().getName());
 				grant.put("allowed", allowedActions);
 
 				if (allowedActions.length() > 0) {
@@ -1382,8 +1382,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
-				final String ownerName           = (String) ((Map)entry.get("owner")).get("name");
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getAsList();
+
+				final String ownerName               = (String) ((Map)entry.get("owner")).get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1412,8 +1413,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Map<String, Object> grantee : grantees) {
 
-				final String granteeName         = (String) grantee.get("name");
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getAsList();
+				final String granteeName             = (String) grantee.get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 

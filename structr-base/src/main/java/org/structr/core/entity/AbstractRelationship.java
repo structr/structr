@@ -25,10 +25,7 @@ import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.RelationshipTrait;
@@ -43,40 +40,14 @@ import java.util.Map;
 
 
 /**
- * Abstract base class for all relationship entities in Structr.
+ * Base class for all relationship entities in Structr.
  */
 public final class AbstractRelationship extends AbstractGraphObject<Relationship> implements Comparable<AbstractRelationship>, RelationshipInterface {
-
-	/*
-	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	public static final Property<String>        relType            = new RelationshipTypeProperty();
-	public static final SourceId                sourceId           = new SourceId("sourceId");
-	public static final TargetId                targetId           = new TargetId("targetId");
-	public static final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
-	public static final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
-
-	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
-		id, typeHandler, relType, sourceId, targetId
-	);
-
-	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
-		id, typeHandler, relType, sourceId, targetId
-	);
-	*/
-
-	public boolean internalSystemPropertiesUnlocked = false;
-
-	private long transactionId                 = -1;
-	private boolean readOnlyPropertiesUnlocked = false;
 
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
 	private PropertyKey sourceProperty         = null;
 	private PropertyKey targetProperty         = null;
-
-	protected SecurityContext securityContext  = null;
-	protected Class entityType                 = null;
-	protected Identity relationshipId          = null;
 
 	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final String entityType, final long transactionId) {
 		super(securityContext, dbRel, entityType, transactionId);
@@ -85,11 +56,6 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	@Override
 	public <T extends RelationshipTrait> T as(Class<T> type) {
 		return null;
-	}
-
-	@Override
-	public long getSourceTransactionId() {
-		return transactionId;
 	}
 
 	@Override
@@ -113,7 +79,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public final int compareTo(final AbstractRelationship rel) {
+	public int compareTo(final AbstractRelationship rel) {
 
 		// TODO: implement finer compare methods, e.g. taking title and position into account
 		if (rel == null) {
@@ -138,7 +104,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public final PropertyMap getProperties() throws FrameworkException {
+	public PropertyMap getProperties() throws FrameworkException {
 
 		Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -159,51 +125,51 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	 */
 	@Override
 	public Relationship getRelationship() {
-		return TransactionCommand.getCurrentTransaction().getRelationship(relationshipId);
+		return TransactionCommand.getCurrentTransaction().getRelationship(id);
 	}
 
 	@Override
 	public boolean isDeleted() {
-		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(relationshipId.getId());
+		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(id.getId());
 	}
 
 	@Override
-	public final NodeInterface getTargetNode() {
+	public NodeInterface getTargetNode() {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
-	public final NodeInterface getTargetNodeAsSuperUser() {
+	public NodeInterface getTargetNodeAsSuperUser() {
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
-	public final NodeInterface getSourceNode() {
+	public NodeInterface getSourceNode() {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
-	public final NodeInterface getSourceNodeAsSuperUser() {
+	public NodeInterface getSourceNodeAsSuperUser() {
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
-	public final NodeInterface getOtherNode(final NodeInterface node) {
+	public NodeInterface getOtherNode(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
 		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
 	}
 
-	public final NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
+	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
 	}
 
 	@Override
-	public final RelationshipType getRelType() {
+	public RelationshipType getRelType() {
 
 		final Relationship dbRelationship = getRelationship();
 		if (dbRelationship != null) {
@@ -215,12 +181,17 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public final String getType() {
+	public Relation getRelation() {
+		return typeHandler.getRelation();
+	}
+
+	@Override
+	public String getType() {
 		return getRelType().name();
 	}
 
 	@Override
-	public final String getSourceNodeId() {
+	public String getSourceNodeId() {
 
 		if (cachedStartNodeId == null) {
 
@@ -234,7 +205,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public final String getTargetNodeId() {
+	public String getTargetNodeId() {
 
 		if (cachedEndNodeId == null) {
 
@@ -247,12 +218,12 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 		return cachedEndNodeId;
 	}
 
-	public final String getOtherNodeId(final AbstractNode node) {
+	public String getOtherNodeId(final AbstractNode node) {
 		return getOtherNode(node).getUuid();
 	}
 
 	@Override
-	public final void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
+	public void setSourceNodeId(final String sourceNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
 		if (getSourceNodeId().equals(sourceNodeId)) {
@@ -278,7 +249,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public final void setTargetNodeId(final String targetNodeId) throws FrameworkException {
+	public void setTargetNodeId(final String targetNodeId) throws FrameworkException {
 
 		// Do nothing if new id equals old
 		if (getTargetNodeId().equals(targetNodeId)) {
@@ -304,7 +275,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		switch (key) {
 

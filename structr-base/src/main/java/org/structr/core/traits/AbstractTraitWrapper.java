@@ -1,31 +1,28 @@
 package org.structr.core.traits;
 
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 
-public abstract class AbstractTraitWrapper {
+public abstract class AbstractTraitWrapper<T extends GraphObject> {
 
-	protected final NodeInterface nodeInterface;
+	protected final T wrappedObject;
 	protected final Traits traits;
 
-	public AbstractTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
+	public AbstractTraitWrapper(final Traits traits, final T wrappedObject) {
 
-		this.nodeInterface = nodeInterface;
+		this.wrappedObject = wrappedObject;
 		this.traits        = traits;
 	}
 
 	public String getUuid() {
-		return nodeInterface.getUuid();
-	}
-
-	public String getName() {
-		return nodeInterface.getName();
+		return wrappedObject.getUuid();
 	}
 
 	public String getType() {
-		return nodeInterface.getType();
+		return wrappedObject.getType();
 	}
 
-	public NodeInterface getWrappedNode() {
-		return nodeInterface;
+	public T getWrappedNode() {
+		return wrappedObject;
 	}
 }

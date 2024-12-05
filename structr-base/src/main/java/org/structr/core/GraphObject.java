@@ -27,18 +27,21 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -115,4 +118,28 @@ public interface GraphObject {
 	}
 
 	boolean changelogEnabled();
+
+	default void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {
+
+		for (final Iterator<Map.Entry<PropertyKey, Object>> iterator = src.entrySet().iterator(); iterator.hasNext();) {
+
+			final Map.Entry<PropertyKey, Object> attr = iterator.next();
+			final PropertyKey key                 = attr.getKey();
+			final Object value                    = attr.getValue();
+
+			if (key instanceof FunctionProperty) {
+				continue;
+			}
+
+			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+
+				// value can be set directly, move to creation container
+				key.setProperty(securityContext, indexable, value);
+				iterator.remove();
+
+				// store value to do notifications later
+				filtered.put(key, value);
+			}
+		}
+	}
 }
