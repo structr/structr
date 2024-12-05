@@ -22,7 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.GroupTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;

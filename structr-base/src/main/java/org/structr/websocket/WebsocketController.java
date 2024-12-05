@@ -33,7 +33,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GroupTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.PropertyKey;

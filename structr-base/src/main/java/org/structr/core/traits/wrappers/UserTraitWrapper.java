@@ -16,17 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
-public class UserTrait extends PrincipalTraitWrapper implements User {
+public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
-	public UserTrait(final Traits traits, final NodeInterface node) {
+	public UserTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
 	}
 

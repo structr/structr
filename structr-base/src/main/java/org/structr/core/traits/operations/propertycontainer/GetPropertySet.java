@@ -26,5 +26,5 @@ import java.util.Set;
 
 public abstract class GetPropertySet extends FrameworkMethod<GetPropertySet> {
 
-	public abstract Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView);
+	public abstract Set<PropertyKey> getAllPropertyKeys(final GraphObject graphObject);
 }

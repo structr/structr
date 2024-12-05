@@ -18,8 +18,8 @@
  */
 package org.structr.core.script;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.directory.api.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +27,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  */
@@ -38,7 +39,7 @@ public class ScriptTestHelper {
 
 		try (final InputStream is = stream) {
 
-			final String script = IOUtils.toString(is, "utf-8");
+			final String script = IOUtils.toString(is, StandardCharsets.UTF_8);
 			if (script != null) {
 
 				return Scripting.evaluateScript(actionContext, null, "js", new Snippet("test", script));

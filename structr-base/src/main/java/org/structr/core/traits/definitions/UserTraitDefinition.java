@@ -16,10 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
@@ -29,7 +32,7 @@ import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
 import java.util.Map;
 import java.util.Set;
 
-public class UserTraitDefinition extends AbstractTraitDefinition {
+public final class UserTraitDefinition extends AbstractTraitDefinition {
 
 	public static final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema();
 	public static final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
@@ -54,6 +57,16 @@ public class UserTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 		return Set.of(
 			homeDirectoryProperty,
@@ -64,6 +77,11 @@ public class UserTraitDefinition extends AbstractTraitDefinition {
 			skipSecurityRelationshipsProperty,
 			isUserProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	/*

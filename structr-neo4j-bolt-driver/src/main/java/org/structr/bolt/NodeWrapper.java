@@ -219,8 +219,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 
-		final Class clazz             = Direction.OUTGOING.equals(direction) ? relationshipType.getSourceType() : relationshipType.getTargetType();
-		final String type             = clazz != null ? clazz.getSimpleName() : null;
+		//final Class clazz             = Direction.OUTGOING.equals(direction) ? relationshipType.getSourceType() : relationshipType.getTargetType();
+		//final String type             = clazz != null ? clazz.getSimpleName() : null;
 		final String tenantIdentifier = getTenantIdentifier(db);
 		final String rel              = relationshipType.name();
 		final String key              = createKey(direction, relationshipType);
@@ -232,16 +232,16 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				final String key2 = createKey(Direction.INCOMING, relationshipType);
 				return Iterables.flatten(
 					List.of(
-						getRelationshipsFromCache(key1, type, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1, relationshipType, direction)),
-						getRelationshipsFromCache(key2, type, false, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2, relationshipType, direction))
+						getRelationshipsFromCache(key1, null, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1, relationshipType, direction)),
+						getRelationshipsFromCache(key2, null, false, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2, relationshipType, direction))
 					)
 				);
 
 			case OUTGOING:
-				return getRelationshipsFromCache(key, type, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key, relationshipType, direction));
+				return getRelationshipsFromCache(key, null, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key, relationshipType, direction));
 
 			case INCOMING:
-				return getRelationshipsFromCache(key, type, false, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key, relationshipType, direction));
+				return getRelationshipsFromCache(key, null, false, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key, relationshipType, direction));
 		}
 
 		return null;
@@ -320,7 +320,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		if (relType != null) {
 
-			final Class type = Direction.OUTGOING.equals(direction) ? relType.getSourceType() : relType.getTargetType();
+			final Class type = null;//Direction.OUTGOING.equals(direction) ? relType.getSourceType() : relType.getTargetType();
 
 			// store relationship infos for statistics
 			query.storeRelationshipInfo(type, relType, direction);

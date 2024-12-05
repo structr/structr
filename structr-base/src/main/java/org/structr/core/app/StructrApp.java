@@ -62,8 +62,8 @@ public class StructrApp implements App {
 	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
 	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
-	private static final Map<URI, Class> schemaIdMap            = new LinkedHashMap<>();
-	private static final Map<Class, URI> typeIdMap              = new LinkedHashMap<>();
+	private static final Map<URI, String> schemaIdMap           = new LinkedHashMap<>();
+	private static final Map<String, URI> typeIdMap             = new LinkedHashMap<>();
 	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
 	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
@@ -75,14 +75,14 @@ public class StructrApp implements App {
 	private StructrApp(final SecurityContext securityContext) {
 
 		this.securityContext = securityContext;
-		this.relFactory      = new RelationshipFactory<>(securityContext);
-		this.nodeFactory     = new NodeFactory<>(securityContext);
+		this.relFactory      = new RelationshipFactory(securityContext);
+		this.nodeFactory     = new NodeFactory(securityContext);
 	}
 
 	// ----- public methods -----
 	@Override
 	public NodeInterface create(final String type, final String name) throws FrameworkException {
-		return create(type, new NodeAttribute(key(type, "name"), name));
+		return create(type, new NodeAttribute(Traits.nameProperty(), name));
 	}
 
 	@Override
@@ -97,27 +97,27 @@ public class StructrApp implements App {
 		String finalType                = type;
 
 		// try to identify the actual type from input set (creation wouldn't work otherwise anyway)
-		final String typeFromInput = properties.get(NodeInterface.type);
+		final String typeFromInput = properties.get(Traits.typeProperty());
 		if (typeFromInput != null) {
 
-			Class actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+			final Traits actualType = Traits.of(typeFromInput);
 			if (actualType == null) {
 
 				// overwrite type information when creating a node (adhere to type specified by resource!)
-				properties.put(AbstractNode.type, type);
+				properties.put(Traits.typeProperty(), type);
 
-			} else if (actualType.isInterface() || Modifier.isAbstract(actualType.getModifiers())) {
+			} else if (actualType.isInterface() || actualType.isAbstract()) {
 
 				throw new FrameworkException(422, "Invalid abstract type " + type + ", please supply a non-abstract class name in the type property");
 
 			} else {
 
-				finalType = actualType.getSimpleName();
+				finalType = actualType.getName();
 			}
 		}
 
 		// set type
-		properties.put(AbstractNode.type, finalType);
+		properties.put(Traits.typeProperty(), finalType);
 
 		return command.execute(properties);
 	}
@@ -129,7 +129,7 @@ public class StructrApp implements App {
 		final CreateNodeCommand command    = command(CreateNodeCommand.class);
 
 		// add type information when creating a node
-		attrs.add(new NodeAttribute(AbstractNode.type, type));
+		attrs.add(new NodeAttribute(Traits.typeProperty(), type));
 
 		return command.execute(attrs);
 	}
@@ -444,7 +444,7 @@ public class StructrApp implements App {
 		return typeIdMap.get(type);
 	}
 
-	public static Class resolveSchemaId(final URI uri) {
+	public static String resolveSchemaId(final URI uri) {
 		return schemaIdMap.get(uri);
 	}
 
@@ -549,6 +549,7 @@ public class StructrApp implements App {
 
 	public static void initializeSchemaIds() {
 
+		/*
 		final Map<String, Class> interfaces                                = StructrApp.getConfiguration().getInterfaces();
 		final Map<String, Class<? extends NodeInterface>> nodeTypes        = StructrApp.getConfiguration().getNodeEntities();
 		final Map<String, Class<? extends RelationshipInterface>> relTypes = StructrApp.getConfiguration().getRelationshipEntities();
@@ -583,6 +584,7 @@ public class StructrApp implements App {
 				registerType(type);
 			}
 		}
+		*/
 	}
 
 	// ----- private static methods -----

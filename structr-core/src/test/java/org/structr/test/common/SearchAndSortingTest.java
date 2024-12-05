@@ -40,7 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.GroupTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;

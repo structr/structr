@@ -5,7 +5,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
 import java.util.LinkedList;

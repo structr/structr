@@ -19,6 +19,7 @@
 package org.structr.core.traits;
 
 import org.structr.core.entity.*;
+import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.core.traits.relationships.*;
 
@@ -34,7 +35,6 @@ public class StructrBaseTraits {
 
 		StructrBaseTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
 		StructrBaseTraits.registerRelationshipType("Security",                          new SecurityRelationshipDefinition());
-		StructrBaseTraits.registerRelationshipType("PrincipalFAVORITEFavoritable",      new PrincipalFAVORITEFavoritableDefinition());
 		StructrBaseTraits.registerRelationshipType("PrincipalSchemaGrantRelationship",  new PrincipalSchemaGrantRelationshipDefinition());
 		StructrBaseTraits.registerRelationshipType("GroupCONTAINSPrincipal",            new GroupContainsPrincipalDefinition());
 		StructrBaseTraits.registerRelationshipType("SchemaExcludedViewProperty",        new SchemaExcludedViewPropertyDefinition());
@@ -50,22 +50,20 @@ public class StructrBaseTraits {
 
 		StructrBaseTraits.registerBaseTypes();
 
-		StructrBaseTraits.registerNodeType("Principal", new PrincipalTraitDefinition());
-
-		// group extends principal
-		StructrBaseTraits.registerNodeType("Group",
-			new PrincipalTraitDefinition(),
-			new GroupTraitDefinition()
-		);
+		StructrBaseTraits.registerNodeType("Principal",    new PrincipalTraitDefinition());
+		StructrBaseTraits.registerNodeType("Group",        new PrincipalTraitDefinition(), new GroupTraitDefinition());
+		StructrBaseTraits.registerNodeType("Localization", new LocalizationTraitDefinition());
+		StructrBaseTraits.registerNodeType("Location",     new LocationTraitDefinition());
+		StructrBaseTraits.registerNodeType("MailTemplate", new MailTemplateTraitDefinition());
+		StructrBaseTraits.registerNodeType("Person",       new PersonTraitDefinition());
 
 		// core interfaces
-		StructrBaseTraits.registerNodeType("Favoritable",           new FavoritableTraitDefinition());
 
 		// core types
-		StructrBaseTraits.registerNodeType("CorsSetting",           new CorsSettingDefinition());
-		StructrBaseTraits.registerNodeType("ResourceAccess",        new ResourceAccessDefinition("ResourceAccess"));
-		StructrBaseTraits.registerNodeType("DynamicResourceAccess", new ResourceAccessDefinition("DynamicResourceAccess"));
-		StructrBaseTraits.registerNodeType("SessionDataNode",       new SessionDataNodeDefinition());
+		StructrBaseTraits.registerNodeType("CorsSetting",           new CorsSettingTraitDefinition());
+		StructrBaseTraits.registerNodeType("ResourceAccess",        new ResourceAccessTraitDefinition("ResourceAccess"));
+		StructrBaseTraits.registerNodeType("DynamicResourceAccess", new ResourceAccessTraitDefinition("DynamicResourceAccess"));
+		StructrBaseTraits.registerNodeType("SessionDataNode",       new SessionDataNodeTraitDefinition());
 	}
 
 	private static void registerBaseTypes() {

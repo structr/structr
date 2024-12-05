@@ -20,7 +20,7 @@ package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;

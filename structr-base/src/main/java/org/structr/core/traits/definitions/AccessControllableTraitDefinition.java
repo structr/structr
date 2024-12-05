@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,6 +35,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
@@ -43,7 +46,7 @@ import org.structr.core.traits.operations.graphobject.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AccessControllableTraitDefinition extends AbstractTraitDefinition {
+public final class AccessControllableTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AccessControllableTraitDefinition.class);
 	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
@@ -302,6 +305,11 @@ public class AccessControllableTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
@@ -506,6 +514,7 @@ public class AccessControllableTraitDefinition extends AbstractTraitDefinition {
 
 		for (final String type : degree.keySet()) {
 
+			/*
 			final Class propagatingType = StructrApp.getConfiguration().getRelationshipEntityClass(type);
 
 			if (propagatingType != null && PermissionPropagation.class.isAssignableFrom(propagatingType)) {
@@ -556,6 +565,7 @@ public class AccessControllableTraitDefinition extends AbstractTraitDefinition {
 					logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 				}
 			}
+			*/
 		}
 
 		return false;

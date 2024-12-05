@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GroupTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;

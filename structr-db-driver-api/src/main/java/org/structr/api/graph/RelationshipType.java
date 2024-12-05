@@ -24,4 +24,8 @@ package org.structr.api.graph;
 public interface RelationshipType {
 
 	String name();
+
+	static RelationshipType forName(final String name) {
+		return null;
+	}
 }

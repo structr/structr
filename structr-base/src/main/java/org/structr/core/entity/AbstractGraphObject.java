@@ -314,8 +314,8 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
-		return typeHandler.getMethod(GetPropertySet.class).getPropertySet(this, propertyView);
+	public Set<PropertyKey> getFullPropertySet() {
+		return typeHandler.getMethod(GetPropertySet.class).getAllPropertyKeys(this);
 	}
 
 	/**

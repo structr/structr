@@ -1,7 +1,7 @@
-package org.structr.core.traits;
+package org.structr.core.traits.wrappers;
 
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
 public abstract class AbstractTraitWrapper<T extends GraphObject> {
 

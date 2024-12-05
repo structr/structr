@@ -37,6 +37,7 @@ import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.SourceFile;

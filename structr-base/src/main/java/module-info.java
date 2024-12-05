@@ -110,6 +110,7 @@ module structr.base {
 	requires org.apache.poi.poi;
 	requires org.glassfish.jaxb.runtime;
 	requires org.eclipse.jgit;
+	requires api.all;
 
 	exports org.structr;
     exports org.structr.agent;
@@ -224,5 +225,6 @@ module structr.base {
 	exports org.structr.core.traits.relationships;
     exports org.structr.core.traits.nodes;
     exports org.structr.core.traits.wrappers;
+	exports org.structr.core.traits.definitions;
 
 }

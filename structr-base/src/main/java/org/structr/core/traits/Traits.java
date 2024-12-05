@@ -18,9 +18,11 @@
  */
 package org.structr.core.traits;
 
+import org.structr.api.Predicate;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
@@ -32,16 +34,17 @@ import java.util.*;
 public class Traits {
 
 	private static final Map<String, Traits> globalTraitMap    = new LinkedHashMap<>();
-	private static final Map<String, TraitDefinition> types    = new LinkedHashMap<>();
 	private static PropertyKey<Date> cachedCreatedDateProperty = null;
 	private static PropertyKey<String> cachedNameProperty      = null;
 	private static PropertyKey<String> cachedTypeProperty      = null;
 	private static PropertyKey<String> cachedIdProperty        = null;
 
+	private final Map<String, TraitDefinition> types              = new LinkedHashMap<>();
 	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
-	private final Map<Class, NodeTraitFactory> traitFactories         = new LinkedHashMap<>();
+	private final Map<Class, NodeTraitFactory> traitFactories     = new LinkedHashMap<>();
 	private final Map<Class, Set> composableMethods               = new LinkedHashMap<>();
 	private final Map<String, PropertyKey> propertyKeys           = new LinkedHashMap<>();
+	private final Map<String, Set<String>> views                  = new LinkedHashMap<>();
 
 	private final boolean isNodeType;
 	private final String typeName;
@@ -91,7 +94,7 @@ public class Traits {
 	 *
 	 * @return
 	 */
-	public Set<PropertyKey> getFullPropertySet() {
+	public Set<PropertyKey> getAllPropertyKeys() {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
@@ -101,6 +104,23 @@ public class Traits {
 		}
 
 		return set;
+	}
+
+	/**
+	 * Returns the combined property set of all traits that
+	 * this type contains.
+	 *
+	 * @return
+	 */
+	public Set<PropertyKey> getViewPropertyKeys(final String propertyView) {
+
+		final Set<String> view = views.get(propertyView);
+		if (view != null) {
+
+			return new LinkedHashSet<>(view.stream().map(propertyKeys::get).toList());
+		}
+
+		return Set.of();
 	}
 
 	public <T> Set<T> getMethods(final Class<T> type) {
@@ -150,7 +170,12 @@ public class Traits {
 		for (final PropertyKey key : trait.getPropertyKeys()) {
 
 			propertyKeys.put(key.jsonName(), key);
+
+			key.setDeclaringTrait(trait);
 		}
+
+		// views
+
 
 		// trait implementations
 		this.traitFactories.putAll(trait.getNodeTraitFactories());
@@ -166,6 +191,21 @@ public class Traits {
 	// ----- static methods -----
 	public static Traits of(final String name) {
 		return globalTraitMap.get(name);
+	}
+
+	public static Set<String> getAllTypes(final Predicate<Traits> filter) {
+
+		final Set<String> types = new LinkedHashSet<>();
+
+		for (final Traits trait : globalTraitMap.values()) {
+
+			if (filter == null || filter.accept(trait)) {
+
+				types.add(trait.getName());
+			}
+		}
+
+		return types;
 	}
 
 	public static <T> PropertyKey<T> key(final String type, final String name) {
@@ -214,5 +254,13 @@ public class Traits {
 		}
 
 		return cachedCreatedDateProperty;
+	}
+
+	public boolean isInterface() {
+		return false;
+	}
+
+	public boolean isAbstract() {
+		return false;
 	}
 }

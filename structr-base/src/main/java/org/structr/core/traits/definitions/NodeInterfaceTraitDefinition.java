@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
@@ -30,6 +30,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
@@ -37,7 +39,7 @@ import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 import java.util.Map;
 import java.util.Set;
 
-public class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
+public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 
 	// properties
 	private static final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed().partOfBuiltInSchema();

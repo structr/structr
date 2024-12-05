@@ -27,13 +27,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Comparator;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Base interface for typed property keys.

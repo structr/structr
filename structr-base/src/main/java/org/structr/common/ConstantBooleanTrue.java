@@ -22,8 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.schema.Transformer;
 
 /**

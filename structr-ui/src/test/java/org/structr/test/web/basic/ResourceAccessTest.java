@@ -30,7 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.ResourceAccessDefinition;
+import org.structr.core.entity.ResourceAccessTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -517,12 +517,12 @@ public class ResourceAccessTest extends StructrUiTest {
 		final PropertyMap properties = new PropertyMap();
 		final App app = StructrApp.getInstance();
 
-		properties.put(ResourceAccessDefinition.signature, signature);
-		properties.put(ResourceAccessDefinition.flags, flags);
+		properties.put(ResourceAccessTraitDefinition.signature, signature);
+		properties.put(ResourceAccessTraitDefinition.flags, flags);
 
 		try {
 
-			ResourceAccess access = app.create(ResourceAccessDefinition.class, properties);
+			ResourceAccess access = app.create(ResourceAccessTraitDefinition.class, properties);
 
 			return access;
 
@@ -540,7 +540,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccessTraitDefinition.class).getAsList()) {
 				app.delete(access);
 			}
 

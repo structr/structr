@@ -243,12 +243,12 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public Node getPropertyContainer() {
-		return null;
+		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public Set<PropertyKey> getFullPropertySet(final String propertyView) {
-		return Set.of();
+	public Set<PropertyKey> getFullPropertySet() {
+		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override

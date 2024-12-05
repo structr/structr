@@ -29,13 +29,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
-import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
 import java.net.URI;
@@ -54,8 +52,8 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 	}
 
 	@Override
-	public Iterable<Favoritable> getFavorites() {
-		return wrappedObject.getProperty(traits.key("favorites"));
+	public Iterable<NodeInterface> getOwnedNodes() {
+		return wrappedObject.getProperty(traits.key("ownedNodes"));
 	}
 
 	@Override
@@ -85,11 +83,6 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 
 	public boolean isBlocked() {
 		return wrappedObject.getProperty(traits.key("blocked"));
-	}
-
-	@Override
-	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("favorites"), favorites);
 	}
 
 	@Override

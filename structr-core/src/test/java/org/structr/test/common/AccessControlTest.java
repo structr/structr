@@ -41,6 +41,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.core.entity.TestOne;
 import org.structr.web.entity.User;
@@ -1688,7 +1689,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccessTraitDefinition.class).getAsList()) {
 				app.delete(access);
 			}
 

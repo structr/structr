@@ -6,7 +6,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
 import java.util.Arrays;

@@ -30,7 +30,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.AbstractTraitDefinition;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -45,7 +46,6 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> favoritesProperty    = new EndNodes("favorites", "PrincipalFAVORITEFavoritable");
 	private static final Property<Iterable<NodeInterface>> groupsProperty       = new StartNodes("groups", "GroupCONTAINSPrincipal");
 	private static final Property<Iterable<NodeInterface>> ownedNodesProperty   = new EndNodes("ownedNodes", "PrincipalOwnsNode").partOfBuiltInSchema();
 	private static final Property<Iterable<NodeInterface>> grantedNodesProperty = new EndNodes("grantedNodes", "SecurityRelationship").partOfBuiltInSchema();
@@ -135,6 +135,11 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
@@ -147,7 +152,6 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 
 		return Set.of(
 
-			favoritesProperty,
 			groupsProperty,
 			ownedNodesProperty,
 			grantedNodesProperty,

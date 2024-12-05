@@ -16,22 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.Map;
 import java.util.Set;
 
-import static org.structr.core.traits.GraphObjectTraitDefinition.SYSTEM_CATEGORY;
+import static org.structr.core.traits.definitions.GraphObjectTraitDefinition.SYSTEM_CATEGORY;
 
 /**
  */
-public class AbstractRelationshipTraitDefinition extends AbstractTraitDefinition {
+public final class AbstractRelationshipTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 	private static final Property<String>        relType            = new RelationshipTypeProperty();

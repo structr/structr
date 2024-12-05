@@ -16,15 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits.definitions;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.AbstractTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -35,7 +37,7 @@ import java.util.Set;
 
 /**
  */
-public class GroupTraitDefinition extends AbstractTraitDefinition {
+public final class GroupTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", "GroupCONTAINSPrincipal").partOfBuiltInSchema();
 	private static final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique().partOfBuiltInSchema();
@@ -81,6 +83,11 @@ public class GroupTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
 		return Map.of();
 	}
 

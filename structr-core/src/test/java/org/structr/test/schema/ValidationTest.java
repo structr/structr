@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestTwelve;

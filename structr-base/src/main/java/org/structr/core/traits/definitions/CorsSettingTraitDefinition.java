@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits.definitions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +24,10 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
-import org.structr.core.traits.AbstractTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -39,9 +40,9 @@ import java.util.Set;
  *
  * These settings overwrite the system default and the settings defined in {@see Settings.java}.
  */
-public class CorsSettingDefinition extends AbstractTraitDefinition {
+public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Logger logger                                = LoggerFactory.getLogger(CorsSettingDefinition.class.getName());
+	private static final Logger logger                                = LoggerFactory.getLogger(CorsSettingTraitDefinition.class.getName());
 
 	/** Request URL that has to match */
 	private static final Property<String>               requestUri          = new StringProperty("requestUri").indexed();
@@ -66,7 +67,7 @@ public class CorsSettingDefinition extends AbstractTraitDefinition {
 
 	private static final Property<Boolean>              isCorsSetting   = new ConstantBooleanProperty("isCorsSetting", true);
 
-	public CorsSettingDefinition() {
+	public CorsSettingTraitDefinition() {
 		super("CorsSetting");
 	}
 
@@ -90,7 +91,7 @@ public class CorsSettingDefinition extends AbstractTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					return ValidationHelper.isValidStringNotBlank(obj,  CorsSettingDefinition.requestUri, errorBuffer);
+					return ValidationHelper.isValidStringNotBlank(obj,  CorsSettingTraitDefinition.requestUri, errorBuffer);
 				}
 			}
 		);
@@ -98,6 +99,11 @@ public class CorsSettingDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
 		return Map.of();
 	}
 

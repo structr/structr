@@ -29,6 +29,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.property.Property;
+import org.structr.core.traits.Traits;
 
 /**
  *
@@ -83,9 +84,10 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
 			if (outgoingRel != null) {
 
-				final Relation relation = outgoingRel.getRelation();
+				final Relation relation   = outgoingRel.getRelation();
+				final Traits targetTraits = Traits.of(relation.getTargetType());
 
-				if (SearchCommand.isTypeAssignableFromOtherType(targetType, relation.getTargetType())) {
+				if (targetTraits.contains(targetType)) {
 
 					app.delete(outgoingRel);
 				}

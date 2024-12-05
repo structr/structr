@@ -30,7 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.io.Reader;
 import java.io.StringReader;

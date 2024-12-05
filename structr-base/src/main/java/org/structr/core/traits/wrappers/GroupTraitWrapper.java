@@ -25,7 +25,6 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
 import java.util.List;

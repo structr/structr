@@ -24,7 +24,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;

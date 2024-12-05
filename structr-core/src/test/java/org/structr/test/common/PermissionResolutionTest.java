@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -633,7 +634,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
+			for (final ResourceAccess access : app.nodeQuery(ResourceAccessTraitDefinition.class).getAsList()) {
 				app.delete(access);
 			}
 

@@ -116,8 +116,8 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public Set<PropertyKey> getFullPropertySet(String propertyView) {
-		return Set.of();
+	public Set<PropertyKey> getFullPropertySet() {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

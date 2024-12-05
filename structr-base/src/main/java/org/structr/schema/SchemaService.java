@@ -42,7 +42,7 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.AccessControllableTraitDefinition;
+import org.structr.core.traits.definitions.AccessControllableTraitDefinition;
 import org.structr.schema.compiler.*;
 import org.structr.schema.export.StructrSchema;
 
