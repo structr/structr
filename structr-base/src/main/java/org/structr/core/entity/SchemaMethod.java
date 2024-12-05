@@ -1,6 +1,7 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.action.ActionEntry;
@@ -9,7 +10,7 @@ import java.util.Map;
 
 public interface SchemaMethod extends NodeTrait {
 
-	Iterable<SchemaMethodParameter> getParameters();
+	Iterable<NodeInterface> getParameters();
 
 	ActionEntry getActionEntry(Map<String, SchemaNode> schemaNodes, AbstractSchemaNode schemaEntity) throws FrameworkException;
 

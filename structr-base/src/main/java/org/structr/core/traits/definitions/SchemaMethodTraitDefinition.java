@@ -24,6 +24,7 @@ import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
@@ -44,7 +45,7 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	private static final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters").partOfBuiltInSchema();
-	private static final Property<AbstractSchemaNode> schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType)).partOfBuiltInSchema();
+	private static final Property<NodeInterface> schemaNode                   = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), SchemaNode.isBuiltinType)).partOfBuiltInSchema();
 	private static final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
 	private static final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
 	private static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
@@ -300,34 +301,6 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 		super.onNodeDeletion(securityContext);
 		AbstractSchemaNode.clearCachedSchemaMethods();
-	}
-
-	@Override
-	public boolean reloadSchemaOnCreate() {
-		return true;
-	}
-
-	@Override
-	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
-
-		if (isJava()) {
-			return true;
-		}
-
-		final Set<PropertyKey> modifiedProperties = modificationQueue.getModifiedProperties();
-		for (final PropertyKey triggerKey : schemaRebuildTriggerKeys) {
-
-			if (modifiedProperties.contains(triggerKey)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean reloadSchemaOnDelete() {
-		return true;
 	}
 
 	public SchemaMethodParameter getSchemaMethodParameter(final String name) {

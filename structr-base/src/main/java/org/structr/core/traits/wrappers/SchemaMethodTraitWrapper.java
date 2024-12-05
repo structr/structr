@@ -3,7 +3,6 @@ package org.structr.core.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
@@ -19,8 +18,8 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
-	public Iterable<SchemaMethodParameter> getParameters() {
-		return null;
+	public Iterable<NodeInterface> getParameters() {
+		return wrappedObject.getProperty(traits.key("parameters"));
 	}
 
 	@Override

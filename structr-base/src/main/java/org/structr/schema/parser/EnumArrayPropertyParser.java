@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.EnumArrayProperty;
-import org.structr.core.property.EnumProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
