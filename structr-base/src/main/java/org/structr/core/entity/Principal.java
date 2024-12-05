@@ -42,14 +42,13 @@ public interface Principal extends NodeTrait {
 	String getUuid();
 	String getName();
 
-	Iterable<Favoritable> getFavorites();
+	Iterable<NodeInterface> getOwnedNodes();
 	Iterable<Group> getGroups();
 	String getSessionData();
 	String getEMail();
 	void setSessionData(final String sessionData) throws FrameworkException;
 	boolean isAdmin();
 	boolean isBlocked();
-	void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException;
 	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
 	void setPassword(final String password) throws FrameworkException;
 	void setEMail(final String eMail) throws FrameworkException;

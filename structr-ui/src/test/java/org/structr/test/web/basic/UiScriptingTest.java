@@ -47,6 +47,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;

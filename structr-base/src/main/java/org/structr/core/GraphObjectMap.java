@@ -57,10 +57,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void init(final SecurityContext securityContext, final PropertyContainer dbObject, final String type, final long sourceTransactionId) {
-	}
-
-	@Override
 	public Traits getTraits() {
 		return null;
 	}
@@ -224,8 +220,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Set<PropertyKey> getFullPropertySet(String propertyView) {
-		return Set.of();
+	public Set<PropertyKey> getFullPropertySet() {
+		return properties.keySet();
 	}
 
 	@Override

@@ -137,6 +137,11 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
 	protected void updateCache() {
 		db.updateCache(this);
 	}

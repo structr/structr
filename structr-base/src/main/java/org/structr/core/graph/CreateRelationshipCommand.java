@@ -21,10 +21,7 @@ package org.structr.core.graph;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
@@ -104,7 +101,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 		// collect default values and try to set them on creation
-		for (final PropertyKey key : traits.getFullPropertySet()) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 

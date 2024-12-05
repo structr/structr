@@ -23,13 +23,12 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Date;
 

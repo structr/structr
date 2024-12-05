@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,13 +44,16 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.propertycontainer.*;
 
 import java.util.*;
 
-public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
+public final class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitDefinition.class);
 
@@ -81,12 +84,12 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 			new GetPropertySet() {
 
 				@Override
-				public Set<PropertyKey> getPropertySet(final GraphObject graphObject, final String propertyView) {
+				public Set<PropertyKey> getAllPropertyKeys(final GraphObject graphObject) {
 
-					final Traits traits = graphObject.getTraits();
+					final Traits traits         = graphObject.getTraits();
 					final Set<PropertyKey> keys = new LinkedHashSet<>();
 
-					for (final PropertyKey k : traits.getFullPropertySet(propertyView)) {
+					for (final PropertyKey k : traits.getAllPropertyKeys()) {
 
 						keys.add(k);
 					}
@@ -107,7 +110,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					if (securityContext != null && securityContext.hasCustomView()) {
 
 						final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-						final Set<PropertyKey> keys  = new LinkedHashSet<>(graphObject.getFullPropertySet(view));
+						final Set<PropertyKey> keys  = new LinkedHashSet<>(graphObject.getPropertyKeys(view));
 						final Set<String> customView = securityContext.getCustomView();
 
 						for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
@@ -122,7 +125,7 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 					}
 
 					// this is the default if no application/json; properties=[...] content-type header is present on the request
-					return graphObject.getFullPropertySet(propertyView);
+					return graphObject.getPropertyKeys(propertyView);
 				}
 			},
 
@@ -294,6 +297,11 @@ public class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
 				}
 			}
 		);
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
 	}
 
 	@Override

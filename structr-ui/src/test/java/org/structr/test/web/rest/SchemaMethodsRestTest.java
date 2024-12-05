@@ -68,10 +68,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create(ResourceAccessDefinition.class,
-				new NodeAttribute<>(ResourceAccessDefinition.signature, "myTestMethod01"),
-				new NodeAttribute<>(ResourceAccessDefinition.flags, 64L),
-				new NodeAttribute<>(ResourceAccessDefinition.visibleToPublicUsers, true)
+			app.create(ResourceAccessTraitDefinition.class,
+				new NodeAttribute<>(ResourceAccessTraitDefinition.signature, "myTestMethod01"),
+				new NodeAttribute<>(ResourceAccessTraitDefinition.flags, 64L),
+				new NodeAttribute<>(ResourceAccessTraitDefinition.visibleToPublicUsers, true)
 			);
 
 			tx.success();

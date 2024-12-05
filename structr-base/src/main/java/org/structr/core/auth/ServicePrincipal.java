@@ -18,15 +18,17 @@
  */
 package org.structr.core.auth;
 
-import org.structr.api.graph.PropertyContainer;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.schema.NonIndexed;
 
 import java.util.*;
@@ -49,21 +51,17 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
+	public NodeInterface getWrappedNode() {
+		return null;
+	}
+
+	@Override
 	public String getType() {
 		return "ServicePrincipal";
 	}
 
 	@Override
-	public int compareTo(final Object other) {
-
-		// provoke ClassCastException
-		final ServicePrincipal u = (ServicePrincipal)other;
-
-		return getUuid().compareTo(u.getUuid());
-	}
-
-	@Override
-	public Iterable<Favoritable> getFavorites() {
+	public Iterable<NodeInterface> getOwnedNodes() {
 		return Collections.EMPTY_LIST;
 	}
 
@@ -89,9 +87,14 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 				try {
 
+					final PropertyKey<String> jwksReferenceIdKey = Traits.of("Principal").key("jwksReferenceId");
+
 					for (final String id : jwksReferenceIds) {
 
-						groups.addAll(StructrApp.getInstance().nodeQuery(GroupTraitDefinition.class).and(StructrApp.key(GroupTraitDefinition.class, "jwksReferenceId"), id).getAsList());
+						for (final NodeInterface node : StructrApp.getInstance().nodeQuery("Group").and(jwksReferenceIdKey, id).getResultStream()) {
+
+							groups.add(node.as(Group.class));
+						}
 					}
 
 				} catch (FrameworkException fex) {
@@ -131,6 +134,56 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	@Override
 	public String getTwoFactorUrl() {
 		return null;
+	}
+
+	@Override
+	public void setTwoFactorConfirmed(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setTwoFactorToken(String token) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorUser() {
+		return false;
+	}
+
+	@Override
+	public void setIsTwoFactorUser(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorConfirmed() {
+		return false;
+	}
+
+	@Override
+	public Integer getPasswordAttempts() {
+		return 0;
+	}
+
+	@Override
+	public Date getPasswordChangeDate() {
+		return null;
+	}
+
+	@Override
+	public void setPasswordAttempts(int num) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setLastLoginDate(Date date) throws FrameworkException {
+
+	}
+
+	@Override
+	public String[] getSessionIds() {
+		return new String[0];
 	}
 
 	@Override
@@ -185,10 +238,6 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public void setFavorites(Iterable<Favoritable> favorites) throws FrameworkException {
-	}
-
-	@Override
 	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
 	}
 
@@ -216,18 +265,58 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends RelationshipInterface<A, B>> Iterable<R> getRelationshipsAsSuperUser(Class<R> type) {
-		return null;
-	}
-
-	@Override
 	public Principal getOwnerNode() {
 		return null;
 	}
 
 	@Override
+	public boolean allowedBySchema(Principal principal, Permission permission) {
+		return false;
+	}
+
+	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext) {
 		return false;
+	}
+
+	@Override
+	public void grant(Permission permission, Principal principal) throws FrameworkException {
+
+	}
+
+	@Override
+	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
+
+	}
+
+	@Override
+	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
+	}
+
+	@Override
+	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+
+	}
+
+	@Override
+	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
+
+	}
+
+	@Override
+	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+
 	}
 
 	@Override
@@ -241,19 +330,29 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
-	public String getUuid() {
-		return (String)data.get("id");
+	public boolean isHidden() {
+		return false;
 	}
 
 	@Override
-	public PropertyContainer getPropertyContainer() {
+	public Date getCreatedDate() {
 		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
+	}
+
+	@Override
+	public String getUuid() {
+		return (String)data.get("id");
 	}
 
 	// ----- private methods -----
 	private boolean recursivelyCheckForAdminPermissions(final Iterable<Group> parents) {
 
-		for (final GroupTraitDefinition parent : parents) {
+		for (final Group parent : parents) {
 
 			if (parent.isAdmin()) {
 				return true;

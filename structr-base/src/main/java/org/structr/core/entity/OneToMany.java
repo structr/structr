@@ -29,6 +29,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 
 /**
  *
@@ -84,8 +85,9 @@ public abstract class OneToMany extends AbstractRelation implements Relation<One
 			if (incomingRel != null) {
 
 				final Relation relation = incomingRel.getRelation();
+				final Traits sourceTraits = Traits.of(relation.getSourceType());
 
-				if (SearchCommand.isTypeAssignableFromOtherType(sourceType, relation.getSourceType())) {
+				if (sourceTraits.contains(sourceType)) {
 
 					app.delete(incomingRel);
 				}

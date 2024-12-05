@@ -63,7 +63,7 @@ public interface GraphObject {
 
 	// property container methods
 	PropertyContainer getPropertyContainer();
-	Set<PropertyKey> getFullPropertySet(final String propertyView);
+	Set<PropertyKey> getFullPropertySet();
 	Set<PropertyKey> getPropertyKeys(final String propertyView);
 	long getSourceTransactionId();
 	<T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;

@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
-import org.structr.core.traits.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -39,7 +39,7 @@ import java.util.Set;
  * Storage object for session data.
  */
 
-public class SessionDataNodeDefinition extends AbstractTraitDefinition {
+public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Property<String>               sessionIdProperty    = new StringProperty("sessionId").indexed();
 	private static final Property<String>               contextPathProperty  = new StringProperty("cpath");
@@ -47,7 +47,7 @@ public class SessionDataNodeDefinition extends AbstractTraitDefinition {
 	private static final Property<Date>                 lastAccessedProperty = new DateProperty("lastAccessed").indexed();
 	private static final Property<Long>                 versionProperty      = new LongProperty("version");
 
-	public SessionDataNodeDefinition() {
+	public SessionDataNodeTraitDefinition() {
 		super("SessionDataNode");
 	}
 

@@ -16,27 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.wrappers;
 
-import org.structr.core.entity.Relation;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.MailTemplate;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
-public abstract class AbstractTraitDefinition implements TraitDefinition {
+public class MailTemplateTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements MailTemplate {
 
-	protected final String name;
-
-	public AbstractTraitDefinition(final String name) {
-		this.name = name;
+	public MailTemplateTraitWrapper(Traits traits, NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Override
-	public String getName() {
-		return name;
+	public String getText() {
+		return wrappedObject.getProperty(traits.key("text"));
 	}
 
-	protected Relation getRelationForType(final String type) {
+	public String getLocale() {
+		return wrappedObject.getProperty(traits.key("locale"));
+	}
 
-		final Traits traits = Traits.of(type);
-
-		return traits.getRelation();
+	public void setLocale(final String locale) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("locale"), locale);
 	}
 }

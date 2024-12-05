@@ -21,6 +21,7 @@ package org.structr.console.tabcompletion;
 import org.structr.common.SecurityContext;
 import org.structr.console.rest.RestCommand;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -43,9 +44,5 @@ public class RestTabCompletionProvider extends AbstractTabCompletionProvider {
 		Collections.sort(results);
 
 		return results;
-	}
-
-	private Set<String> getNodeTypes() {
-		return StructrApp.getConfiguration().getNodeEntities().keySet();
 	}
 }

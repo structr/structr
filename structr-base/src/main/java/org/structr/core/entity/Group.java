@@ -2,9 +2,8 @@ package org.structr.core.entity;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
 
-public interface Group extends NodeTrait {
+public interface Group extends Principal {
 
 	Iterable<Principal> getMembers();
 	void addMember(final SecurityContext securityContext, final Principal user) throws FrameworkException;

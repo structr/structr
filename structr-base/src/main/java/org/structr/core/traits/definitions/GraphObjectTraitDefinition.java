@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +31,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AddToIndex;
@@ -133,6 +135,11 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 				}
 			}
 		);
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
 	}
 
 	@Override

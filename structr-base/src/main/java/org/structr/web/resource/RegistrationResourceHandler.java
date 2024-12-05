@@ -42,7 +42,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Person;
+import org.structr.core.entity.PersonTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
@@ -277,7 +277,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -294,7 +294,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -312,7 +312,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -330,7 +330,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -349,7 +349,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
 	 *
 	 * @param securityContext

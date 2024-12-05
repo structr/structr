@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits;
+package org.structr.core.traits.definitions;
 
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
-import static org.structr.core.traits.GraphObjectTraitDefinition.SYSTEM_CATEGORY;
+import static org.structr.core.traits.definitions.GraphObjectTraitDefinition.SYSTEM_CATEGORY;
 
 public abstract class RelationshipTraitDefinition extends AbstractTraitDefinition {
 

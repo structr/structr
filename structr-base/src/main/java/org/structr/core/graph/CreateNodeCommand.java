@@ -28,7 +28,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.common.Permission;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -159,7 +158,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 			// collect default values and try to set them on creation
-			for (final PropertyKey key : nodeType.getFullPropertySet()) {
+			for (final PropertyKey key : nodeType.getAllPropertyKeys()) {
 
 				if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 

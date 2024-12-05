@@ -36,15 +36,13 @@ import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.*;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 
 import java.util.*;
 

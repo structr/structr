@@ -24,7 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.property.*;
-import org.structr.core.traits.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -67,7 +67,7 @@ import java.util.Set;
  *
  *
  */
-public class ResourceAccessDefinition extends AbstractTraitDefinition {
+public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Property<String>               signature          = new StringProperty("signature").indexed().partOfBuiltInSchema();
 	private static final Property<Long>                 flags              = new LongProperty("flags").indexed().partOfBuiltInSchema();
@@ -83,7 +83,7 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 	);
 	*/
 
-	public ResourceAccessDefinition(final String name) {
+	public ResourceAccessTraitDefinition(final String name) {
 		super(name);
 	}
 
@@ -99,8 +99,8 @@ public class ResourceAccessDefinition extends AbstractTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidStringNotBlank(obj, ResourceAccessDefinition.signature, errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, ResourceAccessDefinition.flags, errorBuffer);
+					valid &= ValidationHelper.isValidStringNotBlank(obj, ResourceAccessTraitDefinition.signature, errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, ResourceAccessTraitDefinition.flags, errorBuffer);
 
 					return valid;
 				}

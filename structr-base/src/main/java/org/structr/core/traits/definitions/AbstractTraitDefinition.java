@@ -16,20 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits.definitions;
 
-import org.structr.common.error.ErrorBuffer;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.Traits;
 
-/**
- * An interface that locatable classes can implement to be notified
- * when properties of the Location entity change.
- */
-public interface Locatable {
+public abstract class AbstractTraitDefinition implements TraitDefinition {
 
-	/**
-	 * Notify object of a location change.
-	 *
-	 * @param errorBuffer
-	 */
-	public void locationChanged(final ErrorBuffer errorBuffer);
+	protected final String name;
+
+	public AbstractTraitDefinition(final String name) {
+		this.name = name;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	protected Relation getRelationForType(final String type) {
+
+		final Traits traits = Traits.of(type);
+
+		return traits.getRelation();
+	}
 }

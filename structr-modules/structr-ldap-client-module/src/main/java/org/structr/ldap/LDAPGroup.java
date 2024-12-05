@@ -18,7 +18,7 @@
  */
 package org.structr.ldap;
 
-import org.structr.core.entity.GroupTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 
 /**
  */

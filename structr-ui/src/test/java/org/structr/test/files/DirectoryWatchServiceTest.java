@@ -30,7 +30,7 @@ import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.ResourceAccessDefinition;
+import org.structr.core.entity.ResourceAccessTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
@@ -579,10 +579,10 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// set resource access flags to be able to POS to /Image
-			final ResourceAccess grant = app.nodeQuery(ResourceAccessDefinition.class).and(ResourceAccessDefinition.signature, "Image").getFirst();
+			final ResourceAccess grant = app.nodeQuery(ResourceAccessTraitDefinition.class).and(ResourceAccessTraitDefinition.signature, "Image").getFirst();
 			if (grant != null) {
 
-				grant.setProperty(ResourceAccessDefinition.flags, 4L);
+				grant.setProperty(ResourceAccessTraitDefinition.flags, 4L);
 				grant.setProperty(ResourceAccessDefinition.visibleToAuthenticatedUsers, true);
 
 			} else {

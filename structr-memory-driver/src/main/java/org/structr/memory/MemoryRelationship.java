@@ -99,6 +99,11 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 
 	}
 
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
 	public boolean isEqualTo(final MemoryRelationship rel) {
 		return rel.getSourceNodeIdentity().equals(sourceNode) && rel.getTargetNodeIdentity().equals(targetNode) && rel.getType().name().equals(relType.name());
 	}

@@ -21,7 +21,6 @@ package org.structr.core.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.AbstractTraitWrapper;
 import org.structr.core.traits.Traits;
 
 public class FavoritableTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Favoritable {
