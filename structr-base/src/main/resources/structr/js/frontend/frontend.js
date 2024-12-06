@@ -262,22 +262,27 @@ export class Frontend {
 		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth, delay;
 		let id = element.dataset.structrId;
 		const success = this.isSuccess(status);
+		const closeButton = '<a href="#" title="Close Notification" style="margin-left:0.25rem; font-size: 8pt" class="close-notification-button">✖</a>';
+
 
 		if (success) {
 			mode = element.dataset.structrSuccessNotifications;
+			delay = parseInt(element.dataset.structrSuccessNotificationsDelay);
 			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			if(delay <= 0) statusText = statusText + closeButton;
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
-			delay = element.dataset.structrSuccessNotificationsDelay;
 
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
 				elementWithError.style.borderColor = inputElementBorderColor || '';
 				elementWithError.style.borderWidth = inputElementBorderWidth || '';
 			}
+
 		} else {
 			mode = element.dataset.structrFailureNotifications;
-			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			delay = parseInt(element.dataset.structrFailureNotificationsDelay);
+			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message + ')' : ')');
+			if(delay <= 0) statusText = statusText + closeButton;
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
-			delay = element.dataset.structrFailureNotificationsDelay;
 
 			if (parameter?.errors?.length) {
 				for (const error of parameter.errors) {
@@ -308,10 +313,17 @@ export class Frontend {
 				// Clear all notification messages
 				document.querySelectorAll('.structr-event-action-notification').forEach(el => el.remove());
 				element.insertAdjacentHTML('afterend', statusHTML);
-				window.setTimeout(() => {
-					let notificationElement = document.getElementById('notification-for-' + id);
-					if (notificationElement) { notificationElement.remove(); }
-				}, delay);
+				if(delay > 0) {
+					window.setTimeout(() => {
+						let notificationElement = document.getElementById('notification-for-' + id);
+						if (notificationElement) { notificationElement.remove(); }
+					}, delay);
+				} else {
+					document.querySelector('#notification-for-' + id +' > a').addEventListener('click', (event) => {
+						event.target.parentElement.remove();
+					});
+				}
+
 				break;
 
 			case 'custom-dialog':
