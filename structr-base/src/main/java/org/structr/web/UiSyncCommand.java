@@ -104,13 +104,13 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final Folder folder : app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "includeInFrontendExport"), true).getAsList()) {
+			for (final Folder folder : app.nodeQuery("Folder").and(StructrApp.key(Folder.class, "includeInFrontendExport"), true).getAsList()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}
 
 			// collect pages (including files, shared components etc.)
-			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+			for (final Page page : app.nodeQuery("Page").getAsList()) {
 
 				collectDataRecursively(app, page, nodes, rels, filePaths);
 			}
@@ -131,7 +131,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		// import done, now the ShadowDocument needs some special care. :(
 		try (final Tx tx = app.tx()) {
 
-			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeHidden().getAsList();
+			final List<ShadowDocument> shadowDocuments = app.nodeQuery("ShadowDocument").includeHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
 				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.key(Page.class, "elements");

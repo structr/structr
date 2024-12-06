@@ -286,7 +286,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			// find all folders with storageConfigurations and try to mount them
-			for (final Folder folder : app.nodeQuery(Folder.class).not().blank(storageConfigurationKey).getAsList()) {
+			for (final Folder folder : app.nodeQuery("Folder").not().blank(storageConfigurationKey).getAsList()) {
 
 				mountFolder(folder);
 			}
@@ -573,7 +573,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					if (uuid == null || StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst() != null) {
+					if (uuid == null || StructrApp.getInstance().nodeQuery("Folder").uuid(uuid).getFirst() != null) {
 
 						canStart = true;
 						break;
@@ -609,7 +609,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 								try (final Tx tx = StructrApp.getInstance().tx()) {
 
-									final Folder rootFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst();
+									final Folder rootFolder = StructrApp.getInstance().nodeQuery("Folder").uuid(uuid).getFirst();
 									if (rootFolder != null) {
 
 										rootFolder.setProperty(lastScannedKey, System.currentTimeMillis());

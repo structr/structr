@@ -63,7 +63,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 
 		final SchemaNode typeNode;
 		try {
-			typeNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+			typeNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
 
 			if (typeNode != null) {
 

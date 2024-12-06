@@ -41,7 +41,7 @@ public class PagePaths {
 
 		if (requestLength > 0) {
 
-			for (final PagePath pathCandidate : app.nodeQuery(PagePath.class).getResultStream()) {
+			for (final PagePath pathCandidate : app.nodeQuery("PagePath").getResultStream()) {
 
 				final Map<String, Object> values = pathCandidate.tryResolvePath(requestParts);
 				if (values != null) {

@@ -176,7 +176,7 @@ public interface AbstractFile extends NodeInterface {
 
 		if (filePath != null) {
 
-			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(pathKey, filePath).getAsList();
+			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery("AbstractFile").and(pathKey, filePath).getAsList();
 			for (final AbstractFile file : files) {
 
 				if (!file.getUuid().equals(thisFile.getUuid())) {

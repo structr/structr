@@ -817,7 +817,7 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, src).getFirst();
+						template = (DOMNode)StructrApp.getInstance().nodeQuery("NodeInterface").and(GraphObject.id, src).getFirst();
 
 						if (template == null) {
 
@@ -829,7 +829,7 @@ public class Importer {
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
 						if (uuidAtEnd != null) {
 
-							template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuidAtEnd).getFirst();
+							template = (DOMNode)StructrApp.getInstance().nodeQuery("NodeInterface").and(GraphObject.id, uuidAtEnd).getFirst();
 
 							if (template == null) {
 
@@ -909,7 +909,7 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, src).getFirst();
+						component = app.nodeQuery("DOMNode").and(GraphObject.id, src).getFirst();
 
 					} else {
 
@@ -917,7 +917,7 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuidAtEnd).getFirst();
+							component = app.nodeQuery("DOMNode").and(GraphObject.id, uuidAtEnd).getFirst();
 
 						} else {
 
@@ -1274,7 +1274,7 @@ public class Importer {
 		final PropertyKey<Long> checksumKey = StructrApp.key(File.class, "checksum");
 		final PropertyKey<String> pathKey   = StructrApp.key(File.class, "path");
 
-		return app.nodeQuery(File.class).and(pathKey, path).and(checksumKey, checksum).getFirst();
+		return app.nodeQuery("File").and(pathKey, path).and(checksumKey, checksum).getFirst();
 	}
 
 	private Linkable downloadFile(final String downloadAddress, final URL base) {
@@ -1570,7 +1570,7 @@ public class Importer {
 		final PropertyKey<Page> ownerDocumentKey = StructrApp.key(DOMNode.class, "ownerDocument");
 		final PropertyKey<DOMNode> parentKey     = StructrApp.key(DOMNode.class, "parent");
 
-		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).and(ownerDocumentKey, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
+		for (final DOMNode n : StructrApp.getInstance().nodeQuery("DOMNode").andName(name).and(ownerDocumentKey, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {
@@ -1589,7 +1589,7 @@ public class Importer {
 
 		final PropertyKey<DOMNode> sharedComponentKey = StructrApp.key(DOMNode.class, "sharedComponent");
 
-		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).and().notBlank(AbstractNode.name).getAsList()) {
+		for (final DOMNode n : StructrApp.getInstance().nodeQuery("Template").andName(name).and().notBlank(AbstractNode.name).getAsList()) {
 
 			// IGNORE everything that REFERENCES a shared component!
 			if (n.getProperty(sharedComponentKey) == null) {

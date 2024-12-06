@@ -64,7 +64,7 @@ public class StructrURLConnection extends URLConnection {
 			try (final Tx tx = app.tx()) {
 
 				final String path = url.getPath();
-				final File file   = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), path).getFirst();
+				final File file   = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), path).getFirst();
 
 				if (file != null) {
 

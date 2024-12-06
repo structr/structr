@@ -71,7 +71,7 @@ public class IncludeChildFunction extends IncludeFunction {
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
-			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
+			final List<DOMNode> nodeList             = app.nodeQuery("DOMNode").andName((String)sources[0]).getAsList();
 
 			DOMNode node = null;
 

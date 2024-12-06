@@ -397,7 +397,7 @@ public interface Image extends File {
 
 			for (final String uuid : thumbnailUuids) {
 
-				final Image oldThumbnail = app.nodeQuery(Image.class).uuid(uuid).getFirst();
+				final Image oldThumbnail = app.nodeQuery("Image").uuid(uuid).getFirst();
 
 				if (oldThumbnail != null) {
 

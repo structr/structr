@@ -124,8 +124,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Set<String> blacklist                          = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
-		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
-		app.nodeQuery(SchemaRelationshipNode.class).getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n); });
+		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		app.nodeQuery("SchemaRelationshipNode").getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n); });
 
 		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
@@ -470,7 +470,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
-		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		// iterate
 		for (final SchemaNode schemaNode : schemaNodes.values()) {
@@ -482,7 +482,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
-		for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+		for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery("SchemaRelationshipNode").getAsList()) {
 
 			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaRelationship);
 			if (type != null) {

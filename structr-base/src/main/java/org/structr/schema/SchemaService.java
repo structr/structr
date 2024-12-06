@@ -182,7 +182,7 @@ public class SchemaService implements Service {
 						}
 
 						// collect list of schema nodes
-						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> {
+						app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> {
 							schemaNodes.put(n.getName(), n);
 						});
 
@@ -217,7 +217,7 @@ public class SchemaService implements Service {
 						}
 
 						// collect relationship classes
-						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery("SchemaRelationshipNode").getAsList()) {
 
 							final String sourceType = schemaRelationship.getSchemaNodeSourceType();
 							final String targetType = schemaRelationship.getSchemaNodeTargetType();

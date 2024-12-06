@@ -49,16 +49,21 @@ public class StructrBaseTraits {
 
 		StructrBaseTraits.registerBaseTypes();
 
-		StructrBaseTraits.registerNodeType("Principal",             new PrincipalTraitDefinition());
-		StructrBaseTraits.registerNodeType("Group",                 new PrincipalTraitDefinition(), new GroupTraitDefinition());
-		StructrBaseTraits.registerNodeType("Localization",          new LocalizationTraitDefinition());
-		StructrBaseTraits.registerNodeType("Location",              new LocationTraitDefinition());
-		StructrBaseTraits.registerNodeType("MailTemplate",          new MailTemplateTraitDefinition());
-		StructrBaseTraits.registerNodeType("Person",                new PersonTraitDefinition());
-		StructrBaseTraits.registerNodeType("SchemaGrant",           new SchemaGrantTraitDefinition());
-		StructrBaseTraits.registerNodeType("SchemaMethod",          new SchemaMethodTraitDefinition());
-		StructrBaseTraits.registerNodeType("SchemaMethodParameter", new SchemaMethodParameterTraitDefinition());
-		StructrBaseTraits.registerNodeType("SchemaNode",            new SchemaNodeTraitDefinition());
+		StructrBaseTraits.registerNodeType("Principal",              new PrincipalTraitDefinition());
+		StructrBaseTraits.registerNodeType("Group",                  new PrincipalTraitDefinition(), new GroupTraitDefinition());
+		StructrBaseTraits.registerNodeType("Localization",           new LocalizationTraitDefinition());
+		StructrBaseTraits.registerNodeType("Location",               new LocationTraitDefinition());
+		StructrBaseTraits.registerNodeType("MailTemplate",           new MailTemplateTraitDefinition());
+		StructrBaseTraits.registerNodeType("Person",                 new PersonTraitDefinition());
+
+		// schema
+		StructrBaseTraits.registerNodeType("SchemaGrant",            new SchemaGrantTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaMethod",           new SchemaMethodTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaMethodParameter",  new SchemaMethodParameterTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaNode",             new AbstractSchemaNodeTraitDefinition(), new SchemaNodeTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaRelationshipNode", new AbstractSchemaNodeTraitDefinition(), new SchemaRelationshipNodeTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaView",             new SchemaViewTraitDefinition());
+		StructrBaseTraits.registerNodeType("SchemaProperty",         new SchemaPropertyTraitDefinition());
 
 		// core interfaces
 

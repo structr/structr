@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -48,7 +49,7 @@ import java.util.Map.Entry;
 /**
  * @param <T>
  */
-public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
+public abstract class StructrTypeDefinition<T extends NodeInterface> implements JsonType, StructrDefinition {
 
 	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
@@ -998,9 +999,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final T schemaNode) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final T schemaNode) {
 
-		for (final SchemaProperty property : schemaNode.getProperty(AbstractSchemaNode.schemaProperties)) {
+		for (final NodeInterface property : schemaNode.getProperty(AbstractSchemaNode.schemaProperties)) {
 
 			final StructrPropertyDefinition propertyDefinition = StructrPropertyDefinition.deserialize(schemaNodes, this, property);
 			if (propertyDefinition != null) {
@@ -1009,7 +1010,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		for (final SchemaView view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
+		for (final NodeInterface view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
 
 			final Set<String> propertySet = new TreeSet<>();
 			for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
@@ -1038,7 +1039,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
+		for (final NodeInterface method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
 
 			final StructrMethodDefinition newMethod = StructrMethodDefinition.deserialize(this, method);
 			if (newMethod != null) {
@@ -1047,7 +1048,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		for (final SchemaGrant grant : schemaNode.getProperty(SchemaNode.schemaGrants)) {
+		for (final NodeInterface grant : schemaNode.getProperty(SchemaNode.schemaGrants)) {
 
 			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
 			if (newGrant != null) {
@@ -1057,7 +1058,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		// $extends
-		final SchemaNode extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		final NodeInterface extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (extendsClass != null) {
 
 			// we need to find out if the base type exists in the schema, or in the Structr base schema because the URLs differ
@@ -1138,9 +1139,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app) throws FrameworkException {
 
-		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
-		final PropertyMap createProperties                 = new PropertyMap();
-		final PropertyMap nodeProperties                   = new PropertyMap();
+		final Map<String, NodeInterface> schemaProperties = new TreeMap<>();
+		final PropertyMap createProperties                = new PropertyMap();
+		final PropertyMap nodeProperties                  = new PropertyMap();
 
 		// properties that always need to be set
 		createProperties.put(SchemaNode.isInterface, isInterface);
@@ -1155,7 +1156,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final StructrPropertyDefinition property : properties) {
 
-			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, newSchemaNode);
+			final NodeInterface schemaProperty = property.createDatabaseSchema(app, newSchemaNode);
 			if (schemaProperty != null) {
 
 				schemaProperties.put(schemaProperty.getName(), schemaProperty);
@@ -1165,12 +1166,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// create views and associate the properties
 		for (final Entry<String, Set<String>> view : views.entrySet()) {
 
-			final List<SchemaProperty> viewProperties = new LinkedList<>();
-			final List<String> nonGraphProperties     = new LinkedList<>();
+			final List<NodeInterface> viewProperties = new LinkedList<>();
+			final List<String> nonGraphProperties    = new LinkedList<>();
 
 			for (final String propertyName : view.getValue()) {
 
-				final SchemaProperty property = schemaProperties.get(propertyName);
+				final NodeInterface property = schemaProperties.get(propertyName);
 				if (property != null) {
 
 					viewProperties.add(property);
@@ -1181,7 +1182,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 
-			SchemaView viewNode = newSchemaNode.getSchemaView(view.getKey());
+			NodeInterface viewNode = newSchemaNode.getSchemaView(view.getKey());
 			if (viewNode == null) {
 
 				viewNode = app.create(SchemaView.class,
@@ -1233,7 +1234,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			} else {
 
-				final Class superclass = StructrApp.resolveSchemaId(baseTypeReference);
+				final String superclass = StructrApp.resolveSchemaId(baseTypeReference);
 				if (superclass != null) {
 
 					if (superclass.isInterface()) {
@@ -1288,7 +1289,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 				} else {
 
-					final Class superclass = StructrApp.resolveSchemaId(implementedInterface);
+					final String superclass = StructrApp.resolveSchemaId(implementedInterface);
 					if (superclass != null) {
 
 						interfaces.add(superclass.getName());

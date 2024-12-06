@@ -26,7 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.Map;
 
@@ -88,20 +90,23 @@ public abstract class StructrDynamicProperty extends StructrStringProperty imple
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		super.deserialize(schemaNodes, property);
+		super.deserialize(schemaNodes, node);
+
+		final SchemaProperty property = node.as(SchemaProperty.class);
 
 		setTypeHint(property.getTypeHint());
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
-		final PropertyMap properties  = new PropertyMap();
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
+		final PropertyMap properties = new PropertyMap();
 
-		properties.put(SchemaProperty.typeHint, typeHint);
+		properties.put(traits.key("typeHint"), typeHint);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

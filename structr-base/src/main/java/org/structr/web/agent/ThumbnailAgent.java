@@ -97,7 +97,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 		try (final Tx tx = app.tx()) {
 
 			final Class<Relation> thumbnailRel    = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
-			final Image originalImage             = app.nodeQuery(Image.class).uuid(imageUuid).getFirst();
+			final Image originalImage             = app.nodeQuery("Image").uuid(imageUuid).getFirst();
 			Image thumbnail = null;
 
 			if (originalImage == null || Image.getExistingThumbnail(originalImage, maxWidth, maxHeight, cropToFit) != null) {

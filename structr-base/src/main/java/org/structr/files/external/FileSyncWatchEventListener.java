@@ -125,7 +125,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	private FolderAndFile handle(final String rootFolderUUID, final Path root, final Path relativePath, final boolean create) throws FrameworkException {
 
 		// identify mounted folder object
-		final Folder folder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(rootFolderUUID).getFirst();
+		final Folder folder = StructrApp.getInstance().nodeQuery("Folder").uuid(rootFolderUUID).getFirst();
 
 		if (folder != null) {
 

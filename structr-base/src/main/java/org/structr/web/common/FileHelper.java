@@ -742,7 +742,7 @@ public class FileHelper {
 
 		try {
 
-			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), absolutePath).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").and(StructrApp.key(AbstractFile.class, "path"), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", absolutePath);
@@ -771,7 +771,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").andName(name).getFirst();
 
 		} catch (FrameworkException fex) {
 
@@ -793,7 +793,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
+			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").andName(name).getAsList();
 
 			for (final AbstractFile file : files) {
 

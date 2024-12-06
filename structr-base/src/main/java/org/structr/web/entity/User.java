@@ -103,7 +103,7 @@ public interface User extends Principal {
 			final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 			if (licenseManager != null) {
 
-				final int userCount         = Iterables.count(StructrApp.getInstance().nodeQuery(User.class).getResultStream());
+				final int userCount         = Iterables.count(StructrApp.getInstance().nodeQuery("User").getResultStream());
 				final int licensedUserCount = licenseManager.getNumberOfUsers();
 
 				// -1 means no limit
@@ -140,7 +140,7 @@ public interface User extends Principal {
 
 						// create home directory
 						final App app     = StructrApp.getInstance();
-						Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(parentKey, null).getFirst();
+						Folder homeFolder = app.nodeQuery("Folder").and(Folder.name, "home").and(parentKey, null).getFirst();
 
 						if (homeFolder == null) {
 

@@ -45,7 +45,7 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	private static final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters").partOfBuiltInSchema();
-	private static final Property<NodeInterface> schemaNode                   = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), SchemaNode.isBuiltinType)).partOfBuiltInSchema();
+	private static final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType"))).partOfBuiltInSchema();
 	private static final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
 	private static final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
 	private static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
@@ -123,7 +123,33 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
+
+		return Set.of(
+
+			parameters,
+			schemaNode,
+			staticSchemaNodeName,
+			signature,
+			virtualFileName,
+			returnType,
+			openAPIReturnType,
+			source,
+			exceptions,
+			callSuper,
+			overridesExisting,
+			doExport,
+			codeType,
+			isPartOfBuiltInSchema,
+			includeInOpenAPI,
+			tags,
+			summary,
+			description,
+			isStatic,
+			isPrivate,
+			returnRawResult,
+			httpVerb,
+			deleteMethod
+		);
 	}
 
 	@Override
@@ -221,7 +247,7 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 
 		try {
 
-			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, parentOrNull).getAsList();
+			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery("SchemaMethod").and(SchemaMethod.schemaNode, parentOrNull).getAsList();
 			final List<SchemaMethodParameter> params       = Iterables.toList(this.getParameters());
 			// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
 			final String paramsAsString                    = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));

@@ -23,10 +23,10 @@ import org.structr.api.schema.JsonScriptProperty;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -127,9 +127,11 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		super.deserialize(schemaNodes, property);
+		super.deserialize(schemaNodes, node);
+
+		final SchemaProperty property = node.as(SchemaProperty.class);
 
 		setContentType(property.getSourceContentType());
 		setSource(property.getFormat());
@@ -137,11 +139,12 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
-		final PropertyMap properties  = new PropertyMap();
-		final String contentType      = getContentType();
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
+		final PropertyMap properties = new PropertyMap();
+		final String contentType     = getContentType();
 
 		if (contentType != null) {
 
@@ -149,21 +152,21 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 
 				case "application/x-structr-javascript":
 				case "application/x-structr-script":
-					properties.put(SchemaProperty.propertyType, Type.Function.name());
+					properties.put(traits.key("propertyType"), Type.Function.name());
 					break;
 
 				case "application/x-cypher":
-					properties.put(SchemaProperty.propertyType, Type.Cypher.name());
+					properties.put(traits.key("propertyType"), Type.Cypher.name());
 
 			}
 
 		} else {
 
 			// default
-			properties.put(SchemaProperty.propertyType, Type.Function.name());
+			properties.put(traits.key("propertyType"), Type.Function.name());
 		}
 
-		properties.put(SchemaProperty.format, source);
+		properties.put(traits.key("format"), source);
 
 		// set properties in bulk
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);

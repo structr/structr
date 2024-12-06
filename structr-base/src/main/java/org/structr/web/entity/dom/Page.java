@@ -692,7 +692,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		try {
 
 			// create new content element
-			final DocumentFragment fragment = app.create(DocumentFragment.class);
+			final DocumentFragment fragment = app.create("DocumentFragment");
 
 			fragment.setOwnerDocument(this);
 
@@ -764,7 +764,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final App app = StructrApp.getInstance(getSecurityContext());
 
 			// create new content element
-			final Cdata content = app.create(Cdata.class);
+			final Cdata content = app.create("Cdata");
 
 			content.setOwnerDocument(this);
 

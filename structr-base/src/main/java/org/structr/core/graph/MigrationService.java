@@ -106,7 +106,7 @@ public class MigrationService {
 
 			for (final String name : relationshipNodeNames) {
 
-				final SchemaRelationshipNode rel1 = app.nodeQuery(SchemaRelationshipNode.class).andName(name).getFirst();
+				final SchemaRelationshipNode rel1 = app.nodeQuery("SchemaRelationshipNode").andName(name).getFirst();
 				if (rel1 != null) {
 
 					app.delete(rel1);
@@ -125,7 +125,7 @@ public class MigrationService {
 			// check (and fix) event action mapping relationships
 			logger.info("Checking if event action mapping relationships need migration..");
 
-			for (final ActionMapping eam : app.nodeQuery(ActionMapping.class).getResultStream()) {
+			for (final ActionMapping eam : app.nodeQuery("ActionMapping").getResultStream()) {
 
 				for (final RelationshipInterface rel : eam.getOutgoingRelationships()) {
 
@@ -170,7 +170,7 @@ public class MigrationService {
 				}
 			}
 
-			for (final ParameterMapping pm : app.nodeQuery(ParameterMapping.class).getResultStream()) {
+			for (final ParameterMapping pm : app.nodeQuery("ParameterMapping").getResultStream()) {
 
 				for (final RelationshipInterface rel : pm.getOutgoingRelationships()) {
 
@@ -200,7 +200,7 @@ public class MigrationService {
 			// check (and fix if possible) structr-app.js implementations
 			logger.info("Checking for structr-app.js implementations that need migration..");
 
-			for (final DOMElement elem : app.nodeQuery(DOMElement.class).and().not().and(actionKey, null).getResultStream()) {
+			for (final DOMElement elem : app.nodeQuery("DOMElement").and().not().and(actionKey, null).getResultStream()) {
 
 				migrateStructrAppMapping(elem, actionKey.jsonName());
 				structrAppJsCount++;
@@ -209,7 +209,7 @@ public class MigrationService {
 			// check (and fix) old event action mappings
 			logger.info("Checking for event mapping implementations that need migration..");
 
-			for (final DOMElement elem : app.nodeQuery(DOMElement.class).and().not().and(eventMappingKey, null).getResultStream()) {
+			for (final DOMElement elem : app.nodeQuery("DOMElement").and().not().and(eventMappingKey, null).getResultStream()) {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
@@ -530,7 +530,7 @@ public class MigrationService {
 					"all/OUTGOING/SYNC")
 			);
 
-			for (final DOMElement elem : app.nodeQuery(DOMElement.class).getResultStream()) {
+			for (final DOMElement elem : app.nodeQuery("DOMElement").getResultStream()) {
 
 				if (!elem.getProperty(key) && elem.getSharedComponent() != null) {
 					elem.setProperty(key, true);
@@ -632,7 +632,7 @@ public class MigrationService {
 
 			logger.info("Checking for REST query repeaters that need migration..");
 
-			for (final DOMElement elem : StructrApp.getInstance().nodeQuery(DOMElement.class).and().not().and(key, null).getResultStream()) {
+			for (final DOMElement elem : StructrApp.getInstance().nodeQuery("DOMElement").and().not().and(key, null).getResultStream()) {
 
 				final String str     = elem.getProperty(key);
 				final String cleaned = str.replaceAll("[\\W0-9]+", "");
@@ -656,7 +656,7 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Folder> mountedFolders = app.nodeQuery(Folder.class)
+			final List<Folder> mountedFolders = app.nodeQuery("Folder")
 				.notBlank(StructrApp.key(Folder.class, "mountTarget"))
 				.getAsList();
 

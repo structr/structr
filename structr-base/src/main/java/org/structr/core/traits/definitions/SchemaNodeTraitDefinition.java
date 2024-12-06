@@ -433,7 +433,7 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
-		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		StructrApp.getInstance().nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		// return generated source code for this class
 		SchemaHelper.getSource(sourceFile, this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());

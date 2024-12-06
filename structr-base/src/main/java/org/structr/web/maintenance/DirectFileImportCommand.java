@@ -160,7 +160,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			try (final Tx tx = app.tx()) {
 
-				targetFolder = app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), targetPath).getFirst();
+				targetFolder = app.nodeQuery("Folder").and(StructrApp.key(Folder.class, "path"), targetPath).getFirst();
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -261,7 +261,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final File existingFile = app.nodeQuery(File.class).and(StructrApp.key(AbstractFile.class, "path"), parentPath + name).getFirst();
+				final File existingFile = app.nodeQuery("File").and(StructrApp.key(AbstractFile.class, "path"), parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {

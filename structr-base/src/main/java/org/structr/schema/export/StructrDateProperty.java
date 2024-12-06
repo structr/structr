@@ -22,6 +22,8 @@ import org.structr.api.schema.JsonDateProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -79,11 +81,11 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface property) {
 
 		super.deserialize(schemaNodes, property);
 
-		this.datePattern = property.getProperty(SchemaProperty.format);
+		this.datePattern = property.getProperty(Traits.of("SchemaProperty").key("format"));
 	}
 
 	@Override

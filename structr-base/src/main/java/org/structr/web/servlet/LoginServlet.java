@@ -174,7 +174,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 	// ----- private methods -----
 	private String getRedirectPage(final HttpServletRequest request, final Integer statusCode) throws FrameworkException {
 
-		final Page errorPage = StructrApp.getInstance().nodeQuery(Page.class).and(StructrApp.key(Page.class, "showOnErrorCodes"), statusCode.toString(), false).getFirst();
+		final Page errorPage = StructrApp.getInstance().nodeQuery("Page").and(StructrApp.key(Page.class, "showOnErrorCodes"), statusCode.toString(), false).getFirst();
 		if (errorPage != null && HtmlServlet.isVisibleForSite(request, errorPage)) {
 
 			final String path = errorPage.getPagePath();

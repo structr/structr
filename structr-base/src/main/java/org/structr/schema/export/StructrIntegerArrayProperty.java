@@ -26,7 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.IntegerArrayPropertyParser;
 
@@ -171,11 +173,13 @@ public class StructrIntegerArrayProperty extends StructrPropertyDefinition imple
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		super.deserialize(schemaNodes, property);
+		super.deserialize(schemaNodes, node);
 
+		final SchemaProperty property                      = node.as(SchemaProperty.class);
 		final IntegerArrayPropertyParser intPropertyParser = property.getIntArrayPropertyParser(schemaNodes);
+
 		if (intPropertyParser != null) {
 
 			this.exclusiveMinimum = intPropertyParser.isLowerExclusive();
@@ -194,12 +198,13 @@ public class StructrIntegerArrayProperty extends StructrPropertyDefinition imple
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, Type.IntegerArray.name());
+		properties.put(traits.key("propertyType"), Type.IntegerArray.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -221,7 +226,7 @@ public class StructrIntegerArrayProperty extends StructrPropertyDefinition imple
 				range.append("]");
 			}
 
-			properties.put(SchemaProperty.format, range.toString());
+			properties.put(traits.key("format"), range.toString());
 		}
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);

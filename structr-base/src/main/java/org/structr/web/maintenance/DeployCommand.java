@@ -728,12 +728,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(parentKey, null).sort(Folder.name).and(inclKey, true).getAsList()) {
+			for (final Folder folder : app.nodeQuery("Folder").and(parentKey, null).sort(Folder.name).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final File file : app.nodeQuery(File.class)
+			for (final File file : app.nodeQuery("File")
 				.and(parentKey, null)
 				.sort(File.name)
 				.and()
@@ -850,7 +850,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Site site : app.nodeQuery(Site.class).sort(Site.name).getAsList()) {
+			for (final Site site : app.nodeQuery("Site").sort(Site.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 				sites.add(entry);
@@ -892,7 +892,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Page page : app.nodeQuery(Page.class).sort(Page.name).getAsList()) {
+			for (final Page page : app.nodeQuery("Page").sort(Page.name).getAsList()) {
 
 				if (!(page instanceof ShadowDocument)) {
 
@@ -933,7 +933,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
+			final ShadowDocument shadowDocument = app.nodeQuery("ShadowDocument").getFirst();
 			if (shadowDocument != null) {
 
 				for (final DOMNode node : shadowDocument.getElements()) {
@@ -974,7 +974,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// export template nodes anywhere in the pages tree which are not related to shared components
-			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
+			for (final Template template : app.nodeQuery("Template").getAsList()) {
 
 				final boolean isShared    = template.getProperty(StructrApp.key(DOMNode.class, "sharedComponent")) != null;
 				final boolean inTrash     = template.inTrash();
@@ -1451,7 +1451,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
+				for (final MailTemplate mailTemplate : app.nodeQuery("MailTemplate").sort(MailTemplate.name).getAsList()) {
 
 					// generate filename for output file
 					String filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + ".html";
@@ -1503,7 +1503,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Widget widget : app.nodeQuery(Widget.class).sort(Widget.name).getAsList()) {
+			for (final Widget widget : app.nodeQuery("Widget").sort(Widget.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
@@ -1539,7 +1539,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ApplicationConfigurationDataNode acdn : app.nodeQuery(ApplicationConfigurationDataNode.class).sort(configTypeKey).getAsList()) {
+			for (final ApplicationConfigurationDataNode acdn : app.nodeQuery("ApplicationConfigurationDataNode").sort(configTypeKey).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 				applicationConfigurationDataNodes.add(entry);
@@ -1581,7 +1581,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Localization localization : app.nodeQuery(Localization.class).sort(Localization.name).getAsList()) {
+			for (final Localization localization : app.nodeQuery("Localization").sort(Localization.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
 
@@ -1625,7 +1625,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ActionMapping actionMapping : app.nodeQuery(ActionMapping.class).getAsList()) {
+			for (final ActionMapping actionMapping : app.nodeQuery("ActionMapping").getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 				actionMappings.add(entry);
@@ -1720,7 +1720,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ParameterMapping parameterMapping : app.nodeQuery(ParameterMapping.class).sort(ParameterMapping.name).getAsList()) {
+			for (final ParameterMapping parameterMapping : app.nodeQuery("ParameterMapping").sort(ParameterMapping.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 				parameterMappings.add(entry);
@@ -1888,7 +1888,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final ResourceAccess toDelete : app.nodeQuery(ResourceAccessDefinition.class).getAsList()) {
+			for (final ResourceAccess toDelete : app.nodeQuery("ResourceAccessDefinition").getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -2342,7 +2342,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<Page> pages = new LinkedList();
 
 				for (final String pageName : (List<String>)entry.get("pages")) {
-					pages.add(app.nodeQuery(Page.class).andName(pageName).getFirst());
+					pages.add(app.nodeQuery("Page").andName(pageName).getFirst());
 				}
 
 				entry.remove("pages");
@@ -2376,7 +2376,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				try {
 					final DOMNode linkElement = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
-					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
+					final Linkable linkedPage = StructrApp.getInstance().nodeQuery("Linkable").and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
 					((LinkSource)linkElement).setLinkable(linkedPage);
 
