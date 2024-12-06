@@ -151,6 +151,10 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		try {
 
+			if (updateCallback != null) {
+				updateCallback.notifyUpdated(obj, value);
+			}
+
 			return endpoint.set(securityContext, (NodeInterface)obj, value);
 
 		} catch (RuntimeException r) {
@@ -301,7 +305,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 			if (destType == null) {
 
 				final Map<String, Class> interfaces = configuration.getInterfaces();
-				destType = interfaces.get(AbstractNode.class.getName());
+				destType = interfaces.get(AbstractNode.class.getSimpleName());
 			}
 		}
 

@@ -26,7 +26,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
@@ -52,7 +52,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof Principal)) {
+			if (!(sources[0] instanceof PrincipalInterface)) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -70,7 +70,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Principal principal = (Principal) sources[0];
+				final PrincipalInterface principal = (PrincipalInterface) sources[0];
 				final AbstractNode node   = (AbstractNode) sources[1];
 				final String[] parts      = ((String) sources[2]).split("[,]+");
 				boolean allowed           = true;

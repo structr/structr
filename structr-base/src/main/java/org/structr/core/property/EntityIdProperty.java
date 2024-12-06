@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 
 /**
@@ -28,13 +29,13 @@ import org.structr.core.notion.PropertyNotion;
  *
  * @param <S>
  */
-public class EntityIdProperty<S extends AbstractNode> extends EntityNotionProperty<S, String> {
+public class EntityIdProperty<S extends NodeInterface> extends EntityNotionProperty<S, String> {
 	
-	public EntityIdProperty(String name, Property<S> base) {
+	public EntityIdProperty(final String name, final Property<S> base) {
 		this(name, base, false);
 	}
 	
-	public EntityIdProperty(String name, Property<S> base, boolean createIfNotExisting) {
+	public EntityIdProperty(final String name, final Property<S> base, final boolean createIfNotExisting) {
 		
 		super(name, base, new PropertyNotion(GraphObject.id, createIfNotExisting));
 	}

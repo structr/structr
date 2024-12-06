@@ -18,32 +18,30 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Iframe extends DOMElement {
 
-public interface Iframe extends DOMElement {
+	public static final Property<String> htmlNameProperty            = new StringProperty("_html_name").partOfBuiltInSchema();
+	public static final Property<String> htmlSrcProperty             = new StringProperty("_html_src").partOfBuiltInSchema();
+	public static final Property<String> htmlSrcDocProperty          = new StringProperty("_html_srcdoc").partOfBuiltInSchema();
+	public static final Property<String> htmlSandboxProperty         = new StringProperty("_html_sandbox").partOfBuiltInSchema();
+	public static final Property<String> htmlSeamlessProperty        = new StringProperty("_html_seamless").partOfBuiltInSchema();
+	public static final Property<String> htmlAllowfullscreenProperty = new StringProperty("_html_allowfullscreen").partOfBuiltInSchema();
+	public static final Property<String> htmlWidthProperty           = new StringProperty("_html_width").partOfBuiltInSchema();
+	public static final Property<String> htmlHeightProperty          = new StringProperty("_html_height").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Iframe.class, PropertyView.Html,
+		htmlNameProperty, htmlSrcProperty, htmlSrcDocProperty, htmlSandboxProperty, htmlSeamlessProperty, htmlAllowfullscreenProperty, htmlWidthProperty, htmlHeightProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Iframe");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Iframe"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_name",            PropertyView.Html);
-		type.addStringProperty("_html_src",             PropertyView.Html);
-		type.addStringProperty("_html_srcdoc",          PropertyView.Html);
-		type.addStringProperty("_html_sandbox",         PropertyView.Html);
-		type.addStringProperty("_html_seamless",        PropertyView.Html);
-		type.addStringProperty("_html_allowfullscreen", PropertyView.Html);
-		type.addStringProperty("_html_width",           PropertyView.Html);
-		type.addStringProperty("_html_height",          PropertyView.Html);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

@@ -28,18 +28,16 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.web.IndexingTest;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
@@ -50,11 +48,9 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.testng.annotations.Test;
 
-import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.api.config.Settings;
 
 import static org.testng.AssertJUnit.*;
 
@@ -472,7 +468,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					final long t0 = System.currentTimeMillis();
 
-					final Principal user = app.nodeQuery(Principal.class).getFirst();
+					final PrincipalInterface user = app.nodeQuery(PrincipalInterface.class).getFirst();
 
 					user.getGroups();
 

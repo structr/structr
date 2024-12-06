@@ -22,28 +22,30 @@ package org.structr.web.entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.graph.PropagationDirection;
-import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.relationship.AbstractFileCONFIGURED_BYStorageConfiguration;
+import org.structr.web.entity.relationship.FolderCONTAINSAbstractFile;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
 
@@ -52,24 +54,28 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for filesystem objects in structr.
  */
-public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
+public interface AbstractFile extends NodeInterface {
+
+	Property<StorageConfiguration> storageConfigurationProperty = new EndNode<>("storageConfiguration", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
+	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema().updateCallback(AbstractFile::updateHasParent);
+	Property<String> parentIdProperty                           = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
+
+	View uiView = new View(AbstractFile.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
 
 	static class Impl { static {
 
-		final JsonSchema schema     = SchemaService.getDynamicSchema();
-		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
-		final JsonObjectType type   = schema.addType("AbstractFile");
-		final JsonObjectType conf   = schema.addType("StorageConfiguration");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("AbstractFile");
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
-		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile"));
 		type.setCategory("ui");
 
 		type.addStringProperty("name", PropertyView.Public).setIndexed(true).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
@@ -91,12 +97,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		type.addPropertySetter("hasParent", Boolean.TYPE);
 
-		type.overrideMethod("getPositionProperty",         false, "return FolderCONTAINSAbstractFile.positionProperty;");
-
 		type.overrideMethod("onCreation",                  true,  AbstractFile.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  AbstractFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
-		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
 		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();")
 //			.addParameter("ctx", SecurityContext.class.getName())
@@ -109,16 +111,6 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			.setSource("setProperty(parentProperty, (Folder)parent);")
 			.addException(FrameworkException.class.getName())
 			.addParameter("parent", "org.structr.web.entity.Folder");
-
-		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
-		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
-		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add).setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
-
-		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
-		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
-
-		// sort position of children in page
-		parentRel.addIntegerProperty("position");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "visibleToAuthenticatedUsers");
@@ -145,16 +137,12 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static void onCreation(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		thisFile.setHasParent(thisFile.getParent() != null);
-
 		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
 			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
 		}
 	}
 
 	static void onModification(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		thisFile.setHasParent(thisFile.getParent() != null);
 
 		if (thisFile.isExternal()) {
 
@@ -319,20 +307,24 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static String getFolderPath(final AbstractFile thisFile) {
 
-		Folder parentFolder = thisFile.getParent();
-		String folderPath   = thisFile.getProperty(AbstractFile.name);
-
+		String folderPath = thisFile.getProperty(AbstractFile.name);
 		if (folderPath == null) {
 			folderPath = thisFile.getUuid();
 		}
 
-		while (parentFolder != null) {
+		if (thisFile.getHasParent()) {
 
-			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getParent();
+			Folder parentFolder = thisFile.getParent();
+			while (parentFolder != null) {
+
+				folderPath = parentFolder.getName().concat("/").concat(folderPath);
+				parentFolder = parentFolder.getParent();
+			}
 		}
 
-		return "/".concat(folderPath);
+		final String path = "/".concat(folderPath);
+
+		return path;
 	}
 
 	static boolean includeInFrontendExport(final AbstractFile thisFile) {
@@ -378,7 +370,6 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		final String filePath   = Settings.FilesPath.getValue();
 		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
 		final String finalPath  = filePath + "/" + uuidPath + "/" + uuid;
-		//final Path path         = Paths.get(URI.create("file://" + finalPath));
 		final Path path         = Paths.get(finalPath);
 		final java.io.File file = path.toFile();
 
@@ -409,5 +400,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			: null;
 
 	}
-	// ----- nested classes -----
+
+	static void updateHasParent(final GraphObject obj, final Folder value) throws FrameworkException {
+		obj.setProperty(StructrApp.key(AbstractFile.class, "hasParent"), value != null);
+	}
 }

@@ -24,7 +24,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 
 import java.util.*;
@@ -54,7 +54,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private void cascadeDelete(final NodeInterface node) throws FrameworkException {
 
 		final DeleteRelationshipCommand drc           = StructrApp.getInstance().command(DeleteRelationshipCommand.class);
-		final Principal user                          = securityContext.getCachedUser();
+		final PrincipalInterface user                          = securityContext.getCachedUser();
 		final Set<RelationshipInterface> relsToDelete = new HashSet<>();
 		final Set<NodeInterface> nodesToDelete        = new HashSet<>();
 		final Set<NodeInterface> nodesToCheck         = new HashSet<>();
@@ -110,6 +110,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	}
 
 	private void collectNodesForCascadingDelete(final Set<NodeInterface> nodesToDelete, final Set<RelationshipInterface> relsToDelete, final Set<NodeInterface> nodesToCheck, final NodeInterface node) {
+
+		if (node == null) {
+			return;
+		}
 
 		final Queue<NodeInterface> queue = new ArrayDeque<>();
 

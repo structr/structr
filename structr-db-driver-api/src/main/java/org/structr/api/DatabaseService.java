@@ -97,4 +97,6 @@ public interface DatabaseService {
 	<T> T execute(final NativeQuery<T> nativeQuery);
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
+
+	void flushCaches();
 }

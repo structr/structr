@@ -38,7 +38,6 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	public ConstantBooleanProperty(final String name, final boolean constantValue) {
 
 		super(name);
-		systemInternal();
 		readOnly();
 
 		this.constantValue = constantValue;
@@ -66,21 +65,6 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final Boolean value) throws FrameworkException {
 		throw new FrameworkException(422, "Unable to change value of constant property ‛" + jsonName() + "‛", new ReadOnlyPropertyToken(obj.getType(), jsonName()));
-	}
-
-	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
-
-	@Override
-	public boolean isSystemInternal() {
-		return true;
-	}
-
-	@Override
-	public boolean isIndexed() {
-		return false;
 	}
 
 	@Override

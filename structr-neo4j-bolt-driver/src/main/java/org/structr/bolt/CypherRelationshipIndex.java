@@ -107,7 +107,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public Iterable<Relationship> getResult(final AdvancedCypherQuery query) {
+	public Iterable<Relationship> getResult(final CypherQuery query) {
 		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), new LazyRecordIterable(db, query)));
 	}
 }

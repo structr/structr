@@ -35,7 +35,6 @@ import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.Ownership;
@@ -80,7 +79,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private boolean readOnlyPropertiesUnlocked      = false;
 	protected String cachedUuid                     = null;
 	protected SecurityContext securityContext       = null;
-	protected Principal cachedOwnerNode             = null;
+	protected PrincipalInterface cachedOwnerNode             = null;
 	protected Class entityType                      = null;
 	protected Identity nodeId                       = null;
 
@@ -664,31 +663,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	/**
-	 * Return statistical information on all relationships of this node
-	 *
-	 * @param dir
-	 * @return number of relationships
-	 */
-	public final Map<String, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
-		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
-	}
-
-	/**
 	 * Returns the owner node of this node, following an INCOMING OWNS
 	 * relationship.
 	 *
 	 * @return the owner node of this node
 	 */
 	@Override
-	public final Principal getOwnerNode() {
+	public final PrincipalInterface getOwnerNode() {
 
 		if (cachedOwnerNode == null) {
 
 			final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
 			if (ownership != null) {
 
-				Principal principal = ownership.getSourceNode();
-				cachedOwnerNode = (Principal) principal;
+				PrincipalInterface principal = ownership.getSourceNode();
+				cachedOwnerNode = (PrincipalInterface) principal;
 			}
 		}
 
@@ -744,7 +733,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return true;
 		}
 
-		Principal accessingUser = null;
+		PrincipalInterface accessingUser = null;
 		if (context != null) {
 
 			accessingUser = context.getUser(false);
@@ -765,11 +754,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return result;
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final boolean isCreation) {
+	private boolean isGranted(final Permission permission, final PrincipalInterface accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final boolean isCreation) {
 		return isGranted(permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null, isCreation);
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships, final boolean isCreation) {
+	private boolean isGranted(final Permission permission, final PrincipalInterface accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships, final boolean isCreation) {
 
 		if (level > 300) {
 			logger.warn("Aborting recursive permission resolution for {} on {} because of recursion level > 300, this is quite likely an infinite loop.", permission.name(), getType() + "(" + getUuid() + ")");
@@ -777,12 +766,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
-
-		// use quick checks for maximum performance
-		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(getOwnerNode()) ) ) {
-
-			return true;
-		}
 
 		if (accessingUser != null) {
 
@@ -799,14 +782,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 		}
 
+		final PrincipalInterface _owner = getOwnerNode();
+		final boolean hasOwner          = (_owner != null);
+
+		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(_owner) ) ) {
+			return true;
+		}
+
 		// allow accessingUser to access itself, but not parents etc.
 		if (this.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
 			return true;
 		}
-
-		// check owner
-		final Principal _owner = getOwnerNode();
-		final boolean hasOwner = (_owner != null);
 
 		// node has an owner, deny anonymous access
 		if (hasOwner && accessingUser == null) {
@@ -828,41 +814,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return true;
 			}
 
-			// new experimental custom permission resultion based on query
-			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalize(permission.name()));
-			final String customPermissionQuery              = accessingUser.getProperty(permissionPropertyKey);
+			for (PrincipalInterface parent : accessingUser.getParentsPrivileged()) {
 
-			if (StringUtils.isNotEmpty(customPermissionQuery)) {
-
-				final Map<String, Object> params = new HashMap<>();
-
-				params.put("principalUuid", accessingUser.getUuid());
-				params.put("principalId", accessingUser.getUuid());
-				params.put("principalType", accessingUser.getType());
-
-				params.put("targetNodeUuid", this.getUuid());
-				params.put("targetNodeType", this.getType());
-
-				boolean result = false;
-				try {
-
-					final DatabaseService db       = Services.getInstance().getDatabaseService();
-					final NativeQuery<Boolean> cpq = db.query(customPermissionQuery, Boolean.class);
-
-					cpq.configure(params);
-
-					result = db.execute(cpq);
-
-				} catch (final Exception ex) {
-					logger.error("Error in custom permission resolution", ex);
-				}
-
-				logger.info("CPQ (" + permission.name() + ") '" + customPermissionQuery + "': "+ result);
-
-				if (result) {
+				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships, isCreation)) {
 					return true;
 				}
-
 			}
 
 			// Check permissions from domain relationships
@@ -908,14 +864,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				// do backtracking
 				backtrack(root, accessingUser.getUuid(), permission, false, 0, doLog);
 			}
-
-			// Last: recursively check possible parent principals
-			for (Principal parent : accessingUser.getParentsPrivileged()) {
-
-				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships, isCreation)) {
-					return true;
-				}
-			}
 		}
 
 		return false;
@@ -956,7 +904,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 
-	private boolean hasEffectivePermissions(final BFSInfo parent, final Principal principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes, final boolean doLog, final boolean isCreation) {
+	private boolean hasEffectivePermissions(final BFSInfo parent, final PrincipalInterface principal, final Permission permission, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final Queue<BFSInfo> bfsNodes, final boolean doLog, final boolean isCreation) {
 
 		// check nodes here to avoid circles in permission-propagating relationships
 		if (alreadyTraversed.contains("Node", getUuid())) {
@@ -965,53 +913,60 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, principal != null ? principal.getName() : null); }
 
-		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
+		final Node node                = getNode();
+		final Map<String, Long> degree = node.getDegree();
 
-			// iterate over list of relationships
-			final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
-			final int count           = list.size();
-			final int threshold       = 1000;
+		for (final String type : degree.keySet()) {
 
-			if (count < threshold) {
+			final Class propagatingType = StructrApp.getConfiguration().getRelationshipEntityClass(type);
 
-				for (final Relation source : list) {
+			if (propagatingType != null && PermissionPropagation.class.isAssignableFrom(propagatingType)) {
 
-					if (source instanceof PermissionPropagation) {
+				// iterate over list of relationships
+				final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
+				final int count = list.size();
+				final int threshold = 1000;
 
-						final PermissionPropagation perm = (PermissionPropagation)source;
-						final RelationshipInterface rel  = (RelationshipInterface)source;
+				if (count < threshold) {
 
-						if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
+					for (final Relation source : list) {
 
-						// check propagation direction vs. evaluation direction
-						if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
+						if (source instanceof PermissionPropagation perm) {
 
-							applyCurrentStep(perm, mask);
+							if (doLog) {
+								logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, source.getRelType().name(), principal != null ? principal.getName() : null);
+							}
 
-							if (mask.allowsPermission(permission)) {
+							// check propagation direction vs. evaluation direction
+							if (propagationAllowed(this, source, perm.getPropagationDirection(), doLog)) {
 
-								final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
+								applyCurrentStep(perm, mask);
 
-								if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
+								if (mask.allowsPermission(permission)) {
 
-									otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+									final AbstractNode otherNode = (AbstractNode) source.getOtherNode(this);
 
-									// break early
-									return true;
+									if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-								} else {
+										otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
 
-									// add node to BFS queue
-									bfsNodes.add(new BFSInfo(parent, otherNode));
+										// break early
+										return true;
+
+									} else {
+
+										// add node to BFS queue
+										bfsNodes.add(new BFSInfo(parent, otherNode));
+									}
 								}
 							}
 						}
 					}
+
+				} else if (doLog) {
+
+					logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 				}
-
-			} else if (doLog) {
-
-				logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 			}
 		}
 
@@ -1205,7 +1160,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 	}
 
-	private Security getSecurityRelationship(final Principal p, final Map<String, Security> securityRelationships) {
+	private Security getSecurityRelationship(final PrincipalInterface p, final Map<String, Security> securityRelationships) {
 
 		if (p == null) {
 
@@ -1223,7 +1178,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * @return incoming security relationship
 	 */
 	@Override
-	public final Security getSecurityRelationship(final Principal p) {
+	public final Security getSecurityRelationship(final PrincipalInterface p) {
 
 		if (p != null) {
 
@@ -1398,8 +1353,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-
-		final Principal currentUser = securityContext.getUser(false);
 
 		if (!isGranted(Permission.write, securityContext, isCreation)) {
 
@@ -1595,17 +1548,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public final void grant(Permission permission, Principal principal) throws FrameworkException {
+	public final void grant(Permission permission, PrincipalInterface principal) throws FrameworkException {
 		grant(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void grant(final Set<Permission> permissions, Principal principal) throws FrameworkException {
+	public final void grant(final Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
 		grant(permissions, principal, securityContext);
 	}
 
 	@Override
-	public final void grant(final Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public final void grant(final Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("grant", permissions, principal, ctx));
@@ -1650,17 +1603,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
+	public final void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
 		revoke(Collections.singleton(permission), principal, securityContext);
 	}
 
 	@Override
-	public final void revoke(final Set<Permission> permissions, Principal principal) throws FrameworkException {
+	public final void revoke(final Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
 		revoke(permissions, principal, securityContext);
 	}
 
 	@Override
-	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public final void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("revoke", permissions, principal, ctx));
@@ -1677,12 +1630,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 
 	@Override
-	public final void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	public final void setAllowed(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
 		setAllowed(permissions, principal, securityContext);
 	}
 
 	@Override
-	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	public final void setAllowed(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
 
 		if (!isGranted(Permission.accessControl, ctx)) {
 			throw new FrameworkException(403, getAccessControlNotPermittedExceptionString("set", permissions, principal, ctx));
@@ -1735,7 +1688,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	private static String getCurrentUserString (final SecurityContext ctx) {
 
-		final Principal currentUser = ctx.getUser(false);
+		final PrincipalInterface currentUser = ctx.getUser(false);
 		String userString = "";
 
 		if (currentUser == null) {
@@ -1747,7 +1700,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return userString;
 	}
 
-	private String getAccessControlNotPermittedExceptionString(final String action, final Set<Permission> permissions, Principal principal, final SecurityContext ctx) {
+	private String getAccessControlNotPermittedExceptionString(final String action, final Set<Permission> permissions, PrincipalInterface principal, final SecurityContext ctx) {
 
 		final String userString       = getCurrentUserString(ctx);
 		final String thisNodeString   = this.getProperty(AbstractNode.type)      + "(" + this.getProperty(AbstractNode.id)      + ")";
@@ -1773,8 +1726,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		// sort list by principal name (important for diff'able export)
 		Collections.sort(grants, (o1, o2) -> {
 
-			final Principal p1 = o1.getSourceNode();
-			final Principal p2 = o2.getSourceNode();
+			final PrincipalInterface p1 = o1.getSourceNode();
+			final PrincipalInterface p2 = o2.getSourceNode();
 			final String n1    = p1 != null ? p1.getProperty(AbstractNode.name) : "empty";
 			final String n2    = p2 != null ? p2.getProperty(AbstractNode.name) : "empty";
 
@@ -1849,7 +1802,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return false;
 	}
 
-	protected boolean allowedBySchema(final Principal principal, final Permission permission) {
+	protected boolean allowedBySchema(final PrincipalInterface principal, final Permission permission) {
 		return false;
 	}
 

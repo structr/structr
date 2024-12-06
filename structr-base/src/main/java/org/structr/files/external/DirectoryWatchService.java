@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.web.entity.StorageConfiguration;
 
 /**
  */
@@ -74,12 +75,14 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public void mountFolder(final Folder folder) {
 
-		final boolean watchContents = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
-		final Integer scanInterval  = folder.getProperty(StructrApp.key(Folder.class, "mountScanInterval"));
-		final StorageProvider prov  = StorageProviderFactory.getStorageProvider(folder);
-		final String mountTarget    = prov.getConfig() != null ? prov.getConfig().getConfiguration().get("mountTarget") : null;
-		final String folderPath     = folder.getProperty(StructrApp.key(Folder.class, "path"));
-		final String uuid           = folder.getUuid();
+		final boolean watchContents     = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
+		final Integer scanInterval      = folder.getProperty(StructrApp.key(Folder.class, "mountScanInterval"));
+		final StorageProvider prov      = StorageProviderFactory.getStorageProvider(folder);
+		final StorageConfiguration conf = prov.getConfig();
+		final Map<String, String> data  = conf != null ? conf.getConfiguration() : null;
+		final String mountTarget        = data != null ? data.get("mountTarget") : null;
+		final String folderPath         = folder.getProperty(StructrApp.key(Folder.class, "path"));
+		final String uuid               = folder.getUuid();
 
 		synchronized (watchedRoots) {
 
@@ -234,6 +237,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
+
+				tx.prefetchHint("DirectoryWatchService main loop");
 
 				// handle all watch events that are older than 2 seconds
 				for (final Iterator<WatchEventItem> it = eventQueue.values().iterator(); it.hasNext();) {

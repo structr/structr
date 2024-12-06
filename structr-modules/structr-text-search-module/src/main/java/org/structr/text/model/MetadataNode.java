@@ -18,26 +18,17 @@
  */
 package org.structr.text.model;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.text.model.relationship.StructuredDocumentMETADATAMetadataNode;
 
 /**
  *
  */
-public interface MetadataNode extends NodeInterface {
+public class MetadataNode extends AbstractNode {
 
-	static class Impl { static {
-
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("MetadataNode");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MetadataNode"));
-
-		type.addStringProperty("content");
-
-	}}
+	public static final Property<StructuredDocument> documentProperty = new StartNode<>("document", StructuredDocumentMETADATAMetadataNode.class);
+	public static final Property<String> contentProperty              = new StringProperty("content");
 }

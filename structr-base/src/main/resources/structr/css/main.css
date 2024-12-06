@@ -94,7 +94,8 @@
 	--input-background: #f0f0f0;
 	--header-bg-dark: #1f242d;
 	--warning-bg: #feefb3;
-	--input-invalid: #fee;
+	--input-invalid-bg-color: #fee;
+	--input-invalid-border-color: #935;
 
 	--structr-green:                   #84ba39;
 	--config-structr-green:            #81ce25;
@@ -2819,7 +2820,7 @@ i.fa-sitemap {
 }
 
 #context-menu-dialog .danger:hover {
-	background: var(--medium-red);
+	background: var(--medium-red) !important;
 }
 
 #context-menu-dialog ul ul {
@@ -2974,62 +2975,6 @@ i.fa-sitemap {
 #contents-main .column-resizer-left {
 	left: 300px;
 }
-
-/**
- * Styles for the 'Contents' area
- */
-.trumbowyg-box {
-	background-color: var(--solid-white);
-	border: none;
-	margin: 0 auto;
-}
-
-.trumbowyg-editor {
-	min-height: 274px;
-}
-
-.trumbowyg-button-pane {
-	background-color: var(--medium-light-gray-e0);
-}
-
-.trumbowyg-button-pane button {
-	width: 32px;
-}
-
-.trumbowyg-fullscreen.trumbowyg-box {
-	width: 100%;
-}
-
-.value-container {
-	display: inline-block;
-	width: calc(100% - 236px);
-}
-
-.value-container input[type=text], .value-container textarea {
-	width: 100%;
-	/*font-size: 1.2em;*/
-	padding: 4px;
-}
-
-.value-container textarea {
-	margin: 6px 0;
-	vertical-align: middle;
-}
-
-.value-container.related-nodes {
-	background-color: var(--solid-white);
-	border: 1px solid var(--black-opacity-125);
-	padding: 4px;
-}
-
-.value-container.related-nodes i.add {
-	vertical-align: text-bottom;
-}
-
-.item-title:hover b {
-	cursor: pointer;
-}
-
 
 /**
  * Favorites
@@ -3739,6 +3684,11 @@ ul.combined-input-select-field li:hover {
 	top: 0;
 	bottom: 0;
 	z-index: 12000;
+}
+
+.form-input.input-invalid {
+	border: 1px solid var(--input-invalid-border-color);
+	background-color: var(--input-invalid-bg-color);
 }
 
 /**

@@ -39,10 +39,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
@@ -127,12 +124,14 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					tx.prefetchHint("Diff schema");
+
 					SchemaService.prefetchSchemaNodes(tx);
 
-					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
+					final JsonSchema databaseSchema = StructrSchema.createFromDatabase(app);
 
 					// diff and merge
-					currentSchema.diff(dynamicSchema);
+					databaseSchema.diff(dynamicSchema);
 
 					// commit changes before trying to build the schema
 					tx.success();
@@ -153,7 +152,7 @@ public class SchemaService implements Service {
 						// remove query
 						final URI uri = URI.create(schemaURI.getScheme() + "://" + schemaURI.getHost() + schemaURI.getPath());
 
-						if (dynamicSchema.resolveURI(schemaURI) == null && StructrApp.resolveSchemaId(uri) == null) {
+						if (!uri.toString().startsWith("https://structr.org/v1.1/static/") && dynamicSchema.resolveURI(schemaURI) == null && StructrApp.resolveSchemaId(uri) == null) {
 
 							logger.warn("Unable to resolve built-in interface {} of type {} against Structr schema, source was {}", uri, name, schemaURI);
 
@@ -166,10 +165,11 @@ public class SchemaService implements Service {
 
 					SchemaService.prefetchSchemaNodes(tx);
 
+					tx.prefetchHint("Reload schema");
+
 					while (retryCount-- > 0) {
 
 						final Map<String, Map<String, PropertyKey>> removedClasses = translateRelationshipClassesToRelTypes(config.getTypeAndPropertyMapping());
-						final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
 						final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
 						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId, fullReload);
 						final Set<String> dynamicViews                             = new LinkedHashSet<>();
@@ -214,9 +214,6 @@ public class SchemaService implements Service {
 								schemaInfo.clearCachedSchemaMethodsForInstance();
 							}
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
-
-							// initialize GraphQL engine as well
-							schemaInfo.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
 						}
 
 						// collect relationship classes
@@ -234,9 +231,6 @@ public class SchemaService implements Service {
 
 								nodeExtender.addClass(schemaRelationship.getClassName(), relationshipSource);
 								dynamicViews.addAll(schemaRelationship.getDynamicViews());
-
-								// initialize GraphQL engine as well
-								schemaRelationship.initializeGraphQL(graphQLTypes);
 							}
 						}
 
@@ -249,28 +243,32 @@ public class SchemaService implements Service {
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
 
-							for (final Class newType : newTypes.values()) {
+							if (!errorBuffer.hasError()) {
 
-								// instantiate classes to execute static initializer of helpers
-								try {
+								// only do this if there was no compile-time error!
+								for (final Class newType : newTypes.values()) {
 
-									// do full reload
-									config.registerEntityType(newType);
-									newType.getDeclaredConstructor().newInstance();
+									// instantiate classes to execute static initializer of helpers
+									try {
 
-								} catch (final Throwable t) {
+										// do full reload
+										config.registerEntityType(newType);
+										newType.getDeclaredConstructor().newInstance();
 
-									// abstract classes and interfaces will throw errors here
-									if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
-										// ignore
-									} else {
+									} catch (final Throwable t) {
 
-										// everything else is a severe problem and should be not only reported but also
-										// make the schema compilation fail (otherwise bad things will happen later)
-										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
-										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+										// abstract classes and interfaces will throw errors here
+										if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
+											// ignore
+										} else {
 
-										t.printStackTrace();
+											// everything else is a severe problem and should be not only reported but also
+											// make the schema compilation fail (otherwise bad things will happen later)
+											errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
+											logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+
+											t.printStackTrace();
+										}
 									}
 								}
 							}
@@ -344,17 +342,42 @@ public class SchemaService implements Service {
 
 							updateIndexConfiguration(removedClasses);
 
-							tx.success();
-
 							final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 							final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
 							final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
+							final Map<String, GraphQLType> graphQLTypes              = new LinkedHashMap<>();
+							final GraphQLHelper graphQLHelper                        = new GraphQLHelper();
+
+							for (final Class nodeType : config.getNodeEntities().values()) {
+								graphQLHelper.initializeGraphQLForNodeType(nodeType, graphQLTypes, blacklist);
+							}
+
+							for (final Class relType : config.getRelationshipEntities().values()) {
+								graphQLHelper.initializeGraphQLForRelationshipType(relType, graphQLTypes);
+							}
 
 							// register types in "Query" type
 							for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
 
 								final String className = entry.getKey();
 								final GraphQLType type = entry.getValue();
+
+								// node type?
+								Class typeClass  = config.getNodeEntityClass(className);
+
+								// relationship type?
+								if (typeClass == null) {
+									typeClass = config.getRelationshipEntityClass(className);
+								}
+
+								// interface?
+								if (typeClass == null) {
+									typeClass = config.getInterfaces().get(className);
+								}
+
+								if (typeClass == null) {
+									continue;
+								}
 
 								try {
 
@@ -370,7 +393,7 @@ public class SchemaService implements Service {
 										.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 										.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 										.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-										.arguments(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
+										.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(selectionTypes, existingQueryTypeNames, typeClass))
 									);
 
 								} catch (Throwable t) {
@@ -395,12 +418,13 @@ public class SchemaService implements Service {
 									logger.error(ExceptionUtils.getStackTrace(t));
 								}
 							}
+
+							// moved success() call for the transaction to the bottom..
+							tx.success();
 						}
 					}
 
 				} catch (FrameworkException fex) {
-
-					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
 					logger.error(ExceptionUtils.getStackTrace(fex));
@@ -411,8 +435,6 @@ public class SchemaService implements Service {
 					fex.printStackTrace();
 
 				} catch (Throwable t) {
-
-					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					logger.error(ExceptionUtils.getStackTrace(t));
@@ -499,6 +521,7 @@ public class SchemaService implements Service {
 
 	public static void prefetchSchemaNodes(final Prefetcher tx) {
 
+		/*
 		tx.prefetch("SchemaReloadingNode", (String)null, Set.of(
 
 			"all/INCOMING/OWNS",
@@ -522,6 +545,8 @@ public class SchemaService implements Service {
 			"all/OUTGOING/IS_RELATED_TO"
 
 		));
+
+		 */
 	}
 
 	// ----- interface Feature -----

@@ -25,24 +25,24 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 
 public class MessageClientHASMessageSubscriber extends ManyToMany<MessageClient, MessageSubscriber> {
 
-    @Override
-    public Class<MessageClient> getSourceType() {
-        return MessageClient.class;
-    }
+	@Override
+	public Class<MessageClient> getSourceType() {
+		return MessageClient.class;
+	}
 
-    @Override
-    public Class<MessageSubscriber> getTargetType() {
-        return MessageSubscriber.class;
-    }
+	@Override
+	public Class<MessageSubscriber> getTargetType() {
+		return MessageSubscriber.class;
+	}
 
-    @Override
-    public String name() {
-        return "HAS_SUBSCRIBER";
-    }
+	@Override
+	public String name() {
+		return "HAS_SUBSCRIBER";
+	}
 
-    @Override
-    public int getCascadingDeleteFlag() {
-        return Relation.NONE;
-    }
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
 
 }

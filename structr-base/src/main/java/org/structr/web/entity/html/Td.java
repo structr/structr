@@ -18,29 +18,25 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Td extends DOMElement {
 
-public interface Td extends DOMElement {
+	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan").partOfBuiltInSchema();
+	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan").partOfBuiltInSchema();
+	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Td.class, PropertyView.Html,
+		htmlColspanProperty, htmlRowspanProperty, htmlHeadersProperty
+	);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Td");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Td"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_colspan", PropertyView.Html);
-		type.addStringProperty("_html_rowspan", PropertyView.Html);
-		type.addStringProperty("_html_headers", PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

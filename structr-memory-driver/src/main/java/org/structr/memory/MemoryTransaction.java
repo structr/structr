@@ -216,22 +216,27 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
-	public void prefetch(String type1, String type2, Set<String> keys) {
+	public int level() {
+		return 0;
+	}
 
+	@Override
+	public void prefetchHint(final String hint) {
+	}
+
+	@Override
+	public void prefetch(String type1, String type2, Set<String> keys) {
 	}
 
 	@Override
 	public void prefetch(String query, Set<String> keys) {
-
 	}
 
 	@Override
 	public void prefetch(String query, Set<String> outgoingKeys, Set<String> incomingKeys) {
-
 	}
 
 	@Override
 	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys, final String id) {
-
 	}
 }

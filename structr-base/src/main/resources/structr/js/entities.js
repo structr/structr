@@ -112,7 +112,6 @@ let _Entities = {
 		let queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
-//			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 
@@ -436,7 +435,7 @@ let _Entities = {
 			}
 		});
 	},
-	showProperties: (obj, activeViewOverride) => {
+	showProperties: (obj, activeViewOverride, showDeleteBtn = Structr.isModuleActive(_Crud)) => {
 
 		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 
@@ -485,6 +484,22 @@ let _Entities = {
 					}
 
 					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
+
+					if (showDeleteBtn) {
+						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
+							<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+							</button>
+						`);
+
+						deleteBtn.addEventListener('click', async (e) => {
+							let deleted = await _Crud.crudAskDelete(obj.type, obj.id);
+
+							if (deleted) {
+								_Dialogs.custom.getCloseDialogButton().click();
+							}
+						});
+					}
 
 					dialogText.insertAdjacentHTML('beforeend', `
 						<div id="tabs" class="flex flex-col h-full overflow-hidden">
@@ -1200,9 +1215,6 @@ let _Entities = {
 										if (Structr.isModuleActive(_Pages)) {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
 										}
-										if (Structr.isModuleActive(_Contents)) {
-											_Contents.refreshTree();
-										}
 										if (Structr.isModuleActive(_Files)) {
 											_Files.refreshTree();
 										}
@@ -1406,7 +1418,42 @@ let _Entities = {
 			});
 		}
 	},
-	getArrayValue: function(key, cell) {
+	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
+
+		let val            = _Entities.getArrayValue(key, cell);
+		let isCreateDialog = !objId;
+
+		_Entities.setProperty(objId, key, val, false, (newVal = []) => {
+
+			if (newVal !== oldVal) {
+
+				if (!isCreateDialog) {
+
+					_Helpers.blinkGreen(cell);
+				}
+
+				let valueMsg;
+				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
+				cell.find(`[name="${key}"]`).each(function(i, el) {
+					_Entities.activateInput(el, id, pageId, typeInfo);
+				});
+
+				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+
+				if (!isCreateDialog) {
+
+					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+				}
+
+				if (onUpdateCallback) {
+					onUpdateCallback();
+				}
+			}
+
+			oldVal = newVal;
+		});
+	},
+	getArrayValue: (key, cell) => {
 		let values = [];
 		cell.find('[name="' + key + '"]').each(function(i, el) {
 			let value = $(el).val();
@@ -1418,6 +1465,7 @@ let _Entities = {
 	},
 	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
 
+		let isCreateDialog = !objId;
 		let val;
 		let cell = input.closest('.value');
 		if (cell.length === 0) {
@@ -1448,7 +1496,11 @@ let _Entities = {
 					cell.find(`[name="${key}"]`).each(function(i, el) {
 						_Entities.activateInput(el, id, pageId, typeInfo, onUpdateCallback);
 					});
-					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+
+					if (!isCreateDialog) {
+
+						_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+					}
 
 					onUpdateCallback?.(input, newVal);
 
@@ -1460,33 +1512,21 @@ let _Entities = {
 		}
 
 	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
+	setProperty: (id, key, val, recursive, callback) => {
 
-		let val = _Entities.getArrayValue(key, cell);
+		let isCreateDialog = !id;
 
-		_Entities.setProperty(objId, key, val, false, (newVal) => {
-			if (newVal !== oldVal) {
-				_Helpers.blinkGreen(cell);
-				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
-				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, typeInfo);
-				});
-				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-				_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+		if (isCreateDialog) {
 
-				if (onUpdateCallback) {
-					onUpdateCallback();
-				}
-			}
-			oldVal = newVal;
-		});
+			/* special handling for create-dialogs - simply allow the change and directly call the callback */
+			callback(val);
 
-	},
-	setProperty: function(id, key, val, recursive, callback) {
-		Command.setProperty(id, key, val, recursive, function() {
-			Command.getProperty(id, key, callback);
-		});
+		} else {
+
+			Command.setProperty(id, key, val, recursive, () => {
+				Command.getProperty(id, key, callback);
+			});
+		}
 	},
 	bindAccessControl: function(btn, entity) {
 
@@ -2277,10 +2317,6 @@ let _Entities = {
 
 //					_Pages.reloadPreviews();
 // 					console.log('reload preview?');
-
-				} else if (Structr.isModuleActive(_Contents)) {
-
-					_Contents.refreshTree();
 
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 
@@ -3102,8 +3138,8 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="selected-values-input">Selected Values Expression</label>
-							<input type="text" id="selected-values-input" name="selectedValues">
+							<label class="block mb-2" for="selected-values-input" data-comment="This is a shortcut to automatically select options based on their appearance in the collection returned by this script expression and is mutually exclusive with the <code>selected</code> attribute. It is mainly intended for database objects. Should the repeater use custom objects, use a scripting expression in the <code>selected</code> attribute like so: <code>\${is(logicStatement, 'selected')}</code>">Selected Values Expression</label>
+							${Structr.templates.autoScriptInput({ inputAttributeString: 'id="selected-values-input" name="selectedValues"', wrapperClassString: 'w-full'})}
 						</div>
 
 						<div>

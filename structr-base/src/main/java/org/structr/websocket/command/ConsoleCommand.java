@@ -84,6 +84,9 @@ public class ConsoleCommand extends AbstractCommand {
 		OutputStreamWritable writeable = new OutputStreamWritable(out);
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			tx.prefetchHint("Websocket ConsoleCommand");
+
 			if (Boolean.TRUE.equals(completion)) {
 
 				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);

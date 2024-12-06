@@ -30,18 +30,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Returns an aggregated Map of relationship counts for the given node.
- *
  *
  */
 public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipStatisticsCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	public Map<String, Long> execute(final AbstractNode sNode) throws FrameworkException {
 		return execute(sNode, null);

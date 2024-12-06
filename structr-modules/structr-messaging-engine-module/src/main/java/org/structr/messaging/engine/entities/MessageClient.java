@@ -20,82 +20,51 @@ package org.structr.messaging.engine.entities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 
-import java.net.URI;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
-import org.structr.core.api.Arguments;
+public class MessageClient extends AbstractNode {
 
-public interface MessageClient extends NodeInterface {
+	public static final Property<Iterable<MessageSubscriber>> subscribersProperty = new EndNodes<>("subscribers", MessageClientHASMessageSubscriber.class);
 
-	class Impl {
+	public static final View defaultView = new View(MessageClient.class, PropertyView.Public,
+		subscribersProperty
+	);
 
-		static {
+	public static final View uiView = new View(MessageClient.class, PropertyView.Ui,
+		subscribersProperty
+	);
 
-			final JsonSchema schema = SchemaService.getDynamicSchema();
-			final JsonObjectType type = schema.addType("MessageClient");
-			final JsonObjectType sub = schema.addType("MessageSubscriber");
-
-			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageClient"));
-
-			type.relate(sub, "HAS_SUBSCRIBER", Cardinality.ManyToMany, "clients", "subscribers");
-
-			type.addViewProperty(PropertyView.Public, "subscribers");
-			type.addViewProperty(PropertyView.Ui, "subscribers");
-
-			type.addPropertyGetter("subscribers", Iterable.class);
-			type.addPropertySetter("subscribers", Iterable.class).addException("FrameworkException");
-
-			type.addMethod("sendMessage")
-				.setReturnType(RestMethodResult.class.getName())
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("topic", String.class.getName())
-				.addParameter("message", String.class.getName())
-				.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-			type.addMethod("subscribeTopic")
-				.setReturnType(RestMethodResult.class.getName())
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("topic", String.class.getName())
-				.setSource("return " + MessageClient.class.getName() + ".subscribeTopic(this, topic, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-			type.addMethod("unsubscribeTopic")
-				.setReturnType(RestMethodResult.class.getName())
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("topic", String.class.getName())
-				.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-		}
+	public Iterable<MessageSubscriber> getSubscribers() {
+		return getProperty(subscribersProperty);
 	}
 
-	Iterable<MessageSubscriber> getSubscribers();
+	public void setSubscribers(final Iterable<MessageSubscriber> subscribers) throws FrameworkException {
+		setProperty(subscribersProperty, subscribers);
+	}
 
-	void setSubscribers(Iterable<MessageSubscriber> subs) throws FrameworkException;
-
-	static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message, final SecurityContext securityContext) throws FrameworkException {
+	@Export
+	public RestMethodResult sendMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			final Iterable<MessageSubscriber> subscribers = thisClient.getSubscribers();
+			final Iterable<MessageSubscriber> subscribers = this.getSubscribers();
 			if (subscribers != null) {
 
 				subscribers.forEach(sub -> {
@@ -131,13 +100,13 @@ public interface MessageClient extends NodeInterface {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult subscribeTopic(MessageClient client, final String topic, final SecurityContext securityContext) throws FrameworkException {
-
+	@Export
+	public RestMethodResult subscribeTopic(final SecurityContext securityContext, String topic) throws FrameworkException {
 		return new RestMethodResult(200);
 	}
 
-	static RestMethodResult unsubscribeTopic(MessageClient client, final String topic, final SecurityContext securityContext) throws FrameworkException {
-
+	@Export
+	public RestMethodResult unsubscribeTopic(final SecurityContext securityContext, String topic) throws FrameworkException {
 		return new RestMethodResult(200);
 	}
 

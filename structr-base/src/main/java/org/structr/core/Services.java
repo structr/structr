@@ -844,7 +844,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		} catch (Throwable t) {
 
-			if (!disableRetry && isVital) {
+			logger.error("Exception occured when trying to start service " + serviceName, t);
+
+            if (!disableRetry && isVital) {
 
 				checkVitalService(serviceClass, t);
 

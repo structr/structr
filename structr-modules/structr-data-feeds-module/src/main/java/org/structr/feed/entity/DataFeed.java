@@ -18,7 +18,6 @@
  */
 package org.structr.feed.entity;
 
-
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
@@ -29,116 +28,114 @@ import com.rometools.rome.io.XmlReader;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
+import org.structr.feed.entity.relationship.DataFeedHAS_FEED_ITEMSFeedItem;
 import org.structr.rest.common.HttpHelper;
-import org.structr.schema.SchemaService;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
-import java.net.URI;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
+public class DataFeed extends AbstractNode {
 
-public interface DataFeed extends NodeInterface {
+	public static final Property<Iterable<FeedItem>> itemsProperty = new EndNodes<>("items", DataFeedHAS_FEED_ITEMSFeedItem.class);
 
-	static class Impl { static {
+	public static final Property<String> urlProperty         = new StringProperty("url").indexed().notNull();
+	public static final Property<String> feedTypeProperty    = new StringProperty("feedType");
+	public static final Property<String> descriptionProperty = new StringProperty("description");
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("DataFeed");
-		final JsonObjectType item = (JsonObjectType)schema.addType("FeedItem");
+	public static final Property<Long> updateIntervalProperty = new LongProperty("updateInterval");
+	public static final Property<Date> lastUpdatedProperty    = new DateProperty("lastUpdated");
+	public static final Property<Long> maxAgeProperty         = new LongProperty("maxAge");
+	public static final Property<Integer> maxItemsProperty    = new IntProperty("maxItems");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DataFeed"));
+	public static final View defaultView = new View(DataFeed.class, PropertyView.Public,
+		urlProperty, feedTypeProperty, descriptionProperty, itemsProperty
+	);
 
-		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("feedType",     PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("description",  PropertyView.Public, PropertyView.Ui);
+	public static final View uiView = new View(DataFeed.class, PropertyView.Ui,
+		descriptionProperty, feedTypeProperty, maxAgeProperty, urlProperty, updateIntervalProperty,
+		lastUpdatedProperty, maxItemsProperty, maxItemsProperty, itemsProperty
+	);
 
-		type.addLongProperty("updateInterval", PropertyView.Ui);  // update interval in milliseconds
-		type.addDateProperty("lastUpdated",    PropertyView.Ui);  // last updated
-		type.addLongProperty("maxAge",         PropertyView.Ui);  // maximum age of the oldest feed entry in milliseconds
-		type.addIntegerProperty("maxItems",    PropertyView.Ui);  // maximum number of feed entries to retain
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addPropertyGetter("items",            Iterable.class);
-		type.addPropertyGetter("url",              String.class);
-		type.addPropertyGetter("feedType",         String.class);
-		type.addPropertyGetter("description",      String.class);
-		type.addPropertyGetter("updateInterval",   Long.class);
-		type.addPropertyGetter("lastUpdated",      Date.class);
-		type.addPropertyGetter("maxAge",           Long.class);
-		type.addPropertyGetter("maxItems",         Integer.class);
+		boolean valid = super.isValid(errorBuffer);
 
-		type.overrideMethod("onCreation", true,  "updateFeed(arg0, true);");
+		valid &= ValidationHelper.isValidPropertyNotNull(this, DataFeed.urlProperty, errorBuffer);
 
-		type.addMethod("updateFeed")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setSource("updateFeed(ctx, true);")
-			.setDoExport(true);
+		return valid;
+	}
 
-		type.addMethod("updateFeed")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("cleanUp", "boolean")
-			.setSource(DataFeed.class.getName() + ".updateFeed(this, cleanUp, ctx);")
-			.setDoExport(true);
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		type.addMethod("cleanUp")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setSource(DataFeed.class.getName() + ".cleanUp(this, ctx);")
-			.setDoExport(true);
+		super.onCreation(securityContext, errorBuffer);
+		updateFeed(securityContext, true);
+	}
 
-		type.addMethod("updateIfDue")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setSource(DataFeed.class.getName() + ".updateIfDue(this, ctx);")
-			.setDoExport(true);
+	public String getUrl() {
+		return getProperty(urlProperty);
+	}
 
-		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items").setCascadingDelete(Cascade.sourceToTarget);
+	public String getFeedType() {
+		return getProperty(feedTypeProperty);
+	}
 
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "items");
-		type.addViewProperty(PropertyView.Ui, "items");
-	}}
+	public String getDescription() {
+		return getProperty(descriptionProperty);
+	}
 
-	void cleanUp(final SecurityContext ctx);
-	void updateIfDue(final SecurityContext ctx);
-	void updateFeed(final SecurityContext ctx);
-	void updateFeed(final SecurityContext ctx, final boolean cleanItems);
+	public Long getUpdateInterval() {
+		return getProperty(updateIntervalProperty);
+	}
 
-	String getUrl();
-	String getFeedType();
-	String getDescription();
-	Long getUpdateInterval();
-	Date getLastUpdated();
-	Long getMaxAge();
-	Integer getMaxItems();
+	public Date getLastUpdated() {
+		return getProperty(lastUpdatedProperty);
+	}
 
-	Iterable<FeedItem> getItems();
+	public Long getMaxAge() {
+		return getProperty(maxAgeProperty);
+	}
 
-	static void cleanUp(final DataFeed thisFeed, final SecurityContext ctx) {
+	public Integer getMaxItems() {
+		return getProperty(maxItemsProperty);
+	}
 
-		final Integer maxItemsToRetain = thisFeed.getMaxItems();
-		final Long    maxItemAge       = thisFeed.getMaxAge();
+	public Iterable<FeedItem> getItems() {
+		return getProperty(itemsProperty);
+	}
+
+	@Export
+	public void cleanUp(final SecurityContext ctx) {
+
+		final Integer maxItemsToRetain = this.getMaxItems();
+		final Long    maxItemAge       = this.getMaxAge();
 
 		int i = 0;
 
 		// Don't do anything if maxItems and maxAge are not set
 		if (maxItemsToRetain != null || maxItemAge != null) {
 
-			final List<FeedItem> feedItems  = Iterables.toList(thisFeed.getItems());
+			final List<FeedItem> feedItems  = Iterables.toList(this.getItems());
 			final PropertyKey<Date> dateKey = StructrApp.key(FeedItem.class, "pubDate");
 
 			// Sort by publication date, youngest items first
@@ -165,22 +162,29 @@ public interface DataFeed extends NodeInterface {
 		}
 	}
 
-	static void updateIfDue(final DataFeed thisFeed, final SecurityContext ctx) {
+	@Export
+	public void updateIfDue(final SecurityContext ctx) {
 
-		final Date lastUpdate = thisFeed.getLastUpdated();
-		final Long interval   = thisFeed.getUpdateInterval();
+		final Date lastUpdate = this.getLastUpdated();
+		final Long interval   = this.getUpdateInterval();
 
 		if (lastUpdate == null || (interval != null && new Date().after(new Date(lastUpdate.getTime() + interval)))) {
 
 			// Update feed and clean-up afterwards
-			thisFeed.updateFeed(ctx, true);
+			this.updateFeed(ctx, true);
 		}
 
 	}
 
-	static void updateFeed(final DataFeed thisFeed, final boolean cleanUp, final SecurityContext ctx) {
+	@Export
+	public void updateFeed(final SecurityContext ctx) {
+		updateFeed(ctx, true);
+	}
 
-		final String remoteUrl = thisFeed.getUrl();
+	@Export
+	public void updateFeed(final SecurityContext ctx, final boolean cleanUp) {
+
+		final String remoteUrl = this.getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
 			final App app = StructrApp.getInstance(ctx);
@@ -189,28 +193,39 @@ public interface DataFeed extends NodeInterface {
 
 				final SyndFeedInput input              = new SyndFeedInput();
 
-				try (final Reader reader = new XmlReader(HttpHelper.getAsStream(remoteUrl))) {
+				InputStream inputStream = null;
+				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+
+					inputStream =  (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+				}
+
+				if (inputStream == null) {
+					throw new FrameworkException(422, "Could not get input stream for feed " + getUuid());
+				}
+
+				try (final Reader reader = new XmlReader(inputStream)) {
 
 					final SyndFeed        feed    = input.build(reader);
 					final List<SyndEntry> entries = feed.getEntries();
 
-					final PropertyKey feedItemUrlKey             = StructrApp.key(FeedItem.class, "url");
-					final PropertyKey feedItemPubDateKey         = StructrApp.key(FeedItem.class, "pubDate");
-					final PropertyKey feedItemUpdatedDateKey     = StructrApp.key(FeedItem.class, "updatedDate");
-					final PropertyKey feedItemNameKey            = StructrApp.key(FeedItem.class, "name");
-					final PropertyKey feedItemAuthorKey          = StructrApp.key(FeedItem.class, "author");
-					final PropertyKey feedItemCommentsKey        = StructrApp.key(FeedItem.class, "comments");
-					final PropertyKey feedItemDescriptionKey     = StructrApp.key(FeedItem.class, "description");
-					final PropertyKey feedItemContentsKey        = StructrApp.key(FeedItem.class, "contents");
-					final PropertyKey feedItemEnclosuresKey      = StructrApp.key(FeedItem.class, "enclosures");
-					final PropertyKey feedItemContentModeKey     = StructrApp.key(FeedItemContent.class, "mode");
-					final PropertyKey feedItemContentItemTypeKey = StructrApp.key(FeedItemContent.class, "itemType");
-					final PropertyKey feedItemContentValueKey    = StructrApp.key(FeedItemContent.class, "value");
-					final PropertyKey feedItemEnclosureUrlKey    = StructrApp.key(FeedItemEnclosure.class, "url");
-					final PropertyKey feedItemEnclosureLengthKey = StructrApp.key(FeedItemEnclosure.class, "enclosureLength");
-					final PropertyKey feedItemEnclosureTypeKey   = StructrApp.key(FeedItemEnclosure.class, "enclosureType");
+					final PropertyKey feedItemUrlKey             = FeedItem.urlProperty;
+					final PropertyKey feedItemPubDateKey         = FeedItem.pubDateProperty;
+					final PropertyKey feedItemUpdatedDateKey     = FeedItem.updatedDateProperty;
+					final PropertyKey feedItemNameKey            = FeedItem.name;
+					final PropertyKey feedItemAuthorKey          = FeedItem.authorProperty;
+					final PropertyKey feedItemCommentsKey        = FeedItem.commentsProperty;
+					final PropertyKey feedItemDescriptionKey     = FeedItem.descriptionProperty;
+					final PropertyKey feedItemContentsKey        = FeedItem.contentsProperty;
+					final PropertyKey feedItemEnclosuresKey      = FeedItem.enclosuresProperty;
+					final PropertyKey feedItemContentModeKey     = FeedItemContent.modeProperty;
+					final PropertyKey feedItemContentItemTypeKey = FeedItemContent.itemTypeProperty;
+					final PropertyKey feedItemContentValueKey    = FeedItemContent.valueProperty;
+					final PropertyKey feedItemEnclosureUrlKey    = FeedItemEnclosure.urlProperty;
+					final PropertyKey feedItemEnclosureLengthKey = FeedItemEnclosure.enclosureLengthProperty;
+					final PropertyKey feedItemEnclosureTypeKey   = FeedItemEnclosure.enclosureTypeProperty;
 
-					final List<FeedItem> newItems = Iterables.toList(thisFeed.getItems());
+					final List<FeedItem> newItems = Iterables.toList(this.getItems());
 
 					for (final SyndEntry entry : entries) {
 
@@ -275,32 +290,32 @@ public interface DataFeed extends NodeInterface {
 
 					final PropertyMap feedProps = new PropertyMap();
 
-					if (StringUtils.isEmpty(thisFeed.getProperty(DataFeed.name))) {
+					if (StringUtils.isEmpty(this.getProperty(DataFeed.name))) {
 						feedProps.put(DataFeed.name, feed.getTitle());
 					}
 
-					feedProps.put(StructrApp.key(DataFeed.class, "feedType"),    feed.getFeedType());
-					feedProps.put(StructrApp.key(DataFeed.class, "description"), feed.getDescription());
-					feedProps.put(StructrApp.key(DataFeed.class, "items"),       newItems);
-					feedProps.put(StructrApp.key(DataFeed.class, "lastUpdated"), new Date());
+					feedProps.put(DataFeed.feedTypeProperty,    feed.getFeedType());
+					feedProps.put(DataFeed.descriptionProperty, feed.getDescription());
+					feedProps.put(DataFeed.itemsProperty,       newItems);
+					feedProps.put(DataFeed.lastUpdatedProperty, new Date());
 
-					thisFeed.setProperties(ctx, feedProps);
+					this.setProperties(ctx, feedProps);
 				}
 
 			} catch (IOException | FeedException | IllegalArgumentException ex) {
 
 				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
-				logger.error("Error while trying to read feed '{}' ({}). {}: {}", remoteUrl, thisFeed.getUuid(), ex.getClass().getSimpleName(), ex.getMessage());
+				logger.error("Error while trying to read feed '{}' ({}). {}: {}", remoteUrl, this.getUuid(), ex.getClass().getSimpleName(), ex.getMessage());
 
 			} catch (FrameworkException ex) {
 
 				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
-				logger.error("Error while trying to read feed at '{}' ({})", remoteUrl, thisFeed.getUuid(), ex);
+				logger.error("Error while trying to read feed at '{}' ({})", remoteUrl, this.getUuid(), ex);
 			}
 		}
 
 		if (cleanUp) {
-			thisFeed.cleanUp(ctx);
+			this.cleanUp(ctx);
 		}
 	}
 }

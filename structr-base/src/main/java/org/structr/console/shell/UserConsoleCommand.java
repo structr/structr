@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -50,7 +50,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 		final String command    = getParameter(parameters, 1);
 		if (command != null) {
 
-			final Principal user = securityContext.getUser(false);
+			final PrincipalInterface user = securityContext.getUser(false);
 			if (user != null && user.isAdmin()) {
 
 				switch (command) {
@@ -152,7 +152,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				final Principal user = (Principal)app.create(type, new NodeAttribute<>(AbstractNode.name, name));
+				final PrincipalInterface user = (PrincipalInterface)app.create(type, new NodeAttribute<>(AbstractNode.name, name));
 
 				// set e-mail address
 				if (eMail != null && !"isAdmin".equals(eMail)) {
@@ -196,7 +196,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 				if (user != null) {
 
-					final List<NodeInterface> ownedNodes = Iterables.toList(user.getProperty(Principal.ownedNodes));
+					final List<NodeInterface> ownedNodes = Iterables.toList(user.getProperty(PrincipalInterface.ownedNodes));
 					if (ownedNodes.isEmpty()) {
 
 						app.delete(user);
@@ -245,14 +245,14 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 			throw new FrameworkException(422, "Missing user name for password command.");
 		}
 
-		final Class<? extends Principal> type = StructrApp.getConfiguration().getNodeEntityClass("User");
+		final Class<? extends PrincipalInterface> type = StructrApp.getConfiguration().getNodeEntityClass("User");
 		final App app                          = StructrApp.getInstance(securityContext);
 
 		if (type != null) {
 
 			try (final Tx tx = app.tx()) {
 
-				final Principal user = app.nodeQuery(type).andName(name).getFirst();
+				final PrincipalInterface user = app.nodeQuery(type).andName(name).getFirst();
 				if (user != null) {
 
 					if (StringUtils.isNotBlank(password)) {

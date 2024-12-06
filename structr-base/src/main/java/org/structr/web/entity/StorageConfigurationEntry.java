@@ -18,48 +18,44 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EncryptedStringProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.web.entity.relationship.StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry;
 
 /**
  * Storage object for mount configuration data.
  */
+public class StorageConfigurationEntry extends AbstractNode {
 
-public interface StorageConfigurationEntry extends NodeInterface {
+	public static final Property<StorageConfiguration> configurationProperty = new StartNode<>("configuration", StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry.class).partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final Property<String> nameProperty  = new StringProperty("name").partOfBuiltInSchema();
+	public static final Property<String> valueProperty = new EncryptedStringProperty("value").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("StorageConfigurationEntry");
+	public static final View uiView = new View(StorageConfigurationEntry.class, PropertyView.Ui,
+		nameProperty, valueProperty, configurationProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/StorageConfigurationEntry"));
-		type.setExtends(URI.create("#/definitions/AbstractNode"));
-		type.setCategory("core");
+	public StorageConfiguration getConfiguration() {
+		return getProperty(configurationProperty);
+	}
 
-		type.addStringProperty("name", PropertyView.Ui);
-		type.addEncryptedProperty("value", PropertyView.Ui);
+	public void setName(final String name) throws FrameworkException {
+		setProperty(nameProperty, name);
+	}
 
-		type.addPropertyGetter("configuration", StorageConfiguration.class);
-		type.addViewProperty(PropertyView.Ui, "configuration");
+	public String getValue() {
+		return getProperty(valueProperty);
+	}
 
-		type.addPropertySetter("name", String.class);
-
-		type.addPropertyGetter("value", String.class);
-		type.addPropertySetter("value", String.class);
-
-	}}
-
-	StorageConfiguration getConfiguration();
-
-	void setName(final String name) throws FrameworkException;
-
-	String getValue();
-	void setValue(final String value) throws FrameworkException;
+	public void setValue(final String value) throws FrameworkException {
+		setProperty(valueProperty, value);
+	}
 
 }

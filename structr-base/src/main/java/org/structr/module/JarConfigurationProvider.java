@@ -529,12 +529,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			relationshipEntityClassCache.put(simpleName, type);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
+
+			// this was previously done by generated code
+			if (PermissionPropagation.class.isAssignableFrom(type)) {
+				SchemaRelationshipNode.registerPropagatingRelationshipType(type, fqcn.startsWith("org.structr.dynamic."));
+			}
 		}
 
 		// interface that extends NodeInterface, must be stored
 		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
 
-			reverseInterfaceMap.putIfAbsent(type.getName(), type);
+			reverseInterfaceMap.putIfAbsent(type.getSimpleName(), type);
 		}
 
 		for (final Class interfaceClass : type.getInterfaces()) {
@@ -817,10 +822,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
+		Set<PropertyKey> properties = new LinkedHashSet<>();
 
-		if (properties == null) {
-			properties = new LinkedHashSet<>();
+		if ("custom".equals(propertyView)) {
+
+			properties.add(AbstractNode.id);
+			properties.add(AbstractNode.type);
+			properties.add(getPropertyKeyForJSONName(type, "name"));
+		}
+
+		final Set<PropertyKey> keys = propertyViewMap.get(propertyView);
+		if (keys != null) {
+
+			properties.addAll(keys);
 		}
 
 		// read-only

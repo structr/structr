@@ -21,6 +21,7 @@ package org.structr.test.rest.document;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
@@ -29,6 +30,7 @@ import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -1672,6 +1674,8 @@ public class DocumentTest extends StructrRestTestBase {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
+
+			type.setExtends(GroupCONTAINSPrincipal.class);
 
 			type.addStringProperty("test", PropertyView.Public);
 

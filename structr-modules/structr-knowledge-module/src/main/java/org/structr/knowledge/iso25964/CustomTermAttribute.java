@@ -18,30 +18,41 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
-import java.util.Locale;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EnumProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasCustomTermAttributeCustomTermAttribute;
 
 /**
  * Class as defined in ISO 25964 data model
  */
 
-public interface CustomTermAttribute extends NodeInterface {
+public class CustomTermAttribute extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<ThesaurusTerm> termProperty         = new StartNode<>("term", ThesaurusTermhasCustomTermAttributeCustomTermAttribute.class);
 
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType type          = schema.addType("CustomTermAttribute");
+	public static final Property<String> lexicalValueProperty        = new StringProperty("lexicalValue").indexed().notNull();
+	public static final Property<String> customAttributeTypeProperty = new StringProperty("customAttributeType").indexed().notNull();
+	public static final Property<String> langProperty                = new EnumProperty("lang", ThesaurusTerm.Lang.class);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CustomTermAttribute"));
+	public static final View uiView = new View(CustomTermAttribute.class, PropertyView.Ui,
+		lexicalValueProperty, customAttributeTypeProperty, langProperty
+	);
 
-		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringProperty("customAttributeType", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
-	}}
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidPropertyNotNull(this, CustomTermAttribute.customAttributeTypeProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, CustomTermAttribute.lexicalValueProperty, errorBuffer);
+
+		return valid;
+	}
 }

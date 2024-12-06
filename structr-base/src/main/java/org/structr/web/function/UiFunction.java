@@ -34,27 +34,18 @@ import java.util.Map.Entry;
  */
 public abstract class UiFunction extends Function<Object, Object> {
 
-	protected String getFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws IOException, FrameworkException {
+	protected Map<String, Object> getFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws FrameworkException {
 
 		return HttpHelper.get(requestUrl, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 
-	protected byte[] getBinaryFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws IOException, FrameworkException {
+	protected Map<String, Object> getBinaryFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws FrameworkException {
 
 		return HttpHelper.getBinary(requestUrl, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 
-	protected GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
+	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws FrameworkException {
 
-		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, ctx.getHeaders(), ctx.isValidateCertificates());
-
-		final GraphObjectMap map = new GraphObjectMap();
-
-		for (final Entry<String, String> entry : headers.entrySet()) {
-
-			map.put(new StringProperty(entry.getKey()), entry.getValue());
-		}
-
-		return map;
+		return HttpHelper.head(requestUrl, password, username, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 }

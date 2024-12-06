@@ -887,7 +887,7 @@ let _Code = {
 			},
 			{
 				id:       path + '/remoteproperties',
-				text:     'Related Properties',
+				text:     'Linked Properties',
 				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'remoteproperties' },
@@ -3256,7 +3256,7 @@ let _Code = {
 					<div>
 						<div class="method-config-element entity-method">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
-								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return raw result object
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return result object only
 							</label>
 						</div>
 						<div class="method-config-element entity-method">

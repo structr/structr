@@ -18,30 +18,39 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.knowledge.iso25964.relationship.ThesaurushasVersionVersionHistory;
 
-import java.net.URI;
+import java.util.Date;
 
 /**
  * Base class of a concept group as defined in ISO 25964
  */
-public interface VersionHistory extends NodeInterface {
+public class VersionHistory extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<Thesaurus> thesaurusProperty    = new StartNode<>("thesaurus", ThesaurushasVersionVersionHistory.class);
+	public static final Property<String> identifierProperty      = new StringProperty("identifier").indexed();
+	public static final Property<Date> dateProperty              = new DateProperty("date");
+	public static final Property<String> versionNoteProperty     = new StringProperty("versionNote");
+	public static final Property<Boolean> currentVersionProperty = new BooleanProperty("currentVersion");
+	public static final Property<Boolean> thisVersionProperty    = new BooleanProperty("thisVersion").notNull();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("VersionHistory");
+	public static final View uiView = new View(VersionHistory.class, PropertyView.Ui,
+		identifierProperty, dateProperty, versionNoteProperty, currentVersionProperty, thisVersionProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VersionHistory"));
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.addStringProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("date", PropertyView.All, PropertyView.Ui);
-		type.addStringProperty("versionNote", PropertyView.All, PropertyView.Ui);
-		type.addBooleanProperty("currentVersion", PropertyView.All, PropertyView.Ui);
-		type.addBooleanProperty("thisVersion", PropertyView.All, PropertyView.Ui).setRequired(true);
-	}}
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidPropertyNotNull(this, VersionHistory.thisVersionProperty, errorBuffer);
+
+		return valid;
+	}
 }

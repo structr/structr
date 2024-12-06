@@ -19,7 +19,7 @@
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Security;
 
 import java.util.Date;
@@ -38,7 +38,7 @@ public interface AccessControllable {
 	 *
 	 * @return owner
 	 */
-	public Principal getOwnerNode();
+	public PrincipalInterface getOwnerNode();
 
 	/**
 	 * Return true if principal has the given permission on this object.
@@ -57,7 +57,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void grant(final Permission permission, final Principal principal) throws FrameworkException;
+	public void grant(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Grant given permissions to given principal.
@@ -66,7 +66,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Grant given permissions to given principal.
@@ -76,7 +76,7 @@ public interface AccessControllable {
 	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void grant(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Revoke given permission from given principal.
@@ -85,7 +85,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Permission permission, final Principal principal) throws FrameworkException;
+	public void revoke(final Permission permission, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Revoke given permissions from given principal.
@@ -94,7 +94,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Revoke given permissions from given principal.
@@ -104,7 +104,7 @@ public interface AccessControllable {
 	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Applies the given permissions to the given principal.
@@ -114,7 +114,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @throws FrameworkException
 	 */
-	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
+	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException;
 
 	/**
 	 * Applies the given permissions to the given principal.
@@ -125,7 +125,7 @@ public interface AccessControllable {
 	 * @param ctx
 	 * @throws FrameworkException
 	 */
-	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
+	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) throws FrameworkException;
 
 	/**
 	 * Return the (cached) incoming relationship between this node and the
@@ -134,7 +134,7 @@ public interface AccessControllable {
 	 * @param principal
 	 * @return incoming security relationship
 	 */
-	public Security getSecurityRelationship(final Principal principal);
+	public Security getSecurityRelationship(final PrincipalInterface principal);
 
 	// visibility
 	public boolean isVisibleToPublicUsers();

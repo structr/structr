@@ -26,11 +26,14 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.EqualFunction;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.AsyncBuffer;
@@ -42,34 +45,31 @@ import org.structr.web.entity.dom.DOMNode;
 import java.net.URI;
 import java.util.List;
 
-public interface Option extends DOMElement {
+public class Option extends DOMElement {
 
 	static final GenericProperty valueKey = new GenericProperty("value");
 	static final EqualFunction EqualFunction = new EqualFunction();
 
-	static class Impl { static {
+	public static final Property<String> selectedValuesProperty = new StringProperty("selectedValues").partOfBuiltInSchema();
+	public static final Property<String> htmlValueProperty      = new StringProperty("_html_value").partOfBuiltInSchema();
+	public static final Property<String> htmlDisabledProperty   = new StringProperty("_html_disabled").partOfBuiltInSchema();
+	public static final Property<String> htmlSelectedProperty   = new StringProperty("_html_selected").partOfBuiltInSchema();
+	public static final Property<String> htmlLabelProperty      = new StringProperty("_html_label").partOfBuiltInSchema();
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Option");
+	public static final View uiView = new View(Option.class, PropertyView.Ui,
+		selectedValuesProperty
+	);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Option"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
+	public static final View htmlView = new View(Option.class, PropertyView.Html,
+		htmlValueProperty, htmlDisabledProperty, htmlSelectedProperty, htmlLabelProperty
+	);
 
-		type.addStringProperty("selectedValues", PropertyView.Ui);
-
-		type.addStringProperty("_html_value",	 PropertyView.Html);
-		type.addStringProperty("_html_disabled", PropertyView.Html);
-		type.addStringProperty("_html_selected", PropertyView.Html);
-		type.addStringProperty("_html_label",    PropertyView.Html);
-
-		type.addPropertyGetter("selectedValues", String.class);
-	}}
-
-	String getSelectedValues();
+	public String getSelectedValues() {
+		return getProperty(selectedValuesProperty);
+	}
 
 	@Override
-	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	public void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 		try {
 
@@ -139,6 +139,7 @@ public interface Option extends DOMElement {
 					}
 				}
 			}
+
 		} catch (final Throwable t) {
 
 			final Logger logger = LoggerFactory.getLogger(Content.class);

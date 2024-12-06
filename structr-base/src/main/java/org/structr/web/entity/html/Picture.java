@@ -18,23 +18,7 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
-
-public interface Picture extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Picture");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Picture"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-	}}
+public class Picture extends DOMElement {
 }

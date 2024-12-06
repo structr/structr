@@ -21,63 +21,45 @@ package org.structr.odf.entity;
 import org.odftoolkit.simple.TextDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.schema.SchemaService;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.net.URI;
 import java.util.*;
 
 /**
  * Reads a nodes attributes and tries to replace matching attributes in the
  * given ODT-File template.
  */
-public interface ODTExporter extends ODFExporter {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ODTExporter");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ODTExporter"));
-		type.setExtends(URI.create("#/definitions/ODFExporter"));
-
-		type.addMethod("exportAttributes")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("uuid", String.class.getName())
-			.setSource(ODTExporter.class.getName() + ".exportAttributes(this, uuid, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	}}
+public class ODTExporter extends ODFExporter {
 
 	static final String ODT_FIELD_TAG_NAME        = "text:user-field-decl";
 	static final String ODT_FIELD_ATTRIBUTE_NAME  = "text:name";
 	static final String ODT_FIELD_ATTRIBUTE_VALUE = "office:string-value";
 
-	static void exportAttributes(final ODTExporter thisNode, final String uuid, final SecurityContext securityContext) throws FrameworkException {
+	@Export
+	public void exportAttributes(final SecurityContext securityContext, final String uuid) throws FrameworkException {
 
-		final File output                     = thisNode.getResultDocument();
-		final VirtualType transformation      = thisNode.getTransformationProvider();
+		final File output                = getResultDocument();
+		final VirtualType transformation = getTransformationProvider();
 
 		try {
 
-			final App app = StructrApp.getInstance(securityContext);
-			final ResultStream result = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResultStream();
+			final App app                        = StructrApp.getInstance(securityContext);
+			final ResultStream result            = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, AbstractNode.class, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();

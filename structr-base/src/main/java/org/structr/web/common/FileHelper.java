@@ -43,6 +43,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -62,6 +63,7 @@ import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
 import org.structr.common.helper.PathHelper;
@@ -1276,5 +1278,35 @@ public class FileHelper {
 
 		return -1;
 
+	}
+
+	public static void prefetchFileData(final String uuid) {
+
+		TransactionCommand.getCurrentTransaction().prefetch2(
+
+			"MATCH (n:NodeInterface:AbstractFile { id: $id })<-[r:CONTAINS*]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/INCOMING/CONTAINS"
+			),
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/INCOMING/CONTAINS"
+			),
+
+			uuid
+		);
+
+		TransactionCommand.getCurrentTransaction().prefetch(
+
+			"(n:NodeInterface:AbstractFile)-[r:CONFIGURED_BY]->(m:StorageConfiguration)",
+
+			Set.of(
+				"AbstractFile/all/OUTGOING/CONFIGURED_BY",
+				"AbstractFile/all/INCOMING/CONFIGURED_BY"
+			)
+		);
 	}
 }

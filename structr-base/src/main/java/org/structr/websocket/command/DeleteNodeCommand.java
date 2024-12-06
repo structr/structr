@@ -18,6 +18,8 @@
  */
 package org.structr.websocket.command;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -29,14 +31,12 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Websocket command to delete a single node.
@@ -82,10 +82,10 @@ public class DeleteNodeCommand extends AbstractCommand {
 				tx.success();
 
 				return;
-
 			}
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -101,11 +101,11 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 					filteredResults.addAll(DOMNode.getAllChildNodes(node));
 
-				} else if (obj instanceof LinkedTreeNode) {
+				} else if (obj instanceof Folder) {
 
-					LinkedTreeNode node = (LinkedTreeNode) obj;
+					Folder node = (Folder) obj;
 
-					filteredResults.addAll(node.getAllChildNodes());
+					filteredResults.addAll(Folder.getAllChildNodes(node));
 				}
 
 				for (NodeInterface node : filteredResults) {
@@ -121,15 +121,15 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 				logger.warn("DOMException occured.", dex);
 				ws.send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
-
 			}
-
 		}
 
 		try {
+
 			app.delete(obj);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to delete node(s)", fex);
 		}
 	}

@@ -91,6 +91,8 @@ public class FlowServlet extends JsonRestServlet {
 				final String flowName = request.getPathInfo().substring(1);
 				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
 
+				tx.prefetchHint("Flow " + flowName);
+
 				if (flow != null) {
 
 					flowResult = flow.evaluate(securityContext, flowParameters);

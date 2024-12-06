@@ -22,14 +22,14 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
-import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -38,102 +38,95 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.property.*;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
+import org.structr.web.entity.relationship.UserHOME_DIRFolder;
+import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
 
-import java.net.URI;
+public class User extends Principal {
 
-public interface User extends Principal {
+	public static final Property<Folder> homeDirectoryProperty              = new EndNode<>("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema();
+	public static final Property<Folder> workingDirectoryProperty           = new EndNode<>("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
+	public static final Property<Image> imgProperty                         = new StartNode<>("img", ImagePICTURE_OFUser.class);
+	public static final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
+	public static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
+	public static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
+	public static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View defaultView = new View(User.class, PropertyView.Public,
+		isUserProperty, name
+	);
 
-		final JsonSchema schema     = SchemaService.getDynamicSchema();
-		final JsonObjectType user   = schema.addType("User");
-		final JsonObjectType folder = schema.addType("Folder");
+	public static final View uiView = new View(User.class, PropertyView.Ui,
+		isUserProperty, confirmationKeyProperty, eMailProperty, favoritesProperty, groupsProperty, homeDirectoryProperty, isAdminProperty, localeProperty, passwordProperty, proxyPasswordProperty,
+		proxyUrlProperty, proxyUsernameProperty, publicKeyProperty, sessionIdsProperty, refreshTokensProperty, workingDirectoryProperty, twoFactorTokenProperty, isTwoFactorUserProperty,
+		twoFactorConfirmedProperty, passwordAttemptsProperty, passwordChangeDateProperty, lastLoginDateProperty, skipSecurityRelationshipsProperty, imgProperty
+	);
 
-		user.setExtends(schema.getType("Principal"));
-		user.setImplements(URI.create("https://structr.org/v1.1/definitions/User"));
-		user.setCategory("ui");
+	static {
 
-		user.addStringProperty("confirmationKey", PropertyView.Ui).setIndexed(true);
-		user.addStringProperty("localStorage");
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("User");
 
-		user.addBooleanProperty("skipSecurityRelationships", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
-		user.addBooleanProperty("isUser",                    PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-
-		user.addPropertySetter("localStorage", String.class);
-		user.addPropertyGetter("localStorage", String.class);
-
-		user.addPropertyGetter("workingDirectory", Folder.class);
-		user.addPropertyGetter("homeDirectory", Folder.class);
-
-		user.overrideMethod("shouldSkipSecurityRelationships", false, "return isAdmin() && getProperty(skipSecurityRelationshipsProperty);");
-
-		user.overrideMethod("onCreation",     true, User.class.getName() + ".onCreateAndModify(this, arg0);");
-		user.overrideMethod("onModification", true, User.class.getName() + ".onCreateAndModify(this, arg0, arg2);");
-		user.overrideMethod("onDeletion",     true, User.class.getName() + ".checkAndRemoveHomeDirectory(this, arg0);");
-
-		user.addMethod("setHomeDirectory")
-			.setSource("setProperty(homeDirectoryProperty, (org.structr.dynamic.Folder)homeDirectory);")
-			.addException(FrameworkException.class.getName())
-			.addParameter("homeDirectory", "org.structr.web.entity.Folder");
-
-		user.addMethod("setWorkingDirectory")
-			.setSource("setProperty(workingDirectoryProperty, (org.structr.dynamic.Folder)workingDirectory);")
-			.addException(FrameworkException.class.getName())
-			.addParameter("workingDirectory", "org.structr.web.entity.Folder");
-
-		user.relate(folder, "HOME_DIR",    Cardinality.OneToOne,  "homeFolderOfUser",  "homeDirectory");
-		user.relate(folder, "WORKING_DIR", Cardinality.ManyToOne, "workFolderOfUsers", "workingDirectory");
-
-		// view configuration
-		user.addViewProperty(PropertyView.Public, "name");
-
-		user.addViewProperty(PropertyView.Ui, "confirmationKey");
-		user.addViewProperty(PropertyView.Ui, "eMail");
-		user.addViewProperty(PropertyView.Ui, "favorites");
-		user.addViewProperty(PropertyView.Ui, "groups");
-		user.addViewProperty(PropertyView.Ui, "homeDirectory");
-		user.addViewProperty(PropertyView.Ui, "img");
-		user.addViewProperty(PropertyView.Ui, "isAdmin");
-		user.addViewProperty(PropertyView.Ui, "locale");
-		user.addViewProperty(PropertyView.Ui, "password");
-		user.addViewProperty(PropertyView.Ui, "proxyPassword");
-		user.addViewProperty(PropertyView.Ui, "proxyUrl");
-		user.addViewProperty(PropertyView.Ui, "proxyUsername");
-		user.addViewProperty(PropertyView.Ui, "publicKey");
-		user.addViewProperty(PropertyView.Ui, "sessionIds");
-		user.addViewProperty(PropertyView.Ui, "refreshTokens");
-		user.addViewProperty(PropertyView.Ui, "workingDirectory");
-
-		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
-		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
-		user.addViewProperty(PropertyView.Ui, "twoFactorConfirmed");
-
-		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
-		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
-
-		user.addViewProperty(PropertyView.Ui, "lastLoginDate");
-	}}
-
-	String getLocalStorage();
-	void setLocalStorage(final String localStorage) throws FrameworkException;
-
-	void setHomeDirectory(final Folder homeDir) throws FrameworkException;
-	Folder getHomeDirectory();
-
-	void setWorkingDirectory(final Folder workDir) throws FrameworkException;
-	Folder getWorkingDirectory();
-
-	// ----- public static methods -----
-	public static void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
-		onCreateAndModify(user, securityContext, null);
+		type.setExtends(User.class);
 	}
 
-	public static void onCreateAndModify(final User user, final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
+		return isAdmin() && getProperty(skipSecurityRelationshipsProperty);
+	}
 
-		final SecurityContext previousSecurityContext = user.getSecurityContext();
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+		onCreateAndModify(securityContext, null);
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+		onCreateAndModify(securityContext, modificationQueue);
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		super.onDeletion(securityContext, errorBuffer, properties);
+		checkAndRemoveHomeDirectory(securityContext);
+	}
+
+	public String getLocalStorage() {
+		return getProperty(localStorageProperty);
+	}
+
+	public void setLocalStorage(final String localStorage) throws FrameworkException {
+		setProperty(localStorageProperty, localStorage);
+	}
+
+	public void setHomeDirectory(final Folder homeDir) throws FrameworkException {
+		setProperty(homeDirectoryProperty, homeDir);
+	}
+
+	public Folder getHomeDirectory() {
+		return getProperty(homeDirectoryProperty);
+	}
+
+	public void setWorkingDirectory(final Folder workDir) throws FrameworkException {
+		setProperty(workingDirectoryProperty, workDir);
+	}
+
+	public Folder getWorkingDirectory() {
+		return getProperty(workingDirectoryProperty);
+	}
+
+	// ----- public static methods -----
+	public void onCreateAndModify(final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		final SecurityContext previousSecurityContext = getSecurityContext();
 
 		try {
 
@@ -151,19 +144,19 @@ public interface User extends Principal {
 				}
 			}
 
-			user.setSecurityContext(SecurityContext.getSuperUserInstance());
+			setSecurityContext(SecurityContext.getSuperUserInstance());
 
 			final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
-			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+			if (getProperty(skipSecurityRels).equals(Boolean.TRUE) && !isAdmin()) {
 
 				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
 			}
 
-			if (Principal.getTwoFactorSecret(user) == null) {
+			if (getTwoFactorSecret() == null) {
 
-				user.setProperty(StructrApp.key(User.class, "isTwoFactorUser"),    false);
-				user.setProperty(StructrApp.key(User.class, "twoFactorConfirmed"), false);
-				user.setProperty(StructrApp.key(User.class, "twoFactorSecret"),    TimeBasedOneTimePasswordHelper.generateBase32Secret());
+				setProperty(User.isTwoFactorUserProperty,    false);
+				setProperty(User.twoFactorConfirmedProperty, false);
+				setProperty(User.twoFactorSecretProperty,    TimeBasedOneTimePasswordHelper.generateBase32Secret());
 			}
 
 			if (Settings.FilesystemEnabled.getValue()) {
@@ -173,7 +166,7 @@ public interface User extends Principal {
 
 				try {
 
-					Folder homeDir = user.getHomeDirectory();
+					Folder homeDir = getHomeDirectory();
 					if (homeDir == null) {
 
 						// create home directory
@@ -190,11 +183,11 @@ public interface User extends Principal {
 						}
 
 						app.create(Folder.class,
-							new NodeAttribute(Folder.name, user.getUuid()),
-							new NodeAttribute(Folder.owner, user),
+							new NodeAttribute(Folder.name, getUuid()),
+							new NodeAttribute(Folder.owner, this),
 							new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
 							new NodeAttribute(parentKey, homeFolder),
-							new NodeAttribute(homeFolderKey, user)
+							new NodeAttribute(homeFolderKey, this)
 						);
 					}
 
@@ -207,22 +200,22 @@ public interface User extends Principal {
 		} finally {
 
 			// restore previous context
-			user.setSecurityContext(previousSecurityContext);
+			setSecurityContext(previousSecurityContext);
 		}
 	}
 
-	public static void checkAndRemoveHomeDirectory(final User user, final SecurityContext securityContext) throws FrameworkException {
+	public void checkAndRemoveHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
 			// use superuser context here
-			final SecurityContext storedContext = user.getSecurityContext();
+			final SecurityContext storedContext = getSecurityContext();
 
 			try {
 
-				user.setSecurityContext(SecurityContext.getSuperUserInstance());
+				setSecurityContext(SecurityContext.getSuperUserInstance());
 
-				final Folder homeDir = user.getHomeDirectory();
+				final Folder homeDir = getHomeDirectory();
 				if (homeDir != null) {
 
 					StructrApp.getInstance().delete(homeDir);
@@ -232,7 +225,7 @@ public interface User extends Principal {
 			} finally {
 
 				// restore previous context
-				user.setSecurityContext(storedContext);
+				setSecurityContext(storedContext);
 			}
 
 		}

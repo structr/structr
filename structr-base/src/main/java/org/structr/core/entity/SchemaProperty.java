@@ -18,10 +18,6 @@
  */
 package org.structr.core.entity;
 
-import graphql.Scalars;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLOutputType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,25 +28,20 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaExcludedViewProperty;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
 import org.structr.schema.parser.*;
 
 import java.util.*;
-
-import static graphql.schema.GraphQLTypeReference.typeRef;
-import org.structr.common.helper.ValidationHelper;
-import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
@@ -559,22 +550,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return buf.toString();
 	}
 
-	public GraphQLFieldDefinition getGraphQLField() {
-
-		final GraphQLOutputType outputType = SchemaHelper.getGraphQLOutputTypeForProperty(this);
-		if (outputType != null) {
-
-			return GraphQLFieldDefinition
-				.newFieldDefinition()
-				.name(SchemaHelper.cleanPropertyName(getPropertyName()))
-				.type(outputType)
-				.arguments(SchemaProperty.getGraphQLArgumentsForType(getPropertyType()))
-				.build();
-		}
-
-		return null;
-	}
-
 	public NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (notionPropertyParser == null) {
@@ -719,53 +694,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	// ----- public static methods -----
-	public static List<GraphQLArgument> getGraphQLArgumentsForType(final Type type) {
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		switch (type) {
-
-			case String:
-				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
-				arguments.add(GraphQLArgument.newArgument().name("_contains").type(Scalars.GraphQLString).build());
-				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-				break;
-
-			case Integer:
-				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLInt).build());
-				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-				break;
-
-			case Long:
-				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLLong).build());
-				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-				break;
-		}
-
-		return arguments;
-	}
-
-	public static List<GraphQLArgument> getGraphQLArgumentsForUUID() {
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
-
-		return arguments;
-	}
-
-	public static List<GraphQLArgument> getGraphQLArgumentsForRelatedType(final String relatedType) {
-
-		// related type parameter is unused right now
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		arguments.add(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
-		arguments.add(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLString).build());
-
-		return arguments;
-	}
 
 	// ----- private methods -----
 	private int addContentHash(final PropertyKey key, final int contentHash) {

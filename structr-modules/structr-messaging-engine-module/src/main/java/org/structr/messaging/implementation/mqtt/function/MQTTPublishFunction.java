@@ -42,7 +42,8 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
 		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 
 			MQTTClient client = null;
@@ -56,7 +57,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			MQTTClient.sendMessage(client, sources[1].toString(), sources[2].toString(), ctx.getSecurityContext());
+			client.sendMessage(ctx.getSecurityContext(), sources[1].toString(), sources[2].toString());
 
 		} else {
 

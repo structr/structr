@@ -1326,7 +1326,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export owner
 		final Map<String, Object> map = new HashMap<>();
-		final Principal owner         = node.getOwnerNode();
+		final PrincipalInterface owner         = node.getOwnerNode();
 
 		if (owner != null) {
 
@@ -1377,7 +1377,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
 				final String ownerName           = (String) ((Map)entry.get("owner")).get("name");
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(ownerName).getAsList();
+				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1407,7 +1407,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final Map<String, Object> grantee : grantees) {
 
 				final String granteeName         = (String) grantee.get("name");
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(granteeName).getAsList();
+				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1683,6 +1683,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, "failurePartial",				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
 				putData(entry, "failureURL",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
 			}
+
+			tx.success();
 		}
 
 		writeJsonToFile(target, actionMappings);
@@ -2406,12 +2408,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
-						// detect tree-based export (absence of folder "File")
-						final boolean isTreeBasedExport = Files.exists(schemaFolder.resolve("File"));
+						final StructrSchemaDefinition schema   = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						final boolean shouldLoadSourceFromFile = schema.hasMethodSourceCodeInFiles();
 
-						final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						// The following block takes the relative file name in the source property of a schema method
+						// and loads the actual source code from a file on disk.
 
-						if (isTreeBasedExport) {
+						if (shouldLoadSourceFromFile) {
 
 							final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
 

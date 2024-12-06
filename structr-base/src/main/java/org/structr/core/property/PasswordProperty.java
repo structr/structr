@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.CreationContainer;
 
 import java.util.Date;
@@ -90,28 +90,28 @@ public class PasswordProperty extends StringProperty {
 
 				wrappedObject = ((CreationContainer)obj).getWrappedObject();
 
-				if (wrappedObject != null && wrappedObject instanceof Principal) {
+				if (wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
 
-					final Principal principal   = (Principal)wrappedObject;
-					final String oldSalt        = Principal.getSalt(principal);
-					final String oldEncPassword = Principal.getEncryptedPassword(principal);
+					final PrincipalInterface principal   = (PrincipalInterface)wrappedObject;
+					final String oldSalt        = principal.getSalt();
+					final String oldEncPassword = principal.getEncryptedPassword();
 
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
 					if (passwordChangedOrFirstPassword) {
 
-						obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
+						obj.setProperty(StructrApp.key(PrincipalInterface.class, "passwordChangeDate"), new Date().getTime());
 					}
 				}
 			}
 
 			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
+			obj.setProperty(StructrApp.key(PrincipalInterface.class, "salt"), salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
-			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-				wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
+				wrappedObject.removeProperty(StructrApp.key(PrincipalInterface.class, "sessionIds"));
 			}
 
 		} else {
@@ -119,8 +119,8 @@ public class PasswordProperty extends StringProperty {
 			returnValue = super.setProperty(securityContext, obj, null);
 		}
 
-		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-			wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
+		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
+			wrappedObject.removeProperty(StructrApp.key(PrincipalInterface.class, "sessionIds"));
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {
@@ -156,6 +156,7 @@ public class PasswordProperty extends StringProperty {
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
+			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {

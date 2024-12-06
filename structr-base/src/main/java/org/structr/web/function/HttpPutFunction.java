@@ -20,6 +20,8 @@ package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
@@ -64,36 +66,30 @@ public class HttpPutFunction extends UiAdvancedFunction {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
+			final Map<String, Object> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
 
-			final int statusCode = Integer.parseInt(responseData.get("status"));
-			responseData.remove("status");
-
-			final String responseBody = responseData.get("body");
-			responseData.remove("body");
+			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
 			final GraphObjectMap response = new GraphObjectMap();
 
 			if ("application/json".equals(contentType)) {
 
 				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
 
 			} else {
 
-				response.setProperty(new StringProperty("body"), responseBody);
+				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
 			}
 
-			response.setProperty(new IntProperty("status"), statusCode);
+			// Set status and headers
+			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
+			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
 
-			final GraphObjectMap map = new GraphObjectMap();
+			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
 
-			for (final Map.Entry<String, String> entry : responseData.entrySet()) {
-
-				map.put(new StringProperty(entry.getKey()), entry.getValue());
+				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
 			}
-
-			response.setProperty(new StringProperty("headers"), map);
 
 			return response;
 

@@ -136,7 +136,7 @@ public class UserTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
-			final JsonType principal = schema.addType("Principal");
+			final JsonType principal = schema.addType("User");
 
 			principal.addFunctionProperty("funcTest", PropertyView.Public, PropertyView.Ui).setReadFunction("(me)");
 

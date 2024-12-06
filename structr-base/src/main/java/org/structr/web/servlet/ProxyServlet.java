@@ -34,7 +34,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.HttpHelper;
@@ -47,6 +47,7 @@ import org.structr.web.entity.User;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Servlet for proxy requests.
@@ -179,7 +180,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 			if (StringUtils.isBlank(proxyUrl)) {
 
-				final Principal user = securityContext.getCachedUser();
+				final PrincipalInterface user = securityContext.getCachedUser();
 				if (user != null) {
 
 					try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -195,8 +196,14 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
-			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final Map<String, Object> responseData = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true);
+			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+			if (body == null) {
+				throw new FrameworkException(422, "Request returned empty body");
+			}
+
+			content =  body.replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 		} catch (Throwable t) {
 

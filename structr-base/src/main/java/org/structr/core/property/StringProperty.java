@@ -44,12 +44,19 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	private ContentType contentType;
 
 	public StringProperty(final String jsonName) {
+
 		super(jsonName);
+
+		this.typeHint("String");
 	}
 
 	public StringProperty(final String jsonName, final String dbName) {
+
 		super(jsonName);
+
 		this.dbName = dbName;
+
+		this.typeHint("String");
 	}
 
 	@Override

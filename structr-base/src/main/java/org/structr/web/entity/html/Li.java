@@ -18,27 +18,21 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-import java.net.URI;
+public class Li extends DOMElement {
 
-public interface Li extends DOMElement {
+	public static final Property<String> htmlValueProperty = new StringProperty("_html_value").partOfBuiltInSchema();
 
-	static class Impl { static {
+	public static final View htmlView = new View(Li.class, PropertyView.Html, htmlValueProperty);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Li");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Li"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addStringProperty("_html_value", PropertyView.Html);
-
-		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
-	}}
+	@Override
+	public Property[] getHtmlAttributes() {
+		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
+	}
 }

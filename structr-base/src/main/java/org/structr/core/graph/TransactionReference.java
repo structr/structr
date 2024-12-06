@@ -64,6 +64,10 @@ public class TransactionReference implements Transaction {
 		referenceCount--;
 	}
 
+	public int level() {
+		return referenceCount;
+	}
+
 	// ----- interface Transaction -----
 	@Override
 	public void failure() {
@@ -97,6 +101,11 @@ public class TransactionReference implements Transaction {
 	@Override
 	public Relationship getRelationship(final Identity id) {
 		return tx.getRelationship(id);
+	}
+
+	@Override
+	public void prefetchHint(final String hint) {
+		tx.prefetchHint(hint);
 	}
 
 	@Override

@@ -18,28 +18,18 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.web.entity.css.relationship.CssSemanticClassMAPS_TOCssSelector;
 
-import java.net.URI;
+public class CssSemanticClass extends AbstractNode {
 
-public interface CssSemanticClass extends NodeInterface {
+	public static final Property<Iterable<CssSelector>> selectorsProperty = new EndNodes<>("selectors", CssSemanticClassMAPS_TOCssSelector.class).partOfBuiltInSchema();
 
-	static class Impl { static {
-
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType semanticClass = schema.addType("CssSemanticClass");
-		final JsonObjectType selector      = schema.addType("CssSelector");
-
-		semanticClass.setImplements(URI.create("https://structr.org/v1.1/definitions/CssSemanticClass"));
-		semanticClass.setCategory("html");
-
-		semanticClass.relate(selector, "MAPS_TO", Cardinality.ManyToMany, "semanticClasses", "selectors");
-
-		semanticClass.addViewProperty(PropertyView.Ui, "selectors");
-	}}
+	public static final View uiView = new View(CssSemanticClass.class, PropertyView.Ui,
+		selectorsProperty
+	);
 }

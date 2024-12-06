@@ -56,6 +56,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.*;
 import org.structr.test.core.entity.TestOne.Status;
+import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -265,7 +266,7 @@ public class ScriptingTest extends StructrTest {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class sourceType             = config.getNodeEntityClass("TestSource");
-		Principal testUser                 = null;
+		PrincipalInterface testUser                 = null;
 
 		// create test node as superuser
 		try (final Tx tx = app.tx()) {
@@ -282,9 +283,9 @@ public class ScriptingTest extends StructrTest {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			testUser = app.create(Principal.class,
-				new NodeAttribute<>(Principal.name,     "test"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "test")
+			testUser = app.create(User.class,
+				new NodeAttribute<>(PrincipalInterface.name,     "test"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
 			);
 
 			tx.success();
@@ -477,21 +478,20 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final Class groupType                          = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<Iterable<Principal>> members = StructrApp.key(groupType, "members");
+		final PropertyKey<Iterable<PrincipalInterface>> members = StructrApp.key(Group.class, "members");
 		Group group                                    = null;
-		Principal user1                                = null;
-		Principal user2                                = null;
+		PrincipalInterface user1                                = null;
+		PrincipalInterface user2                                = null;
 		TestOne testOne                                = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
 
 			group = app.create(Group.class, "Group");
-			user1  = app.create(Principal.class, "Tester1");
-			user2  = app.create(Principal.class, "Tester2");
+			user1  = app.create(User.class, "Tester1");
+			user2  = app.create(User.class, "Tester2");
 
-			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, List.of(user1));
 
 
 			testOne = app.create(TestOne.class);
@@ -510,16 +510,20 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
+			final Object result1 = Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test");
+
+			System.out.println(result1);
+
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
-			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test"));
+			assertEquals("Invalid prerequisite", 1, Iterables.count(group.getProperty(members)));
+			assertEquals("Invalid prerequisite", user2, result1);
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
-			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, Arrays.asList(new PrincipalInterface[] { user1 } ));
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
@@ -657,7 +661,7 @@ public class ScriptingTest extends StructrTest {
 
 			// set calendar to 2018-01-01T00:00:00+0000
 			cal.set(2018, 0, 1, 0, 0, 0);
-
+			cal.set(Calendar.MILLISECOND, 0);
 
 			for (final TestSix testSix : testSixs) {
 
@@ -1509,8 +1513,8 @@ public class ScriptingTest extends StructrTest {
 			// find with date range
 			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
-			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, true, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, true))}", "range test")).size());
 
@@ -1523,20 +1527,33 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, true, false))}", "range test")).size());
 
 			// find with date range
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 10, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
 			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
-			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result", 12, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, true))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, true))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, true))}", "range test")).size());
 
 			// find with date range
-			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result", 15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result",  6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 10, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('01.01.2018', 'dd.MM.yyyy'), parse_date('01.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result", 14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('01.04.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('16.01.2018', 'dd.MM.yyyy'), parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
 			assertEquals("Invalid find date range result", 11, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null, parse_date('03.02.2018', 'dd.MM.yyyy'), false, false))}", "range test")).size());
-			assertEquals("Invalid find date range result",  8, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
+			assertEquals("Invalid find date range result",  7, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(parse_date('06.02.2018', 'dd.MM.yyyy'),                                   null, false, false))}", "range test")).size());
 			assertEquals("Invalid find date range result", 20, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', range(                                  null,                                   null, false, false))}", "range test")).size());
+
+			// find with lt,lte,gte,gt
+			assertEquals("Invalid find lt result",    5, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index',  lt(5))}", "find lt test")).size());
+			assertEquals("Invalid find lte result",   6, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', lte(5))}", "find lte test")).size());
+			assertEquals("Invalid find gte result",  15, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index', gte(5))}", "find gte test")).size());
+			assertEquals("Invalid find gt result",   14, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'index',  gt(5))}", "find gt test")).size());
+
+			// find with lt,lte,gte,gt (date range)
+			// starts with 01.01.2018... +3 per TestSix. second object has date "04.01.2018 00:00:00"
+			assertEquals("Invalid find lt date result",    1, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  lt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find lt date test")).size());
+			assertEquals("Invalid find lte date result",   2, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', lte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find lte date test")).size());
+			assertEquals("Invalid find gte date result",  19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', gte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gte date test")).size());
+			assertEquals("Invalid find gt date result",   18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  gt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gt date test")).size());
 
 			// slice with find
 			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  0,  5)}", "slice test");
@@ -1998,17 +2015,17 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
 			// create_or_update()
-			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid3);
 			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid3 + "'), 'name')}"));
 			assertEquals("Invalid create_or_update() result",        newUuid3, Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'New Name')}"));
 			assertEquals("Invalid create_or_update() result",  "New Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid3 + "'), 'name')}"));
-			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid4);
-			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
+			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid5);
 			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid5 + "'), 'name')}"));
-			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
+			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid6);
 			assertEquals("Invalid create_or_update() result", "de_DE", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid6 + "'), 'locale')}"));
 
@@ -2036,7 +2053,7 @@ public class ScriptingTest extends StructrTest {
 	public void testSystemProperties () {
 		try {
 
-			final Principal user  = createTestNode(Principal.class);
+			final PrincipalInterface user  = createTestNode(User.class);
 
 			// create new node
 			TestOne t1 = createTestNode(TestOne.class, user);
@@ -2703,7 +2720,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(Principal.class, "testuser");
+			createTestNode(User.class, "testuser");
 
 			tx.success();
 
@@ -2715,7 +2732,7 @@ public class ScriptingTest extends StructrTest {
 		// Create first object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2731,7 +2748,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this works because the cache is empty
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
@@ -2747,7 +2764,7 @@ public class ScriptingTest extends StructrTest {
 		// create second object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2763,7 +2780,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this does not work because there is a cache entry already and it was not invalidated after creating the last relationship to it
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final PrincipalInterface testUser = StructrApp.getInstance().nodeQuery(User.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
@@ -2873,7 +2890,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester    = app.create(Principal.class, "modifications-tester");
+			final PrincipalInterface tester    = app.create(User.class, "modifications-tester");
 			final GraphObject c       = app.nodeQuery(customer).getFirst();
 			final GraphObject p       = app.nodeQuery(project).getFirst();
 			final List<GraphObject> t = app.nodeQuery(task).getAsList();
@@ -2896,7 +2913,7 @@ public class ScriptingTest extends StructrTest {
 		// test modifications
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(Principal.class).andName("modifications-tester").getFirst();
+			final PrincipalInterface tester = app.nodeQuery(User.class).andName("modifications-tester").getFirst();
 			final GraphObject c = app.nodeQuery(customer).getFirst();
 			final GraphObject p = app.nodeQuery(project).getFirst();
 			final GraphObject t = app.nodeQuery(task).getFirst();
@@ -3842,7 +3859,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
-
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t2)); }}", "testFindNewSyntax")).size());
@@ -4215,8 +4231,6 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-
-
 
 			List<GraphObject> result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
 

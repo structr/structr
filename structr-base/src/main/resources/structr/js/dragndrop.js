@@ -662,10 +662,7 @@ let _Dragndrop = {
 			newComponentDropzone?.addEventListener('drop', (e) => {
 				e.stopPropagation();
 
-				// Create shadow page if not existing
-				Structr.ensureShadowPageExists().then(() => {
-					_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
-				});
+				_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
 
 				return false;
 			});
@@ -845,173 +842,6 @@ let _Dragndrop = {
 			});
 		},
 	},
-	contents: {
-		enableDroppable: (entity, node) => {
-
-			let entityIsContentContainer = (entity.isContentContainer === true || entity.id === 'root');
-			let cnt = 0;
-
-			node.addEventListener('dragenter', (e) => {
-
-				cnt++;
-				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
-					return;
-				}
-
-				e.stopPropagation();
-				e.preventDefault();
-
-				_Dragndrop.clearDragNDropClasses();
-
-				node.classList.add(_Dragndrop.cssClasses.dragOverClass);
-
-				if (entityIsContentContainer) {
-
-					e.dataTransfer.dropEffect = 'copy';
-					node.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
-					_Dragndrop.setDragHover(node);
-
-				} else {
-
-					e.dataTransfer.dropEffect = 'none';
-					node.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
-					node.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
-				}
-			});
-
-			node.addEventListener('dragover', (e) => {
-
-				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
-					return;
-				}
-
-				if (entityIsContentContainer) {
-					// preventDefault indicates that this is a valid drop target
-					e.preventDefault();
-				}
-
-				e.stopPropagation();
-			});
-
-			node.addEventListener('dragleave', (e) => {
-				cnt--;
-				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
-					return;
-				}
-
-				e.preventDefault();
-				e.stopPropagation();
-
-				if (cnt === 0) {
-					_Dragndrop.removeBackgroundFromNode(node);
-				}
-			});
-
-			if (entityIsContentContainer) {
-
-				node.addEventListener('drop', async (e) => {
-
-					e.preventDefault();
-					e.stopPropagation();
-
-					await _Dragndrop.dropActions.baseDropAction({ targetEntity: entity });
-
-					return false;
-				});
-			}
-		},
-		isAnyDraggedEntityAParentOfTarget: (targetEntity) => {
-
-			let anyDraggedElementInTargetHierarchy = false;
-			let draggedContainerIds                = _Dragndrop.contents.draggedEntityIds.filter(id => StructrModel.obj(id).isContentContainer);
-
-			// can only happen for containers
-			if (draggedContainerIds.length > 0) {
-
-				let curTargetEntity = targetEntity;
-				while (curTargetEntity && anyDraggedElementInTargetHierarchy === false) {
-
-					anyDraggedElementInTargetHierarchy = draggedContainerIds.includes(curTargetEntity.id);
-
-					// walk up hierarchy
-					curTargetEntity = StructrModel.obj(curTargetEntity.parent?.id);
-				}
-			}
-
-			return anyDraggedElementInTargetHierarchy;
-		},
-		enableTreeElementDroppable: (entity, element) => {
-
-			let highlightElement = element.querySelector('.jstree-wholerow');
-
-			element.addEventListener('dragenter', (e) => {
-
-				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
-					return;
-				}
-
-				e.stopPropagation();
-				e.preventDefault();
-
-				_Dragndrop.clearDragNDropClasses();
-
-				element.classList.add(_Dragndrop.cssClasses.dragOverClass);
-
-				let isDraggedElementInTargetHierarchy = _Dragndrop.contents.isAnyDraggedEntityAParentOfTarget(entity);
-
-				if (isDraggedElementInTargetHierarchy) {
-
-					e.dataTransfer.dropEffect = 'none';
-					highlightElement.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
-					element.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
-
-				} else {
-
-					e.dataTransfer.dropEffect = 'move';
-					highlightElement.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
-					_Dragndrop.setDragHover(element);
-				}
-			});
-
-			element.addEventListener('dragover', (e) => {
-
-				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
-					return;
-				}
-
-				let isDraggedElementInTargetHierarchy = _Dragndrop.contents.isAnyDraggedEntityAParentOfTarget(entity);
-
-				if (!isDraggedElementInTargetHierarchy) {
-					// preventDefault indicates that this is a valid drop target
-					e.preventDefault();
-				}
-
-				e.stopPropagation();
-			});
-
-			element.addEventListener('dragleave', (e) => {
-
-				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
-					return;
-				}
-
-				e.preventDefault();
-				e.stopPropagation();
-
-				// cannot use simple method because this runs after dragenter for next node
-				_Dragndrop.removeBackgroundFromNode(element);
-			});
-
-			element.addEventListener('drop', async (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-
-				await _Dragndrop.dropActions.baseDropAction({ targetEntity: entity });
-
-				return false;
-			});
-		},
-	},
 	dropActions: {
 		baseDropAction: async (data) => {
 
@@ -1104,12 +934,6 @@ let _Dragndrop = {
 
 				_Files.handleMoveObjectsAction(targetId, _Dragndrop.files.draggedEntityIds);
 			}
-		},
-		contents: ({ targetEntity }) => {
-
-			let targetId = (targetEntity.type === 'fake' && targetEntity.id === 'root') ? null : targetEntity.id;
-
-			_Contents.handleMoveObjectsAction(targetId, _Dragndrop.contents.draggedEntityIds);
 		}
 	}
 };

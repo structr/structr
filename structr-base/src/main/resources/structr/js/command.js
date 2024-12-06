@@ -79,6 +79,14 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	getOrCreateShadowPage: async () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_OR_CREATE_SHADOW_PAGE' };
+			StructrWS.sendObj(obj, (list) => {
+				resolve(list[0]);
+			});
+		});
+	},
 	getPromise: (id, properties, view) => {
 		return new Promise((resolve, reject) => {
 			Command.get(id, properties, resolve, view);
@@ -479,19 +487,6 @@ let Command = {
 				action: action,
 				permissions: permissions,
 				recursive: recursive
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
-	 * Send an APPEND_CONTENT_ITEM command to the server.
-	 */
-	appendContentItem: function(id, parentId, callback) {
-		let obj = {
-			command: 'APPEND_CONTENT_ITEM',
-			id: id,
-			data: {
-				parentId: parentId
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
@@ -942,7 +937,7 @@ let Command = {
 			data: nodeData
 		};
 		if (!obj.data.name) {
-			obj.data.name = `New ${obj.data.type} ${Math.floor(Math.random() * (999999 - 1))}`;
+			obj.data.name = _Helpers.createRandomName(nodeData.type);
 		}
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
@@ -1452,10 +1447,18 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
+	getAvailableServerLogs: () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_AVAILABLE_SERVER_LOGS' };
+			StructrWS.sendObj(obj, (data) => {
+				resolve(data[0]);
+			});
+		});
+	},
 	/**
      * Requests log snapshot from the server.
      */
-    getServerLogSnapshot: (numberOfLines, truncateLinesAfter) => {
+    getServerLogSnapshot: (numberOfLines, truncateLinesAfter, logFileName) => {
 
 		return new Promise((resolve, reject) => {
 
@@ -1463,7 +1466,8 @@ let Command = {
 				command: 'SERVER_LOG',
 				data: {
 					numberOfLines:      numberOfLines,
-					truncateLinesAfter: truncateLinesAfter
+					truncateLinesAfter: truncateLinesAfter,
+					logFileName:        logFileName
 				}
 			};
 

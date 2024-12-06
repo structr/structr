@@ -170,8 +170,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			app.create(User.class,
 				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"), true)
 			);
 
 			final Group parent       = app.create(Group.class, "parent");
@@ -253,8 +253,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			app.create(User.class,
 				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"), true)
 			);
 
 			final Group parent       = app.create(Group.class, "parent");
@@ -319,9 +319,9 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
+					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
+					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
 			);
 
 			tx.success();
@@ -401,9 +401,9 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
+					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
+					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
 			);
 
 			tx.success();

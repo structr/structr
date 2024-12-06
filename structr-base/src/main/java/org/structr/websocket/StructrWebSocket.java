@@ -40,7 +40,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -128,6 +128,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try (final Tx tx = app.tx()) {
 
+			tx.prefetchHint("Websocket close");
+
 			this.session = null;
 
 			syncController.unregisterClient(this);
@@ -182,13 +184,15 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				tx.prefetchHint("Websocket command auth " + command);
+
 				final boolean isPing = "PING".equals(command);
 
 				tx.setIsPing(isPing);
 
 				if (sessionIdFromMessage != null) {
 
-					// try to authenticated this connection by sessionId
+					// try to authenticate this connection by sessionId
 					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), isPing);
 				}
 
@@ -254,13 +258,18 @@ public class StructrWebSocket implements WebSocketListener {
 
 					try (final Tx tx = app.tx(true, true, true)) {
 
+						// enable prefetching for websockets
+						tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
 						if (abstractCommand instanceof PingCommand) {
+
 							tx.setIsPing(true);
 						}
 
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						abstractCommand.processMessage(webSocketData);
 
@@ -272,9 +281,12 @@ public class StructrWebSocket implements WebSocketListener {
 
 					try (final Tx tx = app.tx(true, true, true)) {
 
+						tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						// commit transaction
 						tx.success();
@@ -357,6 +369,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, true)) {
 
+			tx.prefetchHint("Websocket send " + message.getCommand());
+
 			if (message.getCode() == 0) {
 				// default is: 200 OK
 				message.setCode(200);
@@ -394,6 +408,8 @@ public class StructrWebSocket implements WebSocketListener {
 			logger.warn("Unable to send websocket message to remote client: Connection might have been terminated before all content was delivered.");
 
 		} catch (Throwable t) {
+
+			t.printStackTrace();
 
 			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
@@ -463,7 +479,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		final Services services = Services.getInstance();
 		final String nodeName   = services.getNodeName();
-		final Principal user    = AuthHelper.getPrincipalForSessionId(sessionId, isPing);
+		final PrincipalInterface user    = AuthHelper.getPrincipalForSessionId(sessionId, isPing);
 
 		if (user != null) {
 
@@ -526,7 +542,7 @@ public class StructrWebSocket implements WebSocketListener {
 		return request;
 	}
 
-	public Principal getCurrentUser() {
+	public PrincipalInterface getCurrentUser() {
 
 		return (securityContext == null ? null : securityContext.getUser(false));
 	}
@@ -543,11 +559,11 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public boolean isAuthenticated() {
 
-		final Principal user = getCurrentUser();
+		final PrincipalInterface user = getCurrentUser();
 		return (!timedOut && user != null && isPrivilegedUser(user));
 	}
 
-	public boolean isPrivilegedUser(Principal user) {
+	public boolean isPrivilegedUser(PrincipalInterface user) {
 
 		return (user != null && user.isAdmin());
 	}
@@ -581,7 +597,7 @@ public class StructrWebSocket implements WebSocketListener {
 		return null;
 	}
 
-	public void setAuthenticated(final String sessionId, final Principal user) {
+	public void setAuthenticated(final String sessionId, final PrincipalInterface user) {
 
 		securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 		securityContext.setSessionId(sessionId);

@@ -33,6 +33,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -45,19 +46,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrPropertyDefinition.class.getName());
 
-	protected Set<String> transformers = new LinkedHashSet<>();
-	protected Set<String> validators   = new LinkedHashSet<>();
-	protected JsonType parent          = null;
-	protected String format            = null;
-	protected String name              = null;
-	protected String defaultValue      = null;
-	protected String hint              = null;
-	protected String category          = null;
-	protected boolean required         = false;
-	protected boolean compound         = false;
-	protected boolean unique           = false;
-	protected boolean indexed          = false;
-	protected boolean readOnly         = false;
+	protected SchemaProperty schemaProperty = null;
+	protected Set<String> transformers      = new LinkedHashSet<>();
+	protected Set<String> validators        = new LinkedHashSet<>();
+	protected JsonType parent               = null;
+	protected String format                 = null;
+	protected String name                   = null;
+	protected String defaultValue           = null;
+	protected String hint                   = null;
+	protected String category               = null;
+	protected boolean required              = false;
+	protected boolean compound              = false;
+	protected boolean unique                = false;
+	protected boolean indexed               = false;
+	protected boolean readOnly              = false;
 
 	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
@@ -262,6 +264,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		return null;
 	}
 
+	public SchemaProperty getSchemaProperty() {
+		return schemaProperty;
+	}
+
 	// ----- package methods -----
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
@@ -365,6 +371,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+
+		this.schemaProperty = property;
 
 		setDefaultValue(property.getDefaultValue());
 		setCompound(property.isCompound());
@@ -671,20 +679,27 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				final Set<String> notionProperties = property.getPropertiesForNotionProperty(schemaNodes);
 				final IdNotionReferenceProperty notionProperty;
 
-				if (property.getNotionMultiplicity(schemaNodes).startsWith("*")) {
+				final String multiplicity = property.getNotionMultiplicity(schemaNodes);
+				if (multiplicity != null) {
 
-					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "array", referenceName);
-					notionProperty.setProperties(notionProperties.toArray(new String[0]));
+					if (multiplicity.startsWith("*")) {
 
-				} else {
+						notionProperty = new IdNotionReferenceProperty(parent, name, reference, "array", referenceName);
+						notionProperty.setProperties(notionProperties.toArray(new String[0]));
 
-					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "object", referenceName);
-					notionProperty.setProperties(notionProperties.toArray(new String[0]));
+					} else {
+
+						notionProperty = new IdNotionReferenceProperty(parent, name, reference, "object", referenceName);
+						notionProperty.setProperties(notionProperties.toArray(new String[0]));
+					}
+
+					notionProperty.deserialize(schemaNodes, property);
+
+					return notionProperty;
 				}
 
-				notionProperty.deserialize(schemaNodes, property);
-
-				return notionProperty;
+				// notion property parsing can fail because of migration
+				return new DeletedPropertyDefinition(parent, name, property);
 			}
 
 			case Password:

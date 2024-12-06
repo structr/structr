@@ -29,6 +29,6 @@ public class LongQuery extends AbstractNativeQuery<Long> {
 
 	@Override
 	Long execute(final SessionTransaction tx) {
-		return tx.getLong(query, parameters);
+		return tx.getLong(new SimpleCypherQuery(query, parameters));
 	}
 }

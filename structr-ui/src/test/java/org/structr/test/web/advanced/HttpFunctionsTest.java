@@ -26,10 +26,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
@@ -38,8 +40,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  *
@@ -52,9 +53,9 @@ public class HttpFunctionsTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
 			);
 
 			tx.success();
@@ -86,12 +87,22 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 			// test PUT
 			Scripting.evaluate(ctx, null, "${PUT('" + location + "', '{ name: put }')}", "test");
-			final Map<String, Object> putResult = gson.fromJson((String)Scripting.evaluate(ctx, null, "${GET('" + location + "', 'application/json')}", "test"), Map.class);
+
+			Object getResult = Scripting.evaluate(ctx, null, "${GET('" + location + "', 'application/json')}", "test");
+			assertTrue(getResult instanceof GraphObjectMap);
+			GraphObjectMap map = (GraphObjectMap)getResult;
+			assertNotNull(map.getProperty(new GenericProperty<>(HttpHelper.FIELD_BODY)));
+			final Map<String, Object> putResult = gson.fromJson((String)map.getProperty(new GenericProperty<>(HttpHelper.FIELD_BODY)), Map.class);
 			assertMapPathValueIs(putResult, "result.name", "put");
 
 			// test PATCH
 			Scripting.evaluate(ctx, null, "${PATCH('" + location + "', '{ name: patch }')}", "test");
-			final Map<String, Object> patchResult = gson.fromJson((String)Scripting.evaluate(ctx, null, "${GET('" + location + "', 'application/json')}", "test"), Map.class);
+
+			getResult = Scripting.evaluate(ctx, null, "${GET('" + location + "', 'application/json')}", "test");
+			assertTrue(getResult instanceof GraphObjectMap);
+			map = (GraphObjectMap)getResult;
+			assertNotNull(map.getProperty(new GenericProperty<>(HttpHelper.FIELD_BODY)));
+			final Map<String, Object> patchResult = gson.fromJson((String)map.getProperty(new GenericProperty<>(HttpHelper.FIELD_BODY)), Map.class);
 			assertMapPathValueIs(patchResult, "result.name", "patch");
 
 		} catch (final FrameworkException fex) {

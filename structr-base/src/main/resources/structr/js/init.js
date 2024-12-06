@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj);
+					_Entities.showProperties(obj, null, true);
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -219,6 +219,8 @@ let Structr = {
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
+	dynamicClassPrefix: 'org.structr.dynamic.',
+	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
@@ -572,6 +574,10 @@ let Structr = {
 
 			if (additionalParameters.overrideText) {
 				messageBuilder.text(additionalParameters.overrideText);
+			}
+
+			if (additionalParameters.delayDuration) {
+				messageBuilder.delayDuration(additionalParameters.delayDuration);
 			}
 		}
 
@@ -961,12 +967,15 @@ let Structr = {
 			if (menuConfig) {
 
 				for (let entry of menuConfig.main) {
-					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`))
+					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`));
 				}
 
 				// sort submenu
 				for (let entry of menuConfig.sub) {
-					submenu.querySelector('li:last-of-type').after(menu.querySelector(`li[data-name="${entry}"]`))
+					let element = submenu.querySelector('li:last-of-type');
+					if (element.length > 0) {
+						element.after(menu.querySelector(`li[data-name="${entry}"]`));
+					}
 				}
 			}
 		},
@@ -1801,29 +1810,6 @@ let Structr = {
 		let reconnectMessage = document.getElementById('reconnect-dialog');
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	ensureShadowPageExists: () => {
-
-		return new Promise((resolve, reject) => {
-
-			if (_Pages.shadowPage) {
-
-				resolve(_Pages.shadowPage);
-
-			} else {
-
-				// wrap getter for shadow document in listComponents so we're sure that shadow document has been created
-				Command.listComponents(1, 1, 'name', 'asc', (result) => {
-
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
-
-						_Pages.shadowPage = entities[0];
-
-						resolve(_Pages.shadowPage);
-					});
-				});
-			}
-		});
-	},
 	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
 
@@ -1929,7 +1915,6 @@ let Structr = {
 							<ul id="submenu">
 								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
-								<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>

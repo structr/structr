@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -192,9 +193,9 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	@Override
 	public void diff(final JsonSchema schema) throws Exception {
 
-		final StructrSchemaDefinition other = (StructrSchemaDefinition)schema; // provoke ClassCastException if type doesn't match
+		final StructrSchemaDefinition staticSchema = (StructrSchemaDefinition)schema; // provoke ClassCastException if type doesn't match
 
-		this.typeDefinitions.diff(other.typeDefinitions);
+		this.typeDefinitions.diff(staticSchema.typeDefinitions);
 	}
 
 	public Map<String, Object> serialize() {
@@ -205,6 +206,27 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		map.put(JsonSchema.KEY_METHODS,     userDefinedFunctions.serialize());
 
 		return map;
+	}
+
+	public boolean hasMethodSourceCodeInFiles() {
+
+		final Set<StructrTypeDefinition> types = getTypeDefinitions();
+		if (!types.isEmpty()) {
+
+			for (final StructrTypeDefinition<?> typeDefinition : types) {
+
+				for (final JsonMethod method : typeDefinition.getMethods()) {
+
+					final String source = method.getSource();
+					if (source != null && source.startsWith("./")) {
+
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	// ----- OpenAPI -----

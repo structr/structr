@@ -42,37 +42,37 @@ import org.structr.schema.action.EvaluationHints;
 import java.util.*;
 
 /**
- * The SuperUser entity. Please note that this class is not persitent but will
+ * The SuperUser entity. Please note that this class is not persistent but will
  * be instantiated when needed.
  */
-public class SuperUser implements Principal, AccessControllable, NonIndexed {
+public class SuperUser implements PrincipalInterface, AccessControllable, NonIndexed {
 
 	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
-	public void grant(Permission permission, Principal obj) {}
+	public void grant(Permission permission, PrincipalInterface obj) {}
 
 	@Override
-	public void grant(final Set<Permission> permissions, final Principal principal) {};
+	public void grant(final Set<Permission> permissions, final PrincipalInterface principal) {};
 
 	@Override
-	public void grant(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
+	public void grant(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {}
 
 	@Override
-	public void revoke(Permission permission, Principal obj) {}
+	public void revoke(Permission permission, PrincipalInterface obj) {}
 
 	@Override
-	public void revoke(final Set<Permission> permissions, final Principal principal) {}
+	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal) {}
 
 	@Override
-	public void revoke(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
+	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {}
 
 	@Override
-	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException {}
+	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException {}
 
 	@Override
-	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {}
+	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {}
 
 	@Override
 	public void unlockSystemPropertiesOnce() {}
@@ -173,21 +173,20 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public List<Principal> getParents() {
+	public List<PrincipalInterface> getParents() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<Principal> getParentsPrivileged() {
+	public List<PrincipalInterface> getParentsPrivileged() {
 		return Collections.emptyList();
 	}
 
 	@Override
 	public String getUuid() {
-		return Principal.SUPERUSER_ID;
+		return PrincipalInterface.SUPERUSER_ID;
 	}
 
-	@Override
 	public boolean shouldSkipSecurityRelationships() {
 		return true;
 	}
@@ -317,7 +316,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Principal getOwnerNode() {
+	public PrincipalInterface getOwnerNode() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -327,7 +326,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Security getSecurityRelationship(Principal principal) {
+	public Security getSecurityRelationship(PrincipalInterface principal) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -387,6 +386,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
+	public void clearTokens() {
+
+	}
+
+	@Override
 	public SecurityContext getSecurityContext() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
@@ -429,6 +433,26 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public boolean isValidPassword(final String password) {
 		return false;
+	}
+
+	@Override
+	public String getEncryptedPassword() {
+		return null;
+	}
+
+	@Override
+	public String getSalt() {
+		return null;
+	}
+
+	@Override
+	public String getTwoFactorSecret() {
+		return null;
+	}
+
+	@Override
+	public String getTwoFactorUrl() {
+		return null;
 	}
 
 	@Override
