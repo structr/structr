@@ -87,10 +87,10 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
             if (!(root.toString().equals("/"))) {
                 PropertyKey<String> path = StructrApp.key(AbstractFile.class, "path");
-                Folder rootFolder = app.nodeQuery(Folder.class).and(path, root.toString()).getFirst();
+                Folder rootFolder = app.nodeQuery("Folder").and(path, root.toString()).getFirst();
 
                 if (rootFolder != null) {
-                    app.nodeQuery(AbstractFile.class).and(parentKey, rootFolder)
+                    app.nodeQuery("AbstractFile").and(parentKey, rootFolder)
                             .getAsList()
                             .stream()
                             .map(f -> Path.of(f.getPath()))
@@ -100,7 +100,7 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
             } else {
 
-                app.nodeQuery(AbstractFile.class).and(parentKey, null)
+                app.nodeQuery("AbstractFile").and(parentKey, null)
                         .getAsList()
                         .stream()
                         .map(f -> Path.of(f.getPath()))

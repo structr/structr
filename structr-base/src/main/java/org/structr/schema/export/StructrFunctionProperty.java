@@ -23,10 +23,10 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -206,9 +206,11 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		super.deserialize(schemaNodes, property);
+		super.deserialize(schemaNodes, node);
+
+		final SchemaProperty property = node.as(SchemaProperty.class);
 
 		setReadFunction(property.getReadFunction());
 		setWriteFunction(property.getWriteFunction());
@@ -218,14 +220,15 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.readFunction,  readFunction);
-		properties.put(SchemaProperty.writeFunction, writeFunction);
-		properties.put(SchemaProperty.isCachingEnabled, cachingEnabled);
+		properties.put(traits.key("readFunction"),  readFunction);
+		properties.put(traits.key("writeFunction"), writeFunction);
+		properties.put(traits.key("isCachingEnabled"), cachingEnabled);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

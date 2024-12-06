@@ -19,9 +19,8 @@
 package org.structr.core.entity;
 
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 
-public interface SchemaNode extends NodeTrait {
+public interface SchemaNode extends AbstractSchemaNode {
 
 	Iterable<NodeInterface> getSchemaGrants();
 }

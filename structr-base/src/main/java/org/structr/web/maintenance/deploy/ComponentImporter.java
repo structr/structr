@@ -95,7 +95,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = (DOMNode) StructrApp.getInstance().nodeQuery(DOMNode.class).and(GraphObject.id, name).getFirst();
+				result = (DOMNode) StructrApp.getInstance().nodeQuery("DOMNode").and(GraphObject.id, name).getFirst();
 			} else {
 
 				result = Importer.findSharedComponentByName(name);

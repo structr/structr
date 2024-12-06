@@ -21,8 +21,7 @@ package org.structr.schema.export;
 import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonReferenceProperty;
 import org.structr.api.schema.JsonType;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Map;
 import java.util.Set;
@@ -115,7 +114,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty schemaProperty) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface schemaProperty) {
 		super.deserialize(schemaNodes, schemaProperty);
 	}
 

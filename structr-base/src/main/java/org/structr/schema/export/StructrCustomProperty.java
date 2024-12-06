@@ -25,7 +25,9 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -90,21 +92,24 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty schemaProperty) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		super.deserialize(schemaNodes, schemaProperty);
+		super.deserialize(schemaNodes, node);
+
+		final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
 
 		setFormat(schemaProperty.getFormat());
 		setFqcn(schemaProperty.getFqcn());
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.fqcn, fqcn);
+		properties.put(traits.key("fqcn"), fqcn);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

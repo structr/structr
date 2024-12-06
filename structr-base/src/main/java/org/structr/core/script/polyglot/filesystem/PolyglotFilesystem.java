@@ -76,7 +76,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 		try (final Tx tx = app.tx()) {
 			PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
-			AbstractFile abstractFile = app.nodeQuery(AbstractFile.class).and(pathKey, path.toString()).getFirst();
+			AbstractFile abstractFile = app.nodeQuery("AbstractFile").and(pathKey, path.toString()).getFirst();
 
 			tx.success();
 			if (abstractFile == null) {
@@ -95,7 +95,7 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
-			Folder folder = app.nodeQuery(Folder.class).and(pathKey, dir.toString()).getFirst();
+			Folder folder = app.nodeQuery("Folder").and(pathKey, dir.toString()).getFirst();
 
 			if (folder == null) {
 				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
@@ -116,7 +116,7 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> pathKey        = StructrApp.key(AbstractFile.class, "path");
-			AbstractFile file = app.nodeQuery(AbstractFile.class).and(pathKey, path.toString()).getFirst();
+			AbstractFile file = app.nodeQuery("AbstractFile").and(pathKey, path.toString()).getFirst();
 
 			if (file != null) {
 				app.delete(file);
@@ -140,7 +140,7 @@ public class PolyglotFilesystem implements FileSystem {
 			final PropertyKey<String> pathKey        = StructrApp.key(AbstractFile.class, "path");
 			final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
 
-			File file = app.nodeQuery(File.class).and(pathKey, path.toString()).getFirst();
+			File file = app.nodeQuery("File").and(pathKey, path.toString()).getFirst();
 
 			if (file == null) {
 
@@ -175,7 +175,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 		try (final Tx tx = app.tx()) {
 			PropertyKey<String> path = StructrApp.key(AbstractFile.class, "path");
-			Folder folder = app.nodeQuery(Folder.class).and(path, dir.toString()).getFirst();
+			Folder folder = app.nodeQuery("Folder").and(path, dir.toString()).getFirst();
 
 			if (folder != null) {
 				return new VirtualDirectoryStream(dir, filter);

@@ -297,7 +297,7 @@ public interface File extends AbstractFile, Linkable, JavaScriptSource, DataSour
 			Folder parentFolder = null;
 			try {
 
-				parentFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid((String) value).getFirst();
+				parentFolder = StructrApp.getInstance().nodeQuery("Folder").uuid((String) value).getFirst();
 			} catch (FrameworkException ex) {
 
 				LoggerFactory.getLogger(File.class).warn("Exception while trying to lookup parent folder.", ex);
@@ -329,7 +329,7 @@ public interface File extends AbstractFile, Linkable, JavaScriptSource, DataSour
 			Folder parentFolder = null;
 			try {
 
-				parentFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(properties.get(parentIdKey)).getFirst();
+				parentFolder = StructrApp.getInstance().nodeQuery("Folder").uuid(properties.get(parentIdKey)).getFirst();
 			} catch (FrameworkException ex) {
 
 				LoggerFactory.getLogger(File.class).warn("Exception while trying to lookup parent folder.", ex);

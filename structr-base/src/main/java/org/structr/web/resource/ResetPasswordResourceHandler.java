@@ -87,7 +87,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final Principal user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
+			final Principal user                      = StructrApp.getInstance().nodeQuery("User").and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
@@ -158,7 +158,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
+			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
 
 			if (localeString != null) {
 				query.and("locale", localeString);

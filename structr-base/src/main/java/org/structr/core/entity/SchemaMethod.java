@@ -10,7 +10,26 @@ import java.util.Map;
 
 public interface SchemaMethod extends NodeTrait {
 
+	NodeInterface getSchemaNode();
 	Iterable<NodeInterface> getParameters();
+	String getName();
+	String getSource();
+	String getSummary();
+	String getDescription();
+	String getCodeType();
+	String getReturnType();
+	String getOpenAPIReturnType();
+	String getVirtualFileName();
+
+	String[] getExceptions();
+	String[] getTags();
+
+	boolean callSuper();
+	boolean overridesExisting();
+	boolean doExport();
+	boolean includeInOpenAPI();
+	boolean isLifecycleMethod();
+	boolean isJava();
 
 	ActionEntry getActionEntry(Map<String, SchemaNode> schemaNodes, AbstractSchemaNode schemaEntity) throws FrameworkException;
 
@@ -20,8 +39,7 @@ public interface SchemaMethod extends NodeTrait {
 
 	SchemaMethodTraitDefinition.HttpVerb getHttpVerb();
 
-	boolean isJava();
-	boolean isLifecycleMethod();
+	NodeInterface getSchemaMethodParameter(final String name);
 
 	/*
 	default void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

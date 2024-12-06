@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
  * Helper class for outbound HTTP requests
  */
 public class HttpHelper {
+
 	public static final String FIELD_STATUS  = "status";
 	public static final String FIELD_BODY    = "body";
 	public static final String FIELD_HEADERS = "headers";

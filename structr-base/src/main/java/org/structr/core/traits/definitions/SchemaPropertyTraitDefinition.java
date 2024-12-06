@@ -21,25 +21,21 @@ package org.structr.core.traits.definitions;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.ValidationHelper;
-import org.structr.core.app.StructrApp;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
-import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.SchemaPropertyTraitWrapper;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SourceFile;
 import org.structr.schema.parser.*;
 
@@ -51,9 +47,9 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 
 	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
 
-	private static final Property<AbstractSchemaNode> schemaNode            = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
-	private static final Property<Iterable<SchemaView>> schemaViews         = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	private static final Property<Iterable<SchemaView>> excludedViews       = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	private static final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
+	private static final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
+	private static final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
 
 	private static final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 	private static final Property<String>             declaringClass        = new StringProperty("declaringClass");
@@ -102,21 +98,24 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 	);
 	*/
 
-	private NotionPropertyParser notionPropertyParser           = null;
-	private DoublePropertyParser doublePropertyParser           = null;
-	private LongPropertyParser longPropertyParser               = null;
-	private IntPropertyParser intPropertyParser                 = null;
-	private DoubleArrayPropertyParser doubleArrayPropertyParser = null;
-	private LongArrayPropertyParser longArrayPropertyParser     = null;
-	private IntegerArrayPropertyParser intArrayPropertyParser   = null;
-
 	public SchemaPropertyTraitDefinition() {
 		super("SchemaProperty");
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
+
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty(), schemaPropertyNamePattern, errorBuffer);
+				}
+			}
+		);
 	}
 
 	@Override
@@ -181,16 +180,7 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 		return null;
 	}
 
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaPropertyNamePattern, errorBuffer);
-
-		return valid;
-	}
-
+	/*
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -276,260 +266,5 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 			}
 		}
 	}
-
-	public String getContentHash() {
-
-		int _contentHash = 77;
-
-		_contentHash = addContentHash(defaultValue,      _contentHash);
-		_contentHash = addContentHash(propertyType,      _contentHash);
-		_contentHash = addContentHash(contentType,       _contentHash);
-		_contentHash = addContentHash(dbName,            _contentHash);
-		_contentHash = addContentHash(format,            _contentHash);
-		_contentHash = addContentHash(typeHint,          _contentHash);
-		_contentHash = addContentHash(notNull,           _contentHash);
-		_contentHash = addContentHash(unique,            _contentHash);
-		_contentHash = addContentHash(indexed,           _contentHash);
-		_contentHash = addContentHash(readOnly,          _contentHash);
-		_contentHash = addContentHash(isDynamic,         _contentHash);
-		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
-		_contentHash = addContentHash(isDefaultInUi,     _contentHash);
-		_contentHash = addContentHash(isDefaultInPublic, _contentHash);
-		_contentHash = addContentHash(isCachingEnabled,  _contentHash);
-		_contentHash = addContentHash(readFunction,      _contentHash);
-		_contentHash = addContentHash(writeFunction,     _contentHash);
-		_contentHash = addContentHash(openAPIReturnType, _contentHash);
-		_contentHash = addContentHash(transformers,      _contentHash);
-		_contentHash = addContentHash(validators,        _contentHash);
-
-		return Integer.toHexString(_contentHash);
-	}
-
-	public String getSourceContentType() {
-
-		final String source = getFormat();
-		if (source != null) {
-
-			if (source.startsWith("{") && source.endsWith("}")) {
-
-				return "application/x-structr-javascript";
-			}
-		}
-
-		return null;
-	}
-
-	public Set<String> getEnumDefinitions() {
-
-		final String _format    = getProperty(SchemaProperty.format);
-		final Set<String> enums = new LinkedHashSet<>();
-
-		if (_format != null) {
-
-			for (final String source : _format.split("[, ]+")) {
-
-				final String trimmed = source.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					enums.add(trimmed);
-				}
-			}
-		}
-
-		return enums;
-	}
-
-	public boolean isPropertySetNotion(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).isPropertySet();
-	}
-
-	public String getTypeReferenceForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).getValueType();
-
-	}
-
-	public Set<String> getPropertiesForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
-
-		final Set<String> properties = new LinkedHashSet<>();
-
-		for (final String property : getNotionPropertyParser(schemaNodes).getProperties()) {
-
-			if (property.contains(".")) {
-
-				final String[] parts = property.split("[.]+");
-				if (parts.length > 1) {
-
-					final String type = parts[0];
-					final String name = parts[1];
-
-					properties.add(name);
-				}
-
-			} else {
-
-				properties.add(property);
-			}
-		}
-
-		return properties;
-	}
-
-	public String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).getBaseProperty();
-	}
-
-	public String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).getMultiplicity();
-	}
-
-	public void setFqcn(final String value) throws FrameworkException {
-		setProperty(fqcn, value);
-	}
-
-	public String getFullName() {
-
-		final AbstractSchemaNode schemaNode = getProperty(SchemaProperty.schemaNode);
-		final StringBuilder buf             = new StringBuilder();
-
-		if (schemaNode != null) {
-
-			buf.append(schemaNode.getProperty(SchemaNode.name));
-			buf.append(".");
-		}
-
-		buf.append(getProperty(SchemaProperty.name));
-
-		return buf.toString();
-	}
-
-	public NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (notionPropertyParser == null) {
-
-			try {
-				notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getName(), this);
-				notionPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException ignore) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return notionPropertyParser;
-	}
-
-	public IntPropertyParser getIntPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (intPropertyParser == null) {
-
-			try {
-				intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getName(), this);
-				intPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return intPropertyParser;
-	}
-
-	public IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (intArrayPropertyParser == null) {
-
-			try {
-				intArrayPropertyParser = new IntegerArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				intArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return intArrayPropertyParser;
-	}
-
-	public LongPropertyParser getLongPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (longPropertyParser == null) {
-
-			try {
-				longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getName(), this);
-				longPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return longPropertyParser;
-	}
-
-	public LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (longArrayPropertyParser == null) {
-
-			try {
-				longArrayPropertyParser = new LongArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				longArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return longArrayPropertyParser;
-	}
-
-	public DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (doublePropertyParser == null) {
-
-			try {
-				doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getName(), this);
-				doublePropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return doublePropertyParser;
-	}
-
-	public DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (doubleArrayPropertyParser == null) {
-
-			try {
-				doubleArrayPropertyParser = new DoubleArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				doubleArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getProperty(SchemaProperty.schemaNode));
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return doubleArrayPropertyParser;
-	}
-
-	// ----- private methods -----
-	private int addContentHash(final PropertyKey key, final int contentHash) {
-
-		final Object value = getProperty(key);
-		if (value != null) {
-
-			return contentHash ^ value.hashCode();
-		}
-
-		return contentHash;
-	}
+	*/
 }

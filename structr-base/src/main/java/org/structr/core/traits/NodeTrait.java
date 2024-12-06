@@ -6,4 +6,7 @@ public interface NodeTrait {
 
 	NodeInterface getWrappedNode();
 	String getType();
+
+	boolean visibleToPublicUsers();
+	boolean visibleToAuthenticatedUsers();
 }

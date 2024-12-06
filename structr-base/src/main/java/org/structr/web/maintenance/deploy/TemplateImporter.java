@@ -201,7 +201,7 @@ public class TemplateImporter extends HtmlFileImporter {
 						deleteTemplate(app, existingTemplate);
 					}
 
-					template = app.create(Template.class);
+					template = app.create("Template");
 					properties.put(Template.name, templateName);
 				}
 

@@ -101,7 +101,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		final int pageSize         = webSocketData.getPageSize();
 		final int page             = webSocketData.getPage();
 
-		final Query<DOMNode> query = app.nodeQuery(DOMNode.class)
+		final Query<DOMNode> query = app.nodeQuery("DOMNode")
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)

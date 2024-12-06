@@ -26,7 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -63,9 +65,11 @@ public class StructrEncryptedStringProperty extends StructrPropertyDefinition im
 	}
 
 	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		super.deserialize(schemaNodes, property);
+		super.deserialize(schemaNodes, node);
+
+		final SchemaProperty property = node.as(SchemaProperty.class);
 
 		setFormat(property.getFormat());
 		setContentType(property.getContentType());
@@ -88,14 +92,15 @@ public class StructrEncryptedStringProperty extends StructrPropertyDefinition im
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
-		final PropertyMap properties  = new PropertyMap();
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
+		final PropertyMap properties = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, getTypeToSerialize().name());
-		properties.put(SchemaProperty.format, getFormat());
-		properties.put(SchemaProperty.contentType, getContentType());
+		properties.put(traits.key("propertyType"), getTypeToSerialize().name());
+		properties.put(traits.key("format"), getFormat());
+		properties.put(traits.key("contentType"), getContentType());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

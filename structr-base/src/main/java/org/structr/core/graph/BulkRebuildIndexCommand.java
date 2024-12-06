@@ -178,7 +178,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private long rebuildFulltextIndex() {
 
-		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(Indexable.class), 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery("Indexable"), 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
 
 			@Override
 			public boolean handleGraphObject(final SecurityContext securityContext, final Indexable indexable) throws FrameworkException {

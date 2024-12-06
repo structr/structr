@@ -75,7 +75,7 @@ public class IncludeFunction extends UiCommunityFunction {
 			final PropertyKey<DOMNode> sharedCompKey = StructrApp.key(DOMNode.class, "sharedComponent");
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
+			final List<DOMNode> nodeList             = app.nodeQuery("DOMNode").andName((String)sources[0]).getAsList();
 
 
 			RenderContext innerCtx = null;
@@ -173,7 +173,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		} else {
 
-			final File file = app.nodeQuery(File.class).andName((String)sources[0]).getFirst();
+			final File file = app.nodeQuery("File").andName((String)sources[0]).getFirst();
 
 			if (file != null) {
 

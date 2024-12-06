@@ -56,7 +56,7 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 
 		final PropertyKey<String> path        = StructrApp.key(AbstractFile.class, "path");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final Query query                     = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).sort(path);
+		final Query query                     = StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").sort(path);
 
 		try {
 

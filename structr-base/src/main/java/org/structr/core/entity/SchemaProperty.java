@@ -18,9 +18,28 @@
  */
 package org.structr.core.entity;
 
+import org.structr.core.app.Query;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
-import org.structr.schema.parser.PropertyDefinition;
+import org.structr.schema.parser.*;
+
+import java.util.Map;
+import java.util.Set;
 
 public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 
+	NodeInterface getSchemaNode();
+	String getSourceContentType();
+
+	String getNotionBaseProperty(final Map<String, NodeInterface> schemaNodes);
+	Set<String> getPropertiesForNotionProperty(final Map<String, NodeInterface> schemaNodes);
+	String getNotionMultiplicity(final Map<String, NodeInterface> schemaNodes);
+
+	NotionPropertyParser getNotionPropertyParser(final Map<String, NodeInterface> schemaNodes);
+	IntPropertyParser getIntPropertyParser(final Map<String, NodeInterface> schemaNodes);
+	IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
+	LongPropertyParser getLongPropertyParser(final Map<String, NodeInterface> schemaNodes);
+	LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
+	DoublePropertyParser getDoublePropertyParser(final Map<String, NodeInterface> schemaNodes);
+	DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
 }

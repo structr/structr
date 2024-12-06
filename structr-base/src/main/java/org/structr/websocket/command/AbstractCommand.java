@@ -298,7 +298,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeHidden().getFirst();
+			ShadowDocument doc = app.nodeQuery("ShadowDocument").includeHidden().getFirst();
 			if (doc == null) {
 
 				final PropertyMap properties = new PropertyMap();

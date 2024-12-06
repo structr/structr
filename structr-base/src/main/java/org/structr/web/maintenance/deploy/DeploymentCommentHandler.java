@@ -86,7 +86,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node instanceof LinkSource) {
 
-				final Linkable file = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(AbstractFile.class, "path"), parameters).getFirst();
+				final Linkable file = StructrApp.getInstance().nodeQuery("Linkable").and(StructrApp.key(AbstractFile.class, "path"), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = (LinkSource)node;
@@ -129,7 +129,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
 
-			final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(parameters).getAsList();
+			final List<Principal> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parameters).getAsList();
 
 			if (principals.isEmpty()) {
 
@@ -152,7 +152,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery(Principal.class).andName(parts[0]).getAsList();
+				final List<Principal> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 

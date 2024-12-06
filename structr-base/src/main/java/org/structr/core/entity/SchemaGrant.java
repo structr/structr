@@ -6,4 +6,9 @@ public interface SchemaGrant extends NodeTrait {
 
 	String getPrincipalId();
 	String getPrincipalName();
+
+	boolean allowRead();
+	boolean allowWrite();
+	boolean allowDelete();
+	boolean allowAccessControl();
 }

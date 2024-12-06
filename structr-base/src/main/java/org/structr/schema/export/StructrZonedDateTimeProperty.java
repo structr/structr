@@ -22,74 +22,76 @@ import org.structr.api.schema.JsonDateProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
 import java.util.Map;
 
 public class StructrZonedDateTimeProperty extends StructrStringProperty implements JsonDateProperty {
 
-    private String datePattern = null;
+	private String datePattern = null;
 
-    public StructrZonedDateTimeProperty(final StructrTypeDefinition parent, final String name) {
+	public StructrZonedDateTimeProperty(final StructrTypeDefinition parent, final String name) {
 
-        super(parent, name);
+		super(parent, name);
 
-        setFormat(JsonSchema.FORMAT_DATE_TIME);
-    }
+		setFormat(JsonSchema.FORMAT_DATE_TIME);
+	}
 
-    // ----- public methods -----
+	// ----- public methods -----
 
-    @Override
-    public JsonDateProperty setDatePattern(final String datePattern) {
+	@Override
+	public JsonDateProperty setDatePattern(final String datePattern) {
 
-        this.datePattern = datePattern;
-        return this;
-    }
+		this.datePattern = datePattern;
+		return this;
+	}
 
-    @Override
-    public String getDatePattern() {
-        return datePattern;
-    }
+	@Override
+	public String getDatePattern() {
+		return datePattern;
+	}
 
-    // ----- package methods -----
-    @Override
-    Map<String, Object> serialize() {
+	// ----- package methods -----
+	@Override
+	Map<String, Object> serialize() {
 
-        final Map<String, Object> map = super.serialize();
+		final Map<String, Object> map = super.serialize();
 
-        if (datePattern != null) {
-            map.put(JsonSchema.KEY_DATE_PATTERN, datePattern);
-        }
+		if (datePattern != null) {
+			map.put(JsonSchema.KEY_DATE_PATTERN, datePattern);
+		}
 
-        return map;
-    }
+		return map;
+	}
 
-    @Override
-    void deserialize(final Map<String, Object> source) {
+	@Override
+	void deserialize(final Map<String, Object> source) {
 
-        super.deserialize(source);
+		super.deserialize(source);
 
-        if (source.containsKey(JsonSchema.KEY_DATE_PATTERN)) {
-            this.datePattern = (String)source.get(JsonSchema.KEY_DATE_PATTERN);
-        }
-    }
+		if (source.containsKey(JsonSchema.KEY_DATE_PATTERN)) {
+			this.datePattern = (String) source.get(JsonSchema.KEY_DATE_PATTERN);
+		}
+	}
 
-    @Override
-    void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+	@Override
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface property) {
 
-        super.deserialize(schemaNodes, property);
+		super.deserialize(schemaNodes, property);
 
-        this.datePattern = property.getProperty(SchemaProperty.format);
-    }
+		this.datePattern = property.getProperty(Traits.of("SchemaProperty").key("format"));
+	}
 
-    @Override
-    public String getFormat() {
-        return datePattern;
-    }
+	@Override
+	public String getFormat() {
+		return datePattern;
+	}
 
-    // ----- protected methods -----
-    @Override
-    protected SchemaHelper.Type getTypeToSerialize() {
-        return SchemaHelper.Type.ZonedDateTime;
-    }
+	// ----- protected methods -----
+	@Override
+	protected SchemaHelper.Type getTypeToSerialize() {
+		return SchemaHelper.Type.ZonedDateTime;
+	}
 }

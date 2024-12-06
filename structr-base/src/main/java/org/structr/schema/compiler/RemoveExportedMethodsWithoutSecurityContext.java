@@ -165,7 +165,7 @@ public class RemoveExportedMethodsWithoutSecurityContext implements MigrationHan
 
 	private void deleteSchemaMethodWithSignature (final App app, final String signature) throws FrameworkException {
 
-		for (SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.signature, signature).getAsList()) {
+		for (SchemaMethod method : app.nodeQuery("SchemaMethod").and(SchemaMethod.signature, signature).getAsList()) {
 			app.delete(method);
 		}
 	}

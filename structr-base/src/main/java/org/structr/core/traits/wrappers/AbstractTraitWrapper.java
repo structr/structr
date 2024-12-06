@@ -43,4 +43,12 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 	public T getWrappedNode() {
 		return wrappedObject;
 	}
+
+	public boolean visibleToPublicUsers() {
+		return wrappedObject.getProperty(Traits.of("GraphObject").key("visibleToPublicUsers"));
+	}
+
+	public boolean visibleToAuthenticatedUsers() {
+		return wrappedObject.getProperty(Traits.of("GraphObject").key("visibleToAuthenticatedUsers"));
+	}
 }

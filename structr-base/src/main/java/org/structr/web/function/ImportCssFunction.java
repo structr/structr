@@ -120,7 +120,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		final String selectorsString = StringUtils.trim(StringUtils.substringBefore(cssText, "{"));
 		final App app                = StructrApp.getInstance();
 
-		final NodeInterface existingRuleNode = (NodeInterface) app.nodeQuery(CssRule.class).andName(selectorsString).getFirst();
+		final NodeInterface existingRuleNode = (NodeInterface) app.nodeQuery("CssRule").andName(selectorsString).getFirst();
 		if (existingRuleNode != null) {
 			return existingRuleNode;
 		}

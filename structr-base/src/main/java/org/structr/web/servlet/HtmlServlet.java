@@ -441,7 +441,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
 
-							final Page errorPage = StructrApp.getInstance().nodeQuery(Page.class).and(StructrApp.key(Page.class, "showOnErrorCodes"), "401", false).getFirst();
+							final Page errorPage = StructrApp.getInstance().nodeQuery("Page").and(StructrApp.key(Page.class, "showOnErrorCodes"), "401", false).getFirst();
 							if (errorPage != null && isVisibleForSite(request, errorPage)) {
 
 								// set error page
@@ -1010,7 +1010,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(StructrApp.key(Page.class, "showOnErrorCodes"), "404", false).getAsList();
+		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery("Page").and(StructrApp.key(Page.class, "showOnErrorCodes"), "404", false).getAsList();
 
 		for (final Page errorPage : errorPages) {
 
@@ -1029,7 +1029,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private Page getErrorPageForStatus(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(StructrApp.key(Page.class, "showOnErrorCodes"), "" + response.getStatus(), false).getAsList();
+		final List<Page> errorPages = StructrApp.getInstance(securityContext).nodeQuery("Page").and(StructrApp.key(Page.class, "showOnErrorCodes"), "" + response.getStatus(), false).getAsList();
 
 		for (final Page errorPage : errorPages) {
 
@@ -1060,7 +1060,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested name: {}", name);
 
-			final Query<AbstractNode> query    = StructrApp.getInstance(securityContext).nodeQuery(AbstractNode.class);
+			final Query<AbstractNode> query    = StructrApp.getInstance(securityContext).nodeQuery("AbstractNode");
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
@@ -1141,7 +1141,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		for (final DOMNode potentialPartial : StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.typeHandler, "Page").getAsList()) {
+		for (final DOMNode potentialPartial : StructrApp.getInstance(securityContext).nodeQuery("DOMNode").andName(name).not().and(DOMNode.typeHandler, "Page").getAsList()) {
 
 			if (potentialPartial.getOwnerDocumentAsSuperUser() != null) {
 				return potentialPartial;
@@ -1172,7 +1172,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		attributes.put(nameKey, name);
 
 		// Find pages by path or name
-		final List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class)
+		final List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery("Page")
 			.or()
 				.notBlank(pathKey)
 				.and(pathKey, path)
@@ -1219,7 +1219,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final PropertyKey<Integer> positionKey = StructrApp.key(Page.class, "position");
 
-		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).notBlank(positionKey).sort(positionKey).getAsList();
+		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery("Page").notBlank(positionKey).sort(positionKey).getAsList();
 
 		for (Page page : possiblePages) {
 
@@ -1264,7 +1264,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKey, key).getAsList();
+				results = app.nodeQuery("Principal").and(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1358,7 +1358,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery("Principal").and(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1419,7 +1419,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (!uuid.isEmpty()) {
 
-			final Query<Linkable> query = StructrApp.getInstance(securityContext).nodeQuery(Linkable.class);
+			final Query<Linkable> query = StructrApp.getInstance(securityContext).nodeQuery("Linkable");
 
 			query
 				.and()
@@ -1441,7 +1441,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested path: {}", path);
 
-			return StructrApp.getInstance(securityContext).nodeQuery(Linkable.class).and(pathPropertyForSearch, path).getAsList();
+			return StructrApp.getInstance(securityContext).nodeQuery("Linkable").and(pathPropertyForSearch, path).getAsList();
 		}
 
 		return Collections.EMPTY_LIST;
@@ -1821,19 +1821,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// try the different methods..
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(Page.class).and(pagePathKey, path).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery("Page").and(pagePathKey, path).and(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(Page.class).and(Page.name, PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery("Page").and(Page.name, PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(filePathKey, path).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery("File").and(filePathKey, path).and(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.name, PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery("File").and(File.name, PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage != null) {

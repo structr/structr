@@ -56,7 +56,7 @@ public class RemoveTypesWithNonExistentPackages implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						final SchemaReloadingNodeTraitDefinition schemaNode = app.nodeQuery(SchemaReloadingNodeTraitDefinition.class).andName(type).getFirst();
+						final SchemaReloadingNodeTraitDefinition schemaNode = app.nodeQuery("SchemaReloadingNodeTraitDefinition").andName(type).getFirst();
 						if (schemaNode != null) {
 
 							app.delete(schemaNode);

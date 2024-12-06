@@ -23,13 +23,13 @@ package org.structr.schema;
 public class SourceLine {
 
 	private final StringBuilder buf = new StringBuilder();
-	private CodeSource codeSource   = null;
+	private Object codeSource   = null;
 
 	public SourceLine(final CodeSource codeSource) {
 		this.codeSource = codeSource;
 	}
 
-	public SourceLine(final CodeSource codeSource, final Object initial) {
+	public SourceLine(final Object codeSource, final Object initial) {
 		
 		buf.append(initial); 
 		
@@ -57,7 +57,7 @@ public class SourceLine {
 		return this;
 	}
 
-	public CodeSource getCodeSource() {
+	public Object getCodeSource() {
 		return codeSource;
 	}
 

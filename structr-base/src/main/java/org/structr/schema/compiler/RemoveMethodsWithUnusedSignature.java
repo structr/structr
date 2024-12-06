@@ -65,16 +65,16 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
 
 						if (schemaNode == null) {
 
-							schemaNode = app.nodeQuery(SchemaNode.class).andName(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
+							schemaNode = app.nodeQuery("SchemaNode").andName(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
 						}
 
 						if (schemaNode != null) {
 
-							for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class)
+							for (final SchemaMethod method : app.nodeQuery("SchemaMethod")
 								.and(SchemaMethod.schemaNode, schemaNode)
 								.and(SchemaMethod.name,       methodName)
 								.getAsList()) {

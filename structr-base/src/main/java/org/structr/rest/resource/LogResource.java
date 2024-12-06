@@ -132,7 +132,7 @@ public class LogResource extends ExactMatchEndpoint {
 				if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
+						.nodeQuery("LogEvent")
 						.and(LogEvent.subjectProperty, subjectId)
 						.and(LogEvent.objectProperty, objectId)
 						.and(LogEvent.actionProperty, logState.logAction)
@@ -143,7 +143,7 @@ public class LogResource extends ExactMatchEndpoint {
 				} else if (StringUtils.isNotEmpty(subjectId) && StringUtils.isEmpty(objectId)) {
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
+						.nodeQuery("LogEvent")
 						.and(LogEvent.subjectProperty, subjectId)
 						.and(LogEvent.actionProperty, logState.logAction)
 						.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
@@ -155,7 +155,7 @@ public class LogResource extends ExactMatchEndpoint {
 					logState.inverse(true);
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
+						.nodeQuery("LogEvent")
 						.and(LogEvent.objectProperty, objectId)
 						.and(LogEvent.actionProperty, logState.logAction)
 						.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
@@ -172,7 +172,7 @@ public class LogResource extends ExactMatchEndpoint {
 					logState.overview(true);
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
+						.nodeQuery("LogEvent")
 						.getAsList()
 					);
 				}
@@ -335,7 +335,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 				// get the basic correlation set (pds_click in the test case)
 				final List<LogEvent> correlationResult = StructrApp.getInstance(securityContext)
-					.nodeQuery(LogEvent.class)
+					.nodeQuery("LogEvent")
 					.and(LogEvent.actionProperty, state.correlationAction)
 					.getAsList();
 
@@ -363,7 +363,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 			logger.debug("No. of correlations: {}", state.getCorrelations().entrySet().size());
 
-			final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery(LogEvent.class)
+			final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery("LogEvent")
 				.and(LogEvent.actionProperty, state.logAction)
 				.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
 				.getAsList();

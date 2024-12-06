@@ -28,7 +28,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -168,26 +170,28 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	// ----- package methods -----
-	SchemaMethodParameter createDatabaseSchema(final App app, final SchemaMethod schemaMethod, final int index) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface node, final int index) throws FrameworkException {
 
+		final SchemaMethod schemaMethod = node.as(SchemaMethod.class);
+		final Traits traits             = Traits.of("SchemaMethodParameter");
+		NodeInterface parameter         = schemaMethod.getSchemaMethodParameter(getName());
 
-		SchemaMethodParameter parameter = schemaMethod.getSchemaMethodParameter(getName());
 		if (parameter == null) {
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
-			getOrCreateProperties.put(SchemaMethodParameter.name,         getName());
-			getOrCreateProperties.put(SchemaMethodParameter.schemaMethod, schemaMethod);
+			getOrCreateProperties.put(traits.key("name"),         getName());
+			getOrCreateProperties.put(traits.key("schemaMethod"), node);
 
-			parameter = app.create(SchemaMethodParameter.class, getOrCreateProperties);
+			parameter = app.create("SchemaMethodParameter", getOrCreateProperties);
 		}
 
 		final PropertyMap updateProperties = new PropertyMap();
 
-		updateProperties.put(SchemaMethodParameter.parameterType, type);
-		updateProperties.put(SchemaMethodParameter.description,   description);
-		updateProperties.put(SchemaMethodParameter.exampleValue,  exampleValue);
-		updateProperties.put(SchemaMethodParameter.index,         index);
+		updateProperties.put(traits.key("parameterType"), type);
+		updateProperties.put(traits.key("description"),   description);
+		updateProperties.put(traits.key("exampleValue"),  exampleValue);
+		updateProperties.put(traits.key("index"),         index);
 
 		// update properties
 		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
@@ -220,13 +224,15 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		this.exampleValue = (String)source.get(JsonSchema.KEY_EXAMPLE_VALUE);
 	}
 
-	void deserialize(final SchemaMethodParameter method) {
+	void deserialize(final NodeInterface node) {
+
+		final SchemaMethodParameter method = node.as(SchemaMethodParameter.class);
 
 		setName(method.getName());
-		setType(method.getProperty(SchemaMethodParameter.parameterType));
-		setIndex(method.getProperty(SchemaMethodParameter.index));
-		setDescription(method.getProperty(SchemaMethodParameter.description));
-		setExampleValue(method.getProperty(SchemaMethodParameter.exampleValue));
+		setType(method.getParameterType());
+		setIndex(method.getIndex());
+		setDescription(method.getDescription());
+		setExampleValue(method.geExampleValue());
 	}
 
 	Map<String, Object> serialize() {
@@ -254,7 +260,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		return newParameter;
 	}
 
-	static StructrParameterDefinition deserialize(final StructrMethodDefinition parent, final SchemaMethodParameter parameter) {
+	static StructrParameterDefinition deserialize(final StructrMethodDefinition parent, final NodeInterface parameter) {
 
 		final StructrParameterDefinition newParameter = new StructrParameterDefinition(parent, parameter.getName());
 

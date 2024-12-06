@@ -19,9 +19,8 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.core.entity.SchemaGrant;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 /**
@@ -30,12 +29,17 @@ import org.structr.core.traits.Traits;
  */
 public class SchemaGrantTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SchemaGrant {
 
-	public SchemaGrantTraitWrapper(Traits traits, NodeInterface wrappedObject) {
+	public SchemaGrantTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getPrincipalId() {
+
+		final PropertyKey<NodeInterface> key = traits.key("principal");
+		final NodeInterface principal        = wrappedObject.getProperty(key);
+
+		return principal.getUuid();
 
 		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
 		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
@@ -51,12 +55,15 @@ public class SchemaGrantTraitWrapper extends AbstractTraitWrapper<NodeInterface>
 			}
 		}
 		*/
-
-		return null;
 	}
 
 	@Override
 	public String getPrincipalName() {
+
+		final PropertyKey<NodeInterface> key = traits.key("principal");
+		final NodeInterface principal        = wrappedObject.getProperty(key);
+
+		return principal.getName();
 
 		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
 		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
@@ -76,7 +83,25 @@ public class SchemaGrantTraitWrapper extends AbstractTraitWrapper<NodeInterface>
 			}
 		}
 		*/
+	}
 
-		return null;
+	@Override
+	public boolean allowRead() {
+		return wrappedObject.getProperty(traits.key("allowRead"));
+	}
+
+	@Override
+	public boolean allowWrite() {
+		return wrappedObject.getProperty(traits.key("allowWrite"));
+	}
+
+	@Override
+	public boolean allowDelete() {
+		return wrappedObject.getProperty(traits.key("allowDelete"));
+	}
+
+	@Override
+	public boolean allowAccessControl() {
+		return wrappedObject.getProperty(traits.key("allowAccessControl"));
 	}
 }

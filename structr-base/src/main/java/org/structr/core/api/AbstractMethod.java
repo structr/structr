@@ -32,12 +32,12 @@ import org.structr.common.error.NumericalMethodInputParsingException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments.Argument;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
@@ -61,7 +61,7 @@ public abstract class AbstractMethod {
 	public abstract boolean isStatic();
 	public abstract boolean isPrivate();
 	public abstract Snippet getSnippet();
-	public abstract HttpVerb getHttpVerb();
+	public abstract SchemaMethodTraitDefinition.HttpVerb getHttpVerb();
 	public abstract Parameters getParameters();
 	public abstract String getFullMethodName();
 	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
@@ -89,6 +89,7 @@ public abstract class AbstractMethod {
 					final String engineName = snippet.getEngineName();
 
 					if (!engineName.isEmpty()) {
+
 						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
 						final Context context = ContextFactory.getContext(engineName, actionContext, entity, false);
 						final SecurityContext securityContext = actionContext.getSecurityContext();

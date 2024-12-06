@@ -28,7 +28,6 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 import org.structr.schema.action.Actions;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.util.Map;
 

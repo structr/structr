@@ -58,11 +58,11 @@ public class RemoveFileSetPropertiesMethodWithoutParameters implements Migration
 
                     try (final Tx tx = app.tx()) {
 
-                        final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+                        final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName("File").getFirst();
 
                         if (schemaNode != null) {
 
-                            for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(SchemaMethod.name, "setProperties").getAsList()) {
+                            for (final SchemaMethod method : app.nodeQuery("SchemaMethod").and(SchemaMethod.schemaNode, schemaNode).and(SchemaMethod.name, "setProperties").getAsList()) {
                                 app.delete(method);
                             }
                         }

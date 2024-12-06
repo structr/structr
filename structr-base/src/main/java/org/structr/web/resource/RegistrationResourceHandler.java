@@ -113,7 +113,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 			try (final Tx tx = app.tx(true, true, true)) {
 
-				user = app.nodeQuery(User.class).and(eMailKey, emailString).getFirst();
+				user = app.nodeQuery("User").and(eMailKey, emailString).getFirst();
 				if (user != null) {
 
 					// For existing users, update confirmation key
@@ -233,7 +233,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
+			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
 
 			if (localeString != null) {
 				query.and("locale", localeString);

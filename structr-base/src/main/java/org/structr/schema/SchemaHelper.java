@@ -1207,7 +1207,7 @@ public class SchemaHelper {
 		final App app = StructrApp.getInstance();
 		final String name = org.apache.commons.lang.StringUtils.substringAfterLast(fqcn, ".");
 
-		SchemaNode node = app.nodeQuery(SchemaNode.class).andName(fqcn).getFirst();
+		SchemaNode node = app.nodeQuery("SchemaNode").andName(fqcn).getFirst();
 		if (node == null) {
 
 			node = app.create(SchemaNode.class,

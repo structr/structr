@@ -176,7 +176,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			try {
 
-				final Image thumbnail = (Image) app.nodeQuery(Image.class).and(pathKey, PathHelper.getFolderPath(originalImage.getProperty(pathKey)) + PathHelper.PATH_SEP + tnName).getFirst();
+				final Image thumbnail = (Image) app.nodeQuery("Image").and(pathKey, PathHelper.getFolderPath(originalImage.getProperty(pathKey)) + PathHelper.PATH_SEP + tnName).getFirst();
 
 				if (thumbnail != null) {
 					app.create(originalImage, thumbnail, thumbnailRel);
@@ -198,7 +198,7 @@ public abstract class ImageHelper extends FileHelper {
 		try {
 
 			final App app = StructrApp.getInstance();
-			final Image originalImage = (Image) app.nodeQuery(Image.class).and(pathKey, PathHelper.getFolderPath(thumbnail.getProperty(pathKey)) + PathHelper.PATH_SEP + originalImageName).getFirst();
+			final Image originalImage = (Image) app.nodeQuery("Image").and(pathKey, PathHelper.getFolderPath(thumbnail.getProperty(pathKey)) + PathHelper.PATH_SEP + originalImageName).getFirst();
 
 			if (originalImage != null) {
 

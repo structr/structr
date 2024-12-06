@@ -18,9 +18,16 @@
  */
 package org.structr.core.entity;
 
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 
 public interface SchemaMethodParameter extends NodeTrait {
 
+	NodeInterface getSchemaNode();
+
+	String getName();
+	String getDescription();
 	String getParameterType();
+	int getIndex();
+	String getExampleValue();
 }

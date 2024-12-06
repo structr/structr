@@ -34,13 +34,13 @@ import java.util.Set;
 
 public final class UserTraitDefinition extends AbstractTraitDefinition {
 
-	public static final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", UserHOME_DIRFolder.class).partOfBuiltInSchema();
-	public static final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", UserWORKING_DIRFolder.class).partOfBuiltInSchema();
-	public static final Property<NodeInterface> imgProperty                 = new StartNode("img", ImagePICTURE_OFUser.class);
-	public static final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
-	public static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
-	public static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
-	public static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
+	private static final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", "UserHOME_DIRFolder").partOfBuiltInSchema();
+	private static final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", "UserWORKING_DIRFolder").partOfBuiltInSchema();
+	private static final Property<NodeInterface> imgProperty                 = new StartNode("img", "ImagePICTURE_OFUser");
+	private static final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
+	private static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
+	private static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
+	private static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
 
 	public UserTraitDefinition() {
 		super("User");

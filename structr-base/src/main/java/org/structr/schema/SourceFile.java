@@ -45,7 +45,7 @@ public class SourceFile extends SimpleJavaFileObject {
 		line(null, "import ", className, ";");
 	}
 
-	public SourceLine begin(final CodeSource source, final Object... data) {
+	public SourceLine begin(final Object source, final Object... data) {
 
 		final SourceLine line = line(source, data);
 
@@ -66,13 +66,13 @@ public class SourceFile extends SimpleJavaFileObject {
 		return line(null, data);
 	}
 
-	public SourceLine endBegin(final CodeSource source, final Object... data) {
+	public SourceLine endBegin(final Object source, final Object... data) {
 
 		outdent();
 		return begin(source, data);
 	}
 
-	public SourceLine line(final CodeSource source, final Object... data) {
+	public SourceLine line(final Object source, final Object... data) {
 
 		final SourceLine line = new SourceLine(source, getIndentation());
 

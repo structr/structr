@@ -391,7 +391,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					final Class existingType = configuration.getNodeEntityClass(type);
 					if (existingType != null && !existingType.getName().equals("org.structr.dynamic." + type)) {
 
-						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
 						if (schemaNode != null) {
 
 							propertyMap.put(SchemaNode.extendsClass, schemaNode);
@@ -400,7 +400,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					} else if (!typeInfo.getOtherTypes().isEmpty()) {
 
 						final String superclassName = typeInfo.getSuperclass(reducedTypeInfoMap);
-						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(superclassName).getFirst();
+						final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName(superclassName).getFirst();
 
 						if (schemaNode != null) {
 
@@ -413,7 +413,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 						*/
 					}
 
-					final SchemaNode existingNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+					final SchemaNode existingNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
 					if (existingNode != null) {
 
 						for (final Map.Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {

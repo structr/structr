@@ -30,6 +30,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
 import java.net.URI;
@@ -37,6 +38,8 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.structr.core.traits.Traits;
 import org.structr.web.maintenance.DeployCommand;
 
 /**
@@ -48,7 +51,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 	private static final Logger logger = LoggerFactory.getLogger(StructrGrantDefinition.class.getName());
 
 	private JsonType parent            = null;
-	private SchemaGrant schemaGrant    = null;
+	private NodeInterface schemaGrant  = null;
 	private String principalName       = null;
 	private boolean allowRead          = false;
 	private boolean allowWrite         = false;
@@ -141,15 +144,16 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 	}
 
 	// ----- package methods -----
-	SchemaGrant getSchemaGrant() {
+	NodeInterface getSchemaGrant() {
 		return schemaGrant;
 	}
 
-	SchemaGrant createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<Principal> principals        = app.nodeQuery(Principal.class).andName(principalName).getAsList();
+		final Traits traits                     = Traits.of("SchemaGrant");
+		final List<NodeInterface> principals    = app.nodeQuery("Principal").andName(principalName).getAsList();
 
 		if (principals.isEmpty()) {
 
@@ -167,19 +171,19 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 			return null;
 		}
 
-		getOrCreateProperties.put(SchemaGrant.principal,  principals.get(0));
-		getOrCreateProperties.put(SchemaGrant.schemaNode, (SchemaNode)schemaNode);
+		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
+		getOrCreateProperties.put(traits.key("schemaNode"), (SchemaNode)schemaNode);
 
-		SchemaGrant grant = app.nodeQuery(SchemaGrant.class).and(getOrCreateProperties).getFirst();
+		NodeInterface grant = app.nodeQuery("SchemaGrant").and(getOrCreateProperties).getFirst();
 		if (grant == null) {
 
-			grant = app.create(SchemaGrant.class, getOrCreateProperties);
+			grant = app.create("SchemaGrant", getOrCreateProperties);
 		}
 
-		updateProperties.put(SchemaGrant.allowRead,          getAllowRead());
-		updateProperties.put(SchemaGrant.allowWrite,         getAllowWrite());
-		updateProperties.put(SchemaGrant.allowDelete,        getAllowDelete());
-		updateProperties.put(SchemaGrant.allowAccessControl, getAllowAccessControl());
+		updateProperties.put(traits.key("allowRead"),          getAllowRead());
+		updateProperties.put(traits.key("allowWrite"),         getAllowWrite());
+		updateProperties.put(traits.key("allowDelete"),        getAllowDelete());
+		updateProperties.put(traits.key("allowAccessControl"), getAllowAccessControl());
 
 		grant.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
@@ -216,14 +220,16 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		}
 	}
 
-	void deserialize(final SchemaGrant grant) {
+	void deserialize(final NodeInterface node) {
 
-		this.schemaGrant = grant;
+		this.schemaGrant = node;
 
-		this.allowRead          = schemaGrant.getProperty(SchemaGrant.allowRead);
-		this.allowWrite         = schemaGrant.getProperty(SchemaGrant.allowWrite);
-		this.allowDelete        = schemaGrant.getProperty(SchemaGrant.allowDelete);
-		this.allowAccessControl = schemaGrant.getProperty(SchemaGrant.allowAccessControl);
+		final SchemaGrant grant = node.as(SchemaGrant.class);
+
+		this.allowRead          = grant.allowRead();
+		this.allowWrite         = grant.allowWrite();
+		this.allowDelete        = grant.allowDelete();
+		this.allowAccessControl = grant.allowAccessControl();
 	}
 
 	Map<String, Object> serialize() {
@@ -254,7 +260,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		return newGrant;
 	}
 
-	static StructrGrantDefinition deserialize(final StructrTypeDefinition parent, final SchemaGrant grant) {
+	static StructrGrantDefinition deserialize(final StructrTypeDefinition parent, final NodeInterface grant) {
 
 		final StructrGrantDefinition newGrant = new StructrGrantDefinition(parent, grant.getPrincipalName());
 

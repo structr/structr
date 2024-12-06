@@ -74,7 +74,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				if (name != null) {   element.attr("name", name); }
 				if (htmlId != null) { element.attr("id",   htmlId); }
 
-				try (final ResultStream<Widget> resultStream = app.nodeQuery(Widget.class).getResultStream()) {
+				try (final ResultStream<Widget> resultStream = app.nodeQuery("Widget").getResultStream()) {
 
 					for (final Widget widget : resultStream) {
 

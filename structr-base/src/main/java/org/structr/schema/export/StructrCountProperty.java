@@ -24,7 +24,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
 
@@ -42,13 +44,14 @@ public class StructrCountProperty extends StructrLongProperty implements JsonCou
 	}
 
 	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
 
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
-		final PropertyMap properties  = new PropertyMap();
+		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits          = Traits.of("SchemaProperty");
+		final PropertyMap properties = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, SchemaHelper.Type.Count.name());
-		properties.put(SchemaProperty.format, getFormat());
+		properties.put(traits.key("propertyType"), SchemaHelper.Type.Count.name());
+		properties.put(traits.key("format"), getFormat());
 	
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

@@ -33,7 +33,7 @@ import java.util.List;
  */
 public interface StructrDefinition {
 
-	public StructrDefinition resolveJsonPointerKey(final String key);
+	StructrDefinition resolveJsonPointerKey(final String key);
 
 	default String[] listToArray(final Collection<String> list) {
 		return list.toArray(new String[0]);

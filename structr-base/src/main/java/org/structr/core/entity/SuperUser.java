@@ -18,16 +18,12 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.AccessControllable;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.NonIndexed;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The SuperUser entity. Please note that this class is not persistent but will
@@ -53,6 +49,11 @@ public class SuperUser implements Principal {
 	}
 
 	public String getSessionId() {
+		return null;
+	}
+
+	@Override
+	public NodeInterface getWrappedNode() {
 		return null;
 	}
 
@@ -94,6 +95,11 @@ public class SuperUser implements Principal {
 	@Override
 	public String getName() {
 		return "superadmin";
+	}
+
+	@Override
+	public Iterable<NodeInterface> getOwnedNodes() {
+		return null;
 	}
 
 	@Override
@@ -147,6 +153,56 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
+	public void setTwoFactorConfirmed(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setTwoFactorToken(String token) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorUser() {
+		return false;
+	}
+
+	@Override
+	public void setIsTwoFactorUser(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorConfirmed() {
+		return false;
+	}
+
+	@Override
+	public Integer getPasswordAttempts() {
+		return 0;
+	}
+
+	@Override
+	public Date getPasswordChangeDate() {
+		return null;
+	}
+
+	@Override
+	public void setPasswordAttempts(int num) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setLastLoginDate(Date date) throws FrameworkException {
+
+	}
+
+	@Override
+	public String[] getSessionIds() {
+		return new String[0];
+	}
+
+	@Override
 	public String getLocale() {
 		return null;
 	}
@@ -178,16 +234,6 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void setSalt(String salt) throws FrameworkException {
-		// nothing to do
-	}
-
-	@Override
-	public List<Favoritable> getFavorites() {
-		return null;
-	}
-
-	@Override
-	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
 		// nothing to do
 	}
 

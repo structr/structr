@@ -84,12 +84,12 @@ public class PageImporter extends HtmlFileImporter {
 
 	// ----- private methods -----
 	private Page getExistingPage(final String name) throws FrameworkException {
-		return StructrApp.getInstance().nodeQuery(Page.class).andName(name).getFirst();
+		return StructrApp.getInstance().nodeQuery("Page").andName(name).getFirst();
 	}
 
 	private void deletePage(final App app, final String name) throws FrameworkException {
 
-		final Page page = app.nodeQuery(Page.class).andName(name).getFirst();
+		final Page page = app.nodeQuery("Page").andName(name).getFirst();
 		if (page != null) {
 
 			for (final DOMNode child : page.getElements()) {
