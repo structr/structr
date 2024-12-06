@@ -80,7 +80,8 @@ public class Neo5IndexUpdater {
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			t.printStackTrace();
+			//logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -154,7 +155,8 @@ public class Neo5IndexUpdater {
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							logger.error(ExceptionUtils.getStackTrace(t));
+							t.printStackTrace();
+							//logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -275,6 +277,8 @@ public class Neo5IndexUpdater {
 
 										try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
+											tx.prefetchHint("Neo5IndexUpdater update");
+
 											// drop index
 											db.consume("DROP INDEX " + indexName + " IF EXISTS");
 											droppedIndexesOfRemovedTypes.incrementAndGet();
@@ -292,7 +296,9 @@ public class Neo5IndexUpdater {
 
 									}).get(timeoutSeconds, TimeUnit.SECONDS);
 
-								} catch (Throwable t) {}
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
 							}
 						}
 					}
