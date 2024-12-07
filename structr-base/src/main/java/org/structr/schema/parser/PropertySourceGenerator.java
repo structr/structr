@@ -32,6 +32,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
@@ -135,39 +136,41 @@ public abstract class PropertySourceGenerator {
 		return getSourceDefaultValue();
 	}
 
-	public void createSchemaPropertyNode(final AbstractSchemaNode schemaNode, final String underscorePropertyName) throws FrameworkException {
+	public void createSchemaPropertyNode(final NodeInterface node, final String underscorePropertyName) throws FrameworkException {
 
-		final App app             = StructrApp.getInstance();
-		final String propertyName = getSourcePropertyName();
+		final App app                       = StructrApp.getInstance();
+		final String propertyName           = getSourcePropertyName();
+		final AbstractSchemaNode schemaNode = node.as(AbstractSchemaNode.class);
+		final Traits traits                 = Traits.of("SchemaProperty");
 
 		if (schemaNode.getSchemaProperty(propertyName) == null) {
 
-			app.create(SchemaProperty.class,
-				new NodeAttribute<>(AbstractNode.name,                    propertyName),
-				new NodeAttribute<>(SchemaProperty.schemaNode,            schemaNode),
-				new NodeAttribute<>(SchemaProperty.propertyType,          getKey().name()),
-				new NodeAttribute<>(SchemaProperty.contentType,           source.getContentType()),
-				new NodeAttribute<>(SchemaProperty.dbName,                source.getDbName()),
-				new NodeAttribute<>(SchemaProperty.defaultValue,          source.getDefaultValue()),
-				new NodeAttribute<>(SchemaProperty.format,                source.getFormat()),
-				new NodeAttribute<>(SchemaProperty.typeHint,              source.getTypeHint()),
-				new NodeAttribute<>(SchemaProperty.hint,                  source.getHint()),
-				new NodeAttribute<>(SchemaProperty.category,              source.getCategory()),
-				new NodeAttribute<>(SchemaProperty.fqcn,                  source.getFqcn()),
-				new NodeAttribute<>(SchemaProperty.compound,              source.isCompound()),
-				new NodeAttribute<>(SchemaProperty.unique,                source.isUnique()),
-				new NodeAttribute<>(SchemaProperty.indexed,               source.isIndexed()),
-				new NodeAttribute<>(SchemaProperty.notNull,               source.isNotNull()),
-				new NodeAttribute<>(SchemaProperty.isPartOfBuiltInSchema, source.isPartOfBuiltInSchema()),
-				new NodeAttribute<>(SchemaProperty.isCachingEnabled,	  source.isCachingEnabled()),
-				new NodeAttribute<>(SchemaProperty.readFunction,          source.getReadFunction()),
-				new NodeAttribute<>(SchemaProperty.writeFunction,         source.getWriteFunction()),
-				new NodeAttribute<>(SchemaProperty.openAPIReturnType,     source.getOpenAPIReturnType()),
-				new NodeAttribute<>(SchemaProperty.transformers,          source.getTransformators()),
-				new NodeAttribute<>(SchemaProperty.validators,            source.getValidators())
+			app.create("SchemaProperty",
+				new NodeAttribute<>(traits.key("name"),                  propertyName),
+				new NodeAttribute<>(traits.key("schemaNode"),            schemaNode),
+				new NodeAttribute<>(traits.key("propertyType"),          getKey().name()),
+				new NodeAttribute<>(traits.key("contentType"),           source.getContentType()),
+				new NodeAttribute<>(traits.key("dbName"),                source.getDbName()),
+				new NodeAttribute<>(traits.key("defaultValue"),          source.getDefaultValue()),
+				new NodeAttribute<>(traits.key("format"),                source.getFormat()),
+				new NodeAttribute<>(traits.key("typeHint"),              source.getTypeHint()),
+				new NodeAttribute<>(traits.key("hint"),                  source.getHint()),
+				new NodeAttribute<>(traits.key("category"),              source.getCategory()),
+				new NodeAttribute<>(traits.key("fqcn"),                  source.getFqcn()),
+				new NodeAttribute<>(traits.key("compound"),              source.isCompound()),
+				new NodeAttribute<>(traits.key("unique"),                source.isUnique()),
+				new NodeAttribute<>(traits.key("indexed"),               source.isIndexed()),
+				new NodeAttribute<>(traits.key("notNull"),               source.isNotNull()),
+				new NodeAttribute<>(traits.key("isPartOfBuiltInSchema"), source.isPartOfBuiltInSchema()),
+				new NodeAttribute<>(traits.key("isCachingEnabled"),      source.isCachingEnabled()),
+				new NodeAttribute<>(traits.key("readFunction"),          source.getReadFunction()),
+				new NodeAttribute<>(traits.key("writeFunction"),         source.getWriteFunction()),
+				new NodeAttribute<>(traits.key("openAPIReturnType"),     source.getOpenAPIReturnType()),
+				new NodeAttribute<>(traits.key("transformers"),          source.getTransformators()),
+				new NodeAttribute<>(traits.key("validators"),            source.getValidators())
 			);
 
-			schemaNode.removeProperty(new StringProperty(underscorePropertyName));
+			node.removeProperty(new StringProperty(underscorePropertyName));
 		}
 	}
 

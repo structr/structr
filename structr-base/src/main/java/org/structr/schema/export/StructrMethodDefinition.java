@@ -63,7 +63,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
 	private final Set<String> tags                            = new TreeSet<>();
-	private SchemaMethod schemaMethod                         = null;
+	private NodeInterface schemaMethod                        = null;
 	private boolean includeInOpenAPI                          = false;
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
@@ -349,7 +349,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	// ----- package methods -----
-	SchemaMethod getSchemaMethod() {
+	NodeInterface getSchemaMethod() {
 		return schemaMethod;
 	}
 
@@ -417,7 +417,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 
-		this.schemaMethod = method.as(SchemaMethod.class);
+		this.schemaMethod = method;
 
 		// return modified property
 		return method;
@@ -560,7 +560,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		final SchemaMethod method = node.as(SchemaMethod.class);
 
-		this.schemaMethod = method;
+		this.schemaMethod = node;
 
 		setName(method.getName());
 		setSource(method.getSource());
@@ -671,7 +671,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		if (includeInOpenAPI()) {
 
-			final SchemaMethod method = this.getSchemaMethod();
+			final NodeInterface node  = this.getSchemaMethod();
+			final SchemaMethod method = node.as(SchemaMethod.class);
 
 			final boolean isLifecycleMethod = method.isLifecycleMethod();
 			final boolean isTypeMethod      = (parent != null);

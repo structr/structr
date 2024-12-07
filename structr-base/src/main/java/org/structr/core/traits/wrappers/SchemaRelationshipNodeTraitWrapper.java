@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
@@ -267,7 +268,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return null;
 	}
 
-	@Override public String getMultiplicity(final boolean outgoing) {
+	@Override
+	public String getMultiplicity(final boolean outgoing) {
 
 		if (outgoing) {
 
@@ -279,7 +281,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		}
 	}
 
-	@Override public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
+	@Override
+	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
 
 		final String relationshipTypeName = getRelationshipType().toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
@@ -759,6 +762,31 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
+	public PropagationMode getReadPropagation() {
+		return wrappedObject.getProperty(traits.key("readPropagation"));
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return wrappedObject.getProperty(traits.key("writePropagation"));
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return wrappedObject.getProperty(traits.key("deletePropagation"));
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return wrappedObject.getProperty(traits.key("accessControlPropagation"));
+	}
+
+	@Override
+	public String getPropertyMask() {
+		return wrappedObject.getProperty(traits.key("propertyMask"));
+	}
+
+	@Override
 	public String getPreviousTargetJsonName() {
 		return wrappedObject.getProperty(traits.key("oldTargetJsonName"));
 	}
@@ -827,6 +855,11 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 			src.end();
 		}
+	}
+
+	@Override
+	public String getName() {
+		return "";
 	}
 
 	/*
@@ -1048,75 +1081,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return allow;
 	}
 	*/
-
-	static String getPropertyName(String relatedClassName, Set<String> existingPropertyNames, boolean outgoing, String relationshipTypeName, String _sourceType, String _targetType, String _targetJsonName, String _targetMultiplicity, String _sourceJsonName, String _sourceMultiplicity) {
-
-		String propertyName = "";
-
-		if (outgoing) {
-
-
-			if (_targetJsonName != null) {
-
-				// FIXME: no automatic creation?
-				propertyName = _targetJsonName;
-
-			} else {
-
-				if ("1".equals(_targetMultiplicity)) {
-
-					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
-
-				} else {
-
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
-				}
-			}
-
-		} else {
-
-
-			if (_sourceJsonName != null) {
-				propertyName = _sourceJsonName;
-			} else {
-
-				if ("1".equals(_sourceMultiplicity)) {
-
-					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
-
-				} else {
-
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
-				}
-			}
-		}
-
-		if (existingPropertyNames.contains(propertyName)) {
-
-			// First level: Add direction suffix
-			propertyName += outgoing ? "Out" : "In";
-			int i = 0;
-
-			// New name still exists: Add number
-			while (existingPropertyNames.contains(propertyName)) {
-				propertyName += ++i;
-			}
-
-		}
-
-		existingPropertyNames.add(propertyName);
-
-		return propertyName;
-	}
-
-	// ----- public static methods -----
-	static String getDefaultRelationshipType(final NodeInterface sourceNode, final NodeInterface targetNode) {
-		return getDefaultRelationshipType(sourceNode.getName(), targetNode.getName());
-	}
-
-	static String getDefaultRelationshipType(final String sourceType, final String targetType) {
-		return sourceType + "_" + targetType;
-	}
 
 	// ----- nested classes -----
 	private static class KeyMatcher implements Predicate<String> {
