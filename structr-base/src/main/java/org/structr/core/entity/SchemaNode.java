@@ -23,4 +23,20 @@ import org.structr.core.graph.NodeInterface;
 public interface SchemaNode extends AbstractSchemaNode {
 
 	Iterable<NodeInterface> getSchemaGrants();
+	NodeInterface getExtendsClass();
+
+	String getSummary();
+	String getIcon();
+	String getDescription();
+	String getCategory();
+
+	boolean isInterface();
+	boolean isAbstract();
+	boolean isBuiltinType();
+	boolean changelogDisabled();
+	boolean defaultVisibleToPublic();
+	boolean defaultVisibleToAuth();
+	boolean includeInOpenAPI();
+
+	String[] getTags();
 }

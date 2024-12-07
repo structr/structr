@@ -23,11 +23,14 @@ import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.SchemaRelationshipNodeTraitWrapper;
 
 import java.net.URI;
 import java.util.Map;
@@ -38,7 +41,7 @@ import java.util.TreeMap;
  *
  *
  */
-public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode> implements JsonObjectType {
+public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterface> implements JsonObjectType {
 
 	StructrNodeTypeDefinition(final StructrSchemaDefinition root, final String name) {
 		super(root, name);
@@ -46,16 +49,16 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 	@Override
 	public JsonReferenceType relate(final JsonObjectType type) {
-		return relate(type, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type.getName()));
+		return relate(type, getDefaultRelationshipType(getName(), type.getName()));
 	}
 
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference) {
 
-		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
+		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			return relate(externalTypeReference, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type.getSimpleName()));
+			return relate(externalTypeReference, getDefaultRelationshipType(getName(), type));
 		}
 
 		throw new IllegalStateException("External reference " + externalTypeReference + " not found.");
@@ -83,11 +86,11 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality) {
 
-		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
+		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			final String sourcePropertyName = getPropertyName(type.getSimpleName(), false,  relationship, cardinality);
-			final String targetPropertyName = getPropertyName(type.getSimpleName(), true, relationship, cardinality);
+			final String sourcePropertyName = getPropertyName(type, false,  relationship, cardinality);
+			final String targetPropertyName = getPropertyName(type, true, relationship, cardinality);
 
 			return relate(externalTypeReference, relationship, cardinality, sourcePropertyName, targetPropertyName);
 		}
@@ -117,10 +120,10 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality, String sourceAttributeName, String targetAttributeName) {
 
-		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
+		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			final String relationshipTypeName           = getName() + relationship + type.getSimpleName();
+			final String relationshipTypeName           = getName() + relationship + type;
 			final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, relationshipTypeName);
 
 			// initialize
@@ -215,18 +218,18 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	SchemaNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
+	NodeInterface createSchemaNode(final Map<String, NodeInterface> schemaNodes, final Map<String, NodeInterface> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
 
 		// re-use existing schema nodes here!
-		final SchemaNode existingNode = schemaNodes.get(name);
+		final NodeInterface existingNode = schemaNodes.get(name);
 		if (existingNode != null) {
 
 			return existingNode;
 		}
 
-		createProperties.put(SchemaNode.name, name);
+		createProperties.put(Traits.nameProperty(), name);
 
-		final SchemaNode newNode = app.create(SchemaNode.class, createProperties);
+		final NodeInterface newNode = app.create("SchemaNode", createProperties);
 
 		schemaNodes.put(name, newNode);
 
@@ -265,6 +268,74 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 				break;
 		}
 
-		return SchemaRelationshipNode.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
+		return getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
+	}
+
+	String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
+
+		String propertyName = "";
+
+		if (outgoing) {
+
+
+			if (_targetJsonName != null) {
+
+				// FIXME: no automatic creation?
+				propertyName = _targetJsonName;
+
+			} else {
+
+				if ("1".equals(_targetMultiplicity)) {
+
+					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
+
+				} else {
+
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
+				}
+			}
+
+		} else {
+
+
+			if (_sourceJsonName != null) {
+				propertyName = _sourceJsonName;
+			} else {
+
+				if ("1".equals(_sourceMultiplicity)) {
+
+					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
+
+				} else {
+
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
+				}
+			}
+		}
+
+		if (existingPropertyNames.contains(propertyName)) {
+
+			// First level: Add direction suffix
+			propertyName += outgoing ? "Out" : "In";
+			int i = 0;
+
+			// New name still exists: Add number
+			while (existingPropertyNames.contains(propertyName)) {
+				propertyName += ++i;
+			}
+
+		}
+
+		existingPropertyNames.add(propertyName);
+
+		return propertyName;
+	}
+
+	private String getDefaultRelationshipType(final NodeInterface sourceNode, final NodeInterface targetNode) {
+		return getDefaultRelationshipType(sourceNode.getName(), targetNode.getName());
+	}
+
+	private String getDefaultRelationshipType(final String sourceType, final String targetType) {
+		return sourceType + "_" + targetType;
 	}
 }

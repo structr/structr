@@ -39,6 +39,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.SchemaResource;
@@ -1219,12 +1220,14 @@ public class SchemaHelper {
 		return node;
 	}
 
-	private static void formatSchemaGrants(final SourceFile src, final AbstractSchemaNode schemaNode) {
+	private static void formatSchemaGrants(final SourceFile src, final NodeInterface node) {
 
-		final Iterable<SchemaGrant> schemaGrants = schemaNode.getSchemaGrants();
+		final SchemaNode schemaNode                = node.as(SchemaNode.class);
+		final Iterable<NodeInterface> schemaGrants = schemaNode.getSchemaGrants();
+
 		if (schemaGrants != null) {
 
-			final List<SchemaGrant> list = Iterables.toList(schemaGrants);
+			final List<NodeInterface> list = Iterables.toList(schemaGrants);
 			if (!list.isEmpty()) {
 
 				final Set<String> read          = new HashSet<>();
@@ -1232,23 +1235,25 @@ public class SchemaHelper {
 				final Set<String> delete        = new HashSet<>();
 				final Set<String> accessControl = new HashSet<>();
 
-				for (final SchemaGrant grant : list) {
+				for (final NodeInterface grantNode : list) {
+
+					final SchemaGrant grant = grantNode.as(SchemaGrant.class);
 
 					final String id = grant.getPrincipalId();
 
-					if (grant.getProperty(SchemaGrant.allowRead)) {
+					if (grant.allowRead()) {
 						read.add(id);
 					}
 
-					if (grant.getProperty(SchemaGrant.allowWrite)) {
+					if (grant.allowWrite()) {
 						write.add(id);
 					}
 
-					if (grant.getProperty(SchemaGrant.allowDelete)) {
+					if (grant.allowDelete()) {
 						delete.add(id);
 					}
 
-					if (grant.getProperty(SchemaGrant.allowAccessControl)) {
+					if (grant.allowAccessControl()) {
 						accessControl.add(id);
 					}
 				}

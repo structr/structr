@@ -26,6 +26,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.Visitor;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
@@ -33,6 +34,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -49,7 +51,7 @@ import java.util.Map.Entry;
 /**
  * @param <T>
  */
-public abstract class StructrTypeDefinition<T extends NodeInterface> implements JsonType, StructrDefinition {
+public abstract class StructrTypeDefinition implements JsonType, StructrDefinition {
 
 	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
@@ -79,7 +81,7 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 	protected String summary                                      = null;
 	protected String icon                                         = null;
 	protected String name                                         = null;
-	protected T schemaNode                                        = null;
+	protected NodeInterface schemaNode                            = null;
 
 	StructrTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -87,7 +89,7 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 		this.name = name;
 	}
 
-	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException;
+	abstract NodeInterface createSchemaNode(final Map<String, NodeInterface> schemaNodes, final Map<String, NodeInterface> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException;
 	abstract boolean isBlacklisted(final Set<String> blacklist);
 
 	@Override
@@ -999,9 +1001,11 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 		}
 	}
 
-	void deserialize(final Map<String, NodeInterface> schemaNodes, final T schemaNode) {
+	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
 
-		for (final NodeInterface property : schemaNode.getProperty(AbstractSchemaNode.schemaProperties)) {
+		final SchemaNode schemaNode = node.as(SchemaNode.class);
+
+		for (final NodeInterface property : schemaNode.getSchemaProperties()) {
 
 			final StructrPropertyDefinition propertyDefinition = StructrPropertyDefinition.deserialize(schemaNodes, this, property);
 			if (propertyDefinition != null) {
@@ -1010,14 +1014,16 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 			}
 		}
 
-		for (final NodeInterface view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
+		for (final NodeInterface viewNode : schemaNode.getSchemaViews()) {
 
 			final Set<String> propertySet = new TreeSet<>();
-			for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
+			final SchemaView view         = viewNode.as(SchemaView.class);
+
+			for (final NodeInterface property : view.getSchemaProperties()) {
 				propertySet.add(property.getName());
 			}
 
-			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
+			final String nonGraphProperties = view.getNonGraphProperties();
 			if (nonGraphProperties != null) {
 
 				for (final String property : nonGraphProperties.split("[, ]+")) {
@@ -1030,16 +1036,18 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 			}
 
 			if (!propertySet.isEmpty()) {
+
 				views.put(view.getName(), propertySet);
 
-				final String order = view.getProperty(SchemaView.sortOrder);
+				final String order = view.getSortOrder();
 				if (order != null) {
+
 					viewOrder.put(view.getName(), order);
 				}
 			}
 		}
 
-		for (final NodeInterface method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
+		for (final NodeInterface method : schemaNode.getSchemaMethods()) {
 
 			final StructrMethodDefinition newMethod = StructrMethodDefinition.deserialize(this, method);
 			if (newMethod != null) {
@@ -1048,7 +1056,7 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 			}
 		}
 
-		for (final NodeInterface grant : schemaNode.getProperty(SchemaNode.schemaGrants)) {
+		for (final NodeInterface grant : schemaNode.getSchemaGrants()) {
 
 			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
 			if (newGrant != null) {
@@ -1057,8 +1065,9 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 			}
 		}
 
+		/*
 		// $extends
-		final NodeInterface extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		final NodeInterface extendsClass = schemaNode.getExtendsClass();
 		if (extendsClass != null) {
 
 			// we need to find out if the base type exists in the schema, or in the Structr base schema because the URLs differ
@@ -1107,19 +1116,20 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 				}
 			}
 		}
+		*/
 
-		this.isInterface                 = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract                  = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType               = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.changelogDisabled           = schemaNode.getProperty(SchemaNode.changelogDisabled);
-		this.visibleToPublicUsers        = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
-		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
-		this.includeInOpenAPI            = schemaNode.getProperty(SchemaNode.includeInOpenAPI);
-		this.summary                     = schemaNode.getProperty(SchemaNode.summary);
-		this.icon                        = schemaNode.getProperty(SchemaNode.icon);
-		this.description                 = schemaNode.getProperty(SchemaNode.description);
-		this.category                    = schemaNode.getProperty(SchemaNode.category);
-		this.schemaNode                  = schemaNode;
+		this.isInterface                 = schemaNode.isInterface();
+		this.isAbstract                  = schemaNode.isAbstract();
+		this.isBuiltinType               = schemaNode.isBuiltinType();
+		this.changelogDisabled           = schemaNode.changelogDisabled();
+		this.visibleToPublicUsers        = schemaNode.defaultVisibleToPublic();
+		this.visibleToAuthenticatedUsers = schemaNode.defaultVisibleToAuth();
+		this.includeInOpenAPI            = schemaNode.includeInOpenAPI();
+		this.summary                     = schemaNode.getSummary();
+		this.icon                        = schemaNode.getIcon();
+		this.description                 = schemaNode.getDescription();
+		this.category                    = schemaNode.getCategory();
+		this.schemaNode                  = node;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -1130,33 +1140,36 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 			}
 		}
 
-		final String[] tagArray = schemaNode.getProperty(SchemaNode.tags);
+		final String[] tagArray = schemaNode.getTags();
 		if (tagArray != null) {
 
 			this.tags.addAll(Arrays.asList(tagArray));
 		}
 	}
 
-	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app) throws FrameworkException {
+	NodeInterface createDatabaseSchema(final Map<String, NodeInterface> schemaNodes, final Map<String, NodeInterface> schemaRels, final App app) throws FrameworkException {
 
 		final Map<String, NodeInterface> schemaProperties = new TreeMap<>();
 		final PropertyMap createProperties                = new PropertyMap();
 		final PropertyMap nodeProperties                  = new PropertyMap();
+		final Traits schemaNodeTraits                     = Traits.of("SchemaNode");
+		final Traits schemaViewTraits                     = Traits.of("SchemaView");
 
 		// properties that always need to be set
-		createProperties.put(SchemaNode.isInterface, isInterface);
-		createProperties.put(SchemaNode.isAbstract, isAbstract);
-		createProperties.put(SchemaNode.category, category);
-		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
-		createProperties.put(SchemaNode.changelogDisabled, changelogDisabled);
-		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToPublicUsers);
-		createProperties.put(SchemaNode.defaultVisibleToAuth, visibleToAuthenticatedUsers);
+		createProperties.put(schemaNodeTraits.key("isInterface"), isInterface);
+		createProperties.put(schemaNodeTraits.key("isAbstract"), isAbstract);
+		createProperties.put(schemaNodeTraits.key("category"), category);
+		createProperties.put(schemaNodeTraits.key("isBuiltinType"), isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+		createProperties.put(schemaNodeTraits.key("changelogDisabled"), changelogDisabled);
+		createProperties.put(schemaNodeTraits.key("defaultVisibleToPublic"), visibleToPublicUsers);
+		createProperties.put(schemaNodeTraits.key("defaultVisibleToAuth"), visibleToAuthenticatedUsers);
 
-		final T newSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
+		final NodeInterface createdSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
+		final SchemaNode newSchemaNode        = createdSchemaNode.as(SchemaNode.class);
 
 		for (final StructrPropertyDefinition property : properties) {
 
-			final NodeInterface schemaProperty = property.createDatabaseSchema(app, newSchemaNode);
+			final NodeInterface schemaProperty = property.createDatabaseSchema(app, createdSchemaNode);
 			if (schemaProperty != null) {
 
 				schemaProperties.put(schemaProperty.getName(), schemaProperty);
@@ -1185,19 +1198,19 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 			NodeInterface viewNode = newSchemaNode.getSchemaView(view.getKey());
 			if (viewNode == null) {
 
-				viewNode = app.create(SchemaView.class,
-					new NodeAttribute<>(SchemaView.schemaNode, newSchemaNode),
-					new NodeAttribute<>(SchemaView.name, view.getKey())
+				viewNode = app.create("SchemaView",
+					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
+					new NodeAttribute<>(schemaViewTraits.key("name"), view.getKey())
 				);
 			}
 
 			final PropertyMap updateProperties = new PropertyMap();
 
-			updateProperties.put(SchemaView.schemaProperties, viewProperties);
-			updateProperties.put(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ", "));
+			updateProperties.put(schemaViewTraits.key("schemaProperties"), viewProperties);
+			updateProperties.put(schemaViewTraits.key("nonGraphProperties"), StringUtils.join(nonGraphProperties, ", "));
 
 			if (viewOrder.containsKey(view.getKey())) {
-				updateProperties.put(SchemaView.sortOrder, viewOrder.get(view.getKey()));
+				updateProperties.put(schemaViewTraits.key("sortOrder"), viewOrder.get(view.getKey()));
 			}
 
 			// update properties of existing or new schema view node
@@ -1213,15 +1226,16 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 
 			} else {
 
-				method.createDatabaseSchema(app, newSchemaNode);
+				method.createDatabaseSchema(app, createdSchemaNode);
 			}
 		}
 
 		for (final StructrGrantDefinition grant : grants) {
-			grant.createDatabaseSchema(app, newSchemaNode);
+			grant.createDatabaseSchema(app, createdSchemaNode);
 		}
 
 		// extends
+		/*
 		if (baseTypeReference != null) {
 
 			final Object def = root.resolveURI(baseTypeReference);
@@ -1307,9 +1321,10 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 
 			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
+		*/
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = newSchemaNode.getProperty(SchemaNode.tags);
+		final String[] existingTagsArray = newSchemaNode.getTags();
 
 		if (existingTagsArray != null) {
 
@@ -1317,24 +1332,24 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 		}
 
 		if (!mergedTags.isEmpty()) {
-			nodeProperties.put(SchemaNode.tags,              listToArray(mergedTags));
+			nodeProperties.put(schemaNodeTraits.key("tags"), listToArray(mergedTags));
 		}
 
-		nodeProperties.put(SchemaNode.includeInOpenAPI,  includeInOpenAPI());
-		nodeProperties.put(SchemaNode.summary,           getSummary());
-		nodeProperties.put(SchemaNode.description,       getDescription());
-		nodeProperties.put(SchemaNode.icon,              getIcon());
+		nodeProperties.put(schemaNodeTraits.key("includeInOpenAPI"),  includeInOpenAPI());
+		nodeProperties.put(schemaNodeTraits.key("summary"),           getSummary());
+		nodeProperties.put(schemaNodeTraits.key("description"),       getDescription());
+		nodeProperties.put(schemaNodeTraits.key("icon"),              getIcon());
 
-		newSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
+		createdSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
-		return newSchemaNode;
+		return createdSchemaNode;
 	}
 
-	T getSchemaNode() {
+	NodeInterface getSchemaNode() {
 		return schemaNode;
 	}
 
-	void setSchemaNode(final T schemaNode) {
+	void setSchemaNode(final NodeInterface schemaNode) {
 		this.schemaNode = schemaNode;
 	}
 
@@ -1620,9 +1635,9 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 		return typeDefinition;
 	}
 
-	static StructrTypeDefinition deserialize(final Map<String, SchemaNode> schemaNodes, final StructrSchemaDefinition root, final SchemaNode schemaNode) {
+	static StructrTypeDefinition deserialize(final Map<String, NodeInterface> schemaNodes, final StructrSchemaDefinition root, final NodeInterface schemaNode) {
 
-		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, schemaNode.getClassName());
+		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, schemaNode.getType());
 		def.deserialize(schemaNodes, schemaNode);
 
 		return def;
@@ -1637,22 +1652,22 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 	}
 
 	// ----- protected methods -----
-	protected SchemaNode resolveSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final URI uri) throws FrameworkException {
+	protected NodeInterface resolveSchemaNode(final Map<String, NodeInterface> schemaNodes, final App app, final URI uri) throws FrameworkException {
 
 		// find schema nodes for the given source and target nodes
 		final Object source = root.resolveURI(uri);
 		if (source != null && source instanceof StructrTypeDefinition) {
 
-			return (SchemaNode)((StructrTypeDefinition)source).getSchemaNode();
+			return ((StructrTypeDefinition)source).getSchemaNode();
 
 		} else {
 
 			if (uri.isAbsolute()) {
 
-				final Class type = StructrApp.resolveSchemaId(uri);
+				final String type = StructrApp.resolveSchemaId(uri);
 				if (type != null) {
 
-					return schemaNodes.get(type.getSimpleName());
+					return schemaNodes.get(type);
 				}
 			}
 		}
@@ -1979,7 +1994,7 @@ public abstract class StructrTypeDefinition<T extends NodeInterface> implements 
 		return null;
 	}
 
-	void resolveInheritanceRelationships(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
+	void resolveInheritanceRelationships(final Map<String, NodeInterface> schemaNodes) throws FrameworkException {
 
 		if (unresolvedSuperclassName != null && this.schemaNode != null) {
 			this.schemaNode.setProperty(SchemaNode.extendsClass, schemaNodes.get(unresolvedSuperclassName));

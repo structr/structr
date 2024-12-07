@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
 import org.structr.schema.ConfigurationProvider;
@@ -119,9 +120,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
-		final Map<String, SchemaRelationshipNode> schemaRels = new LinkedHashMap<>();
-		final Map<String, SchemaNode> schemaNodes            = new LinkedHashMap<>();
-		final Set<String> blacklist                          = SchemaService.getBlacklist();
+		final Map<String, NodeInterface> schemaRels  = new LinkedHashMap<>();
+		final Map<String, NodeInterface> schemaNodes = new LinkedHashMap<>();
+		final Set<String> blacklist                  = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
 		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
@@ -136,7 +137,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				continue;
 			}
 
-			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, schemaRels, app);
+			final NodeInterface schemaNode = type.createDatabaseSchema(schemaNodes, schemaRels, app);
 			if (schemaNode != null) {
 
 				type.setSchemaNode(schemaNode);
@@ -244,7 +245,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		final Map<String, Object> map             = new TreeMap<>();
 
-		for (final StructrTypeDefinition<?> type : typeDefinitions) {
+		for (final StructrTypeDefinition type : typeDefinitions) {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
@@ -568,7 +569,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
 
-		final AbstractSchemaNode schemaNode = type.getSchemaNode();
+		final NodeInterface schemaNode = type.getSchemaNode();
 		if (schemaNode != null) {
 
 			final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(type.getName());

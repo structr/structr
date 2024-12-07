@@ -1,13 +1,10 @@
 package org.structr.core.entity;
 
 import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.CaseHelper;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SourceFile;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +25,8 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	String getTargetMultiplicity();
 	String getSourceJsonName();
 	String getTargetJsonName();
+	String getPreviousTargetJsonName();
+	String getPreviousSourceJsonName();
 	String getSchemaNodeSourceType();
 	String getSourceType();
 	String getTargetType();
@@ -35,8 +34,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	String getResourceSignature();
 	String getInverseResourceSignature();
 	String getRelationshipType();
-
-	PropagationDirection getPermissionPropagation();
 
 	void resolveCascadingEnums(final JsonSchema.Cascade delete, final JsonSchema.Cascade autoCreate) throws FrameworkException;
 
@@ -53,7 +50,11 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	boolean isPartOfBuiltInSchema();
 	Iterable<NodeInterface> getSchemaGrants();
 
-	String getPreviousTargetJsonName();
-
-	String getPreviousSourceJsonName();
+	// permission propagation
+	PropagationDirection getPermissionPropagation();
+	PropagationMode getReadPropagation();
+	PropagationMode getWritePropagation();
+	PropagationMode getDeletePropagation();
+	PropagationMode getAccessControlPropagation();
+	String getPropertyMask();
 }
