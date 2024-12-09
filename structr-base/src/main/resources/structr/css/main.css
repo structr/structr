@@ -3331,18 +3331,6 @@ table#principals .typeIcon {
 	box-sizing: border-box;
 }
 
-.events-container .node {
-	color: var(--gray-333);
-	border: 1px solid transparent;
-	padding: 0.125rem 1rem;
-	margin: 0;
-	background-color: var(--gray-bg);
-	border-radius: 0.5rem;
-	min-width: 7rem;
-	display: inline-block;
-	position: relative;
-}
-
 .events-container .node:hover {
 	color: var(--gray-555);
 	border: 1px solid transparent;
@@ -3420,7 +3408,8 @@ table.props td.key {
 .resourceBox .node,
 #relatedNodesList .node,
 .props .node,
-.result-box .node {
+.result-box .node,
+.events-container .node {
 	border: 1px solid transparent;
 	padding: .25rem 1rem;
 	margin: .25rem;
@@ -3428,6 +3417,12 @@ table.props td.key {
 	border-radius: .5rem;
 	min-width: 7rem;
 	display: inline-block;
+}
+
+.events-container .node {
+	color: var(--gray-333);
+	padding: 0.125rem 1rem;
+	margin: 0;
 }
 
 .resourceBox .node:hover,

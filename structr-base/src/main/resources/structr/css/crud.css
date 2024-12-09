@@ -58,7 +58,7 @@
 	border-bottom: 1px solid var(--light-gray-bg-f7);
 	border-top: 1px solid var(--light-gray-bg-f7);
 	margin-top: -1px;
-	padding: 6px 5px 6px 10px;
+	padding: 6px 8px 6px 10px;
 	cursor: pointer;
 	height: 18px;
 }

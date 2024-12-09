@@ -493,7 +493,7 @@ let _Entities = {
 						`);
 
 						deleteBtn.addEventListener('click', async (e) => {
-							let deleted = await _Crud.crudAskDelete(obj.type, obj.id);
+							let deleted = await _Crud.helpers.crudAskDelete(obj.type, obj.id);
 
 							if (deleted) {
 								_Dialogs.custom.getCloseDialogButton().click();
@@ -1305,19 +1305,19 @@ let _Entities = {
 			callback(collectionIds);
 		});
 	},
-	appendDatePicker: function(el, entity, key, format) {
-
-		if (!entity[key] || entity[key] === 'null') {
-			entity[key] = '';
-		}
-
-		el.append(`<input class="dateField" name="${key}" type="text" value="${entity[key]}" autocomplete="off">`);
-
-		let dateField = $(el.find('.dateField'));
-		_Entities.activateDatePicker(dateField, format);
-
-		return dateField;
-	},
+	// appendDatePicker: function(el, entity, key, format) {
+	//
+	// 	if (!entity[key] || entity[key] === 'null') {
+	// 		entity[key] = '';
+	// 	}
+	//
+	// 	el.append(`<input class="dateField" name="${key}" type="text" value="${entity[key]}" autocomplete="off">`);
+	//
+	// 	let dateField = $(el.find('.dateField'));
+	// 	_Entities.activateDatePicker(dateField, format);
+	//
+	// 	return dateField;
+	// },
 	activateDatePicker: (input, format) => {
 		if (!format) {
 			format = input.data('dateFormat');
@@ -1330,22 +1330,27 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
+	getRelatedNodeHTML: (node, displayName = null, includeRemoveIcon = true) => {
+
+		if (!displayName) {
+			displayName = _Crud.helpers.getDisplayName(node);
+		}
+
+		return `
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
+				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+				${includeRemoveIcon ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])) : ''}
+			</div>
+		`;
+	},
 	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
 		/** Alternative function to appendRelatedNode
 		    - no jQuery
 		    - uses insertAdjacentHTML
 		    - default position: beforeend
 		*/
-		if (!displayName) {
-			displayName = _Crud.displayName(node);
-		}
 		cell = (cell instanceof jQuery ? cell[0] : cell);
-		cell.insertAdjacentHTML(position || 'beforeend', `
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
-				<span class="abbr-ellipsis abbr-80">${displayName}</span>
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
-			</div>
-		`);
+		cell.insertAdjacentHTML(position ?? 'beforeend', _Entities.getRelatedNodeHTML(node, displayName));
 
 		let nodeEl = cell.querySelector('._' + node.id);
 
@@ -1360,15 +1365,8 @@ let _Entities = {
 		}
 	},
 	appendRelatedNode: (cell, node, onDelete, displayName) => {
-		if (!displayName) {
-			displayName = _Crud.displayName(node);
-		}
-		cell.append(`
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
-				<span class="abbr-ellipsis abbr-80">${displayName}</span>
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
-			</div>
-		`);
+
+		cell.append(_Entities.getRelatedNodeHTML(node, displayName));
 		let nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -1719,11 +1717,11 @@ let _Entities = {
 				let handleGraphObject = (entity) => {
 
 					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
-						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
+						_Crud.objectList.refreshCellWithNewValue(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
-					_Crud.refreshCell(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
+					_Crud.objectList.refreshCellWithNewValue(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
+					_Crud.objectList.refreshCellWithNewValue(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
 				};
 
 				if (entity.targetId) {

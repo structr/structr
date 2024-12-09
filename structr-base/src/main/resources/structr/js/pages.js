@@ -1965,7 +1965,7 @@ let _Pages = {
 					});
 				});
 
-			}, 'afterbegin', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
+			}, 'afterbegin', _Helpers.getHTMLTreeElementDisplayName(StructrModel.obj(obj.id)));
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -2041,7 +2041,7 @@ let _Pages = {
 					hiddenUserInputInput.value = '';
 					saveParameterMappings(dropzoneElement);
 				})
-			}, 'beforeend', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
+			}, 'beforeend', _Helpers.getHTMLTreeElementDisplayName(StructrModel.obj(obj.id)));
 
 			dropzoneElement.classList.add('hidden');
 			saveParameterMappings(dropzoneElement);
@@ -2389,7 +2389,7 @@ let _Pages = {
 				return existing.querySelector('tbody');
 			}
 
-			let displayName = _Helpers.getElementDisplayName(entity);
+			let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
 			let iconClasses = ['mr-2', 'flex-shrink-0'];
 			let iconHTML    = (entity.isDOMNode) ? (entity.isContent ?_Icons.getSvgIconForContentNode(entity, iconClasses) : _Icons.getSvgIconForElementNode(entity, iconClasses)) : _Icons.getSvgIcon(_Icons.iconSchemaNodeDefault, 16, 16, iconClasses);
 			let detailHtml  = '';
@@ -3554,7 +3554,7 @@ let _Pages = {
 							let div = _Helpers.createSingleDOMElementFromHTML(`
 								<div class="node page ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
-										${_Icons.getSvgIcon(_Icons.iconDomTreePageIcon, 16, 16, ['icon-grey'])}<b title="${_Helpers.escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+										${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['icon-grey'])}<b title="${_Helpers.escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
 									</div>
 								</div>
 							`);

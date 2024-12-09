@@ -158,8 +158,7 @@ let _Helpers = {
 
 		} else if (obj.constructor === Object) {
 
-			let displayName = _Crud.displayName(obj);
-			return `<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${obj.id}" class="node ${obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')} ${obj.id}_"><span class="abbr-ellipsis abbr-80">${displayName}</span>${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['remove'])}</div>`;
+			return _Entities.getRelatedNodeHTML(obj);
 
 		} else if (obj.constructor === Array) {
 
@@ -211,7 +210,7 @@ let _Helpers = {
 			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="new-password">`;
 		}
 	},
-	getElementDisplayName: (entity) => {
+	getHTMLTreeElementDisplayName: (entity) => {
 		if (!entity.name) {
 			if (entity.tag === 'option' && entity._html_value) {
 				return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
@@ -648,6 +647,19 @@ let _Helpers = {
 	getCSSClassForKey: (key) => {
 		return '___' + key.replace(/\s/g, '_whitespace_');
 	},
+	softlimit: {
+		resultCountSoftLimit: 10000,
+		getSoftLimitedPageCount: (pageSize) => Math.ceil(_Helpers.softlimit.getSoftLimitedResultCount() / pageSize),
+		getSoftLimitedResultCount: () => _Helpers.softlimit.resultCountSoftLimit,
+		getSoftLimitMessage: () => 'Result count exceeds soft limit (' + _Helpers.softlimit.resultCountSoftLimit + '). Page count may be higher than displayed.',
+		showSoftLimitAlert: (el) => {
+			el.attr('style', 'background-color: #fc0 !important;');
+			el.attr('title', _Helpers.softlimit.getSoftLimitMessage());
+		},
+		showActualResultCount: (el, pageSize) => {
+			el.attr('title', 'Result count = ' + pageSize);
+		},
+	}
 };
 
 /**

@@ -918,9 +918,7 @@ let Structr = {
 
 			Structr.mainMenu.update(userConfigMenu);
 
-			if (envInfo.resultCountSoftLimit !== undefined) {
-				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
-			}
+			_Helpers.softlimit.resultCountSoftLimit = envInfo.resultCountSoftLimit ?? _Helpers.softlimit.resultCountSoftLimit;
 
 			// run previously registered callbacks
 			let registeredCallbacks = Structr.envInfoAvailableCallbacks;
@@ -1898,6 +1896,15 @@ let Structr = {
 		container.style.top          = null;
 	},
 
+	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
+	internalKeys: {
+		visibleToPublicUsers: 'visibleToPublicUsers',
+		visibleToAuthenticatedUsers: 'visibleToAuthenticatedUsers',
+
+		sourceNode: 'sourceNode',
+		targetNode: 'targetNode',
+		internalTimestamp: 'internalTimestamp',
+	},
 
 	templates: {
 		mainBody: config => `
