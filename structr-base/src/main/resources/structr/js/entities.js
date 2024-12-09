@@ -2586,7 +2586,7 @@ let _Entities = {
 				'Content':          { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.content },
 				'Div':              { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.div },
 				'File':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
-				'Image':            { id: 'general', title: 'Advanced',    appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
+				'Image':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
 				'Folder':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.folder },
 				'Input':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.input },
 				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.basicTab.dialogs.ldapGroup, condition: () => { return Structr.isModulePresent('ldap-client'); } },
