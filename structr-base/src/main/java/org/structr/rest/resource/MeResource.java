@@ -90,7 +90,7 @@ public class MeResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
-			return User.class;
+			return "User";
 		}
 
 		@Override

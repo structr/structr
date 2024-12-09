@@ -3,12 +3,13 @@ package org.structr.core.entity;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.action.ActionEntry;
 
 import java.util.Map;
 
 public interface SchemaMethod extends NodeTrait {
+
+	String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
 
 	NodeInterface getSchemaNode();
 	Iterable<NodeInterface> getParameters();
@@ -37,9 +38,13 @@ public interface SchemaMethod extends NodeTrait {
 	boolean isPrivateMethod();
 	boolean returnRawResult();
 
-	SchemaMethodTraitDefinition.HttpVerb getHttpVerb();
+	HttpVerb getHttpVerb();
 
 	NodeInterface getSchemaMethodParameter(final String name);
+
+	enum HttpVerb {
+		GET, PUT, POST, PATCH, DELETE
+	}
 
 	/*
 	default void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

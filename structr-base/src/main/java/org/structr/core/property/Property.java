@@ -530,6 +530,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 				return true;
 			}
 
+			/*
 			if (valueType.isEnum()) {
 				return true;
 			}
@@ -537,6 +538,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			if (valueType.isArray()) {
 				return true;
 			}
+			*/
 		}
 
 		return false;
@@ -547,7 +549,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (value != null) {
 
-			final Class valueType = value.getClass();
+			final String valueType = value.getClass().getSimpleName();
 			if (valueType != null) {
 
 				// indexable indicated by value type
@@ -559,6 +561,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 					return true;
 				}
 
+				/*
 				if (valueType.isEnum()) {
 					return true;
 				}
@@ -566,6 +569,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 				if (valueType.isArray()) {
 					return true;
 				}
+				*/
 			}
 
 		} else {

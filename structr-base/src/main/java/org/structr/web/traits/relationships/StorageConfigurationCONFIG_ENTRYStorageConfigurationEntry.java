@@ -16,31 +16,50 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.relationship;
+package org.structr.web.traits.relationships;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.web.entity.StorageConfiguration;
-import org.structr.web.entity.StorageConfigurationEntry;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 
-public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry extends OneToMany<StorageConfiguration, StorageConfigurationEntry> implements PermissionPropagation {
+import java.util.Map;
+import java.util.Set;
 
-	@Override
-	public Class<StorageConfiguration> getSourceType() {
-		return StorageConfiguration.class;
+public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry extends RelationshipTraitDefinition {
+
+	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry() {
+		super("StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
 	}
 
 	@Override
-	public Class<StorageConfigurationEntry> getTargetType() {
-		return StorageConfigurationEntry.class;
+	public String getSourceType() {
+		return "StorageConfiguration";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "StorageConfigurationEntry";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "CONFIG_ENTRY";
+	}
+
+	@Override
+	protected Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	protected Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
@@ -51,6 +70,11 @@ public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry extends O
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	protected boolean isInternal() {
+		return false;
 	}
 
 	@Override
@@ -79,7 +103,27 @@ public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry extends O
 	}
 
 	@Override
-	public String getDeltaProperties() {
-		return "";
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of();
 	}
 }

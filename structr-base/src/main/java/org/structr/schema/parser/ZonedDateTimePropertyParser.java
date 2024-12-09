@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
@@ -32,124 +33,127 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
-    private String pattern = null;
-    public ZonedDateTimePropertyParser(ErrorBuffer errorBuffer, String className, PropertyDefinition propertyDefinition) {
-        super(errorBuffer, className, propertyDefinition);
-    }
 
-    @Override
-    public SchemaHelper.Type getKey() {
-        return SchemaHelper.Type.ZonedDateTime;
-    }
+	private String pattern = null;
 
-    @Override
-    public String getPropertyType() {
-        return ZonedDateTimeProperty.class.getSimpleName();
-    }
+	public ZonedDateTimePropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
+		super(errorBuffer, className, propertyDefinition);
+	}
 
-    @Override
-    public String getValueType() {
-        return ZonedDateTime.class.getName();
-    }
+	@Override
+	public SchemaHelper.Type getKey() {
+		return SchemaHelper.Type.ZonedDateTime;
+	}
 
-    @Override
-    public String getUnqualifiedValueType() {
-        return "ZonedDateTime";
-    }
+	@Override
+	public String getPropertyType() {
+		return ZonedDateTimeProperty.class.getSimpleName();
+	}
 
-    @Override
-    public String getPropertyParameters() {
-        return "";
-    }
+	@Override
+	public String getValueType() {
+		return ZonedDateTime.class.getName();
+	}
 
-    @Override
-    public void parseFormatString(Map<String, SchemaNode> schemaNodes, Schema entity, String expression) throws FrameworkException {
+	@Override
+	public String getUnqualifiedValueType() {
+		return "ZonedDateTime";
+	}
 
-        if (expression != null && !expression.isEmpty()) {
+	@Override
+	public String getPropertyParameters() {
+		return "";
+	}
 
-            pattern = expression;
-        }
-    }
+	@Override
+	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface entity, String expression) throws FrameworkException {
 
-    @Override
-    public String getDefaultValue() {
-        return "ZonedDateTimeParser.parse(\"" + getSourceDefaultValue() + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
-    }
+		if (expression != null && !expression.isEmpty()) {
 
-    /**
-     * Static method to catch parse exception
-     *
-     * @param source
-     * @param pattern optional SimpleDateFormat pattern
-     * @return
-     */
-    public static ZonedDateTime parse(String source, final String pattern) throws FrameworkException {
+			pattern = expression;
+		}
+	}
 
-        if (StringUtils.isBlank(pattern)) {
+	@Override
+	public String getDefaultValue() {
+		return "ZonedDateTimeParser.parse(\"" + getSourceDefaultValue() + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
+	}
 
-            ZonedDateTime parsedDate = null;
+	/**
+	 * Static method to catch parse exception
+	 *
+	 * @param source
+	 * @param pattern optional SimpleDateFormat pattern
+	 * @return
+	 */
+	public static ZonedDateTime parse(String source, final String pattern) throws FrameworkException {
 
-            DateTimeParseException parseException = null;
+		if (StringUtils.isBlank(pattern)) {
 
-            try {
+			ZonedDateTime parsedDate = null;
 
-                parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
-            } catch (DateTimeParseException ex) {
-                parseException = ex;
-            }
+			DateTimeParseException parseException = null;
 
-            if (parsedDate == null) {
+			try {
 
-                try {
-                    parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ISO_DATE_TIME);
-                    // If fallback succeeds, it's safe to clear the previous exception.
-                    parseException = null;
-                } catch (DateTimeParseException ex) {
-                    parseException = ex;
-                }
-            }
+				parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
+			} catch (DateTimeParseException ex) {
+				parseException = ex;
+			}
 
-            if (parseException != null) {
+			if (parsedDate == null) {
 
-                throw new FrameworkException(422, ("Could not parse ZonedDateTime from source " + source + ". Cause: " + parseException.getCause()), parseException.getCause());
-            }
+				try {
+					parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ISO_DATE_TIME);
+					// If fallback succeeds, it's safe to clear the previous exception.
+					parseException = null;
+				} catch (DateTimeParseException ex) {
+					parseException = ex;
+				}
+			}
 
-            return parsedDate;
+			if (parseException != null) {
 
-        } else {
+				throw new FrameworkException(422, ("Could not parse ZonedDateTime from source " + source + ". Cause: " + parseException.getCause()), parseException.getCause());
+			}
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-            return ZonedDateTime.parse(source, formatter);
-        }
+			return parsedDate;
 
-    }
-    public static ZonedDateTime parse(String source) throws FrameworkException {
-        return parse(source, null);
-    }
+		} else {
 
-    /**
-     * Central method to format a date into a string.
-     *
-     * If no format is given, use the (old) default format.
-     *
-     * @param date
-     * @param format optional SimpleDateFormat pattern
-     * @return
-     */
-    public static String format(final ZonedDateTime date, String format) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+			return ZonedDateTime.parse(source, formatter);
+		}
 
-        if (date != null) {
+	}
 
-            if (format == null || StringUtils.isBlank(format)) {
+	public static ZonedDateTime parse(String source) throws FrameworkException {
+		return parse(source, null);
+	}
 
-                format = ZonedDateTimeProperty.getDefaultFormat();
+	/**
+	 * Central method to format a date into a string.
+	 * <p>
+	 * If no format is given, use the (old) default format.
+	 *
+	 * @param date
+	 * @param format optional SimpleDateFormat pattern
+	 * @return
+	 */
+	public static String format(final ZonedDateTime date, String format) {
 
-            }
+		if (date != null) {
 
-            return DateTimeFormatter.ofPattern(format).format(date);
-        }
+			if (format == null || StringUtils.isBlank(format)) {
 
-        return null;
+				format = ZonedDateTimeProperty.getDefaultFormat();
 
-    }
+			}
+
+			return DateTimeFormatter.ofPattern(format).format(date);
+		}
+
+		return null;
+
+	}
 }

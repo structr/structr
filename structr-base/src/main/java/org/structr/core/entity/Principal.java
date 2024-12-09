@@ -59,6 +59,7 @@ public interface Principal extends NodeTrait {
 	Iterable<Group> getParentsPrivileged();
 	boolean addSessionId(final String sessionId);
 	boolean addRefreshToken(final String refreshToken);
+	String[] getRefreshTokens();
 	void removeSessionId(final String sessionId);
 	void removeRefreshToken(final String refreshToken);
 	void clearTokens();

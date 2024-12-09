@@ -21,6 +21,11 @@ package org.structr.core.traits;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.core.traits.relationships.*;
+import org.structr.rest.traits.relationships.ObjectEventRelationship;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
+import org.structr.rest.traits.definitions.LogObjectTraitDefinition;
+import org.structr.rest.traits.definitions.LogSubjectTraitDefinition;
+import org.structr.rest.traits.relationships.SubjectEventRelationship;
 
 public class StructrBaseTraits {
 
@@ -47,6 +52,9 @@ public class StructrBaseTraits {
 		StructrBaseTraits.registerRelationshipType("SchemaRelationshipTargetNode",      new SchemaRelationshipTargetNodeDefinition());
 		StructrBaseTraits.registerRelationshipType("SchemaViewProperty",                new SchemaViewPropertyDefinition());
 
+		StructrBaseTraits.registerRelationshipType("ObjectEventRelationship",           new ObjectEventRelationship());
+		StructrBaseTraits.registerRelationshipType("SubjectEventRelationship",          new SubjectEventRelationship());
+
 		StructrBaseTraits.registerBaseTypes();
 
 		StructrBaseTraits.registerNodeType("Principal",              new PrincipalTraitDefinition());
@@ -72,6 +80,14 @@ public class StructrBaseTraits {
 		StructrBaseTraits.registerNodeType("ResourceAccess",        new ResourceAccessTraitDefinition("ResourceAccess"));
 		StructrBaseTraits.registerNodeType("DynamicResourceAccess", new ResourceAccessTraitDefinition("DynamicResourceAccess"));
 		StructrBaseTraits.registerNodeType("SessionDataNode",       new SessionDataNodeTraitDefinition());
+
+		// rest types
+		StructrBaseTraits.registerNodeType("LogEvent",   new LogEventTraitDefinition());
+		StructrBaseTraits.registerNodeType("LogObject",  new LogObjectTraitDefinition());
+		StructrBaseTraits.registerNodeType("LogSubject", new LogSubjectTraitDefinition());
+
+		// ui types
+
 	}
 
 	private static void registerBaseTypes() {
@@ -91,7 +107,7 @@ public class StructrBaseTraits {
 		registerNodeType("Principal");
 	}
 
-	private static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
+	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, true, false);
 
@@ -106,7 +122,7 @@ public class StructrBaseTraits {
 		}
 	}
 
-	private static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
+	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, false, true);
 

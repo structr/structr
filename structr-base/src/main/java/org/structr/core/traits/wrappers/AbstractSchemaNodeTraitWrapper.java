@@ -37,6 +37,11 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
+	public String getName() {
+		return wrappedObject.getProperty(traits.key("name"));
+	}
+
+	@Override
 	public Iterable<NodeInterface> getSchemaProperties() {
 		return wrappedObject.getProperty(traits.key("schemaProperties"));
 	}

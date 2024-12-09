@@ -767,7 +767,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Class getType() {
+		public String getType() {
 			return String.class;
 		}
 
@@ -816,7 +816,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Class getType() {
+		public String getType() {
 			return String.class;
 		}
 

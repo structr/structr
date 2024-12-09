@@ -16,18 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.logging.entity;
+package org.structr.rest.traits.wrappers;
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.rest.logging.entity.relationship.SubjectEventRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.rest.entity.LogObject;
 
-/**
- *
- *
- */
-public class LogSubject extends AbstractNode {
+public class LogObjectTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements LogObject {
 
-	public static final Property<Iterable<LogEvent>> logEvents = new EndNodes<>("logEvents", SubjectEventRelationship.class);
+	public LogObjectTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
+	@Override
+	public String getName() {
+		return wrappedObject.getName();
+	}
 }

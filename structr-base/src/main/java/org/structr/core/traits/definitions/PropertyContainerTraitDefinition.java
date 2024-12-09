@@ -447,7 +447,7 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 		return userString;
 	}
 
-	protected String getModificationNotPermittedExceptionString(final GraphObject obj, final SecurityContext ctx) {
+	public static String getModificationNotPermittedExceptionString(final GraphObject obj, final SecurityContext ctx) {
 
 		final String userString     = PropertyContainerTraitDefinition.getCurrentUserString(ctx);
 		final String thisNodeString = obj.getType() + "(" + obj.getUuid()      + ")";

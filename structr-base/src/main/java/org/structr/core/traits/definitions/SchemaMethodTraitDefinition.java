@@ -38,11 +38,6 @@ import java.util.Set;
  */
 public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 
-	public static final String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
-
-	public enum HttpVerb {
-		GET, PUT, POST, PATCH, DELETE
-	}
 
 	private static final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters").partOfBuiltInSchema();
 	private static final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType"))).partOfBuiltInSchema();
@@ -65,7 +60,7 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 	private static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false).partOfBuiltInSchema();
 	private static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty().partOfBuiltInSchema();
 	private static final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false).partOfBuiltInSchema();
-	private static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST).partOfBuiltInSchema();
+	private static final Property<SchemaMethod.HttpVerb> httpVerb               = new EnumProperty<>("httpVerb", SchemaMethod.HttpVerb.class).defaultValue(SchemaMethod.HttpVerb.POST).partOfBuiltInSchema();
 	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
 	// property which is only used to mark a schema method as "will be deleted"

@@ -25,6 +25,7 @@ import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.Traits;
 
 import java.util.Set;
 
@@ -43,13 +44,15 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
 
-		super(AbstractNode.type, null, occur, isExactMatch);
+		super(Traits.typeProperty(), null, occur, isExactMatch);
 
-		if (Relation.class.isAssignableFrom(type)) {
+		final Traits traits = Traits.of(type);
+
+		if (traits.isRelationshipType()) {
 
 			try {
 
-				final Relation rel = (Relation)type.getDeclaredConstructor().newInstance();
+				final Relation rel = traits.getRelation();
 				setValue(rel.name());
 
 				this.sourceType = rel.getSourceType();
@@ -65,7 +68,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 			setValue(type);
 		}
 
-		this.types  = SearchCommand.getAllSubtypesAsStringSet(type);
+		this.types = traits.getLabels();
 	}
 
 	@Override

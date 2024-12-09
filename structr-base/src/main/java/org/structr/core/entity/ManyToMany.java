@@ -58,16 +58,6 @@ public abstract class ManyToMany extends AbstractRelation implements Relation<Ma
 	}
 
 	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
 		// The following code has nothing to do with cardinality, although it is implemented in the ensureCardinality method.

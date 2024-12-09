@@ -22,6 +22,8 @@ import org.structr.core.graph.NodeInterface;
 
 public interface SchemaNode extends AbstractSchemaNode {
 
+	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
+
 	Iterable<NodeInterface> getSchemaGrants();
 	NodeInterface getExtendsClass();
 

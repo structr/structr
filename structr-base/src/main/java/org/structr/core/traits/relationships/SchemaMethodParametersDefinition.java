@@ -20,6 +20,7 @@ package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.RelationshipTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -44,6 +45,11 @@ public class SchemaMethodParametersDefinition extends RelationshipTraitDefinitio
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
 		return Map.of();
 	}
 
@@ -82,9 +88,13 @@ public class SchemaMethodParametersDefinition extends RelationshipTraitDefinitio
 		return Many;
 	}
 
-	/*
 	@Override
-	public int getCascadingDeleteFlag() {
+	protected int getCascadingDeleteFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	protected int getAutocreationFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
 
@@ -92,10 +102,4 @@ public class SchemaMethodParametersDefinition extends RelationshipTraitDefinitio
 	public boolean isInternal() {
 		return true;
 	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.SOURCE_TO_TARGET;
-	}
-	*/
 }

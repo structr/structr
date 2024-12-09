@@ -18,21 +18,11 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.traits.NodeTrait;
 
-/**
- * Storage object for configuration data.
- */
-public class ApplicationConfigurationDataNode extends AbstractNode {
+public interface ApplicationConfigurationDataNode extends NodeTrait {
 
-	public static final Property<String> configTypeProperty = new StringProperty("configType").indexed().partOfBuiltInSchema();
-	public static final Property<String> contentProperty    = new StringProperty("content").partOfBuiltInSchema();
-
-	public static final View uiView = new View(ApplicationConfigurationDataNode.class, PropertyView.Ui,
-		configTypeProperty, contentProperty
-	);
+	String getUuid();
+	String getConfigType();
+	String getContent();
 }

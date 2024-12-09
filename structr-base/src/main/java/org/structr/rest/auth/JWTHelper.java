@@ -40,6 +40,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -128,8 +129,9 @@ public class JWTHelper {
 
 	public static Principal getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
 
+		final Traits traits        = Traits.of("Principal");
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
-		Map<String, Claim> claims = null;
+		Map<String, Claim> claims  = null;
 
 		switch (jwtSecretType) {
 			default:
@@ -169,7 +171,7 @@ public class JWTHelper {
 
 		}
 
-		Principal user = AuthHelper.getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{tokenId}, false);
+		Principal user = AuthHelper.getPrincipalForCredential(traits.key("refreshTokens"), new String[]{tokenId}, false);
 
 		if (user == null) {
 			return null;
@@ -222,27 +224,27 @@ public class JWTHelper {
 		return tokens;
 	}
 
-	private static boolean validateTokenForUser(String tokenId, Principal user) {
+	private static boolean validateTokenForUser(final String tokenId, final Principal user) {
 
 		// if tokenId is empty, token was created without refresh_token
 		if (StringUtils.isEmpty(tokenId)) {
 			return true;
 		}
 
-		final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-		final String[] refreshTokens = user.getProperty(key);
+		final String[] refreshTokens = user.getRefreshTokens();
 
 		return Arrays.asList(refreshTokens).contains(tokenId);
 	}
 
-	private static Principal getPrincipalForTokenClaims(Map<String, Claim> claims, PropertyKey<String> eMailKey) throws FrameworkException {
+	private static Principal getPrincipalForTokenClaims(final Map<String, Claim> claims, final PropertyKey<String> eMailKey) throws FrameworkException {
 
 		final String instanceName = Settings.InstanceName.getValue();
-		Principal user = null;
+		NodeInterface userNode    = null;
+		Principal user            = null;
 
 		String instance = claims.getOrDefault("instance", new NullClaim()).asString();
-		String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
-		String eMail = claims.getOrDefault("eMail", new NullClaim()).asString();
+		String uuid     = claims.getOrDefault("uuid", new NullClaim()).asString();
+		String eMail    = claims.getOrDefault("eMail", new NullClaim()).asString();
 
 		if (StringUtils.isEmpty(eMail)) {
 			eMail = claims.getOrDefault("email", new NullClaim()).asString();
@@ -251,11 +253,19 @@ public class JWTHelper {
 		// if the instance is the same that issued the token, we can lookup the user with uuid claim
 		if (StringUtils.equals(instance, instanceName)) {
 
-			user = StructrApp.getInstance().nodeQuery("Principal").and().or(NodeInterface.id, uuid).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery("Principal").and().or(Traits.idProperty(), uuid).disableSorting().getFirst();
+			if (userNode != null) {
+
+				user = userNode.as(Principal.class);
+			}
 
 		} else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
-			user = StructrApp.getInstance().nodeQuery("Principal").and().or(eMailKey, eMail).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery("Principal").and().or(eMailKey, eMail).disableSorting().getFirst();
+			if (userNode != null) {
+
+				user = userNode.as(Principal.class);
+			}
 
 		} else {
 
@@ -404,10 +414,9 @@ public class JWTHelper {
 		return null;
 	}
 
-	private static void clearTimedoutRefreshTokens(Principal user) {
+	private static void clearTimedoutRefreshTokens(final Principal user) {
 
-		final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-		final String[] refreshTokens = user.getProperty(key);
+		final String[] refreshTokens = user.getRefreshTokens();
 
 		if (refreshTokens != null) {
 

@@ -6,7 +6,6 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.action.ActionEntry;
 
 import java.util.List;
@@ -119,7 +118,7 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
-	public SchemaMethodTraitDefinition.HttpVerb getHttpVerb() {
+	public HttpVerb getHttpVerb() {
 		return wrappedObject.getProperty(traits.key("httpVerb"));
 	}
 
@@ -163,12 +162,11 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 			boolean inheritsFromFile = false;
 			boolean inheritsFromUser = false;
 
-			final Class type = SchemaHelper.getEntityClassForRawType(parent.getName());
+			final Traits traits = Traits.of(parent.getName());
+			if (traits != null) {
 
-			if (type != null) {
-
-				inheritsFromFile = AbstractFile.class.isAssignableFrom(type);
-				inheritsFromUser = User.class.isAssignableFrom(type);
+				inheritsFromFile = traits.contains("AbstractFile");
+				inheritsFromUser = traits.contains("User");
 			}
 
 			if (inheritsFromFile) {

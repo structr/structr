@@ -137,4 +137,19 @@ public class SecurityRelationshipDefinition extends RelationshipTraitDefinition 
 	protected Relation.Multiplicity getTargetMultiplicity() {
 		return Many;
 	}
+
+	@Override
+	protected int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	protected int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
+	}
 }

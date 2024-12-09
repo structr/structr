@@ -34,6 +34,7 @@ import org.structr.core.entity.Relation.Multiplicity;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
@@ -89,8 +90,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 
 		// extract types from ModuleService
-		final Set<String> nodeEntityKeys = config.getNodeEntities().keySet();
-		final Set<String> relEntityKeys  = config.getRelationshipEntities().keySet();
+		final Set<String> nodeEntityKeys = Traits.getAllTypes(t -> t.isNodeType());
+		final Set<String> relEntityKeys  = Traits.getAllTypes(t -> t.isRelationshipType());
 
 		Set<String> entityKeys = new HashSet<>();
 		entityKeys.addAll(nodeEntityKeys);
@@ -99,7 +100,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 		for (String rawType : entityKeys) {
 
 			// create & add schema information
-			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
+			Traits type           = Traits.of(rawType);
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
 
@@ -107,17 +108,14 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 				String url = "/".concat(rawType);
 
-				final boolean isRel = AbstractRelationship.class.isAssignableFrom(type);
-				final int modifiers = type.getModifiers();
-
 				schema.setProperty(urlProperty, url);
-				schema.setProperty(typeProperty, type.getSimpleName());
-				schema.setProperty(nameProperty, type.getSimpleName());
+				schema.setProperty(typeProperty, type.getName());
+				schema.setProperty(nameProperty, type.getName());
 				schema.setProperty(classNameProperty, type.getName());
-				schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
-				schema.setProperty(isRelProperty, isRel);
-				schema.setProperty(isAbstractProperty, Modifier.isAbstract(modifiers));
-				schema.setProperty(isInterfaceProperty, Modifier.isInterface(modifiers));
+				//schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
+				schema.setProperty(isRelProperty, type.isRelationshipType());
+				schema.setProperty(isAbstractProperty, type.isAbstract());
+				schema.setProperty(isInterfaceProperty, type.isInterface());
 				schema.setProperty(flagsProperty, SecurityContext.getResourceFlags(rawType));
 
 				// adding schema views to the global resource would blow it up immensely... rethink this
@@ -134,9 +132,9 @@ public class SchemaResource extends ExactMatchEndpoint {
 //
 //				schema.setProperty(new GenericProperty("attributes"), SchemaHelper.getPropertiesForView(SecurityContext.getSuperUserInstance(), type, PropertyView.All));
 
-				if (isRel) {
+				if (type.isRelationshipType()) {
 
-					schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, Relation.getInstance(type)));
+					schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, type.getRelation()));
 
 				} else {
 
@@ -204,8 +202,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 		map.put(typeProperty, relation.getClass().getSimpleName());
 		map.put(SchemaRelationshipNode.relationshipType, relation.name());
 
-		final Class sourceType = relation.getSourceType();
-		final Class targetType = relation.getTargetType();
+		final String sourceType = relation.getSourceType();
+		final String targetType = relation.getTargetType();
 
 		// select AbstractNode and SUPERCLASSES (not subclasses!)
 		if (sourceType.isAssignableFrom(AbstractNode.class)) {
@@ -214,7 +212,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(htmlSourceTypesPossibleProperty, true);
 			map.put(possibleSourceTypesProperty, null);
 
-		} else if ("DOMNode".equals(sourceType.getSimpleName())) {
+		} else if ("DOMNode".equals(sourceType)) {
 
 			map.put(allTargetTypesPossibleProperty, false);
 			map.put(htmlTargetTypesPossibleProperty, true);
@@ -234,7 +232,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(htmlTargetTypesPossibleProperty, true);
 			map.put(possibleTargetTypesProperty, null);
 
-		} else if ("DOMNode".equals(targetType.getSimpleName())) {
+		} else if ("DOMNode".equals(targetType)) {
 
 			map.put(allTargetTypesPossibleProperty, false);
 			map.put(htmlTargetTypesPossibleProperty, true);

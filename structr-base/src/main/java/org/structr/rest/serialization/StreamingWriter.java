@@ -39,6 +39,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ import java.util.concurrent.Future;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(GraphObject.id, AbstractNode.typeHandler, AbstractNode.name));
+	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(Traits.idProperty(), Traits.typeProperty(), Traits.nameProperty()));
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();

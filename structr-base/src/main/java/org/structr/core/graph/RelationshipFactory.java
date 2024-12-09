@@ -33,8 +33,6 @@ import org.structr.core.entity.AbstractRelationship;
  * A factory for structr relationships. This class exists because we need a fast
  * way to instantiate and initialize structr relationships, as this is the most-
  * used operation.
- *
- * @param <T>
  */
 public class RelationshipFactory extends Factory<Relationship, RelationshipInterface> {
 

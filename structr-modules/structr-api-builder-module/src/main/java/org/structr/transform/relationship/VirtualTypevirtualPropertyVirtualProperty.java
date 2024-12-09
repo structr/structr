@@ -20,28 +20,87 @@ package org.structr.transform.relationship;
 
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.transform.VirtualProperty;
+import org.structr.transform.VirtualPropertyTraitDefinition;
 import org.structr.transform.VirtualType;
 
-public class VirtualTypevirtualPropertyVirtualProperty extends OneToMany<VirtualType, VirtualProperty> {
+import java.util.Map;
+import java.util.Set;
 
-	@Override
-	public Class<VirtualType> getSourceType() {
-		return VirtualType.class;
+public class VirtualTypevirtualPropertyVirtualProperty extends RelationshipTraitDefinition {
+
+	public VirtualTypevirtualPropertyVirtualProperty() {
+		super("VirtualTypevirtualPropertyVirtualProperty");
 	}
 
 	@Override
-	public Class<VirtualProperty> getTargetType() {
-		return VirtualProperty.class;
+	public String getSourceType() {
+		return "VirtualType";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "VirtualProperty";
+	}
+
+	@Override
+	protected String getRelationshipType() {
 		return "virtualProperty";
+	}
+
+	@Override
+	protected Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	protected Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	protected int getCascadingDeleteFlag() {
+		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of();
+	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
 	}
 }

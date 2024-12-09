@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PathPropertySortOrder implements SortOrder {
+
 	final PathResolvingComparator comparator;
 
 	public PathPropertySortOrder(final ActionContext actionContext, final String pathSortKey, final boolean sortDescending) {

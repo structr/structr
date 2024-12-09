@@ -27,9 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
@@ -430,8 +428,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition imp
 
 		final NodeInterface sourceNode = schemaNode.getSourceNode();
 		final NodeInterface targetNode = schemaNode.getTargetNode();
-		final String sourceNodeType    = sourceNode != null ? sourceNode.getClassName() : schemaNode.getSourceType();
-		final String targetNodeType    = targetNode != null ? targetNode.getClassName() : schemaNode.getTargetType();
+		final String sourceNodeType    = sourceNode != null ? sourceNode.getName() : schemaNode.getSourceType();
+		final String targetNodeType    = targetNode != null ? targetNode.getName() : schemaNode.getTargetType();
 
 		this.sourceType                = sourceNode != null ? root.getId().resolve("definitions/" + sourceNodeType) : StructrApp.getSchemaBaseURI().resolve("static/" + sourceNodeType);
 		this.targetType                = targetNode != null ? root.getId().resolve("definitions/" + targetNodeType) : StructrApp.getSchemaBaseURI().resolve("static/" + targetNodeType);

@@ -22,6 +22,7 @@ import java.util.List;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
@@ -62,10 +63,10 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 		if (typeName != null && name != null) {
 
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-			if (entityClass != null) {
+			final Traits traits = Traits.of(typeName);
+			if (traits != null) {
 
-				final AbstractMethod method = Methods.resolveMethod(entityClass, name);
+				final AbstractMethod method = Methods.resolveMethod(traits, name);
 				if (method != null && method.isStatic() && !method.isPrivate()) {
 
 					return new StaticMethodResourceHandler(call, method);

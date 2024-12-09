@@ -16,41 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.logging.entity.relationship;
+package org.structr.web.traits.wrappers;
 
-import org.structr.core.entity.ManyToOne;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.rest.logging.entity.LogEvent;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.web.entity.ApplicationConfigurationDataNode;
 
-/**
- *
- *
- */
-public class ObjectEventRelationship extends ManyToOne<LogEvent, NodeInterface> {
+public class ApplicationConfigurationDataNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ApplicationConfigurationDataNode {
 
-	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
+	public ApplicationConfigurationDataNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
 	@Override
-	public Class<LogEvent> getSourceType() {
-		return LogEvent.class;
+	public String getName() {
+		return wrappedObject.getName();
 	}
 
 	@Override
-	public String name() {
-		return "OBJECT";
+	public String getConfigType() {
+		return wrappedObject.getProperty(traits.key("configType"));
 	}
 
 	@Override
-	public int getAutocreationFlag() {
-		return Relation.SOURCE_TO_TARGET;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return true;
+	public String getContent() {
+		return wrappedObject.getProperty(traits.key("content"));
 	}
 }

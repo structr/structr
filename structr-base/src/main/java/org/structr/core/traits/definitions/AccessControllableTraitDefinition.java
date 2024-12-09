@@ -514,58 +514,59 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 
 		for (final String type : degree.keySet()) {
 
-			/*
-			final Class propagatingType = StructrApp.getConfiguration().getRelationshipEntityClass(type);
+			final Traits propagatingType = Traits.of(type);
+			if (propagatingType != null) {
 
-			if (propagatingType != null && PermissionPropagation.class.isAssignableFrom(propagatingType)) {
+				final Relation relation = propagatingType.getRelation();
+				if (relation != null && !PropagationDirection.None.equals(relation.getPropagationDirection())) {
 
-				// iterate over list of relationships
-				final List<RelationshipInterface> list = Iterables.toList(node.getRelationshipsAsSuperUser(propagatingType));
-				final int count = list.size();
-				final int threshold = 1000;
+					// iterate over list of relationships
+					final List<RelationshipInterface> list = Iterables.toList(node.getRelationshipsAsSuperUser(type));
+					final int count                        = list.size();
+					final int threshold                    = 1000;
 
-				if (count < threshold) {
+					if (count < threshold) {
 
-					for (final RelationshipInterface source : list) {
+						for (final RelationshipInterface source : list) {
 
-						if (source instanceof PermissionPropagation perm) {
+							if (source instanceof PermissionPropagation perm) {
 
-							if (doLog) {
-								logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), node.getUuid(), permission.name(), level, source.getRelType().name(), principal != null ? principal.getName() : null);
-							}
+								if (doLog) {
+									logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), node.getUuid(), permission.name(), level, source.getRelType().name(), principal != null ? principal.getName() : null);
+								}
 
-							// check propagation direction vs. evaluation direction
-							if (propagationAllowed(node, source, perm.getPropagationDirection(), doLog)) {
+								// check propagation direction vs. evaluation direction
+								if (propagationAllowed(node, source, perm.getPropagationDirection(), doLog)) {
 
-								applyCurrentStep(perm, mask);
+									applyCurrentStep(perm, mask);
 
-								if (mask.allowsPermission(permission)) {
+									if (mask.allowsPermission(permission)) {
 
-									final NodeInterface otherNode = (NodeInterface) source.getOtherNode(node);
+										final NodeInterface otherNode = (NodeInterface) source.getOtherNode(node);
 
-									if (isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
+										if (isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-										storePermissionResolutionResult(otherNode, principal.getUuid(), permission, true);
+											storePermissionResolutionResult(otherNode, principal.getUuid(), permission, true);
 
-										// break early
-										return true;
+											// break early
+											return true;
 
-									} else {
+										} else {
 
-										// add node to BFS queue
-										bfsNodes.add(new BFSInfo(parent, otherNode));
+											// add node to BFS queue
+											bfsNodes.add(new BFSInfo(parent, otherNode));
+										}
 									}
 								}
 							}
 						}
+
+					} else if (doLog) {
+
+						logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getName(), threshold);
 					}
-
-				} else if (doLog) {
-
-					logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 				}
 			}
-			*/
 		}
 
 		return false;
