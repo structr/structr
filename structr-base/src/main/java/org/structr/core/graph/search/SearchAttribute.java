@@ -26,6 +26,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -122,7 +124,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	}
 
 	@Override
-	public Class getType() {
+	public String getType() {
 
 		final PropertyKey key = getKey();
 		if (key != null) {
@@ -139,10 +141,12 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		final PropertyKey key = getKey();
 		if (key != null) {
 
-			final Class declaringClass = key.getDeclaringTrait();
-			if (declaringClass != null && !org.structr.core.GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+			final TraitDefinition declaringTrait = key.getDeclaringTrait();
 
-				return declaringClass.getSimpleName();
+			// fixme
+			if (declaringTrait != null && !"GraphObject".equals(declaringTrait.getName()) && !"RelationshipInterface".equals(declaringTrait.getName())) {
+
+				return declaringTrait.getName();
 			}
 		}
 

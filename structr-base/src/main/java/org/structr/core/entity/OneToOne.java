@@ -25,7 +25,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.property.Property;
@@ -59,16 +58,6 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 	@Override
 	public OneEndpoint getTarget() {
 		return new OneEndpoint(this);
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
 	}
 
 	@Override

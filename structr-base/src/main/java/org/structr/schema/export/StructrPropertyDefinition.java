@@ -705,7 +705,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				}
 
 				// notion property parsing can fail because of migration
-				return new DeletedPropertyDefinition(parent, name, property);
+				return new DeletedPropertyDefinition(parent, name, node);
 			}
 
 			case Password:

@@ -29,14 +29,11 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
@@ -393,7 +390,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(traits.key("isStatic"),              isStatic());
 		updateProperties.put(traits.key("isPrivate"),             isPrivate());
 		updateProperties.put(traits.key("returnRawResult"),       returnRawResult());
-		updateProperties.put(traits.key("httpVerb"),              SchemaMethodTraitDefinition.HttpVerb.valueOf(getHttpVerb()));
+		updateProperties.put(traits.key("httpVerb"),              SchemaMethod.HttpVerb.valueOf(getHttpVerb()));
 		updateProperties.put(traits.key("includeInOpenAPI"),      includeInOpenAPI());
 		updateProperties.put(traits.key("openAPIReturnType"),     getOpenAPIReturnType());
 

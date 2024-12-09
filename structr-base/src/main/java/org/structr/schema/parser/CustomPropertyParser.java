@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
@@ -65,7 +66,7 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 							if (property != null) {
 
 								this.propertyType         = type.getSimpleName();
-								this.valueType            = property.valueType().getName();
+								this.valueType            = property.valueType();
 								this.unqualifiedValueType = type.getSimpleName();
 
 								initialized = true;
@@ -85,7 +86,7 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 								if (property != null) {
 
 									this.propertyType         = type.getSimpleName();
-									this.valueType            = property.valueType().getName();
+									this.valueType            = property.valueType();
 									this.unqualifiedValueType = type.getSimpleName();
 									this.propertyParameters   = ", " + params.getFormat() + ".class";
 								}
@@ -128,6 +129,6 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, final String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface entity, String expression) throws FrameworkException {
 	}
 }

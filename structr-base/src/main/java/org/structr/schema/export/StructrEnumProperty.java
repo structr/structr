@@ -189,9 +189,9 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 		final SchemaProperty property = node.as(SchemaProperty.class);
 
-		setEnums(schemaProperty.getEnumDefinitions().toArray(new String[0]));
+		setEnums(property.getEnumDefinitions().toArray(new String[0]));
 
-		this.fqcn = schemaProperty.getFqcn();
+		this.fqcn = property.getFqcn();
 	}
 
 	@Override

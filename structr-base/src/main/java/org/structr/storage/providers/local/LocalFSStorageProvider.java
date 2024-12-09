@@ -20,7 +20,6 @@ package org.structr.storage.providers.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
@@ -30,7 +29,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;

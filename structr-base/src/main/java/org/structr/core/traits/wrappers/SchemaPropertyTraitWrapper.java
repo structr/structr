@@ -32,8 +32,13 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	}
 
 	@Override
-	public String getPropertyName() {
+	public String getName() {
 		return wrappedObject.getProperty(traits.key("name"));
+	}
+
+	@Override
+	public String getPropertyName() {
+		return getName();
 	}
 
 	@Override
@@ -249,6 +254,27 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return wrappedObject.getProperty(traits.key("fqcn"));
 	}
 
+	@Override
+	public Set<String> getEnumDefinitions() {
+
+		final String _format    = getFormat();
+		final Set<String> enums = new LinkedHashSet<>();
+
+		if (_format != null) {
+
+			for (final String source : _format.split("[, ]+")) {
+
+				final String trimmed = source.trim();
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					enums.add(trimmed);
+				}
+			}
+		}
+
+		return enums;
+	}
+
 	public String getContentHash() {
 
 		int _contentHash = 77;
@@ -289,26 +315,6 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		}
 
 		return null;
-	}
-
-	public Set<String> getEnumDefinitions() {
-
-		final String _format    = getFormat();
-		final Set<String> enums = new LinkedHashSet<>();
-
-		if (_format != null) {
-
-			for (final String source : _format.split("[, ]+")) {
-
-				final String trimmed = source.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					enums.add(trimmed);
-				}
-			}
-		}
-
-		return enums;
 	}
 
 	public boolean isPropertySetNotion(final Map<String, NodeInterface> schemaNodes) {

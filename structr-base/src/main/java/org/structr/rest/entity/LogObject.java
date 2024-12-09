@@ -16,41 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.logging.entity.relationship;
+package org.structr.rest.entity;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
-import org.structr.rest.logging.entity.LogEvent;
+import org.structr.core.traits.NodeTrait;
 
-/**
- *
- *
- */
-public class SubjectEventRelationship extends OneToMany<NodeInterface, LogEvent> {
-
-	@Override
-	public Class<NodeInterface> getSourceType() {
-		return NodeInterface.class;
-	}
-
-	@Override
-	public Class<LogEvent> getTargetType() {
-		return LogEvent.class;
-	}
-
-	@Override
-	public String name() {
-		return "SUBJECT";
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.TARGET_TO_SOURCE;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return true;
-	}
+public interface LogObject extends NodeTrait {
 }

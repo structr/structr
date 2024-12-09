@@ -29,12 +29,16 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrBaseTraits;
+import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+import org.structr.transform.relationship.VirtualTypevirtualPropertyVirtualProperty;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -52,6 +56,11 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrBaseTraits.registerRelationshipType("VirtualTypevirtualPropertyVirtualProperty", new VirtualTypevirtualPropertyVirtualProperty());
+
+		StructrBaseTraits.registerNodeType("VirtualType",     new VirtualTypeTraitDefinition());
+		StructrBaseTraits.registerNodeType("VirtualProperty", new VirtualPropertyTraitDefinition());
 	}
 
 	@Override
@@ -104,33 +113,35 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final VirtualType virtualType : app.nodeQuery(VirtualType.class).sort(VirtualType.name).getAsList()) {
+			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.nameProperty()).getAsList()) {
 
+				final VirtualType virtualType   = virtualTypeNode.as(VirtualType.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				virtualTypes.add(entry);
 
-				entry.put("name",             virtualType.getProperty(VirtualType.name));
-				entry.put("sourceType",       virtualType.getSourceType());
-				entry.put("position",         virtualType.getPosition());
-				entry.put("filterExpression", virtualType.getFilterExpression());
-				entry.put("visibleToAuthenticatedUsers", virtualType.getProperty(VirtualType.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        virtualType.getProperty(VirtualType.visibleToPublicUsers));
+				entry.put("name",                        virtualType.getName());
+				entry.put("sourceType",                  virtualType.getSourceType());
+				entry.put("position",                    virtualType.getPosition());
+				entry.put("filterExpression",            virtualType.getFilterExpression());
+				entry.put("visibleToAuthenticatedUsers", virtualType.visibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        virtualType.visibleToPublicUsers());
 
 				final List<Map<String, Object>> properties = new LinkedList();
 				entry.put("properties", properties);
 
-				for (final VirtualProperty virtualProperty : virtualType.getVirtualProperties()) {
+				for (final NodeInterface node : virtualType.getVirtualProperties()) {
 
+					final VirtualProperty virtualProperty = node.as(VirtualProperty.class);
 					final Map<String, Object> virtualPropEntry = new TreeMap<>();
 					properties.add(virtualPropEntry);
 
-					virtualPropEntry.put("sourceName",     virtualProperty.getSourceName());
-					virtualPropEntry.put("targetName",     virtualProperty.getTargetName());
-					virtualPropEntry.put("inputFunction",  virtualProperty.getInputFunction());
-					virtualPropEntry.put("outputFunction", virtualProperty.getOutputFunction());
-					virtualPropEntry.put("position",       virtualProperty.getPosition());
-					virtualPropEntry.put("visibleToAuthenticatedUsers", virtualProperty.getProperty(VirtualProperty.visibleToAuthenticatedUsers));
-					virtualPropEntry.put("visibleToPublicUsers",        virtualProperty.getProperty(VirtualProperty.visibleToPublicUsers));
+					virtualPropEntry.put("sourceName",                  virtualProperty.getSourceName());
+					virtualPropEntry.put("targetName",                  virtualProperty.getTargetName());
+					virtualPropEntry.put("inputFunction",               virtualProperty.getInputFunction());
+					virtualPropEntry.put("outputFunction",              virtualProperty.getOutputFunction());
+					virtualPropEntry.put("position",                    virtualProperty.getPosition());
+					virtualPropEntry.put("visibleToAuthenticatedUsers", virtualProperty.visibleToAuthenticatedUsers());
+					virtualPropEntry.put("visibleToPublicUsers",        virtualProperty.visibleToPublicUsers());
 				}
 			}
 
@@ -165,19 +176,19 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final VirtualType toDelete : app.nodeQuery(VirtualType.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("VirtualType").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final VirtualProperty toDelete : app.nodeQuery(VirtualProperty.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("VirtualProperty").getAsList()) {
 						app.delete(toDelete);
 					}
 
 					for (final Map<String, Object> entry : virtualTypes) {
 
-						final PropertyMap map = PropertyMap.inputTypeToJavaType(context, VirtualType.class, entry);
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(context, "VirtualType", entry);
 
-						app.create(VirtualType.class, map);
+						app.create("VirtualType", map);
 					}
 
 					tx.success();
@@ -195,9 +206,12 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			final VirtualType type = app.create(VirtualType.class,
-				new NodeAttribute<>(StructrApp.key(VirtualType.class, "sourceType"), sourceType),
-				new NodeAttribute<>(StructrApp.key(VirtualType.class, "name"),       targetType)
+			final Traits typeTraits = Traits.of("VirtualType");
+			final Traits propTraits = Traits.of("VirtualProperty");
+
+			final NodeInterface type = app.create("VirtualType",
+				new NodeAttribute<>(typeTraits.key("sourceType"), sourceType),
+				new NodeAttribute<>(typeTraits.key("name"),       targetType)
 			);
 
 			int i = 0;
@@ -207,18 +221,18 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				final String sourceProperty = entry.getKey();
 				final String targetProperty = entry.getValue();
 
-				app.create(VirtualProperty.class,
-					new NodeAttribute<>(StructrApp.key(VirtualProperty.class, "virtualType"),   type),
-					new NodeAttribute<>(StructrApp.key(VirtualProperty.class, "sourceName"),    sourceProperty),
-					new NodeAttribute<>(StructrApp.key(VirtualProperty.class, "targetName"),    targetProperty),
-					new NodeAttribute<>(StructrApp.key(VirtualProperty.class, "position"),      i++),
-					new NodeAttribute<>(StructrApp.key(VirtualProperty.class, "inputFunction"), transforms.get(sourceProperty))
+				app.create("VirtualProperty",
+					new NodeAttribute<>(propTraits.key("virtualType"),   type),
+					new NodeAttribute<>(propTraits.key("sourceName"),    sourceProperty),
+					new NodeAttribute<>(propTraits.key("targetName"),    targetProperty),
+					new NodeAttribute<>(propTraits.key("position"),      i++),
+					new NodeAttribute<>(propTraits.key("inputFunction"), transforms.get(sourceProperty))
 				);
 			}
 
 			tx.success();
 
-			return type;
+			return type.as(VirtualType.class);
 		}
 	}
 
@@ -227,15 +241,17 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			final VirtualType type = app.nodeQuery(VirtualType.class).andName(targetType).getFirst();
-			if (type != null) {
+			final NodeInterface node = app.nodeQuery("VirtualType").andName(targetType).getFirst();
+			if (node != null) {
 
-				for (final VirtualProperty property : type.getVirtualProperties()) {
+				final VirtualType type = node.as(VirtualType.class);
+
+				for (final NodeInterface property : type.getVirtualProperties()) {
 
 					app.delete(property);
 				}
 
-				app.delete(type);
+				app.delete(node);
 			}
 
 			tx.success();

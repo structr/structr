@@ -35,9 +35,9 @@ import static graphql.schema.GraphQLTypeReference.typeRef;
 
 public class GraphQLHelper {
 
-	private final Map<Class, GraphQLScalarType> graphQLTypeMap    = new LinkedHashMap<>();
-	private final Map<Class, List<GraphQLInputObjectField>> cache = new LinkedHashMap<>();
-	public static final String GraphQLNodeReferenceName           = "StructrNodeReference";
+	private final Map<Class, GraphQLScalarType> graphQLTypeMap     = new LinkedHashMap<>();
+	private final Map<String, List<GraphQLInputObjectField>> cache = new LinkedHashMap<>();
+	public static final String GraphQLNodeReferenceName            = "StructrNodeReference";
 
 	public static final Set<Class> InternalTypes = Set.of(
 		AbstractNode.class, AbstractRelationship.class,
@@ -248,10 +248,9 @@ public class GraphQLHelper {
 		for (final Property outProperty : getRelationshipProperties(type, true)) {
 
 			final RelationProperty relationProperty = (RelationProperty) outProperty;
-			final Class targetType                  = relationProperty.getTargetType();
-			final String targetTypeName             = targetType.getSimpleName();
+			final String targetType                 = relationProperty.getTargetType();
 			final String propertyName               = outProperty.jsonName();
-			final String queryTypeName              = type.getSimpleName() + propertyName + targetTypeName + "InInput";
+			final String queryTypeName              = type.getSimpleName() + propertyName + targetType + "InInput";
 
 			if (!queryTypeNames.contains(queryTypeName)) {
 
@@ -332,7 +331,7 @@ public class GraphQLHelper {
 		return arguments;
 	}
 
-	private List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final Class type) throws IllegalAccessException {
+	private List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws IllegalAccessException {
 
 		List<GraphQLInputObjectField> data = cache.get(type);
 
@@ -576,7 +575,7 @@ public class GraphQLHelper {
 		return Arrays.stream(type.getInterfaces()).filter(c -> NodeInterface.class.isAssignableFrom(c)).toList();
 	}
 
-	private List<Property> getNonRelationshipProperties(final Class graphObjectClass) throws IllegalAccessException {
+	private List<Property> getNonRelationshipProperties(final String graphObjectClass) throws IllegalAccessException {
 
 		final List<Property> properties = new LinkedList<>();
 

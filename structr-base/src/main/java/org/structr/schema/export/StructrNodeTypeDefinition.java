@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
@@ -268,67 +269,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterfa
 				break;
 		}
 
-		return getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
-	}
-
-	String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
-
-		String propertyName = "";
-
-		if (outgoing) {
-
-
-			if (_targetJsonName != null) {
-
-				// FIXME: no automatic creation?
-				propertyName = _targetJsonName;
-
-			} else {
-
-				if ("1".equals(_targetMultiplicity)) {
-
-					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
-
-				} else {
-
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
-				}
-			}
-
-		} else {
-
-
-			if (_sourceJsonName != null) {
-				propertyName = _sourceJsonName;
-			} else {
-
-				if ("1".equals(_sourceMultiplicity)) {
-
-					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
-
-				} else {
-
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
-				}
-			}
-		}
-
-		if (existingPropertyNames.contains(propertyName)) {
-
-			// First level: Add direction suffix
-			propertyName += outgoing ? "Out" : "In";
-			int i = 0;
-
-			// New name still exists: Add number
-			while (existingPropertyNames.contains(propertyName)) {
-				propertyName += ++i;
-			}
-
-		}
-
-		existingPropertyNames.add(propertyName);
-
-		return propertyName;
+		return SchemaProperty.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
 	}
 
 	private String getDefaultRelationshipType(final NodeInterface sourceNode, final NodeInterface targetNode) {

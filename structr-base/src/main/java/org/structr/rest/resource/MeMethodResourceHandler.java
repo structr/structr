@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -49,8 +50,8 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.GET.equals(method.getHttpVerb())) {
 
-			final GraphObject entity      = securityContext.getUser(false);
-			final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+			final Principal entity        = securityContext.getUser(false);
+			final RestMethodResult result = executeMethod(securityContext, entity.getWrappedNode(), Arguments.fromPath(call.getPathParameters()));
 
 			return new PagingIterable("GET " + getURL(), result.getContent());
 
@@ -65,9 +66,9 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.POST.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = securityContext.getUser(false);
+			final Principal entity = securityContext.getUser(false);
 
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
+			return executeMethod(securityContext, entity.getWrappedNode(), Arguments.fromMap(propertySet));
 
 		} else {
 
@@ -80,9 +81,9 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.PUT.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = securityContext.getUser(false);
+			final Principal entity = securityContext.getUser(false);
 
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
+			return executeMethod(securityContext, entity.getWrappedNode(), Arguments.fromMap(propertySet));
 
 		} else {
 
@@ -95,10 +96,10 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = securityContext.getUser(false);
+			final Principal entity = securityContext.getUser(false);
 
 			// FIXME, only the first property set is used, we need to test this
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet.get(0)));
+			return executeMethod(securityContext, entity.getWrappedNode(), Arguments.fromMap(propertySet.get(0)));
 
 		} else {
 
@@ -111,9 +112,9 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.DELETE.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = securityContext.getUser(false);
+			final Principal entity = securityContext.getUser(false);
 
-			return executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+			return executeMethod(securityContext, entity.getWrappedNode(), Arguments.fromPath(call.getPathParameters()));
 
 		} else {
 
@@ -129,10 +130,10 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
-		final GraphObject entity = securityContext.getUser(false);
+		final Principal entity = securityContext.getUser(false);
 		if (entity != null) {
 
-			return entity.getClass();
+			return entity.getType();
 		}
 
 		return null;

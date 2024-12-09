@@ -16,18 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.logging.entity;
+package org.structr.rest.entity;
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.rest.logging.entity.relationship.ObjectEventRelationship;
+import org.structr.core.traits.NodeTrait;
 
-/**
- *
- *
- */
-public class LogObject extends AbstractNode {
+public interface LogEvent extends NodeTrait {
 
-	public static final Property<Iterable<LogEvent>> logEvents = new StartNodes<>("logEvents", ObjectEventRelationship.class);
+	long getTimestamp();
+	String getAction();
+	String getMessage();
+	String getSubjectId();
+	String getObjectId();
 }

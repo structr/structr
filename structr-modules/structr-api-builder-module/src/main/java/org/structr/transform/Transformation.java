@@ -24,6 +24,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
@@ -40,14 +41,15 @@ public class Transformation {
 	private PropertyKey sourceProperty = null;
 	private PropertyKey targetProperty = null;
 
-	public Transformation(final Class type, final String sourceName, final String targetName, final String inputFunction, final String outputFunction) {
+	public Transformation(final String type, final String sourceName, final String targetName, final String inputFunction, final String outputFunction) {
 
 		this.sourceName     = sourceName;
 		this.targetName     = targetName;
 		this.inputFunction  = inputFunction;
 		this.outputFunction = outputFunction;
 
-		this.sourceProperty = StructrApp.key(type, sourceName);
+		final Traits traits = Traits.of(type);
+		this.sourceProperty = traits.key(sourceName);
 		this.targetProperty = new GenericProperty(targetName);
 	}
 

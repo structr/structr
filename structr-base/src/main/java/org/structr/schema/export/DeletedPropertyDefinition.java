@@ -20,10 +20,11 @@ package org.structr.schema.export;
 
 import org.structr.api.schema.JsonType;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 
 public class DeletedPropertyDefinition extends StructrPropertyDefinition {
 
-	DeletedPropertyDefinition(final JsonType parent, final String name, final SchemaProperty property) {
+	DeletedPropertyDefinition(final JsonType parent, final String name, final NodeInterface property) {
 
 		super(parent, name);
 

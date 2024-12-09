@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.web.common.ImageHelper;
@@ -96,8 +97,8 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 		try (final Tx tx = app.tx()) {
 
-			final Class<Relation> thumbnailRel    = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
-			final Image originalImage             = app.nodeQuery("Image").uuid(imageUuid).getFirst();
+			final String thumbnailRel         = "ImageTHUMBNAILImage";
+			final NodeInterface originalImage = app.nodeQuery("Image").uuid(imageUuid).getFirst();
 			Image thumbnail = null;
 
 			if (originalImage == null || Image.getExistingThumbnail(originalImage, maxWidth, maxHeight, cropToFit) != null) {

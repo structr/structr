@@ -42,15 +42,13 @@ import java.util.Set;
  */
 public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHandler {
 
-	private Class entityClass = null;
 	private String typeName   = null;
 	private String uuid       = null;
 
-	public Error404DummyInstanceMethodResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid, final AbstractMethod method) {
+	public Error404DummyInstanceMethodResourceHandler(final RESTCall call, final String typeName, final String uuid, final AbstractMethod method) {
 
 		super(call, method);
 
-		this.entityClass = entityClass;
 		this.typeName    = typeName;
 		this.uuid        = uuid;
 	}
@@ -131,10 +129,10 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 	@Override
 	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
-		final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+		final GraphObject entity = getEntity(securityContext, typeName, uuid);
 		if (entity != null) {
 
-			return entity.getClass();
+			return entity.getType();
 		}
 
 		return null;

@@ -18,11 +18,12 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.app.Query;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 import org.structr.schema.parser.*;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,8 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 	Set<String> getPropertiesForNotionProperty(final Map<String, NodeInterface> schemaNodes);
 	String getNotionMultiplicity(final Map<String, NodeInterface> schemaNodes);
 
+	Set<String> getEnumDefinitions();
+
 	NotionPropertyParser getNotionPropertyParser(final Map<String, NodeInterface> schemaNodes);
 	IntPropertyParser getIntPropertyParser(final Map<String, NodeInterface> schemaNodes);
 	IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
@@ -42,4 +45,64 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 	LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
 	DoublePropertyParser getDoublePropertyParser(final Map<String, NodeInterface> schemaNodes);
 	DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
+
+	static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
+
+		String propertyName = "";
+
+		if (outgoing) {
+
+
+			if (_targetJsonName != null) {
+
+				// FIXME: no automatic creation?
+				propertyName = _targetJsonName;
+
+			} else {
+
+				if ("1".equals(_targetMultiplicity)) {
+
+					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
+
+				} else {
+
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
+				}
+			}
+
+		} else {
+
+
+			if (_sourceJsonName != null) {
+				propertyName = _sourceJsonName;
+			} else {
+
+				if ("1".equals(_sourceMultiplicity)) {
+
+					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
+
+				} else {
+
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
+				}
+			}
+		}
+
+		if (existingPropertyNames.contains(propertyName)) {
+
+			// First level: Add direction suffix
+			propertyName += outgoing ? "Out" : "In";
+			int i = 0;
+
+			// New name still exists: Add number
+			while (existingPropertyNames.contains(propertyName)) {
+				propertyName += ++i;
+			}
+
+		}
+
+		existingPropertyNames.add(propertyName);
+
+		return propertyName;
+	}
 }

@@ -20,6 +20,8 @@ package org.structr.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
@@ -49,16 +51,20 @@ public abstract class StorageProviderFactory {
 	 */
 	public static StorageConfiguration createConfig(final String name, final Class<? extends StorageProvider> impl, final Map<String, String> configuration) throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
+		final Traits traits = Traits.of("StorageConfiguration");
+		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			final StorageConfiguration sc = app.create(StorageConfiguration.class,
-				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"),     name),
-				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "provider"), impl.getName())
+			final NodeInterface node = app.create("StorageConfiguration",
+				new NodeAttribute<>(traits.key("name"),     name),
+				new NodeAttribute<>(traits.key("provider"), impl.getName())
 			);
 
+			final StorageConfiguration sc = node.as(StorageConfiguration.class);
+
 			if (configuration != null) {
+
 
 				for (final Entry<String, String> c : configuration.entrySet()) {
 					sc.addEntry(c.getKey(), c.getValue());

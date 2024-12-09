@@ -14,8 +14,8 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	NodeInterface getSourceNode();
 	NodeInterface getTargetNode();
 	String getClassName();
-	String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
-	String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
+	String getMultiplicity(final Map<String, NodeInterface> schemaNodes, final String propertyNameToCheck);
+	String getRelatedType(final Map<String, NodeInterface> schemaNodes, final String propertyNameToCheck);
 	String getSourceNotion();
 	String getTargetNotion();
 	String getMultiplicity(final boolean outgoing);

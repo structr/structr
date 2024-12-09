@@ -42,15 +42,13 @@ import org.structr.rest.exception.IllegalMethodException;
  */
 public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
-	private Class entityClass = null;
 	private String typeName   = null;
 	private String uuid       = null;
 
-	public InstanceMethodResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid, final AbstractMethod method) {
+	public InstanceMethodResourceHandler(final RESTCall call, final String typeName, final String uuid, final AbstractMethod method) {
 
 		super(call, method);
 
-		this.entityClass = entityClass;
 		this.typeName    = typeName;
 		this.uuid        = uuid;
 	}
@@ -60,7 +58,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.GET.equals(method.getHttpVerb())) {
 
-			final GraphObject entity      = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity      = getEntity(securityContext, typeName, uuid);
 			final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
 
 			return new PagingIterable("GET " + getURL(), result.getContent());
@@ -76,7 +74,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.POST.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
 
@@ -91,7 +89,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.PUT.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
 
@@ -106,7 +104,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			// FIXME, only the first property set is used, we need to test this
 			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet.get(0)));
@@ -128,7 +126,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 			} else {
 
-				final GraphObject entity      = getEntity(securityContext, entityClass, typeName, uuid);
+				final GraphObject entity      = getEntity(securityContext, typeName, uuid);
 				final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
 
 				tx.success();
@@ -146,10 +144,10 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
-		final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+		final GraphObject entity = getEntity(securityContext, typeName, uuid);
 		if (entity != null) {
 
-			return entity.getClass();
+			return entity.getType();
 		}
 
 		return null;

@@ -83,11 +83,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public long getSourceTransactionId() {
-		return sourceTransactionId;
-	}
-
-	@Override
 	public boolean equals(final Object o) {
 
 		if (o == null) {

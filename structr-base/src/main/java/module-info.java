@@ -164,7 +164,7 @@ module structr.base {
     exports org.structr.rest.auth;
     exports org.structr.rest.common;
     exports org.structr.rest.exception;
-    exports org.structr.rest.logging.entity;
+    exports org.structr.rest.entity;
     exports org.structr.rest.logging.entity.relationship;
     exports org.structr.rest.maintenance;
     exports org.structr.rest.resource;
@@ -226,5 +226,8 @@ module structr.base {
     exports org.structr.core.traits.nodes;
     exports org.structr.core.traits.wrappers;
 	exports org.structr.core.traits.definitions;
+	exports org.structr.rest.traits.relationships;
+	exports org.structr.web.traits.definitions;
+	exports org.structr.web.traits.wrappers;
 
 }

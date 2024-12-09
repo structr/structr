@@ -340,6 +340,7 @@ public interface Image extends File {
 	}
 
 	public static Image getExistingThumbnail(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
+
 		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
 		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
 		final List<String> deprecatedThumbnails         = new ArrayList<>();

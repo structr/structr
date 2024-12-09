@@ -18,18 +18,14 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedTypeException;
 import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -42,21 +38,17 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
-import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaService;
-import org.structr.schema.SourceFile;
-import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Page;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
  *
  */
 public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
-
-	public static final String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation", "Property"
@@ -121,7 +113,7 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 					boolean valid = true;
 
 					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.nameProperty(), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty() , schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty() , SchemaNode.schemaNodeNamePattern, errorBuffer);
 
 					return valid;
 				}

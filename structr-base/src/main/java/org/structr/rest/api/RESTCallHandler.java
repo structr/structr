@@ -51,6 +51,7 @@ import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.*;
+import org.structr.core.traits.definitions.PropertyContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -467,7 +468,7 @@ public abstract class RESTCallHandler {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					throw new FrameworkException(403, getModificationNotPermittedExceptionString(obj, securityContext));
+					throw new FrameworkException(403, PropertyContainerTraitDefinition.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);

@@ -56,6 +56,7 @@ import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.entity.ApplicationConfigurationDataNode;
 import org.structr.web.maintenance.deploy.*;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -1440,8 +1441,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting mail templates");
 
-		final PropertyKey<String> textKey             = StructrApp.key(MailTemplate.class, "text");
-		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "locale");
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1451,27 +1450,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				for (final MailTemplate mailTemplate : app.nodeQuery("MailTemplate").sort(MailTemplate.name).getAsList()) {
+				for (final NodeInterface node : app.nodeQuery("MailTemplate").sort(MailTemplate.name).getAsList()) {
+
+					final MailTemplate mailTemplate = node.as(MailTemplate.class);
 
 					// generate filename for output file
-					String filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + ".html";
+					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + ".html";
 
 					if (Files.exists(targetFolder.resolve(filename))) {
-						filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + "_-_" + mailTemplate.getProperty(MailTemplate.id) + ".html";
+						filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + "_-_" + mailTemplate.getUuid() + ".html";
 					}
 
 					final Map<String, Object> entry = new TreeMap<>();
 					mailTemplates.add(entry);
 
-					putData(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
-					putData(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
+					putData(entry, "id",                          mailTemplate.getUuid());
+					putData(entry, "name",                        mailTemplate.getName());
 					putData(entry, "filename",                    filename);
-					putData(entry, "locale",                      mailTemplate.getProperty(localeKey));
-					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-					putData(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+					putData(entry, "locale",                      mailTemplate.getLocale());
+					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.visibleToAuthenticatedUsers());
+					putData(entry, "visibleToPublicUsers",        mailTemplate.visibleToPublicUsers());
 
 					final Path mailTemplateFile = targetFolder.resolve(filename);
-					writeStringToFile(mailTemplateFile, mailTemplate.getProperty(textKey));
+					writeStringToFile(mailTemplateFile, mailTemplate.getText());
 				}
 
 				tx.success();
@@ -1532,24 +1533,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting application configuration data");
 
 		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
+		final Traits traits                                               = Traits.of("ApplicationConfigurationDataNode");
 		final App app                                                     = StructrApp.getInstance();
 
-		final PropertyKey<String> configTypeKey = StructrApp.key(ApplicationConfigurationDataNode.class, "configType");
-		final PropertyKey<String> contentKey    = StructrApp.key(ApplicationConfigurationDataNode.class, "content");
+		final PropertyKey<String> configTypeKey = traits.key("configType");
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ApplicationConfigurationDataNode acdn : app.nodeQuery("ApplicationConfigurationDataNode").sort(configTypeKey).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("ApplicationConfigurationDataNode").sort(configTypeKey).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final ApplicationConfigurationDataNode acdn = node.as(ApplicationConfigurationDataNode.class);
+				final Map<String, Object> entry             = new TreeMap<>();
+
 				applicationConfigurationDataNodes.add(entry);
 
-				entry.put("id",         acdn.getProperty(ApplicationConfigurationDataNode.id));
-				entry.put("name",       acdn.getProperty(ApplicationConfigurationDataNode.name));
-				entry.put("configType", acdn.getProperty(configTypeKey));
-				entry.put("content",    acdn.getProperty(contentKey));
+				entry.put("id",         acdn.getUuid());
+				entry.put("name",       acdn.getName());
+				entry.put("configType", acdn.getConfigType());
+				entry.put("content",    acdn.getContent());
 
-				exportOwnershipAndSecurity(acdn, entry);
+				exportOwnershipAndSecurity(node, entry);
 			}
 
 			tx.success();
@@ -1888,7 +1891,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final ResourceAccess toDelete : app.nodeQuery("ResourceAccessDefinition").getAsList()) {
+			for (final NodeInterface toDelete : app.nodeQuery("ResourceAccess").getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -1942,9 +1945,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					checkOwnerAndSecurity(entry);
 				}
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, ResourceAccessDefinition.class, entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, "ResourceAccess", entry);
 
-				app.create(ResourceAccessDefinition.class, map);
+				app.create("ResourceAccess", map);
 			}
 
 			tx.success();
@@ -1983,7 +1986,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", corsSettingsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing CORS Settings");
 
-			importListData(CorsSetting.class, readConfigList(corsSettingsMetadataFile));
+			importListData("CorsSetting", readConfigList(corsSettingsMetadataFile));
 		}
 	}
 
@@ -2013,7 +2016,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 			}
 
-			importListData(MailTemplate.class, mailTemplatesConf);
+			importListData("MailTemplate", mailTemplatesConf);
 		}
 	}
 
@@ -2024,7 +2027,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", widgetsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
-			importListData(Widget.class, readConfigList(widgetsMetadataFile));
+			importListData("Widget", readConfigList(widgetsMetadataFile));
 		}
 	}
 
@@ -2043,7 +2046,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", localizationsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
-			importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
+			importListData("Localization", readConfigList(localizationsMetadataFile), additionalData);
 		}
 	}
 
@@ -2054,7 +2057,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", applicationConfigurationDataMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
 
-			importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataMetadataFile));
+			importListData("ApplicationConfigurationDataNode", readConfigList(applicationConfigurationDataMetadataFile));
 		}
 	}
 

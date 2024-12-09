@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.traits.Traits;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.core.graph.NodeInterface;
@@ -62,16 +63,16 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 		if (typeName != null && direction != null) {
 
 			// test if resource class exists
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-			if (entityClass != null && NodeInterface.class.isAssignableFrom(entityClass)) {
+			final Traits traits = Traits.of(typeName);
+			if (traits != null && traits.isNodeType()) {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(call, entityClass, typeName, Direction.INCOMING);
+					return new RelationshipsResourceHandler(call, typeName, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(call, entityClass, typeName, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(call, typeName, Direction.OUTGOING);
 				}
 			}
 		}
@@ -86,7 +87,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final Direction direction) {
+		public RelationshipsResourceHandler(final RESTCall call, final String typeName, final Direction direction) {
 
 			super(call, typeName, true);
 

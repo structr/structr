@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.storage.providers.memory.InMemoryStorageProvider;

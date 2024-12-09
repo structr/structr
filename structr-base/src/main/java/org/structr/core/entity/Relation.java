@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
+import org.structr.common.PermissionPropagation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
@@ -42,7 +43,7 @@ import java.util.Map;
  *
  *
  */
-public interface Relation<S extends Source, T extends Target> extends RelationshipType {
+public interface Relation<S extends Source, T extends Target> extends RelationshipType, PermissionPropagation {
 
 	/**
 	 * No cascading delete / autocreate.
@@ -116,4 +117,6 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 
 	PropertyKey getSourceProperty();
 	PropertyKey getTargetProperty();
+
+	boolean isInternal();
 }
