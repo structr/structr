@@ -26,6 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.storage.StorageProviderFactory;
@@ -34,7 +35,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -67,7 +67,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			final long size               = fileOnDisk.length();
 			final long lastModified       = fileOnDisk.lastModified();
 			final Long fileNodeSize       = StorageProviderFactory.getStorageProvider(fileNode).size();
-			final Long fileNodeDate       = fileNode.getProperty(StructrApp.key(File.class, "fileModificationDate"));
+			final Long fileNodeDate       = fileNode.getFileModificationDate();
 
 			// update metadata only when size or modification time has changed
 			if (fileNodeSize == null || fileNodeDate == null || size != fileNodeSize || lastModified != fileNodeDate) {
@@ -125,33 +125,38 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	private FolderAndFile handle(final String rootFolderUUID, final Path root, final Path relativePath, final boolean create) throws FrameworkException {
 
 		// identify mounted folder object
-		final Folder folder = StructrApp.getInstance().nodeQuery("Folder").uuid(rootFolderUUID).getFirst();
+		final NodeInterface node = StructrApp.getInstance().nodeQuery("Folder").uuid(rootFolderUUID).getFirst();
+		if (node != null) {
 
-		if (folder != null) {
-
-			Class<? extends File> targetFileType      = null;
-			Class<? extends Folder> targetFolderType    = null;
+			final Folder folder                      = node.as(Folder.class);
+			Class<? extends File> targetFileType     = null;
+			Class<? extends Folder> targetFolderType = null;
 
 			try {
 				if (folder.getMountTargetFileType() != null) {
+
 					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFileType());
 					if (clazz != null && clazz != GenericNode.class && File.class.isAssignableFrom(clazz)) {
+
 						targetFileType = clazz;
 					}
 				}
 
 				if (folder.getMountTargetFolderType() != null) {
+
 					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFolderType());
 					if (clazz != null && clazz != GenericNode.class && Folder.class.isAssignableFrom(clazz)) {
+
 						targetFolderType = clazz;
 					}
 				}
+
 			} catch (ClassCastException ex) {
 
 				logger.error("Given target type for mounted files or folders was not extending AbstractFile.", ex);
 			}
 
-			final String mountFolderPath = folder.getProperty(StructrApp.key(Folder.class, "path"));
+			final String mountFolderPath = folder.getPath();
 			if (mountFolderPath != null) {
 
 				final Path relativePathParent   = relativePath.getParent();
@@ -186,12 +191,12 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		return null;
 	}
 
-	private AbstractFile getOrCreate(final Folder parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final Class<? extends Folder> folderType, final Class<? extends File> fileType) throws FrameworkException {
+	private AbstractFile getOrCreate(final Folder parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final String folderType, final String fileType) throws FrameworkException {
 
 		final PropertyKey<Boolean> isExternalKey = StructrApp.key(AbstractFile.class, "isExternal");
 		final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
 		final App app                            = StructrApp.getInstance();
-		final Class<? extends AbstractFile> type = isFile ? (fileType != null ? fileType : org.structr.web.entity.File.class) : (folderType != null ? folderType : Folder.class);
+		final String type                        = isFile ? (fileType != null ? fileType : "File") : (folderType != null ? folderType : "Folder");
 
 		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {

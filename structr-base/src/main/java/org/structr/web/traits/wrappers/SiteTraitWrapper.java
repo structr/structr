@@ -16,26 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.html.relationship;
+package org.structr.web.traits.wrappers;
 
-import org.structr.core.entity.ManyToOne;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.Linkable;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.web.entity.Site;
 
-public class LinkSourceLINKLinkable extends ManyToOne<LinkSource, Linkable> {
+public class SiteTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Site {
 
-	@Override
-	public Class<LinkSource> getSourceType() {
-		return LinkSource.class;
+	public SiteTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
 	@Override
-	public Class<Linkable> getTargetType() {
-		return Linkable.class;
+	public String getName() {
+		return wrappedObject.getName();
 	}
 
 	@Override
-	public String name() {
-		return "LINK";
+	public String getHostname() {
+		return wrappedObject.getProperty(traits.key("hostname"));
+	}
+
+	@Override
+	public Integer getPort() {
+		return wrappedObject.getProperty(traits.key("port"));
+	}
+
+	@Override
+	public Iterable<NodeInterface> getPages() {
+		return wrappedObject.getProperty(traits.key("pages"));
 	}
 }

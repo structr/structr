@@ -21,6 +21,12 @@ package org.structr.module;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.nodes.PrincipalTraitDefinition;
+import org.structr.core.traits.relationships.*;
+import org.structr.rest.traits.relationships.ObjectEventRelationship;
+import org.structr.rest.traits.relationships.SubjectEventRelationship;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -33,6 +39,42 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		// relationship types
+		StructrTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
+		StructrTraits.registerRelationshipType("Security",                          new SecurityRelationshipDefinition());
+		StructrTraits.registerRelationshipType("PrincipalSchemaGrantRelationship",  new PrincipalSchemaGrantRelationshipDefinition());
+		StructrTraits.registerRelationshipType("GroupCONTAINSPrincipal",            new GroupContainsPrincipalDefinition());
+		StructrTraits.registerRelationshipType("SchemaExcludedViewProperty",        new SchemaExcludedViewPropertyDefinition());
+		StructrTraits.registerRelationshipType("SchemaGrantSchemaNodeRelationship", new SchemaGrantSchemaNodeRelationshipDefinition());
+		StructrTraits.registerRelationshipType("SchemaMethodParameters",            new SchemaMethodParametersDefinition());
+		StructrTraits.registerRelationshipType("SchemaNodeExtendsSchemaNode",       new SchemaNodeExtendsSchemaNodeDefinition());
+		StructrTraits.registerRelationshipType("SchemaNodeMethod",                  new SchemaNodeMethodDefinition());
+		StructrTraits.registerRelationshipType("SchemaNodeProperty",                new SchemaNodePropertyDefinition());
+		StructrTraits.registerRelationshipType("SchemaNodeView",                    new SchemaNodeViewDefinition());
+		StructrTraits.registerRelationshipType("SchemaRelationshipSourceNode",      new SchemaRelationshipSourceNodeDefinition());
+		StructrTraits.registerRelationshipType("SchemaRelationshipTargetNode",      new SchemaRelationshipTargetNodeDefinition());
+		StructrTraits.registerRelationshipType("SchemaViewProperty",                new SchemaViewPropertyDefinition());
+
+		// node types
+		StructrTraits.registerNodeType("Principal",              new PrincipalTraitDefinition());
+		StructrTraits.registerNodeType("Group",                  new PrincipalTraitDefinition(), new GroupTraitDefinition());
+		StructrTraits.registerNodeType("Localization",           new LocalizationTraitDefinition());
+		StructrTraits.registerNodeType("Location",               new LocationTraitDefinition());
+		StructrTraits.registerNodeType("MailTemplate",           new MailTemplateTraitDefinition());
+		StructrTraits.registerNodeType("Person",                 new PersonTraitDefinition());
+		StructrTraits.registerNodeType("SchemaGrant",            new SchemaGrantTraitDefinition());
+		StructrTraits.registerNodeType("SchemaMethod",           new SchemaMethodTraitDefinition());
+		StructrTraits.registerNodeType("SchemaMethodParameter",  new SchemaMethodParameterTraitDefinition());
+		StructrTraits.registerNodeType("SchemaNode",             new AbstractSchemaNodeTraitDefinition(), new SchemaNodeTraitDefinition());
+		StructrTraits.registerNodeType("SchemaRelationshipNode", new AbstractSchemaNodeTraitDefinition(), new SchemaRelationshipNodeTraitDefinition());
+		StructrTraits.registerNodeType("SchemaView",             new SchemaViewTraitDefinition());
+		StructrTraits.registerNodeType("SchemaProperty",         new SchemaPropertyTraitDefinition());
+		StructrTraits.registerNodeType("CorsSetting",           new CorsSettingTraitDefinition());
+		StructrTraits.registerNodeType("ResourceAccess",        new ResourceAccessTraitDefinition("ResourceAccess"));
+		StructrTraits.registerNodeType("DynamicResourceAccess", new ResourceAccessTraitDefinition("DynamicResourceAccess"));
+		StructrTraits.registerNodeType("SessionDataNode",       new SessionDataNodeTraitDefinition());
+
 	}
 
 	@Override

@@ -16,17 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.web.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
-public interface LinkSource extends NodeTrait {
+public class LinkSourceTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements LinkSource {
 
-	NodeInterface getLinkable();
-	Object setLinkable(final Linkable linkable) throws FrameworkException;
+	public LinkSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
+	@Override
+	public String getName() {
+		return wrappedObject.getName();
+	}
+
+	public NodeInterface getLinkable() {
+		return wrappedObject.getProperty(traits.key("linkable"));
+	}
+
+	public Object setLinkable(final Linkable linkable) throws FrameworkException {
+		return wrappedObject.setProperty(traits.key("linkable"), linkable);
+	}
 }

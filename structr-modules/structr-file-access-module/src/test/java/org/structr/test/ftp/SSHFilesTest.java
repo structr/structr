@@ -33,7 +33,6 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.testng.annotations.Test;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;

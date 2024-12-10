@@ -30,7 +30,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrRootAttributes;
-import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;

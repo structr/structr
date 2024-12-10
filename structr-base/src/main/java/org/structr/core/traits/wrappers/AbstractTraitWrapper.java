@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.Traits;
 
@@ -40,15 +41,31 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 		return wrappedObject.getType();
 	}
 
+	public String getName() {
+		return wrappedObject.getProperty(traits.key("name"));
+	}
+
+	public void setName(final String name) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("name"), name);
+	}
+
 	public T getWrappedNode() {
 		return wrappedObject;
 	}
 
 	public boolean visibleToPublicUsers() {
-		return wrappedObject.getProperty(Traits.of("GraphObject").key("visibleToPublicUsers"));
+		return wrappedObject.getProperty(traits.key("visibleToPublicUsers"));
 	}
 
 	public boolean visibleToAuthenticatedUsers() {
-		return wrappedObject.getProperty(Traits.of("GraphObject").key("visibleToAuthenticatedUsers"));
+		return wrappedObject.getProperty(traits.key("visibleToAuthenticatedUsers"));
+	}
+
+	public void setVisibleToPublicUsers(final boolean visible) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("visibleToPublicUsers"), visible);
+	}
+
+	public void  setVisibleToAuthenticatedUsers(final boolean visible) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("visibleToAuthenticatedUsers"), visible);
 	}
 }

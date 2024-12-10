@@ -29,6 +29,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
@@ -63,7 +65,7 @@ public abstract class AbstractCommand {
 
 	public Page getPage(final String id) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
 		if (node != null && node instanceof Page) {
 
@@ -75,7 +77,7 @@ public abstract class AbstractCommand {
 
 	public DOMNode getDOMNode(final String id) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
 		if (node != null && node instanceof DOMNode) {
 
@@ -87,7 +89,7 @@ public abstract class AbstractCommand {
 
 	public Widget getWidget(final String id) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
 		if (node != null && node instanceof Widget) {
 
@@ -123,7 +125,7 @@ public abstract class AbstractCommand {
 
 		if (isValidUuid(id)) {
 
-			final AbstractNode node = getNode(id);
+			final NodeInterface node = getNode(id);
 			if (node != null) {
 
 				return node;
@@ -134,7 +136,7 @@ public abstract class AbstractCommand {
 					logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				}
 
-				final AbstractRelationship rel = getRelationship(id, nodeId);
+				final RelationshipInterface rel = getRelationship(id, nodeId);
 				if (rel != null) {
 
 					return rel;
@@ -155,14 +157,14 @@ public abstract class AbstractCommand {
 	 * @param id
 	 * @return the node
 	 */
-	public AbstractNode getNode(final String id) {
+	public NodeInterface getNode(final String id) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.getNodeById(id);
+			final NodeInterface node = app.getNodeById(id);
 
 			tx.success();
 
@@ -185,7 +187,7 @@ public abstract class AbstractCommand {
 	 * @param nodeId
 	 * @return the node
 	 */
-	public AbstractRelationship getRelationship(final String id, final String nodeId) {
+	public RelationshipInterface getRelationship(final String id, final String nodeId) {
 
 		if (id == null) {
 			return null;
@@ -200,9 +202,9 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.getNodeById(nodeId);
+			final NodeInterface node = app.getNodeById(nodeId);
 
-			for (final AbstractRelationship rel : node.getRelationships()) {
+			for (final RelationshipInterface rel : node.getRelationships()) {
 
 				if (rel.getUuid().equals(id)) {
 					return rel;
@@ -226,7 +228,7 @@ public abstract class AbstractCommand {
 	 * @param id
 	 * @return the node
 	 */
-	public AbstractRelationship getRelationship(final String id) {
+	public RelationshipInterface getRelationship(final String id) {
 
 		if (id == null) {
 			return null;
@@ -237,7 +239,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractRelationship rel = (AbstractRelationship) app.getRelationshipById(id);
+			final RelationshipInterface rel = app.getRelationshipById(id);
 
 			tx.success();
 

@@ -23,6 +23,7 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.Property;
 import org.structr.web.entity.File;
@@ -33,7 +34,7 @@ import java.util.Map;
 /**
  * A property that automatically creates a thumbnail for an image.
  */
-public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
+public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 
 	private int width    = 0;
 	private int height   = 0;
@@ -49,12 +50,12 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof File && ((File)obj).isTemplate()) {
 			return null;
@@ -67,12 +68,12 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Class relatedType() {
-		return Image.class;
+	public String relatedType() {
+		return "Image";
 	}
 
 	@Override
-	public Class valueType() {
+	public String valueType() {
 		return relatedType();
 	}
 
@@ -87,7 +88,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Property<Image> format(final String format) {
+	public Property<NodeInterface> format(final String format) {
 
 		if (StringUtils.isNotBlank(format) && format.contains(",")) {
 
