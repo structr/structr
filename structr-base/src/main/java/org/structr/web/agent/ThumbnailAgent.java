@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
@@ -97,11 +96,17 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 		try (final Tx tx = app.tx()) {
 
-			final String thumbnailRel         = "ImageTHUMBNAILImage";
-			final NodeInterface originalImage = app.nodeQuery("Image").uuid(imageUuid).getFirst();
-			Image thumbnail = null;
+			final String thumbnailRel = "ImageTHUMBNAILImage";
+			final NodeInterface node  = app.nodeQuery("Image").uuid(imageUuid).getFirst();
+			Image thumbnail           = null;
 
-			if (originalImage == null || Image.getExistingThumbnail(originalImage, maxWidth, maxHeight, cropToFit) != null) {
+			if (node == null) {
+				return;
+			}
+
+			final Image originalImage = node.as(Image.class);
+
+			if (originalImage.getExistingThumbnail(maxWidth, maxHeight, cropToFit) != null) {
 
 				return;
 			}
@@ -155,7 +160,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					properties.put(StructrApp.key(AbstractNode.class, "visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
 					properties.put(StructrApp.key(File.class, "size"),                                Long.valueOf(data.length));
 					properties.put(StructrApp.key(AbstractNode.class, "owner"),                       originalImage.getProperty(AbstractNode.owner));
-					properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getThumbnailParentFolder(originalImage.getProperty(StructrApp.key(File.class, "parent")), securityContext));
+					properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
 					properties.put(StructrApp.key(File.class, "hasParent"),                           originalImage.getProperty(StructrApp.key(Image.class, "hasParent")));
 
 					thumbnail.unlockSystemPropertiesOnce();

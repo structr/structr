@@ -31,10 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.DummyNodeServiceCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.test.web.StructrUiTest;
@@ -65,7 +62,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.api.config.Settings;
+
 import org.structr.web.importer.Importer;
 import static org.testng.AssertJUnit.*;
 
@@ -293,11 +290,11 @@ public class DOMAndPageTest extends StructrUiTest {
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			final PropertyMap siteOneProperties        = new PropertyMap();
-			final PropertyKey<Iterable<Site>> sitesKey = StructrApp.key(Page.class, "sites");
-			final PropertyKey<Integer> positionKey     = StructrApp.key(Page.class, "position");
-			final PropertyKey<Integer> portKey         = StructrApp.key(Site.class, "port");
-			final PropertyKey<String> hostnameKey      = StructrApp.key(Site.class, "hostname");
+			final PropertyMap siteOneProperties                 = new PropertyMap();
+			final PropertyKey<Iterable<NodeInterface>> sitesKey = StructrApp.key(Page.class, "sites");
+			final PropertyKey<Integer> positionKey              = StructrApp.key(Page.class, "position");
+			final PropertyKey<Integer> portKey                  = StructrApp.key(Site.class, "port");
+			final PropertyKey<String> hostnameKey               = StructrApp.key(Site.class, "hostname");
 
 			siteOneProperties.put(Site.name, "site-one");
 			siteOneProperties.put(Site.visibleToPublicUsers, true);
@@ -310,8 +307,8 @@ public class DOMAndPageTest extends StructrUiTest {
 			siteTwoProperties.put(hostnameKey, "127.0.0.1");
 			siteTwoProperties.put(portKey, httpPort);
 
-			final Site siteOne = app.create(Site.class, siteOneProperties);
-			final Site siteTwo = app.create(Site.class, siteTwoProperties);
+			final NodeInterface siteOne = app.create("Site", siteOneProperties);
+			final NodeInterface siteTwo = app.create("Site", siteTwoProperties);
 
 			final PropertyMap pageOneProperties = new PropertyMap();
 			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));

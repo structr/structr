@@ -20,7 +20,13 @@ package org.structr.rest.common;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
+import org.structr.rest.traits.definitions.LogObjectTraitDefinition;
+import org.structr.rest.traits.definitions.LogSubjectTraitDefinition;
+import org.structr.rest.traits.relationships.ObjectEventRelationship;
+import org.structr.rest.traits.relationships.SubjectEventRelationship;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -32,6 +38,13 @@ public class RestModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("ObjectEventRelationship",  new ObjectEventRelationship());
+		StructrTraits.registerRelationshipType("SubjectEventRelationship", new SubjectEventRelationship());
+
+		StructrTraits.registerNodeType("LogEvent",   new LogEventTraitDefinition());
+		StructrTraits.registerNodeType("LogObject",  new LogObjectTraitDefinition());
+		StructrTraits.registerNodeType("LogSubject", new LogSubjectTraitDefinition());
 	}
 
 	@Override

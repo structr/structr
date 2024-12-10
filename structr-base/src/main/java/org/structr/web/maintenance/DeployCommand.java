@@ -851,25 +851,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Site site : app.nodeQuery("Site").sort(Site.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.nameProperty()).getAsList()) {
 
+				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				sites.add(entry);
 
-				entry.put("id",       site.getProperty(Site.id));
-				entry.put("name",     site.getName());
-				entry.put("hostname", site.getHostname());
-				entry.put("port",     site.getPort());
-				entry.put("visibleToAuthenticatedUsers", site.getProperty(Site.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        site.getProperty(Site.visibleToPublicUsers));
+				entry.put("id",                          site.getUuid());
+				entry.put("name",                        site.getName());
+				entry.put("hostname",                    site.getHostname());
+				entry.put("port",                        site.getPort());
+				entry.put("visibleToAuthenticatedUsers", site.visibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        site.visibleToPublicUsers());
 
 				final List<String> pageNames = new LinkedList<>();
-				for (final Page page : (Iterable<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
+
+				for (final NodeInterface page : site.getPages()) {
 					pageNames.add(page.getName());
 				}
+
 				entry.put("pages", pageNames);
 
-				exportOwnershipAndSecurity(site, entry);
+				exportOwnershipAndSecurity(node, entry);
 			}
 
 			tx.success();
@@ -893,7 +896,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Page page : app.nodeQuery("Page").sort(Page.name).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery("Page").sort(Traits.nameProperty()).getAsList()) {
 
 				if (!(page instanceof ShadowDocument)) {
 
@@ -1504,22 +1507,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Widget widget : app.nodeQuery("Widget").sort(Widget.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Widget").sort(Traits.nameProperty()).getAsList()) {
 
+				final Widget widget             = node.as(Widget.class);
 				final Map<String, Object> entry = new TreeMap<>();
+
 				widgets.add(entry);
 
-				putData(entry, "id",                          widget.getProperty(Widget.id));
-				putData(entry, "name",                        widget.getProperty(Widget.name));
-				putData(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
-				putData(entry, "source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
-				putData(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
-				putData(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
-				putData(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
-				putData(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
-				putData(entry, "isPageTemplate",              widget.getProperty(StructrApp.key(Widget.class, "isPageTemplate")));
-				putData(entry, "selectors",                   widget.getProperty(StructrApp.key(Widget.class, "selectors")));
+				putData(entry, "id",                          widget.getUuid());
+				putData(entry, "name",                        widget.getName());
+				putData(entry, "visibleToAuthenticatedUsers", widget.visibleToAuthenticatedUsers());
+				putData(entry, "visibleToPublicUsers",        widget.visibleToPublicUsers());
+				putData(entry, "source",                      widget.getSource());
+				putData(entry, "description",                 widget.getDescription());
+				putData(entry, "isWidget",                    widget.isWidget());
+				putData(entry, "treePath",                    widget.getTreePath());
+				putData(entry, "configuration",               widget.getConfiguration());
+				putData(entry, "isPageTemplate",              widget.isPageTemplate());
+				putData(entry, "selectors",                   widget.getSelectors());
 			}
 
 			tx.success();
@@ -2177,14 +2182,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.deleteAllNodesOfType(DOMNode.class);
+					app.deleteAllNodesOfType("DOMNode");
 
 					if (Files.exists(sitesConfFile)) {
 
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.deleteAllNodesOfType(Site.class);
+						app.deleteAllNodesOfType("Site");
 					}
 
 					FlushCachesCommand.flushAll();
@@ -2333,8 +2338,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void importSites(final List<Map<String, Object>> data) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		context.setDoTransactionNotifications(false);
+		final Traits traits           = Traits.of("Site");
 		final App app                 = StructrApp.getInstance(context);
+
+		context.setDoTransactionNotifications(false);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2342,7 +2349,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (Map<String, Object> entry : data) {
 
-				final List<Page> pages = new LinkedList();
+				final List<NodeInterface> pages = new LinkedList();
 
 				for (final String pageName : (List<String>)entry.get("pages")) {
 					pages.add(app.nodeQuery("Page").andName(pageName).getFirst());
@@ -2352,11 +2359,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				checkOwnerAndSecurity(entry);
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, Site.class, entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, "Site", entry);
 
-				map.put(StructrApp.key(Site.class, "pages"), pages);
+				map.put(traits.key("pages"), pages);
 
-				app.create(Site.class, map);
+				app.create("Site", map);
 			}
 
 			tx.success();
@@ -2378,7 +2385,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final DOMNode linkElement = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
+					final DOMNode linkElement = StructrApp.getInstance().get("DOMNode", linkableUUID);
 					final Linkable linkedPage = StructrApp.getInstance().nodeQuery("Linkable").and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
 					((LinkSource)linkElement).setLinkable(linkedPage);

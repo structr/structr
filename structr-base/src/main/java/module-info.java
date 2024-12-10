@@ -111,6 +111,7 @@ module structr.base {
 	requires org.glassfish.jaxb.runtime;
 	requires org.eclipse.jgit;
 	requires api.all;
+	requires pulsar.client;
 
 	exports org.structr;
     exports org.structr.agent;

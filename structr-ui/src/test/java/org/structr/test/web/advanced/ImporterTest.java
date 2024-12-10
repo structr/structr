@@ -31,7 +31,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Script;
-import org.structr.web.entity.html.relationship.LinkSourceLINKLinkable;
+import org.structr.web.traits.relationships.LinkSourceLINKLinkableTraitDefinition;
 import org.structr.web.importer.Importer;
 import org.testng.annotations.Test;
 
@@ -364,7 +364,7 @@ public class ImporterTest extends StructrUiTest {
 
 			final Script secondScriptElement = (Script) app.nodeQuery(Script.class).blank(StructrApp.key(Script.class, "_html_src")).getFirst();
 
-			assertNull(secondScriptElement.getOutgoingRelationship(StructrApp.getConfiguration().getRelationshipEntityClass(LinkSourceLINKLinkable.class)));
+			assertNull(secondScriptElement.getOutgoingRelationship(StructrApp.getConfiguration().getRelationshipEntityClass(LinkSourceLINKLinkableTraitDefinition.class)));
 
 			tx.success();
 

@@ -29,10 +29,8 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.Traits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
@@ -70,7 +68,7 @@ public class MigrationService {
 			// check (and fix) principal nodes
 			logger.info("Checking if principal nodes need migration..");
 
-			for (final Principal p : app.nodeQuery(Traits.of(Principal.class)).getResultStream()) {
+			for (final NodeInterface p : app.nodeQuery("Principal").getResultStream()) {
 				p.getNode().addLabel(Principal.class.getSimpleName());
 			}
 
@@ -106,7 +104,7 @@ public class MigrationService {
 
 			for (final String name : relationshipNodeNames) {
 
-				final SchemaRelationshipNode rel1 = app.nodeQuery("SchemaRelationshipNode").andName(name).getFirst();
+				final NodeInterface rel1 = app.nodeQuery("SchemaRelationshipNode").andName(name).getFirst();
 				if (rel1 != null) {
 
 					app.delete(rel1);
@@ -125,7 +123,7 @@ public class MigrationService {
 			// check (and fix) event action mapping relationships
 			logger.info("Checking if event action mapping relationships need migration..");
 
-			for (final ActionMapping eam : app.nodeQuery("ActionMapping").getResultStream()) {
+			for (final NodeInterface eam : app.nodeQuery("ActionMapping").getResultStream()) {
 
 				for (final RelationshipInterface rel : eam.getOutgoingRelationships()) {
 
@@ -170,7 +168,7 @@ public class MigrationService {
 				}
 			}
 
-			for (final ParameterMapping pm : app.nodeQuery("ParameterMapping").getResultStream()) {
+			for (final NodeInterface pm : app.nodeQuery("ParameterMapping").getResultStream()) {
 
 				for (final RelationshipInterface rel : pm.getOutgoingRelationships()) {
 
@@ -200,7 +198,7 @@ public class MigrationService {
 			// check (and fix if possible) structr-app.js implementations
 			logger.info("Checking for structr-app.js implementations that need migration..");
 
-			for (final DOMElement elem : app.nodeQuery("DOMElement").and().not().and(actionKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery("DOMElement").and().not().and(actionKey, null).getResultStream()) {
 
 				migrateStructrAppMapping(elem, actionKey.jsonName());
 				structrAppJsCount++;
@@ -209,7 +207,7 @@ public class MigrationService {
 			// check (and fix) old event action mappings
 			logger.info("Checking for event mapping implementations that need migration..");
 
-			for (final DOMElement elem : app.nodeQuery("DOMElement").and().not().and(eventMappingKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery("DOMElement").and().not().and(eventMappingKey, null).getResultStream()) {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
@@ -227,7 +225,7 @@ public class MigrationService {
 		}
 	}
 
-	private static void migrateStructrAppMapping(final DOMElement elem, final String actionKeyName) throws FrameworkException {
+	private static void migrateStructrAppMapping(final NodeInterface elem, final String actionKeyName) throws FrameworkException {
 
 		final Map<String, String> options = new LinkedHashMap<>();
 		final Map<String, String> data    = new LinkedHashMap<>();
@@ -450,12 +448,12 @@ public class MigrationService {
 			}
 		}
 
-		final ActionMapping actionMapping = StructrApp.getInstance().create(ActionMapping.class, properties);
+		final NodeInterface actionMapping = StructrApp.getInstance().create("ActionMapping", properties);
 
 		migrateParameters(elem, actionMapping, data);
 	}
 
-	private static void migrateParameters(final DOMElement elem, final ActionMapping actionMapping, final Map<String, String> parameters) throws FrameworkException {
+	private static void migrateParameters(final NodeInterface elem, final NodeInterface actionMapping, final Map<String, String> parameters) throws FrameworkException {
 
 		for (final String key : parameters.keySet()) {
 
@@ -508,7 +506,7 @@ public class MigrationService {
 				properties.put(StructrApp.key(ParameterMapping.class, "scriptExpression"), value);
 			}
 
-			StructrApp.getInstance().create(ParameterMapping.class, properties);
+			StructrApp.getInstance().create("ParameterMapping", properties);
 
 		}
 	}
@@ -530,7 +528,7 @@ public class MigrationService {
 					"all/OUTGOING/SYNC")
 			);
 
-			for (final DOMElement elem : app.nodeQuery("DOMElement").getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery("DOMElement").getResultStream()) {
 
 				if (!elem.getProperty(key) && elem.getSharedComponent() != null) {
 					elem.setProperty(key, true);
@@ -561,7 +559,7 @@ public class MigrationService {
 		return value;
 	}
 
-	private static String getAndClearStringValue(final DOMElement elem, final String name) throws FrameworkException {
+	private static String getAndClearStringValue(final NodeInterface elem, final String name) throws FrameworkException {
 
 		final PropertyKey<String> key = StructrApp.key(DOMElement.class, name, false);
 		final String value            = elem.getProperty(key);
@@ -571,7 +569,7 @@ public class MigrationService {
 		return value;
 	}
 
-	private static Map<String, String> getAndClearJsonValue(final DOMElement elem, final String name) throws FrameworkException {
+	private static Map<String, String> getAndClearJsonValue(final NodeInterface elem, final String name) throws FrameworkException {
 
 		final PropertyKey<String> key = StructrApp.key(DOMElement.class, name, false);
 		final String value            = elem.getProperty(key);
@@ -581,7 +579,7 @@ public class MigrationService {
 		return new GsonBuilder().create().fromJson(value, Map.class);
 	}
 
-	private static DOMElement findElementWithSelector(final DOMElement elem, final String cssSelector) {
+	private static DOMElement findElementWithSelector(final NodeInterface elem, final String cssSelector) {
 
 		try {
 
@@ -606,7 +604,7 @@ public class MigrationService {
 		return null;
 	}
 
-	private static DOMElement findElementWithName(final DOMElement elem, final String name) {
+	private static DOMElement findElementWithName(final NodeInterface elem, final String name) {
 
 		final Page page = elem.getOwnerDocument();
 
@@ -632,7 +630,7 @@ public class MigrationService {
 
 			logger.info("Checking for REST query repeaters that need migration..");
 
-			for (final DOMElement elem : StructrApp.getInstance().nodeQuery("DOMElement").and().not().and(key, null).getResultStream()) {
+			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery("DOMElement").and().not().and(key, null).getResultStream()) {
 
 				final String str     = elem.getProperty(key);
 				final String cleaned = str.replaceAll("[\\W0-9]+", "");
@@ -656,7 +654,7 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Folder> mountedFolders = app.nodeQuery("Folder")
+			final List<NodeInterface> mountedFolders = app.nodeQuery("Folder")
 				.notBlank(StructrApp.key(Folder.class, "mountTarget"))
 				.getAsList();
 
@@ -664,13 +662,13 @@ public class MigrationService {
 				logger.info("Migrating {} folders with old mountTarget property to respective storage configurations.", mountedFolders.size());
 			}
 
-			for (Folder folder : mountedFolders) {
+			for (NodeInterface folder : mountedFolders) {
 
-				StorageConfiguration config = app.create(StorageConfiguration.class,
-					new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"),     folder.getFolderPath())
+				final NodeInterface config = app.create("StorageConfiguration",
+					new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"), folder.getFolderPath())
 				);
 
-				app.create(StorageConfigurationEntry.class,
+				app.create("StorageConfigurationEntry",
 					new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "configuration"), config),
 					new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "name"),          "mountTarget"),
 					new NodeAttribute<>(StructrApp.key(StorageConfigurationEntry.class, "value"),         folder.getProperty("mountTarget"))

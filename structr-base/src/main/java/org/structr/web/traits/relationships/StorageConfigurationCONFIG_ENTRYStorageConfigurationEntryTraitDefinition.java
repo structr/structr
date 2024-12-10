@@ -31,9 +31,9 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import java.util.Map;
 import java.util.Set;
 
-public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry extends RelationshipTraitDefinition {
+public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends RelationshipTraitDefinition {
 
-	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry() {
+	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition() {
 		super("StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
 	}
 

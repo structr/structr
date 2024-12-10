@@ -22,12 +22,16 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.core.traits.StructrTraits;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 import org.structr.web.datasource.*;
+import org.structr.web.traits.relationships.LinkSourceLINKLinkableTraitDefinition;
 import org.structr.web.function.*;
+import org.structr.web.traits.definitions.*;
+import org.structr.web.traits.relationships.StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition;
 
 import java.net.URL;
 import java.util.Set;
@@ -48,6 +52,22 @@ public class UiModule implements StructrModule {
 		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
 		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
 		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource("functionQuery"));
+
+		StructrTraits.registerRelationshipType("StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry", new StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition());
+		StructrTraits.registerRelationshipType("LinkSourceLINKLinkable",                                    new LinkSourceLINKLinkableTraitDefinition());
+
+		StructrTraits.registerNodeType("AbstractFile",                     new AbstractFileTraitDefinition());
+		StructrTraits.registerNodeType("File",                             new AbstractFileTraitDefinition(), new FileTraitDefinition(), new LinkableTraitDefinition());
+		StructrTraits.registerNodeType("Image",                            new AbstractFileTraitDefinition(), new FileTraitDefinition(), new ImageTraitDefinition(), new LinkableTraitDefinition());
+		StructrTraits.registerNodeType("Folder",                           new AbstractFileTraitDefinition(), new FolderTraitDefinition());
+
+		StructrTraits.registerNodeType("ApplicationConfigurationDataNode", new ApplicationConfigurationDataNodeTraitDefinition());
+		StructrTraits.registerNodeType("Linkable",                         new LinkableTraitDefinition());
+		StructrTraits.registerNodeType("LinkSource",                       new LinkSourceTraitDefinition());
+		StructrTraits.registerNodeType("Site",                             new SiteTraitDefinition());
+		StructrTraits.registerNodeType("StorageConfiguration",             new StorageConfigurationTraitDefinition());
+		StructrTraits.registerNodeType("StorageConfigurationEntry",        new StorageConfigurationEntryTraitDefinition());
+		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
 	}
 
 	@Override

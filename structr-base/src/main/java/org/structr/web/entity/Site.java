@@ -18,52 +18,13 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.*;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.SiteCONTAINSPage;
-import org.structr.web.servlet.HtmlServlet;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.NodeTrait;
 
-public class Site extends AbstractNode {
+public interface Site extends NodeTrait {
 
-	public static final Property<Iterable<Page>> pagesProperty = new EndNodes<>("pages", SiteCONTAINSPage.class).partOfBuiltInSchema();
-	public static final Property<String> hostnameProperty      = new StringProperty("hostname").indexed().partOfBuiltInSchema();
-	public static final Property<Integer> portProperty         = new IntProperty("port").indexed().partOfBuiltInSchema();
+	String getHostname();
+	Integer getPort();
 
-	public static final View defaultView = new View(Site.class, PropertyView.Public,
-		pagesProperty, hostnameProperty, portProperty
-	);
-
-	public static final View uiView = new View(Site.class, PropertyView.Ui,
-		pagesProperty, hostnameProperty, portProperty
-	);
-
-	public String getHostname() {
-		return getProperty(hostnameProperty);
-	}
-
-	public Integer getPort() {
-		return getProperty(portProperty);
-	}
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		super.onDeletion(securityContext, errorBuffer, properties);
-	}
+	Iterable<NodeInterface> getPages();
 }

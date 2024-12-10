@@ -32,7 +32,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.StructrBaseTraits;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
@@ -57,10 +57,10 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		StructrBaseTraits.registerRelationshipType("VirtualTypevirtualPropertyVirtualProperty", new VirtualTypevirtualPropertyVirtualProperty());
+		StructrTraits.registerRelationshipType("VirtualTypevirtualPropertyVirtualProperty", new VirtualTypevirtualPropertyVirtualProperty());
 
-		StructrBaseTraits.registerNodeType("VirtualType",     new VirtualTypeTraitDefinition());
-		StructrBaseTraits.registerNodeType("VirtualProperty", new VirtualPropertyTraitDefinition());
+		StructrTraits.registerNodeType("VirtualType",     new VirtualTypeTraitDefinition());
+		StructrTraits.registerNodeType("VirtualProperty", new VirtualPropertyTraitDefinition());
 	}
 
 	@Override
