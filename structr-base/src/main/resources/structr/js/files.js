@@ -460,15 +460,16 @@ let _Files = {
 
 					if (isMultiSelect) {
 
-						let files = [...selectedElements].map(el => Structr.entityFromElement(el));
+						let filesOrFolders = [...selectedElements].map(el => Structr.getId(el)).map(id => StructrModel.obj(id));
+						let recursive      = filesOrFolders.some(file => file.isFolder);
 
-						_Entities.deleteNodes(files, true, () => {
+						_Entities.deleteNodes(filesOrFolders, recursive, () => {
 							// refresh handled via model
 						});
 
 					} else {
 
-						_Entities.deleteNode(entity, true, () => {
+						_Entities.deleteNode(entity, entity.isFolder, () => {
 							// refresh handled via model
 						});
 					}
@@ -486,12 +487,7 @@ let _Files = {
 	},
 	refreshTree: () => {
 
-		// let selectedId = _Files.getFilesTree().jstree('get_selected');
-
 		_TreeHelper.refreshTree(_Files.getFilesTree(), () => {
-
-			// _Files.getFilesTree().jstree('deselect_all');
-			// _Files.getFilesTree().jstree('activate_node', selectedId);
 		});
 	},
 	treeInitFunction: (obj, callback) => {
