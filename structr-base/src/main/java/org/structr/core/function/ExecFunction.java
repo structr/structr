@@ -34,14 +34,16 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ExecFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(fileName [, parameters...]}. Example ${exec('my-script')}";
-	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{Structr.exec(fileName [, parameters...]}}. Example ${{Structr.exec('my-script')}}";
+	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(scriptConfigKey [, parameterArray [, logBehaviour ] ])} or ${exec(scriptConfigKey [, parameters... ])}. Example 1: ${exec('my-script', ['param1', 'param2'], 1)}. Example 2: ${exec('my-script', 'param1', 'param2')}";
+	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{ $.exec(scriptConfigKey  [, parameterArray [, logBehaviour ] ]); }} or ${{ $.exec(scriptConfigKey [, parameters... ]); }}. Example 1: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 1); }}. Example 2: ${{ $.exec('my-script', 'param1', 'param2'); }}";
 
 	public static final String SCRIPTS_FOLDER = "scripts";
 
@@ -52,7 +54,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "scriptName [, parameterMap ]";
+		return "scriptConfigKey  [, parameterArray [, logBehaviour ] ]";
 	}
 
 	@Override
@@ -98,23 +100,61 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 				} else {
 
-					final StringBuilder scriptBuilder = new StringBuilder(absolutePath);
+					final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), absolutePath);
+
 					if (sources.length > 1) {
 
-						for (int i = 1; i < sources.length; i++) {
-							if (sources[i] != null) {
+						final boolean isNewCallSignature = (sources[1] instanceof Collection<?>);
 
-								scriptBuilder.append(" ").append(sources[i].toString());
+						if (!isNewCallSignature) {
+
+							// use old behaviour
+							for (int i = 1; i < sources.length; i++) {
+
+								if (sources[i] != null) {
+
+									scriptingProcess.addParameter(sources[i].toString());
+								}
+							}
+
+						} else {
+
+							if (sources.length > 2) {
+
+								if (sources[2] instanceof Number) {
+
+									final int param3 = ((Number)sources[2]).intValue();
+
+									scriptingProcess.setLogBehaviour(param3);
+
+								} else {
+
+									logger.warn("{}(): If using a collection of parameters as second argument, the third argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", sources[2]);
+								}
+							}
+
+							final Collection params = (Collection)sources[1];
+
+							for (final Object p : params) {
+
+								if (p instanceof Map<?,?>) {
+
+									// must be Map { value: xxx, mask: bool }
+									scriptingProcess.addParameter((Map)p);
+
+								} else {
+
+									scriptingProcess.addParameter(p.toString());
+								}
 							}
 						}
 					}
 
 					final ExecutorService executorService = Executors.newSingleThreadExecutor();
-					final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), scriptBuilder.toString());
 
 					try {
 
-						return executorService.submit(process).get();
+						return executorService.submit(scriptingProcess).get();
 
 					} catch (InterruptedException | ExecutionException iex) {
 
@@ -151,28 +191,63 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Executes a script configured in structr.conf with the given script name and parameters, returning the output";
+		return "Executes a script configured in structr.conf with the given script name and parameters, returning the output. Parameters can either be given as a list of function parameters or as a collection of parameters. If a collection of parameters is provided as second parameter, the third parameter configures the logging behaviour for the command line (0: do not log command line, 1: log only full path to script, 2: log path to script and each parameter either unmasked or masked)";
 	}
 
 	private static class ScriptingProcess extends AbstractProcess<String> {
 
-		private final StringBuilder commandLine = new StringBuilder();
+		private static final String MASK_STRING = "***";
 
-		public ScriptingProcess(final SecurityContext securityContext, final String commandLine) {
+		private final StringBuilder cmdLineBuilder = new StringBuilder();
+		private final StringBuilder logLineBuilder = new StringBuilder();
+
+		public ScriptingProcess(final SecurityContext securityContext, final String scriptName) {
 
 			super(securityContext);
 
-			this.commandLine.append(commandLine);
+			this.cmdLineBuilder.append(scriptName);
+			this.logLineBuilder.append(scriptName);
 		}
 
 		@Override
 		public StringBuilder getCommandLine() {
-			return commandLine;
+			return cmdLineBuilder;
+		}
+
+		@Override
+		public StringBuilder getLogLine() {
+			return logLineBuilder;
 		}
 
 		@Override
 		public String processExited(final int exitCode) {
 			return outputStream();
+		}
+
+		private void addParameter(final String parameter) {
+			this.addParameter(parameter, false);
+		}
+
+		private void addParameter(final Map parameterConfig) {
+
+			final Object parameter = parameterConfig.get("value");
+
+			if (parameter == null) {
+
+				throw new ArgumentNullException();
+			}
+
+			this.addParameter(parameter.toString(), Boolean.TRUE.equals(parameterConfig.get("mask")));
+		}
+
+		private void addParameter(final String parameter, final boolean maskInLog) {
+
+			this.cmdLineBuilder.append(" ").append(parameter);
+
+			if (this.getLogBehaviour() == Settings.EXEC_FUNCTION_LOG_STYLE.CUSTOM) {
+
+				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : parameter);
+			}
 		}
 
 		@Override

@@ -41,8 +41,8 @@ import java.util.concurrent.Executors;
 
 public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec_binary(output, fileName [, parameters...]}";
-	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{Structr.exec_binary(output, fileName [, parameters...]}}";
+	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec_binary(outputStream, fileName [, parameters... ]}";
+	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{Structr.exec_binary(outputStream, fileName [, parameters... ]}}";
 
 	@Override
 	public String getName() {
@@ -51,7 +51,7 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "outputStream, scriptName [, parameterMap ]";
+		return "outputStream, scriptName [, parameters... ]";
 	}
 
 	@Override
