@@ -18,7 +18,7 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.traits.NodeTrait;
 
-public class CssSelector extends AbstractNode {
+public interface CssSelector extends NodeTrait {
 }

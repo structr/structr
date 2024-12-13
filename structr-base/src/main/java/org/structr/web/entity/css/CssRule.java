@@ -18,24 +18,7 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.*;
-import org.structr.web.entity.css.relationship.CssRuleCONTAINSCssRule;
-import org.structr.web.entity.css.relationship.CssRuleHAS_SELECTORCssSelector;
+import org.structr.core.traits.NodeTrait;
 
-public class CssRule extends AbstractNode {
-
-	public static final Property<Iterable<CssRule>> childRulesProperty = new EndNodes<>("childRules", CssRuleCONTAINSCssRule.class).partOfBuiltInSchema();
-	public static final Property<CssRule> parentRuleProperty           = new StartNode<>("parentRule", CssRuleCONTAINSCssRule.class).partOfBuiltInSchema();
-
-	public static final Property<Iterable<CssSelector>> selectorsProperty = new EndNodes<>("selectors", CssRuleHAS_SELECTORCssSelector.class).partOfBuiltInSchema();
-
-	public static final Property<String> cssTextProperty    = new StringProperty("cssText").indexed().partOfBuiltInSchema();
-	public static final Property<Integer>  ruleTypeProperty = new IntProperty("ruleType").indexed().partOfBuiltInSchema();
-
-	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
-		cssTextProperty, ruleTypeProperty, childRulesProperty, parentRuleProperty, selectorsProperty
-	);
+public interface CssRule extends NodeTrait {
 }

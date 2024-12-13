@@ -28,7 +28,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.entity.dom.relationship.DOMNodeCONTAINSDOMNode;
 
 import java.util.List;
 

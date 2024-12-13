@@ -16,9 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.css;
+package org.structr.web.traits.wrappers;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.web.entity.event.ActionMapping;
 
-public interface CssSemanticClass extends NodeTrait {
+public class ActionMappingTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ActionMapping {
+
+	public ActionMappingTraitWrapper(final Traits traits, final NodeInterface node) {
+		super(traits, node);
+	}
 }

@@ -57,10 +57,10 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.dom.relationship.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.property.MethodProperty;
+import org.structr.web.traits.relationships.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.*;
 

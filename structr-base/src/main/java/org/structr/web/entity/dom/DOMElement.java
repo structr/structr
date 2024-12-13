@@ -62,7 +62,6 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.relationship.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.entity.html.TemplateElement;
@@ -74,6 +73,9 @@ import org.structr.web.resource.LogoutResourceHandler;
 import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.resource.ResetPasswordResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
+import org.structr.web.traits.relationships.DOMElementINPUT_ELEMENTParameterMapping;
+import org.structr.web.traits.relationships.DOMElementRELOADSDOMElement;
+import org.structr.web.traits.relationships.DOMElementTRIGGERED_BYActionMapping;
 import org.w3c.dom.*;
 
 import java.util.*;

@@ -25,7 +25,7 @@ import org.structr.core.traits.Traits;
 
 public class MailTemplateTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements MailTemplate {
 
-	public MailTemplateTraitWrapper(Traits traits, NodeInterface wrappedObject) {
+	public MailTemplateTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
