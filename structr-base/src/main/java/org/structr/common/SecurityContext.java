@@ -469,7 +469,7 @@ public class SecurityContext {
 		return false;
 	}
 
-	public boolean isVisible(AccessControllable node) {
+	public boolean isVisible(final AccessControllable node) {
 
 		switch (accessMode) {
 

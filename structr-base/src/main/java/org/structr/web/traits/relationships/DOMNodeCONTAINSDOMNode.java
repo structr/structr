@@ -16,41 +16,67 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.definitions;
+package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.traits.wrappers.LinkSourceTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-/**
- * This class represents elements which can have an outgoing link to a resource.
- */
-public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
+public class DOMNodeCONTAINSDOMNode extends RelationshipTraitDefinition {
 
-	Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable").partOfBuiltInSchema();
-	Property<String> linkableIdProperty      = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
+	private static final Property<Integer> position  = new IntProperty("position");
 
-	/*
-	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,
-		linkableProperty, linkableIdProperty
-	);
-	*/
+	public DOMNodeCONTAINSDOMNode() {
+		super("DOMNodeCONTAINSDOMNode");
+	}
 
-	public LinkSourceTraitDefinition() {
-		super("LinkSource");
+	@Override
+	public String getSourceType() {
+		return "DOMNode";
+	}
+
+	@Override
+	public String getTargetType() {
+		return "DOMNode";
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "CONTAINS";
+	}
+
+	@Override
+	protected Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	protected Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	protected int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	protected int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	protected boolean isInternal() {
+		return false;
 	}
 
 	@Override
@@ -70,23 +96,14 @@ public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-			LinkSource.class, (traits, node) -> new LinkSourceTraitWrapper(traits, node)
-		);
+		return Map.of();
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
-			linkableProperty,
-			linkableIdProperty
+			position
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

@@ -26,13 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.traits.Traits;
 import org.structr.web.agent.ThumbnailTask;
 import org.structr.web.common.FileHelper;
@@ -219,34 +216,34 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 	public Image getExistingThumbnail(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
 		final Iterable<RelationshipInterface> thumbnailRelationships = wrappedObject.getOutgoingRelationships("ImageTHUMBNAILImage");
-		final List<String> deprecatedThumbnails                      = new ArrayList<>();
+		final Traits traits                                          = Traits.of("ImageTHUMBNAILImage");
+		final List<String> toRemove                                  = new ArrayList<>();
 
 		// Try to find an existing thumbnail that matches the specifications
 		if (thumbnailRelationships != null) {
 
 			for (final RelationshipInterface r : thumbnailRelationships) {
 
-				final Integer w = r.getProperty(new IntProperty("maxWidth"));
-				final Integer h = r.getProperty(new IntProperty("maxHeight"));
-				final Boolean c = r.getProperty(new BooleanProperty("cropToFit"));
+				final Integer w = r.getProperty(traits.key("maxWidth"));
+				final Integer h = r.getProperty(traits.key("maxHeight"));
+				final Boolean c = r.getProperty(traits.key("cropToFit"));
 
 				if (w != null && h != null) {
 
 					if ((w == maxWidth && h == maxHeight) && c == cropToFit) {
 
-						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
-						final Image thumbnail = (Image) r.getTargetNode();
-
-						final Long checksum = r.getProperty(StructrApp.key(Image.class, "checksum"));
+						final Image thumbnail = r.getTargetNode().as(Image.class);
+						final Long checksum   = r.getProperty(traits.key("checksum"));
 
 						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise.
 						// An empty checksum is probably only because the thumbnail generation task is not finished yet, so we assume everything is finde.
 						if (checksum == null || checksum.equals(getChecksum())) {
 
 							return thumbnail;
+
 						} else {
 
-							deprecatedThumbnails.add(thumbnail.getUuid());
+							toRemove.add(thumbnail.getUuid());
 						}
 					}
 				}
@@ -255,16 +252,16 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		}
 
 		// Queue deprecated thumbnails to be removed
-		if (deprecatedThumbnails.size() > 0) {
+		if (toRemove.size() > 0) {
 
-			TransactionCommand.queuePostProcessProcedure(() -> deleteDeprecatedThumbnails(deprecatedThumbnails));
+			TransactionCommand.queuePostProcessProcedure(() -> deleteObsoleteThumbnails(toRemove));
 		}
 
 		return null;
 	}
 
 	// ----- private methods -----
-	private static void deleteDeprecatedThumbnails(final List<String> thumbnailUuids) {
+	private static void deleteObsoleteThumbnails(final List<String> thumbnailUuids) {
 
 		final App app       = StructrApp.getInstance();
 		final Logger logger = LoggerFactory.getLogger(Image.class);

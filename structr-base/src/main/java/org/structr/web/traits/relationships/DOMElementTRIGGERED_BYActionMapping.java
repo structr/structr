@@ -16,41 +16,63 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.definitions;
+package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.traits.wrappers.LinkSourceTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-/**
- * This class represents elements which can have an outgoing link to a resource.
- */
-public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
+public class DOMElementTRIGGERED_BYActionMapping extends RelationshipTraitDefinition {
 
-	Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable").partOfBuiltInSchema();
-	Property<String> linkableIdProperty      = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
+	public DOMElementTRIGGERED_BYActionMapping() {
+		super("DOMElementTRIGGERED_BYActionMapping");
+	}
 
-	/*
-	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,
-		linkableProperty, linkableIdProperty
-	);
-	*/
+	@Override
+	public String getSourceType() {
+		return "DOMElement";
+	}
 
-	public LinkSourceTraitDefinition() {
-		super("LinkSource");
+	@Override
+	public String getTargetType() {
+		return "ActionMapping";
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "TRIGGERED_BY";
+	}
+
+	@Override
+	protected Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	protected Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	protected int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	protected int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	protected boolean isInternal() {
+		return false;
 	}
 
 	@Override
@@ -70,23 +92,11 @@ public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-			LinkSource.class, (traits, node) -> new LinkSourceTraitWrapper(traits, node)
-		);
+		return Map.of();
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
-
-		return Set.of(
-			linkableProperty,
-			linkableIdProperty
-		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
+		return Set.of();
 	}
 }

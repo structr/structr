@@ -20,8 +20,7 @@ package org.structr.web.traits.definitions;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
@@ -29,28 +28,24 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.traits.wrappers.LinkSourceTraitWrapper;
+import org.structr.web.entity.css.CssSemanticClass;
+import org.structr.web.traits.wrappers.CssSemanticClassTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-/**
- * This class represents elements which can have an outgoing link to a resource.
- */
-public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
+public class CssSemanticClassTraitDefinition extends AbstractTraitDefinition {
 
-	Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable").partOfBuiltInSchema();
-	Property<String> linkableIdProperty      = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
+	public static final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes("selectors", "CssSemanticClassMAPS_TOCssSelector").partOfBuiltInSchema();
 
 	/*
-	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,
-		linkableProperty, linkableIdProperty
+	public static final View uiView = new View(CssSemanticClass.class, PropertyView.Ui,
+		selectorsProperty
 	);
 	*/
 
-	public LinkSourceTraitDefinition() {
-		super("LinkSource");
+	public CssSemanticClassTraitDefinition() {
+		super("CssSemanticClass");
 	}
 
 	@Override
@@ -72,7 +67,7 @@ public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			LinkSource.class, (traits, node) -> new LinkSourceTraitWrapper(traits, node)
+			CssSemanticClass.class, (traits, node) -> new CssSemanticClassTraitWrapper(traits, node)
 		);
 	}
 
@@ -80,8 +75,7 @@ public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
-			linkableProperty,
-			linkableIdProperty
+			selectorsProperty
 		);
 	}
 

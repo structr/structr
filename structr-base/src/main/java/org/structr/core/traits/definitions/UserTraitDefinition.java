@@ -25,9 +25,6 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.relationship.ImagePICTURE_OFUser;
-import org.structr.web.entity.relationship.UserHOME_DIRFolder;
-import org.structr.web.entity.relationship.UserWORKING_DIRFolder;
 
 import java.util.Map;
 import java.util.Set;

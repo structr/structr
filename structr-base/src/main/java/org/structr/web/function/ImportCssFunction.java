@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -118,6 +119,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		// Check if rule already exists and skip if yes
 		final String cssText         = rule.getCssText();
 		final String selectorsString = StringUtils.trim(StringUtils.substringBefore(cssText, "{"));
+		final Traits traits          = Traits.of("CssRule");
 		final App app                = StructrApp.getInstance();
 
 		final NodeInterface existingRuleNode = (NodeInterface) app.nodeQuery("CssRule").andName(selectorsString).getFirst();
@@ -126,10 +128,10 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		}
 
 		// Create node for CSS rule
-		final NodeInterface cssRuleNode = app.create(CssRule.class, selectorsString);
+		final NodeInterface cssRuleNode = app.create("CssRule", selectorsString);
 
-		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"cssText"), cssText);
-		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"ruleType"), Short.toUnsignedInt(rule.getType()));
+		cssRuleNode.setProperty(traits.key("cssText"), cssText);
+		cssRuleNode.setProperty(traits.key("ruleType"), Short.toUnsignedInt(rule.getType()));
 
 		// Extract and link selectors
 		final List<NodeInterface> cssSelectors = new LinkedList<>();
@@ -137,11 +139,11 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 		for (final String selector : selectors) {
 
-			final NodeInterface cssSelectorNode = app.create(CssSelector.class, StringUtils.trim(selector));
+			final NodeInterface cssSelectorNode = app.create("CssSelector", StringUtils.trim(selector));
 			cssSelectors.add(cssSelectorNode);
 		}
 
-		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"selectors"), cssSelectors);
+		cssRuleNode.setProperty(traits.key("selectors"), cssSelectors);
 
 		// Extract and link declarations
 		final List<NodeInterface> cssDeclarations = new LinkedList<>();
@@ -152,19 +154,19 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			if (StringUtils.isNotBlank(declaration)) {
 
-				final NodeInterface cssDeclarationNode = app.create(CssDeclaration.class, StringUtils.trim(declaration));
+				final NodeInterface cssDeclarationNode = app.create("CssDeclaration", StringUtils.trim(declaration));
 				cssDeclarations.add(cssDeclarationNode);
 			}
 		}
 
-		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"declarations"), cssDeclarations);
+		cssRuleNode.setProperty(traits.key("declarations"), cssDeclarations);
 
 		// Import and link parent rule
-		CSSRule parentRule = rule.getParentRule();
+		final CSSRule parentRule = rule.getParentRule();
 		if (parentRule != null) {
 
 			final NodeInterface parentRuleNode = importCSSRule(parentRule);
-			cssRuleNode.setProperty(StructrApp.key(CssRule.class,"parentRule"), parentRuleNode);
+			cssRuleNode.setProperty(traits.key("parentRule"), parentRuleNode);
 		}
 
 		return cssRuleNode;

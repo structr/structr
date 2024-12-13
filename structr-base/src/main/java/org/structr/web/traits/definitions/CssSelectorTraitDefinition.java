@@ -19,38 +19,22 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.traits.wrappers.LinkSourceTraitWrapper;
+import org.structr.web.entity.css.CssSelector;
+import org.structr.web.traits.wrappers.CssSelectorTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-/**
- * This class represents elements which can have an outgoing link to a resource.
- */
-public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
+public class CssSelectorTraitDefinition extends AbstractTraitDefinition {
 
-	Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable").partOfBuiltInSchema();
-	Property<String> linkableIdProperty      = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
-
-	/*
-	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,
-		linkableProperty, linkableIdProperty
-	);
-	*/
-
-	public LinkSourceTraitDefinition() {
-		super("LinkSource");
+	public CssSelectorTraitDefinition() {
+		super("CssSelector");
 	}
 
 	@Override
@@ -72,17 +56,13 @@ public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			LinkSource.class, (traits, node) -> new LinkSourceTraitWrapper(traits, node)
+			CssSelector.class, (traits, node) -> new CssSelectorTraitWrapper(traits, node)
 		);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
-
-		return Set.of(
-			linkableProperty,
-			linkableIdProperty
-		);
+		return Set.of();
 	}
 
 	@Override
