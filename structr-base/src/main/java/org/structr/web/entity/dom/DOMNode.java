@@ -238,4 +238,21 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 
 		return null;
 	}
+
+	static String indent(final int depth, final RenderContext renderContext) {
+
+		if (!renderContext.shouldIndentHtml()) {
+			return "";
+		}
+
+		StringBuilder indent = new StringBuilder("\n");
+
+		for (int d = 0; d < depth; d++) {
+
+			indent.append("	");
+
+		}
+
+		return indent.toString();
+	}
 }

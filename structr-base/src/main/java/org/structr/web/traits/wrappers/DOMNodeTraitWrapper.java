@@ -756,23 +756,6 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		}
 	}
 
-	static String indent(final int depth, final RenderContext renderContext) {
-
-		if (!renderContext.shouldIndentHtml()) {
-			return "";
-		}
-
-		StringBuilder indent = new StringBuilder("\n");
-
-		for (int d = 0; d < depth; d++) {
-
-			indent.append("	");
-
-		}
-
-		return indent.toString();
-	}
-
 	static void logScriptingError (final Logger logger, final Throwable t, String message,  Object... arguments) {
 
 		if (t instanceof UnlicensedScriptException) {
@@ -1223,6 +1206,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
+	public boolean hasSharedComponent() {
+		return false;
+	}
+
+	@Override
 	public int getChildPosition(final DOMNode otherNode) {
 
 		final LinkedTreeNode node = wrappedObject.as(LinkedTreeNode.class);
@@ -1367,7 +1355,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	@Override
 	public void updateFromNode(final DOMNode otherNode) throws FrameworkException {
-
+		traits.getMethod(UpdateFromNode.class).updateFromNode(wrappedObject, otherNode);
 	}
 
 	@Override

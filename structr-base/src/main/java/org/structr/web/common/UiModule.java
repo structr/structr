@@ -106,6 +106,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("CssSemanticClass",                 new CssSemanticClassTraitDefinition());
 		StructrTraits.registerNodeType("CssDeclaration",                   new CssDeclarationTraitDefinition());
 		StructrTraits.registerNodeType("DOMNode",                          new DOMNodeTraitDefinition());
+		StructrTraits.registerNodeType("DOMElement",                       new DOMNodeTraitDefinition(), new DOMElementTraitDefinition());
 		StructrTraits.registerNodeType("File",                             new AbstractFileTraitDefinition(), new FileTraitDefinition(), new LinkableTraitDefinition());
 		StructrTraits.registerNodeType("Image",                            new AbstractFileTraitDefinition(), new FileTraitDefinition(), new ImageTraitDefinition(), new LinkableTraitDefinition());
 		StructrTraits.registerNodeType("Folder",                           new AbstractFileTraitDefinition(), new FolderTraitDefinition());
