@@ -41,7 +41,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	private StreamReader stdErr               = null;
 	private int exitCode                      = -1;
 
-	private Settings.EXEC_FUNCTION_LOG_STYLE logBehaviour = Settings.EXEC_FUNCTION_LOG_STYLE.get(Settings.LogExecCommandLine.getValue());
+	private Settings.SCRIPT_PROCESS_LOG_STYLE logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(Settings.LogScriptProcessCommandLine.getValue());
 
 	public AbstractProcess(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
@@ -56,7 +56,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	}
 
 	private boolean shouldLogCommandWhenExecuting() {
-		return (getLogBehaviour() != Settings.EXEC_FUNCTION_LOG_STYLE.NOTHING);
+		return (getLogBehaviour() != Settings.SCRIPT_PROCESS_LOG_STYLE.NOTHING);
 	}
 
 	@Override
@@ -121,10 +121,10 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	}
 
 	public void setLogBehaviour(final int logBehaviour) {
-		this.logBehaviour = Settings.EXEC_FUNCTION_LOG_STYLE.get(logBehaviour);
+		this.logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(logBehaviour);
 	}
 
-	public Settings.EXEC_FUNCTION_LOG_STYLE getLogBehaviour() {
+	public Settings.SCRIPT_PROCESS_LOG_STYLE getLogBehaviour() {
 		return this.logBehaviour;
 	}
 }

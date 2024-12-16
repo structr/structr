@@ -276,7 +276,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 			this.cmdLineBuilder.append(" ").append(safeParam);
 
-			if (this.getLogBehaviour() == Settings.EXEC_FUNCTION_LOG_STYLE.CUSTOM) {
+			if (this.getLogBehaviour() == Settings.SCRIPT_PROCESS_LOG_STYLE.CUSTOM) {
 
 				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : safeParam);
 			}
