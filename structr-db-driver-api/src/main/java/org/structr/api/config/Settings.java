@@ -33,8 +33,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.lang.System.*;
-
 /**
  * The Structr configuration settings.
  */
