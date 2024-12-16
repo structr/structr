@@ -24,7 +24,7 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
-import static org.structr.core.traits.definitions.GraphObjectTraitDefinition.SYSTEM_CATEGORY;
+import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
 public abstract class RelationshipTraitDefinition extends AbstractTraitDefinition {
 

@@ -43,18 +43,15 @@ import java.util.*;
 
 public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 
-	static final String SYSTEM_CATEGORY     = "System";
-	private static final String VISIBILITY_CATEGORY = "Visibility";
-
 	private static final PropertyKey<String> baseProperty                  = new StringProperty("base").partOfBuiltInSchema();
-	private static final PropertyKey<String> typeProperty                  = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	private static final PropertyKey<String> idProperty                    = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	private static final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<String> createdByProperty             = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<String> typeProperty                  = new TypeProperty().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY);
+	private static final PropertyKey<String> idProperty                    = new UuidProperty().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY);
+	private static final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<String> createdByProperty             = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+	private static final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
 	public GraphObjectTraitDefinition() {
 		super("GraphObject");

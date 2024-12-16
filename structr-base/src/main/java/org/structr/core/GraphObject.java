@@ -51,6 +51,9 @@ import java.util.Set;
  */
 public interface GraphObject {
 
+	String SYSTEM_CATEGORY     = "System";
+	String VISIBILITY_CATEGORY = "Visibility";
+
 	Traits getTraits();
 
 	String getType();

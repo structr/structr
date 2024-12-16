@@ -52,13 +52,13 @@ public class StructuredTextNode extends AbstractNode implements LinkedTreeNode<S
 
 	// ----- abstract method implementations -----
 	@Override
-	public <R extends Relation<StructuredTextNode, StructuredTextNode, OneStartpoint<StructuredTextNode>, ManyEndpoint<StructuredTextNode>>> Class<R> getChildLinkType() {
-		return (Class<R>) StructuredTextNodeCONTAINSStructuredTextNode.class;
+	public String getChildLinkType() {
+		return "StructuredTextNodeCONTAINSStructuredTextNode";
 	}
 
 	@Override
-	public <R extends Relation<StructuredTextNode, StructuredTextNode, OneStartpoint<StructuredTextNode>, OneEndpoint<StructuredTextNode>>> Class<R> getSiblingLinkType() {
-		return (Class<R>) StructuredTextNodeNEXTStructuredTextNode.class;
+	public String getSiblingLinkType() {
+		return "StructuredTextNodeNEXTStructuredTextNode";
 	}
 
 	@Override

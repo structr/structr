@@ -16,17 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.web.traits.operations;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-/**
- * This class represents elements which can have an outgoing link to a resource.
- */
-public interface LinkSource extends NodeTrait {
+public abstract class IsVoidElement extends FrameworkMethod<Boolean> {
 
-	Linkable getLinkable();
-	Object setLinkable(final Linkable linkable) throws FrameworkException;
+	public abstract boolean isVoidElement();
 }

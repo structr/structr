@@ -23,6 +23,7 @@ import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
@@ -104,6 +105,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("CssSelector",                      new CssSelectorTraitDefinition());
 		StructrTraits.registerNodeType("CssSemanticClass",                 new CssSemanticClassTraitDefinition());
 		StructrTraits.registerNodeType("CssDeclaration",                   new CssDeclarationTraitDefinition());
+		StructrTraits.registerNodeType("DOMNode",                          new DOMNodeTraitDefinition());
 		StructrTraits.registerNodeType("File",                             new AbstractFileTraitDefinition(), new FileTraitDefinition(), new LinkableTraitDefinition());
 		StructrTraits.registerNodeType("Image",                            new AbstractFileTraitDefinition(), new FileTraitDefinition(), new ImageTraitDefinition(), new LinkableTraitDefinition());
 		StructrTraits.registerNodeType("Folder",                           new AbstractFileTraitDefinition(), new FolderTraitDefinition());

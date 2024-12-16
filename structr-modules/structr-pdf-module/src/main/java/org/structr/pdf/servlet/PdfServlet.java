@@ -38,7 +38,6 @@ import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.command.AbstractCommand;

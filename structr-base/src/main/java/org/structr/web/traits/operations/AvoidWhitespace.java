@@ -16,14 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.web.traits.operations;
 
-/**
- * Helper interface for entities that return a string describing the context
- * in which they exist in the database.
- */
+import org.structr.core.traits.operations.FrameworkMethod;
 
-public interface ContextAwareEntity {
-	
-	String getEntityContextPath();
+public abstract class AvoidWhitespace extends FrameworkMethod<Boolean> {
+
+	public abstract boolean avoidWhitespace();
 }

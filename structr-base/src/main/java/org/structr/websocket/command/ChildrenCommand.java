@@ -20,16 +20,12 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Direction;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.IterableAdapter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -38,9 +34,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-
-import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given node.

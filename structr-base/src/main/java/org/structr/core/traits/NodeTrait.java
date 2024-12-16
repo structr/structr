@@ -1,11 +1,13 @@
 package org.structr.core.traits;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
 public interface NodeTrait {
 
 	NodeInterface getWrappedNode();
+	SecurityContext getSecurityContext();
 
 	String getUuid();
 	String getType();
