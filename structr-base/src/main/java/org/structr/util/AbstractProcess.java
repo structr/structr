@@ -85,7 +85,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 				stdOut.start();
 				stdErr.start();
 
-				exitCode = proc.waitFor();
+				setExitCode(proc.waitFor());
 			}
 
 		} catch (IOException | InterruptedException ex) {
@@ -96,9 +96,9 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 		running.set(false);
 
 		// debugging output
-		if (exitCode != 0) {
+		if (exitCode() != 0) {
 
-			logger.warn("Process {} exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode, stdErr.getBuffer());
+			logger.warn("Process {} exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr.getBuffer());
 		}
 
 		return processExited(exitCode);
@@ -112,8 +112,12 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 		return stdErr.getBuffer();
 	}
 
-	protected int exitCode() {
+	private int exitCode() {
 		return exitCode;
+	}
+
+	private void setExitCode(final int exitCode) {
+		this.exitCode = exitCode;
 	}
 
 	public void setLogBehaviour(final int logBehaviour) {

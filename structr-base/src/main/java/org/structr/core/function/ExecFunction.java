@@ -42,8 +42,8 @@ import java.util.concurrent.Executors;
 
 public class ExecFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(scriptConfigKey [, parameterArray [, logBehaviour ] ])} or ${exec(scriptConfigKey [, parameters... ])}. Example 1: ${exec('my-script', ['param1', 'param2'], 1)}. Example 2: ${exec('my-script', 'param1', 'param2')}";
-	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{ $.exec(scriptConfigKey  [, parameterArray [, logBehaviour ] ]); }} or ${{ $.exec(scriptConfigKey [, parameters... ]); }}. Example 1: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 1); }}. Example 2: ${{ $.exec('my-script', 'param1', 'param2'); }}";
+	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(scriptConfigKey [, parameterArray [, logBehaviour ] ])}. Example: ${exec('my-script', ['param1', 'param2'], 1)}";
+	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{ $.exec(scriptConfigKey  [, parameterArray [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
 
 	public static final String SCRIPTS_FOLDER = "scripts";
 
@@ -54,7 +54,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "scriptConfigKey  [, parameterArray [, logBehaviour ] ]";
+		return "scriptConfigKey [, parameterArray [, logBehaviour ] ]";
 	}
 
 	@Override
@@ -64,106 +64,79 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			final String scriptKey              = sources[0].toString();
-			final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
+			final String sanityCheckedAbsolutePathOrNull = getSanityCheckedPathForScriptSetting(sources[0].toString());
 
-			if (scriptSetting == null) {
+			if (sanityCheckedAbsolutePathOrNull != null) {
 
-				logger.warn("{}(): No script found for key '{}' in structr.conf, nothing executed.", getName(), scriptKey);
+				final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), sanityCheckedAbsolutePathOrNull);
 
-			} else if (!scriptSetting.isDynamic()) {
+				if (sources.length > 1) {
 
-				logger.warn("{}(): Key '{}' in structr.conf is builtin. This is not allowed, nothing executed.", getName(), scriptKey);
+					final boolean isNewCallSignature = (sources[1] instanceof Collection<?>);
 
-			} else {
+					if (!isNewCallSignature) {
 
-				final String scriptName              = scriptSetting.getValue();
-				final Path scriptPath                = Paths.get(SCRIPTS_FOLDER.concat(File.separator).concat(scriptName));
-				final String absolutePath            = scriptPath.toAbsolutePath().toString();
-				final String canonicalPath           = scriptPath.toFile().getCanonicalPath();
+						logger.warn("{}(): Deprecation Warning: The call signature for this method has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getSignature());
 
-				final boolean pathExists        = Files.exists(scriptPath);
-				final boolean pathIsRegularFile = Files.isRegularFile(scriptPath, LinkOption.NOFOLLOW_LINKS);
-				final boolean pathIsAllowed     = absolutePath.equals(canonicalPath);
+						for (int i = 1; i < sources.length; i++) {
 
-				if (!pathExists) {
+							if (sources[i] != null) {
 
-					logger.warn("{}(): No file found for script key '{}' = '{}' ({}), nothing executed.", getName(), scriptKey, scriptName, absolutePath);
-
-				} else if (!pathIsRegularFile) {
-
-					logger.warn("{}(): Script key '{}' = '{}' points to script file '{}' which is either not a file (or a symlink) and not allowed, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
-
-				} else if (!pathIsAllowed) {
-
-					logger.warn("{}(): Script key '{}' = '{}' resolves to '{}' which seems to contain a directory traversal attack, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
-
-				} else {
-
-					final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), absolutePath);
-
-					if (sources.length > 1) {
-
-						final boolean isNewCallSignature = (sources[1] instanceof Collection<?>);
-
-						if (!isNewCallSignature) {
-
-							// use old behaviour
-							for (int i = 1; i < sources.length; i++) {
-
-								if (sources[i] != null) {
-
-									scriptingProcess.addParameter(sources[i].toString());
-								}
+								scriptingProcess.addParameter(sources[i].toString());
 							}
+						}
 
-						} else {
+					} else {
 
-							if (sources.length > 2) {
+						if (sources.length > 2) {
 
-								if (sources[2] instanceof Number) {
+							if (sources[2] instanceof Number) {
 
-									final int param3 = ((Number)sources[2]).intValue();
+								final int logBehavior = ((Number)sources[2]).intValue();
 
-									scriptingProcess.setLogBehaviour(param3);
+								scriptingProcess.setLogBehaviour(logBehavior);
 
-								} else {
+							} else {
 
-									logger.warn("{}(): If using a collection of parameters as second argument, the third argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", sources[2]);
-								}
+								logger.warn("{}(): If using a collection of parameters as second argument, the third argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", sources[2]);
 							}
+						}
 
-							final Collection params = (Collection)sources[1];
+						final Collection params = (Collection)sources[1];
 
-							for (final Object p : params) {
+						for (final Object param : params) {
 
-								if (p instanceof Map<?,?>) {
+							if (param instanceof Map<?,?>) {
 
-									// must be Map { value: xxx, mask: bool }
-									scriptingProcess.addParameter((Map)p);
+								scriptingProcess.addParameter((Map)param);
 
-								} else {
+							} else {
 
-									scriptingProcess.addParameter(p.toString());
+								if (param == null) {
+
+									throw new ArgumentNullException();
 								}
+
+								scriptingProcess.addParameter(param.toString());
 							}
 						}
 					}
+				}
 
-					final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-					try {
+				final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-						return executorService.submit(scriptingProcess).get();
+				try {
 
-					} catch (InterruptedException | ExecutionException iex) {
+					return executorService.submit(scriptingProcess).get();
 
-						logException(caller, iex, sources);
+				} catch (InterruptedException | ExecutionException iex) {
 
-					} finally {
+					logException(caller, iex, sources);
 
-						executorService.shutdown();
-					}
+				} finally {
+
+					executorService.shutdown();
 				}
 			}
 
@@ -191,10 +164,55 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Executes a script configured in structr.conf with the given script name and parameters, returning the output. Parameters can either be given as a list of function parameters or as a collection of parameters. If a collection of parameters is provided as second parameter, the third parameter configures the logging behaviour for the command line (0: do not log command line, 1: log only full path to script, 2: log path to script and each parameter either unmasked or masked)";
+		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked.";
 	}
 
-	private static class ScriptingProcess extends AbstractProcess<String> {
+	protected String getSanityCheckedPathForScriptSetting(final String scriptKey) throws IOException {
+
+		final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
+
+		if (scriptSetting == null) {
+
+			logger.warn("{}(): No script found for key '{}' in structr.conf, nothing executed.", getName(), scriptKey);
+
+		} else if (!scriptSetting.isDynamic()) {
+
+			logger.warn("{}(): Key '{}' in structr.conf is builtin. This is not allowed, nothing executed.", getName(), scriptKey);
+
+		} else {
+
+			final String scriptName              = scriptSetting.getValue();
+			final Path scriptPath                = Paths.get(SCRIPTS_FOLDER.concat(File.separator).concat(scriptName));
+			final String absolutePath            = scriptPath.toAbsolutePath().toString();
+			final String canonicalPath           = scriptPath.toFile().getCanonicalPath();
+
+			final boolean pathExists        = Files.exists(scriptPath);
+			final boolean pathIsRegularFile = Files.isRegularFile(scriptPath, LinkOption.NOFOLLOW_LINKS);
+			final boolean pathIsAllowed     = absolutePath.equals(canonicalPath);
+
+			if (!pathExists) {
+
+				logger.warn("{}(): No file found for script key '{}' = '{}' ({}), nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+
+			} else if (!pathIsRegularFile) {
+
+				logger.warn("{}(): Script key '{}' = '{}' points to script file '{}' which is either not a file (or a symlink) and not allowed, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+
+			} else if (!pathIsAllowed) {
+
+				logger.warn("{}(): Script key '{}' = '{}' resolves to '{}' which seems to contain a directory traversal attack, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+
+			} else {
+
+				return absolutePath;
+//				return absolutePath.replaceAll(" ", "\\\\ ");
+			}
+		}
+
+		return null;
+	}
+
+	protected static class ScriptingProcess extends AbstractProcess<String> {
 
 		private static final String MASK_STRING = "***";
 
@@ -205,7 +223,9 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 			super(securityContext);
 
-			this.cmdLineBuilder.append(scriptName);
+			// put quotes around full path for script to allow for spaces etc.
+			this.cmdLineBuilder.append("\"" + scriptName + "\"");
+
 			this.logLineBuilder.append(scriptName);
 		}
 
@@ -230,23 +250,35 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		private void addParameter(final Map parameterConfig) {
 
-			final Object parameter = parameterConfig.get("value");
+			final Object parameter     = parameterConfig.get("value");
+			final Object maskParameter = parameterConfig.get("mask");
 
 			if (parameter == null) {
+
+//				logger.warn("exec(): Critical: Expected attribute 'value' to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true })");
 
 				throw new ArgumentNullException();
 			}
 
-			this.addParameter(parameter.toString(), Boolean.TRUE.equals(parameterConfig.get("mask")));
+			if (maskParameter == null) {
+
+				logger.info("exec(): Expected 'mask' attribute to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true }). Assuming 'mask = false'");
+			}
+
+			this.addParameter(parameter.toString(), Boolean.TRUE.equals(maskParameter));
 		}
 
 		private void addParameter(final String parameter, final boolean maskInLog) {
 
-			this.cmdLineBuilder.append(" ").append(parameter);
+			// put quotes around full path for script to allow for spaces etc.
+			// also escape quotes in the parameter to not break the quoting
+			final String safeParam = "\"" + parameter.replaceAll("\"", "\\\\\"") + "\"";
+
+			this.cmdLineBuilder.append(" ").append(safeParam);
 
 			if (this.getLogBehaviour() == Settings.EXEC_FUNCTION_LOG_STYLE.CUSTOM) {
 
-				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : parameter);
+				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : safeParam);
 			}
 		}
 
