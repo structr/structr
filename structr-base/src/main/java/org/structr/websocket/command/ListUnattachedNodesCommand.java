@@ -23,25 +23,17 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.*;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-
-import org.structr.common.helper.PagingHelper;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent

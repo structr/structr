@@ -29,6 +29,7 @@ import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
@@ -53,7 +54,8 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		final PropertyKey<String> key     = StructrApp.key(referenceNode.getClass(), propertyName);
+		final Traits traits               = referenceNode.getTraits();
+		final PropertyKey<String> key     = traits.key(propertyName);
 
 		final String functionQuery = referenceNode.getProperty(key);
 		if (StringUtils.isBlank(functionQuery)) {

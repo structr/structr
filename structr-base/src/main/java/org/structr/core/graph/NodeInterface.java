@@ -83,11 +83,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	Map<String, Object> getTemporaryStorage();
 
-	default void visitForUsage(final Map<String, Object> data) {
-
-		data.put("id",   getUuid());
-		data.put("type", getClass().getSimpleName());
-	}
+	void visitForUsage(final Map<String, Object> data);
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 

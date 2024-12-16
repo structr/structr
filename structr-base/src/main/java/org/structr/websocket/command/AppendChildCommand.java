@@ -29,8 +29,6 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
-import java.util.Set;
-
 public class AppendChildCommand extends AbstractCommand {
 
 	static {

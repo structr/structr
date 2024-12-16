@@ -29,7 +29,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import java.util.Map;
 import java.util.Set;
 
-import static org.structr.core.traits.definitions.GraphObjectTraitDefinition.SYSTEM_CATEGORY;
+import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
 /**
  */

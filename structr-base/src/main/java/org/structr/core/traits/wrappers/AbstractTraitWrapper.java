@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.Traits;
@@ -31,6 +32,10 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 
 		this.wrappedObject = wrappedObject;
 		this.traits        = traits;
+	}
+
+	public SecurityContext getSecurityContext() {
+		return wrappedObject.getSecurityContext();
 	}
 
 	public String getUuid() {

@@ -37,10 +37,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.operations.accesscontrollable.*;
-import org.structr.core.traits.operations.nodeinterface.GetRelationships;
-import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
-import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
-import org.structr.core.traits.operations.nodeinterface.OnNodeInstantiation;
+import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -488,6 +485,11 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 		}
 
 		return tmpStorageContainer;
+	}
+
+	@Override
+	public void visitForUsage(final Map<String, Object> data) {
+		typeHandler.getMethod(VisitForUsage.class).visitForUsage(this, data);
 	}
 
 	protected boolean isGenericNode() {
