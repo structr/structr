@@ -19,16 +19,20 @@
 package org.structr.web.entity.dom;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.servlet.HtmlServlet;
+import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.event.ActionMapping;
+import org.structr.web.entity.event.ParameterMapping;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 
-import java.util.Set;
+import java.util.Map;
 
-public interface DOMElement extends DOMNode, Element {
+public interface DOMElement extends DOMNode, DOMImportable, Element, NamedNodeMap {
 
-	final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
-	Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
+	String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 
 	String lowercaseBodyName = "body";
 
@@ -46,9 +50,58 @@ public interface DOMElement extends DOMNode, Element {
 	String getTag();
 	String getEventMapping();
 	String getRenderingMode();
+	String getDelayOrInterval();
+	String getDataReloadTarget();
 
-	boolean hasSharedComponent();
+	boolean isManualReloadTarget();
+	Iterable<DOMElement> getReloadSources();
 
 	Iterable<PropertyKey> getHtmlAttributes();
+	Iterable<String> getHtmlAttributeNames();
 
+	void openingTag(final AsyncBuffer out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
+
+	boolean isInsertable();
+	boolean isFromWidget();
+
+	Iterable<ActionMapping> getTriggeredActions();
+	Iterable<ParameterMapping> getParameterMappings();
+
+	Map<String, Object> getMappedEvents();
+
+	String getOffsetAttributeName(final String name, final int offset);
+
+	static int intOrOne(final String source) {
+
+		if (source != null) {
+
+			try {
+
+				return Integer.valueOf(source);
+
+			} catch (Throwable t) {
+			}
+		}
+
+		return 1;
+	}
+
+	static String toHtmlAttributeName(final String camelCaseName) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		camelCaseName.chars().forEach(c -> {
+
+			if (Character.isUpperCase(c)) {
+
+				buf.append("-");
+				c = Character.toLowerCase(c);
+
+			}
+
+			buf.append(Character.toString(c));
+		});
+
+		return buf.toString();
+	}
 }

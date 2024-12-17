@@ -16,30 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.event;
+package org.structr.web.traits.operations;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMElement;
 
-public interface ActionMapping extends NodeTrait {
+public abstract class OpeningTag extends FrameworkMethod<OpeningTag> {
 
-	String getOptions();
-
-	String getAction();
-	String getDialogType();
-
-	Iterable<ParameterMapping> getParameterMappings();
-
-	String getSuccessNotifications();
-	String getSuccessBehaviour();
-	String getSuccessNotificationsPartial();
-	String getSuccessNotificationsEvent();
-	Integer getSuccessNotificationsDelay();
-
-	String getFailureNotifications();
-	String getFailureBehaviour();
-	String getFailureNotificationsPartial();
-	String getFailureNotificationsEvent();
-	Integer getFailureNotificationsDelay();
-
+	public abstract void openingTag(final DOMElement node, final AsyncBuffer out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
 }

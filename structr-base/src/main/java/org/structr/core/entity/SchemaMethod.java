@@ -12,7 +12,7 @@ public interface SchemaMethod extends NodeTrait {
 	String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
 
 	NodeInterface getSchemaNode();
-	Iterable<NodeInterface> getParameters();
+	Iterable<SchemaMethodParameter> getParameters();
 	String getName();
 	String getSource();
 	String getSummary();
@@ -40,7 +40,7 @@ public interface SchemaMethod extends NodeTrait {
 
 	HttpVerb getHttpVerb();
 
-	NodeInterface getSchemaMethodParameter(final String name);
+	SchemaMethodParameter getSchemaMethodParameter(final String name);
 
 	enum HttpVerb {
 		GET, PUT, POST, PATCH, DELETE

@@ -16,30 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.event;
+package org.structr.web.traits.operations;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.w3c.dom.NamedNodeMap;
 
-public interface ActionMapping extends NodeTrait {
+import java.util.List;
 
-	String getOptions();
+public abstract class GetAttributes extends FrameworkMethod<GetAttributes> {
 
-	String getAction();
-	String getDialogType();
+	public abstract NamedNodeMap getAttributes(final DOMNode node);
+	public abstract boolean hasAttributes(final DOMNode node);
+	public abstract int getLength(final DOMNode node);
 
-	Iterable<ParameterMapping> getParameterMappings();
-
-	String getSuccessNotifications();
-	String getSuccessBehaviour();
-	String getSuccessNotificationsPartial();
-	String getSuccessNotificationsEvent();
-	Integer getSuccessNotificationsDelay();
-
-	String getFailureNotifications();
-	String getFailureBehaviour();
-	String getFailureNotificationsPartial();
-	String getFailureNotificationsEvent();
-	Integer getFailureNotificationsDelay();
-
+	public abstract Iterable<PropertyKey> getHtmlAttributes(final DOMElement element);
+	public abstract List<String> getHtmlAttributeNames(final DOMElement element);
 }

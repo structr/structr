@@ -16,20 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core;
+package org.structr.web.traits.operations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.entity.dom.DOMNode;
+import org.w3c.dom.Node;
 
-/**
- * Marker to indicate that the method annotated
- * with this class is callable directly via REST.
- */
+public abstract class ContentEquals extends FrameworkMethod<ContentEquals> {
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Export {
-	public String schemaMethodId() default "";
+	public abstract boolean contentEquals(final DOMNode elem, final Node node);
 }

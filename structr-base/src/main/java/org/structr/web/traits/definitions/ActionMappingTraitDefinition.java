@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -109,6 +110,11 @@ public class ActionMappingTraitDefinition extends AbstractTraitDefinition {
 		return Map.of(
 			ActionMapping.class, (traits, node) -> new ActionMappingTraitWrapper(traits, node)
 		);
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override

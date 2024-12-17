@@ -55,6 +55,7 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
+import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.traits.operations.*;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -776,15 +777,16 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		logger.error(message, arguments);
 	}
 
-	static boolean renderDeploymentExportComments(final DOMNode thisNode, final AsyncBuffer out, final boolean isContentNode) {
+	@Override
+	public boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
 
 		final Set<String> instructions = new LinkedHashSet<>();
 
-		thisNode.getVisibilityInstructions(instructions);
-		thisNode.getLinkableInstructions(instructions);
-		thisNode.getSecurityInstructions(instructions);
+		getVisibilityInstructions(instructions);
+		getLinkableInstructions(instructions);
+		getSecurityInstructions(instructions);
 
-		if (thisNode.getWrappedNode().isHidden()) {
+		if (getWrappedNode().isHidden()) {
 			instructions.add("@structr:hidden");
 		}
 
@@ -793,7 +795,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			// special rules apply for content nodes: since we can not store
 			// structr-specific properties in the attributes of the element,
 			// we need to encode those attributes in instructions.
-			thisNode.getContentInstructions(instructions);
+			getContentInstructions(instructions);
 		}
 
 		if (!instructions.isEmpty()) {
@@ -823,17 +825,17 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	@Override
 	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
-		traits.getMethod(Render.class).render(wrappedObject, renderContext, depth);
+		traits.getMethod(Render.class).render(this, renderContext, depth);
 	}
 
 	@Override
 	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
-		traits.getMethod(RenderContent.class).renderContent(wrappedObject, renderContext, depth);
+		traits.getMethod(RenderContent.class).renderContent(this, renderContext, depth);
 	}
 
 	@Override
 	public void doAdopt(final Page _page) throws DOMException {
-		traits.getMethod(DoAdopt.class).doAdopt(wrappedObject, _page);
+		traits.getMethod(DoAdopt.class).doAdopt(this, _page);
 	}
 
 	/**
@@ -1066,8 +1068,8 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean contentEquals(DOMNode otherNode) {
-		return false;
+	public boolean contentEquals(final Node otherNode) {
+		return traits.getMethod(ContentEquals.class).contentEquals(this, otherNode);
 	}
 
 	@Override
@@ -1207,7 +1209,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	@Override
 	public boolean hasSharedComponent() {
-		return false;
+		return wrappedObject.getProperty(traits.key("hasSharedComponent"));
 	}
 
 	@Override
@@ -1341,6 +1343,38 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("syncedNodes");
 
 		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> getReloadingActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("reloadingActions");
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> getFailureActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureActions");
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> getSuccessNotificationActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("successNotificationActions");
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> getFailureNotificationActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureNotificationActions");
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
@@ -1538,7 +1572,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	@Override
 	public void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
-		traits.getMethod(RenderCustomAttributes.class).renderCustomAttributes(wrappedObject, out, securityContext, renderContext);
+		traits.getMethod(RenderCustomAttributes.class).renderCustomAttributes(this, out, securityContext, renderContext);
 	}
 
 	@Override
@@ -2001,7 +2035,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	@Override
 	public NamedNodeMap getAttributes() {
-		return null;
+		return traits.getMethod(GetAttributes.class).getAttributes(this);
 	}
 
 	@Override

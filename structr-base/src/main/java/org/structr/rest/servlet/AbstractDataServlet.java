@@ -32,12 +32,14 @@ import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.JsonException;
+import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.rest.JsonInputGSONAdapter;
+import org.structr.core.traits.NodeTrait;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
@@ -67,10 +69,10 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	}
 
 	// ----- public static methods -----
-	public static Class getTypeOrDefault(final Object obj, final Class defaultType) {
+	public static String getTypeOrDefault(final NodeTrait obj, final String defaultType) {
 
 		if (obj != null) {
-			return obj.getClass();
+			return obj.getType();
 		}
 
 		return defaultType;

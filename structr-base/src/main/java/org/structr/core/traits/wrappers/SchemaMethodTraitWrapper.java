@@ -1,10 +1,13 @@
 package org.structr.core.traits.wrappers;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionEntry;
 
@@ -23,8 +26,11 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
-	public Iterable<NodeInterface> getParameters() {
-		return wrappedObject.getProperty(traits.key("parameters"));
+	public Iterable<SchemaMethodParameter> getParameters() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("parameters");
+
+		return Iterables.map(n -> n.as(SchemaMethodParameter.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
@@ -122,9 +128,9 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 		return wrappedObject.getProperty(traits.key("httpVerb"));
 	}
 
-	public NodeInterface getSchemaMethodParameter(final String name) {
+	public SchemaMethodParameter getSchemaMethodParameter(final String name) {
 
-		for (final NodeInterface param : getParameters()) {
+		for (final SchemaMethodParameter param : getParameters()) {
 
 			if (name.equals(param.getName())) {
 				return param;
