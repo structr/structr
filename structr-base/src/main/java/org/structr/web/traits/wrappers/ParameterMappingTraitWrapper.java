@@ -21,11 +21,29 @@ package org.structr.web.traits.wrappers;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.event.ParameterMapping;
 
 public class ParameterMappingTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ParameterMapping {
 
 	public ParameterMappingTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
+	}
+
+	@Override
+	public DOMElement getInputElement() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("inputElement"));
+		if (node != null) {
+
+			return node.as(DOMElement.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getConstantValue() {
+		return wrappedObject.getProperty(traits.key("constantValue"));
 	}
 }

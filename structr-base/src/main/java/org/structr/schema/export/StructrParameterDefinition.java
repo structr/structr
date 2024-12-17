@@ -170,11 +170,11 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	// ----- package methods -----
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface node, final int index) throws FrameworkException {
+	SchemaMethodParameter createDatabaseSchema(final App app, final NodeInterface node, final int index) throws FrameworkException {
 
 		final SchemaMethod schemaMethod = node.as(SchemaMethod.class);
 		final Traits traits             = Traits.of("SchemaMethodParameter");
-		NodeInterface parameter         = schemaMethod.getSchemaMethodParameter(getName());
+		SchemaMethodParameter parameter = schemaMethod.getSchemaMethodParameter(getName());
 
 		if (parameter == null) {
 
@@ -183,7 +183,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			getOrCreateProperties.put(traits.key("name"),         getName());
 			getOrCreateProperties.put(traits.key("schemaMethod"), node);
 
-			parameter = app.create("SchemaMethodParameter", getOrCreateProperties);
+			parameter = app.create("SchemaMethodParameter", getOrCreateProperties).as(SchemaMethodParameter.class);
 		}
 
 		final PropertyMap updateProperties = new PropertyMap();
@@ -194,7 +194,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		updateProperties.put(traits.key("index"),         index);
 
 		// update properties
-		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+		parameter.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// return modified property
 		return parameter;
@@ -232,7 +232,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		setType(method.getParameterType());
 		setIndex(method.getIndex());
 		setDescription(method.getDescription());
-		setExampleValue(method.geExampleValue());
+		setExampleValue(method.getExampleValue());
 	}
 
 	Map<String, Object> serialize() {

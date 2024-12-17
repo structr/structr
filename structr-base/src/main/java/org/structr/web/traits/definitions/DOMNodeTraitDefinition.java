@@ -28,10 +28,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -45,7 +44,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
-import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -100,6 +98,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 	private static final Property<String> dataStructrHashProperty                             = new StringProperty("data-structr-hash").category(DOMNode.PAGE_CATEGORY).partOfBuiltInSchema();
 	private static final Property<Boolean> dontCacheProperty                                  = new BooleanProperty("dontCache").defaultValue(false).partOfBuiltInSchema();
 	private static final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty("isDOMNode", true).category(DOMNode.PAGE_CATEGORY).partOfBuiltInSchema();
+	private static final Property<Boolean> hasSharedComponent                                 = new BooleanProperty("hasSharedComponent").indexed().partOfBuiltInSchema();
 	private static final Property<Integer> domSortPositionProperty                            = new IntProperty("domSortPosition").category(DOMNode.PAGE_CATEGORY).partOfBuiltInSchema();
 	private static Property<NodeInterface> flow                                               = new EndNode("flow", "DOMNodeFLOWFlowContainer");
 
@@ -183,9 +182,8 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 			new Render() {
 
 				@Override
-				public void render(final NodeInterface node, final RenderContext renderContext, final int depth) throws FrameworkException {
+				public void render(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-					final DOMNode domNode = node.as(DOMNode.class);
 					final SecurityContext securityContext = renderContext.getSecurityContext();
 					final RenderContext.EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 
@@ -193,7 +191,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 					final boolean isAdminOnlyEditMode = (RenderContext.EditMode.RAW.equals(editMode) || RenderContext.EditMode.WIDGET.equals(editMode) || RenderContext.EditMode.DEPLOYMENT.equals(editMode));
 					final boolean isPartial = renderContext.isPartialRendering(); // renderContext.getPage() == null;
 
-					if (!isAdminOnlyEditMode && !securityContext.isVisible(node)) {
+					if (!isAdminOnlyEditMode && !securityContext.isVisible(node.getWrappedNode())) {
 						return;
 					}
 
@@ -219,33 +217,33 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 					final GraphObject details = renderContext.getDetailsDataObject();
 					final boolean detailMode = details != null;
 
-					if (detailMode && domNode.hideOnDetail()) {
+					if (detailMode && node.hideOnDetail()) {
 						return;
 					}
 
-					if (!detailMode && domNode.hideOnIndex()) {
+					if (!detailMode && node.hideOnIndex()) {
 						return;
 					}
 
 					if (isAdminOnlyEditMode) {
 
-						domNode.renderContent(renderContext, depth);
+						node.renderContent(renderContext, depth);
 
 					} else {
 
-						final String subKey = domNode.getDataKey();
+						final String subKey = node.getDataKey();
 
 						if (StringUtils.isNotBlank(subKey)) {
 
 							// fetch (optional) list of external data elements
-							final Iterable<GraphObject> listData = DOMNodeTraitDefinition.checkListSources(node, securityContext, renderContext);
+							final Iterable<GraphObject> listData = DOMNodeTraitDefinition.checkListSources(node.getWrappedNode(), securityContext, renderContext);
 
 							final PropertyKey propertyKey;
 
 							// Make sure the closest 'page' keyword is always set also for partials
 							if (depth == 0 && isPartial) {
 
-								renderContext.setPage(domNode.getClosestPage());
+								renderContext.setPage(node.getClosestPage());
 
 							}
 
@@ -255,7 +253,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 							if (depth == 0 && isPartial && dataObject != null) {
 
 								renderContext.putDataObject(subKey, dataObject);
-								domNode.renderContent(renderContext, depth);
+								node.renderContent(renderContext, depth);
 
 							} else {
 
@@ -281,7 +279,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 
 													GraphObject graphObject = (GraphObject) o;
 													renderContext.putDataObject(subKey, graphObject);
-													domNode.renderContent(renderContext, depth);
+													node.renderContent(renderContext, depth);
 
 												}
 											}
@@ -306,7 +304,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 														if (o instanceof GraphObject) {
 
 															renderContext.putDataObject(subKey, (GraphObject) o);
-															domNode.renderContent(renderContext, depth);
+															node.renderContent(renderContext, depth);
 
 														}
 													}
@@ -323,14 +321,14 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 								} else {
 
 									renderContext.setListSource(listData);
-									domNode.renderNodeList(securityContext, renderContext, depth, subKey);
+									node.renderNodeList(securityContext, renderContext, depth, subKey);
 
 								}
 							}
 
 						} else {
 
-							domNode.renderContent(renderContext, depth);
+							node.renderContent(renderContext, depth);
 						}
 					}
 				}
@@ -338,16 +336,15 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 
 			DoAdopt.class,
 			new DoAdopt() {
+
 				@Override
-				public void doAdopt(final NodeInterface node, final Page _page) throws DOMException {
+				public void doAdopt(final DOMNode node, final Page _page) throws DOMException {
 
 					if (_page != null) {
 
 						try {
 
-							final DOMNode domNode = node.as(DOMNode.class);
-
-							domNode.setOwnerDocument(_page);
+							node.setOwnerDocument(_page);
 
 						} catch (FrameworkException fex) {
 
@@ -371,7 +368,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 			new GetPagePath() {
 
 				@Override
-				public String getPagePath(NodeInterface node) {
+				public String getPagePath(final NodeInterface node) {
 
 					String cachedPagePath = (String) node.getTemporaryStorage().get("cachedPagePath");
 					if (cachedPagePath == null) {
@@ -398,13 +395,13 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 			new RenderCustomAttributes() {
 
 				@Override
-				public void renderCustomAttributes(final NodeInterface node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+				public void renderCustomAttributes(final DOMNode node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 					final RenderContext.EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-					final DOMNode thisNode                = node.as(DOMNode.class);
-					final Traits traits                   = node.getTraits();
+					final Traits traits                   = node.getWrappedNode().getTraits();
+					final NodeInterface wrappedNode       = node.getWrappedNode();
 
-					Set<PropertyKey> dataAttributes = thisNode.getDataPropertyKeys();
+					Set<PropertyKey> dataAttributes = node.getDataPropertyKeys();
 
 					if (RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
 						List sortedAttributes = new LinkedList(dataAttributes);
@@ -423,7 +420,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 
 						if (RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
 
-							final Object obj = node.getProperty(key);
+							final Object obj = wrappedNode.getProperty(key);
 							if (obj != null) {
 
 								value = obj.toString();
@@ -431,7 +428,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 
 						} else {
 
-							value = node.getPropertyWithVariableReplacement(renderContext, key);
+							value = wrappedNode.getPropertyWithVariableReplacement(renderContext, key);
 							if (value != null) {
 
 								value = value.trim();
@@ -458,13 +455,13 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 						if (RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
 
 							// export name property if set
-							final String name = node.getProperty(traits.key("name"));
+							final String name = wrappedNode.getProperty(traits.key("name"));
 							if (name != null) {
 
 								out.append(" data-structr-meta-name=\"").append(DOMNode.escapeForHtmlAttributes(name)).append("\"");
 							}
 
-							out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");
+							out.append(" data-structr-meta-id=\"").append(node.getUuid()).append("\"");
 						}
 
 						for (final String p : rawProps) {
@@ -474,7 +471,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 
 							if (key != null) {
 
-								final Object value = node.getProperty(key);
+								final Object value = wrappedNode.getProperty(key);
 								if (value != null) {
 
 									final boolean isBoolean = key instanceof BooleanProperty;
@@ -503,6 +500,11 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 		return Map.of(
 			DOMNode.class, (traits, node) -> new DOMNodeTraitWrapper(traits, node)
 		);
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override
@@ -540,6 +542,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 			dataStructrHashProperty,
 			dontCacheProperty,
 			isDOMNodeProperty,
+			hasSharedComponent,
 			domSortPositionProperty,
 			flow
 		);

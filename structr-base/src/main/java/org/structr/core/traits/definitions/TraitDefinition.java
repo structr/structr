@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
@@ -40,6 +41,7 @@ public interface TraitDefinition {
 	Map<Class, FrameworkMethod> getFrameworkMethods();
 	Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories();
 	Map<Class, NodeTraitFactory> getNodeTraitFactories();
+	Set<AbstractMethod> getDynamicMethods();
 
 	// FIXME
 	//Set<String> requiredTraits();

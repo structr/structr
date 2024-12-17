@@ -19,6 +19,7 @@
 package org.structr.core.traits;
 
 import org.structr.api.Predicate;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -40,6 +41,7 @@ public class Traits {
 	private static PropertyKey<String> cachedIdProperty        = null;
 
 	private final Map<String, TraitDefinition> types              = new LinkedHashMap<>();
+	private final Map<String, AbstractMethod> dynamicMethods      = new LinkedHashMap<>();
 	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
 	private final Map<Class, NodeTraitFactory> traitFactories     = new LinkedHashMap<>();
 	private final Map<Class, Set> composableMethods               = new LinkedHashMap<>();
@@ -131,6 +133,10 @@ public class Traits {
 		return (T) overwritableMethods.get(type);
 	}
 
+	public Map<String, AbstractMethod> getDynamicMethods() {
+		return dynamicMethods;
+	}
+
 	public <T> T as(final Class<T> type, final NodeInterface node) {
 
 		final NodeTraitFactory factory = traitFactories.get(type);
@@ -164,6 +170,11 @@ public class Traits {
 
 				method.setSuper(parent);
 			}
+		}
+
+		// dynamic methods
+		for (final AbstractMethod method : trait.getDynamicMethods()) {
+			this.dynamicMethods.put(method.getName(), method);
 		}
 
 		// properties
