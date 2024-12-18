@@ -27,5 +27,4 @@ import org.w3c.dom.Node;
  */
 public interface DOMImportable {
 	
-	public Node doImport(Page newPage) throws DOMException;
 }

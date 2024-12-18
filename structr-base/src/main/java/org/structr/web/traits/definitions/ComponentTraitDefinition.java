@@ -16,35 +16,57 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits.definitions;
+package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.web.entity.Component;
+import org.structr.web.entity.dom.DOMElement;
 
 import java.util.Map;
 import java.util.Set;
 
-public final class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
+/**
+ * Represents a component. A component is an assembly of elements
+ */
+public class ComponentTraitDefinition extends AbstractTraitDefinition {
 
-	public AbstractNodeTraitDefinition() {
-		super("AbstractNode");
+	private static final Property<String> kindProperty      = new StringProperty("kind").partOfBuiltInSchema();
+	private static final Property<Integer> positionProperty = new IntProperty("position").partOfBuiltInSchema();
+
+	/*
+	public static final View defaultView = new View(Component.class,PropertyView.Public,
+		kindProperty
+	);
+
+	public static final View uiView = new View(Component.class,PropertyView.Ui,
+		kindProperty
+	);
+	*/
+
+	public ComponentTraitDefinition() {
+		super("Component");
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-
-		return Map.of(
-		);
+		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return null;
+		return Map.of();
 	}
 
 	@Override
@@ -64,39 +86,15 @@ public final class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
+
+		return Set.of(
+			kindProperty,
+			positionProperty
+		);
 	}
 
 	@Override
 	public Relation getRelation() {
 		return null;
 	}
-
-	// ----- private methods -----
-	private void clearCaches() {
-
-	}
-
-
-	/*
-	@Override
-	public void ownerModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {
-		clearCaches();
-	}
-	*/
 }

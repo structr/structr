@@ -39,8 +39,15 @@ public class LinkSourceTraitWrapper extends AbstractTraitWrapper<NodeInterface> 
 		return wrappedObject.getName();
 	}
 
-	public NodeInterface getLinkable() {
-		return wrappedObject.getProperty(traits.key("linkable"));
+	public Linkable getLinkable() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("linkable"));
+		if (node != null) {
+
+			return node.as(Linkable.class);
+		}
+
+		return null;
 	}
 
 	public Object setLinkable(final Linkable linkable) throws FrameworkException {

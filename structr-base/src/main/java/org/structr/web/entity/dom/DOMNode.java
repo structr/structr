@@ -18,10 +18,13 @@
  */
 package org.structr.web.entity.dom;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -224,6 +227,7 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	void checkWriteAccess() throws DOMException;
 	void checkReadAccess() throws DOMException;
 	void doAdopt(final Page page) throws DOMException;
+	Node doImport(Page newPage) throws DOMException;
 
 	void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException;
 	void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException;
@@ -284,5 +288,25 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	}
 
 	static void prefetchDOMNodes(final String uuid) {
+	}
+
+	static void logScriptingError (final Logger logger, final Throwable t, String message, Object... arguments) {
+
+		if (t instanceof UnlicensedScriptException) {
+
+			message += "\n{}";
+			arguments = ArrayUtils.add(arguments, t.getMessage());
+
+		} else if (t.getCause() instanceof UnlicensedScriptException) {
+
+			message += "\n{}";
+			arguments = ArrayUtils.add(arguments, t.getCause().getMessage());
+
+		} else {
+
+			arguments = ArrayUtils.add(arguments, t);
+		}
+
+		logger.error(message, arguments);
 	}
 }

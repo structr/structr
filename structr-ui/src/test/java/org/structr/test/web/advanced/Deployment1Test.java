@@ -28,12 +28,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
+import org.structr.web.entity.*;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -494,7 +493,8 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final A a = (A)app.getNodeById(A.class, a_uuid);
+			final NodeInterface node = app.getNodeById("A", a_uuid);
+			final LinkSource a       = node.as(LinkSource.class);
 
 			assertNotNull("A element was not created!", a);
 			assertNotNull("A has no linked page!", a.getLinkable());

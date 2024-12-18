@@ -35,4 +35,12 @@ public interface NodeTrait {
 	default Traits getTraits() {
 		return getWrappedNode().getTraits();
 	}
+
+	default <T extends NodeTrait> T as(final Class<T> type) {
+		return getWrappedNode().as(type);
+	}
+
+	default boolean is(final String type) {
+		return getTraits().contains(type);
+	}
 }

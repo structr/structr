@@ -25,6 +25,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
@@ -253,6 +254,11 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override

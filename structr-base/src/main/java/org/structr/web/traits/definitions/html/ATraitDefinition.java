@@ -16,44 +16,44 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.definitions;
+package org.structr.web.traits.definitions.html;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.Linkable;
-import org.structr.web.traits.wrappers.LinkableTraitWrapper;
+import org.structr.web.traits.wrappers.html.ATraitWrapper;
+import org.structr.web.traits.operations.AvoidWhitespace;
+import org.structr.web.entity.html.A;
 
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
-public class LinkableTraitDefinition extends AbstractTraitDefinition {
+public class ATraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", "LinkSourceLINKLinkable").partOfBuiltInSchema().partOfBuiltInSchema();
-	private static final Property<Iterable<String>> linkinkElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", linkingElementsProperty).partOfBuiltInSchema().partOfBuiltInSchema();
-	private static final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed().partOfBuiltInSchema();
-	private static final Property<String> basicAuthRealmProperty                   = new StringProperty("basicAuthRealm").partOfBuiltInSchema();
-
-	public LinkableTraitDefinition() {
-		super("Linkable");
-	}
+	private static final Property<String> htmlHrefProperty     = new StringProperty("_html_href");
+	private static final Property<String> htmlTargetProperty   = new StringProperty("_html_target");
+	private static final Property<String> htmlPingProperty     = new StringProperty("_html_ping");
+	private static final Property<String> htmlRelProperty      = new StringProperty("_html_rel");
+	private static final Property<String> htmlMediaProperty    = new StringProperty("_html_media");
+	private static final Property<String> htmlHrefLangProperty = new StringProperty("_html_hreflang");
+	private static final Property<String> htmlTypeProperty     = new StringProperty("_html_type");
 
 	/*
-	View uiView = new View(LinkableTraitDefinition.class, PropertyView.Ui,
-		linkingElementsProperty, linkinkElementsIdsProperty, enableBasicAuthProperty, basicAuthRealmProperty
+	public static final View htmlView = new View(A.class, PropertyView.Html,
+		htmlHrefProperty, htmlTargetProperty, htmlPingProperty, htmlRelProperty, htmlMediaProperty, htmlHrefLangProperty, htmlTypeProperty
 	);
 	*/
+
+	public ATraitDefinition() {
+		super("A");
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -62,7 +62,18 @@ public class LinkableTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
+
+		return Map.of(
+
+			AvoidWhitespace.class,
+			new AvoidWhitespace() {
+
+				@Override
+				public boolean avoidWhitespace() {
+					return true;
+				}
+			}
+		);
 	}
 
 	@Override
@@ -74,7 +85,7 @@ public class LinkableTraitDefinition extends AbstractTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			Linkable.class, (traits, node) -> new LinkableTraitWrapper(traits, node)
+			A.class, (traits, node) -> new ATraitWrapper(traits, node)
 		);
 	}
 
@@ -87,10 +98,13 @@ public class LinkableTraitDefinition extends AbstractTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
-			linkingElementsProperty,
-			linkinkElementsIdsProperty,
-			enableBasicAuthProperty,
-			basicAuthRealmProperty
+			htmlHrefProperty,
+			htmlTargetProperty,
+			htmlPingProperty,
+			htmlRelProperty,
+			htmlMediaProperty,
+			htmlHrefLangProperty,
+			htmlTypeProperty
 		);
 	}
 

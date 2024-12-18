@@ -19,21 +19,13 @@
 package org.structr.core.traits;
 
 import org.structr.core.traits.definitions.*;
-import org.structr.core.traits.nodes.PrincipalTraitDefinition;
-import org.structr.core.traits.relationships.*;
-import org.structr.rest.traits.relationships.ObjectEventRelationship;
-import org.structr.rest.traits.definitions.LogEventTraitDefinition;
-import org.structr.rest.traits.definitions.LogObjectTraitDefinition;
-import org.structr.rest.traits.definitions.LogSubjectTraitDefinition;
-import org.structr.rest.traits.relationships.SubjectEventRelationship;
 
 public class StructrTraits {
 
-	private static final PropertyContainerTraitDefinition propertyContainerTraitImplementation   = new PropertyContainerTraitDefinition();
-	private static final GraphObjectTraitDefinition graphObjectTraitImplementation               = new GraphObjectTraitDefinition();
-	private static final NodeInterfaceTraitDefinition nodeInterfaceTraitImplementation           = new NodeInterfaceTraitDefinition();
-	private static final AccessControllableTraitDefinition accessControllableTraitImplementation = new AccessControllableTraitDefinition();
-	//private static final RelationshipInterfaceTraitImplementation nodeInterfaceTraitImplementation = new NodeInterfaceTraitImplementation();
+	private static final PropertyContainerTraitDefinition propertyContainerTraitImplementation            = new PropertyContainerTraitDefinition();
+	private static final GraphObjectTraitDefinition graphObjectTraitImplementation                        = new GraphObjectTraitDefinition();
+	private static final NodeInterfaceTraitDefinition nodeInterfaceTraitImplementation                    = new NodeInterfaceTraitDefinition();
+	private static final AccessControllableTraitDefinition accessControllableTraitImplementation          = new AccessControllableTraitDefinition();
 
 	static {
 
@@ -79,7 +71,6 @@ public class StructrTraits {
 		// Relationship types consist of at least the following traits
 		traits.registerImplementation(propertyContainerTraitImplementation);
 		traits.registerImplementation(graphObjectTraitImplementation);
-		//traits.registerImplementation(relationshipInterfaceTraitImplementation);
 
 		for (final TraitDefinition definition : definitions) {
 			traits.registerImplementation(definition);
