@@ -16,9 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.html;
+package org.structr.web.traits.definitions;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.web.entity.Component;
+import org.structr.web.traits.wrappers.DOMElementTraitWrapper;
 
-public interface A extends NodeTrait {
+/**
+ * Represents a component. A component is an assembly of elements
+ */
+public class ComponentTraitWrapper extends DOMElementTraitWrapper implements Component {
+
+	public ComponentTraitWrapper(final Traits traits, final NodeInterface node) {
+		super(traits, node);
+	}
 }

@@ -523,9 +523,9 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		while (node != null) {
 
-			if (node instanceof Template) {
+			if (node.is("Template")) {
 
-				final Template template = (Template)node;
+				final Template template = node.as(Template.class);
 
 				Document doc = template.getOwnerDocument();
 
@@ -540,7 +540,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 				}
 
-				for (final DOMNode syncedNode : template.getSyncedNodes()) {
+				for (final DOMNode syncedNode : node.getSyncedNodes()) {
 
 					doc = syncedNode.getOwnerDocument();
 
@@ -757,26 +757,6 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		}
 	}
 
-	static void logScriptingError (final Logger logger, final Throwable t, String message,  Object... arguments) {
-
-		if (t instanceof UnlicensedScriptException) {
-
-			message += "\n{}";
-			arguments = ArrayUtils.add(arguments, t.getMessage());
-
-		} else if (t.getCause() instanceof UnlicensedScriptException) {
-
-			message += "\n{}";
-			arguments = ArrayUtils.add(arguments, t.getCause().getMessage());
-
-		} else {
-
-			arguments = ArrayUtils.add(arguments, t);
-		}
-
-		logger.error(message, arguments);
-	}
-
 	@Override
 	public boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
 
@@ -834,8 +814,13 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void doAdopt(final Page _page) throws DOMException {
+	public final void doAdopt(final Page _page) throws DOMException {
 		traits.getMethod(DoAdopt.class).doAdopt(this, _page);
+	}
+
+	@Override
+	public final Node doImport(final Page newPage) throws DOMException {
+		return traits.getMethod(DoImport.class).doImport(this, newPage);
 	}
 
 	/**
@@ -1158,11 +1143,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			if (!isShadowPage) {
 
 				final DOMNode ownerDocument = getOwnerDocumentAsSuperUser();
-				DOMNodeTraitWrapper.logScriptingError(logger, ex, "Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getName(), ownerDocument.getUuid(), getUuid());
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getName(), ownerDocument.getUuid(), getUuid());
 
 			} else {
 
-				DOMNodeTraitWrapper.logScriptingError(logger, ex, "Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, getUuid());
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, getUuid());
 			}
 		}
 
@@ -1180,11 +1165,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			if (!isShadowPage) {
 
 				final DOMNode ownerDocument = getOwnerDocumentAsSuperUser();
-				DOMNodeTraitWrapper.logScriptingError(logger, ex, "Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getName(), ownerDocument.getUuid(), getUuid());
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getName(), ownerDocument.getUuid(), getUuid());
 
 			} else {
 
-				DOMNodeTraitWrapper.logScriptingError(logger, ex, "Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, getUuid());
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, getUuid());
 			}
 		}
 

@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractTraitWrapper;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
@@ -46,7 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMElement, NamedNodeMap, NonIndexed {
+public final class DOMElementTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements DOMElement, NamedNodeMap, NonIndexed {
 
 	private static final Gson gson = new GsonBuilder().create();
 
@@ -246,7 +247,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	}
 
 	@Override
-	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
+	public void setIdAttribute(final String idString, final boolean isId) throws DOMException {
 
 		checkWriteAccess();
 

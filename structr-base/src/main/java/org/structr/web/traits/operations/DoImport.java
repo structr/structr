@@ -16,9 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.html;
+package org.structr.web.traits.operations;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
 
-public interface A extends NodeTrait {
+public abstract class DoImport extends FrameworkMethod<DoImport> {
+
+	public abstract Node doImport(final DOMNode node, final Page page) throws DOMException;
 }

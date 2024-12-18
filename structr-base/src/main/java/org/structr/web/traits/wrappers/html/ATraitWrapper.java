@@ -16,9 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.html;
+package org.structr.web.traits.wrappers.html;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.web.entity.html.A;
+import org.structr.web.traits.wrappers.DOMElementTraitWrapper;
 
-public interface A extends NodeTrait {
+public class ATraitWrapper extends DOMElementTraitWrapper implements A {
+
+	public ATraitWrapper(final Traits traits, final NodeInterface node) {
+		super(traits, node);
+	}
 }

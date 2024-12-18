@@ -23,29 +23,18 @@ import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.web.datasource.*;
-import org.structr.web.traits.relationships.SiteCONTAINSPage;
-import org.structr.web.traits.relationships.PageHAS_PATHPagePath;
-import org.structr.web.traits.relationships.DOMNodeSYNCDOMNode;
-import org.structr.web.traits.relationships.DOMNodeSUCCESS_TARGETActionMapping;
-import org.structr.web.traits.relationships.DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping;
-import org.structr.web.traits.relationships.DOMNodePAGEPage;
-import org.structr.web.traits.relationships.DOMNodeFAILURE_TARGETActionMapping;
-import org.structr.web.traits.relationships.DOMNodeCONTAINSDOMNode;
-import org.structr.web.traits.relationships.DOMNodeCONTAINS_NEXT_SIBLINGDOMNode;
-import org.structr.web.traits.relationships.DOMElementTRIGGERED_BYActionMapping;
-import org.structr.web.traits.relationships.DOMElementRELOADSDOMElement;
-import org.structr.web.traits.relationships.DOMElementINPUT_ELEMENTParameterMapping;
-import org.structr.web.traits.relationships.ActionMappingPARAMETERParameterMapping;
-import org.structr.web.traits.relationships.PagePathHAS_PARAMETERPagePathParameter;
-import org.structr.web.traits.relationships.*;
+import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.FunctionDataSource;
+import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 import org.structr.web.traits.definitions.*;
+import org.structr.web.traits.definitions.html.ATraitDefinition;
+import org.structr.web.traits.relationships.*;
 
 import java.net.URL;
 import java.util.Set;
@@ -119,6 +108,8 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("StorageConfiguration",             new StorageConfigurationTraitDefinition());
 		StructrTraits.registerNodeType("StorageConfigurationEntry",        new StorageConfigurationEntryTraitDefinition());
 		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
+
+		StructrTraits.registerNodeType("A",                                new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new ATraitDefinition());
 	}
 
 	@Override
