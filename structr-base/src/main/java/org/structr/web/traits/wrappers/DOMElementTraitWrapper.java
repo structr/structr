@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
@@ -47,7 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public final class DOMElementTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements DOMElement, NamedNodeMap, NonIndexed {
+public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMElement, NamedNodeMap, NonIndexed {
 
 	private static final Gson gson = new GsonBuilder().create();
 
@@ -229,25 +228,7 @@ public final class DOMElementTraitWrapper extends AbstractTraitWrapper<NodeInter
 	}
 
 	@Override
-	public Node doImport(final Page newPage) throws DOMException {
-
-		final DOMElement newElement = (DOMElement) newPage.createElement(getTag());
-
-		// copy attributes
-		for (String _name : getHtmlAttributeNames()) {
-
-			Attr attr = getAttributeNode(_name);
-			if (attr.getSpecified()) {
-
-				newElement.setAttribute(attr.getName(), attr.getValue());
-			}
-		}
-
-		return newElement;
-	}
-
-	@Override
-	public void setIdAttribute(final String idString, final boolean isId) throws DOMException {
+	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
 
 		checkWriteAccess();
 
@@ -403,11 +384,6 @@ public final class DOMElementTraitWrapper extends AbstractTraitWrapper<NodeInter
 	}
 
 	// ----- org.w3c.Node methods -----
-	@Override
-	public String getLocalName() {
-		return null;
-	}
-
 	@Override
 	public String getTagName() {
 		return getTag();

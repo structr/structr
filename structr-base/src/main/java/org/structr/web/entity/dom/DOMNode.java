@@ -183,8 +183,6 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	String getDataKey();
 	String getPositionPath();
 	String getCssClass();
-	String getContentType();
-	String getEntityContextPath();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
 

@@ -51,16 +51,16 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Textarea;
-import org.structr.web.traits.operations.ContentEquals;
-import org.structr.web.traits.operations.DoImport;
-import org.structr.web.traits.operations.RenderContent;
-import org.structr.web.traits.operations.UpdateFromNode;
+import org.structr.web.traits.operations.*;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
+
+import static org.w3c.dom.Node.TEXT_NODE;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
@@ -203,6 +203,42 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 				}
 			},
 
+			GetContextName.class,
+			new GetContextName() {
+
+				@Override
+				public String getContextName(final NodeInterface node) {
+
+					final Traits traits = node.getTraits();
+
+					return StringUtils.defaultString(node.getProperty(traits.key("name")), "#text");
+				}
+			},
+
+			W3CNodeMethods.class,
+			new W3CNodeMethods() {
+
+				@Override
+				public String getNodeName(final NodeInterface node) {
+					return "#text";
+				}
+
+				@Override
+				public String getNodeValue(final NodeInterface node) throws DOMException {
+					return node.as(Content.class).getData();
+				}
+
+				@Override
+				public void setNodeValue(final NodeInterface node, final String nodeValue) throws DOMException {
+					node.as(Content.class).setData(nodeValue);
+				}
+
+				@Override
+				public short getNodeType(final NodeInterface node) {
+					return TEXT_NODE;
+				}
+			},
+
 			RenderContent.class,
 			new RenderContent() {
 
@@ -210,7 +246,7 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 				public void renderContent(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 					final SecurityContext securityContext = node.getSecurityContext();
-					final Content content                 = node.as(Content.class);
+					final Content content = node.as(Content.class);
 
 					try {
 
@@ -235,9 +271,9 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 						}
 
 						final RenderContextContentHandler handler = new RenderContextContentHandler(content, renderContext);
-						final String id                           = node.getUuid();
-						final AsyncBuffer out                     = renderContext.getBuffer();
-						final String _contentType                 = content.getContentType();
+						final String id = node.getUuid();
+						final AsyncBuffer out = renderContext.getBuffer();
+						final String _contentType = content.getContentType();
 
 						// apply configuration for shared component if present
 						final String _sharedComponentConfiguration = node.getSharedComponentConfiguration();
@@ -307,7 +343,7 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 
 					} catch (Throwable t) {
 
-						final Logger logger        = LoggerFactory.getLogger(Content.class);
+						final Logger logger = LoggerFactory.getLogger(Content.class);
 						final boolean isShadowPage = node.isSharedComponent();
 
 						// catch exception to prevent status 500 error pages in frontend.
