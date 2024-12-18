@@ -209,17 +209,17 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public String getChildLinkType() {
+	public final String getChildLinkType() {
 		return "DOMNodeCONTAINSDOMNode";
 	}
 
 	@Override
-	public PropertyKey<Integer> getPositionProperty() {
+	public final PropertyKey<Integer> getPositionProperty() {
 		return Traits.of("DOMNodeCONTAINSDOMNode").key("position");
 	}
 
 	@Override
-	public NodeInterface treeGetParent() {
+	public final NodeInterface treeGetParent() {
 
 		final RelationshipInterface prevRel = getWrappedNode().getIncomingRelationship(getChildLinkType());
 		if (prevRel != null) {
@@ -231,7 +231,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void treeAppendChild(final NodeInterface childElement) throws FrameworkException {
+	public final void treeAppendChild(final NodeInterface childElement) throws FrameworkException {
 
 		final NodeInterface lastChild = treeGetLastChild();
 
@@ -250,7 +250,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void treeInsertBefore(final NodeInterface newChild, final NodeInterface refChild) throws FrameworkException {
+	public final void treeInsertBefore(final NodeInterface newChild, final NodeInterface refChild) throws FrameworkException {
 
 		final List<RelationshipInterface> rels = treeGetChildRelationships();
 		boolean found = false;
@@ -301,7 +301,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void treeInsertAfter(final NodeInterface newChild, final NodeInterface refChild) throws FrameworkException {
+	public final void treeInsertAfter(final NodeInterface newChild, final NodeInterface refChild) throws FrameworkException {
 
 		final List<RelationshipInterface> rels = treeGetChildRelationships();
 		int position = 0;
@@ -340,7 +340,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void treeRemoveChild(final NodeInterface childToRemove) throws FrameworkException {
+	public final void treeRemoveChild(final NodeInterface childToRemove) throws FrameworkException {
 
 		// remove element from linked list
 		listRemove(childToRemove);
@@ -351,7 +351,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void treeReplaceChild(final NodeInterface newChild, final NodeInterface oldChild) throws FrameworkException {
+	public final void treeReplaceChild(final NodeInterface newChild, final NodeInterface oldChild) throws FrameworkException {
 
 		// save old position
 		int oldPosition = treeGetChildPosition(oldChild);
@@ -374,12 +374,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public NodeInterface treeGetFirstChild() {
+	public final NodeInterface treeGetFirstChild() {
 		return treeGetChild(0);
 	}
 
 	@Override
-	public NodeInterface treeGetLastChild() {
+	public final NodeInterface treeGetLastChild() {
 
 		int last = treeGetChildCount() - 1;
 		if (last >= 0) {
@@ -391,7 +391,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public NodeInterface treeGetChild(final int position) {
+	public final NodeInterface treeGetChild(final int position) {
 
 		for (final RelationshipInterface rel : getWrappedNode().getOutgoingRelationships(getChildLinkType())) {
 
@@ -407,7 +407,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public int treeGetChildPosition(final NodeInterface child) {
+	public final int treeGetChildPosition(final NodeInterface child) {
 
 		final RelationshipInterface rel = child.getIncomingRelationship(getChildLinkType());
 		if (rel != null) {
@@ -423,7 +423,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public List<NodeInterface> treeGetChildren() {
+	public final List<NodeInterface> treeGetChildren() {
 
 		List<NodeInterface> abstractChildren = new ArrayList<>();
 
@@ -436,12 +436,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public int treeGetChildCount() {
+	public final int treeGetChildCount() {
 		return Iterables.count(getWrappedNode().getOutgoingRelationships(getChildLinkType()));
 	}
 
 	@Override
-	public List<RelationshipInterface> treeGetChildRelationships() {
+	public final List<RelationshipInterface> treeGetChildRelationships() {
 
 		// fetch all relationships
 		List<RelationshipInterface> childRels = Iterables.toList(getWrappedNode().getOutgoingRelationships(getChildLinkType()));
@@ -469,7 +469,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void ensureCorrectChildPositions() throws FrameworkException {
+	public final void ensureCorrectChildPositions() throws FrameworkException {
 
 		final List<RelationshipInterface> childRels = treeGetChildRelationships();
 		int position = 0;
@@ -480,17 +480,17 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void linkChildren(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
+	public final void linkChildren(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
 		linkChildren(startNode, endNode, null);
 	}
 
 	@Override
-	public void linkChildren(final NodeInterface startNode, final NodeInterface endNode, final PropertyMap properties) throws FrameworkException {
+	public final void linkChildren(final NodeInterface startNode, final NodeInterface endNode, final PropertyMap properties) throws FrameworkException {
 		StructrApp.getInstance(getSecurityContext()).create(startNode, endNode, getChildLinkType(), properties);
 	}
 
 	@Override
-	public void unlinkChildren(NodeInterface startNode, NodeInterface endNode) throws FrameworkException {
+	public final void unlinkChildren(NodeInterface startNode, NodeInterface endNode) throws FrameworkException {
 
 		final List<RelationshipInterface> list = Iterables.toList(startNode.getRelationships(getChildLinkType()));
 		final App app      = StructrApp.getInstance(getSecurityContext());
@@ -503,7 +503,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		}
 	}
 
-	public Set<NodeInterface> getAllChildNodes() {
+	public final Set<NodeInterface> getAllChildNodes() {
 
 		final Set<NodeInterface> allChildNodes = new HashSet();
 
@@ -517,7 +517,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Template getClosestTemplate(final Page page) {
+	public final Template getClosestTemplate(final Page page) {
 
 		DOMNode node = this;
 
@@ -559,7 +559,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Page getClosestPage() {
+	public final Page getClosestPage() {
 
 		DOMNode node = this;
 
@@ -577,7 +577,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	public String getPositionPath() {
+	public final String getPositionPath() {
 
 		String path = "";
 
@@ -596,7 +596,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	}
 
-	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
+	public final String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
 
 		final RenderContext ctx         = new RenderContext(getSecurityContext(), null, null, editMode);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
@@ -608,7 +608,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return buffer.getBuffer().toString();
 	}
 
-	public String getIdHashOrProperty() {
+	public final String getIdHashOrProperty() {
 
 		String idHash = getDataHash();
 		if (idHash == null) {
@@ -619,7 +619,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return idHash;
 	}
 
-	public Page getOwnerDocumentAsSuperUser() {
+	public final Page getOwnerDocumentAsSuperUser() {
 
 		final RelationshipInterface ownership = wrappedObject.getOutgoingRelationshipAsSuperUser("DOMNodePAGEPage");
 		if (ownership != null) {
@@ -630,7 +630,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	public boolean isSharedComponent() {
+	public final boolean isSharedComponent() {
 
 		final Document _ownerDocument = getOwnerDocumentAsSuperUser();
 		if (_ownerDocument != null) {
@@ -650,7 +650,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	/*
-	public static void copyAllAttributes(final DOMNode sourceNode, final DOMNode targetNode) {
+	public final static void copyAllAttributes(final DOMNode sourceNode, final DOMNode targetNode) {
 
 		final SecurityContext securityContext = sourceNode.getSecurityContext();
 		final PropertyMap properties          = new PropertyMap();
@@ -758,7 +758,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
+	public final boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
 
 		final Set<String> instructions = new LinkedHashSet<>();
 
@@ -804,12 +804,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
+	public final void render(final RenderContext renderContext, final int depth) throws FrameworkException {
 		traits.getMethod(Render.class).render(this, renderContext, depth);
 	}
 
 	@Override
-	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
+	public final void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 		traits.getMethod(RenderContent.class).renderContent(this, renderContext, depth);
 	}
 
@@ -1048,17 +1048,17 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean isSynced() {
+	public final boolean isSynced() {
 		return Iterables.count(getSyncedNodes()) > 0 || getSharedComponent() != null;
 	}
 
 	@Override
-	public boolean contentEquals(final Node otherNode) {
+	public final boolean contentEquals(final Node otherNode) {
 		return traits.getMethod(ContentEquals.class).contentEquals(this, otherNode);
 	}
 
 	@Override
-	public boolean isVoidElement() {
+	public final boolean isVoidElement() {
 		return traits.getMethod(IsVoidElement.class).isVoidElement();
 	}
 
@@ -1068,32 +1068,32 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean inTrash() {
+	public final boolean inTrash() {
 		return getParent() == null && getOwnerDocumentAsSuperUser() == null;
 	}
 
 	@Override
-	public boolean dontCache() {
+	public final boolean dontCache() {
 		return wrappedObject.getProperty(traits.key("dontCache"));
 	}
 
 	@Override
-	public boolean hideOnIndex() {
+	public final boolean hideOnIndex() {
 		return wrappedObject.getProperty(traits.key("hideOnIndex"));
 	}
 
 	@Override
-	public boolean hideOnDetail() {
+	public final boolean hideOnDetail() {
 		return wrappedObject.getProperty(traits.key("hideOnDetail"));
 	}
 
 	@Override
-	public boolean renderDetails() {
+	public final boolean renderDetails() {
 		return wrappedObject.getProperty(traits.key("renderDetails"));
 	}
 
 	@Override
-	public boolean displayForLocale(final RenderContext renderContext) {
+	public final boolean displayForLocale(final RenderContext renderContext) {
 
 		final String localeString = renderContext.getLocale().toString();
 		final String show         = wrappedObject.getProperty(traits.key("showForLocales"));
@@ -1119,7 +1119,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean displayForConditions(final RenderContext renderContext)  {
+	public final boolean displayForConditions(final RenderContext renderContext)  {
 
 		String _showConditions = wrappedObject.getProperty(traits.key("showConditions"));
 		String _hideConditions = wrappedObject.getProperty(traits.key("hideConditions"));
@@ -1177,7 +1177,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean shouldBeRendered(final RenderContext renderContext) {
+	public final boolean shouldBeRendered(final RenderContext renderContext) {
 
 		// In raw, widget or deployment mode, render everything
 		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
@@ -1193,12 +1193,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean hasSharedComponent() {
+	public final boolean hasSharedComponent() {
 		return wrappedObject.getProperty(traits.key("hasSharedComponent"));
 	}
 
 	@Override
-	public int getChildPosition(final DOMNode otherNode) {
+	public final int getChildPosition(final DOMNode otherNode) {
 
 		final LinkedTreeNode node = wrappedObject.as(LinkedTreeNode.class);
 
@@ -1206,92 +1206,82 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public String getIdHash() {
+	public final String getIdHash() {
 		return getUuid();
 	}
 
 	@Override
-	public String getShowConditions() {
+	public final String getShowConditions() {
 		return wrappedObject.getProperty(traits.key("showConditions"));
 	}
 
 	@Override
-	public String getHideConditions() {
+	public final String getHideConditions() {
 		return wrappedObject.getProperty(traits.key("hideConditions"));
 	}
 
 	@Override
-	public String getShowForLocales() {
+	public final String getShowForLocales() {
 		return wrappedObject.getProperty(traits.key("showForLocales"));
 	}
 
 	@Override
-	public String getHideForLocales() {
+	public final String getHideForLocales() {
 		return wrappedObject.getProperty(traits.key("hideForLocales"));
 	}
 
 	@Override
-	public String getDataHash() {
+	public final String getDataHash() {
 		return wrappedObject.getProperty(traits.key("data-structr-hash"));
 	}
 
 	@Override
-	public String getDataKey() {
+	public final String getDataKey() {
 		return wrappedObject.getProperty(traits.key("dataKey"));
 	}
 
 	@Override
-	public String getCssClass() {
+	public final String getCssClass() {
 		return traits.getMethod(GetCssClass.class).getCssClass(wrappedObject);
 	}
 
 	@Override
-	public String getContentType() {
-		return traits.getMethod(GetContentType.class).getContentType(wrappedObject);
-	}
-
-	@Override
-	public String getEntityContextPath() {
-		return getPagePath();
-	}
-
-	@Override
-	public void renderManagedAttributes(AsyncBuffer out, SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
+	public final void renderManagedAttributes(AsyncBuffer out, SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
 		traits.getMethod(RenderManagedAttributes.class).renderManagedAttributes(wrappedObject, out, securityContext, renderContext);
 	}
 
 	@Override
-	public String getCypherQuery() {
+	public final String getCypherQuery() {
 		return wrappedObject.getProperty(traits.key("cypherQuery"));
 	}
 
 	@Override
-	public String getRestQuery() {
+	public final String getRestQuery() {
 		return wrappedObject.getProperty(traits.key("restQuery"));
 	}
 
 	@Override
-	public String getFunctionQuery() {
+	public final String getFunctionQuery() {
 		return wrappedObject.getProperty(traits.key("functionQuery"));
 	}
 
 	@Override
-	public String getPagePath() {
+	public final String getPagePath() {
 		return traits.getMethod(GetPagePath.class).getPagePath(wrappedObject);
 	}
 
 	@Override
-	public String getContextName() {
+	public final String getContextName() {
 		return traits.getMethod(GetContextName.class).getContextName(wrappedObject);
 	}
 
 	@Override
-	public String getSharedComponentConfiguration() {
+	public final String getSharedComponentConfiguration() {
 		return wrappedObject.getProperty(traits.key("sharedComponentConfiguration"));
 	}
 
 	@Override
-	public DOMNode getParent() {
+	public final DOMNode getParent() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));
 		if (node != null) {
@@ -1303,7 +1293,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public DOMNode getSharedComponent() {
+	public final DOMNode getSharedComponent() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("sharedComponent"));
 		if (node != null) {
@@ -1315,7 +1305,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Iterable<DOMNode> getChildren() {
+	public final Iterable<DOMNode> getChildren() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("children");
 
@@ -1323,7 +1313,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Iterable<DOMNode> getSyncedNodes() {
+	public final Iterable<DOMNode> getSyncedNodes() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("syncedNodes");
 
@@ -1331,7 +1321,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Iterable<ActionMapping> getReloadingActions() {
+	public final Iterable<ActionMapping> getReloadingActions() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("reloadingActions");
 
@@ -1339,7 +1329,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Iterable<ActionMapping> getFailureActions() {
+	public final Iterable<ActionMapping> getFailureActions() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureActions");
 
@@ -1347,7 +1337,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Iterable<ActionMapping> getSuccessNotificationActions() {
+	public final Iterable<ActionMapping> getSuccessNotificationActions() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("successNotificationActions");
 
@@ -1355,7 +1345,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Iterable<ActionMapping> getFailureNotificationActions() {
+	public final Iterable<ActionMapping> getFailureNotificationActions() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureNotificationActions");
 
@@ -1363,29 +1353,29 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void setOwnerDocument(final Page page) throws FrameworkException {
+	public final void setOwnerDocument(final Page page) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("ownerDocument"), page.getWrappedNode());
 	}
 
 	@Override
-	public void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException {
+	public final void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent.getWrappedNode());
 	}
 
 	@Override
-	public void updateFromNode(final DOMNode otherNode) throws FrameworkException {
+	public final void updateFromNode(final DOMNode otherNode) throws FrameworkException {
 		traits.getMethod(UpdateFromNode.class).updateFromNode(wrappedObject, otherNode);
 	}
 
 	@Override
-	public void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
+	public final void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
 
 		wrappedObject.setProperty(traits.key("visibleToPublicUsers"), publicUsers);
 		wrappedObject.setProperty(traits.key("visibleToAuthenticatedUsers"), authenticatedUsers);
 	}
 
 	@Override
-	public void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
+	public final void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
@@ -1423,7 +1413,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void handleNewChild(Node newChild) {
+	public final void handleNewChild(Node newChild) {
 
 		try {
 
@@ -1447,7 +1437,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void checkIsChild(final Node otherNode) throws DOMException {
+	public final void checkIsChild(final Node otherNode) throws DOMException {
 
 		if (otherNode instanceof DOMNode) {
 
@@ -1466,7 +1456,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void checkHierarchy(final Node otherNode) throws DOMException {
+	public final void checkHierarchy(final Node otherNode) throws DOMException {
 
 		// we can only check DOMNodes
 		if (otherNode instanceof DOMNode) {
@@ -1498,7 +1488,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void checkSameDocument(final Node otherNode) throws DOMException {
+	public final void checkSameDocument(final Node otherNode) throws DOMException {
 
 		Document doc = getOwnerDocument();
 		if (doc != null) {
@@ -1530,7 +1520,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void checkWriteAccess() throws DOMException {
+	public final void checkWriteAccess() throws DOMException {
 
 		if (!wrappedObject.isGranted(Permission.write, getSecurityContext())) {
 
@@ -1539,7 +1529,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void checkReadAccess() throws DOMException {
+	public final void checkReadAccess() throws DOMException {
 
 		final SecurityContext securityContext = getSecurityContext();
 
@@ -1556,12 +1546,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	public final void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 		traits.getMethod(RenderCustomAttributes.class).renderCustomAttributes(this, out, securityContext, renderContext);
 	}
 
 	@Override
-	public void getSecurityInstructions(final Set<String> instructions) {
+	public final void getSecurityInstructions(final Set<String> instructions) {
 
 		final Principal _owner = wrappedObject.getOwnerNode();
 		if (_owner != null) {
@@ -1591,7 +1581,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void getVisibilityInstructions(final Set<String> instructions) {
+	public final void getVisibilityInstructions(final Set<String> instructions) {
 
 		final DOMNode _parentNode       = getParent();
 		final boolean elementPublic     = wrappedObject.isVisibleToPublicUsers();
@@ -1638,7 +1628,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void getLinkableInstructions(final Set<String> instructions) {
+	public final void getLinkableInstructions(final Set<String> instructions) {
 
 		if (traits.contains("LinkSource")) {
 
@@ -1669,15 +1659,18 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void getContentInstructions(final Set<String> instructions) {
+	public final void getContentInstructions(final Set<String> instructions) {
 
-		final String _contentType = getContentType();
-		if (_contentType != null) {
+		if (is("Content")) {
 
-			instructions.add("@structr:content(" + DOMNode.escapeForHtmlAttributes(_contentType) + ")");
+			final String _contentType = as(Content.class).getContentType();
+			if (_contentType != null) {
+
+				instructions.add("@structr:content(" + DOMNode.escapeForHtmlAttributes(_contentType) + ")");
+			}
 		}
 
-		if (!traits.contains("Template")) {
+		if (!is("Template")) {
 
 			final String _name = wrappedObject.getProperty(traits.key("name"));
 			if (StringUtils.isNotEmpty(_name)) {
@@ -1712,7 +1705,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode) {
+	public final void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode) {
 
 		if (EditMode.DEPLOYMENT.equals(editMode)) {
 
@@ -1727,12 +1720,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public List<RelationshipInterface> getChildRelationships() {
+	public final List<RelationshipInterface> getChildRelationships() {
 		return treeGetChildRelationships();
 	}
 
 	@Override
-	public void doAppendChild(final DOMNode node) throws FrameworkException {
+	public final void doAppendChild(final DOMNode node) throws FrameworkException {
 
 		checkWriteAccess();
 
@@ -1740,7 +1733,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void doRemoveChild(final DOMNode node) throws FrameworkException {
+	public final void doRemoveChild(final DOMNode node) throws FrameworkException {
 
 		checkWriteAccess();
 
@@ -1748,7 +1741,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Set<PropertyKey> getDataPropertyKeys() {
+	public final Set<PropertyKey> getDataPropertyKeys() {
 
 		final Set<PropertyKey> customProperties = new TreeSet<>();
 		final org.structr.api.graph.Node dbNode = wrappedObject.getNode();
@@ -1791,12 +1784,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public String getSiblingLinkType() {
+	public final String getSiblingLinkType() {
 		return "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode";
 	}
 
 	@Override
-	public NodeInterface listGetPrevious(final NodeInterface currentElement) {
+	public final NodeInterface listGetPrevious(final NodeInterface currentElement) {
 
 		final RelationshipInterface prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
 		if (prevRel != null) {
@@ -1808,7 +1801,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public NodeInterface listGetNext(final NodeInterface currentElement) {
+	public final NodeInterface listGetNext(final NodeInterface currentElement) {
 
 		final RelationshipInterface nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
 		if (nextRel != null) {
@@ -1820,7 +1813,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void listInsertBefore(final NodeInterface currentElement, final NodeInterface newElement) throws FrameworkException {
+	public final void listInsertBefore(final NodeInterface currentElement, final NodeInterface newElement) throws FrameworkException {
 
 		if (currentElement.getUuid().equals(newElement.getUuid())) {
 			throw new IllegalStateException("Cannot link a node to itself!");
@@ -1848,7 +1841,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void listInsertAfter(final NodeInterface currentElement, final NodeInterface newElement) throws FrameworkException {
+	public final void listInsertAfter(final NodeInterface currentElement, final NodeInterface newElement) throws FrameworkException {
 
 		if (currentElement.getUuid().equals(newElement.getUuid())) {
 			throw new IllegalStateException("Cannot link a node to itself!");
@@ -1877,7 +1870,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void listRemove(final NodeInterface currentElement) throws FrameworkException {
+	public final void listRemove(final NodeInterface currentElement) throws FrameworkException {
 
 		final NodeInterface previousElement = listGetPrevious(currentElement);
 		final NodeInterface nextElement     = listGetNext(currentElement);
@@ -1900,17 +1893,17 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void linkSiblings(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
+	public final void linkSiblings(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
 		linkSiblings(startNode, endNode, null);
 	}
 
 	@Override
-	public void linkSiblings(final NodeInterface startNode, final NodeInterface endNode, final PropertyMap properties) throws FrameworkException {
+	public final void linkSiblings(final NodeInterface startNode, final NodeInterface endNode, final PropertyMap properties) throws FrameworkException {
 		StructrApp.getInstance(getSecurityContext()).create(startNode, endNode, getSiblingLinkType(), properties);
 	}
 
 	@Override
-	public void unlinkSiblings(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
+	public final void unlinkSiblings(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(getSecurityContext());
 
@@ -1924,27 +1917,27 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	// ----- interface org.w3d.Node -----
 	@Override
-	public String getNodeName() {
+	public final String getNodeName() {
 		return traits.getMethod(W3CNodeMethods.class).getNodeName(wrappedObject);
 	}
 
 	@Override
-	public String getNodeValue() throws DOMException {
+	public final String getNodeValue() throws DOMException {
 		return traits.getMethod(W3CNodeMethods.class).getNodeValue(wrappedObject);
 	}
 
 	@Override
-	public void setNodeValue(final String nodeValue) throws DOMException {
+	public final void setNodeValue(final String nodeValue) throws DOMException {
 		traits.getMethod(W3CNodeMethods.class).setNodeValue(wrappedObject, nodeValue);
 	}
 
 	@Override
-	public short getNodeType() {
+	public final short getNodeType() {
 		return traits.getMethod(W3CNodeMethods.class).getNodeType(wrappedObject);
 	}
 
 	@Override
-	public Node getParentNode() {
+	public final Node getParentNode() {
 
 		checkReadAccess();
 
@@ -1952,7 +1945,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public NodeList getChildNodes() {
+	public final NodeList getChildNodes() {
 
 		checkReadAccess();
 
@@ -1967,7 +1960,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node getFirstChild() {
+	public final Node getFirstChild() {
 
 		checkReadAccess();
 
@@ -1981,7 +1974,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node getLastChild() {
+	public final Node getLastChild() {
 
 		checkReadAccess();
 
@@ -1995,7 +1988,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node getPreviousSibling() {
+	public final Node getPreviousSibling() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("previousSibling"));
 		if (node != null) {
@@ -2007,7 +2000,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node getNextSibling() {
+	public final Node getNextSibling() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("nextSibling"));
 		if (node != null) {
@@ -2019,12 +2012,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public NamedNodeMap getAttributes() {
+	public final NamedNodeMap getAttributes() {
 		return traits.getMethod(GetAttributes.class).getAttributes(this);
 	}
 
 	@Override
-	public Document getOwnerDocument() {
+	public final Document getOwnerDocument() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("ownerDocument"));
 		if (node != null) {
@@ -2036,7 +2029,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node insertBefore(final Node newChild, final Node refChild) throws DOMException {
+	public final Node insertBefore(final Node newChild, final Node refChild) throws DOMException {
 
 		// according to DOM spec, insertBefore with null refChild equals appendChild
 		if (refChild == null) {
@@ -2111,7 +2104,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node replaceChild(final Node newChild, final Node oldChild) throws DOMException {
+	public final Node replaceChild(final Node newChild, final Node oldChild) throws DOMException {
 
 		checkWriteAccess();
 
@@ -2183,7 +2176,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node removeChild(final Node node) throws DOMException {
+	public final Node removeChild(final Node node) throws DOMException {
 
 		checkWriteAccess();
 		checkSameDocument(node);
@@ -2202,7 +2195,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public Node appendChild(final Node newChild) throws DOMException {
+	public final Node appendChild(final Node newChild) throws DOMException {
 
 		checkWriteAccess();
 		checkSameDocument(newChild);
@@ -2260,14 +2253,14 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean hasChildNodes() {
+	public final boolean hasChildNodes() {
 
 		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key("children");
 		return wrappedObject.getProperty(childrenKey).iterator().hasNext();
 	}
 
 	@Override
-	public Node cloneNode(final boolean deep) {
+	public final Node cloneNode(final boolean deep) {
 
 		final SecurityContext securityContext = getSecurityContext();
 
@@ -2345,7 +2338,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void normalize() {
+	public final void normalize() {
 
 		final Document document = getOwnerDocument();
 		if (document != null) {
@@ -2399,46 +2392,46 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public boolean isSupported(final String feature, final String version) {
+	public final boolean isSupported(final String feature, final String version) {
 		return false;
 	}
 
 	@Override
-	public String getNamespaceURI() {
+	public final String getNamespaceURI() {
 		return null;
 	}
 
 	@Override
-	public String getPrefix() {
+	public final String getPrefix() {
 		return null;
 	}
 
 	@Override
-	public void setPrefix(final String prefix) throws DOMException {
+	public final void setPrefix(final String prefix) throws DOMException {
 	}
 
 	@Override
-	public String getLocalName() {
-		return "";
+	public final String getLocalName() {
+		return null;
 	}
 
 	@Override
-	public boolean hasAttributes() {
+	public final boolean hasAttributes() {
 		return false;
 	}
 
 	@Override
-	public String getBaseURI() {
+	public final String getBaseURI() {
 		return null;
 	}
 
 	@Override
-	public short compareDocumentPosition(final Node other) throws DOMException {
+	public final short compareDocumentPosition(final Node other) throws DOMException {
 		return 0;
 	}
 
 	@Override
-	public String getTextContent() throws DOMException {
+	public final String getTextContent() throws DOMException {
 
 		final DOMNodeList results         = new DOMNodeList();
 		final TextCollector textCollector = new TextCollector();
@@ -2449,11 +2442,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public void setTextContent(final String textContent) throws DOMException {
+	public final void setTextContent(final String textContent) throws DOMException {
 	}
 
 	@Override
-	public boolean isSameNode(final Node node) {
+	public final boolean isSameNode(final Node node) {
 
 		if (node != null && node instanceof DOMNode domNode) {
 
@@ -2469,38 +2462,38 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public String lookupPrefix(final String namespaceURI) {
+	public final String lookupPrefix(final String namespaceURI) {
 		return null;
 	}
 
 	@Override
-	public boolean isDefaultNamespace(final String namespaceURI) {
+	public final boolean isDefaultNamespace(final String namespaceURI) {
 		return true;
 	}
 
 	@Override
-	public String lookupNamespaceURI(final String prefix) {
+	public final String lookupNamespaceURI(final String prefix) {
 		return null;
 	}
 
 	@Override
-	public boolean isEqualNode(final Node arg) {
+	public final boolean isEqualNode(final Node arg) {
 		// fixme, this might need wrapping / unwrapping
 		return equals(arg);
 	}
 
 	@Override
-	public Object getFeature(final String feature, final String version) {
+	public final Object getFeature(final String feature, final String version) {
 		return null;
 	}
 
 	@Override
-	public Object setUserData(final String key, final Object data, final UserDataHandler handler) {
+	public final Object setUserData(final String key, final Object data, final UserDataHandler handler) {
 		return null;
 	}
 
 	@Override
-	public Object getUserData(final String key) {
+	public final Object getUserData(final String key) {
 		return null;
 	}
 

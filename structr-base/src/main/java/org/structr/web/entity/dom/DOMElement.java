@@ -31,7 +31,7 @@ import org.w3c.dom.NamedNodeMap;
 
 import java.util.Map;
 
-public interface DOMElement extends NodeTrait, Element, NamedNodeMap {
+public interface DOMElement extends DOMNode, Element, NamedNodeMap {
 
 	String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 

@@ -80,6 +80,7 @@ import org.structr.web.resource.ResetPasswordResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.DOMElementTraitWrapper;
+import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -479,13 +480,38 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 				}
 			},
 
+
+
+			DoImport.class,
+			new DoImport() {
+
+				@Override
+				public Node doImport(final DOMNode node, final Page newPage) throws DOMException {
+
+					final DOMElement element    = node.as(DOMElement.class);
+					final DOMElement newElement = (DOMElement) newPage.createElement(element.getTag());
+
+					// copy attributes
+					for (String _name : element.getHtmlAttributeNames()) {
+
+						Attr attr = element.getAttributeNode(_name);
+						if (attr.getSpecified()) {
+
+							newElement.setAttribute(attr.getName(), attr.getValue());
+						}
+					}
+
+					return newElement;
+				}
+			},
+
 			RenderContent.class,
 			new RenderContent() {
 
 				@Override
 				public void renderContent(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-					final DOMElement elem = node.getWrappedNode().as(DOMElement.class);
+					final DOMElement elem = node.as(DOMElement.class);
 
 					if (!elem.shouldBeRendered(renderContext)) {
 						return;
@@ -493,12 +519,12 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 					// final variables
 					final SecurityContext securityContext = renderContext.getSecurityContext();
-					final AsyncBuffer out = renderContext.getBuffer();
-					final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-					final boolean hasSharedComponent = elem.hasSharedComponent();
-					final DOMElement synced = hasSharedComponent ? (DOMElement) elem.getSharedComponent() : null;
-					final boolean isVoid = elem.isVoidElement();
-					final String _tag = elem.getTag();
+					final AsyncBuffer out                 = renderContext.getBuffer();
+					final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
+					final boolean hasSharedComponent      = elem.hasSharedComponent();
+					final DOMElement synced               = hasSharedComponent ? (DOMElement) elem.getSharedComponent() : null;
+					final boolean isVoid                  = elem.isVoidElement();
+					final String _tag                     = elem.getTag();
 
 					// non-final variables
 					boolean anyChildNodeCreatesNewLine = false;

@@ -21,33 +21,14 @@ package org.structr.web.traits.wrappers;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.Permission;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Adapter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
-import org.structr.schema.NonIndexed;
-import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
-import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.converter.ContentConverters;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Textarea;
 import org.w3c.dom.*;
 
 import java.io.IOException;
@@ -452,42 +433,12 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 	}
 
 	@Override
-	public String getContextName() {
-		return StringUtils.defaultString(getProperty(AbstractNode.name), "#text");
-	}
-
-	@Override
-	public String getNodeName() {
-		return "#text";
-	}
-
-	@Override
-	public String getNodeValue() {
-		return getData();
-	}
-
-	@Override
-	public void setNodeValue(final String value) {
-		setData(value);
-	}
-
-	@Override
-	public short getNodeType() {
-		return TEXT_NODE;
-	}
-
-	@Override
 	public NamedNodeMap getAttributes() {
 		return null;
 	}
 
 	public boolean hasAttributes() {
 		return false;
-	}
-
-	@Override
-	public String getLocalName() {
-		return null;
 	}
 
 	@Override
