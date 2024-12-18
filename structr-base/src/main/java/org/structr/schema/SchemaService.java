@@ -90,7 +90,8 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
-		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
+		//return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
+		return new ServiceResult(true);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -102,6 +103,7 @@ public class SchemaService implements Service {
 	}
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload, final boolean notifyCluster) {
+		/*
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
@@ -461,8 +463,9 @@ public class SchemaService implements Service {
 				}
 			}
 		}
+		*/
 
-		return new ServiceResult(success);
+		return new ServiceResult(true);
 	}
 
 	@Override
@@ -527,6 +530,8 @@ public class SchemaService implements Service {
 
 	// ----- private methods -----
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
+
+		/*
 
 		if (Services.overrideIndexManagement()) {
 
@@ -656,9 +661,12 @@ public class SchemaService implements Service {
 		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
+		*/
 	}
 
 	private static Class getType(final String name) {
+
+		/*
 
 		try { return Class.forName(name); } catch (ClassNotFoundException ignore) {}
 
@@ -673,6 +681,7 @@ public class SchemaService implements Service {
 
 			return relClass;
 		}
+		*/
 
 		return null;
 	}
@@ -729,6 +738,7 @@ public class SchemaService implements Service {
 			return "NodeInterface";
 		}
 
+		/*
 		// new: return relationship type for rels
 		if (Relation.class.isAssignableFrom(type)) {
 
@@ -738,6 +748,7 @@ public class SchemaService implements Service {
 				return rel.name();
 			}
 		}
+		*/
 
 		return typeName;
 	}

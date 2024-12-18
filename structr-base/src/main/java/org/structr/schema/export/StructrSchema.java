@@ -30,8 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.schema.SchemaService;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -158,7 +157,7 @@ public class StructrSchema {
 			app.deleteAllNodesOfType("SchemaNode");
 			app.deleteAllNodesOfType("SchemaMethod");
 			app.deleteAllNodesOfType("SchemaMethodParameter");
-			app.deleteAllNodesOfType("SchemaPro");
+			app.deleteAllNodesOfType("SchemaProperty");
 			app.deleteAllNodesOfType("SchemaView");
 			app.deleteAllNodesOfType("SchemaGrant");
 
@@ -195,6 +194,8 @@ public class StructrSchema {
 	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
+
+			//SchemaService.prefetchSchemaNodes(tx);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.extend);
 

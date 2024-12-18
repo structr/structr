@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -59,12 +58,12 @@ public class StructrByteArrayProperty extends StructrPropertyDefinition implemen
 	}
 
 	@Override
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
-		final Traits traits          = Traits.of("SchemaProperty");
+		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of("SchemaProperty");
 
-		property.setProperty(traits.key("propertyType"), Type.ByteArray.name());
+		property.getWrappedNode().setProperty(traits.key("propertyType"), Type.ByteArray.name());
 
 		return property;
 	}

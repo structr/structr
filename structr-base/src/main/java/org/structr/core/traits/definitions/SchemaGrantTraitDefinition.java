@@ -21,6 +21,7 @@ package org.structr.core.traits.definitions;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.graph.NodeInterface;
@@ -105,6 +106,11 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 
 			SchemaGrant.class, (traits, node) -> new SchemaGrantTraitWrapper(traits, node)
 		);
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override

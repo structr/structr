@@ -21,39 +21,12 @@ package org.structr.schema;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.*;
-import org.structr.api.service.LicenseManager;
 import org.structr.api.service.ServiceResult;
-import org.structr.api.util.Iterables;
-import org.structr.common.*;
-import org.structr.common.error.*;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.CaseHelper;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
-import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.Services;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.*;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
-import org.structr.module.StructrModule;
-import org.structr.rest.resource.SchemaResource;
-import org.structr.schema.action.ActionEntry;
-import org.structr.schema.action.Actions;
-import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
 
 import java.util.*;
-import java.util.Map.Entry;
-
-import static org.structr.core.entity.SchemaMethod.source;
-import static org.structr.core.entity.SchemaNode.defaultSortKey;
-import static org.structr.core.entity.SchemaNode.defaultSortOrder;
 
 /**
  *
@@ -61,6 +34,7 @@ import static org.structr.core.entity.SchemaNode.defaultSortOrder;
  */
 public class SchemaHelper {
 
+	/*
 	private static final Logger logger                   = LoggerFactory.getLogger(SchemaHelper.class.getName());
 	private static final String WORD_SEPARATOR           = "_";
 
@@ -136,13 +110,11 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.Notion,        24);
 	}
 
-	/**
 	 * Tries to normalize (and singularize) the given string so that it
 	 * resolves to an existing entity type.
 	 *
 	 * @param possibleEntityString
 	 * @return the normalized entity name in its singular form
-	 */
 	public static String normalizeEntityName(String possibleEntityString) {
 
 		if (possibleEntityString == null) {
@@ -222,7 +194,7 @@ public class SchemaHelper {
 		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
 	}
 
-	public static void getSource(final SourceFile sourceFile, final AbstractSchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
+	public static void getSource(final SourceFile sourceFile, final SchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
 
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
 		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
@@ -236,9 +208,9 @@ public class SchemaHelper {
 		final Set<String> implementedInterfaces                = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final Class baseType                                   = AbstractNode.class;
-		final String _className                                = schemaNode.getProperty(SchemaNode.name);
-		final SchemaNode _extendsClass                         = schemaNode.getProperty(SchemaNode.extendsClass);
-		final String _extendsClassInternal                     = schemaNode.getProperty(SchemaNode.extendsClassInternal);
+		final String _className                                = schemaNode.getName();
+		final SchemaNode _extendsClass                         = schemaNode.getExtendsClass();
+		final String _extendsClassInternal                     = schemaNode.getExtendsClassInternal();
 		String superClass                                      = baseType.getSimpleName();
 		boolean extendsAbstractNode                            = true;
 
@@ -264,7 +236,7 @@ public class SchemaHelper {
 
 		final SourceLine classDefinition = sourceFile.begin(schemaNode, "public ");
 
-		if (schemaNode.getProperty(SchemaNode.isInterface)) {
+		if (schemaNode.isInterface()) {
 
 			// create interface
 			classDefinition.append("interface ");
@@ -279,7 +251,7 @@ public class SchemaHelper {
 
 		} else {
 
-			if (schemaNode.getProperty(SchemaNode.isAbstract)) {
+			if (schemaNode.isAbstract()) {
 				classDefinition.append("abstract ");
 			}
 
@@ -299,7 +271,7 @@ public class SchemaHelper {
 		classDefinition.append(" {");
 
 		// output related node definitions, collect property views
-		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
+		for (final SchemaRelationshipNode outRel : schemaNode.getRelatedTo()) {
 
 			// skip relationship properties whose endpoint types are blacklisted
 			if (blacklist.contains(outRel.getSchemaNodeTargetType())) {
@@ -366,9 +338,9 @@ public class SchemaHelper {
 			}
 		}
 
-		if (schemaNode.getProperty(defaultSortKey) != null) {
+		if (schemaNode.getDefaultSortKey() != null) {
 
-			String order = schemaNode.getProperty(defaultSortOrder);
+			String order = schemaNode.getDefaultSortOrder();
 			if (order == null || "desc".equals(order)) {
 				order = "GraphObjectComparator.DESCENDING";
 			} else {
@@ -377,7 +349,7 @@ public class SchemaHelper {
 
 			sourceFile.line(schemaNode, "@Override");
 			sourceFile.begin(schemaNode, "public PropertyKey getDefaultSortKey() {");
-			sourceFile.line(schemaNode, "return ", schemaNode.getProperty(defaultSortKey), "Property;");
+			sourceFile.line(schemaNode, "return ", schemaNode.getDefaultSortKey(), "Property;");
 			sourceFile.end();
 
 			sourceFile.line(schemaNode, "@Override");
@@ -386,7 +358,7 @@ public class SchemaHelper {
 			sourceFile.end();
 		}
 
-		if (schemaNode.getProperty(AbstractSchemaNode.changelogDisabled)) {
+		if (schemaNode.changelogDisabled()) {
 
 			sourceFile.line(schemaNode, "@Override");
 			sourceFile.begin(schemaNode, "public boolean changelogEnabled() {");
@@ -895,10 +867,8 @@ public class SchemaHelper {
 
 	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-	        /*
 		Methods are collected and grouped by name. There can be multiple methods with the same
 		name, which must be combined into a single method.
-		*/
 
 		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
 
@@ -1763,4 +1733,5 @@ public class SchemaHelper {
 		}
 
 	}
+	*/
 }

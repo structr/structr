@@ -21,8 +21,15 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
-	public NodeInterface getSchemaNode() {
-		return wrappedObject.getProperty(traits.key("schemaNode"));
+	public AbstractSchemaNode getSchemaNode() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("schemaNode"));
+		if (node != null) {
+
+			return node.as(AbstractSchemaNode.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -71,6 +78,11 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	@Override
 	public String getVirtualFileName() {
 		return wrappedObject.getProperty(traits.key("virtualFileName"));
+	}
+
+	@Override
+	public String getSignature() {
+		return wrappedObject.getProperty(traits.key("signature"));
 	}
 
 	@Override
@@ -148,9 +160,9 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	@Override
 	public boolean isLifecycleMethod() {
 
-		final NodeInterface parent = getSchemaNode();
-		final boolean hasParent    = (parent != null);
-		final String methodName    = getName();
+		final AbstractSchemaNode parent = getSchemaNode();
+		final boolean hasParent         = (parent != null);
+		final String methodName         = getName();
 
 		if (hasParent) {
 

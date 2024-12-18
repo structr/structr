@@ -18,27 +18,10 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.graph.NodeInterface;
-
 public interface SchemaNode extends AbstractSchemaNode {
 
 	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
 
-	Iterable<NodeInterface> getSchemaGrants();
-	NodeInterface getExtendsClass();
-
-	String getSummary();
-	String getIcon();
-	String getDescription();
-	String getCategory();
-
-	boolean isInterface();
-	boolean isAbstract();
-	boolean isBuiltinType();
-	boolean changelogDisabled();
-	boolean defaultVisibleToPublic();
-	boolean defaultVisibleToAuth();
-	boolean includeInOpenAPI();
-
-	String[] getTags();
+	Iterable<SchemaRelationshipNode> getRelatedTo();
+	Iterable<SchemaRelationshipNode> getRelatedFrom();
 }

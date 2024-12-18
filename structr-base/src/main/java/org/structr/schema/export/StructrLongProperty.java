@@ -26,7 +26,6 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
@@ -162,11 +161,9 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 	}
 
 	@Override
-	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
 
-		super.deserialize(schemaNodes, node);
-
-		final SchemaProperty property = node.as(SchemaProperty.class);
+		super.deserialize(schemaNodes, property);
 
 		final LongPropertyParser longPropertyParser = property.getLongPropertyParser(schemaNodes);
 		if (longPropertyParser != null) {
@@ -187,10 +184,10 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 	}
 
 	@Override
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
-		final Traits traits          = Traits.of("SchemaProperty");
+		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of("SchemaProperty");
 		final PropertyMap properties  = new PropertyMap();
 
 		properties.put(traits.key("propertyType"), Type.Long.name());
@@ -218,7 +215,7 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 			properties.put(traits.key("format"), range.toString());
 		}
 
-		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

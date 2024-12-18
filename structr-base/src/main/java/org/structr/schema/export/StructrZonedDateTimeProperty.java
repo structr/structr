@@ -22,8 +22,6 @@ import org.structr.api.schema.JsonDateProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
 import java.util.Map;
@@ -40,7 +38,6 @@ public class StructrZonedDateTimeProperty extends StructrStringProperty implemen
 	}
 
 	// ----- public methods -----
-
 	@Override
 	public JsonDateProperty setDatePattern(final String datePattern) {
 
@@ -77,11 +74,11 @@ public class StructrZonedDateTimeProperty extends StructrStringProperty implemen
 	}
 
 	@Override
-	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface property) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
 
 		super.deserialize(schemaNodes, property);
 
-		this.datePattern = property.getProperty(Traits.of("SchemaProperty").key("format"));
+		this.datePattern = property.getFormat();
 	}
 
 	@Override

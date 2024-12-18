@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
@@ -98,6 +99,11 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefini
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override

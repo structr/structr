@@ -29,9 +29,9 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
@@ -60,7 +60,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
 	private final Set<String> tags                            = new TreeSet<>();
-	private NodeInterface schemaMethod                        = null;
+	private SchemaMethod schemaMethod                         = null;
 	private boolean includeInOpenAPI                          = false;
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
@@ -346,21 +346,20 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	// ----- package methods -----
-	NodeInterface getSchemaMethod() {
+	SchemaMethod getSchemaMethod() {
 		return schemaMethod;
 	}
 
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface node) throws FrameworkException {
+	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final SchemaNode schemaNode        = node.as(SchemaNode.class);
-		final PropertyMap updateProperties = new PropertyMap();
 		final Traits traits                = Traits.of("SchemaMethod");
-		NodeInterface method               = null;
+		final PropertyMap updateProperties = new PropertyMap();
+		SchemaMethod method                = null;
 		int index                          = 0;
 
-		for (final NodeInterface m : schemaNode.getSchemaMethodsByName(getName())) {
+		for (final SchemaMethod m : schemaNode.getSchemaMethodsByName(getName())) {
 
-			if (getSignature().equals(m.getProperty(traits.key("signature")))) {
+			if (getSignature().equals(m.getSignature())) {
 
 				method = m;
 				break;
@@ -380,7 +379,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			getOrCreateProperties.put(traits.key("callSuper"),             callSuper());
 			getOrCreateProperties.put(traits.key("doExport"),              doExport());
 
-			method = app.create("SchemaMethod", getOrCreateProperties);
+			method = app.create("SchemaMethod", getOrCreateProperties).as(SchemaMethod.class);
 		}
 
 		updateProperties.put(traits.key("summary"),               getSummary());
@@ -395,7 +394,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(traits.key("openAPIReturnType"),     getOpenAPIReturnType());
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = method.getProperty(traits.key("tags"));
+		final String[] existingTagsArray = method.getTags();
 
 		if (existingTagsArray != null) {
 
@@ -406,7 +405,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			updateProperties.put(traits.key("tags"), listToArray(mergedTags));
 		}
 
-		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+		method.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// create database schema for method parameters
 		for (final StructrParameterDefinition param : parameters) {
@@ -553,11 +552,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 	}
 
-	void deserialize(final NodeInterface node) {
+	void deserialize(final SchemaMethod method) {
 
-		final SchemaMethod method = node.as(SchemaMethod.class);
-
-		this.schemaMethod = node;
+		this.schemaMethod = method;
 
 		setName(method.getName());
 		setSource(method.getSource());
@@ -583,7 +580,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			}
 		}
 
-		for (final NodeInterface param : method.getParameters()) {
+		for (final SchemaMethodParameter param : method.getParameters()) {
 
 			final StructrParameterDefinition parameter = StructrParameterDefinition.deserialize(this, param);
 			if (parameter != null) {
@@ -668,8 +665,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		if (includeInOpenAPI()) {
 
-			final NodeInterface node  = this.getSchemaMethod();
-			final SchemaMethod method = node.as(SchemaMethod.class);
+			final SchemaMethod method = this.getSchemaMethod();
 
 			final boolean isLifecycleMethod = method.isLifecycleMethod();
 			final boolean isTypeMethod      = (parent != null);
@@ -885,7 +881,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return newMethod;
 	}
 
-	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final NodeInterface method) {
+	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final SchemaMethod method) {
 
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(parent, method.getName());
 

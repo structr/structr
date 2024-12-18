@@ -24,8 +24,8 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
@@ -67,16 +67,16 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 	// ----- package methods -----
 
 	@Override
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final NodeInterface property       = super.createDatabaseSchema(app, schemaNode);
+		final SchemaProperty property      = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits                = Traits.of("SchemaProperty");
 		final PropertyMap createProperties = new PropertyMap();
 
 		createProperties.put(traits.key("format"), referenceName + ", " + StringUtils.join(properties, ", "));
 		createProperties.put(traits.key("propertyType"), SchemaHelper.Type.Notion.name());
 
-		property.setProperties(SecurityContext.getSuperUserInstance(), createProperties);
+		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), createProperties);
 
 		return property;
 	}

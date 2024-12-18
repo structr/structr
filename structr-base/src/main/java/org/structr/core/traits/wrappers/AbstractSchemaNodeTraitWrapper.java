@@ -19,8 +19,10 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
-import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 import java.util.ArrayList;
@@ -42,31 +44,48 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public Iterable<NodeInterface> getSchemaProperties() {
-		return wrappedObject.getProperty(traits.key("schemaProperties"));
+	public Iterable<SchemaProperty> getSchemaProperties() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaProperties");
+
+		return Iterables.map(n -> n.as(SchemaProperty.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
-	public Iterable<NodeInterface> getSchemaViews() {
-		return wrappedObject.getProperty(traits.key("schemaViews"));
+	public Iterable<SchemaView> getSchemaViews() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaViews");
+
+		return Iterables.map(n -> n.as(SchemaView.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
-	public Iterable<NodeInterface> getSchemaMethods() {
-		return wrappedObject.getProperty(traits.key("schemaMethods"));
+	public Iterable<SchemaMethod> getSchemaMethods() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaMethods");
+
+		return Iterables.map(n -> n.as(SchemaMethod.class), wrappedObject.getProperty(key));
 	}
 
-    	@Override
-	public Iterable<NodeInterface> getSchemaMethodsIncludingInheritance() {
+	@Override
+	public Iterable<SchemaGrant> getSchemaGrants() {
 
-		List<NodeInterface> methods = Iterables.toList((Iterable)wrappedObject.getProperty(traits.key("schemaMethods")));
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaGrants");
+
+		return Iterables.map(n -> n.as(SchemaGrant.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<SchemaMethod> getSchemaMethodsIncludingInheritance() {
+
+		List<SchemaMethod> methods = Iterables.toList(getSchemaMethods());
 		NodeInterface parentNode    = wrappedObject.getProperty(traits.key("extendsClass"));
 
 		if (parentNode != null) {
 
 			final AbstractSchemaNode asn = parentNode.as(AbstractSchemaNode.class);
 
-			for (final NodeInterface m : asn.getSchemaMethodsIncludingInheritance()) {
+			for (final SchemaMethod m : asn.getSchemaMethodsIncludingInheritance()) {
 
 				if (!methods.contains(m)) {
 
@@ -79,9 +98,9 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public NodeInterface getSchemaMethod(final String name) {
+	public SchemaMethod getSchemaMethod(final String name) {
 
-		for (final NodeInterface method : getSchemaMethods()) {
+		for (final SchemaMethod method : getSchemaMethods()) {
 
 			if (name.equals(method.getName())) {
 				return method;
@@ -92,11 +111,11 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public List<NodeInterface> getSchemaMethodsByName(final String name) {
+	public List<SchemaMethod> getSchemaMethodsByName(final String name) {
 
-		final List<NodeInterface> result = new ArrayList<>();
+		final List<SchemaMethod> result = new ArrayList<>();
 
-		for (final NodeInterface method : getSchemaMethods()) {
+		for (final SchemaMethod method : getSchemaMethods()) {
 
 			if (name.equals(method.getName())) {
 				result.add(method);
@@ -107,9 +126,9 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public NodeInterface getSchemaProperty(final String name) {
+	public SchemaProperty getSchemaProperty(final String name) {
 
-		for (final NodeInterface property : getSchemaProperties()) {
+		for (final SchemaProperty property : getSchemaProperties()) {
 
 			if (name.equals(property.getName())) {
 				return property;
@@ -120,9 +139,9 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public NodeInterface getSchemaView(final String name) {
+	public SchemaView getSchemaView(final String name) {
 
-		for (final NodeInterface view : getSchemaViews()) {
+		for (final SchemaView view : getSchemaViews()) {
 
 			if (name.equals(view.getName())) {
 				return view;
@@ -130,6 +149,108 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 		}
 
 		return null;
+	}
+
+	@Override
+	public SchemaNode getExtendsClass() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("extendsClass"));
+		if (node != null) {
+
+			return node.as(SchemaNode.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getExtendsClassInternal() {
+		return wrappedObject.getProperty(traits.key("extendsClassInternal"));
+	}
+
+	@Override
+	public String getImplementsInterfaces() {
+		return wrappedObject.getProperty(traits.key("implementsInterfaces"));
+	}
+
+	@Override
+	public String getSummary() {
+		return wrappedObject.getProperty(traits.key("summary"));
+	}
+
+	@Override
+	public String getIcon() {
+		return wrappedObject.getProperty(traits.key("icon"));
+	}
+
+	@Override
+	public String getDescription() {
+		return wrappedObject.getProperty(traits.key("description"));
+	}
+
+	@Override
+	public String getCategory() {
+		return wrappedObject.getProperty(traits.key("category"));
+	}
+
+	@Override
+	public String getClassName() {
+		return wrappedObject.getProperty(traits.key("className"));
+	}
+
+	@Override
+	public String getDefaultSortKey() {
+		return wrappedObject.getProperty(traits.key("defaultSortKey"));
+	}
+
+	@Override
+	public String getDefaultSortOrder() {
+		return wrappedObject.getProperty(traits.key("defaultSortOrder"));
+	}
+
+	@Override
+	public boolean isInterface() {
+		return wrappedObject.getProperty(traits.key("isInterface"));
+	}
+
+	@Override
+	public boolean isAbstract() {
+		return wrappedObject.getProperty(traits.key("isAbstract"));
+	}
+
+	@Override
+	public boolean isBuiltinType() {
+		return wrappedObject.getProperty(traits.key("isBuiltinType"));
+	}
+
+	@Override
+	public boolean changelogDisabled() {
+		return wrappedObject.getProperty(traits.key("changelogDisabled"));
+	}
+
+	@Override
+	public boolean defaultVisibleToPublic() {
+		return wrappedObject.getProperty(traits.key("defaultVisibleToPublic"));
+	}
+
+	@Override
+	public boolean defaultVisibleToAuth() {
+		return wrappedObject.getProperty(traits.key("defaultVisibleToAuth"));
+	}
+
+	@Override
+	public boolean includeInOpenAPI() {
+		return wrappedObject.getProperty(traits.key("includeInOpenAPI"));
+	}
+
+	@Override
+	public String[] getTags() {
+		return wrappedObject.getProperty(traits.key("tags"));
+	}
+
+	@Override
+	public void setExtendsClass(final SchemaNode schemaNode) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("extendsClass"), schemaNode.getWrappedNode());
 	}
 
 	/*

@@ -62,7 +62,7 @@ public abstract class PropertySourceGenerator {
 	public abstract String getValueType();
 	public abstract String getUnqualifiedValueType();
 	public abstract String getPropertyParameters();
-	public abstract void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface entity, final String expression) throws FrameworkException;
+	public abstract void parseFormatString(final Map<String, SchemaNode> schemaNodes, final NodeInterface entity, final String expression) throws FrameworkException;
 
 	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
 		this.errorBuffer  = errorBuffer;
@@ -70,7 +70,7 @@ public abstract class PropertySourceGenerator {
 		this.source       = propertyDefinition;
 	}
 
-	public void getPropertySource(final Map<String, NodeInterface> schemaNodes, final SourceFile buf, final NodeInterface entity) throws FrameworkException {
+	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final SourceFile buf, final NodeInterface entity) throws FrameworkException {
 
 		parseFormatString(schemaNodes, entity, source.getFormat());
 

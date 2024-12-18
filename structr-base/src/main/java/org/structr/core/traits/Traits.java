@@ -91,6 +91,22 @@ public class Traits {
 	}
 
 	/**
+	 * Returns the default set of property keys, which is
+	 * id, type and name.
+	 * @return
+	 */
+	public List<PropertyKey> getDefaultKeys() {
+
+		final List<PropertyKey> keys = new LinkedList<>();
+
+		keys.add(propertyKeys.get("id"));
+		keys.add(propertyKeys.get("type"));
+		keys.add(propertyKeys.get("name"));
+
+		return keys;
+	}
+
+	/**
 	 * Returns the combined property set of all traits that
 	 * this type contains.
 	 *
@@ -273,5 +289,11 @@ public class Traits {
 
 	public boolean isAbstract() {
 		return false;
+	}
+
+	public Set<String> getViewNames() {
+
+		// TODO: implement, as unmodifiable collection!
+		return Set.of();
 	}
 }

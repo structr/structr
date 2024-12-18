@@ -32,19 +32,19 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 	NodeInterface getSchemaNode();
 	String getSourceContentType();
 
-	String getNotionBaseProperty(final Map<String, NodeInterface> schemaNodes);
-	Set<String> getPropertiesForNotionProperty(final Map<String, NodeInterface> schemaNodes);
-	String getNotionMultiplicity(final Map<String, NodeInterface> schemaNodes);
+	String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes);
+	Set<String> getPropertiesForNotionProperty(final Map<String, SchemaNode> schemaNodes);
+	String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes);
 
 	Set<String> getEnumDefinitions();
 
-	NotionPropertyParser getNotionPropertyParser(final Map<String, NodeInterface> schemaNodes);
-	IntPropertyParser getIntPropertyParser(final Map<String, NodeInterface> schemaNodes);
-	IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
-	LongPropertyParser getLongPropertyParser(final Map<String, NodeInterface> schemaNodes);
-	LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
-	DoublePropertyParser getDoublePropertyParser(final Map<String, NodeInterface> schemaNodes);
-	DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, NodeInterface> schemaNodes);
+	NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes);
+	IntPropertyParser getIntPropertyParser(final Map<String, SchemaNode> schemaNodes);
+	IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
+	LongPropertyParser getLongPropertyParser(final Map<String, SchemaNode> schemaNodes);
+	LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
+	DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes);
+	DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
 
 	static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
 

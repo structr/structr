@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 
@@ -170,9 +169,8 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	// ----- package methods -----
-	SchemaMethodParameter createDatabaseSchema(final App app, final NodeInterface node, final int index) throws FrameworkException {
+	SchemaMethodParameter createDatabaseSchema(final App app, final SchemaMethod schemaMethod, final int index) throws FrameworkException {
 
-		final SchemaMethod schemaMethod = node.as(SchemaMethod.class);
 		final Traits traits             = Traits.of("SchemaMethodParameter");
 		SchemaMethodParameter parameter = schemaMethod.getSchemaMethodParameter(getName());
 
@@ -181,7 +179,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
 			getOrCreateProperties.put(traits.key("name"),         getName());
-			getOrCreateProperties.put(traits.key("schemaMethod"), node);
+			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod);
 
 			parameter = app.create("SchemaMethodParameter", getOrCreateProperties).as(SchemaMethodParameter.class);
 		}
@@ -224,9 +222,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		this.exampleValue = (String)source.get(JsonSchema.KEY_EXAMPLE_VALUE);
 	}
 
-	void deserialize(final NodeInterface node) {
-
-		final SchemaMethodParameter method = node.as(SchemaMethodParameter.class);
+	void deserialize(final SchemaMethodParameter method) {
 
 		setName(method.getName());
 		setType(method.getParameterType());
@@ -260,7 +256,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		return newParameter;
 	}
 
-	static StructrParameterDefinition deserialize(final StructrMethodDefinition parent, final NodeInterface parameter) {
+	static StructrParameterDefinition deserialize(final StructrMethodDefinition parent, final SchemaMethodParameter parameter) {
 
 		final StructrParameterDefinition newParameter = new StructrParameterDefinition(parent, parameter.getName());
 

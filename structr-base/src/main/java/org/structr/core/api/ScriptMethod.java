@@ -46,10 +46,10 @@ public class ScriptMethod extends AbstractMethod {
 
 	public ScriptMethod(final SchemaMethod method) {
 
-		super(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description));
+		super(method.getName(), method.getSummary(), method.getDescription());
 
 		this.parameters      = Parameters.fromSchemaMethod(method);
-		this.source          = method.getProperty(SchemaMethod.source);
+		this.source          = method.getSource();
 		this.uuid            = method.getUuid();
 		this.name            = method.getName();
 		this.isPrivateMethod = method.isPrivateMethod();
@@ -57,7 +57,7 @@ public class ScriptMethod extends AbstractMethod {
 		this.returnRawResult = method.returnRawResult();
 		this.httpVerb        = method.getHttpVerb();
 
-		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
+		final AbstractSchemaNode declaringClass = method.getSchemaNode();
 		if (declaringClass == null) {
 
 			fullName = "user-defined function ‛" + name + "‛";

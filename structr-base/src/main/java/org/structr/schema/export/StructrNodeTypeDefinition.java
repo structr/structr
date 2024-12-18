@@ -23,15 +23,12 @@ import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.CaseHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.SchemaRelationshipNodeTraitWrapper;
 
 import java.net.URI;
 import java.util.Map;
@@ -42,7 +39,7 @@ import java.util.TreeMap;
  *
  *
  */
-public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterface> implements JsonObjectType {
+public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode> implements JsonObjectType {
 
 	StructrNodeTypeDefinition(final StructrSchemaDefinition root, final String name) {
 		super(root, name);
@@ -50,7 +47,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterfa
 
 	@Override
 	public JsonReferenceType relate(final JsonObjectType type) {
-		return relate(type, getDefaultRelationshipType(getName(), type.getName()));
+		return relate(type, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type.getName()));
 	}
 
 	@Override
@@ -59,7 +56,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterfa
 		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			return relate(externalTypeReference, getDefaultRelationshipType(getName(), type));
+			return relate(externalTypeReference, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type));
 		}
 
 		throw new IllegalStateException("External reference " + externalTypeReference + " not found.");
@@ -90,8 +87,8 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterfa
 		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			final String sourcePropertyName = getPropertyName(type, false,  relationship, cardinality);
-			final String targetPropertyName = getPropertyName(type, true, relationship, cardinality);
+			final String sourcePropertyName = getPropertyName(type, false, relationship, cardinality);
+			final String targetPropertyName = getPropertyName(type, true,  relationship, cardinality);
 
 			return relate(externalTypeReference, relationship, cardinality, sourcePropertyName, targetPropertyName);
 		}
@@ -219,18 +216,20 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterfa
 	}
 
 	@Override
-	NodeInterface createSchemaNode(final Map<String, NodeInterface> schemaNodes, final Map<String, NodeInterface> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
+	SchemaNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
 
 		// re-use existing schema nodes here!
-		final NodeInterface existingNode = schemaNodes.get(name);
+		final SchemaNode existingNode = schemaNodes.get(name);
 		if (existingNode != null) {
 
 			return existingNode;
 		}
 
-		createProperties.put(Traits.nameProperty(), name);
+		final Traits traits = Traits.of("SchemaNode");
 
-		final NodeInterface newNode = app.create("SchemaNode", createProperties);
+		createProperties.put(traits.key("name"), name);
+
+		final SchemaNode newNode = app.create("SchemaNode", createProperties).as(SchemaNode.class);
 
 		schemaNodes.put(name, newNode);
 
@@ -269,14 +268,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<NodeInterfa
 				break;
 		}
 
-		return SchemaProperty.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
-	}
-
-	private String getDefaultRelationshipType(final NodeInterface sourceNode, final NodeInterface targetNode) {
-		return getDefaultRelationshipType(sourceNode.getName(), targetNode.getName());
-	}
-
-	private String getDefaultRelationshipType(final String sourceType, final String targetType) {
-		return sourceType + "_" + targetType;
+		return SchemaRelationshipNode.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
 	}
 }
