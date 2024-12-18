@@ -317,17 +317,17 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return null;
 	}
 
-	public boolean isPropertySetNotion(final Map<String, NodeInterface> schemaNodes) {
+	public boolean isPropertySetNotion(final Map<String, SchemaNode> schemaNodes) {
 		return getNotionPropertyParser(schemaNodes).isPropertySet();
 	}
 
-	public String getTypeReferenceForNotionProperty(final Map<String, NodeInterface> schemaNodes) {
+	public String getTypeReferenceForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
 		return getNotionPropertyParser(schemaNodes).getValueType();
 
 	}
 
 	@Override
-	public Set<String> getPropertiesForNotionProperty(final Map<String, NodeInterface> schemaNodes) {
+	public Set<String> getPropertiesForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
 
 		final Set<String> properties = new LinkedHashSet<>();
 
@@ -354,12 +354,12 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	}
 
 	@Override
-	public String getNotionBaseProperty(final Map<String, NodeInterface> schemaNodes) {
+	public String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes) {
 		return getNotionPropertyParser(schemaNodes).getBaseProperty();
 	}
 
 	@Override
-	public String getNotionMultiplicity(final Map<String, NodeInterface> schemaNodes) {
+	public String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes) {
 		return getNotionPropertyParser(schemaNodes).getMultiplicity();
 	}
 
@@ -383,7 +383,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return buf.toString();
 	}
 
-	public NotionPropertyParser getNotionPropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (notionPropertyParser == null) {
 
@@ -400,7 +400,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return notionPropertyParser;
 	}
 
-	public IntPropertyParser getIntPropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public IntPropertyParser getIntPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (intPropertyParser == null) {
 
@@ -417,7 +417,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return intPropertyParser;
 	}
 
-	public IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (intArrayPropertyParser == null) {
 
@@ -434,7 +434,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return intArrayPropertyParser;
 	}
 
-	public LongPropertyParser getLongPropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public LongPropertyParser getLongPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (longPropertyParser == null) {
 
@@ -451,7 +451,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return longPropertyParser;
 	}
 
-	public LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (longArrayPropertyParser == null) {
 
@@ -468,7 +468,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return longArrayPropertyParser;
 	}
 
-	public DoublePropertyParser getDoublePropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (doublePropertyParser == null) {
 
@@ -485,7 +485,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return doublePropertyParser;
 	}
 
-	public DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, NodeInterface> schemaNodes) {
+	public DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (doubleArrayPropertyParser == null) {
 

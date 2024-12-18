@@ -26,16 +26,13 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.Visitor;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
@@ -51,7 +48,7 @@ import java.util.Map.Entry;
 /**
  * @param <T>
  */
-public abstract class StructrTypeDefinition implements JsonType, StructrDefinition {
+public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
 	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
@@ -81,7 +78,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 	protected String summary                                      = null;
 	protected String icon                                         = null;
 	protected String name                                         = null;
-	protected NodeInterface schemaNode                            = null;
+	protected T schemaNode                                        = null;
 
 	StructrTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -89,7 +86,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		this.name = name;
 	}
 
-	abstract NodeInterface createSchemaNode(final Map<String, NodeInterface> schemaNodes, final Map<String, NodeInterface> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException;
+	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException;
 	abstract boolean isBlacklisted(final Set<String> blacklist);
 
 	@Override
@@ -1001,11 +998,9 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		}
 	}
 
-	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final T schemaNode) {
 
-		final SchemaNode schemaNode = node.as(SchemaNode.class);
-
-		for (final NodeInterface property : schemaNode.getSchemaProperties()) {
+		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
 
 			final StructrPropertyDefinition propertyDefinition = StructrPropertyDefinition.deserialize(schemaNodes, this, property);
 			if (propertyDefinition != null) {
@@ -1014,12 +1009,10 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 			}
 		}
 
-		for (final NodeInterface viewNode : schemaNode.getSchemaViews()) {
+		for (final SchemaView view : schemaNode.getSchemaViews()) {
 
 			final Set<String> propertySet = new TreeSet<>();
-			final SchemaView view         = viewNode.as(SchemaView.class);
-
-			for (final NodeInterface property : view.getSchemaProperties()) {
+			for (final SchemaProperty property : view.getSchemaProperties()) {
 				propertySet.add(property.getName());
 			}
 
@@ -1036,18 +1029,16 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 			}
 
 			if (!propertySet.isEmpty()) {
-
 				views.put(view.getName(), propertySet);
 
 				final String order = view.getSortOrder();
 				if (order != null) {
-
 					viewOrder.put(view.getName(), order);
 				}
 			}
 		}
 
-		for (final NodeInterface method : schemaNode.getSchemaMethods()) {
+		for (final SchemaMethod method : schemaNode.getSchemaMethods()) {
 
 			final StructrMethodDefinition newMethod = StructrMethodDefinition.deserialize(this, method);
 			if (newMethod != null) {
@@ -1056,7 +1047,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 			}
 		}
 
-		for (final NodeInterface grant : schemaNode.getSchemaGrants()) {
+		for (final SchemaGrant grant : schemaNode.getSchemaGrants()) {
 
 			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
 			if (newGrant != null) {
@@ -1065,9 +1056,8 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 			}
 		}
 
-		/*
 		// $extends
-		final NodeInterface extendsClass = schemaNode.getExtendsClass();
+		final SchemaNode extendsClass = schemaNode.getExtendsClass();
 		if (extendsClass != null) {
 
 			// we need to find out if the base type exists in the schema, or in the Structr base schema because the URLs differ
@@ -1085,7 +1075,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		} else {
 
 			// fallback to internal base type
-			final String extendsClassInternal = schemaNode.getProperty(SchemaNode.extendsClassInternal);
+			final String extendsClassInternal = schemaNode.getExtendsClassInternal();
 			if (extendsClassInternal != null) {
 
 				final String typeName = resolveParameterizedType(extendsClassInternal);
@@ -1096,7 +1086,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		}
 
 		// $implements
-		final String implementsInterfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
+		final String implementsInterfaces = schemaNode.getImplementsInterfaces();
 		if (implementsInterfaces != null) {
 
 			for (final String impl : implementsInterfaces.split("[, ]+")) {
@@ -1116,7 +1106,6 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 				}
 			}
 		}
-		*/
 
 		this.isInterface                 = schemaNode.isInterface();
 		this.isAbstract                  = schemaNode.isAbstract();
@@ -1129,7 +1118,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		this.icon                        = schemaNode.getIcon();
 		this.description                 = schemaNode.getDescription();
 		this.category                    = schemaNode.getCategory();
-		this.schemaNode                  = node;
+		this.schemaNode                  = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -1147,29 +1136,28 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		}
 	}
 
-	NodeInterface createDatabaseSchema(final Map<String, NodeInterface> schemaNodes, final Map<String, NodeInterface> schemaRels, final App app) throws FrameworkException {
+	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app) throws FrameworkException {
 
-		final Map<String, NodeInterface> schemaProperties = new TreeMap<>();
-		final PropertyMap createProperties                = new PropertyMap();
-		final PropertyMap nodeProperties                  = new PropertyMap();
-		final Traits schemaNodeTraits                     = Traits.of("SchemaNode");
-		final Traits schemaViewTraits                     = Traits.of("SchemaView");
+		final Traits schemaNodeTraits                      = Traits.of("SchemaNode");
+		final Traits schemaViewTraits                      = Traits.of("SchemaView");
+		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
+		final PropertyMap createProperties                 = new PropertyMap();
+		final PropertyMap nodeProperties                   = new PropertyMap();
 
 		// properties that always need to be set
-		createProperties.put(schemaNodeTraits.key("isInterface"), isInterface);
-		createProperties.put(schemaNodeTraits.key("isAbstract"), isAbstract);
-		createProperties.put(schemaNodeTraits.key("category"), category);
-		createProperties.put(schemaNodeTraits.key("isBuiltinType"), isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
-		createProperties.put(schemaNodeTraits.key("changelogDisabled"), changelogDisabled);
+		createProperties.put(schemaNodeTraits.key("isInterface"),            isInterface);
+		createProperties.put(schemaNodeTraits.key("isAbstract"),             isAbstract);
+		createProperties.put(schemaNodeTraits.key("category"),               category);
+		createProperties.put(schemaNodeTraits.key("isBuiltinType"),          isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+		createProperties.put(schemaNodeTraits.key("changelogDisabled"),      changelogDisabled);
 		createProperties.put(schemaNodeTraits.key("defaultVisibleToPublic"), visibleToPublicUsers);
-		createProperties.put(schemaNodeTraits.key("defaultVisibleToAuth"), visibleToAuthenticatedUsers);
+		createProperties.put(schemaNodeTraits.key("defaultVisibleToAuth"),   visibleToAuthenticatedUsers);
 
-		final NodeInterface createdSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
-		final SchemaNode newSchemaNode        = createdSchemaNode.as(SchemaNode.class);
+		final T newSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
 
 		for (final StructrPropertyDefinition property : properties) {
 
-			final NodeInterface schemaProperty = property.createDatabaseSchema(app, createdSchemaNode);
+			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, newSchemaNode);
 			if (schemaProperty != null) {
 
 				schemaProperties.put(schemaProperty.getName(), schemaProperty);
@@ -1179,12 +1167,12 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		// create views and associate the properties
 		for (final Entry<String, Set<String>> view : views.entrySet()) {
 
-			final List<NodeInterface> viewProperties = new LinkedList<>();
-			final List<String> nonGraphProperties    = new LinkedList<>();
+			final List<SchemaProperty> viewProperties = new LinkedList<>();
+			final List<String> nonGraphProperties     = new LinkedList<>();
 
 			for (final String propertyName : view.getValue()) {
 
-				final NodeInterface property = schemaProperties.get(propertyName);
+				final SchemaProperty property = schemaProperties.get(propertyName);
 				if (property != null) {
 
 					viewProperties.add(property);
@@ -1195,13 +1183,14 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 				}
 			}
 
-			NodeInterface viewNode = newSchemaNode.getSchemaView(view.getKey());
+			SchemaView viewNode = newSchemaNode.getSchemaView(view.getKey());
 			if (viewNode == null) {
+
 
 				viewNode = app.create("SchemaView",
 					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
 					new NodeAttribute<>(schemaViewTraits.key("name"), view.getKey())
-				);
+				).as(SchemaView.class);
 			}
 
 			final PropertyMap updateProperties = new PropertyMap();
@@ -1214,7 +1203,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 			}
 
 			// update properties of existing or new schema view node
-			viewNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+			viewNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 		}
 
 		for (final StructrMethodDefinition method : methods) {
@@ -1226,16 +1215,15 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 
 			} else {
 
-				method.createDatabaseSchema(app, createdSchemaNode);
+				method.createDatabaseSchema(app, newSchemaNode);
 			}
 		}
 
 		for (final StructrGrantDefinition grant : grants) {
-			grant.createDatabaseSchema(app, createdSchemaNode);
+			grant.createDatabaseSchema(app, newSchemaNode);
 		}
 
 		// extends
-		/*
 		if (baseTypeReference != null) {
 
 			final Object def = root.resolveURI(baseTypeReference);
@@ -1251,14 +1239,15 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 				final String superclass = StructrApp.resolveSchemaId(baseTypeReference);
 				if (superclass != null) {
 
-					if (superclass.isInterface()) {
+					final Traits traits = Traits.of(superclass);
+					if (traits.isInterface()) {
 
-						nodeProperties.put(SchemaNode.implementsInterfaces, superclass.getName());
+						nodeProperties.put(schemaNodeTraits.key("implementsInterfaces"), superclass);
 
 					} else {
 
 						// must be resolved later, when all SchemaNodes are created
-						unresolvedSuperclassName = superclass.getName();
+						unresolvedSuperclassName = superclass;
 					}
 
 				} else {
@@ -1267,7 +1256,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 					final String staticTypeName = resolveStaticType(baseTypeReference);
 					if (staticTypeName != null) {
 
-						nodeProperties.put(SchemaNode.extendsClassInternal, staticTypeName);
+						nodeProperties.put(schemaNodeTraits.key("extendsClassInternal"), staticTypeName);
 					}
 				}
 			}
@@ -1282,7 +1271,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 
 				if (!isBuiltinType && implementedInterface.toString().equals("https://structr.org/v1.1/definitions/" + getName())) {
 					isBuiltinType = true;
-					nodeProperties.put(SchemaNode.isBuiltinType, isBuiltinType);
+					nodeProperties.put(schemaNodeTraits.key("isBuiltinType"), isBuiltinType);
 				}
 
 				final Object def = root.resolveURI(implementedInterface);
@@ -1306,7 +1295,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 					final String superclass = StructrApp.resolveSchemaId(implementedInterface);
 					if (superclass != null) {
 
-						interfaces.add(superclass.getName());
+						interfaces.add(superclass);
 
 					} else {
 
@@ -1319,9 +1308,8 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 				}
 			}
 
-			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
+			nodeProperties.put(schemaNodeTraits.key("implementsInterfaces"), StringUtils.join(interfaces, ", "));
 		}
-		*/
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
 		final String[] existingTagsArray = newSchemaNode.getTags();
@@ -1340,16 +1328,16 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		nodeProperties.put(schemaNodeTraits.key("description"),       getDescription());
 		nodeProperties.put(schemaNodeTraits.key("icon"),              getIcon());
 
-		createdSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
+		newSchemaNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
-		return createdSchemaNode;
+		return newSchemaNode;
 	}
 
-	NodeInterface getSchemaNode() {
+	T getSchemaNode() {
 		return schemaNode;
 	}
 
-	void setSchemaNode(final NodeInterface schemaNode) {
+	void setSchemaNode(final T schemaNode) {
 		this.schemaNode = schemaNode;
 	}
 
@@ -1376,13 +1364,13 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		}
 	}
 
-	void diff(final Class nodeType, final StructrTypeDefinition other) throws FrameworkException {
+	void diff(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
 		diffMethods(nodeType, other);
 		diffProperties(nodeType, other);
 	}
 
-	void diffProperties(final Class nodeType, final StructrTypeDefinition other) throws FrameworkException {
+	void diffProperties(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
 		final Map<String, StructrPropertyDefinition> databaseProperties = getMappedProperties();
 		final Map<String, StructrPropertyDefinition> structrProperties  = other.getMappedProperties();
@@ -1413,7 +1401,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		}
 	}
 
-	void diffMethods(final Class nodeType, final StructrTypeDefinition other) throws FrameworkException {
+	void diffMethods(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
 		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsBySignature();
 		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsBySignature();
@@ -1635,9 +1623,9 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		return typeDefinition;
 	}
 
-	static StructrTypeDefinition deserialize(final Map<String, NodeInterface> schemaNodes, final StructrSchemaDefinition root, final NodeInterface schemaNode) {
+	static StructrTypeDefinition deserialize(final Map<String, SchemaNode> schemaNodes, final StructrSchemaDefinition root, final SchemaNode schemaNode) {
 
-		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, schemaNode.getType());
+		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, schemaNode.getClassName());
 		def.deserialize(schemaNodes, schemaNode);
 
 		return def;
@@ -1652,13 +1640,13 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 	}
 
 	// ----- protected methods -----
-	protected NodeInterface resolveSchemaNode(final Map<String, NodeInterface> schemaNodes, final App app, final URI uri) throws FrameworkException {
+	protected SchemaNode resolveSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final URI uri) throws FrameworkException {
 
 		// find schema nodes for the given source and target nodes
 		final Object source = root.resolveURI(uri);
 		if (source != null && source instanceof StructrTypeDefinition) {
 
-			return ((StructrTypeDefinition)source).getSchemaNode();
+			return (SchemaNode)((StructrTypeDefinition)source).getSchemaNode();
 
 		} else {
 
@@ -1785,7 +1773,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		return mapped;
 	}
 
-	private void handleRemovedMethod(final Class nodeType, final StructrMethodDefinition method) throws FrameworkException {
+	private void handleRemovedMethod(final Traits nodeType, final StructrMethodDefinition method) throws FrameworkException {
 
 		final Set<String> deleteWhitelist = Set.of(
 			"Mailbox.getAvailableFoldersOnServer",
@@ -1804,7 +1792,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 
 			if (method.overridesExisting() || deleteWhitelist.contains(typeAndName)) {
 
-				StructrApp.getInstance().delete(method.getSchemaMethod());
+				StructrApp.getInstance().delete(method.getSchemaMethod().getWrappedNode());
 
 			} else {
 
@@ -1812,13 +1800,13 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 				final Method staticMethod = getMethodOrNull(nodeType, method);
 				if (staticMethod != null) {
 
-					StructrApp.getInstance().delete(method.getSchemaMethod());
+					StructrApp.getInstance().delete(method.getSchemaMethod().getWrappedNode());
 				}
 			}
 		}
 	}
 
-	private void handleRemovedProperty(final Class nodeType, final StructrPropertyDefinition property) throws FrameworkException {
+	private void handleRemovedProperty(final Traits nodeType, final StructrPropertyDefinition property) throws FrameworkException {
 
 		// do not delete properties that are defined in dynamic types
 		if (nodeType != null && nodeType.getName().startsWith("org.structr.dynamic.")) {
@@ -1835,7 +1823,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 
 		if (field != null || property instanceof DeletedPropertyDefinition) {
 
-			StructrApp.getInstance().delete(property.getSchemaProperty());
+			StructrApp.getInstance().delete(property.getSchemaProperty().getWrappedNode());
 		}
 	}
 
@@ -1920,12 +1908,10 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 
 	public void visitProperties(final Visitor<PropertyKey> visitor, final String viewName) {
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class type                   = config.getNodeEntityClass(name);
-
+		final Traits type = Traits.of(name);
 		if (type != null) {
 
-			final Set<PropertyKey> keys = config.getPropertySet(type, viewName);
+			final Set<PropertyKey> keys = type.getViewPropertyKeys(viewName);
 			if (keys != null) {
 
 				keys.stream().forEach(visitor::visit);
@@ -1933,7 +1919,7 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 			} else {
 
 				// fallback: iterate over id, type, name
-				List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(visitor::visit);
+				Traits.of("NodeInterface").getDefaultKeys().stream().forEach(visitor::visit);
 			}
 		}
 	}
@@ -1965,13 +1951,12 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 
 	protected Set<String> getInheritedViewNamesExcludingPublic() {
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class type                   = config.getNodeEntityClass(name);
-		final Set<String> inherited        = new LinkedHashSet<>();
+		final Traits type           = Traits.of(name);
+		final Set<String> inherited = new LinkedHashSet<>();
 
 		if (type != null) {
 
-			inherited.addAll(config.getPropertyViewsForType(type));
+			inherited.addAll(type.getViewNames());
 
 			inherited.removeAll(VIEW_BLACKLIST);
 			inherited.remove("public");
@@ -1994,10 +1979,10 @@ public abstract class StructrTypeDefinition implements JsonType, StructrDefiniti
 		return null;
 	}
 
-	void resolveInheritanceRelationships(final Map<String, NodeInterface> schemaNodes) throws FrameworkException {
+	void resolveInheritanceRelationships(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
 		if (unresolvedSuperclassName != null && this.schemaNode != null) {
-			this.schemaNode.setProperty(SchemaNode.extendsClass, schemaNodes.get(unresolvedSuperclassName));
+			this.schemaNode.setExtendsClass(schemaNodes.get(unresolvedSuperclassName));
 		}
 	}
 

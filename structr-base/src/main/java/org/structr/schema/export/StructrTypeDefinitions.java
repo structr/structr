@@ -34,6 +34,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
@@ -120,13 +121,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
-		final Map<String, NodeInterface> schemaRels  = new LinkedHashMap<>();
-		final Map<String, NodeInterface> schemaNodes = new LinkedHashMap<>();
-		final Set<String> blacklist                  = SchemaService.getBlacklist();
+		final Map<String, SchemaRelationshipNode> schemaRels = new LinkedHashMap<>();
+		final Map<String, SchemaNode> schemaNodes            = new LinkedHashMap<>();
+		final Set<String> blacklist                          = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
-		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
-		app.nodeQuery("SchemaRelationshipNode").getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n); });
+		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
+		app.nodeQuery("SchemaRelationshipNode").getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n.as(SchemaRelationshipNode.class)); });
 
 		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
@@ -137,7 +138,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				continue;
 			}
 
-			final NodeInterface schemaNode = type.createDatabaseSchema(schemaNodes, schemaRels, app);
+			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, schemaRels, app);
 			if (schemaNode != null) {
 
 				type.setSchemaNode(schemaNode);
@@ -245,21 +246,15 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		final Map<String, Object> map             = new TreeMap<>();
 
-		for (final StructrTypeDefinition type : typeDefinitions) {
+		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				Class typeClass = configuration.getNodeEntityClass(type.name);
-				if (typeClass == null) {
+				final Traits traits         = Traits.of(type.name);
+				final Set<String> viewNames = traits.getViewNames();
 
-					final Map<String, Class> interfaces = configuration.getInterfaces();
-
-					typeClass = interfaces.get(type.name);
-				}
-
-				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
-
-				viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
+				viewNames.removeAll(StructrTypeDefinition.VIEW_BLACKLIST);
+				viewNames.remove("all");
 
 				for (String viewName : viewNames) {
 
@@ -307,21 +302,21 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private Set<String> getViewNamesOfType(final StructrTypeDefinition type, final String view) {
 
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		Class typeClass = configuration.getNodeEntityClass(type.name);
+		final Traits traits         = Traits.of(type.name);
+		final Set<String> viewNames = traits.getViewNames();
 
-		if (typeClass == null) {
-			Map<String, Class> interfaces = configuration.getInterfaces();
-			typeClass = interfaces.get(type.name);
-		}
+		viewNames.remove(StructrTypeDefinition.VIEW_BLACKLIST);
+		viewNames.remove("all");
 
-		Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+		// fixme: what does this do??
+		/*
 		viewNames = viewNames.stream().filter(viewName -> {
 			if (StringUtils.isNotEmpty(view) && !StringUtils.equals(view, viewName)) {
 				return false;
 			}
 			return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
 		}).collect(Collectors.toSet());
+		*/
 
 		return viewNames;
 	}
@@ -471,7 +466,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
-		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
 
 		// iterate
 		for (final SchemaNode schemaNode : schemaNodes.values()) {
@@ -483,9 +478,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
-		for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery("SchemaRelationshipNode").getAsList()) {
+		for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getAsList()) {
 
-			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaRelationship);
+			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, node.as(SchemaRelationshipNode.class));
 			if (type != null) {
 
 				typeDefinitions.add(type);
@@ -548,7 +543,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			final StructrTypeDefinition localType = databaseTypes.get(name);
 			final StructrTypeDefinition otherType = structrTypes.get(name);
-			final Class nodeType                  = getNodeType(name);
+			final Traits nodeType                 = getNodeType(name);
 
 			// compare types
 			localType.diff(nodeType, otherType);
@@ -569,47 +564,26 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
 
-		final NodeInterface schemaNode = type.getSchemaNode();
+		/*
+		final AbstractSchemaNode schemaNode = type.getSchemaNode();
 		if (schemaNode != null) {
 
-			final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(type.getName());
-			if (clazz != null) {
+			final Traits traits = Traits.of(type.getName());
+			if (traits != null) {
 
 				// move extends relationship to internal type
 				for (final SchemaNode subtype : schemaNode.getProperty(SchemaNode.extendedByClasses)) {
 
-					subtype.setProperty(SchemaNode.extendsClassInternal, clazz.getName());
+					subtype.setProperty(SchemaNode.extendsClassInternal, traits.getName());
 				}
 			}
 
 			StructrApp.getInstance().delete(schemaNode);
 		}
+		*/
 	}
 
-	private Class getNodeType(final String name) {
-
-		Class type = StructrApp.getConfiguration().getNodeEntityClass(name);
-
-		// core type?
-		if (type == null) {
-			type = classOrNull("org.structr.core.entity." + name);
-		}
-
-		// ui type?
-		if (type == null) {
-			type = classOrNull("org.structr.web.entity." + name);
-		}
-
-		return type;
-	}
-
-	private Class classOrNull(final String fqcn) {
-
-		 try {
-			 return Class.forName(fqcn);
-
-		 } catch (Throwable ignore) {}
-
-		 return null;
+	private Traits getNodeType(final String name) {
+		return Traits.of(name);
 	}
 }

@@ -26,7 +26,6 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 
@@ -90,25 +89,23 @@ public abstract class StructrDynamicProperty extends StructrStringProperty imple
 	}
 
 	@Override
-	void deserialize(final Map<String, NodeInterface> schemaNodes, final NodeInterface node) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
 
-		super.deserialize(schemaNodes, node);
-
-		final SchemaProperty property = node.as(SchemaProperty.class);
+		super.deserialize(schemaNodes, property);
 
 		setTypeHint(property.getTypeHint());
 	}
 
 	@Override
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
-		final Traits traits          = Traits.of("SchemaProperty");
-		final PropertyMap properties = new PropertyMap();
+		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of("SchemaProperty");
+		final PropertyMap properties  = new PropertyMap();
 
 		properties.put(traits.key("typeHint"), typeHint);
 
-		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

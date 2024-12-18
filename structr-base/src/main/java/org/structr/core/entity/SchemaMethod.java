@@ -11,7 +11,7 @@ public interface SchemaMethod extends NodeTrait {
 
 	String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
 
-	NodeInterface getSchemaNode();
+	AbstractSchemaNode getSchemaNode();
 	Iterable<SchemaMethodParameter> getParameters();
 	String getName();
 	String getSource();
@@ -21,6 +21,7 @@ public interface SchemaMethod extends NodeTrait {
 	String getReturnType();
 	String getOpenAPIReturnType();
 	String getVirtualFileName();
+	String getSignature();
 
 	String[] getExceptions();
 	String[] getTags();
@@ -41,6 +42,7 @@ public interface SchemaMethod extends NodeTrait {
 	HttpVerb getHttpVerb();
 
 	SchemaMethodParameter getSchemaMethodParameter(final String name);
+
 
 	enum HttpVerb {
 		GET, PUT, POST, PATCH, DELETE

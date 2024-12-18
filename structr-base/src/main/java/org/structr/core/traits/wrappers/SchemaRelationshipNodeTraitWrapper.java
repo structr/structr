@@ -9,10 +9,7 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
@@ -31,12 +28,26 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public NodeInterface getSourceNode() {
-		return wrappedObject.getProperty(traits.key("sourceNode"));
+	public SchemaNode getSourceNode() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("sourceNode"));
+		if (node != null) {
+
+			return node.as(SchemaNode.class);
+		}
+
+		return null;
 	}
 
-	@Override public NodeInterface getTargetNode() {
-		return wrappedObject.getProperty(traits.key("targetNode"));
+	@Override public SchemaNode getTargetNode() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("targetNode"));
+		if (node != null) {
+
+			return node.as(SchemaNode.class);
+		}
+
+		return null;
 	}
 
 	// ----- interface Schema -----
@@ -464,7 +475,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	// ----- public methods -----
 	@Override public String getSchemaNodeSourceType() {
 
-		final NodeInterface sourceNode = getSourceNode();
+		final SchemaNode sourceNode = getSourceNode();
 		if (sourceNode != null) {
 
 			return sourceNode.getName();
@@ -485,7 +496,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override public String getSchemaNodeTargetType() {
 
-		final NodeInterface targetNode = getTargetNode();
+		final SchemaNode targetNode = getTargetNode();
 		if (targetNode != null) {
 
 			return targetNode.getName();
@@ -751,7 +762,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public Iterable<NodeInterface> getSchemaGrants() {
+	public Iterable<SchemaGrant> getSchemaGrants() {
 		return Collections.emptyList();
 	}
 
@@ -783,6 +794,26 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public String getPropertyMask() {
 		return wrappedObject.getProperty(traits.key("propertyMask"));
+	}
+
+	@Override
+	public void setSourceNode(final SchemaNode sourceSchemaNode) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("sourceNode"), sourceSchemaNode.getWrappedNode());
+	}
+
+	@Override
+	public void setTargetNode(final SchemaNode targetSchemaNode) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("targetNode"), targetSchemaNode.getWrappedNode());
+	}
+
+	@Override
+	public void setSourceType(final String sourceType) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("sourceType"), sourceType);
+	}
+
+	@Override
+	public void setTargetType(final String targetType) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("targetType"), targetType);
 	}
 
 	@Override

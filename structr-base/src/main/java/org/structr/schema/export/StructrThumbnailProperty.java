@@ -21,8 +21,8 @@ package org.structr.schema.export;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
@@ -30,7 +30,7 @@ import org.structr.schema.SchemaHelper.Type;
 
 public class StructrThumbnailProperty extends StructrStringProperty {
 
-	public StructrThumbnailProperty(final StructrTypeDefinition parent, final String name) {
+	public StructrThumbnailProperty(StructrTypeDefinition parent, String name) {
 		super(parent, name);
 	}
 
@@ -40,16 +40,16 @@ public class StructrThumbnailProperty extends StructrStringProperty {
 	}
 
 	@Override
-	NodeInterface createDatabaseSchema(final App app, final NodeInterface schemaNode) throws FrameworkException {
+	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final NodeInterface property = super.createDatabaseSchema(app, schemaNode);
-		final Traits traits          = Traits.of("SchemaProperty");
-		final PropertyMap properties = new PropertyMap();
+		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of("SchemaProperty");
+		final PropertyMap properties  = new PropertyMap();
 
 		properties.put(traits.key("propertyType"), Type.Thumbnail.name());
 		properties.put(traits.key("format"), getFormat());
 
-		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

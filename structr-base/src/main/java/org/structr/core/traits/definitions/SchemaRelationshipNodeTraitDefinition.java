@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
@@ -61,18 +62,17 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 	private static final Property<String>     targetJsonName         = new StringProperty("targetJsonName").indexed();
 	private static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName").indexed();
 	private static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName").indexed();
-	private static final Property<String>     extendsClass           = new StringProperty("extendsClass").indexed();
 	private static final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
 	private static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
 	private static final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
 
 	// permission propagation via domain relationships
-	private static final Property<PropagationDirection>   permissionPropagation = new EnumProperty("permissionPropagation", PropagationDirection.class, PropagationDirection.None);
-	private static final Property<PropagationMode> readPropagation              = new EnumProperty<>("readPropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<PropagationMode> writePropagation             = new EnumProperty<>("writePropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<PropagationMode> deletePropagation            = new EnumProperty<>("deletePropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<PropagationMode> accessControlPropagation     = new EnumProperty<>("accessControlPropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<String>      propertyMask                     = new StringProperty("propertyMask");
+	private static final Property<PropagationDirection> permissionPropagation    = new EnumProperty("permissionPropagation", PropagationDirection.class, PropagationDirection.None);
+	private static final Property<PropagationMode>      readPropagation          = new EnumProperty<>("readPropagation", PropagationMode.class, PropagationMode.Remove);
+	private static final Property<PropagationMode>      writePropagation         = new EnumProperty<>("writePropagation", PropagationMode.class, PropagationMode.Remove);
+	private static final Property<PropagationMode>      deletePropagation        = new EnumProperty<>("deletePropagation", PropagationMode.class, PropagationMode.Remove);
+	private static final Property<PropagationMode>      accessControlPropagation = new EnumProperty<>("accessControlPropagation", PropagationMode.class, PropagationMode.Remove);
+	private static final Property<String>               propertyMask             = new StringProperty("propertyMask");
 
 	/*
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
@@ -125,6 +125,11 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 	}
 
 	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
@@ -144,7 +149,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 			targetJsonName,
 			previousSourceJsonName,
 			previousTargetJsonName,
-			extendsClass,
 			cascadingDeleteFlag,
 			autocreationFlag,
 			isPartOfBuiltInSchema,

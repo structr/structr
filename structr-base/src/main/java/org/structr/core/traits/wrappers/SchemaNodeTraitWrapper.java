@@ -1,7 +1,11 @@
 package org.structr.core.traits.wrappers;
 
+import org.structr.api.util.Iterables;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 import java.util.List;
@@ -13,13 +17,23 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	@Override
-	public Iterable<NodeInterface> getSchemaGrants() {
-		return wrappedObject.getProperty(traits.key("schemaGrants"));
+	public Iterable<SchemaGrant> getSchemaGrants() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaGrants");
+
+		 return Iterables.map(n -> n.as(SchemaGrant.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
-	public NodeInterface getExtendsClass() {
-		return wrappedObject.getProperty(traits.key("extendsClass"));
+	public SchemaNode getExtendsClass() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("extendsClass"));
+		if (node != null) {
+
+			return node.as(SchemaNode.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -80,5 +94,21 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	@Override
 	public String[] getTags() {
 		return wrappedObject.getProperty(traits.key("tags"));
+	}
+
+	@Override
+	public Iterable<SchemaRelationshipNode> getRelatedTo() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("relatedTo");
+
+		return Iterables.map(n -> n.as(SchemaRelationshipNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<SchemaRelationshipNode> getRelatedFrom() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("relatedFrom");
+
+		return Iterables.map(n -> n.as(SchemaRelationshipNode.class), wrappedObject.getProperty(key));
 	}
 }

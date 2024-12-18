@@ -593,10 +593,11 @@ public class SchemaTest extends StructrTest {
 
 			// verify that all schema nodes have isBuiltinType set to true
 			// except "Test"
-			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("SchemaNode").getAsList()) {
 
-				final String name  = schemaNode.getName();
-				final boolean flag = schemaNode.getProperty(SchemaNode.isBuiltinType);
+				final SchemaNode schemaNode = node.as(SchemaNode.class);
+				final String name           = schemaNode.getName();
+				final boolean flag          = schemaNode.isBuiltinType();
 
 				if (name.equals("Test")) {
 
