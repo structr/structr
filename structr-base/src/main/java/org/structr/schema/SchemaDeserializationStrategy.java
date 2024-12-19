@@ -48,7 +48,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 	protected Set<PropertyKey> identifyingPropertyKeys = null;
 	protected Set<PropertyKey> foreignPropertyKeys     = null;
-	protected RelationProperty<S> relationProperty     = null;
+	protected RelationProperty relationProperty        = null;
 	protected boolean createIfNotExisting              = false;
 	protected Class targetType                         = null;
 
@@ -60,12 +60,12 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	}
 
 	@Override
-	public void setRelationProperty(final RelationProperty<S> relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 
 	@Override
-	public T deserialize(SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
+	public T deserialize(SecurityContext securityContext, String type, S source, final Object context) throws FrameworkException {
 
 		if (source instanceof Map) {
 
@@ -76,7 +76,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 		return null;
 	}
 
-	private T deserialize(final SecurityContext securityContext, final Class<T> type, final PropertyMap attributes, final Object context) throws FrameworkException {
+	private T deserialize(final SecurityContext securityContext, final String type, final PropertyMap attributes, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 

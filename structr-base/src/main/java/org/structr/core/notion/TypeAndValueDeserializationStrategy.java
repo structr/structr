@@ -47,9 +47,9 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndValueDeserializationStrategy.class.getName());
 
-	protected RelationProperty<S> relationProperty = null;
-	protected boolean createIfNotExisting          = false;
-	protected PropertyKey propertyKey              = null;
+	protected RelationProperty relationProperty = null;
+	protected boolean createIfNotExisting       = false;
+	protected PropertyKey propertyKey           = null;
 
 	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
 
@@ -62,12 +62,12 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty<S> relationProperty) {
+	public void setRelationProperty(RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, String type, S source, final Object context) throws FrameworkException {
 
 		final App app        = StructrApp.getInstance(securityContext);
 		final List<T> result = new LinkedList<>();
@@ -117,11 +117,11 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
-					T newNode = app.create(type);
+					NodeInterface newNode = app.create(type);
 
 					if (newNode != null) {
 						newNode.setProperty(propertyKey, convertedSource);
-						return newNode;
+						return (T)newNode;
 					}
 
 				} else {

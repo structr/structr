@@ -82,16 +82,6 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
@@ -107,11 +97,6 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 			nameProperty,
 			isGroupProperty
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	/*

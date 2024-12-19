@@ -18,29 +18,7 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Base extends DOMElement {
-
-	public static final Property<String> htmlHrefProperty   = new StringProperty("_html_href");
-	public static final Property<String> htmlTargetProperty = new StringProperty("_html_target");
-
-	public static final View htmlView = new View(Base.class, PropertyView.Html,
-		htmlHrefProperty, htmlTargetProperty
-	);
-
-	@Override
-	public Property[] getHtmlAttributes() {
-		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-	}
-
-	@Override
-	public boolean isVoidElement() {
-		return true;
-	}
+public interface Base extends DOMElement {
 }

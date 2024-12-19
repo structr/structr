@@ -18,14 +18,10 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.wrappers.SchemaMethodParameterTraitWrapper;
 
 import java.util.Map;
@@ -47,25 +43,9 @@ public class SchemaMethodParameterTraitDefinition extends AbstractTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-
 			SchemaMethodParameter.class, (traits, node) -> new SchemaMethodParameterTraitWrapper(traits, node)
 		);
 	}
@@ -80,10 +60,5 @@ public class SchemaMethodParameterTraitDefinition extends AbstractTraitDefinitio
 			description,
 			exampleValue
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

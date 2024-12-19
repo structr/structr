@@ -19,15 +19,11 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.core.entity.MailTemplate;
-import org.structr.core.traits.wrappers.MailTemplateTraitWrapper;
-import org.structr.core.entity.Relation;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.wrappers.MailTemplateTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -56,21 +52,6 @@ public final class MailTemplateTraitDefinition extends AbstractTraitDefinition {
 	*/
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
@@ -84,10 +65,5 @@ public final class MailTemplateTraitDefinition extends AbstractTraitDefinition {
 			textProperty,
 			localeProperty
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

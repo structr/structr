@@ -22,10 +22,10 @@ import org.structr.core.traits.definitions.*;
 
 public class StructrTraits {
 
-	private static final PropertyContainerTraitDefinition propertyContainerTraitImplementation            = new PropertyContainerTraitDefinition();
-	private static final GraphObjectTraitDefinition graphObjectTraitImplementation                        = new GraphObjectTraitDefinition();
-	private static final NodeInterfaceTraitDefinition nodeInterfaceTraitImplementation                    = new NodeInterfaceTraitDefinition();
-	private static final AccessControllableTraitDefinition accessControllableTraitImplementation          = new AccessControllableTraitDefinition();
+	private static final PropertyContainerTraitDefinition propertyContainerTraitImplementation   = new PropertyContainerTraitDefinition();
+	private static final GraphObjectTraitDefinition graphObjectTraitImplementation               = new GraphObjectTraitDefinition();
+	private static final NodeInterfaceTraitDefinition nodeInterfaceTraitImplementation           = new NodeInterfaceTraitDefinition();
+	private static final AccessControllableTraitDefinition accessControllableTraitImplementation = new AccessControllableTraitDefinition();
 
 	static {
 

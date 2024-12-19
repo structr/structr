@@ -42,8 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-import static org.structr.core.graph.NodeInterface.name;
-
 /**
  *
  */

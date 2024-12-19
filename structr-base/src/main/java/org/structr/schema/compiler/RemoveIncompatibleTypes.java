@@ -25,7 +25,6 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
@@ -80,8 +79,7 @@ public class RemoveIncompatibleTypes  implements MigrationHandler {
 
 						if (handled == false) {
 
-							final SchemaReloadingNodeTraitDefinition schemaNode = app.nodeQuery("SchemaReloadingNodeTraitDefinition").andName(type).getFirst();
-
+							final NodeInterface schemaNode = app.nodeQuery("AbstractSchemaNode").andName(type).getFirst();
 							if (schemaNode != null) {
 
 								app.delete(schemaNode);

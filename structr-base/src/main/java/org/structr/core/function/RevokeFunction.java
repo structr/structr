@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -26,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -72,7 +74,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 			} else {
 
 				final Principal principal         = (Principal)sources[0];
-				final AbstractNode node           = (AbstractNode)sources[1];
+				final NodeInterface node          = (NodeInterface)sources[1];
 				final Set<Permission> permissions = new HashSet();
 				final String[] parts              = ((String)sources[2]).split("[,]+");
 
@@ -95,7 +97,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 				}
 
 				if (permissions.size() > 0) {
-					node.revoke(permissions, principal, ctx.getSecurityContext());
+					node.as(AccessControllable.class).revoke(permissions, principal, ctx.getSecurityContext());
 				}
 			}
 

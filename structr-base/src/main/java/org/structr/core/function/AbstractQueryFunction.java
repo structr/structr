@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.Traits;
 import org.structr.api.config.Settings;
 import org.structr.api.search.Occurrence;
 import org.structr.autocomplete.AbstractHint;
@@ -34,6 +33,7 @@ import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 import java.util.LinkedList;
 import java.util.List;

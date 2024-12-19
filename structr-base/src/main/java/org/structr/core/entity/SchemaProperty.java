@@ -19,11 +19,9 @@
 package org.structr.core.entity;
 
 import org.structr.common.helper.CaseHelper;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 import org.structr.schema.parser.*;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 

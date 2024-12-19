@@ -38,7 +38,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeInterface;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;

@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -30,6 +31,7 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.wrappers.SessionDataNodeTraitWrapper;
 
 import java.util.Date;
 import java.util.Map;
@@ -84,13 +86,11 @@ public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			SessionDataNode.class, (traits, node) -> new SessionDataNodeTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -102,11 +102,6 @@ public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 			lastAccessedProperty,
 			versionProperty
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	// ----- private methods -----

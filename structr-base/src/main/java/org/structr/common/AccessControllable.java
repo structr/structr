@@ -20,20 +20,22 @@ package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.traits.NodeTrait;
 
-import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Interface to encapsulate query-able permissions. This interface exists
  * in order to make {@link SecurityContext} testable.
- *
- *
  */
 public interface AccessControllable extends NodeTrait {
 
 	Principal getOwnerNode();
+
+	List<Security> getSecurityRelationships();
+	Security getSecurityRelationship(final Principal principal);
 
 	boolean allowedBySchema(final Principal principal, final Permission permission);
 	boolean isGranted(final Permission permission, final SecurityContext securityContext);
@@ -48,13 +50,4 @@ public interface AccessControllable extends NodeTrait {
 
 	void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException;
 	void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException;
-
-	// visibility
-	boolean isVisibleToPublicUsers();
-	boolean isVisibleToAuthenticatedUsers();
-	boolean isHidden();
-
-	// access
-	Date getCreatedDate();
-	Date getLastModifiedDate();
 }

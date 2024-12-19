@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -1239,8 +1240,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void exportConfiguration(final NodeInterface node, final Map<String, Object> config) throws FrameworkException {
 
 		putData(config, "id",                          node.getUuid());
-		putData(config, "visibleToPublicUsers",        node.visibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", node.visibleToAuthenticatedUsers());
+		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
+		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
 
 		if (node.is("Content")) {
 			putData(config, "contentType", node.as(Content.class).getContentType());
@@ -1275,8 +1276,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		}
 
-		final Traits traits         = node.getTraits();
-		final NodeInterface wrapped = node.getWrappedNode();
+		final Traits traits = node.getTraits();
 
 		// export all dynamic properties
 		for (final PropertyKey key : traits.getAllPropertyKeys()) {
@@ -1284,7 +1284,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
-				putData(config, key.jsonName(), wrapped.getProperty(key));
+				putData(config, key.jsonName(), node.getProperty(key));
 			}
 		}
 	}
@@ -1352,7 +1352,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export owner
 		final Map<String, Object> map = new HashMap<>();
-		final Principal owner         = node.getOwnerNode();
+		final Principal owner         = node.as(AccessControllable.class).getOwnerNode();
 
 		if (owner != null) {
 
@@ -1372,7 +1372,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
-		for (final Security security : node.getSecurityRelationships()) {
+		for (final Security security : node.as(AccessControllable.class).getSecurityRelationships()) {
 
 			if (security != null) {
 

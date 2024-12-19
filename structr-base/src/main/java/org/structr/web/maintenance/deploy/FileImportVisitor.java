@@ -51,8 +51,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.structr.core.graph.NodeInterface.name;
-
 public class FileImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger      = LoggerFactory.getLogger(FileImportVisitor.class.getName());

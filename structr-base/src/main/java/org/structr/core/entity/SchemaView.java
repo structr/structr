@@ -23,8 +23,6 @@ import org.structr.core.traits.NodeTrait;
 public interface SchemaView extends NodeTrait {
 
 	Iterable<SchemaProperty> getSchemaProperties();
-
 	String getNonGraphProperties();
-
 	String getSortOrder();
 }

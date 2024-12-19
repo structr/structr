@@ -145,26 +145,11 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
 			SchemaNode.class, (traits, node) -> new SchemaNodeTraitWrapper(traits, node)
 		);
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
 	}
 
 	@Override
@@ -193,11 +178,6 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 			summary,
 			description
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	/*

@@ -37,9 +37,7 @@ public final class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-
-		return Map.of(
-		);
+		return Map.of();
 	}
 
 	@Override

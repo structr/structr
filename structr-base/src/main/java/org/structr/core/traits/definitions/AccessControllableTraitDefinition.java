@@ -30,18 +30,20 @@ import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
 import org.structr.core.traits.operations.graphobject.*;
+import org.structr.core.traits.wrappers.AccessControllableTraitWrapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -136,7 +138,7 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 
 					clearCaches();
 
-					final Security secRel = node.getSecurityRelationship(principal);
+					final Security secRel = node.as(AccessControllable.class).getSecurityRelationship(principal);
 					if (secRel == null) {
 
 						try {
@@ -187,7 +189,7 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 
 					clearCaches();
 
-					final Security secRel = node.getSecurityRelationship(principal);
+					final Security secRel = node.as(AccessControllable.class).getSecurityRelationship(principal);
 					if (secRel != null) {
 
 						secRel.removePermissions(permissions);
@@ -214,7 +216,7 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 						permissionSet.add(permission.name());
 					}
 
-					final Security secRel = node.getSecurityRelationship(principal);
+					final Security secRel = node.as(AccessControllable.class).getSecurityRelationship(principal);
 					if (secRel == null) {
 
 						if (!permissions.isEmpty()) {
@@ -305,13 +307,11 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 	}
 
 	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			AccessControllable.class, (traits, node) -> new AccessControllableTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -372,14 +372,14 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 			}
 
 			// schema- (type-) based permissions
-			if (node.allowedBySchema(accessingUser, permission)) {
+			if (node.as(AccessControllable.class).allowedBySchema(accessingUser, permission)) {
 
 				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by schema configuration for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 		}
 
-		final Principal _owner = node.getOwnerNode();
+		final Principal _owner = node.as(AccessControllable.class).getOwnerNode();
 		final boolean hasOwner          = (_owner != null);
 
 		if (isCreation && (accessingUser == null || accessingUser.equals(node) || accessingUser.equals(_owner) ) ) {

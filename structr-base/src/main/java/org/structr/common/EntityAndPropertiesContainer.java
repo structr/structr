@@ -82,6 +82,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public boolean is(final String type) {
+		return false;
+	}
+
+	@Override
 	public void onNodeCreation(final SecurityContext securityContext) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
@@ -204,11 +209,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public void setRawPathSegmentId(final Identity pathSegmentId) {
 		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public List<Security> getSecurityRelationships() {
-		return List.of();
 	}
 
 	@Override
@@ -417,71 +417,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public int compareTo(Object o) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Principal getOwnerNode() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public boolean allowedBySchema(Principal principal, Permission permission) {
-		return false;
-	}
-
-	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void grant(Permission permission, Principal principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void revoke(Permission permission, Principal principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void setAllowed(final Set<Permission> permissions, final Principal principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void setAllowed(final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Security getSecurityRelationship(Principal principal) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public boolean isVisibleToPublicUsers() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
@@ -512,6 +447,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void visitForUsage(Map<String, Object> data) {
+
+	}
+
+	@Override
 	public long getSourceTransactionId() {
 		return entity.getSourceTransactionId();
 	}
@@ -519,5 +459,10 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public boolean changelogEnabled() {
 		return entity.changelogEnabled();
+	}
+
+	@Override
+	public int compareTo(final NodeInterface o) {
+		return 0;
 	}
 }

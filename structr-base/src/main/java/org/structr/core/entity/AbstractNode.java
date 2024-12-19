@@ -22,7 +22,6 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.*;
 import org.structr.common.AccessControllable;
 import org.structr.common.ContextStore;
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,7 +35,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.operations.accesscontrollable.*;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -47,7 +45,7 @@ import java.util.*;
 /**
  * Abstract base class for all node entities in Structr.
  */
-public final class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface, AccessControllable {
+public final class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface {
 
 	/*
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
@@ -114,37 +112,22 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public int compareTo(final Object other) {
+	public int compareTo(final NodeInterface other) {
 
-		if (other instanceof AbstractNode) {
+		final NodeInterface node = other;
+		final String _name       = getName();
 
-			final AbstractNode node = (AbstractNode)other;
-			final String _name      = getName();
-
-			if (_name == null) {
-				return -1;
-			}
-
-			final String nodeName = node.getName();
-			if (nodeName == null) {
-
-				return -1;
-			}
-
-			return _name.compareTo(nodeName);
+		if (_name == null) {
+			return -1;
 		}
 
-		if (other instanceof String) {
+		final String nodeName = node.getName();
+		if (nodeName == null) {
 
-			return getUuid().compareTo((String)other);
-
+			return -1;
 		}
 
-		if (other == null) {
-			throw new NullPointerException();
-		}
-
-		throw new IllegalStateException("Cannot compare " + this + " to " + other);
+		return _name.compareTo(nodeName);
 	}
 
 	/**
@@ -299,40 +282,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public final Principal getOwnerNode() {
-		return typeHandler.getMethod(GetOwnerNode.class).getOwnerNode(this);
-	}
-
-	@Override
-	public boolean allowedBySchema(Principal principal, Permission permission) {
-		return typeHandler.getMethod(AllowedBySchema.class).allowedBySchema(this, principal, permission);
-	}
-
-	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext) {
-		return false;
-	}
-
-	/**
-	 * Returns the database ID of the owner node of this node.
-	 *
-	 * @return the database ID of the owner node of this node
-	 */
-	public final String getOwnerId() {
-		return getOwnerNode().getUuid();
-	}
-
-	@Override
-	public final Security getSecurityRelationship(final Principal p) {
-		return typeHandler.getMethod(GetSecurityRelationships.class).getSecurityRelationship(this, p);
-	}
-
-	@Override
-	public List<Security> getSecurityRelationships() {
-		return typeHandler.getMethod(GetSecurityRelationships.class).getSecurityRelationships(this);
-	}
-
-	@Override
 	public boolean isVisibleToPublicUsers() {
 		return getVisibleToPublicUsers();
 	}
@@ -381,7 +330,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 			case "owner":
 				hints.reportExistingKey(key);
-				return getOwnerNode();
+				return as(AccessControllable.class).getOwnerNode();
 
 			case "_path":
 				hints.reportExistingKey(key);
@@ -414,46 +363,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 				return Function.numberOrString(defaultValue);
 		}
-	}
-
-	@Override
-	public final void grant(final Permission permission, final Principal principal) throws FrameworkException {
-		grant(Collections.singleton(permission), principal, securityContext);
-	}
-
-	@Override
-	public final void grant(final Set<Permission> permissions, final Principal principal) throws FrameworkException {
-		grant(permissions, principal, securityContext);
-	}
-
-	@Override
-	public final void grant(final Set<Permission> permissions, final Principal principal, SecurityContext ctx) throws FrameworkException {
-		typeHandler.getMethod(Grant.class).grant(this, permissions, principal, ctx);
-	}
-
-	@Override
-	public final void revoke(Permission permission, Principal principal) throws FrameworkException {
-		revoke(Collections.singleton(permission), principal, securityContext);
-	}
-
-	@Override
-	public final void revoke(final Set<Permission> permissions, Principal principal) throws FrameworkException {
-		revoke(permissions, principal, securityContext);
-	}
-
-	@Override
-	public final void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-		typeHandler.getMethod(Revoke.class).revoke(this, permissions, principal, ctx);
-	}
-
-	@Override
-	public final void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
-		setAllowed(permissions, principal, securityContext);
-	}
-
-	@Override
-	public final void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-		typeHandler.getMethod(SetAllowed.class).setAllowed(this, permissions, principal, ctx);
 	}
 
 	@Override

@@ -28,16 +28,16 @@ import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTrait;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
+public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 
 	<T extends NodeTrait> T as(final Class<T> type);
 	boolean is(final String type);
@@ -79,9 +79,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
-	List<Security> getSecurityRelationships();
-	Security getSecurityRelationship(final Principal principal);
-
 	Map<String, Object> getTemporaryStorage();
 
 	void visitForUsage(final Map<String, Object> data);
@@ -102,11 +99,11 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 			if (overwrite) {
 
-				targetNode.setAllowed(permissions, principal, ctx);
+				targetNode.as(AccessControllable.class).setAllowed(permissions, principal, ctx);
 
 			} else {
 
-				targetNode.grant(permissions, principal, ctx);
+				targetNode.as(AccessControllable.class).grant(permissions, principal, ctx);
 			}
 		}
 	}

@@ -42,6 +42,7 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			final Comparable value                    = (Comparable)getReadValue(comparisonQuery.getSearchValue());
 			final ComparisonQuery.Operation operation = comparisonQuery.getOperation();
 			final String name                         = predicate.getName();
+			final Class type                          = null;
 
 			if (value == null && operation == null) {
 				return false;
@@ -57,19 +58,19 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 					break;
 
 				case greater:
-					query.addPredicate(new RangePredicate<>(name, value, null, predicate.getType()).setStartInclusive(false));
+					query.addPredicate(new RangePredicate<>(name, value, null, type).setStartInclusive(false));
 					break;
 
 				case greaterOrEqual:
-					query.addPredicate(new RangePredicate<>(name, value, null, predicate.getType()));
+					query.addPredicate(new RangePredicate<>(name, value, null, type));
 					break;
 
 				case less:
-					query.addPredicate(new RangePredicate<>(name, null, value, predicate.getType()).setEndInclusive(false));
+					query.addPredicate(new RangePredicate<>(name, null, value, type).setEndInclusive(false));
 					break;
 
 				case lessOrEqual:
-					query.addPredicate(new RangePredicate<>(name, null, value, predicate.getType()));
+					query.addPredicate(new RangePredicate<>(name, null, value, type));
 					break;
 
 				case isNull:

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -1246,6 +1247,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
+	public final String getContentType() {
+		return wrappedObject.getProperty(traits.key("contentType"));
+	}
+
+	@Override
 	public final DOMNode getParent() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));
@@ -1439,7 +1445,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	@Override
 	public final void checkWriteAccess() throws FrameworkException {
 
-		if (!wrappedObject.isGranted(Permission.write, getSecurityContext())) {
+		if (!as(AccessControllable.class).isGranted(Permission.write, getSecurityContext())) {
 
 			throw new FrameworkException(422, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
@@ -1455,7 +1461,9 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			return;
 		}
 
-		if (securityContext.isVisible(wrappedObject) || wrappedObject.isGranted(Permission.read, securityContext)) {
+		final AccessControllable ac = as(AccessControllable.class);
+
+		if (securityContext.isVisible(ac) || ac.isGranted(Permission.read, securityContext)) {
 			return;
 		}
 
@@ -1470,13 +1478,13 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	@Override
 	public final void getSecurityInstructions(final Set<String> instructions) {
 
-		final Principal _owner = wrappedObject.getOwnerNode();
+		final Principal _owner = as(AccessControllable.class).getOwnerNode();
 		if (_owner != null) {
 
 			instructions.add("@structr:owner(" + _owner.getName() + ")");
 		}
 
-		wrappedObject.getSecurityRelationships().stream().filter(Objects::nonNull).sorted(Comparator.comparing(security -> security.getSourceNode().getName())).forEach(security -> {
+		as(AccessControllable.class).getSecurityRelationships().stream().filter(Objects::nonNull).sorted(Comparator.comparing(security -> security.getSourceNode().getName())).forEach(security -> {
 
 			final Principal grantee = security.getSourceNode();
 			final Set<String> perms = security.getPermissions();
