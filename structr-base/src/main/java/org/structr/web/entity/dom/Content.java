@@ -19,10 +19,8 @@
 package org.structr.web.entity.dom;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
-import org.w3c.dom.Text;
 
-public interface Content extends NodeTrait, Text {
+public interface Content extends DOMNode {
 
 	String getContent();
 	String getContentType();

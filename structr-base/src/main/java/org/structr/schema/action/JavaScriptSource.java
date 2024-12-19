@@ -37,4 +37,6 @@ public interface JavaScriptSource extends NodeTrait {
 
 	String getJavascriptLibraryCode();
 	String getContentType();
+
+	boolean useAsJavascriptLibrary();
 }

@@ -18,13 +18,12 @@
  */
 package org.structr.web.traits.operations;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 public abstract class DoImport extends FrameworkMethod<DoImport> {
 
-	public abstract Node doImport(final DOMNode node, final Page page) throws DOMException;
+	public abstract DOMNode doImport(final DOMNode node, final Page page) throws FrameworkException;
 }

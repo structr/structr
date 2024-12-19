@@ -20,26 +20,42 @@ package org.structr.web.entity.event;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 public interface ActionMapping extends NodeTrait {
 
+	String getEvent();
+	String getAction();
+	String getMethod();
+	String getDataType();
+	String getIdExpression();
 	String getOptions();
 
-	String getAction();
 	String getDialogType();
+	String getDialogTitle();
+	String getDialogText();
 
 	Iterable<ParameterMapping> getParameterMappings();
+	Iterable<DOMElement> getTriggerElements();
+	Iterable<DOMNode> getSuccessTargets();
+	Iterable<DOMNode> getFailureTargets();
 
 	String getSuccessNotifications();
 	String getSuccessBehaviour();
+	String getSuccessPartial();
+	String getSuccessURL();
+	String getSuccessEvent();
 	String getSuccessNotificationsPartial();
 	String getSuccessNotificationsEvent();
 	Integer getSuccessNotificationsDelay();
 
 	String getFailureNotifications();
 	String getFailureBehaviour();
+	String getFailurePartial();
+	String getFailureURL();
+	String getFailureEvent();
 	String getFailureNotificationsPartial();
 	String getFailureNotificationsEvent();
 	Integer getFailureNotificationsDelay();
-
 }

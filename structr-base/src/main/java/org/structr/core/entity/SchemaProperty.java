@@ -29,7 +29,7 @@ import java.util.Set;
 
 public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 
-	NodeInterface getSchemaNode();
+	AbstractSchemaNode getSchemaNode();
 	String getSourceContentType();
 
 	String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes);

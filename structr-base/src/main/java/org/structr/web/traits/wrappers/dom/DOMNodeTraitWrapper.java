@@ -16,15 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.wrappers;
+package org.structr.web.traits.wrappers.dom;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
-import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -59,8 +56,6 @@ import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.traits.operations.*;
 import org.structr.websocket.command.CreateComponentCommand;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.*;
 
 import java.util.*;
 
@@ -195,14 +190,14 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	 * @param nodeToClone
 	 * @return
 	 */
-	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
+	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) throws FrameworkException {
 
-		final DOMNode newNode               = (DOMNode)nodeToClone.cloneNode(false);
-		final List<DOMNode> childrenToClone = (List<DOMNode>)nodeToClone.getChildNodes();
+		final DOMNode newNode               = nodeToClone.cloneNode(false);
+		final List<DOMNode> childrenToClone = nodeToClone.getChildNodes();
 
 		for (final DOMNode childNodeToClone : childrenToClone) {
 
-			newNode.appendChild((DOMNode)cloneAndAppendChildren(securityContext, childNodeToClone));
+			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone));
 		}
 
 		return newNode;
@@ -527,7 +522,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 				final Template template = node.as(Template.class);
 
-				Document doc = template.getOwnerDocument();
+				Page doc = node.getOwnerDocument();
 
 				if (doc == null) {
 
@@ -552,7 +547,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 				}
 			}
 
-			node = (DOMNode)node.getParentNode();
+			node = node.getParent();
 		}
 
 		return null;
@@ -570,7 +565,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 				return (Page)node;
 			}
 
-			node = (DOMNode)node.getParentNode();
+			node = node.getParent();
 
 		}
 
@@ -582,9 +577,9 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		String path = "";
 
 		DOMNode currentNode = this;
-		while (currentNode.getParentNode() != null) {
+		while (currentNode.getParent() != null) {
 
-			DOMNode parentNode = (DOMNode)currentNode.getParentNode();
+			DOMNode parentNode = currentNode.getParent();
 
 			path = "/" + parentNode.getChildPosition(currentNode) + path;
 
@@ -632,7 +627,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	public final boolean isSharedComponent() {
 
-		final Document _ownerDocument = getOwnerDocumentAsSuperUser();
+		final Page _ownerDocument = getOwnerDocumentAsSuperUser();
 		if (_ownerDocument != null) {
 
 			try {
@@ -727,36 +722,6 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 	*/
 
-	static void collectNodesByPredicate(final SecurityContext securityContext, Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
-
-		if (predicate instanceof Filter) {
-
-			((Filter)predicate).setSecurityContext(securityContext);
-		}
-
-		if (predicate.accept(startNode)) {
-
-			results.add(startNode);
-
-			if (stopOnFirstHit) {
-
-				return;
-			}
-		}
-
-		NodeList _children = startNode.getChildNodes();
-		if (_children != null) {
-
-			int len = _children.getLength();
-			for (int i = 0; i < len; i++) {
-
-				Node child = _children.item(i);
-
-				collectNodesByPredicate(securityContext, child, results, predicate, depth + 1, stopOnFirstHit);
-			}
-		}
-	}
-
 	@Override
 	public final boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
 
@@ -814,12 +779,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public final void doAdopt(final Page _page) throws DOMException {
-		traits.getMethod(DoAdopt.class).doAdopt(this, _page);
+	public final DOMNode doAdopt(final Page _page) throws FrameworkException {
+		return traits.getMethod(DoAdopt.class).doAdopt(this, _page);
 	}
 
 	@Override
-	public final Node doImport(final Page newPage) throws DOMException {
+	public final DOMNode doImport(final Page newPage) throws FrameworkException {
 		return traits.getMethod(DoImport.class).doImport(this, newPage);
 	}
 
@@ -829,15 +794,15 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	 * @return list of ancestors
 	 */
 	@Override
-	public List<Node> getAncestors() {
+	public List<DOMNode> getAncestors() {
 
-		List<Node> ancestors = new ArrayList<>();
+		List<DOMNode> ancestors = new ArrayList<>();
 
-		Node _parent = getParentNode();
+		DOMNode _parent = getParent();
 		while (_parent != null) {
 
 			ancestors.add(_parent);
-			_parent = _parent.getParentNode();
+			_parent = _parent.getParent();
 		}
 
 		return ancestors;
@@ -869,7 +834,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		if (page == null) {
 
-			final List<Node> ancestors = getAncestors();
+			final List<DOMNode> ancestors = getAncestors();
 			if (!ancestors.isEmpty()) {
 
 				final DOMNode rootNode = (DOMNode)ancestors.get(ancestors.size() - 1);
@@ -1053,11 +1018,6 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public final boolean contentEquals(final Node otherNode) {
-		return traits.getMethod(ContentEquals.class).contentEquals(this, otherNode);
-	}
-
-	@Override
 	public final boolean isVoidElement() {
 		return traits.getMethod(IsVoidElement.class).isVoidElement();
 	}
@@ -1195,6 +1155,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	@Override
 	public final boolean hasSharedComponent() {
 		return wrappedObject.getProperty(traits.key("hasSharedComponent"));
+	}
+
+	@Override
+	public boolean contentEquals(final DOMNode otherNode) {
+		return traits.getMethod(ContentEquals.class).contentEquals(this, otherNode);
 	}
 
 	@Override
@@ -1413,87 +1378,39 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public final void handleNewChild(Node newChild) {
-
-		try {
-
-			final Page page            = (Page)getOwnerDocument();
-			final DOMNode newChildNode = (DOMNode)newChild;
-
-			newChildNode.setOwnerDocument(page);
-
-			for (final NodeInterface child : newChildNode.getAllChildNodes()) {
-
-				final DOMNode d = child.as(DOMNode.class);
-
-				d.setOwnerDocument(page);
-			}
-
-		} catch (FrameworkException ex) {
-
-			final Logger logger = LoggerFactory.getLogger(DOMNode.class);
-			logger.warn("", ex);
-		}
+	public final void handleNewChild(final DOMNode newChild) throws FrameworkException {
+		traits.getMethod(HandleNewChild.class).handleNewChild(this, newChild);
 	}
 
 	@Override
-	public final void checkIsChild(final Node otherNode) throws DOMException {
+	public final void checkIsChild(final DOMNode otherNode) throws FrameworkException {
 
 		if (otherNode instanceof DOMNode) {
 
-			Node _parent = otherNode.getParentNode();
+			DOMNode _parent = otherNode.getParent();
 
 			if (!isSameNode(_parent)) {
 
-				throw new DOMException(DOMException.NOT_FOUND_ERR, NOT_FOUND_ERR_MESSAGE);
+				throw new FrameworkException(422, NOT_FOUND_ERR_MESSAGE);
 			}
 
 			// validation successful
 			return;
 		}
 
-		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
+		throw new FrameworkException(422, NOT_SUPPORTED_ERR_MESSAGE);
 	}
 
-	@Override
-	public final void checkHierarchy(final Node otherNode) throws DOMException {
-
-		// we can only check DOMNodes
-		if (otherNode instanceof DOMNode) {
-
-			// verify that the other node is not this node
-			if (isSameNode(otherNode)) {
-				throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
-			}
-
-			// verify that otherNode is not one of the
-			// the ancestors of this node
-			// (prevent circular relationships)
-			Node _parent = getParentNode();
-			while (_parent != null) {
-
-				if (_parent.isSameNode(otherNode)) {
-					throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
-				}
-
-				_parent = _parent.getParentNode();
-			}
-
-			// TODO: check hierarchy constraints imposed by the schema
-			// validation successful
-			return;
-		}
-
-		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
+	public final void checkHierarchy(final DOMNode otherNode) throws FrameworkException {
+		traits.getMethod(CheckHierarchy.class).checkHierarchy(this, otherNode);
 	}
 
-	@Override
-	public final void checkSameDocument(final Node otherNode) throws DOMException {
+	public final void checkSameDocument(final DOMNode otherNode) throws FrameworkException {
 
-		Document doc = getOwnerDocument();
+		Page doc = getOwnerDocument();
 		if (doc != null) {
 
-			Document otherDoc = otherNode.getOwnerDocument();
+			Page otherDoc = otherNode.getOwnerDocument();
 
 			// Shadow doc is neutral
 			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
@@ -1508,28 +1425,28 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 					((NodeInterface)doc).getUuid()
 				);
 
-				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
+				throw new FrameworkException(422, WRONG_DOCUMENT_ERR_MESSAGE);
 			}
 
 			if (otherDoc == null) {
 
-				((DOMNode)otherNode).doAdopt((Page)doc);
+				otherNode.doAdopt(doc);
 
 			}
 		}
 	}
 
 	@Override
-	public final void checkWriteAccess() throws DOMException {
+	public final void checkWriteAccess() throws FrameworkException {
 
 		if (!wrappedObject.isGranted(Permission.write, getSecurityContext())) {
 
-			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
+			throw new FrameworkException(422, NO_MODIFICATION_ALLOWED_MESSAGE);
 		}
 	}
 
 	@Override
-	public final void checkReadAccess() throws DOMException {
+	public final void checkReadAccess() throws FrameworkException {
 
 		final SecurityContext securityContext = getSecurityContext();
 
@@ -1542,7 +1459,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			return;
 		}
 
-		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
+		throw new FrameworkException(422, INVALID_ACCESS_ERR_MESSAGE);
 	}
 
 	@Override
@@ -1915,52 +1832,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		}
 	}
 
-	// ----- interface org.w3d.Node -----
-	@Override
-	public final String getNodeName() {
-		return traits.getMethod(W3CNodeMethods.class).getNodeName(wrappedObject);
-	}
-
-	@Override
-	public final String getNodeValue() throws DOMException {
-		return traits.getMethod(W3CNodeMethods.class).getNodeValue(wrappedObject);
-	}
-
-	@Override
-	public final void setNodeValue(final String nodeValue) throws DOMException {
-		traits.getMethod(W3CNodeMethods.class).setNodeValue(wrappedObject, nodeValue);
-	}
-
-	@Override
-	public final short getNodeType() {
-		return traits.getMethod(W3CNodeMethods.class).getNodeType(wrappedObject);
-	}
-
-	@Override
-	public final Node getParentNode() {
-
-		checkReadAccess();
-
-		return getParent();
-	}
-
-	@Override
-	public final NodeList getChildNodes() {
-
-		checkReadAccess();
-
-		final List<DOMNode> nodes = new LinkedList<>();
-
-		for (final NodeInterface node : treeGetChildren()) {
-
-			nodes.add(node.as(DOMNode.class));
-		}
-
-		return new DOMNodeList(nodes);
-	}
-
-	@Override
-	public final Node getFirstChild() {
+	public final DOMNode getFirstChild() throws FrameworkException {
 
 		checkReadAccess();
 
@@ -1973,8 +1845,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	@Override
-	public final Node getLastChild() {
+	public final DOMNode getLastChild() throws FrameworkException {
 
 		checkReadAccess();
 
@@ -1987,8 +1858,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	@Override
-	public final Node getPreviousSibling() {
+	public final DOMNode getPreviousSibling() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("previousSibling"));
 		if (node != null) {
@@ -1999,8 +1869,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	@Override
-	public final Node getNextSibling() {
+	public final DOMNode getNextSibling() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("nextSibling"));
 		if (node != null) {
@@ -2011,13 +1880,23 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	@Override
-	public final NamedNodeMap getAttributes() {
-		return traits.getMethod(GetAttributes.class).getAttributes(this);
+
+	public final List<DOMNode> getChildNodes() throws FrameworkException {
+
+		checkReadAccess();
+
+		final List<DOMNode> nodes = new LinkedList<>();
+
+		for (final NodeInterface node : treeGetChildren()) {
+
+			nodes.add(node.as(DOMNode.class));
+		}
+
+		return nodes;
 	}
 
 	@Override
-	public final Document getOwnerDocument() {
+	public final Page getOwnerDocument() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("ownerDocument"));
 		if (node != null) {
@@ -2028,8 +1907,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return null;
 	}
 
-	@Override
-	public final Node insertBefore(final Node newChild, final Node refChild) throws DOMException {
+	public final DOMNode insertBefore(final DOMNode newChild, final DOMNode refChild) throws FrameworkException {
 
 		// according to DOM spec, insertBefore with null refChild equals appendChild
 		if (refChild == null) {
@@ -2054,12 +1932,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			// the node from the document fragment and then
 			// add it to the new parent.
 			final DocumentFragment fragment = (DocumentFragment)newChild;
-			Node currentChild = fragment.getFirstChild();
+			DOMNode currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
 
 				// save next child in fragment list for later use
-				Node savedNextChild = currentChild.getNextSibling();
+				DOMNode savedNextChild = currentChild.getNextSibling();
 
 				// remove child from document fragment
 				fragment.removeChild(currentChild);
@@ -2073,7 +1951,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		} else {
 
-			final Node _parent = newChild.getParentNode();
+			final DOMNode _parent = newChild.getParent();
 			if (_parent != null) {
 
 				_parent.removeChild(newChild);
@@ -2088,11 +1966,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 				if (frex.getStatus() == 404) {
 
-					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+					throw new FrameworkException(422, frex.getMessage());
 
 				} else {
 
-					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+					throw new FrameworkException(422, frex.getMessage());
 				}
 			}
 
@@ -2103,8 +1981,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return refChild;
 	}
 
-	@Override
-	public final Node replaceChild(final Node newChild, final Node oldChild) throws DOMException {
+	public final DOMNode replaceChild(final DOMNode newChild, final DOMNode oldChild) throws FrameworkException {
 
 		checkWriteAccess();
 
@@ -2124,12 +2001,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			// add it to the new parent.
 			// replace indirectly using insertBefore and remove
 			final DocumentFragment fragment = (DocumentFragment)newChild;
-			Node currentChild = fragment.getFirstChild();
+			DOMNode currentChild = fragment.getFirstChild();
 
 			while (currentChild != null) {
 
 				// save next child in fragment list for later use
-				final Node savedNextChild = currentChild.getNextSibling();
+				final DOMNode savedNextChild = currentChild.getNextSibling();
 
 				// remove child from document fragment
 				fragment.removeChild(currentChild);
@@ -2146,7 +2023,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		} else {
 
-			Node _parent = newChild.getParentNode();
+			DOMNode _parent = newChild.getParent();
 			if (_parent != null && _parent instanceof DOMNode) {
 
 				_parent.removeChild(newChild);
@@ -2160,11 +2037,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 				if (frex.getStatus() == 404) {
 
-					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+					throw new FrameworkException(422, frex.getMessage());
 
 				} else {
 
-					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+					throw new FrameworkException(422, frex.getMessage());
 				}
 			}
 
@@ -2175,8 +2052,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return oldChild;
 	}
 
-	@Override
-	public final Node removeChild(final Node node) throws DOMException {
+	public final DOMNode removeChild(final DOMNode node) throws FrameworkException {
 
 		checkWriteAccess();
 		checkSameDocument(node);
@@ -2188,14 +2064,14 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 		}
 
 		return node;
 	}
 
 	@Override
-	public final Node appendChild(final Node newChild) throws DOMException {
+	public final DOMNode appendChild(final DOMNode newChild) throws FrameworkException {
 
 		checkWriteAccess();
 		checkSameDocument(newChild);
@@ -2213,12 +2089,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 				// add it to the new parent.
 				// replace indirectly using insertBefore and remove
 				final DocumentFragment fragment = (DocumentFragment)newChild;
-				Node currentChild = fragment.getFirstChild();
+				DOMNode currentChild = fragment.getFirstChild();
 
 				while (currentChild != null) {
 
 					// save next child in fragment list for later use
-					final Node savedNextChild = currentChild.getNextSibling();
+					final DOMNode savedNextChild = currentChild.getNextSibling();
 
 					// remove child from document fragment
 					fragment.removeChild(currentChild);
@@ -2232,7 +2108,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 			} else {
 
-				final Node _parent = newChild.getParentNode();
+				final DOMNode _parent = newChild.getParent();
 
 				if (_parent != null && _parent instanceof DOMNode) {
 					_parent.removeChild(newChild);
@@ -2246,21 +2122,21 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 		}
 
 		return newChild;
 	}
 
-	@Override
 	public final boolean hasChildNodes() {
 
 		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key("children");
+
 		return wrappedObject.getProperty(childrenKey).iterator().hasNext();
 	}
 
 	@Override
-	public final Node cloneNode(final boolean deep) {
+	public final DOMNode cloneNode(final boolean deep) throws FrameworkException {
 
 		final SecurityContext securityContext = getSecurityContext();
 
@@ -2332,31 +2208,30 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 			} catch (FrameworkException ex) {
 
-				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
+				throw new FrameworkException(422, ex.toString());
 			}
 		}
 	}
 
-	@Override
-	public final void normalize() {
+	public final void normalize() throws FrameworkException {
 
-		final Document document = getOwnerDocument();
+		final Page document = getOwnerDocument();
 		if (document != null) {
 
 			// merge adjacent text nodes until there is only one left
-			Node child = getFirstChild();
+			DOMNode child = getFirstChild();
 			while (child != null) {
 
-				if (child instanceof Text) {
+				if (child.is("Content")) {
 
-					Node next = child.getNextSibling();
-					if (next != null && next instanceof Text) {
+					DOMNode next = child.getNextSibling();
+					if (next != null && next.is("Content")) {
 
-						String text1 = child.getNodeValue();
-						String text2 = next.getNodeValue();
+						String text1 = child.as(Content.class).getContent();
+						String text2 = next.as(Content.class).getContent();
 
 						// create new text node
-						final Text newText = document.createTextNode(text1.concat(text2));
+						final Content newText = document.createTextNode(text1.concat(text2));
 
 						removeChild(child);
 						insertBefore(newText, next);
@@ -2381,7 +2256,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			// recursively normalize child nodes
 			if (hasChildNodes()) {
 
-				Node currentChild = getFirstChild();
+				DOMNode currentChild = getFirstChild();
 				while (currentChild != null) {
 
 					currentChild.normalize();
@@ -2391,66 +2266,22 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		}
 	}
 
-	@Override
-	public final boolean isSupported(final String feature, final String version) {
-		return false;
-	}
+	public final String getTextContent() throws FrameworkException {
 
-	@Override
-	public final String getNamespaceURI() {
-		return null;
-	}
-
-	@Override
-	public final String getPrefix() {
-		return null;
-	}
-
-	@Override
-	public final void setPrefix(final String prefix) throws DOMException {
-	}
-
-	@Override
-	public final String getLocalName() {
-		return null;
-	}
-
-	@Override
-	public final boolean hasAttributes() {
-		return false;
-	}
-
-	@Override
-	public final String getBaseURI() {
-		return null;
-	}
-
-	@Override
-	public final short compareDocumentPosition(final Node other) throws DOMException {
-		return 0;
-	}
-
-	@Override
-	public final String getTextContent() throws DOMException {
-
-		final DOMNodeList results         = new DOMNodeList();
+		final List<DOMNode> results       = new LinkedList<>();
 		final TextCollector textCollector = new TextCollector();
 
-		DOMNodeTraitWrapper.collectNodesByPredicate(getSecurityContext(), this, results, textCollector, 0, false);
+		DOMNode.collectNodesByPredicate(getSecurityContext(), this, results, textCollector, 0, false);
 
 		return textCollector.getText();
 	}
 
 	@Override
-	public final void setTextContent(final String textContent) throws DOMException {
-	}
+	public final boolean isSameNode(final DOMNode node) {
 
-	@Override
-	public final boolean isSameNode(final Node node) {
+		if (node != null) {
 
-		if (node != null && node instanceof DOMNode domNode) {
-
-			String otherId = domNode.getUuid();
+			String otherId = node.getUuid();
 			String ourId   = getUuid();
 
 			if (ourId != null && otherId != null && ourId.equals(otherId)) {
@@ -2461,59 +2292,4 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return false;
 	}
 
-	@Override
-	public final String lookupPrefix(final String namespaceURI) {
-		return null;
-	}
-
-	@Override
-	public final boolean isDefaultNamespace(final String namespaceURI) {
-		return true;
-	}
-
-	@Override
-	public final String lookupNamespaceURI(final String prefix) {
-		return null;
-	}
-
-	@Override
-	public final boolean isEqualNode(final Node arg) {
-		// fixme, this might need wrapping / unwrapping
-		return equals(arg);
-	}
-
-	@Override
-	public final Object getFeature(final String feature, final String version) {
-		return null;
-	}
-
-	@Override
-	public final Object setUserData(final String key, final Object data, final UserDataHandler handler) {
-		return null;
-	}
-
-	@Override
-	public final Object getUserData(final String key) {
-		return null;
-	}
-
-	// ----- nested classes -----
-	static class TextCollector implements Predicate<Node> {
-
-		private final StringBuilder textBuffer = new StringBuilder(200);
-
-		@Override
-		public boolean accept(final Node obj) {
-
-			if (obj instanceof Text) {
-				textBuffer.append(((Text)obj).getTextContent());
-			}
-
-			return false;
-		}
-
-		public String getText() {
-			return textBuffer.toString();
-		}
-	}
 }

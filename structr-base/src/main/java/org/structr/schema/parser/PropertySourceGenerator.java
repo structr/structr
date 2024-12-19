@@ -25,15 +25,12 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
@@ -62,7 +59,7 @@ public abstract class PropertySourceGenerator {
 	public abstract String getValueType();
 	public abstract String getUnqualifiedValueType();
 	public abstract String getPropertyParameters();
-	public abstract void parseFormatString(final Map<String, SchemaNode> schemaNodes, final NodeInterface entity, final String expression) throws FrameworkException;
+	public abstract void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, final String expression) throws FrameworkException;
 
 	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
 		this.errorBuffer  = errorBuffer;
@@ -70,7 +67,7 @@ public abstract class PropertySourceGenerator {
 		this.source       = propertyDefinition;
 	}
 
-	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final SourceFile buf, final NodeInterface entity) throws FrameworkException {
+	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final SourceFile buf, final AbstractSchemaNode entity) throws FrameworkException {
 
 		parseFormatString(schemaNodes, entity, source.getFormat());
 

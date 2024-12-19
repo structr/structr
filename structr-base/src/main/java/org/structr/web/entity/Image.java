@@ -32,11 +32,11 @@ public interface Image extends File {
 			final Image originalImage = thisImage.getOriginalImage();
 			if (originalImage != null) {
 
-				return originalImage.isGranted(permission, context);
+				return originalImage.getWrappedNode().isGranted(permission, context);
 			}
 		}
 
-		return thisImage.isGranted(permission, context);
+		return thisImage.getWrappedNode().isGranted(permission, context);
 	}
 
 }

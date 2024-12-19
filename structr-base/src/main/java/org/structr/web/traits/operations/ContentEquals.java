@@ -20,9 +20,8 @@ package org.structr.web.traits.operations;
 
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.entity.dom.DOMNode;
-import org.w3c.dom.Node;
 
 public abstract class ContentEquals extends FrameworkMethod<ContentEquals> {
 
-	public abstract boolean contentEquals(final DOMNode elem, final Node node);
+	public abstract boolean contentEquals(final DOMNode elem, final DOMNode node);
 }

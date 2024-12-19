@@ -30,7 +30,8 @@ import org.w3c.dom.NodeList;
 /**
  */
 
-public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment, NonIndexed {
+public interface DocumentFragment extends DOMNode, NonIndexed {
+	/*
 
 	@Override
 	public String getContextName() {
@@ -87,7 +88,7 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	}
 
 	@Override
-	public Node doAdopt(Page page) throws DOMException {
+	public DOMNode doAdopt(final Page page) throws DOMException {
 		return null;
 	}
 
@@ -113,4 +114,6 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 		}
 
 	}
+
+	 */
 }

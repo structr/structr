@@ -31,7 +31,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -720,23 +719,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
-		final PropertyKey<Boolean> inclKey  = StructrApp.key(File.class, "includeInFrontendExport");
-		final PropertyKey<Boolean> jsKey    = StructrApp.key(File.class, "useAsJavascriptLibrary");
-		final PropertyKey<Folder> parentKey = StructrApp.key(File.class, "parent");
+		final Traits traits                 = Traits.of("File");
+		final PropertyKey<Boolean> inclKey  = traits.key("includeInFrontendExport");
+		final PropertyKey<Boolean> jsKey    = traits.key("useAsJavascriptLibrary");
+		final PropertyKey<Folder> parentKey = traits.key("parent");
 		final Map<String, Object> config    = new TreeMap<>();
 		final App app                       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery("Folder").and(parentKey, null).sort(Folder.name).and(inclKey, true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery("Folder").and(parentKey, null).sort(traits.key("name")).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final File file : app.nodeQuery("File")
+			for (final NodeInterface file : app.nodeQuery("File")
 				.and(parentKey, null)
-				.sort(File.name)
+				.sort(traits.key("name"))
 				.and()
 					.or(inclKey, true)
 					.or(jsKey, true)
@@ -768,45 +768,52 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, config);
 	}
 
-	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
+	private void exportFilesAndFolders(final Path target, final NodeInterface node, final Map<String, Object> config) throws IOException {
+
+		final Folder folder = node.as(Folder.class);
 
 		// ignore folders with mounted content
 		if (folder.isMounted()) {
 			return;
 		}
 
+		final Traits traits                  = Traits.of("Folder");
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 		final Map<String, Object> properties = new TreeMap<>();
 
 		Files.createDirectories(path);
 
-		exportFileConfiguration(folder, properties);
+		exportFileConfiguration(node, properties);
 
 		if (!properties.isEmpty()) {
 			String folderPath = folder.getPath();
 			config.put(folderPath, properties);
 		}
 
-		final List<Folder> folders = Iterables.toList(folder.getFolders());
-		Collections.sort(folders, AbstractNode.name.sorted(false));
+		final List<Folder> folders    = Iterables.toList(folder.getFolders());
+		final PropertyKey<String> key = traits.key("name");
+		final Comparator comp         = (Comparator) key.sorted(false);
+
+		Collections.sort(folders, comp);
 
 		for (final Folder child : folders) {
 
-			exportFilesAndFolders(path, child, config);
+			exportFilesAndFolders(path, child.getWrappedNode(), config);
 		}
 
 		final List<File> files = Iterables.toList(folder.getFiles());
-		Collections.sort(files, AbstractNode.name.sorted(false));
+		Collections.sort(files, comp);
 
 		for (final File file : files) {
 
-			exportFile(path, file, config);
+			exportFile(path, file.getWrappedNode(), config);
 		}
 	}
 
-	protected void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
+	protected void exportFile(final Path target, final NodeInterface node, final Map<String, Object> config) throws IOException {
 
+		final File file                      = node.as(File.class);
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
 		Path targetPath                      = target.resolve(name);
@@ -833,7 +840,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		exportFileConfiguration(file, properties);
+		exportFileConfiguration(node, properties);
 
 		if (!properties.isEmpty()) {
 
@@ -898,9 +905,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final NodeInterface page : app.nodeQuery("Page").sort(Traits.nameProperty()).getAsList()) {
 
-				if (!(page instanceof ShadowDocument)) {
+				if (!page.is("ShadowDocument")) {
 
-					final String content = page.getContent(RenderContext.EditMode.DEPLOYMENT);
+					final String content = page.as(Page.class).getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 
 						final Map<String, Object> properties = new TreeMap<>();
@@ -937,10 +944,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			final ShadowDocument shadowDocument = app.nodeQuery("ShadowDocument").getFirst();
+			final NodeInterface shadowDocument = app.nodeQuery("ShadowDocument").getFirst();
 			if (shadowDocument != null) {
 
-				for (final DOMNode node : shadowDocument.getElements()) {
+				for (final DOMNode node : shadowDocument.as(ShadowDocument.class).getElements()) {
 
 					final boolean hasParent = node.getParent() != null;
 					final boolean inTrash   = node.inTrash();
@@ -952,7 +959,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
 
-					exportContentElementSource(targetFolder, node, configuration, content);
+					exportContentElementSource(targetFolder, node.getWrappedNode(), configuration, content);
 				}
 			}
 
@@ -978,18 +985,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// export template nodes anywhere in the pages tree which are not related to shared components
-			for (final Template template : app.nodeQuery("Template").getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Template").getAsList()) {
 
-				final boolean isShared    = template.getProperty(StructrApp.key(DOMNode.class, "sharedComponent")) != null;
-				final boolean inTrash     = template.inTrash();
+				final Template template = node.as(Template.class);
+				final boolean isShared  = template.hasSharedComponent();
+				final boolean inTrash   = template.inTrash();
 
 				if (inTrash || isShared) {
 					continue;
 				}
 
-				final String content = template.getProperty(StructrApp.key(Template.class, "content"));
+				final String content = template.getContent();
 
-				exportContentElementSource(targetFolder, template, configuration, content);
+				exportContentElementSource(targetFolder, node, configuration, content);
 			}
 
 			tx.success();
@@ -1001,12 +1009,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	/**
 	 * Consolidated export method for Content and Template
 	 */
-	private void exportContentElementSource(final Path targetFolder, final DOMNode node, final Map<String, Object> configuration, final String content) throws FrameworkException {
+	private void exportContentElementSource(final Path targetFolder, final NodeInterface node, final Map<String, Object> configuration, final String content) throws FrameworkException {
 
 		if (content != null) {
 
 			// name with uuid or just uuid
-			String name = node.getProperty(AbstractNode.name);
+			String name = node.getProperty(node.getTraits().key("name"));
 			if (name != null) {
 
 				name += "-" + node.getUuid();
@@ -1228,108 +1236,116 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
+	private void exportConfiguration(final NodeInterface node, final Map<String, Object> config) throws FrameworkException {
 
-		putData(config, "id",                          node.getProperty(DOMNode.id));
-		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
+		putData(config, "id",                          node.getUuid());
+		putData(config, "visibleToPublicUsers",        node.visibleToPublicUsers());
+		putData(config, "visibleToAuthenticatedUsers", node.visibleToAuthenticatedUsers());
 
-		if (node instanceof Content) {
-			putData(config, "contentType", node.getProperty(StructrApp.key(Content.class, "contentType")));
+		if (node.is("Content")) {
+			putData(config, "contentType", node.as(Content.class).getContentType());
 		}
 
-		if (node instanceof Template) {
+		if (node.is("Template")) {
+
+			final Template template = node.as(Template.class);
 
 			// mark this template as being shared
-			putData(config, "shared", Boolean.toString(node.isSharedComponent() && node.getParent() == null));
+			putData(config, "shared", Boolean.toString(template.isSharedComponent() && template.getParent() == null));
 		}
 
-		if (node instanceof Page) {
+		if (node.is("Page")) {
 
-			putData(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
-			putData(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
-			putData(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
-			putData(config, "contentType",             node.getProperty(StructrApp.key(Page.class, "contentType")));
-			putData(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
-			putData(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
-			putData(config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
-			putData(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
-			putData(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
-			putData(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
-			putData(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
-			putData(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
-			putData(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
+			final Linkable linkable = node.as(Linkable.class);
+			final Page page         = node.as(Page.class);
+
+			putData(config, "basicAuthRealm",          linkable.getBasicAuthRealm());
+			putData(config, "cacheForSeconds",         page.getCacheForSeconds());
+			putData(config, "category",                page.getCategory());
+			putData(config, "contentType",             page.getContentType());
+			putData(config, "dontCache",               page.dontCache());
+			putData(config, "enableBasicAuth",         linkable.getEnableBasicAuth());
+			putData(config, "hidden",                  page.getWrappedNode().isHidden());
+			putData(config, "hideConditions",          page.getHideConditions());
+			putData(config, "pageCreatesRawData",      page.pageCreatesRawData());
+			putData(config, "path",                    page.getPath());
+			putData(config, "position",                page.getPosition());
+			putData(config, "showConditions",          page.getShowConditions());
+			putData(config, "showOnErrorCodes",        page.getShowOnErrorCodes());
 
 		}
 
-		final Traits traits = node.getTraits();
+		final Traits traits         = node.getTraits();
+		final NodeInterface wrapped = node.getWrappedNode();
 
 		// export all dynamic properties
-		for (final PropertyKey key : traits.getAllPropertyKeys(PropertyView.All)) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
-				putData(config, key.jsonName(), node.getProperty(key));
+				putData(config, key.jsonName(), wrapped.getProperty(key));
 			}
 		}
 	}
 
-	protected void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
+	protected void exportFileConfiguration(final NodeInterface node, final Map<String, Object> config) {
 
-		putData(config, "id",                          abstractFile.getProperty(AbstractFile.id));
-		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
+		final AbstractFile abstractFile = node.as(AbstractFile.class);
+
+		putData(config, "id",                          abstractFile.getUuid());
+		putData(config, "visibleToPublicUsers",        abstractFile.visibleToPublicUsers());
+		putData(config, "visibleToAuthenticatedUsers", abstractFile.visibleToAuthenticatedUsers());
 		putData(config, "type",                        abstractFile.getType());
 
 		if (abstractFile instanceof File) {
 
 			final File file = (File)abstractFile;
 
-			putData(config, "isTemplate", file.isTemplate());
-			putData(config, "dontCache", abstractFile.getProperty(StructrApp.key(File.class, "dontCache")));
+			putData(config, "isTemplate",              file.isTemplate());
+			putData(config, "dontCache",               file.dontCache());
+			putData(config, "contentType",             file.getContentType());
+			putData(config, "cacheForSeconds",         file.getCacheForSeconds());
+			putData(config, "includeInFrontendExport", file.includeInFrontendExport());
 		}
 
-		if (abstractFile instanceof Indexable) {
-			putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		if (abstractFile.is("JavaScriptSource")) {
+
+			putData(config, "useAsJavascriptLibrary", abstractFile.as(JavaScriptSource.class).useAsJavascriptLibrary());
 		}
 
-		if (abstractFile instanceof File) {
-			putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+
+		if (abstractFile.is("Linkable")) {
+
+			final Linkable linkable = abstractFile.as(Linkable.class);
+
+			putData(config, "basicAuthRealm",  linkable.getBasicAuthRealm());
+			putData(config, "enableBasicAuth", linkable.getEnableBasicAuth());
 		}
 
-		if (abstractFile instanceof JavaScriptSource) {
-			putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		if (abstractFile.is("Image")) {
+
+			final Image image = abstractFile.as(Image.class);
+
+			putData(config, "isThumbnail", image.isThumbnail());
+			putData(config, "isImage",     image.isImage());
+			putData(config, "width",       image.getWidth());
+			putData(config, "height",      image.getHeight());
 		}
 
-		putData(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
-
-		if (abstractFile instanceof Linkable) {
-			putData(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
-			putData(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
-		}
-
-		if (abstractFile instanceof Image) {
-
-			final Image image = (Image)abstractFile;
-
-			putData(config, "isThumbnail",             image.isThumbnail());
-			putData(config, "isImage",                 image.isImage());
-			putData(config, "width",                   image.getWidth());
-			putData(config, "height",                  image.getHeight());
-		}
+		final Traits traits = Traits.of("AbstractFile");
 
 		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
-				putData(config, key.jsonName(), abstractFile.getProperty(key));
+				putData(config, key.jsonName(), abstractFile.getWrappedNode().getProperty(key));
 			}
 		}
 
-		exportOwnershipAndSecurity(abstractFile, config);
+		exportOwnershipAndSecurity(node, config);
 	}
 
 	protected void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
@@ -1445,6 +1461,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting mail templates");
 
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
+		final Traits traits                           = Traits.of("MailTemplate");
 		final App app                                 = StructrApp.getInstance();
 
 		try {
@@ -1453,7 +1470,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				for (final NodeInterface node : app.nodeQuery("MailTemplate").sort(MailTemplate.name).getAsList()) {
+				for (final NodeInterface node : app.nodeQuery("MailTemplate").sort(traits.key("name")).getAsList()) {
 
 					final MailTemplate mailTemplate = node.as(MailTemplate.class);
 
@@ -1580,35 +1597,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting localizations");
 
-		final PropertyKey<String> localizedNameKey    = StructrApp.key(Localization.class, "localizedName");
-		final PropertyKey<String> domainKey           = StructrApp.key(Localization.class, "domain");
-		final PropertyKey<String> localeKey           = StructrApp.key(Localization.class, "locale");
-		final PropertyKey<String> importedKey         = StructrApp.key(Localization.class, "imported");
+		final Traits traits                           = Traits.of("Localization");
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Localization localization : app.nodeQuery("Localization").sort(Localization.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Localization").sort(traits.key("name")).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
+				final Localization localization = node.as(Localization.class);
 
 				localizations.add(entry);
 
-				entry.put("id",                          localization.getProperty(Localization.id));
-				entry.put("name",                        localization.getProperty(Localization.name));
-				entry.put("localizedName",               localization.getProperty(localizedNameKey));
-				entry.put("domain",                      localization.getProperty(domainKey));
-				entry.put("locale",                      localization.getProperty(localeKey));
-				entry.put("imported",                    localization.getProperty(importedKey));
-				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
+				entry.put("id",                          localization.getUuid());
+				entry.put("name",                        localization.getName());
+				entry.put("localizedName",               localization.getLocalizedName());
+				entry.put("domain",                      localization.getDomain());
+				entry.put("locale",                      localization.getLocale());
+				entry.put("imported",                    localization.isImported());
+				entry.put("visibleToAuthenticatedUsers", localization.visibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        localization.visibleToPublicUsers());
 			}
 
 			tx.success();
 		}
 
 		writeSortedCompactJsonToFile(target, localizations, new AbstractMapComparator<Object>() {
+
 			@Override
 			public String getKey (Map<String, Object> map) {
 
@@ -1633,27 +1649,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ActionMapping actionMapping : app.nodeQuery("ActionMapping").getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("ActionMapping").getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final Map<String, Object> entry   = new TreeMap<>();
+				final ActionMapping actionMapping = node.as(ActionMapping.class);
+
 				actionMappings.add(entry);
 
-				putData(entry, "id",                          actionMapping.getProperty(ActionMapping.id));
-				putData(entry, "name",                        actionMapping.getProperty(ActionMapping.name));
-				putData(entry, "visibleToAuthenticatedUsers", actionMapping.getProperty(ActionMapping.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        actionMapping.getProperty(ActionMapping.visibleToPublicUsers));
+				putData(entry, "id",                          actionMapping.getUuid());
+				putData(entry, "name",                        actionMapping.getName());
+				putData(entry, "visibleToAuthenticatedUsers", actionMapping.visibleToAuthenticatedUsers());
+				putData(entry, "visibleToPublicUsers",        actionMapping.visibleToPublicUsers());
 
-				final PropertyKey<Iterable<DOMElement>> triggerElementsKey = StructrApp.key(ActionMapping.class, "triggerElements");
-				List<DOMElement> triggerElements = Iterables.toList(actionMapping.getProperty(triggerElementsKey));
-
+				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
 				if (!triggerElements.isEmpty()) {
+
 					putData(entry, "triggerElements", triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> successTargetsKey = StructrApp.key(ActionMapping.class, "successTargets");
-				List<DOMNode> successTargets = Iterables.toList(actionMapping.getProperty(successTargetsKey));
-
+				final List<DOMNode> successTargets = Iterables.toList(actionMapping.getSuccessTargets());
 				if (!successTargets.isEmpty()) {
+
 					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
@@ -1667,7 +1683,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final PropertyKey<Iterable<DOMNode>> failureTargetsKey = StructrApp.key(ActionMapping.class, "failureTargets");
 				List<DOMNode> failureTargets = Iterables.toList(actionMapping.getProperty(failureTargetsKey));
 
+				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
 				if (!failureTargets.isEmpty()) {
+
 					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
@@ -1681,36 +1699,38 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");
 				List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getProperty(parameterMappingsKey));
 
+				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
 				if (!parameterMappings.isEmpty()) {
+
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
-				putData(entry, "event",        				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
-				putData(entry, "action",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
-				putData(entry, "method",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
-				putData(entry, "dataType",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
-				putData(entry, "idExpression",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
+				putData(entry, "event",        actionMapping.getEvent());
+				putData(entry, "action",       actionMapping.getAction());
+				putData(entry, "method",       actionMapping.getMethod());
+				putData(entry, "dataType",     actionMapping.getDataType());
+				putData(entry, "idExpression", actionMapping.getIdExpression());
 
-				putData(entry, "dialogType",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogType")));
-				putData(entry, "dialogTitle",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogTitle")));
-				putData(entry, "dialogText",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogText")));
+				putData(entry, "dialogType",  actionMapping.getDialogType());
+				putData(entry, "dialogTitle", actionMapping.getDialogTitle());
+				putData(entry, "dialogText",  actionMapping.getDialogText());
 
-				putData(entry, "successBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
-				putData(entry, "successEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
-				putData(entry, "successNotifications",   		actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotifications")));
-				putData(entry, "successNotificationsEvent",   	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent")));
-				putData(entry, "successNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial")));
-				putData(entry, "successNotificationsDelay", 	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay")));
-				putData(entry, "successPartial",   			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
-				putData(entry, "successURL",       			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
+				putData(entry, "successBehaviour",            actionMapping.getSuccessBehaviour());
+				putData(entry, "successEvent",                actionMapping.getSuccessEvent());
+				putData(entry, "successNotifications",        actionMapping.getSuccessNotifications());
+				putData(entry, "successNotificationsEvent",   actionMapping.getSuccessNotificationsEvent());
+				putData(entry, "successNotificationsPartial", actionMapping.getSuccessNotificationsPartial());
+				putData(entry, "successNotificationsDelay",   actionMapping.getSuccessNotificationsDelay());
+				putData(entry, "successPartial",              actionMapping.getSuccessPartial());
+				putData(entry, "successURL",                  actionMapping.getSuccessURL());
 
-				putData(entry, "failureBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
-				putData(entry, "failureEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
-				putData(entry, "failureNotifications",     	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications")));
-				putData(entry, "failureNotificationsEvent",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent")));
-				putData(entry, "failureNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial")));
-				putData(entry, "failureNotificationsDelay",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsDelay")));
-				putData(entry, "failurePartial",				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
-				putData(entry, "failureURL",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
+				putData(entry, "failureBehaviour",            actionMapping.getFailureBehaviour());
+				putData(entry, "failureEvent",                actionMapping.getFailureEvent());
+				putData(entry, "failureNotifications",        actionMapping.getFailureNotifications());
+				putData(entry, "failureNotificationsEvent",   actionMapping.getFailureNotificationsEvent());
+				putData(entry, "failureNotificationsPartial", actionMapping.getFailureNotificationsPartial());
+				putData(entry, "failureNotificationsDelay",   actionMapping.getFailureNotificationsDelay());
+				putData(entry, "failurePartial",              actionMapping.getFailurePartial());
+				putData(entry, "failureURL",                  actionMapping.getFailureURL());
 			}
 
 			tx.success();
@@ -1724,32 +1744,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting parameter mapping");
 
 		final List<Map<String, Object>> parameterMappings = new LinkedList<>();
+		final Traits traits                               = Traits.of("ParameterMapping");
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ParameterMapping parameterMapping : app.nodeQuery("ParameterMapping").sort(ParameterMapping.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("ParameterMapping").sort(traits.key("name")).getAsList()) {
 
+				final ParameterMapping parameterMapping = node.as(ParameterMapping.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				parameterMappings.add(entry);
 
 
-				putData(entry, "id",                          parameterMapping.getProperty(ParameterMapping.id));
-				putData(entry, "name",                        parameterMapping.getProperty(ParameterMapping.name));
-				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.getProperty(ParameterMapping.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        parameterMapping.getProperty(ParameterMapping.visibleToPublicUsers));
+				putData(entry, "id",                          parameterMapping.getUuid());
+				putData(entry, "name",                        parameterMapping.getName());
+				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.visibleToAuthenticatedUsers());
+				putData(entry, "visibleToPublicUsers",        parameterMapping.visibleToPublicUsers());
 
-				putData(entry, "parameterType",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType")));
-				putData(entry, "parameterName",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterName")));
-				putData(entry, "constantValue",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue")));
-				putData(entry, "scriptExpression", parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "scriptExpression")));
+				putData(entry, "parameterType",    parameterMapping.getParameterType());
+				putData(entry, "parameterName",    parameterMapping.getParameterName());
+				putData(entry, "constantValue",    parameterMapping.getConstantValue());
+				putData(entry, "scriptExpression", parameterMapping.getScriptExpression());
 
-				DOMElement inputElement = ((DOMElement) parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "inputElement")));
+				DOMElement inputElement = parameterMapping.getInputElement();
 				if (inputElement != null) {
+
 					putData(entry, "inputElement", inputElement.getUuid());
 				}
-
-
 			}
 
 			tx.success();
@@ -2040,13 +2061,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Files.exists(localizationsMetadataFile)) {
 
+			final Traits traits              = Traits.of("Localization");
 			final PropertyMap additionalData = new PropertyMap();
 
 			// Question: shouldn't this be true?
 			// No! 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
-			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
+			additionalData.put(traits.key("imported"), false);
 
 			logger.info("Reading {}", localizationsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
@@ -2282,7 +2304,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", path);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping");
 
-			importListData(StructrApp.getConfiguration().getNodeEntityClass("ActionMapping"), readConfigList(path));
+			importListData("ActionMapping", readConfigList(path));
 		}
 	}
 
@@ -2294,7 +2316,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", parameterMappingPath);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing parameter mapping");
 
-			importListData(StructrApp.getConfiguration().getNodeEntityClass("ParameterMapping"), readConfigList(parameterMappingPath));
+			importListData("ParameterMapping", readConfigList(parameterMappingPath));
 		}
 	}
 
@@ -2302,8 +2324,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void handleDeferredProperties() throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		context.setDoTransactionNotifications(false);
 		final App app                 = StructrApp.getInstance(context);
+
+		context.setDoTransactionNotifications(false);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2319,7 +2342,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					if (inputConverter != null) {
 
-						node.setProperty(propertyKey, inputConverter.convert(properties.get(propertyKey)));
+						node.getWrappedNode().setProperty(propertyKey, inputConverter.convert(properties.get(propertyKey)));
 					}
 				}
 
@@ -2378,6 +2401,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void linkDeferredPages(final App app) throws FrameworkException {
 
+		final Traits traits = Traits.of("Page");
+
 		try (final Tx tx = app.tx()) {
 
 			tx.disableChangelog();
@@ -2385,12 +2410,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final DOMNode linkElement = StructrApp.getInstance().get("DOMNode", linkableUUID);
-					final Linkable linkedPage = StructrApp.getInstance().nodeQuery("Linkable").and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
+					final NodeInterface linkElementNode = StructrApp.getInstance().get("DOMNode", linkableUUID);
+					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery("Linkable").and(traits.key("path"), pagePath).or(traits.key("name"), pagePath).getFirst();
 
-					((LinkSource)linkElement).setLinkable(linkedPage);
+
+					final LinkSource linkSource = linkElementNode.as(LinkSource.class);
+					final Linkable linkable     = linkedPageNode.as(Linkable.class);
+
+					linkSource.setLinkable(linkable);
 
 				} catch (Throwable t) {
+					t.printStackTrace();
 				}
 
 			});

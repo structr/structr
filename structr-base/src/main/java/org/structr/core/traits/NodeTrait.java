@@ -4,7 +4,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
+
+import java.util.Date;
 
 public interface NodeTrait {
 
@@ -19,6 +22,8 @@ public interface NodeTrait {
 
 	boolean visibleToPublicUsers();
 	boolean visibleToAuthenticatedUsers();
+
+	Date getLastModifiedDate();
 
 	void setVisibleToAuthenticatedUsers(final boolean visible) throws FrameworkException;
 	void setVisibleToPublicUsers(final boolean visible) throws FrameworkException;
@@ -42,5 +47,17 @@ public interface NodeTrait {
 
 	default boolean is(final String type) {
 		return getTraits().contains(type);
+	}
+
+	default void unlockSystemPropertiesOnce() {
+		getWrappedNode().unlockSystemPropertiesOnce();
+	}
+
+	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) {
+		setProperties(securityContext, properties, false);
+	}
+
+	default void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) {
+		getWrappedNode().setProperties(securityContext, properties, isCreation);
 	}
 }

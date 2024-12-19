@@ -16,15 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.dom;
+package org.structr.core.traits.wrappers;
 
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
+import org.structr.core.entity.Localization;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
-/**
- *
- *
- */
-public interface DOMImportable {
-	
+public class LocalizationTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Localization {
+
+	public LocalizationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

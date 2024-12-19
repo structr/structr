@@ -21,30 +21,34 @@ package org.structr.schema;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.ServiceResult;
-import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.rest.resource.SchemaResource;
 import org.structr.schema.parser.*;
 
 import java.util.*;
 
 /**
- *
- *
  */
 public class SchemaHelper {
 
-	/*
-	private static final Logger logger                   = LoggerFactory.getLogger(SchemaHelper.class.getName());
-	private static final String WORD_SEPARATOR           = "_";
-
-	public enum Type {
-		String, StringArray, DateArray, ByteArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, EnumArray, Date, ZonedDateTime, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
-	}
+	private static final Logger logger                                 = LoggerFactory.getLogger(SchemaHelper.class.getName());
+	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
+	private static final String WORD_SEPARATOR                         = "_";
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	public static final Map<Type, Integer> sortIndexMap                               = new LinkedHashMap<>();
-	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers",          // from GraphObject
 		"relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",                                              // from AbstractRelationship
@@ -110,12 +114,18 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.Notion,        24);
 	}
 
+	public enum Type {
+		String, StringArray, DateArray, ByteArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, EnumArray, Date, ZonedDateTime, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
+	}
+
+	/*
 	 * Tries to normalize (and singularize) the given string so that it
 	 * resolves to an existing entity type.
 	 *
 	 * @param possibleEntityString
 	 * @return the normalized entity name in its singular form
-	public static String normalizeEntityName(String possibleEntityString) {
+	 */
+	public static String normalizeEntityName(final String possibleEntityString) {
 
 		if (possibleEntityString == null) {
 
@@ -189,6 +199,156 @@ public class SchemaHelper {
 
 		return begin.concat(WORD_SEPARATOR).concat(lastWord);
 	}
+
+	public static String cleanPropertyName(final String propertyName) {
+		return propertyName.replaceAll("[^\\w]+", "");
+	}
+
+	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String type, final String propertyView) throws FrameworkException {
+
+		final ConfigurationProvider config    = StructrApp.getConfiguration();
+		final List<GraphObjectMap> resultList = new LinkedList<>();
+		final Traits traits                   = Traits.of(type);
+
+		if (traits != null) {
+
+			if (propertyView != null) {
+
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, traits, propertyView).entrySet()) {
+
+					final GraphObjectMap property = new GraphObjectMap();
+
+					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+
+						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+					}
+
+					resultList.add(property);
+				}
+
+			} else {
+
+				final GraphObjectMap schema = new GraphObjectMap();
+
+				resultList.add(schema);
+
+				final String url    = "/".concat(type);
+				final boolean isRel = traits.isRelationshipType();
+
+				schema.setProperty(SchemaResource.urlProperty, url);
+				schema.setProperty(SchemaResource.typeProperty, type);
+				schema.setProperty(SchemaResource.nameProperty, type);
+				schema.setProperty(SchemaResource.classNameProperty, type);
+				//schema.setProperty(SchemaResource.extendsClassNameProperty, type.getSuperclass().getName());
+				schema.setProperty(SchemaResource.isRelProperty, isRel);
+				schema.setProperty(SchemaResource.isAbstractProperty, traits.isAbstract());
+				schema.setProperty(SchemaResource.isInterfaceProperty, traits.isInterface());
+				schema.setProperty(SchemaResource.flagsProperty, SecurityContext.getResourceFlags(type));
+
+				final Set<String> propertyViews = new LinkedHashSet<>(traits.getViewNames());
+
+				// list property sets for all views
+				Map<String, Map<String, Object>> views = new TreeMap();
+				schema.setProperty(SchemaResource.viewsProperty, views);
+
+				for (final String view : propertyViews) {
+
+					views.put(view, getPropertiesForView(securityContext, traits, view));
+				}
+
+				if (isRel) {
+
+					schema.setProperty(new GenericProperty("relInfo"), SchemaResource.relationToMap(config, traits.getRelation()));
+				}
+			}
+		}
+
+		return resultList;
+	}
+
+	public static Map<String, Object> getPropertyInfo(final SecurityContext securityContext, final PropertyKey property) {
+
+		final Map<String, Object> map = new LinkedHashMap();
+
+		map.put("dbName", property.dbName());
+		map.put("jsonName", property.jsonName());
+		map.put("className", property.getClass().getName());
+
+		final TraitDefinition declaringTrait = property.getDeclaringTrait();
+		if (declaringTrait != null) {
+
+			map.put("declaringClass", declaringTrait.getName());
+		}
+
+		map.put("defaultValue", property.defaultValue());
+
+		if (property instanceof StringProperty) {
+			map.put("contentType", ((StringProperty) property).contentType());
+		}
+
+		map.put("format", property.format());
+		map.put("readOnly", property.isReadOnly());
+		map.put("system", property.isSystemInternal());
+		map.put("indexed", property.isIndexed());
+		map.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
+		map.put("compound", property.isCompound());
+		map.put("unique", property.isUnique());
+		map.put("notNull", property.isNotNull());
+		map.put("dynamic", property.isDynamic());
+		map.put("category", property.category());
+		map.put("builtin", property.isPartOfBuiltInSchema());
+
+		final String relatedType = property.relatedType();
+		if (relatedType != null) {
+
+			map.put("relatedType", relatedType);
+			map.put("type",        relatedType);
+			map.put("uiType",      relatedType + (property.isCollection() ? "[]" : ""));
+
+		} else {
+
+			map.put("type", property.typeName());
+			map.put("uiType", property.typeName() + (property.isCollection() ? "[]" : ""));
+		}
+
+		map.put("isCollection", property.isCollection());
+
+		//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
+		if (declaringTrait != null && property instanceof RelationProperty) {
+
+			Relation relation = ((RelationProperty) property).getRelation();
+			if (relation != null) {
+
+				map.put("relationshipType", relation.name());
+			}
+		}
+
+		return map;
+	}
+
+	public static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Traits type, final String propertyView) throws FrameworkException {
+
+		final Set<PropertyKey> properties              = new LinkedHashSet<>(type.getViewPropertyKeys(propertyView));
+		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
+
+		for (PropertyKey property : properties) {
+
+			propertyConverterMap.put(property.jsonName(), getPropertyInfo(securityContext, property));
+		}
+
+		return propertyConverterMap;
+	}
+
+	private static class ReverseTypeComparator implements Comparator<Type> {
+
+		@Override
+		public int compare(final Type o1, final Type o2) {
+			return o2.name().compareTo(o1.name());
+		}
+	}
+
+	/*
+
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload, final boolean notifyCluster) {
 		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
@@ -834,10 +994,6 @@ public class SchemaHelper {
 		return interfaces;
 	}
 
-	public static String cleanPropertyName(final String propertyName) {
-		return propertyName.replaceAll("[^\\w]+", "");
-	}
-
 	public static void formatValidators(final SourceFile src, final CodeSource codeSource, final Set<Validator> validators, final Set<String> compoundIndexKeys, final boolean extendsAbstractNode, final List<String> propertyValidators) {
 
 		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
@@ -1280,18 +1436,6 @@ public class SchemaHelper {
 		return "Arrays.asList(\"" + StringUtils.join(set, "\", \"") + "\")";
 	}
 
-	public static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
-
-		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
-		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
-
-		for (PropertyKey property : properties) {
-
-			propertyConverterMap.put(property.jsonName(), getPropertyInfo(securityContext, property));
-		}
-
-		return propertyConverterMap;
-	}
 
 	public static List<String> getBasicPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
@@ -1401,10 +1545,12 @@ public class SchemaHelper {
 
 			map.put("relatedType", relatedType.getName());
 			map.put("type", relatedType.getSimpleName());
+			map.put("uiType", relatedType.getSimpleName() + (property.isCollection() ? "[]" : ""));
 
 		} else {
 
 			map.put("type", property.typeName());
+			map.put("uiType", property.typeName() + (property.isCollection() ? "[]" : ""));
 		}
 
 		map.put("isCollection", property.isCollection());
@@ -1564,14 +1710,6 @@ public class SchemaHelper {
 		}
 
 		return false;
-	}
-
-	private static class ReverseTypeComparator implements Comparator<Type> {
-
-		@Override
-		public int compare(final Type o1, final Type o2) {
-			return o2.name().compareTo(o1.name());
-		}
 	}
 
 	private static String schemaResourceSignature(final String signature) {

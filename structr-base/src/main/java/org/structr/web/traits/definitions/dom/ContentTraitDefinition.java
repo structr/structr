@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.definitions;
+package org.structr.web.traits.definitions.dom;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,7 +29,6 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -52,15 +51,11 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Textarea;
 import org.structr.web.traits.operations.*;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
-
-import static org.w3c.dom.Node.TEXT_NODE;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
@@ -168,38 +163,12 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 				}
 			},
 
-			ContentEquals.class,
-			new ContentEquals() {
-				@Override
-				public boolean contentEquals(DOMNode elem, Node node) {
-
-					final Content thisNode = elem.as(Content.class);
-
-					if (node instanceof Content content) {
-
-						final String content1 = thisNode.getTextContent();
-						final String content2 = content.getTextContent();
-
-						if (content1 == null && content2 == null) {
-							return true;
-						}
-
-						if (content1 != null && content2 != null) {
-
-							return content1.equals(content2);
-						}
-					}
-
-					return false;
-				}
-			},
-
 			DoImport.class,
 			new DoImport() {
 
 				@Override
-				public Node doImport(final DOMNode node, final Page page) {
-					return page.createTextNode(node.as(Content.class).getData());
+				public DOMNode doImport(final DOMNode node, final Page page) {
+					return page.createTextNode(node.as(Content.class).getContent());
 				}
 			},
 
@@ -212,30 +181,6 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 					final Traits traits = node.getTraits();
 
 					return StringUtils.defaultString(node.getProperty(traits.key("name")), "#text");
-				}
-			},
-
-			W3CNodeMethods.class,
-			new W3CNodeMethods() {
-
-				@Override
-				public String getNodeName(final NodeInterface node) {
-					return "#text";
-				}
-
-				@Override
-				public String getNodeValue(final NodeInterface node) throws DOMException {
-					return node.as(Content.class).getData();
-				}
-
-				@Override
-				public void setNodeValue(final NodeInterface node, final String nodeValue) throws DOMException {
-					node.as(Content.class).setData(nodeValue);
-				}
-
-				@Override
-				public short getNodeType(final NodeInterface node) {
-					return TEXT_NODE;
 				}
 			},
 

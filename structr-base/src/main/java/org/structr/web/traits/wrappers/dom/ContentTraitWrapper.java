@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.wrappers;
+package org.structr.web.traits.wrappers.dom;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -26,10 +26,10 @@ import org.structr.core.Adapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
+import org.structr.web.ContentHandler;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
-import org.w3c.dom.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -60,79 +60,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		wrappedObject.setProperty(traits.key("contentType"), contentType);
 	}
 
-	// ----- interface org.w3c.dom.Text -----
-	public String getTextContent() throws DOMException {
-		return getData();
-	}
-
-	public Text splitText(final int offset) throws DOMException {
-
-		this.checkWriteAccess();
-
-		final String text = this.getContent();
-		if (text != null) {
-
-			int len = text.length();
-
-			if (offset < 0 || offset > len) {
-
-				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
-
-			} else {
-
-				final String firstPart  = text.substring(0, offset);
-				final String secondPart = text.substring(offset);
-
-				final Document document  = this.getOwnerDocument();
-				final Node parent        = this.getParentNode();
-
-				if (document != null && parent != null) {
-
-					try {
-
-						// first part goes into existing text element
-						this.setContent(firstPart);
-
-						// second part goes into new text element
-						final Text newNode = document.createTextNode(secondPart);
-
-						// make new node a child of old parent
-						parent.appendChild(newNode);
-
-
-						return newNode;
-
-					} catch (FrameworkException fex) {
-
-						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-
-					}
-
-				} else {
-
-					throw new DOMException(DOMException.INVALID_STATE_ERR, CANNOT_SPLIT_TEXT_WITHOUT_PARENT);
-				}
-			}
-		}
-
-		throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
-	}
-
-	public boolean isElementContentWhitespace() {
-
-		this.checkReadAccess();
-
-		String text = this.getContent();
-
-		if (text != null) {
-
-			return !text.matches("[\\S]*");
-		}
-
-		return false;
-	}
-
-	public void setData(final String data) throws DOMException {
+	public void setData(final String data) throws FrameworkException {
 
 		this.checkWriteAccess();
 
@@ -142,7 +70,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 
 		}
 	}
@@ -158,7 +86,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		return 0;
 	}
 
-	public String substringData(int offset, int count) throws DOMException {
+	public String substringData(int offset, int count) throws FrameworkException {
 
 		this.checkReadAccess();
 
@@ -171,14 +99,14 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 			} catch (IndexOutOfBoundsException iobex) {
 
-				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
+				throw new FrameworkException(422, INDEX_SIZE_ERR_MESSAGE);
 			}
 		}
 
 		return "";
 	}
 
-	public void appendData(final String data) throws DOMException {
+	public void appendData(final String data) throws FrameworkException {
 
 		this.checkWriteAccess();
 
@@ -189,12 +117,12 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 
 		}
 	}
 
-	public void insertData(final int offset, final String data) throws DOMException {
+	public void insertData(final int offset, final String data) throws FrameworkException {
 
 		this.checkWriteAccess();
 
@@ -214,12 +142,12 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 
 		}
 	}
 
-	public void deleteData(final int offset, final int count) throws DOMException {
+	public void deleteData(final int offset, final int count) throws FrameworkException {
 
 		this.checkWriteAccess();
 
@@ -234,12 +162,12 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 
 		}
 	}
 
-	public void replaceData(final int offset, final int count, final String data) throws DOMException {
+	public void replaceData(final int offset, final int count, final String data) throws FrameworkException {
 
 		this.checkWriteAccess();
 
@@ -259,7 +187,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 		} catch (FrameworkException fex) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			throw new FrameworkException(422, fex.toString());
 
 		}
 	}
@@ -432,42 +360,14 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		}
 	}
 
-	@Override
-	public NamedNodeMap getAttributes() {
-		return null;
-	}
-
-	public boolean hasAttributes() {
-		return false;
-	}
-
-	@Override
-	public void setTextContent(final String value) {
+	public void setTextContent(final String value) throws FrameworkException {
 		setData(value);
 	}
 
-	@Override
-	public String getWholeText() {
-		throw new UnsupportedOperationException("Not supported");
-	}
+	public String getData() throws FrameworkException {
 
-	@Override
-	public Text replaceWholeText(final String text) {
-		throw new UnsupportedOperationException("Not supported");
-	}
-
-	@Override
-	public String getData() {
 		checkReadAccess();
 		return getContent();
-	}
-
-	public interface ContentHandler {
-
-		void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException;
-		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
-		void handleText(final String text) throws FrameworkException;
-		void possibleStartOfScript(final int row, final int column);
 	}
 
 	public class RenderContextContentHandler implements ContentHandler {

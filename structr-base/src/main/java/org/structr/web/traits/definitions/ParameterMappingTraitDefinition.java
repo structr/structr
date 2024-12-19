@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
@@ -79,6 +80,11 @@ public class ParameterMappingTraitDefinition extends AbstractTraitDefinition {
 		return Map.of(
 			ParameterMapping.class, (traits, node) -> new ParameterMappingTraitWrapper(traits, node)
 		);
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override

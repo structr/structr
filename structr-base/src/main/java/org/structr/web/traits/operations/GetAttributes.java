@@ -21,16 +21,10 @@ package org.structr.web.traits.operations;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.w3c.dom.NamedNodeMap;
 
 import java.util.List;
 
 public abstract class GetAttributes extends FrameworkMethod<GetAttributes> {
-
-	public abstract NamedNodeMap getAttributes(final DOMNode node);
-	public abstract boolean hasAttributes(final DOMNode node);
-	public abstract int getLength(final DOMNode node);
 
 	public abstract Iterable<PropertyKey> getHtmlAttributes(final DOMElement element);
 	public abstract List<String> getHtmlAttributeNames(final DOMElement element);

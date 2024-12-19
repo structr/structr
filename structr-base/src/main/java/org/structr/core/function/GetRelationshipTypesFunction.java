@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
@@ -82,7 +83,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 					final PropertyKey<String> classNameKey        = new StringProperty("className");
 					final PropertyKey<String> relationshipTypeKey = new StringProperty("relationshipType");
 
-					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), node.getClass(), "all");
+					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), "all");
 
 					switch(direction) {
 						case "incoming":
@@ -120,14 +121,14 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 					switch(direction) {
 						case "incoming":
-							for (final AbstractRelationship rel : node.getIncomingRelationships()) {
+							for (final RelationshipInterface rel : node.getIncomingRelationships()) {
 
 								resultSet.add(rel.getRelType().name());
 							}
 							break;
 
 						case "outgoing":
-							for (final AbstractRelationship rel : node.getOutgoingRelationships()) {
+							for (final RelationshipInterface rel : node.getOutgoingRelationships()) {
 
 								resultSet.add(rel.getRelType().name());
 							}
@@ -135,7 +136,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 						default:
 						case "both":
-							for (final AbstractRelationship rel : node.getRelationships()) {
+							for (final RelationshipInterface rel : node.getRelationships()) {
 
 								resultSet.add(rel.getRelType().name());
 							}

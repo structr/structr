@@ -21,17 +21,14 @@ package org.structr.web.entity.dom;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 
 import java.util.Map;
 
-public interface DOMElement extends DOMNode, Element, NamedNodeMap {
+public interface DOMElement extends DOMNode  {
 
 	String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 
@@ -49,6 +46,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap {
 
 	// ----- public methods -----
 	String getTag();
+	String getHtmlId();
 	String getEventMapping();
 	String getRenderingMode();
 	String getDelayOrInterval();
@@ -69,8 +67,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap {
 	Iterable<ParameterMapping> getParameterMappings();
 
 	Map<String, Object> getMappedEvents();
-
-	String getOffsetAttributeName(final String name, final int offset);
 
 	static int intOrOne(final String source) {
 

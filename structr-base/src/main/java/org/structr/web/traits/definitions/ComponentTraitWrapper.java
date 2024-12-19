@@ -21,7 +21,7 @@ package org.structr.web.traits.definitions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Component;
-import org.structr.web.traits.wrappers.DOMElementTraitWrapper;
+import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
 /**
  * Represents a component. A component is an assembly of elements

@@ -21,9 +21,8 @@ package org.structr.web.traits.operations;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.w3c.dom.DOMException;
 
 public abstract class DoAdopt extends FrameworkMethod<DoAdopt> {
 
-	public abstract void doAdopt(final DOMNode node, final Page page) throws DOMException;
+	public abstract DOMNode doAdopt(final DOMNode node, final Page page);
 }

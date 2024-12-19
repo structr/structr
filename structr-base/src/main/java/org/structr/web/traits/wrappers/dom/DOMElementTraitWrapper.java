@@ -16,13 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.wrappers;
+package org.structr.web.traits.wrappers.dom;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -31,22 +30,16 @@ import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMAttribute;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNodeList;
-import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.traits.operations.GetAttributes;
 import org.structr.web.traits.operations.OpeningTag;
-import org.w3c.dom.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMElement, NamedNodeMap, NonIndexed {
+public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMElement, NonIndexed {
 
 	private static final Gson gson = new GsonBuilder().create();
 
@@ -188,282 +181,6 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		return null;
 	}
 
-	@Override
-	public String getOffsetAttributeName(final String name, final int offset) {
-
-		int namePosition = -1;
-		int index = 0;
-
-		final List<String> keys = Iterables.toList(getWrappedNode().getNode().getPropertyKeys());
-
-		Collections.sort(keys);
-
-		List<String> names = new ArrayList<>(10);
-
-		for (String key : keys) {
-
-			// use html properties only
-			if (key.startsWith(PropertyView.Html)) {
-
-				String htmlName = key.substring(HtmlPrefixLength);
-
-				if (name.equals(htmlName)) {
-
-					namePosition = index;
-				}
-
-				names.add(htmlName);
-
-				index++;
-			}
-		}
-
-		int offsetIndex = namePosition + offset;
-		if (offsetIndex >= 0 && offsetIndex < names.size()) {
-
-			return names.get(offsetIndex);
-		}
-
-		return null;
-	}
-
-	@Override
-	public void setIdAttribute(final String idString, boolean isId) throws DOMException {
-
-		checkWriteAccess();
-
-		try {
-
-			wrappedObject.setProperty(traits.key("_html_id"), idString);
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-		}
-	}
-
-	@Override
-	public String getAttribute(final String name) {
-
-		final HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-
-		return htmlProperty.getProperty(getSecurityContext(), wrappedObject, true);
-	}
-
-	@Override
-	public void setAttribute(final String name, final String value) throws DOMException {
-
-		try {
-			final HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-			if (htmlProperty != null) {
-
-				htmlProperty.setProperty(getSecurityContext(), wrappedObject, value);
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-		}
-	}
-
-	@Override
-	public void removeAttribute(final String name) throws DOMException {
-
-		try {
-			final HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-			if (htmlProperty != null) {
-
-				htmlProperty.setProperty(getSecurityContext(), wrappedObject, null);
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-		}
-	}
-
-	@Override
-	public Attr getAttributeNode(final String name) {
-
-		final HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-		final String value        = htmlProperty.getProperty(getSecurityContext(), wrappedObject, true);
-
-		if (value != null) {
-
-			boolean explicitlySpecified = true;
-			boolean isId = false;
-
-			if (value.equals(htmlProperty.defaultValue())) {
-				explicitlySpecified = false;
-			}
-
-			return new DOMAttribute((Page) getOwnerDocument(), this, name, value, explicitlySpecified, isId);
-		}
-
-		return null;
-	}
-
-	@Override
-	public Attr setAttributeNode(final Attr attr) throws DOMException {
-
-		// save existing attribute node
-		final Attr attribute = getAttributeNode(attr.getName());
-
-		// set value
-		setAttribute(attr.getName(), attr.getValue());
-
-		// set parent of attribute node
-		if (attr instanceof DOMAttribute) {
-			((DOMAttribute) attr).setParent(this);
-		}
-
-		return attribute;
-	}
-
-	@Override
-	public Attr removeAttributeNode(final Attr attr) throws DOMException {
-
-		// save existing attribute node
-		final Attr attribute = getAttributeNode(attr.getName());
-
-		// set value
-		setAttribute(attr.getName(), null);
-
-		return attribute;
-	}
-
-	@Override
-	public NodeList getElementsByTagName(final String tagName) {
-
-		DOMNodeList results = new DOMNodeList();
-
-		DOMNodeTraitWrapper.collectNodesByPredicate(getSecurityContext(), this, results, new TagPredicate(tagName), 0, false);
-
-		return results;
-	}
-
-	@Override
-	public Node setNamedItem(final Node node) throws DOMException {
-
-		if (node instanceof Attr) {
-			return setAttributeNode((Attr) node);
-		}
-
-		return null;
-	}
-
-	@Override
-	public Node removeNamedItem(final String name) throws DOMException {
-
-		// save existing attribute node
-		Attr attribute = getAttributeNode(name);
-
-		// set value to null
-		setAttribute(name, null);
-
-		return attribute;
-	}
-
-	@Override
-	public Node item(final int i) {
-
-		final List<String> htmlAttributeNames = getHtmlAttributeNames();
-		if (i >= 0 && i < htmlAttributeNames.size()) {
-
-			return getAttributeNode(htmlAttributeNames.get(i));
-		}
-
-		return null;
-	}
-
-	@Override
-	public int getLength() {
-		return traits.getMethod(GetAttributes.class).getLength(this);
-	}
-
-	// ----- org.w3c.Node methods -----
-	@Override
-	public String getTagName() {
-		return getTag();
-	}
-
-	// ----- org.w3c.dom.Element -----
-	@Override
-	public void setIdAttributeNS(final String namespaceURI, final String localName, final boolean isId) throws DOMException {
-		throw new UnsupportedOperationException("Namespaces not supported.");
-	}
-
-	@Override
-	public void setIdAttributeNode(final Attr idAttr, final boolean isId) throws DOMException {
-		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
-	}
-
-	@Override
-	public String getAttributeNS(final String namespaceURI, final String localName) throws DOMException {
-		return null;
-	}
-
-	@Override
-	public void setAttributeNS(final String namespaceURI, final String qualifiedName, final String value) throws DOMException {
-	}
-
-	@Override
-	public void removeAttributeNS(final String namespaceURI, final String localName) throws DOMException {
-	}
-
-	@Override
-	public Attr getAttributeNodeNS(final String namespaceURI, final String localName) throws DOMException {
-		return null;
-	}
-
-	@Override
-	public Attr setAttributeNodeNS(final Attr newAttr) throws DOMException {
-		return null;
-	}
-
-	@Override
-	public NodeList getElementsByTagNameNS(final String namespaceURI, final String localName) throws DOMException {
-		return null;
-	}
-
-	@Override
-	public boolean hasAttribute(final String name) {
-		return getAttribute(name) != null;
-	}
-
-	@Override
-	public boolean hasAttributeNS(final String namespaceURI, final String localName) throws DOMException {
-		return false;
-	}
-
-	@Override
-	public TypeInfo getSchemaTypeInfo() {
-		return null;
-	}
-
-	// ----- org.w3c.dom.NamedNodeMap -----
-	@Override
-	public Node getNamedItem(String name) {
-		return getAttributeNode(name);
-	}
-
-	@Override
-	public Node getNamedItemNS(String namespaceURI, String localName) throws DOMException {
-		return null;
-	}
-
-	@Override
-	public Node setNamedItemNS(Node arg) throws DOMException {
-		return null;
-	}
-
-	@Override
-	public Node removeNamedItemNS(String namespaceURI, String localName) throws DOMException {
-		return null;
-	}
-
 	// ----- private static methods -----
 	private static int intOrOne(final String source) {
 
@@ -512,7 +229,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		return Iterables.map(n -> n.as(DOMElement.class), wrappedObject.getProperty(key));
 	}
 
-	public class TagPredicate implements Predicate<Node> {
+	public class TagPredicate implements Predicate<DOMNode> {
 
 		private String tagName = null;
 
@@ -521,7 +238,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		}
 
 		@Override
-		public boolean accept(Node obj) {
+		public boolean accept(final DOMNode obj) {
 
 			if (obj instanceof DOMElement) {
 
@@ -539,7 +256,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	private HtmlProperty findOrCreateAttributeKey(final String name) {
 
 		// try to find native html property defined in DOMElement or one of its subclasses
-		final PropertyKey key = traits.key("name");;
+		final PropertyKey key = traits.key("name");
 
 		if (key != null && key instanceof HtmlProperty) {
 

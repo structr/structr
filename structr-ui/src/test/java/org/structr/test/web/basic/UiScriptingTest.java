@@ -1970,7 +1970,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 	private void test(final DOMNode p, final DOMNode text, final String content, final String expected, final RenderContext context) throws FrameworkException {
 
-		text.setTextContent(content);
+		text.setContent(content);
 
 		// clear queue
 		context.getBuffer().getQueue().clear();

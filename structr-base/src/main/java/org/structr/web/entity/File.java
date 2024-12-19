@@ -3,7 +3,6 @@ package org.structr.web.entity;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
 
 import javax.activation.DataSource;
 import java.io.OutputStream;
@@ -18,6 +17,7 @@ public interface File extends AbstractFile, DataSource {
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, boolean append);
 	boolean isTemplate();
+	boolean dontCache();
 
 	GraphObject getSearchContext(SecurityContext ctx, String searchTerm, int contextLength);
 

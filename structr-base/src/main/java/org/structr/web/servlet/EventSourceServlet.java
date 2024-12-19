@@ -32,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -56,9 +57,6 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
-
-	static PropertyKey<String[]> sessionIdsPropertyKey = null;
-	static PropertyKey<Iterable<Principal>> membersKey = null;
 
 	private SecurityContext securityContext;
 
@@ -202,11 +200,13 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 		for (Principal principal : targets) {
 
-			if (principal instanceof User) {
-//			if (User.class.isAssignableFrom(principal.getClass())) {
-				uniqueUsers.add((User)principal);
+			if (principal.is("User")) {
+
+				uniqueUsers.add(principal.as(User.class));
+
 			} else {
-				uniqueUsers.addAll(getUniqueUsersForGroup(principal, seenGroups, true));
+
+				uniqueUsers.addAll(getUniqueUsersForGroup(principal.as(Group.class), seenGroups, true));
 			}
 		}
 
@@ -220,27 +220,24 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		return oneTargetSeen;
 	}
 
-	private static Set<User> getUniqueUsersForGroup(final Principal group, final Set<Principal> seenGroups, final boolean recurse) {
+	private static Set<User> getUniqueUsersForGroup(final Group group, final Set<Principal> seenGroups, final boolean recurse) {
 
 		seenGroups.add(group);
 
 		final Set<User> uniqueUsers = new HashSet<>();
 
-		if (membersKey == null) {
-			membersKey = StructrApp.key(GroupTraitDefinition.class, "members");
-		}
-
-		for (Principal member : group.getProperty(membersKey)) {
+		for (Principal member : group.getMembers()) {
 
 //			if (User.class.isAssignableFrom(member.getClass())) {
-			if (member instanceof User) {
+			if (member.is("User")) {
 
 				uniqueUsers.add((User)member);
 
 			} else if (recurse) {
 
 				if (!seenGroups.contains(member)) {
-					uniqueUsers.addAll(getUniqueUsersForGroup(member, seenGroups, recurse));
+
+					uniqueUsers.addAll(getUniqueUsersForGroup(member.as(Group.class), seenGroups, recurse));
 				}
 			}
 		}
@@ -270,11 +267,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	private static boolean shouldReceiveMessage(final StructrEventSource es, final User target) {
 
-		if (sessionIdsPropertyKey == null) {
-			sessionIdsPropertyKey = StructrApp.key(Principal.class, "sessionIds");
-		}
-
-		final String[] ids = target.getProperty(sessionIdsPropertyKey);
+		final String[] ids = target.getSessionIds();
 
 		if (ids != null && Arrays.asList(ids).contains(es.getSessionId())) {
 			return true;

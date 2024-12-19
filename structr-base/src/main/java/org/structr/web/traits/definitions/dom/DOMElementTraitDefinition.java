@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.definitions;
+package org.structr.web.traits.definitions.dom;
 
 import com.google.common.base.CaseFormat;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,11 +79,7 @@ import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.resource.ResetPasswordResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.web.traits.operations.*;
-import org.structr.web.traits.wrappers.DOMElementTraitWrapper;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
+import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -432,32 +428,6 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 				}
 			},
 
-			W3CNodeMethods.class,
-			new W3CNodeMethods() {
-
-				@Override
-				public String getNodeName(final NodeInterface node) {
-
-					final DOMElement elem = node.as(DOMElement.class);
-
-					return elem.getTagName();
-				}
-
-				@Override
-				public String getNodeValue(final NodeInterface node) throws DOMException {
-					return null;
-				}
-
-				@Override
-				public void setNodeValue(final NodeInterface node, final String nodeValue) throws DOMException {
-				}
-
-				@Override
-				public short getNodeType(final NodeInterface node) {
-					return Node.ELEMENT_NODE;
-				}
-			},
-
 			UpdateFromNode.class,
 			new UpdateFromNode() {
 
@@ -486,19 +456,17 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 			new DoImport() {
 
 				@Override
-				public Node doImport(final DOMNode node, final Page newPage) throws DOMException {
+				public DOMElement doImport(final DOMNode node, final Page newPage) throws FrameworkException {
 
-					final DOMElement element    = node.as(DOMElement.class);
-					final DOMElement newElement = (DOMElement) newPage.createElement(element.getTag());
+					final DOMElement element        = node.as(DOMElement.class);
+					final NodeInterface wrappedThis = node.getWrappedNode();
+					final DOMElement newElement     = (DOMElement) newPage.createElement(element.getTag());
+					final NodeInterface wrappedNew  = newElement.getWrappedNode();
 
 					// copy attributes
-					for (String _name : element.getHtmlAttributeNames()) {
+					for (PropertyKey key : element.getHtmlAttributes()) {
 
-						Attr attr = element.getAttributeNode(_name);
-						if (attr.getSpecified()) {
-
-							newElement.setAttribute(attr.getName(), attr.getValue());
-						}
+						wrappedNew.setProperty(key, wrappedThis.getProperty(key));
 					}
 
 					return newElement;
@@ -556,7 +524,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 						try {
 
 							// in body?
-							if (lowercaseBodyName.equals(elem.getTagName())) {
+							if (lowercaseBodyName.equals(elem.getTag())) {
 								renderContext.setInBody(true);
 							}
 
@@ -1019,21 +987,6 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 			GetAttributes.class,
 			new GetAttributes() {
-
-				@Override
-				public NamedNodeMap getAttributes(final DOMNode node) {
-					return (DOMElement) node;
-				}
-
-				@Override
-				public boolean hasAttributes(final DOMNode node) {
-					return getLength(node) > 0;
-				}
-
-				@Override
-				public int getLength(final DOMNode node) {
-					return Iterables.count(getHtmlAttributeNames((DOMElement) node));
-				}
 
 				@Override
 				public Iterable<PropertyKey> getHtmlAttributes(final DOMElement element) {
