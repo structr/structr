@@ -22,7 +22,7 @@ import com.google.gson.JsonElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.GraphObject;
+import org.structr.core.GraphObject;
 
 import java.util.*;
 

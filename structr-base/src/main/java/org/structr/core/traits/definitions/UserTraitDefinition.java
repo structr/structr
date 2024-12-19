@@ -18,13 +18,11 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.wrappers.UserTraitWrapper;
+import org.structr.web.entity.User;
 
 import java.util.Map;
 import java.util.Set;
@@ -44,27 +42,16 @@ public final class UserTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			User.class, (traits, node) -> new UserTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
 		return Set.of(
 			homeDirectoryProperty,
 			workingDirectoryProperty,
@@ -75,36 +62,4 @@ public final class UserTraitDefinition extends AbstractTraitDefinition {
 			isUserProperty
 		);
 	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
-	}
-
-	/*
-	@Override
-	public Folder getHomeDirectory() {
-		return getProperty(traits.key("homeDirectory"));
-	}
-
-	@Override
-	public void setWorkingDirectory(final Folder workDir) throws FrameworkException {
-		setProperty(traits.key("workingDirectory"), workDir);
-	}
-
-	@Override
-	public Folder getWorkingDirectory() {
-		return getProperty(traits.key("workingDirectory"));
-	}
-
-	@Override
-	public void setLocalStorage(final String localStorage) throws FrameworkException {
-		setProperty(traits.key("localStorage"), localStorage);
-	}
-
-	@Override
-	public String getLocalStorage() {
-		return getProperty(traits.key("localStorage"));
-	}
-	*/
 }

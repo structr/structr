@@ -24,12 +24,9 @@ module structr.base {
     requires java.sql;
     requires jdk.httpserver;
     requires jdk.xml.dom;
-
     requires transitive java.compiler;
     requires transitive java.xml;
-
     requires transitive structr.db.driver.api;
-
     requires asciidoctor.java.integration;
     requires com.google.common;
     requires com.google.gson;
@@ -105,17 +102,14 @@ module structr.base {
     requires zip4j;
     requires commons.collections4;
     requires ch.qos.logback.core;
-    requires jakarta.activation;
-        requires org.apache.groovy;
-	requires org.apache.poi.poi;
-	requires org.glassfish.jaxb.runtime;
-	requires org.eclipse.jgit;
-	requires api.all;
-	requires pulsar.client;
-	requires org.json;
-	requires java.activation;
+    requires org.apache.groovy;
+    requires org.apache.poi.poi;
+    requires org.glassfish.jaxb.runtime;
+    requires org.eclipse.jgit;
+    requires api.all;
+    requires org.json;
 
-	exports org.structr;
+    exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;
@@ -168,7 +162,6 @@ module structr.base {
     exports org.structr.rest.common;
     exports org.structr.rest.exception;
     exports org.structr.rest.entity;
-    exports org.structr.rest.logging.entity.relationship;
     exports org.structr.rest.maintenance;
     exports org.structr.rest.resource;
     exports org.structr.rest.serialization;
@@ -207,7 +200,6 @@ module structr.base {
     exports org.structr.web.entity.dom;
     exports org.structr.web.entity.event;
     exports org.structr.web.entity.html;
-    exports org.structr.web.entity.mail;
     exports org.structr.web.error;
     exports org.structr.web.function;
     exports org.structr.web.importer;
@@ -222,17 +214,16 @@ module structr.base {
     exports org.structr.websocket.command.dom;
     exports org.structr.websocket.message;
     exports org.structr.websocket.servlet;
-	exports org.structr.core.traits;
-	exports org.structr.core.traits.operations;
-	exports org.structr.core.traits.operations.graphobject;
-	exports org.structr.core.traits.relationships;
+    exports org.structr.core.traits;
+    exports org.structr.core.traits.operations;
+    exports org.structr.core.traits.operations.graphobject;
+    exports org.structr.core.traits.relationships;
     exports org.structr.core.traits.nodes;
     exports org.structr.core.traits.wrappers;
-	exports org.structr.core.traits.definitions;
-	exports org.structr.rest.traits.relationships;
-	exports org.structr.web.traits.definitions;
-	exports org.structr.web.traits.wrappers;
-	exports org.structr.web.traits.definitions.dom;
+    exports org.structr.core.traits.definitions;
+    exports org.structr.rest.traits.relationships;
+    exports org.structr.web.traits.definitions;
+    exports org.structr.web.traits.wrappers;
+    exports org.structr.web.traits.definitions.dom;
     exports org.structr.web.traits.wrappers.dom;
-
 }

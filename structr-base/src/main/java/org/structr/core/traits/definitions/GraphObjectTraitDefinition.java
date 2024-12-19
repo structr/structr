@@ -135,11 +135,6 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
@@ -158,11 +153,6 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 			visibleToPublicUsersProperty,
 			visibleToAuthenticatedUsers
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	// ----- private methods -----

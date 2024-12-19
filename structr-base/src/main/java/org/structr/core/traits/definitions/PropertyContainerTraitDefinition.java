@@ -36,7 +36,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -45,9 +44,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.propertycontainer.*;
 
@@ -59,11 +56,6 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 
 	public PropertyContainerTraitDefinition() {
 		super("PropertyContainer");
-	}
-
-	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
 	}
 
 	@Override
@@ -300,23 +292,8 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 	}
 
 	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	private static <T> Object setPropertyInternal(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {

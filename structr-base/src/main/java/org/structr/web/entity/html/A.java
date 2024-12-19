@@ -18,7 +18,7 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.web.entity.dom.DOMElement;
 
-public interface A extends NodeTrait {
+public interface A extends DOMElement {
 }

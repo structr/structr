@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -178,10 +177,10 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private long rebuildFulltextIndex() {
 
-		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery("Indexable"), 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery("Indexable"), 1000, "RebuildFulltextIndex", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final Indexable indexable) throws FrameworkException {
+			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface indexable) throws FrameworkException {
 
 				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(indexable);
 
@@ -189,7 +188,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final Indexable rel) {
+			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface rel) {
 				logger.warn("Unable to build fulltext index for {}: {}", rel.getUuid(), t.getMessage());
 			}
 

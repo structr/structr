@@ -24,7 +24,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Data extends DOMElement {
+public interface Data extends DOMElement {
 
 	public static final Property<String> htmlValueProperty = new StringProperty("_html_value").partOfBuiltInSchema();
 

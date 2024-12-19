@@ -33,18 +33,13 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.wrappers.SchemaRelationshipNodeTraitWrapper;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefinition {
-
-	public static final String schemaRemoteAttributeNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
-
-	private static final Logger logger                              = LoggerFactory.getLogger(SchemaRelationshipNode.class.getName());
-	private static final Set<Class> dynamicPropagatingRelTypes      = new HashSet<>();
-	private static final Set<Class> staticPropagatingRelTypes       = new HashSet<>();
 
 	private static final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", "SchemaRelationshipSourceNode");
 	private static final Property<NodeInterface> targetNode          = new EndNode("targetNode", "SchemaRelationshipTargetNode");
@@ -105,28 +100,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
+		return Map.of(
+			SchemaRelationshipNode.class, (traits, node) -> new SchemaRelationshipNodeTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -159,11 +136,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 			accessControlPropagation,
 			propertyMask
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	/*

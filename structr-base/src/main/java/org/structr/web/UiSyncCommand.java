@@ -27,7 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeInterface;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.File;
@@ -164,7 +164,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void collectDataRecursively(final App app, final GraphObjectTraits root, final Set<NodeInterface> nodes, final Set<RelationshipTrait> rels, final Set<String> files) throws FrameworkException {
+	private void collectDataRecursively(final App app, final GraphObject root, final Set<NodeInterface> nodes, final Set<RelationshipTrait> rels, final Set<String> files) throws FrameworkException {
 
 		if (root.isNode()) {
 
@@ -178,10 +178,10 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			// add node to set, recurse if not already present
 			if (nodes.add(node)) {
 
-				final List<GraphObjectTraits> syncData = node.getSyncData();
+				final List<GraphObject> syncData = node.getSyncData();
 				if (syncData != null) {
 
-					for (final GraphObjectTraits obj : syncData) {
+					for (final GraphObject obj : syncData) {
 
 						// syncData can contain null objects!
 						if (obj != null) {
@@ -204,10 +204,10 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			// add node to set, recurse if not already present
 			if (rels.add(rel)) {
 
-				final List<GraphObjectTraits> syncData = rel.getSyncData();
+				final List<GraphObject> syncData = rel.getSyncData();
 				if (syncData != null) {
 
-					for (final GraphObjectTraits obj : syncData) {
+					for (final GraphObject obj : syncData) {
 
 						// syncData can contain null objects!
 						if (obj != null) {

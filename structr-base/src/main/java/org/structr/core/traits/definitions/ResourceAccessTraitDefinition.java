@@ -23,11 +23,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.AfterModification;
@@ -137,11 +135,6 @@ public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
@@ -157,10 +150,5 @@ public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 			flags,
 			isResourceAccess
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

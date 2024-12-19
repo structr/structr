@@ -24,6 +24,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.CorsSetting;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -31,6 +32,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.wrappers.CorsSettingTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -42,30 +44,15 @@ import java.util.Set;
  */
 public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Logger logger                                = LoggerFactory.getLogger(CorsSettingTraitDefinition.class.getName());
-
-	/** Request URL that has to match */
-	private static final Property<String>               requestUri          = new StringProperty("requestUri").indexed();
-
-	/** Comma-separated list of accepted origins, sets the <code>Access-Control-Allow-Origin</code> header. Overwrites {@link Settings#AccessControlAcceptedOrigins} */
-	private static final Property<String>               acceptedOrigins     = new StringProperty("acceptedOrigins").indexed();
-
-	/** Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds. Overwrites @see Settings.AccessControlMaxAge */
-	private static final Property<Integer>              maxAge              = new IntProperty("maxAge").indexed();
-
-	/** Sets the value of the <code>Access-Control-Allow-Methods</code> header. Comma-delimited list of the allowed HTTP request methods. Overwrites @see Settings.AccessControlAllowMethods */
-	private static final Property<String>               allowMethods        = new StringProperty("allowMethods").indexed();
-
-	/** Sets the value of the <code>Access-Control-Allow-Headers</code> header. Overwrites @see Settings.AccessControlAllowHeaders */
-	private static final Property<String>               allowHeaders        = new StringProperty("allowHeaders").indexed();
-
-	/** Sets the value of the <code>Access-Control-Allow-Credentials</code> header. Overwrites @see Settings.AccessControlAllowCredentials */
-	private static final Property<String>               allowCredentials    = new StringProperty("allowCredentials").indexed();
-
-	/** Sets the value of the <code>Access-Control-Expose-Headers</code> header. Overwrites @see Settings.AccessControlExposeHeaders */
-	private static final Property<String>               exposeHeaders       = new StringProperty("exposeHeaders").indexed();
-
-	private static final Property<Boolean>              isCorsSetting   = new ConstantBooleanProperty("isCorsSetting", true);
+	private static final Logger logger                                    = LoggerFactory.getLogger(CorsSettingTraitDefinition.class.getName());
+	private static final Property<String>               requestUri        = new StringProperty("requestUri").indexed();
+	private static final Property<String>               acceptedOrigins   = new StringProperty("acceptedOrigins").indexed();
+	private static final Property<Integer>              maxAge            = new IntProperty("maxAge").indexed();
+	private static final Property<String>               allowMethods      = new StringProperty("allowMethods").indexed();
+	private static final Property<String>               allowHeaders      = new StringProperty("allowHeaders").indexed();
+	private static final Property<String>               allowCredentials  = new StringProperty("allowCredentials").indexed();
+	private static final Property<String>               exposeHeaders     = new StringProperty("exposeHeaders").indexed();
+	private static final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty("isCorsSetting", true);
 
 	public CorsSettingTraitDefinition() {
 		super("CorsSetting");
@@ -98,18 +85,11 @@ public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			CorsSetting.class, (traits, node) -> new CorsSettingTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -124,10 +104,5 @@ public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 			exposeHeaders,
 			isCorsSetting
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

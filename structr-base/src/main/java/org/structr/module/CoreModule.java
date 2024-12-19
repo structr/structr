@@ -25,8 +25,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.core.traits.relationships.*;
-import org.structr.rest.traits.relationships.ObjectEventRelationship;
-import org.structr.rest.traits.relationships.SubjectEventRelationship;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -63,6 +61,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType("Location",               new LocationTraitDefinition());
 		StructrTraits.registerNodeType("MailTemplate",           new MailTemplateTraitDefinition());
 		StructrTraits.registerNodeType("Person",                 new PersonTraitDefinition());
+		StructrTraits.registerNodeType("SessionDataNode",        new SessionDataNodeTraitDefinition());
 		StructrTraits.registerNodeType("SchemaGrant",            new SchemaGrantTraitDefinition());
 		StructrTraits.registerNodeType("SchemaMethod",           new SchemaMethodTraitDefinition());
 		StructrTraits.registerNodeType("SchemaMethodParameter",  new SchemaMethodParameterTraitDefinition());
@@ -70,10 +69,10 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType("SchemaRelationshipNode", new AbstractSchemaNodeTraitDefinition(), new SchemaRelationshipNodeTraitDefinition());
 		StructrTraits.registerNodeType("SchemaView",             new SchemaViewTraitDefinition());
 		StructrTraits.registerNodeType("SchemaProperty",         new SchemaPropertyTraitDefinition());
-		StructrTraits.registerNodeType("CorsSetting",           new CorsSettingTraitDefinition());
-		StructrTraits.registerNodeType("ResourceAccess",        new ResourceAccessTraitDefinition("ResourceAccess"));
-		StructrTraits.registerNodeType("DynamicResourceAccess", new ResourceAccessTraitDefinition("DynamicResourceAccess"));
-		StructrTraits.registerNodeType("SessionDataNode",       new SessionDataNodeTraitDefinition());
+		StructrTraits.registerNodeType("CorsSetting",            new CorsSettingTraitDefinition());
+		StructrTraits.registerNodeType("ResourceAccess",         new ResourceAccessTraitDefinition("ResourceAccess"));
+		StructrTraits.registerNodeType("DynamicResourceAccess",  new ResourceAccessTraitDefinition("DynamicResourceAccess"));
+		StructrTraits.registerNodeType("SessionDataNode",        new SessionDataNodeTraitDefinition());
 
 	}
 

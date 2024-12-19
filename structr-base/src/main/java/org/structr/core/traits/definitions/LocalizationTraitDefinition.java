@@ -116,26 +116,11 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
 			Localization.class, (traits, node) -> new LocalizationTraitWrapper(traits, node)
 		);
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
 	}
 
 	@Override
@@ -147,10 +132,5 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 			localeProperty,
 			importedProperty
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

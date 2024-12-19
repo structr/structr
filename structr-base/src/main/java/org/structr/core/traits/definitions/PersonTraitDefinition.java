@@ -18,12 +18,11 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Person;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.wrappers.PersonTraitWrapper;
 
 import java.util.Date;
 import java.util.Map;
@@ -71,23 +70,11 @@ public class PersonTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			Person.class, (traits, node) -> new PersonTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -113,10 +100,5 @@ public class PersonTraitDefinition extends AbstractTraitDefinition {
 			genderProperty,
 			newsletterProperty
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

@@ -34,7 +34,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
-import org.structr.core.traits.NodeInterface;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
 
@@ -175,7 +175,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 				conditionalIncludeFiles = false;
 
-				for (final GraphObjectTraits obj : StructrApp.getInstance().query(query, null)) {
+				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
 						nodes.add((NodeInterface)obj.getSyncNode());

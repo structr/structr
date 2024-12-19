@@ -24,7 +24,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;

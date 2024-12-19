@@ -64,21 +64,6 @@ public final class LocationTraitDefinition extends AbstractTraitDefinition {
 	*/
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
@@ -97,10 +82,5 @@ public final class LocationTraitDefinition extends AbstractTraitDefinition {
 			stateProperty,
 			stateDistrictProperty
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 }

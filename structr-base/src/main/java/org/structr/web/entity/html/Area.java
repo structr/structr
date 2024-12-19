@@ -20,10 +20,5 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Area extends DOMElement {
-
-	@Override
-	public boolean isVoidElement() {
-		return true;
-	}
+public interface Area extends DOMElement {
 }

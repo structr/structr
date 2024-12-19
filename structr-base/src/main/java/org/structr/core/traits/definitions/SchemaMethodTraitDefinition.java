@@ -18,15 +18,12 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.core.entity.*;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
 
 import java.util.Map;
@@ -93,25 +90,9 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-
 			SchemaMethod.class, (traits, node) -> new SchemaMethodTraitWrapper(traits, node)
 		);
 	}
@@ -145,11 +126,6 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 			httpVerb,
 			deleteMethod
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	/*

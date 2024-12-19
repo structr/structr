@@ -20,7 +20,7 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Br extends DOMElement {
+public interface Br extends DOMElement {
 
 	@Override
 	public boolean isVoidElement() {

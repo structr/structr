@@ -39,10 +39,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -95,6 +92,15 @@ public interface GraphObject {
 
 	void indexPassiveProperties();
 	void addToIndex();
+
+	// visibility
+	boolean isVisibleToPublicUsers();
+	boolean isVisibleToAuthenticatedUsers();
+	boolean isHidden();
+
+	// access
+	Date getCreatedDate();
+	Date getLastModifiedDate();
 
 	void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 	void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;

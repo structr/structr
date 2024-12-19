@@ -24,7 +24,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Button extends DOMElement {
+public interface Button extends DOMElement {
 
 	public static final Property<String> htmlAutofocusProperty      = new StringProperty("_html_autofocus");
 	public static final Property<String> htmlDisabledProperty       = new StringProperty("_html_disabled");

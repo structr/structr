@@ -291,21 +291,22 @@ public class SecurityContext {
 		return new SecurityContext(user, request, accessMode);
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
+	public void removeForbiddenNodes(final List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
 
 		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
 
-			GraphObject obj = it.next();
+			final GraphObject obj = it.next();
 
-			if (obj instanceof AbstractNode) {
+			if (obj.isNode()) {
 
-				AbstractNode n = (AbstractNode) obj;
+				final NodeInterface node = (NodeInterface) obj;
+				final AccessControllable ac = node.as(AccessControllable.class);
 
-				readableByUser = n.isGranted(Permission.read, this);
+				readableByUser = ac.isGranted(Permission.read, this);
 
-				if (!(readableByUser && includeHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
+				if (!(readableByUser && includeHidden && (node.isVisibleToPublicUsers() || !publicOnly))) {
 
 					it.remove();
 				}
@@ -471,7 +472,7 @@ public class SecurityContext {
 		return false;
 	}
 
-	public boolean isVisible(final AccessControllable node) {
+	public boolean isVisible(final NodeInterface node) {
 
 		switch (accessMode) {
 
@@ -518,7 +519,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	public MergeMode getRemoteCollectionMergeMode() {
@@ -526,7 +527,7 @@ public class SecurityContext {
 	}
 
 	// ----- private methods -----
-	private boolean isVisibleInBackend(AccessControllable node) {
+	private boolean isVisibleInBackend(final NodeInterface node) {
 
 		if (isVisibleInFrontend(node)) {
 
@@ -554,7 +555,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	/**
@@ -569,7 +570,7 @@ public class SecurityContext {
 	 * @param node
 	 * @return isVisible
 	 */
-	private boolean isVisibleInFrontend(AccessControllable node) {
+	private boolean isVisibleInFrontend(final NodeInterface node) {
 
 		if (node == null) {
 
@@ -606,7 +607,7 @@ public class SecurityContext {
 
 		if (user != null) {
 
-			final Principal owner = node.getOwnerNode();
+			final Principal owner = node.as(AccessControllable.class).getOwnerNode();
 
 			// owner is always allowed to do anything with its nodes
 			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
@@ -615,7 +616,7 @@ public class SecurityContext {
 			}
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	public void setRequest(HttpServletRequest request) {
@@ -1080,8 +1081,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isVisible(AccessControllable node) {
-
+		public boolean isVisible(final NodeInterface node) {
 			return true;
 		}
 

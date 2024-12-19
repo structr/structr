@@ -24,7 +24,7 @@ import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Canvas extends DOMElement {
+public interface Canvas extends DOMElement {
 
 	public static final Property<String> _width       = new HtmlProperty("width").partOfBuiltInSchema();
 	public static final Property<String> _height      = new HtmlProperty("height").partOfBuiltInSchema();

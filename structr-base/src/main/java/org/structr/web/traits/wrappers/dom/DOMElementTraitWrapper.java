@@ -111,6 +111,11 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	}
 
 	@Override
+	public String getHtmlId() {
+		return wrappedObject.getProperty(traits.key("_html_id"));
+	}
+
+	@Override
 	public String getEventMapping() {
 		return wrappedObject.getProperty(traits.key("eventMapping"));
 	}

@@ -30,7 +30,7 @@ public interface QueryPredicate {
 	Class getQueryType();
 
 	String getName();
-	String getType();
+	Class getType();
 	Object getValue();
 	String getLabel();
 

@@ -34,7 +34,7 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.*;
-import org.structr.web.traits.definitions.html.ATraitDefinition;
+import org.structr.web.traits.definitions.html.*;
 import org.structr.web.traits.relationships.*;
 
 import java.net.URL;
@@ -115,7 +115,16 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Template",                         new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new TemplateTraitDefinition());
 		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
 
+		// HTML elements
 		StructrTraits.registerNodeType("A",                                new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new ATraitDefinition());
+		StructrTraits.registerNodeType("Abbr",                             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AbbrTraitDefinition());
+		StructrTraits.registerNodeType("Address",                          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AddressTraitDefinition());
+		StructrTraits.registerNodeType("Area",                             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AreaTraitDefinition());
+		StructrTraits.registerNodeType("Article",                          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new ArticleTraitDefinition());
+		StructrTraits.registerNodeType("Aside",                            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AsideTraitDefinition());
+		StructrTraits.registerNodeType("Audio",                            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AudioTraitDefinition());
+		StructrTraits.registerNodeType("B",                                new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new BTraitDefinition());
+		StructrTraits.registerNodeType("Base",                             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new BaseTraitDefinition());
 	}
 
 	@Override

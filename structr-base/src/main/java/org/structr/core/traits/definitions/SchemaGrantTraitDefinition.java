@@ -90,27 +90,11 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-
 			SchemaGrant.class, (traits, node) -> new SchemaGrantTraitWrapper(traits, node)
 		);
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
 	}
 
 	@Override
@@ -125,11 +109,6 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 			allowRead,
 			allowWrite
 		);
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
 	}
 
 	/*
