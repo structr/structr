@@ -29,6 +29,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
@@ -40,11 +41,10 @@ import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.Content.ContentHandler;
+import org.structr.web.ContentHandler;
 
 import java.io.IOException;
 import java.util.*;
@@ -52,7 +52,7 @@ import java.util.*;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.graph.Tx;
-
+import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 
 public abstract class AbstractHintProvider {
@@ -86,7 +86,7 @@ public abstract class AbstractHintProvider {
 				try {
 
 					final AutocompleteContentHandler handler = new AutocompleteContentHandler();
-					Content.renderContentWithScripts(textBefore, handler);
+					ContentTraitWrapper.renderContentWithScripts(textBefore, handler);
 
 					if (handler.inScript()) {
 
@@ -206,9 +206,13 @@ public abstract class AbstractHintProvider {
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			for (final NodeInterface method : StructrApp.getInstance().nodeQuery("SchemaMethod").and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getResultStream()) {
+			final Traits traits = Traits.of("SchemaNode");
 
-				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).sort(traits.key("name")).getResultStream()) {
+
+				final SchemaMethod method = node.as(SchemaMethod.class);
+
+				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getSummary(), method.getDescription()));
 			}
 
 			tx.success();
@@ -317,29 +321,35 @@ public abstract class AbstractHintProvider {
 					break;
 
 				case "this":
-					if(currentNode instanceof SchemaMethod) {
 
-						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
-						if (node != null) {
+					if (currentNode.isNode()) {
+
+						final NodeInterface node = (NodeInterface)currentNode;
+
+						if (node.is("SchemaMethod")) {
+
+							final AbstractSchemaNode schemaNode = node.as(SchemaMethod.class).getSchemaNode();
+							if (schemaNode != null) {
+
+								tokenTypes.add("keyword");
+								type = schemaNode.getClassName();
+							}
+
+						} else if (node.is("SchemaProperty") && SchemaHelper.Type.Function.equals(((SchemaProperty) currentNode).getPropertyType())) {
+
+
+							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();
+							if (schemaNode != null) {
+
+								tokenTypes.add("keyword");
+								type = schemaNode.getClassName();
+							}
+
+						} else if (currentNode != null) {
 
 							tokenTypes.add("keyword");
-							type = node.getClassName();
+							type = currentNode.getType();
 						}
-
-					} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
-
-
-						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
-						if (node != null) {
-
-							tokenTypes.add("keyword");
-							type = node.getClassName();
-						}
-
-					} else if (currentNode != null) {
-
-						tokenTypes.add("keyword");
-						type      = currentNode.getType();
 					}
 					break;
 

@@ -18,19 +18,27 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.entity.Localization;
 import org.structr.core.entity.Relation;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.function.LocalizeFunction;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnDeletion;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.wrappers.LocalizationTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -56,33 +64,6 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 		super("Localization");
 	}
 
-	/*
-	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		setProperty(visibleToPublicUsers, true);
-		setProperty(visibleToAuthenticatedUsers, true);
-
-		LocalizeFunction.invalidateCache();
-	}
-
-	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-		LocalizeFunction.invalidateCache();
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
-		super.onDeletion(securityContext, errorBuffer, properties);
-		LocalizeFunction.invalidateCache();
-	}
-	*/
-
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
@@ -94,6 +75,41 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					return ValidationHelper.isValidPropertyNotNull(obj, localeProperty, errorBuffer);
+				}
+			},
+
+			OnCreation.class,
+			new OnCreation() {
+
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					final Traits traits = graphObject.getTraits();
+
+					graphObject.setProperty(traits.key("visibleToPublicUsers"), true);
+					graphObject.setProperty(traits.key("visibleToAuthenticatedUsers"), true);
+
+					LocalizeFunction.invalidateCache();
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					LocalizeFunction.invalidateCache();
+				}
+			},
+
+			OnDeletion.class,
+			new OnDeletion() {
+
+				@Override
+				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+					LocalizeFunction.invalidateCache();
 				}
 			}
 		);
@@ -111,7 +127,15 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			Localization.class, (traits, node) -> new LocalizationTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return Set.of();
 	}
 
 	@Override

@@ -23,6 +23,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.Traits;
 
+import java.util.Date;
+
 public abstract class AbstractTraitWrapper<T extends GraphObject> {
 
 	protected final T wrappedObject;
@@ -52,6 +54,10 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 
 	public void setName(final String name) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("name"), name);
+	}
+
+	public Date getLastModifiedDate() {
+		return wrappedObject.getProperty(traits.key("lastModifiedDate"));
 	}
 
 	public T getWrappedNode() {

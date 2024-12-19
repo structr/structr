@@ -40,6 +40,7 @@ import java.util.Set;
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	<T extends NodeTrait> T as(final Class<T> type);
+	boolean is(final String type);
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);

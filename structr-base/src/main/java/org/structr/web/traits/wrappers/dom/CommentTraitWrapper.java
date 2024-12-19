@@ -16,26 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.dom;
+package org.structr.web.traits.wrappers.dom;
 
-import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.schema.NonIndexed;
-import org.structr.web.common.RenderContext;
-import org.w3c.dom.CDATASection;
+import org.structr.web.entity.dom.Comment;
 
 /**
  *
  */
+public class CommentTraitWrapper extends ContentTraitWrapper implements NonIndexed, Comment {
 
-public class Cdata extends Content implements CDATASection, NonIndexed {
-
-	@Override
-	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		renderContext.getBuffer().append(("<!CDATA["));
-
-		super.render(renderContext, depth);
-
-		renderContext.getBuffer().append("]]>");
+	public CommentTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 }

@@ -33,11 +33,11 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -63,9 +63,9 @@ public class DeployDataCommand extends DeployCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeployDataCommand.class);
 
-	private Set<Class> exportTypes;
-	private Set<Class> exportFileAndFolderTypes;
-	private Set<Class> missingTypesForExport;
+	private Set<String> exportTypes;
+	private Set<String> exportFileAndFolderTypes;
+	private Set<String> missingTypesForExport;
 	private Set<String> missingTypeNamesForExport;
 	private Set<String> exportedFoldersAsParents;
 	private Set<String> seenRelTypes;
@@ -189,22 +189,21 @@ public class DeployDataCommand extends DeployCommand {
 
 				final String typeName = trimmedType.trim();
 
-				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
-
-				if (type == null) {
+				final Traits traits = Traits.of(typeName);
+				if (traits == null) {
 
 					logger.warn("Unable to export data for type '{}' - type unknown", typeName);
 					publishWarningMessage("Type not found", "Unable to export data for type '" + typeName + "' - type unknown");
 
 				} else {
 
-					exportTypes.add(type);
+					exportTypes.add(typeName);
 				}
 			}
 
 			removeInheritingTypesFromExportSet(exportTypes);
 
-			exportFileAndFolderTypes = exportTypes.stream().filter(aClass -> AbstractFile.class.isAssignableFrom(aClass)).collect(Collectors.toSet());
+			exportFileAndFolderTypes = exportTypes.stream().filter(aClass -> Traits.of(aClass).contains("AbstractFile")).collect(Collectors.toSet());
 			exportTypes.removeAll(exportFileAndFolderTypes);
 
 			final SecurityContext context = getRecommendedSecurityContext();
@@ -423,8 +422,7 @@ public class DeployDataCommand extends DeployCommand {
 					if (f.isFile() && f.getName().endsWith(".json")) {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
-
-						final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+						final Traits type     = Traits.of(typeName);
 
 						if (type == null) {
 
@@ -433,7 +431,7 @@ public class DeployDataCommand extends DeployCommand {
 
 						} else {
 
-							importRelationshipListData(context, type, readConfigList(p));
+							importRelationshipListData(context, typeName, readConfigList(p));
 						}
 					}
 				});
@@ -551,20 +549,25 @@ public class DeployDataCommand extends DeployCommand {
 		return context;
 	}
 
-	private void removeInheritingTypesFromExportSet(final Set<Class> types) {
+	private void removeInheritingTypesFromExportSet(final Set<String> types) {
 
 		final Map<String, String> removedTypes = new HashMap();
-		final HashSet<Class> clonedTypes       = new HashSet();
+		final HashSet<String> clonedTypes       = new HashSet();
 
 		clonedTypes.addAll(types);
 
-		for (final Class childType : clonedTypes) {
+		for (final String childType : clonedTypes) {
 
-			for (final Class parentType : clonedTypes) {
+			final Traits childTraits = Traits.of(childType);
 
-				if (parentType != childType && parentType.isAssignableFrom(childType)) {
+			for (final String parentType : clonedTypes) {
 
-					removedTypes.put(childType.getSimpleName(), parentType.getSimpleName());
+				final Traits parentTraits = Traits.of(parentType);
+
+				// FIXME: this might be wrong with traits
+				if (parentType != childType && parentTraits.contains(childType)) {
+
+					removedTypes.put(childType, parentType);
 
 					types.remove(childType);
 				}
@@ -587,15 +590,17 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportNodeTypes(final SecurityContext context, final Path nodesDir, final Path relsDir) throws FrameworkException {
 
-		for (final Class type : exportTypes) {
+		for (final String type : exportTypes) {
 
-			if (User.class.isAssignableFrom(type)) {
+			final Traits traits = Traits.of(type);
 
-				logger.warn("User type in export set! Type '{}' is a User type.\n\tIf, on import, the user who is running the import is present in the import data, this can lead to problems.", type.getSimpleName());
-				publishWarningMessage("User type in export set", "Type '" + type.getSimpleName() + "' is a User type.<br>If, on import, the user who is running the import is present in the import data, this can lead to problems.");
+			if (traits.contains("User")) {
+
+				logger.warn("User type in export set! Type '{}' is a User type.\n\tIf, on import, the user who is running the import is present in the import data, this can lead to problems.", type);
+				publishWarningMessage("User type in export set", "Type '" + type + "' is a User type.<br>If, on import, the user who is running the import is present in the import data, this can lead to problems.");
 			}
 
-			final Path typeConf = nodesDir.resolve(type.getSimpleName() + ".json");
+			final Path typeConf = nodesDir.resolve(type + ".json");
 
 			exportDataForNodeType(context, type, typeConf, relsDir);
 		}
@@ -607,9 +612,9 @@ public class DeployDataCommand extends DeployCommand {
 		final Map<String, Object> filesAndFoldersMap = new TreeMap();
 		final Gson gson                              = getGson();
 
-		for (final Class fileOrFolderClass : exportFileAndFolderTypes) {
+		for (final String fileOrFolderClass : exportFileAndFolderTypes) {
 
-			final String simpleName  = fileOrFolderClass.getSimpleName();
+			final String simpleName  = fileOrFolderClass;
 			final String baseMessage = "Exporting nodes for type ";
 
 			boolean hasMore = true;
@@ -627,23 +632,16 @@ public class DeployDataCommand extends DeployCommand {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<AbstractNode> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
+					final List<NodeInterface> files = app.nodeQuery(fileOrFolderClass).page(page).pageSize(pageSize).getAsList();
 					hasMore = (files.size() == pageSize);
 
-					for (final AbstractNode fileOrFolder : files) {
+					for (final NodeInterface fileOrFolder : files) {
 
-						if (fileOrFolder instanceof GenericNode) {
+						exportFileOrFolder(fileOrFolder.as(AbstractFile.class), filesAndFoldersMap, filesDir, true);
 
-							logger.info("Not exporting database object because its schema type does not exist anymore: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
+						exportRelationshipsForNode(context, fileOrFolder, relsDir);
 
-						} else {
-
-							exportFileOrFolder((AbstractFile) fileOrFolder, filesAndFoldersMap, filesDir, true);
-
-							exportRelationshipsForNode(context, fileOrFolder, relsDir);
-
-							nodeCount++;
-						}
+						nodeCount++;
 					}
 				}
 
@@ -684,16 +682,9 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportFileOrFolder(final AbstractFile fileOrFolder, final Map<String, Object> filesAndFoldersMap, final Path filesDir, final Boolean isDirectExport) throws IOException {
 
-		if (fileOrFolder instanceof GenericNode) {
-
-			logger.info("Not exporting database object because its schema type does not exist anymore: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
-			return;
-		}
-
-		if (Boolean.TRUE.equals(fileOrFolder.getHasParent())) {
+		if (fileOrFolder.getHasParent()) {
 
 			final AbstractFile parent = fileOrFolder.getParent();
-
 			if (parent == null) {
 
 				logger.info("Not exporting parent folder for database object because can not be instantiated. This typically means that the schema type of the parent node does not exist anymore. Current node: {}:{}", fileOrFolder.getType(), fileOrFolder.getUuid());
@@ -739,9 +730,9 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private void exportDataForNodeType(final SecurityContext context, final Class<NodeInterface> nodeType, final Path targetConfFile, final Path relsDir) throws FrameworkException {
+	private void exportDataForNodeType(final SecurityContext context, final String nodeType, final Path targetConfFile, final Path relsDir) throws FrameworkException {
 
-		final String simpleName  = nodeType.getSimpleName();
+		final String simpleName  = nodeType;
 		final String baseMessage = "Exporting nodes for type ";
 
 		publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, baseMessage, Map.of(MESSAGE_ID, simpleName, TYPE_NAME, simpleName));
@@ -781,6 +772,8 @@ public class DeployDataCommand extends DeployCommand {
 
 						exportRelationshipsForNode(context, node, relsDir);
 					}
+
+					tx.success();
 				}
 
 				final long duration = (System.currentTimeMillis() - startTime);
@@ -837,19 +830,21 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private boolean isTypeInExportedTypes(final Class type) {
+	private boolean isTypeInExportedTypes(final String type) {
 
-		for (final Class exportedType : exportTypes) {
+		final Traits traits = Traits.of(type);
 
-			if (exportedType.isAssignableFrom(type)) {
+		for (final String exportedType : exportTypes) {
+
+			if (traits.contains(exportedType)) {
 
 				return true;
 			}
 		}
 
-		for (final Class exportedType : exportFileAndFolderTypes) {
+		for (final String exportedType : exportFileAndFolderTypes) {
 
-			if (exportedType.isAssignableFrom(type)) {
+			if (traits.contains(exportedType)) {
 
 				return true;
 			}
@@ -872,41 +867,36 @@ public class DeployDataCommand extends DeployCommand {
 
 				try (final Tx tx = app.tx()) {
 
-					final NodeInterface sourceNode = rel.getSourceNode();
-					final NodeInterface targetNode = rel.getTargetNode();
+					final NodeInterface sourceNode  = rel.getSourceNode();
+					final NodeInterface targetNode  = rel.getTargetNode();
+					final Map<String, Object> entry = new TreeMap<>();
+					final String sourceNodeClass    = sourceNode.getType();
+					final String targetNodeClass    = targetNode.getType();
 
-					if (!(sourceNode instanceof GenericNode) && !(targetNode instanceof GenericNode)) {
+					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
 
-						final Map<String, Object> entry = new TreeMap<>();
-
-						final Class sourceNodeClass = sourceNode.getClass();
-						final Class targetNodeClass = targetNode.getClass();
-
-						if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
-
-							missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
-						}
-
-						if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
-
-							missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
-						}
-
-						final PropertyContainer pc = rel.getPropertyContainer();
-
-						for (final String key : pc.getPropertyKeys()) {
-
-							putData(entry, key, pc.getProperty(key));
-						}
-
-						entry.put("sourceId", rel.getSourceNodeId());
-						entry.put("targetId", rel.getTargetNodeId());
-						entry.put("relType",  rel.getProperty("relType"));
-
-						exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
-
-						alreadyExportedRelationships.add(relUuid);
+						missingTypeNamesForExport.add(sourceNodeClass);
 					}
+
+					if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
+
+						missingTypeNamesForExport.add(targetNodeClass);
+					}
+
+					final PropertyContainer pc = rel.getPropertyContainer();
+
+					for (final String key : pc.getPropertyKeys()) {
+
+						putData(entry, key, pc.getProperty(key));
+					}
+
+					entry.put("sourceId", rel.getSourceNodeId());
+					entry.put("targetId", rel.getTargetNodeId());
+					entry.put("relType",  rel.getRelType());
+
+					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
+
+					alreadyExportedRelationships.add(relUuid);
 				}
 			}
 		}
@@ -957,10 +947,10 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) {
+	private void importRelationshipListData(final SecurityContext context, final String type, final List<Map<String, Object>> data) {
 
 		final App app         = StructrApp.getInstance(context);
-		final String typeName = type.getSimpleName();
+		final String typeName = type;
 		final int chunkSize   = Settings.DeploymentRelImportBatchSize.getValue();
 		int chunkCount        = 0;
 		int relCount          = 0;
@@ -1102,7 +1092,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void importExtensibleNodeListData(final SecurityContext context, final String defaultTypeName, final List<Map<String, Object>> data) {
 
-		final Class defaultType = SchemaHelper.getEntityClassForRawType(defaultTypeName);
+		final Traits defaultType = Traits.of(defaultTypeName);
 
 		if (defaultType == null) {
 
@@ -1159,7 +1149,7 @@ public class DeployDataCommand extends DeployCommand {
 						checkOwnerAndSecurity(entry);
 
 						final String typeName = (String) entry.get("type");
-						final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
+						final Traits type     = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : Traits.of(typeName));
 
 						if (type == null) {
 
@@ -1178,9 +1168,9 @@ public class DeployDataCommand extends DeployCommand {
 							entry.remove("owner");
 							entry.remove("grantees");
 
-							final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
+							final NodeInterface basicNode = app.create(typeName, PropertyMap.inputTypeToJavaType(context, typeName, basicPropertiesMap));
 
-							correctNumberFormats(context, entry, type);
+							correctNumberFormats(context, entry, typeName);
 
 							final PropertyContainer pc = basicNode.getPropertyContainer();
 							pc.setProperties(entry);
@@ -1213,9 +1203,9 @@ public class DeployDataCommand extends DeployCommand {
 
 	private enum DataType { Integer, Double, Long };
 
-	private void correctNumberFormats(final SecurityContext context, final Map<String, Object> map, final Class type) throws FrameworkException {
+	private void correctNumberFormats(final SecurityContext context, final Map<String, Object> map, final String type) throws FrameworkException {
 
-		final List<GraphObjectMap> allProperties = SchemaHelper.getSchemaTypeInfo(context, type.getSimpleName(), type, "all");
+		final List<GraphObjectMap> allProperties = SchemaHelper.getSchemaTypeInfo(context, type, "all");
 		final Map<String, DataType> props        = new HashMap();
 
 		for (final GraphObjectMap propertyInfo : allProperties) {

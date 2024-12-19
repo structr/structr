@@ -75,6 +75,11 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
+	public boolean is(final String type) {
+		return typeHandler.contains(type);
+	}
+
+	@Override
 	public PropertyContainer getPropertyContainer() {
 		return TransactionCommand.getCurrentTransaction().getNode(id);
 	}

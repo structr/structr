@@ -45,10 +45,9 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final String typeName = sources[0].toString();
-			final Class type      = SchemaHelper.getEntityClassForRawType(typeName);
 			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
 
-			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, viewName);
 
 		} catch (IllegalArgumentException e) {
 

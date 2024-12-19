@@ -21,6 +21,8 @@ package org.structr.web.entity.dom;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
+import org.structr.api.Predicate;
+import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -32,8 +34,6 @@ import org.structr.core.traits.NodeTrait;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
-public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
+public interface DOMNode extends NodeTrait, LinkedTreeNode {
 
 	String PAGE_CATEGORY = "Page Structure";
 	String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
@@ -67,98 +67,47 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId", "triggeredActions", "reloadingActions", "failureActions", "successNotificationActions", "failureNotificationActions"
 	}));
 
-	public static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "functionQuery", "selectedValues", "flow", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
-	};
+	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
 
-	public static final Property<DOMNode> parentProperty             = new StartNode<>("parent", DOMNodeCONTAINSDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<DOMNode>> childrenProperty = new EndNodes<>("children", DOMNodeCONTAINSDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
+		if (predicate instanceof Filter) {
 
-	public static final Property<DOMNode> previousSiblingProperty = new StartNode<>("previousSibling", DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<DOMNode> nextSiblingProperty     = new EndNode<>("nextSibling", DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
+			((Filter)predicate).setSecurityContext(securityContext);
+		}
 
-	public static final Property<DOMNode> sharedComponentProperty       = new StartNode<>("sharedComponent", DOMNodeSYNCDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<DOMNode>> syncedNodesProperty = new EndNodes<>("syncedNodes", DOMNodeSYNCDOMNode.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
+		if (predicate.accept(startNode)) {
 
-	public static final Property<Page> ownerDocumentProperty = new EndNode<>("ownerDocument", DOMNodePAGEPage.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
+			results.add(startNode);
 
-	public static final Property<Iterable<ActionMapping>> reloadingActionsProperty           = new EndNodes<>("reloadingActions", DOMNodeSUCCESS_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> failureActionsProperty             = new EndNodes<>("failureActions", DOMNodeFAILURE_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> successNotificationActionsProperty = new EndNodes<>("successNotificationActions", DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> failureNotificationActionsProperty = new EndNodes<>("failureNotificationActions", DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+			if (stopOnFirstHit) {
 
-	public static final Property<java.lang.Object> sortedChildrenProperty = new MethodProperty("sortedChildren").format("org.structr.web.entity.dom.DOMNode, getChildNodes").typeHint("DOMNode[]").partOfBuiltInSchema();
-	public static final Property<String> childrenIdsProperty              = new CollectionIdProperty("childrenIds", childrenProperty).format("children, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> nextSiblingIdProperty            = new EntityIdProperty("nextSiblingId", nextSiblingProperty).format("nextSibling, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> pageIdProperty                   = new EntityIdProperty("pageId", ownerDocumentProperty).format("ownerDocument, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> parentIdProperty                 = new EntityIdProperty("parentId", parentProperty).format("parent, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> sharedComponentIdProperty        = new EntityIdProperty("sharedComponentId", sharedComponentProperty).format("sharedComponent, {},").partOfBuiltInSchema();
-	public static final Property<String> syncedNodesIdsProperty           = new CollectionIdProperty("syncedNodesIds", syncedNodesProperty).format("syncedNodes, {},").partOfBuiltInSchema();
+				return;
+			}
+		}
 
-	public static final Property<String> dataKeyProperty       = new StringProperty("dataKey").indexed().category(QUERY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> cypherQueryProperty   = new StringProperty("cypherQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> restQueryProperty     = new StringProperty("restQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> functionQueryProperty = new StringProperty("functionQuery").category(QUERY_CATEGORY).partOfBuiltInSchema();
+		List<DOMNode> _children = startNode.getChildNodes();
+		if (_children != null) {
 
-	public static final Property<String> showForLocalesProperty = new StringProperty("showForLocales").indexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> hideForLocalesProperty = new StringProperty("hideForLocales").indexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> showConditionsProperty = new StringProperty("showConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}").partOfBuiltInSchema();
-	public static final Property<String> hideConditionsProperty = new StringProperty("hideConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}").partOfBuiltInSchema();
+			int len = _children.size();
+			for (int i = 0; i < len; i++) {
 
-	public static final Property<String> sharedComponentConfigurationProperty  = new StringProperty("sharedComponentConfiguration").format("multi-line").category(PAGE_CATEGORY).hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}").partOfBuiltInSchema();
+				DOMNode child = _children.get(i);
 
-	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time").category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String> dataStructrHashProperty = new StringProperty("data-structr-hash").category(PAGE_CATEGORY).partOfBuiltInSchema();
-
-	public static final Property<Boolean> dontCacheProperty = new BooleanProperty("dontCache").defaultValue(false).partOfBuiltInSchema();
-	public static final Property<Boolean> isDOMNodeProperty = new ConstantBooleanProperty("isDOMNode", true).category(PAGE_CATEGORY).partOfBuiltInSchema();
-
-	public static final Property<Integer> domSortPositionProperty = new IntProperty("domSortPosition").category(PAGE_CATEGORY).partOfBuiltInSchema();
-
-	public static final View uiView = new View(DOMNode.class, PropertyView.Ui,
-		reloadingActionsProperty, failureActionsProperty, successNotificationActionsProperty, failureNotificationActionsProperty
-	);
-
-	public static Property<NodeInterface> flow;
-
-	static {
-
-		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
-		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
-
-			try {
-
-				final String name = "org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer";
-				Class.forName(name);
-
-				// FIXME: we need a property here that can only be initialized at runtime because
-				// otherwise it would introduce a cyclic depdendency to the flow module..
-				flow = new EndNode("flow", Class.forName(name));
-
-			} catch (Throwable ignore) {}
+				collectNodesByPredicate(securityContext, child, results, predicate, depth + 1, stopOnFirstHit);
+			}
 		}
 	}
 
-	// ----- abstract methods -----
-	public abstract String getContextName();
-	public abstract boolean contentEquals(final Node node);
-	public abstract void updateFromNode(final DOMNode otherNode) throws FrameworkException;
-
-	// ----- property getters -----
-	public boolean dontCache() {
-		return getProperty(dontCacheProperty);
-	}
+	List<DOMNode> getAncestors();
 
 	void increasePageVersion() throws FrameworkException;
-
-	void checkName(ErrorBuffer errorBuffer);
-
-	void syncName(ErrorBuffer errorBuffer) throws FrameworkException;
+	void checkName(final ErrorBuffer errorBuffer);
+	void syncName(final ErrorBuffer errorBuffer) throws FrameworkException;
+	void normalize() throws FrameworkException;
 
 	boolean isSynced();
 	boolean isSharedComponent();
 	boolean hasSharedComponent();
-	boolean contentEquals(final Node otherNode);
+	boolean contentEquals(final DOMNode otherNode);
 	boolean isVoidElement();
 	boolean avoidWhitespace();
 	boolean inTrash();
@@ -169,6 +118,9 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	boolean displayForLocale(final RenderContext renderContext);
 	boolean displayForConditions(final RenderContext renderContext);
 	boolean shouldBeRendered(final RenderContext renderContext);
+	boolean isSameNode(final DOMNode otherNode);
+
+	boolean hasChildNodes();
 
 	int getChildPosition(final DOMNode otherNode);
 
@@ -196,9 +148,12 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	String getPagePath();
 	String getContextName();
 	String getSharedComponentConfiguration();
+	String getContentType();
 
 	DOMNode getParent();
 	DOMNode getSharedComponent();
+	DOMNode getNextSibling();
+	DOMNode getFirstChild() throws FrameworkException;
 	Iterable<DOMNode> getChildren();
 	Iterable<DOMNode> getSyncedNodes();
 
@@ -207,6 +162,11 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	Iterable<ActionMapping> getSuccessNotificationActions();
 	Iterable<ActionMapping> getFailureNotificationActions();
 
+	DOMNode cloneNode(final boolean deep) throws FrameworkException;
+	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;
+	DOMNode removeChild(DOMNode newChild) throws FrameworkException;
+
+	Page getOwnerDocument();
 	Page getOwnerDocumentAsSuperUser();
 	Page getClosestPage();
 
@@ -218,14 +178,14 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 	void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException;
 	void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException;
-	void handleNewChild(final Node newChild);
-	void checkIsChild(final Node otherNode) throws DOMException;
-	void checkHierarchy(Node otherNode) throws DOMException;
-	void checkSameDocument(Node otherNode) throws DOMException;
-	void checkWriteAccess() throws DOMException;
-	void checkReadAccess() throws DOMException;
-	void doAdopt(final Page page) throws DOMException;
-	Node doImport(Page newPage) throws DOMException;
+	void handleNewChild(final DOMNode newChild) throws FrameworkException;
+	void checkIsChild(final DOMNode otherNode) throws FrameworkException;
+	void checkHierarchy(final DOMNode otherNode) throws FrameworkException;
+	void checkSameDocument(final DOMNode otherNode) throws FrameworkException;
+	void checkWriteAccess() throws FrameworkException;
+	void checkReadAccess() throws FrameworkException;
+	DOMNode doAdopt(final Page page) throws FrameworkException;
+	DOMNode doImport(final Page newPage) throws FrameworkException;
 
 	void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException;
 	void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException;
@@ -236,6 +196,7 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 	void renderSharedComponentConfiguration(final AsyncBuffer out, final RenderContext.EditMode editMode);
 
 	List<RelationshipInterface> getChildRelationships();
+	List<DOMNode> getChildNodes() throws FrameworkException;
 
 	void doAppendChild(final DOMNode node) throws FrameworkException;
 	void doRemoveChild(final DOMNode node) throws FrameworkException;
@@ -306,5 +267,27 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode, Node {
 		}
 
 		logger.error(message, arguments);
+	}
+
+
+
+	// ----- nested classes -----
+	class TextCollector implements Predicate<DOMNode> {
+
+		private final StringBuilder textBuffer = new StringBuilder(200);
+
+		@Override
+		public boolean accept(final DOMNode obj) {
+
+			if (obj.is("Content")) {
+				textBuffer.append(obj.as(Content.class).getContent());
+			}
+
+			return false;
+		}
+
+		public String getText() {
+			return textBuffer.toString();
+		}
 	}
 }

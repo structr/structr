@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.definitions;
+package org.structr.web.traits.definitions.dom;
 
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +51,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.traits.operations.*;
-import org.structr.web.traits.wrappers.DOMNodeTraitWrapper;
+import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.w3c.dom.DOMException;
 
 import java.util.*;
@@ -338,7 +338,7 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 			new DoAdopt() {
 
 				@Override
-				public void doAdopt(final DOMNode node, final Page _page) throws DOMException {
+				public DOMNode doAdopt(final DOMNode node, final Page _page) throws DOMException {
 
 					if (_page != null) {
 
@@ -352,6 +352,8 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 
 						}
 					}
+
+					return node;
 				}
 			},
 
@@ -398,8 +400,8 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 				public void renderCustomAttributes(final DOMNode node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 					final RenderContext.EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-					final Traits traits                   = node.getWrappedNode().getTraits();
-					final NodeInterface wrappedNode       = node.getWrappedNode();
+					final Traits traits = node.getWrappedNode().getTraits();
+					final NodeInterface wrappedNode = node.getWrappedNode();
 
 					Set<PropertyKey> dataAttributes = node.getDataPropertyKeys();
 
@@ -484,6 +486,55 @@ public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
 							}
 						}
 					}
+				}
+			},
+
+			HandleNewChild.class,
+			new HandleNewChild() {
+
+				@Override
+				public void handleNewChild(DOMNode node, DOMNode newChild) throws FrameworkException {
+
+					final Page page = node.getOwnerDocument();
+
+					newChild.setOwnerDocument(page);
+
+					for (final NodeInterface child : newChild.getAllChildNodes()) {
+
+						final DOMNode d = child.as(DOMNode.class);
+
+						d.setOwnerDocument(page);
+					}
+				}
+			},
+
+			CheckHierarchy.class,
+			new CheckHierarchy() {
+
+				@Override
+				public void checkHierarchy(final DOMNode thisNode, final DOMNode otherNode) throws FrameworkException {
+
+					// verify that the other node is not this node
+					if (thisNode.isSameNode(otherNode)) {
+						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
+					}
+
+					// verify that otherNode is not one of the
+					// the ancestors of this node
+					// (prevent circular relationships)
+					DOMNode _parent = thisNode.getParent();
+					while (_parent != null) {
+
+						if (_parent.isSameNode(otherNode)) {
+							throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
+						}
+
+						_parent = _parent.getParent();
+					}
+
+					// TODO: check hierarchy constraints imposed by the schema
+					// validation successful
+					return;
 				}
 			}
 		);

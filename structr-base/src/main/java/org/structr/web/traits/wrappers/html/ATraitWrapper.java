@@ -21,7 +21,7 @@ package org.structr.web.traits.wrappers.html;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.html.A;
-import org.structr.web.traits.wrappers.DOMElementTraitWrapper;
+import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
 public class ATraitWrapper extends DOMElementTraitWrapper implements A {
 

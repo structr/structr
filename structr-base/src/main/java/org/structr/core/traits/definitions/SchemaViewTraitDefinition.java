@@ -18,10 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;

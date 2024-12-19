@@ -33,6 +33,7 @@ import org.structr.web.datasource.IdRequestParameterGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 import org.structr.web.traits.definitions.*;
+import org.structr.web.traits.definitions.dom.*;
 import org.structr.web.traits.definitions.html.ATraitDefinition;
 import org.structr.web.traits.relationships.*;
 
@@ -89,6 +90,8 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("AbstractFile",                     new AbstractFileTraitDefinition());
 		StructrTraits.registerNodeType("ActionMapping",                    new ActionMappingTraitDefinition());
 		StructrTraits.registerNodeType("ApplicationConfigurationDataNode", new ApplicationConfigurationDataNodeTraitDefinition());
+		StructrTraits.registerNodeType("Comment",                          new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new CommentTraitDefinition());
+		StructrTraits.registerNodeType("Content",                          new DOMNodeTraitDefinition(), new ContentTraitDefinition());
 		StructrTraits.registerNodeType("CssDeclaration",                   new CssDeclarationTraitDefinition());
 		StructrTraits.registerNodeType("CssRule",                          new CssRuleTraitDefinition());
 		StructrTraits.registerNodeType("CssSelector",                      new CssSelectorTraitDefinition());
@@ -101,12 +104,15 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Folder",                           new AbstractFileTraitDefinition(), new FolderTraitDefinition());
 		StructrTraits.registerNodeType("Linkable",                         new LinkableTraitDefinition());
 		StructrTraits.registerNodeType("LinkSource",                       new LinkSourceTraitDefinition());
+		StructrTraits.registerNodeType("Page",                             new DOMNodeTraitDefinition(), new LinkableTraitDefinition(), new PageTraitDefinition());
 		StructrTraits.registerNodeType("PagePath",                         new PagePathTraitDefinition());
 		StructrTraits.registerNodeType("PagePathParameter",                new PagePathParameterTraitDefinition());
 		StructrTraits.registerNodeType("ParameterMapping",                 new ParameterMappingTraitDefinition());
+		StructrTraits.registerNodeType("ShadowDocument",                   new DOMNodeTraitDefinition(), new LinkableTraitDefinition(), new PageTraitDefinition(), new ShadowDocumentTraitDefinition());
 		StructrTraits.registerNodeType("Site",                             new SiteTraitDefinition());
 		StructrTraits.registerNodeType("StorageConfiguration",             new StorageConfigurationTraitDefinition());
 		StructrTraits.registerNodeType("StorageConfigurationEntry",        new StorageConfigurationEntryTraitDefinition());
+		StructrTraits.registerNodeType("Template",                         new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new TemplateTraitDefinition());
 		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
 
 		StructrTraits.registerNodeType("A",                                new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new ATraitDefinition());

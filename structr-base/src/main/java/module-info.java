@@ -112,6 +112,8 @@ module structr.base {
 	requires org.eclipse.jgit;
 	requires api.all;
 	requires pulsar.client;
+	requires org.json;
+	requires java.activation;
 
 	exports org.structr;
     exports org.structr.agent;
@@ -230,5 +232,7 @@ module structr.base {
 	exports org.structr.rest.traits.relationships;
 	exports org.structr.web.traits.definitions;
 	exports org.structr.web.traits.wrappers;
+	exports org.structr.web.traits.definitions.dom;
+    exports org.structr.web.traits.wrappers.dom;
 
 }

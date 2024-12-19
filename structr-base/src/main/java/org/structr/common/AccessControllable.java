@@ -20,6 +20,7 @@ package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.traits.NodeTrait;
 
 import java.util.Date;
 import java.util.Set;
@@ -30,7 +31,7 @@ import java.util.Set;
  *
  *
  */
-public interface AccessControllable {
+public interface AccessControllable extends NodeTrait {
 
 	Principal getOwnerNode();
 

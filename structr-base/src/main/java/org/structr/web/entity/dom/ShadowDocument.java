@@ -26,5 +26,5 @@ package org.structr.web.entity.dom;
  *
  *
  */
-public class ShadowDocument extends Page {
+public interface ShadowDocument extends Page {
 }

@@ -25,5 +25,10 @@ public interface ParameterMapping extends NodeTrait {
 
 	DOMElement getInputElement();
 
+	String getParameterType();
+	String getParameterName();
 	String getConstantValue();
+	String getScriptExpression();
+	String getMethodResult();
+	String getFlowResult();
 }

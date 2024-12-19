@@ -257,6 +257,7 @@ public class SecurityContext {
 		}
 	}
 
+	/*
 	public static void clearResourceFlag(final String resource, long flag) {
 
 		final String name     = SchemaHelper.normalizeEntityName(resource);
@@ -272,6 +273,7 @@ public class SecurityContext {
 
 		resourceFlags.put(name, flags);
 	}
+	*/
 
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
@@ -435,7 +437,7 @@ public class SecurityContext {
 		return defaultValue;
 	}
 
-	public static long getResourceFlags(String resource) {
+	public static long getResourceFlags(final String resource) {
 
 		final String name     = SchemaHelper.normalizeEntityName(resource);
 		final Long flagObject = resourceFlags.get(name);

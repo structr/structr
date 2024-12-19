@@ -16,16 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.operations;
+package org.structr.web.traits.wrappers.dom;
 
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.w3c.dom.DOMException;
+import org.structr.core.traits.Traits;
+import org.structr.web.entity.dom.Template;
 
-public abstract class W3CNodeMethods extends FrameworkMethod<W3CNodeMethods> {
+public class TemplateTraitWrapper extends ContentTraitWrapper implements Template {
 
-	public abstract String getNodeName(final NodeInterface node);
-	public abstract String getNodeValue(final NodeInterface node) throws DOMException;
-	public abstract void setNodeValue(final NodeInterface node, final String nodeValue) throws DOMException;
-	public abstract short getNodeType(final NodeInterface node);
+	public TemplateTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

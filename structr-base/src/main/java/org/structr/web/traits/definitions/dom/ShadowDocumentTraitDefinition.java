@@ -16,27 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits.relationships;
+package org.structr.web.traits.definitions.dom;
 
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.traits.wrappers.dom.ShadowDocumentTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-import static org.structr.core.entity.Relation.Multiplicity.Many;
-import static org.structr.core.entity.Relation.Multiplicity.One;
+public class ShadowDocumentTraitDefinition extends AbstractTraitDefinition {
 
-public class SchemaNodePropertyDefinition extends RelationshipTraitDefinition {
-
-	public SchemaNodePropertyDefinition() {
-		super("SchemaNodeProperty");
+	public ShadowDocumentTraitDefinition() {
+		super("ShadowDocument");
 	}
 
 	@Override
@@ -56,7 +55,10 @@ public class SchemaNodePropertyDefinition extends RelationshipTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			ShadowDocument.class, (traits, node) -> new ShadowDocumentTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -70,42 +72,7 @@ public class SchemaNodePropertyDefinition extends RelationshipTraitDefinition {
 	}
 
 	@Override
-	protected String getSourceType() {
-		return "AbstractSchemaNode";
-	}
-
-	@Override
-	protected String getTargetType() {
-		return "SchemaProperty";
-	}
-
-	@Override
-	protected String getRelationshipType() {
-		return "HAS_PROPERTY";
-	}
-
-	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
-		return One;
-	}
-
-	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
-		return Many;
-	}
-
-	@Override
-	protected int getCascadingDeleteFlag() {
-		return Relation.SOURCE_TO_TARGET;
-	}
-
-	@Override
-	protected int getAutocreationFlag() {
-		return Relation.SOURCE_TO_TARGET;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return true;
+	public Relation getRelation() {
+		return null;
 	}
 }

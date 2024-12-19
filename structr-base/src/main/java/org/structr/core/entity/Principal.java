@@ -78,9 +78,10 @@ public interface Principal extends NodeTrait {
 	void setPasswordAttempts(int num) throws FrameworkException;
 	void setLastLoginDate(final Date date) throws FrameworkException;
 	String[] getSessionIds();
-
-	default void onAuthenticate() {}
-
+	String getProxyUrl();
+	String getProxUsername();
+	String getProxyPassword();
+	void onAuthenticate();
 
 	default Set<String> getOwnAndRecursiveParentsUuids(final Principal principal) {
 
@@ -102,5 +103,4 @@ public interface Principal extends NodeTrait {
 			recursiveCollectParentUuids(parent.getWrappedNode(), uuids);
 		}
 	}
-
 }

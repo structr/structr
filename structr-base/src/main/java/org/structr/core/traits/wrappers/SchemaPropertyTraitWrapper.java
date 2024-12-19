@@ -13,6 +13,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.SourceFile;
 import org.structr.schema.parser.*;
 
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -153,13 +154,25 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	}
 
 	@Override
+	public AbstractSchemaNode getSchemaNode() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("schemaNode"));
+		if (node != null) {
+
+			return node.as(AbstractSchemaNode.class);
+		}
+
+		return null;
+	}
+
+	@Override
 	public String getRawSource() {
-		return "";
+		return wrappedObject.getProperty(traits.key("rawSource"));
 	}
 
 	@Override
 	public String getSource() {
-		return "";
+		return wrappedObject.getProperty(traits.key("source"));
 	}
 
 	@Override
@@ -369,8 +382,8 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 
 	public String getFullName() {
 
-		final NodeInterface schemaNode = getSchemaNode();
-		final StringBuilder buf        = new StringBuilder();
+		final AbstractSchemaNode schemaNode = getSchemaNode();
+		final StringBuilder buf             = new StringBuilder();
 
 		if (schemaNode != null) {
 
@@ -512,10 +525,5 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		}
 
 		return contentHash;
-	}
-
-	@Override
-	public NodeInterface getSchemaNode() {
-		return wrappedObject.getProperty(traits.key("schemaNode"));
 	}
 }
