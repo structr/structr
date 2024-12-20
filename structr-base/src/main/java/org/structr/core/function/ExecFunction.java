@@ -76,7 +76,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 					if (!isNewCallSignature) {
 
-						logger.warn("{}(): Deprecation Warning: The call signature for this method has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getSignature());
+						logger.warn("{}(): Deprecation Warning: The call signature for this method has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
 
 						for (int i = 1; i < sources.length; i++) {
 
@@ -98,7 +98,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 							} else {
 
-								logger.warn("{}(): If using a collection of parameters as second argument, the third argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", sources[2]);
+								logger.warn("{}(): If using a collection of parameters as second argument, the third argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", getName(), sources[2]);
 							}
 						}
 
@@ -205,7 +205,6 @@ public class ExecFunction extends AdvancedScriptingFunction {
 			} else {
 
 				return absolutePath;
-//				return absolutePath.replaceAll(" ", "\\\\ ");
 			}
 		}
 
@@ -254,8 +253,6 @@ public class ExecFunction extends AdvancedScriptingFunction {
 			final Object maskParameter = parameterConfig.get("mask");
 
 			if (parameter == null) {
-
-//				logger.warn("exec(): Critical: Expected attribute 'value' to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true })");
 
 				throw new ArgumentNullException();
 			}
