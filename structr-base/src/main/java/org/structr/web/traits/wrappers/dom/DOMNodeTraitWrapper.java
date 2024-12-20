@@ -645,13 +645,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		return false;
 	}
 
-	/*
-	public final static void copyAllAttributes(final DOMNode sourceNode, final DOMNode targetNode) {
+	public static final void copyAllAttributes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException{
 
 		final SecurityContext securityContext = sourceNode.getSecurityContext();
 		final PropertyMap properties          = new PropertyMap();
 
-		for (final PropertyKey key : sourceNode.getPropertyKeys(PropertyView.Ui)) {
+		for (final PropertyKey key : sourceNode.getTraits().getPropertyKeysForView(PropertyView.Ui)) {
 
 			// skip blacklisted properties
 			if (cloneBlacklist.contains(key.jsonName())) {
@@ -664,12 +663,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			}
 
 			if (!key.isUnvalidated()) {
-				properties.put(key, sourceNode.getProperty(key));
+				properties.put(key, sourceNode.getWrappedNode().getProperty(key));
 			}
 		}
 
 		// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
-		for (final PropertyKey key : sourceNode.getPropertyKeys(PropertyView.Html)) {
+		for (final PropertyKey key : sourceNode.getTraits().getPropertyKeysForView(PropertyView.Html)) {
 
 			// skip blacklisted properties
 			if (cloneBlacklist.contains(key.jsonName())) {
@@ -682,7 +681,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			}
 
 			if (!key.isUnvalidated()) {
-				properties.put(key, sourceNode.getProperty(key));
+				properties.put(key, sourceNode.getWrappedNode().getProperty(key));
 			}
 		}
 
@@ -695,33 +694,23 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			}
 
 			if (!key.isUnvalidated()) {
-				properties.put(key, sourceNode.getProperty(key));
+				properties.put(key, sourceNode.getWrappedNode().getProperty(key));
 			}
 		}
 
-		if (sourceNode instanceof LinkSource) {
+		if (sourceNode.is("LinkSource")) {
 
 			final LinkSource linkSourceElement = (LinkSource)sourceNode;
 
-			properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
+			properties.put(Traits.of("LinkSource").key("linkable"), linkSourceElement.getLinkable());
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
+		// set the properties we collected above
+		targetNode.setProperties(securityContext, properties);
 
-		try {
-
-			// set the properties we collected above
-			targetNode.setProperties(securityContext, properties);
-
-			// for clone, always copy permissions
-			sourceNode.copyPermissionsTo(securityContext, targetNode, true);
-
-		} catch (FrameworkException ex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
-		}
+		// for clone, always copy permissions
+		sourceNode.getWrappedNode().copyPermissionsTo(securityContext, targetNode.getWrappedNode(), true);
 	}
-	*/
 
 	@Override
 	public final boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
@@ -1463,7 +1452,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		final AccessControllable ac = as(AccessControllable.class);
 
-		if (securityContext.isVisible(ac) || ac.isGranted(Permission.read, securityContext)) {
+		if (securityContext.isVisible(wrappedObject) || ac.isGranted(Permission.read, securityContext)) {
 			return;
 		}
 

@@ -102,7 +102,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 					user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
 					returnedMethodResult = doLogin(securityContext, user);
 
-					userId = user.getNode().getId().getId();
+					userId = user.getWrappedNode().getNode().getId().getId();
 
 				} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -226,7 +226,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 		RuntimeEventLog.login("Login successful", Map.of("user", user.getUuid(), "name", user.getName()));
 
-		user.setSecurityContext(securityContext);
+		user.getWrappedNode().setSecurityContext(securityContext);
 
 		// make logged in user available to caller
 		securityContext.setCachedUser(user);

@@ -150,13 +150,18 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return Iterable.class;
 	}
 
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

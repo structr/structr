@@ -31,6 +31,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -111,11 +112,12 @@ public class GetFunction extends CoreFunction {
 
 			if (dataObject != null) {
 
-				final Class type = dataObject.getClass();
+				final Traits traits = dataObject.getTraits();
 
+				// fixme
 				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
 
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
+				final PropertyKey key = traits.key(keyName);
 				if (key != null) {
 
 					final PropertyConverter inputConverter = key.inputConverter(securityContext);
@@ -130,7 +132,7 @@ public class GetFunction extends CoreFunction {
 				} else {
 
 					// key does not exist and generic property is not desired => log warning
-					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", type.getSimpleName(), keyName, dataObject.getUuid());
+					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", traits.getName(), keyName, dataObject.getUuid());
 				}
 
 				return "";

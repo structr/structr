@@ -54,8 +54,8 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	}
 
 	@Override
-	public String valueType() {
-		return "GraphObject";
+	public Class valueType() {
+		return GraphObject.class;
 	}
 
 	@Override
@@ -90,6 +90,11 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

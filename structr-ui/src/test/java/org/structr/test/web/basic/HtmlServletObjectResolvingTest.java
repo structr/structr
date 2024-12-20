@@ -27,12 +27,16 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestOne;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -69,18 +73,18 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// setup three different test objects to be found by HtmlServlet
-			testObjectIDs.add(app.create(TestOne.class, new NodeAttribute<>(TestOne.anInt, 123)).getUuid());
-			testObjectIDs.add(app.create(TestOne.class, new NodeAttribute<>(TestOne.aDouble, 0.345)).getUuid());
-			testObjectIDs.add(app.create(TestOne.class, new NodeAttribute<>(TestOne.aString, "abcdefg")).getUuid());
+			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(TestOne.anInt, 123)).getUuid());
+			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(TestOne.aDouble, 0.345)).getUuid());
+			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(TestOne.aString, "abcdefg")).getUuid());
 
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "testPage");
 			if (newPage != null) {
 
-				Element html  = newPage.createElement("html");
-				Element head  = newPage.createElement("head");
-				Element body  = newPage.createElement("body");
-				Text textNode = newPage.createTextNode("${current.id}");
+				DOMElement html  = newPage.createElement("html");
+				DOMElement head  = newPage.createElement("head");
+				DOMElement body  = newPage.createElement("body");
+				Content textNode = newPage.createTextNode("${current.id}");
 
 				try {
 					// add HTML element to page
@@ -173,7 +177,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final File file = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test.txt", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", "File", "test.txt", true);
 
 			uuid = file.getUuid();
 
@@ -190,10 +194,10 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			query
 				.and()
 					.or()
-					.andTypes(Page.class)
-					.andTypes(File.class)
+					.andTypes(Traits.of("Page"))
+					.andTypes(Traits.of("File"))
 					.parent()
-				.and(GraphObject.id, uuid);
+				.and(Traits.idProperty(), uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();

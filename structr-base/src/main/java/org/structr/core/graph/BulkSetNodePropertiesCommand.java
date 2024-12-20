@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
 import java.util.Map;
@@ -53,15 +54,19 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final String type = (String)properties.get("type");
+		final PropertyKey<String> typeProperty = Traits.typeProperty();
+		final PropertyKey<String> idProperty   = Traits.idProperty();
+		final String type                      = (String)properties.get("type");
+
 		if (StringUtils.isBlank(type)) {
 
 			throw new FrameworkException(422, "Type must not be empty");
 		}
 
-		final App app     = StructrApp.getInstance();
-		final Class clazz = SchemaHelper.getEntityClassForRawType(type);
-		if (clazz == null) {
+		final App app      = StructrApp.getInstance();
+		final Traits traits = Traits.of(type);
+
+		if (traits == null) {
 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
@@ -76,7 +81,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
 				// Treat only "our" nodes
-				if (node.getProperty(GraphObject.id) != null && node.getProperty(AbstractNode.typeHandler).equals(type)) {
+				if (node.getProperty(idProperty) != null && type.equals(node.getProperty(typeProperty))) {
 
 					for (Entry entry : properties.entrySet()) {
 
@@ -88,7 +93,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 							key = "type";
 						}
 
-						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						PropertyKey propertyKey = node.getTraits().key(key);
 						if (propertyKey != null) {
 
 							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);

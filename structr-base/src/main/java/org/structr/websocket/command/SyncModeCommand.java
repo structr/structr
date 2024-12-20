@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -42,7 +43,7 @@ public class SyncModeCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final Class<Relation> relType         = StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodeSYNCDOMNode");
+		final String relType                  = "DOMNodeSYNCDOMNode";
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String sourceId                 = webSocketData.getId();
@@ -50,8 +51,8 @@ public class SyncModeCommand extends AbstractCommand {
 		final String targetId                 = webSocketData.getNodeDataStringValue("targetId");
 		final String syncMode                 = webSocketData.getNodeDataStringValue("syncMode");
 
-		final DOMNode sourceNode              = (DOMNode) getNode(sourceId);
-		final DOMNode targetNode              = (DOMNode) getNode(targetId);
+		final NodeInterface sourceNode        = getNode(sourceId);
+		final NodeInterface targetNode        = getNode(targetId);
 		final App app                         = StructrApp.getInstance(securityContext);
 
 		if ((sourceNode != null) && (targetNode != null)) {

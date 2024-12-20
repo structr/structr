@@ -109,7 +109,7 @@ public class UpdateCommand extends AbstractCommand {
 
 				collectEntities(entities, obj, null, rec);
 
-				properties = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData());
+				properties = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getType(), webSocketData.getNodeData());
 
 				tx.success();
 			}

@@ -24,8 +24,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Source extends DOMElement {
+public interface Source extends DOMElement {
 
+	/*
 	public static final Property<String> htmlSrcProperty   = new StringProperty("_html_src").partOfBuiltInSchema();
 	public static final Property<String> htmlTypeProperty  = new StringProperty("_html_type").partOfBuiltInSchema();
 	public static final Property<String> htmlMediaProperty = new StringProperty("_html_media").partOfBuiltInSchema();
@@ -38,4 +39,6 @@ public class Source extends DOMElement {
 	public boolean isVoidElement() {
 		return true;
 	}
+
+	 */
 }

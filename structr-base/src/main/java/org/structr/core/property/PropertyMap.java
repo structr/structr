@@ -71,7 +71,7 @@ public class PropertyMap {
 		return properties.isEmpty();
 	}
 
-	public <T> boolean containsKey(final PropertyKey<T> key) {
+	public boolean containsKey(final PropertyKey key) {
 		return properties.containsKey(key);
 	}
 

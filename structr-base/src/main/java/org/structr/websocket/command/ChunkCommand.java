@@ -80,7 +80,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			org.structr.core.graph.search.SearchCommand.prefetch(AbstractFile.class, uuid);
+			//org.structr.core.graph.search.SearchCommand.prefetch(AbstractFile.class, uuid);
 
 			final File file = (File) getNode(uuid);
 			if (file.isTemplate()) {
@@ -91,7 +91,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			if (!file.isGranted(Permission.write, securityContext)) {
+			if (!file.getWrappedNode().isGranted(Permission.write, securityContext)) {
 
 				logger.warn("No write permission for {} on {}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);

@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Select extends DOMElement {
+public interface Select extends DOMElement {
 
+	/*
 	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name").partOfBuiltInSchema();
 	public static final Property<String> htmlDisabledProperty  = new StringProperty("_html_disabled").partOfBuiltInSchema();
 	public static final Property<String> htmlAcceptProperty    = new StringProperty("_html_accept").partOfBuiltInSchema();
@@ -45,4 +46,6 @@ public class Select extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

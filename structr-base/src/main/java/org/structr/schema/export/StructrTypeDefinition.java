@@ -1911,7 +1911,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Traits type = Traits.of(name);
 		if (type != null) {
 
-			final Set<PropertyKey> keys = type.getViewPropertyKeys(viewName);
+			final Set<PropertyKey> keys = type.getPropertyKeysForView(viewName);
 			if (keys != null) {
 
 				keys.stream().forEach(visitor::visit);

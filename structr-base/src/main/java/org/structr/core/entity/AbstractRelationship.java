@@ -33,10 +33,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -54,13 +51,23 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public <T extends RelationshipTrait> T as(Class<T> type) {
-		return null;
+	public PropertyContainer getPropertyContainer() {
+		return TransactionCommand.getCurrentTransaction().getRelationship(id);
 	}
 
 	@Override
-	public PropertyContainer getPropertyContainer() {
-		return TransactionCommand.getCurrentTransaction().getRelationship(id);
+	public boolean isVisibleToPublicUsers() {
+		return true;
+	}
+
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return true;
+	}
+
+	@Override
+	public boolean isHidden() {
+		return false;
 	}
 
 	@Override
@@ -88,19 +95,6 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 		}
 
 		return getUuid().compareTo(rel.getUuid());
-	}
-
-	/**
-	 * Indicates whether this relationship type propagates modifications
-	 * in the given direction. Overwrite this method and return true for
-	 * the desired direction to enable a callback on non-local node
-	 * modification.
-	 *
-	 * @param direction the direction for which the propagation should is to be returned
-	 * @return the propagation status for the given direction
-	 */
-	public boolean propagatesModifications(Direction direction) {
-		return false;
 	}
 
 	@Override

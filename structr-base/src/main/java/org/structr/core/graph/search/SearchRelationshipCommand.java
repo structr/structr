@@ -24,11 +24,10 @@ import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 
 /**
  * Search for relationships by their attributes.
- *
- *
  */
 public class SearchRelationshipCommand extends SearchCommand<Relationship, RelationshipInterface> {
 

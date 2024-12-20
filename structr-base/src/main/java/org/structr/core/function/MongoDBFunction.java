@@ -58,9 +58,8 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 			final String db                      = (String)sources[1];
 			final String coll                    = (String)sources[2];
 
-			try {
+			try (final MongoClient mongoClient = MongoClients.create(url)) {
 
-				final MongoClient mongoClient              = MongoClients.create(url);
 				final MongoDatabase database               = mongoClient.getDatabase(db);
 				final MongoCollection<Document> collection = database.getCollection(coll);
 
@@ -68,14 +67,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 			} catch (Throwable t) {
 
-				if (t instanceof ClassNotFoundException) {
-
-					logException((ClassNotFoundException) t, "MongoDB driver not found. Make sure the driver's JAR is located in the lib directory.", new Object[] { t.getMessage() });
-
-				} else {
-
-					logException(t, t.getMessage(), sources);
-				}
+				logException(t, t.getMessage(), sources);
 			}
 
 			return data;

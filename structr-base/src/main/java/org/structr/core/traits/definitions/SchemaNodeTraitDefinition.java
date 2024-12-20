@@ -359,7 +359,7 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 						if (part.startsWith(prefix)) {
 
 							final String typeName = part.substring(prefix.length());
-							final Class type = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+							final Class type = Traits.of(typeName);
 
 							if (type != null) {
 

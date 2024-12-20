@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
@@ -61,11 +62,12 @@ public class SaveNodeCommand extends AbstractCommand {
 
 		Page modifiedNode = null;
 
-		DOMNode sourceNode = (DOMNode) getNode(nodeId);
+		NodeInterface node = getNode(nodeId);
+		if (node != null) {
 
-		if (sourceNode != null) {
+			TransactionCommand.registerNodeCallback(node, callback);
 
-			TransactionCommand.registerNodeCallback(sourceNode, callback);
+			final DOMNode sourceNode = node.as(DOMNode.class);
 
 			try {
 
@@ -106,7 +108,7 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			try {
 
-				app.delete(modifiedNode);
+				app.delete(modifiedNode.getWrappedNode());
 
 			} catch (FrameworkException ex) {
 

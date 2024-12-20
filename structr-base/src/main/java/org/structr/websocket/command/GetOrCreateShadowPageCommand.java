@@ -43,7 +43,7 @@ public class GetOrCreateShadowPageCommand extends AbstractCommand {
 
 			final ShadowDocument hiddenDoc = CreateComponentCommand.getOrCreateHiddenDocument();
 
-			webSocketData.setResult(Arrays.asList(hiddenDoc));
+			webSocketData.setResult(Arrays.asList(hiddenDoc.getWrappedNode()));
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

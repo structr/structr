@@ -61,6 +61,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
 	private Comparator comparator                = null;
+	private Traits traits                        = null;
 	private boolean publicOnly                   = false;
 	private boolean includeHidden                = true;
 	private boolean doNotSort                    = false;
@@ -336,6 +337,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return null;
 	}
 
+	@Override
+	public Traits getTraits() {
+		return traits;
+	}
+
 	// ----- builder methods -----
 	@Override
 	public org.structr.core.app.Query<T> disableSorting() {
@@ -418,6 +424,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		doNotSort = true;
 
 		return and(Traits.idProperty(), uuid);
+	}
+
+	@Override
+	public org.structr.core.app.Query<T> andTypes(final Traits traits) {
+
+		this.traits = traits;
+
+		andType(traits.getName());
+
+		return this;
 	}
 
 	@Override
@@ -724,6 +740,18 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		getQueryContext().isPing(isPing);
 		return this;
+	}
+
+	// ----- public static methods -----
+	public static boolean isTypeAssignableFromOtherType (final Traits type1, final Traits type2) {
+
+		final Set<String> traits1 = type1.getAllTraits();
+		final Set<String> traits2 = type2.getAllTraits();
+
+		traits1.retainAll(traits2);
+
+		// fixme: how do we determine assignability with traits?!
+		return !traits1.isEmpty();
 	}
 
 	// ----- private methods ----

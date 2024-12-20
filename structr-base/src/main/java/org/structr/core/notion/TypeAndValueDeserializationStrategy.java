@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -74,7 +75,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 		// default to UUID
 		if (propertyKey == null) {
-			propertyKey = GraphObject.id;
+			propertyKey = Traits.idProperty();
 		}
 
 		// create and fill input map with source object
@@ -126,7 +127,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 				} else {
 
-					logger.debug("Unable to create node of type {} for property {}", new Object[] { type.getSimpleName(), propertyKey.jsonName() });
+					logger.debug("Unable to create node of type {} for property {}", new Object[] { type, propertyKey.jsonName() });
 				}
 
 				break;
@@ -135,9 +136,8 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 				T obj = result.get(0);
 
-				//if(!type.getSimpleName().equals(node.getType())) {
-				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKey.jsonName(), type.getSimpleName()));
+				if (!obj.getTraits().contains(type)) {
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKey.jsonName(), type));
 				}
 
 				if (!convertedSourceMap.isEmpty()) {
@@ -153,10 +153,10 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 			PropertyMap attributes = new PropertyMap();
 
-			attributes.put(propertyKey,       convertedSource);
-			attributes.put(AbstractNode.typeHandler, type.getSimpleName());
+			attributes.put(propertyKey,           convertedSource);
+			attributes.put(Traits.typeProperty(), type);
 
-			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
+			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type, null, attributes));
 		}
 
 		return null;

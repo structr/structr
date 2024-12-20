@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Form extends DOMElement {
+public interface Form extends DOMElement {
 
+	/*
 	public static final Property<String> htmlAcceptCharsetProperty = new StringProperty("_html_accept-charset").partOfBuiltInSchema();
 	public static final Property<String> htmlActionProperty        = new StringProperty("_html_action").partOfBuiltInSchema();
 	public static final Property<String> htmlAutocompleteProperty  = new StringProperty("_html_autocomplete").partOfBuiltInSchema();
@@ -44,4 +45,5 @@ public class Form extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+	*/
 }

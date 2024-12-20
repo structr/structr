@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Li extends DOMElement {
+public interface Li extends DOMElement {
 
+	/*
 	public static final Property<String> htmlValueProperty = new StringProperty("_html_value").partOfBuiltInSchema();
 
 	public static final View htmlView = new View(Li.class, PropertyView.Html, htmlValueProperty);
@@ -35,4 +36,6 @@ public class Li extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

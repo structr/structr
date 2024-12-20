@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -62,12 +63,12 @@ public class SearchFunction extends AbstractQueryFunction {
 
 			applyQueryParameters(securityContext, query);
 
-			Class type = null;
+			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = config.getNodeEntityClass(typeString);
+				type = Traits.of(typeString);
 
 				if (type != null) {
 

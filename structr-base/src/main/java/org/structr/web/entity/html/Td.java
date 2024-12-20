@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Td extends DOMElement {
+public interface Td extends DOMElement {
 
+	/*
 	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan").partOfBuiltInSchema();
 	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan").partOfBuiltInSchema();
 	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers").partOfBuiltInSchema();
@@ -39,4 +40,6 @@ public class Td extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

@@ -25,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 import java.util.Map;
 
@@ -44,6 +46,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
+		final PropertyKey<String> idProperty = Traits.idProperty();
 		final String nodeType  = (String) attributes.get("type");
 		final String relType   = (String) attributes.get("relType");
 		final Boolean allNodes = (Boolean) attributes.get("allNodes");
@@ -67,10 +70,10 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 
-						if (node.getProperty(GraphObject.id) == null) {
+						if (node.getProperty(idProperty) == null) {
 
 							node.unlockSystemPropertiesOnce();
-							node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+							node.setProperty(idProperty, NodeServiceCommand.getNextUuid());
 						}
 
 					} catch (FrameworkException fex) {
@@ -120,10 +123,10 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 
-						if (rel.getProperty(GraphObject.id) == null) {
+						if (rel.getProperty(idProperty) == null) {
 
 							rel.unlockSystemPropertiesOnce();
-							rel.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+							rel.setProperty(idProperty, NodeServiceCommand.getNextUuid());
 						}
 
 					} catch (FrameworkException fex) {

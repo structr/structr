@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
@@ -83,7 +84,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface node, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode node, String expression) throws FrameworkException {
 
 		if (StringUtils.isBlank(expression)) {
 

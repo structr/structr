@@ -27,6 +27,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -64,9 +65,9 @@ public class ListCommand extends AbstractCommand {
 		final String properties               = webSocketData.getNodeDataStringValue("properties");
 		final boolean rootOnly                = webSocketData.getNodeDataBooleanValue("rootOnly");
 
-		Class type = SchemaHelper.getEntityClassForRawType(rawType);
-
+		Traits type = Traits.of(rawType);
 		if (type == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
 		}
@@ -79,17 +80,17 @@ public class ListCommand extends AbstractCommand {
 		final String sortKey           = webSocketData.getSortKey();
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
-		final PropertyKey sortProperty = StructrApp.key(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final PropertyKey sortProperty = type.key(sortKey);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(rawType).sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
-		if (File.class.isAssignableFrom(type)) {
+		if (type.contains("File")) {
 
 			if (rootOnly) {
-				query.and(StructrApp.key(File.class, "hasParent"), false);
+				query.and(Traits.of("File").key("hasParent"), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-			query.not().and(StructrApp.key(Image.class, "isThumbnail"), true);
+			query.not().and(Traits.of("Image").key("isThumbnail"), true);
 
 			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
 				"all/INCOMING/CONTAINS",
@@ -98,9 +99,9 @@ public class ListCommand extends AbstractCommand {
 		}
 
 		// important
-		if (Folder.class.isAssignableFrom(type) && rootOnly) {
+		if (type.contains("Folder") && rootOnly) {
 
-			query.and(StructrApp.key(Folder.class, "hasParent"), false);
+			query.and(Traits.of("Folder").key("hasParent"), false);
 
 			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
 				"all/INCOMING/CONTAINS",

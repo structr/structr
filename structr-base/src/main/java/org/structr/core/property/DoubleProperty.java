@@ -69,8 +69,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public String valueType() {
-		return "Double";
+	public Class valueType() {
+		return Double.class;
 	}
 
 	@Override
@@ -182,6 +182,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

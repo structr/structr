@@ -18,26 +18,12 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
-import org.w3c.dom.Node;
 
-public class Script extends DOMElement implements LinkSource {
+public interface Script extends DOMElement, LinkSource {
 
+	/*
 	public static final Property<String> htmlSrcProperty     = new StringProperty("_html_src").partOfBuiltInSchema();
 	public static final Property<String> htmlAsyncProperty   = new StringProperty("_html_async").partOfBuiltInSchema();
 	public static final Property<String> htmlDeferProperty   = new StringProperty("_html_defer").partOfBuiltInSchema();
@@ -88,4 +74,6 @@ public class Script extends DOMElement implements LinkSource {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

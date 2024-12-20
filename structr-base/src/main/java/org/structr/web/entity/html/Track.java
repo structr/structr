@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Track extends DOMElement {
+public interface Track extends DOMElement {
 
+	/*
 	public static final Property<String> htmlKindProperty = new StringProperty("_html_kind").partOfBuiltInSchema();
 	public static final Property<String> htmlSrcProperty = new StringProperty("_html_src").partOfBuiltInSchema();
 	public static final Property<String> htmlSrcLangProperty = new StringProperty("_html_srclang").partOfBuiltInSchema();
@@ -46,5 +47,7 @@ public class Track extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }
 

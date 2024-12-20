@@ -145,7 +145,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 				if (this.fqcn == null) {
 
-					final Class staticType = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+					final Class staticType = Traits.of(typeName);
 					if (staticType != null) {
 
 						try {

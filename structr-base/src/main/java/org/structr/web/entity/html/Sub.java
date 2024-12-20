@@ -20,10 +20,13 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Sub extends DOMElement {
+public interface Sub extends DOMElement {
 
+	/*
 	@Override
 	public boolean avoidWhitespace() {
 		return true;
 	}
+
+	 */
 }

@@ -117,7 +117,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return the value type
 	 */
-	String valueType();
+	Class valueType();
 
 	/**
 	 * Returns the type of the related property this property key references, or
@@ -314,6 +314,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return whether this property is a part of the internal Structr schema
 	 */
 	boolean isPartOfBuiltInSchema();
+
+	boolean isArray();
 
 	/**
 	 * Returns the lucene sort type of this property.

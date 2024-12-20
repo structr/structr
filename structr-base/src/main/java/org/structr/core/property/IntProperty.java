@@ -51,8 +51,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public String valueType() {
-		return "Integer";
+	public Class valueType() {
+		return Integer.class;
 	}
 
 	@Override
@@ -187,6 +187,11 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

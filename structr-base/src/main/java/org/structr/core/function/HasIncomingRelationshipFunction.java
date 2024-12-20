@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.action.ActionContext;
 
 public class HasIncomingRelationshipFunction extends CoreFunction {
@@ -51,13 +52,13 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 			final Object source = sources[0];
 			final Object target = sources[1];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-				sourceNode = (AbstractNode)source;
-				targetNode = (AbstractNode)target;
+				sourceNode = (NodeInterface)source;
+				targetNode = (NodeInterface)target;
 
 			} else {
 
@@ -67,7 +68,7 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 
 			if (sources.length == 2) {
 
-				for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getIncomingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -84,7 +85,7 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 				// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 				final String relType = (String)sources[2];
 
-				for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getIncomingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();

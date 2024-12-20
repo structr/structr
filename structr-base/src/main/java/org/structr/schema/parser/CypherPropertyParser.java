@@ -21,6 +21,7 @@ package org.structr.schema.parser;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.CypherQueryProperty;
@@ -67,7 +68,7 @@ public class CypherPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
 		auxType = ", \"" + StringEscapeUtils.escapeJava(expression) + "\"";
 	}
 }

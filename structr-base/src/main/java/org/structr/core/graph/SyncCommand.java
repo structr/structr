@@ -30,12 +30,10 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
@@ -163,11 +161,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeFactory<?> nodeFactory         = new NodeFactory<>(SecurityContext.getSuperUserInstance());
-			final RelationshipFactory <?>relFactory  = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-			final Set<NodeInterface> nodes               = new HashSet<>();
-			final Set<RelationshipTrait> rels        = new HashSet<>();
-			boolean conditionalIncludeFiles          = includeFiles;
+			final NodeFactory nodeFactory         = new NodeFactory(SecurityContext.getSuperUserInstance());
+			final RelationshipFactory relFactory  = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+			final Set<NodeInterface> nodes        = new HashSet<>();
+			final Set<RelationshipInterface> rels = new HashSet<>();
+			boolean conditionalIncludeFiles       = includeFiles;
 
 			if (query != null) {
 
@@ -178,9 +176,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
-						nodes.add((NodeInterface)obj.getSyncNode());
+						nodes.add(obj.getSyncNode());
 					} else {
-						rels.add((RelationshipTrait)obj.getSyncRelationship());
+						rels.add(obj.getSyncRelationship());
 					}
 				}
 
@@ -217,7 +215,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(final String fileName, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToFile(final String fileName, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -244,7 +242,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipTrait> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
+	public static void exportToStream(final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try (final ZipOutputStream zos = new ZipOutputStream(outputStream)) {
 
@@ -492,7 +490,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipTrait> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
@@ -506,7 +504,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
-			if (nodeObject instanceof SchemaReloadingNodeTraitDefinition) {
+			// fixme: how can we identify ALL schema nodes now?
+			if (nodeObject.is("SchemaReloadingNode")) {
 				continue;
 			}
 
@@ -532,7 +531,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		dos.flush();
 
-		for (RelationshipTrait relObject : relationships) {
+		for (RelationshipInterface relObject : relationships) {
 
 			final Relationship rel = relObject.getRelationship();
 
@@ -729,7 +728,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 											currentObject.put(currentKey, obj);
 
 											// set type label
-											if (currentObject instanceof NodeCreation && org.structr.core.graph.NodeInterface.type.dbName().equals(currentKey)) {
+											if (currentObject instanceof NodeCreation && "type".equals(currentKey)) {
 
 												((NodeCreation)currentObject).addLabel((String) obj);
 											}

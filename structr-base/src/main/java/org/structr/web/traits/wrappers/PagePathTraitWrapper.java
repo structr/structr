@@ -23,7 +23,6 @@ import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -70,7 +69,6 @@ public class PagePathTraitWrapper extends AbstractTraitWrapper<NodeInterface> im
 	}
 
 	@Override
-	@Export
 	public Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException {
 
 		final Traits traits  = Traits.of("PagePathParameter");

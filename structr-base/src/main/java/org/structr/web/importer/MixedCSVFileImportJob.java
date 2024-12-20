@@ -152,7 +152,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 								final Map<String, Object> inputData  = new LinkedHashMap<>();
 								final String typeName                = (String)data.get("name");
 								final PropertyMap searchAttributes   = new PropertyMap();
-								final Class type                     = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+								final Class type                     = Traits.of(typeName);
 								GraphObject newObject                = null;
 
 								// select only mapped propertiers
@@ -271,8 +271,8 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 	private RelationProperty findRelationshipKey(final String type1, final String type2) {
 
-		final Class class1 = StructrApp.getConfiguration().getNodeEntityClass(type1);
-		final Class class2 = StructrApp.getConfiguration().getNodeEntityClass(type2);
+		final Class class1 = Traits.of(type1);
+		final Class class2 = Traits.of(type2);
 		PropertyKey relKey = null;
 
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(class1, PropertyView.All)) {

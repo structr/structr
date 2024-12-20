@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.principal.OnAuthenticate;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -168,6 +169,29 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 	}
 
 	@Override
+	public String getProxyUrl() {
+		return wrappedObject.getProperty(traits.key("proxyUrl"));
+	}
+
+	@Override
+	public String getProxUsername() {
+		return wrappedObject.getProperty(traits.key("proxUsername"));
+	}
+
+	@Override
+	public String getProxyPassword() {
+		return wrappedObject.getProperty(traits.key("proxyPassword"));
+	}
+
+	@Override
+	public void onAuthenticate() {
+
+		for (final OnAuthenticate method : traits.getMethods(OnAuthenticate.class)) {
+			method.onAuthenticate(this);
+		}
+	}
+
+	@Override
 	public Iterable<Group> getParents() {
 		return wrappedObject.getProperty(traits.key("groups"));
 	}
@@ -274,6 +298,11 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 
 			return false;
 		}
+	}
+
+	@Override
+	public String[] getRefreshTokens() {
+		return wrappedObject.getProperty(traits.key("refreshTokens"));
 	}
 
 	@Override

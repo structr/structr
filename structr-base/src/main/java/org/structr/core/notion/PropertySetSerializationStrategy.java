@@ -48,7 +48,7 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 	}
 
 	@Override
-	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
+	public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) throws FrameworkException {
 
 		if (source != null) {
 

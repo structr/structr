@@ -32,11 +32,11 @@ import java.util.Map;
  */
 public class PropertySetNotion<S extends NodeInterface> extends Notion<S, Map<String, Object>> {
 
-	public PropertySetNotion(PropertyKey... propertyKeys) {
+	public PropertySetNotion(final PropertyKey... propertyKeys) {
 		this(false, propertyKeys);
 	}
 	
-	public PropertySetNotion(boolean createIfNotExisting, PropertyKey... propertyKeys) {
+	public PropertySetNotion(final boolean createIfNotExisting, final PropertyKey... propertyKeys) {
 		this(
 			new PropertySetSerializationStrategy(propertyKeys),
 			new TypeAndPropertySetDeserializationStrategy(createIfNotExisting, propertyKeys)
@@ -44,7 +44,7 @@ public class PropertySetNotion<S extends NodeInterface> extends Notion<S, Map<St
 
 	}
 
-	public PropertySetNotion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
+	public PropertySetNotion(final SerializationStrategy serializationStrategy, final DeserializationStrategy deserializationStrategy) {
 		super(serializationStrategy, deserializationStrategy);
 	}
 

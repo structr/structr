@@ -62,12 +62,12 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 
 	@Override
 	public String typeName() {
-		return "Node";
+		return "NodeInterface";
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override
@@ -97,6 +97,11 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

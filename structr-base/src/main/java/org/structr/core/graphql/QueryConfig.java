@@ -33,6 +33,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -150,7 +151,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		}
 	}
 
-	public void handleTypeArguments(final SecurityContext securityContext, final Class type, final List<Argument> arguments) throws FrameworkException {
+	public void handleTypeArguments(final SecurityContext securityContext, final Traits type, final List<Argument> arguments) throws FrameworkException {
 
 		// parse arguments
 		for (final Argument argument : arguments) {
@@ -171,7 +172,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 				case "_sort":
 					this.sortKeySource = getStringValue(value, "name");
-					this.sortKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKeySource, false);
+					this.sortKey       = type.key(sortKeySource);
 					break;
 
 				case "_desc":
@@ -185,11 +186,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		}
 	}
 
-	public void handleFieldArguments(final SecurityContext securityContext, final Class type, final Field parentField, final Field field) throws FrameworkException {
+	public void handleFieldArguments(final SecurityContext securityContext, final Traits type, final Field parentField, final Field field) throws FrameworkException {
 
-		final ConfigurationProvider config   = StructrApp.getConfiguration();
-		final PropertyKey parentKey          = config.getPropertyKeyForJSONName(type, parentField.getName());
-		final PropertyKey key                = config.getPropertyKeyForJSONName(type, field.getName(), false);
+		final PropertyKey parentKey          = type.key(parentField.getName());
+		final PropertyKey key                = type.key(field.getName());
 		final List<SearchTuple> searchTuples = new LinkedList<>();
 		Occurrence occurrence                = Occurrence.REQUIRED;
 
@@ -202,11 +202,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			switch (name) {
 
 				case "_equals":
-					searchTuples.add(new SearchTuple(castValue(securityContext, key.relatedType(), key, value), true));
+					searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), true));
 					break;
 
 				case "_contains":
-					searchTuples.add(new SearchTuple(castValue(securityContext, key.relatedType(), key, value), false));
+					searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), false));
 					break;
 
 				case "_conj":
@@ -266,7 +266,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return defaultValue;
 	}
 
-	private Map<String, Object> getMapValue(final SecurityContext securityContext, final Class type, final Value value) throws FrameworkException {
+	private Map<String, Object> getMapValue(final SecurityContext securityContext, final Traits type, final Value value) throws FrameworkException {
 
 		final Map<String, Object> map = new LinkedHashMap<>();
 
@@ -317,7 +317,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return Occurrence.REQUIRED;
 	}
 
-	private Object castValue(final SecurityContext securityContext, final Class type, final PropertyKey key, final Value value) throws FrameworkException {
+	private Object castValue(final SecurityContext securityContext, final Traits type, final PropertyKey key, final Value value) throws FrameworkException {
 
 		if (value instanceof StringValue) {
 			return getStringValue(value, null);
@@ -341,7 +341,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 			parameters.put(key.jsonName(), getMapValue(securityContext, type, value));
 
-			final PropertyMap propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
+			final PropertyMap propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), parameters);
 
 			// return converted result (should be replaced by NodeInterface)
 			return propertyMap.get(key);
@@ -398,9 +398,9 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return null;
 	}
 
-	private void handleNonPrimitiveSearchObject(final SecurityContext securityContext, final Class type, final String name, final Value value) throws FrameworkException {
+	private void handleNonPrimitiveSearchObject(final SecurityContext securityContext, final Traits type, final String name, final Value value) throws FrameworkException {
 
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name, false);
+		final PropertyKey key = type.key(name);
 		if (key != null) {
 
 			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
@@ -418,7 +418,8 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 					final String searchKey   = entry.getKey();
 					final Object searchValue = entry.getValue();
-					final Class relatedType  = key.relatedType();
+					final String relatedType = key.relatedType();
+					final Traits traits      = Traits.of(relatedType);
 
 					if (searchValue instanceof Map) {
 
@@ -428,7 +429,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 						if (relatedType != null) {
 
-							final PropertyKey notionKey = StructrApp.key(relatedType, searchKey);
+							final PropertyKey notionKey = traits.key(searchKey);
 							if (notionKey != null) {
 
 								if (equals != null) {

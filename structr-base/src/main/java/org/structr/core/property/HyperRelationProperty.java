@@ -35,7 +35,7 @@ import java.util.Map;
  *
  *
  */
-public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<Iterable<T>> {
+public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterface> extends AbstractReadOnlyProperty<Iterable<T>> {
 
 	Property<Iterable<S>> step1 = null;
 	Property<T> step2           = null;
@@ -61,7 +61,7 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 
 		if (connectors != null) {
 
-			for (AbstractNode node : connectors) {
+			for (NodeInterface node : connectors) {
 
 				endNodes.add(node.getProperty(step2));
 			}
@@ -76,12 +76,17 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 

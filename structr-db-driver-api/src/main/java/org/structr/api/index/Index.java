@@ -27,5 +27,5 @@ import org.structr.api.search.QueryPredicate;
 public interface Index<T> {
 
 	Iterable<T> query(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage);
-	boolean supports(final String type);
+	boolean supports(final Class type);
 }

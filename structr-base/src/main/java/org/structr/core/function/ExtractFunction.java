@@ -58,15 +58,15 @@ public class ExtractFunction extends CoreFunction {
 			if (sources.length == 1) {
 
 				// no property key given, maybe we should extract a list of lists?
-				if (sources[0] instanceof Iterable) {
+				if (sources[0] instanceof Iterable i) {
 
 					final List extraction = new LinkedList();
 
-					for (final Object obj : (Iterable)sources[0]) {
+					for (final Object obj : i) {
 
-						if (obj instanceof Iterable) {
+						if (obj instanceof Iterable o) {
 
-							Iterables.addAll(extraction, Iterables.toList((Iterable)obj));
+							Iterables.addAll(extraction, Iterables.toList(o));
 						}
 					}
 
@@ -89,15 +89,16 @@ public class ExtractFunction extends CoreFunction {
 
 					for (final Object obj : (Iterable)sources[0]) {
 
-						if (obj instanceof GraphObject) {
+						if (obj instanceof GraphObject g) {
 
-							final PropertyKey key = StructrApp.key(obj.getClass(), keyName);
-							final Object value = ((GraphObject)obj).getProperty(key);
+							final PropertyKey key = g.getTraits().key(keyName);
+							final Object value    = g.getProperty(key);
+
 							if (value != null) {
 
-								if (value instanceof Iterable) {
+								if (value instanceof Iterable i) {
 
-									extraction.add(Iterables.toList((Iterable)value));
+									extraction.add(Iterables.toList(i));
 
 								} else {
 

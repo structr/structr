@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  */
@@ -38,7 +39,7 @@ public class SortPredicate extends AbstractPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
-		query.sort(StructrApp.key(type, sortKeyName, true), sortDescending);
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+		query.sort(type.key(sortKeyName), sortDescending);
 	}
 }

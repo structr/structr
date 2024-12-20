@@ -127,12 +127,12 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 				nodesToDelete.add(current);
 
-				for (RelationshipInterface<NodeInterface, NodeInterface> rel : current.getRelationships()) {
+				for (RelationshipInterface rel : current.getRelationships()) {
 
 					// deleted rels can be null..
 					if (rel != null) {
 
-						final int cascadeDelete       = rel.getCascadingDeleteFlag();
+						final int cascadeDelete       = rel.getRelation().getCascadingDeleteFlag();
 						final NodeInterface startNode = rel.getSourceNode();
 						final NodeInterface endNode   = rel.getTargetNode();
 

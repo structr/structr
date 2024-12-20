@@ -20,7 +20,9 @@ package org.structr.websocket.command.dom;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -44,7 +46,7 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
@@ -78,10 +80,10 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 				return;
 			}
 
-			final Document document = getPage(pageId);
+			final Page document = getPage(pageId);
 			if (document != null) {
 
-				final DOMNode parentNode = (DOMNode) oldNode.getParentNode();
+				final DOMNode parentNode = oldNode.getParent();
 
 				if (parentNode == null) {
 					getWebSocket().send(MessageBuilder.status().code(404).message("Node has no parent node").build(), true);

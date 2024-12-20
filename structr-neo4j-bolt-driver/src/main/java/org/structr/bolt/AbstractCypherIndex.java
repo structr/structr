@@ -73,7 +73,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	}
 
 	@Override
-	public boolean supports(final String type) {
+	public boolean supports(final Class type) {
 		return INDEXABLE.contains(type);
 	}
 

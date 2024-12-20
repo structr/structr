@@ -31,6 +31,8 @@ public interface File extends AbstractFile, DataSource {
 	Long getFileModificationDate();
 	String getMd5();
 
+	void setSize(Long size) throws FrameworkException;
+
 	Folder getCurrentWorkingDir();
 	String getFormattedSize();
 	String getExtractedContent();

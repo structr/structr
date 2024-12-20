@@ -57,7 +57,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	@Override
 	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject currentObject, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if(currentObject != null && currentObject instanceof AbstractNode) {
+		if(currentObject != null && currentObject instanceof NodeInterface) {
 
 			NodeInterface sourceNode  = (NodeInterface)currentObject;
 			List<NodeInterface> nodes = new LinkedList<>();
@@ -111,13 +111,18 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

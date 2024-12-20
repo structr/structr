@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -42,7 +43,11 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
+		throw new UnsupportedOperationException("Not suppported yet.");
+
+		/*
 
 		try {
 
@@ -51,13 +56,13 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 			final String typeName = sources[0].toString();
 			final ArrayList<String> ancestorTypes = new ArrayList();
 
-			Class type = SchemaHelper.getEntityClassForRawType(typeName);
+			Traits type = Traits.of(typeName);
 
 			if (type != null) {
 
-				while (type != null && !type.equals(Object.class)) {
+				while (type != null) {
 
-					ancestorTypes.add(type.getSimpleName());
+					ancestorTypes.add(type.getName());
 					type = type.getSuperclass();
 				}
 
@@ -76,6 +81,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
+		*/
 	}
 
 	@Override

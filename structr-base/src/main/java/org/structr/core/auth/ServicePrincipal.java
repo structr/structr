@@ -18,7 +18,6 @@
  */
 package org.structr.core.auth;
 
-import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,12 +27,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.schema.NonIndexed;
 
 import java.util.*;
 
-public class ServicePrincipal implements Principal, AccessControllable, NonIndexed {
+public class ServicePrincipal implements Principal {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
 	private SecurityContext securityContext = null;
@@ -52,6 +49,11 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public NodeInterface getWrappedNode() {
+		return null;
+	}
+
+	@Override
+	public SecurityContext getSecurityContext() {
 		return null;
 	}
 
@@ -187,6 +189,25 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
+	public String getProxyUrl() {
+		return "";
+	}
+
+	@Override
+	public String getProxUsername() {
+		return "";
+	}
+
+	@Override
+	public String getProxyPassword() {
+		return "";
+	}
+
+	@Override
+	public void onAuthenticate() {
+	}
+
+	@Override
 	public boolean addSessionId(String sessionId) {
 		return false;
 	}
@@ -198,6 +219,11 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	@Override
 	public boolean addRefreshToken(String refreshToken) {
 		return false;
+	}
+
+	@Override
+	public String[] getRefreshTokens() {
+		return new String[0];
 	}
 
 	@Override
@@ -265,6 +291,42 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 	}
 
 	@Override
+	public void setName(String name) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isVisibleToPublicUsers() {
+		return false;
+	}
+
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return false;
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
+	}
+
+	@Override
+	public void setVisibleToAuthenticatedUsers(boolean visible) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setVisibleToPublicUsers(boolean visible) throws FrameworkException {
+
+	}
+
+	/*
+	@Override
 	public Principal getOwnerNode() {
 		return null;
 	}
@@ -281,68 +343,36 @@ public class ServicePrincipal implements Principal, AccessControllable, NonIndex
 
 	@Override
 	public void grant(Permission permission, Principal principal) throws FrameworkException {
-
 	}
 
 	@Override
 	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
-
 	}
 
 	@Override
 	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-
 	}
 
 	@Override
 	public void revoke(Permission permission, Principal principal) throws FrameworkException {
-
 	}
 
 	@Override
 	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
-
 	}
 
 	@Override
 	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-
 	}
 
 	@Override
 	public void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
-
 	}
 
 	@Override
 	public void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
-
 	}
-
-	@Override
-	public boolean isVisibleToPublicUsers() {
-		return false;
-	}
-
-	@Override
-	public boolean isVisibleToAuthenticatedUsers() {
-		return false;
-	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public Date getCreatedDate() {
-		return null;
-	}
-
-	@Override
-	public Date getLastModifiedDate() {
-		return null;
-	}
+	*/
 
 	@Override
 	public String getUuid() {

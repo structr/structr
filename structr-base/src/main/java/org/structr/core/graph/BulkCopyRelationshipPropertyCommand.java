@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 import java.util.Map;
 
@@ -54,11 +55,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 				// Treat only "our" rels
-				if(rel.getProperty(GraphObject.id) != null) {
+				if(rel.getUuid() != null) {
 
-					final Class type                    = rel.getClass();
-					final PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
-					final PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
+					final Traits traits                 = rel.getTraits();
+					final PropertyKey destPropertyKey   = traits.key(destKey);
+					final PropertyKey sourcePropertyKey = traits.key(sourceKey);
 
 					try {
 						// copy properties

@@ -138,7 +138,7 @@ public class LoginCommand extends AbstractCommand {
 								// store token in response data
 								webSocketData.getNodeData().clear();
 								webSocketData.setSessionId(sessionId);
-								webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
+								webSocketData.getNodeData().put("username", user.getName());
 
 								// authenticate socket
 								getWebSocket().setAuthenticated(sessionId, user);
@@ -151,7 +151,8 @@ public class LoginCommand extends AbstractCommand {
 						}
 					}
 
-					userId = user.getNode().getId().getId();
+					// fixme: really?
+					userId = user.getWrappedNode().getNode().getId().getId();
 
 				} else {
 

@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
 public class IsAllowedFunction extends AdvancedScriptingFunction {
@@ -60,7 +61,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to check rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
@@ -71,7 +72,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 			} else {
 
 				final Principal principal = (Principal) sources[0];
-				final AbstractNode node   = (AbstractNode) sources[1];
+				final NodeInterface node   = (NodeInterface) sources[1];
 				final String[] parts      = ((String) sources[2]).split("[,]+");
 				boolean allowed           = true;
 

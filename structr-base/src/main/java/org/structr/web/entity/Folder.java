@@ -18,6 +18,10 @@
  */
 package org.structr.web.entity;
 
+import org.structr.core.graph.NodeInterface;
+
+import java.util.List;
+
 public interface Folder extends AbstractFile {
 
 	String getMountTarget();
@@ -29,4 +33,6 @@ public interface Folder extends AbstractFile {
 	Iterable<Folder> getFolders();
 	Iterable<Image> getImages();
 	Iterable<File> getFiles();
+
+	List<NodeInterface> getAllChildNodes();
 }

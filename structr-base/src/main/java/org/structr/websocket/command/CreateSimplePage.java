@@ -46,14 +46,14 @@ public class CreateSimplePage extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String pageName                 = webSocketData.getNodeDataStringValue(Page.name.jsonName());
+		final String pageName                 = webSocketData.getNodeDataStringValue("name");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
 
 			final Page page = Page.createSimplePage(securityContext, pageName);
 
-			TransactionCommand.registerNodeCallback(page, callback);
+			TransactionCommand.registerNodeCallback(page.getWrappedNode(), callback);
 
 		} catch (FrameworkException fex) {
 

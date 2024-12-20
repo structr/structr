@@ -31,6 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 
 import java.util.Map;
@@ -72,8 +73,8 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return RelationshipInterface.class;
 	}
 
 	@Override
@@ -100,6 +101,11 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

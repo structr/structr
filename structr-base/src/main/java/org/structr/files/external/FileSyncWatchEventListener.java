@@ -24,11 +24,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -128,32 +128,26 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final NodeInterface node = StructrApp.getInstance().nodeQuery("Folder").uuid(rootFolderUUID).getFirst();
 		if (node != null) {
 
-			final Folder folder                      = node.as(Folder.class);
-			Class<? extends File> targetFileType     = null;
-			Class<? extends Folder> targetFolderType = null;
+			final Folder folder     = node.as(Folder.class);
+			String targetFileType   = folder.getMountTargetFileType();
+			String targetFolderType = folder.getMountTargetFolderType();
 
-			try {
-				if (folder.getMountTargetFileType() != null) {
+			if (targetFileType != null) {
 
-					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFileType());
-					if (clazz != null && clazz != GenericNode.class && File.class.isAssignableFrom(clazz)) {
+				final Traits traits = Traits.of(targetFileType);
+				if (traits == null || !traits.contains("File")) {
 
-						targetFileType = clazz;
-					}
+					logger.error("Given target type for mounted files or folders was not extending AbstractFile.");
 				}
+			}
 
-				if (folder.getMountTargetFolderType() != null) {
+			if (targetFolderType != null) {
 
-					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(folder.getMountTargetFolderType());
-					if (clazz != null && clazz != GenericNode.class && Folder.class.isAssignableFrom(clazz)) {
+				final Traits traits = Traits.of(targetFolderType);
+				if (traits == null || !traits.contains("Folder")) {
 
-						targetFolderType = clazz;
-					}
+					logger.error("Given target type for mounted files or folders was not extending AbstractFile.");
 				}
-
-			} catch (ClassCastException ex) {
-
-				logger.error("Given target type for mounted files or folders was not extending AbstractFile.", ex);
 			}
 
 			final String mountFolderPath = folder.getPath();
@@ -164,45 +158,42 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 				if (relativePathParent == null) {
 
-					return new FolderAndFile(folder, getOrCreate(folder, relativePath.toString(), isFile, create, targetFolderType, targetFileType));
+					return new FolderAndFile(node, getOrCreate(node, relativePath.toString(), isFile, create, targetFolderType, targetFileType));
 				} else {
 
 					// Virtual path to parent
 					final Path relativePathToParentFolder    = root.relativize(relativePathParent);
-
-					// Virtual path to fileOrFolder
 					final Path fileOrFolderPath              = relativePathParent.relativize(relativePath);
-
 					final Path virtualPathToParent           = Path.of(mountFolderPath).resolve(relativePathToParentFolder);
+					final NodeInterface parentFolder         = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), virtualPathToParent.toString());
+					final NodeInterface file                 = getOrCreate(parentFolder, fileOrFolderPath.toString() , isFile, create, targetFolderType, targetFileType);
 
-					final Folder parentFolder                = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), virtualPathToParent.toString());
-					//logger.debug("Trying to create folder/file with parameters path:{}, parent:{}", fileOrFolderPath.toFile(), parentFolder);
-					final AbstractFile file                  = getOrCreate(parentFolder, fileOrFolderPath.toString() , isFile, create, targetFolderType, targetFileType);
-					//logger.debug("Created or got folder/file with uuid:" + file.getUuid() + " and path: " + file.getPath());
-					return new FolderAndFile(folder, file);
+					return new FolderAndFile(node, file);
 				}
 
 			} else {
 
-				logger.warn("Cannot handle watch event, folder {} has no path", folder.getUuid());
+				logger.warn("Cannot handle watch event, folder {} has no path", node.getUuid());
 			}
 		}
 
 		return null;
 	}
 
-	private AbstractFile getOrCreate(final Folder parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final String folderType, final String fileType) throws FrameworkException {
+	private NodeInterface getOrCreate(final NodeInterface parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final String folderType, final String fileType) throws FrameworkException {
 
-		final PropertyKey<Boolean> isExternalKey = StructrApp.key(AbstractFile.class, "isExternal");
-		final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
-		final App app                            = StructrApp.getInstance();
-		final String type                        = isFile ? (fileType != null ? fileType : "File") : (folderType != null ? folderType : "Folder");
+		final Traits traits                        = Traits.of("AbstractFile");
+		final PropertyKey<Boolean> isExternalKey   = traits.key("isExternal");
+		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
+		final PropertyKey<String> nameKey          = traits.key("parent");
+		final App app                              = StructrApp.getInstance();
+		final String type                          = isFile ? (fileType != null ? fileType : "File") : (folderType != null ? folderType : "Folder");
 
-		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(parentKey, parentFolder).getFirst();
+		NodeInterface file = app.nodeQuery(type).and(nameKey, fileName).and(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {
 
 			file = app.create(type,
-				new NodeAttribute<>(AbstractFile.name,       fileName),
+				new NodeAttribute<>(nameKey,       fileName),
 				new NodeAttribute<>(parentKey,     parentFolder),
 				new NodeAttribute<>(isExternalKey, true)
 			);
@@ -213,34 +204,34 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 	private class FolderAndFile {
 
-		public AbstractFile file = null;
-		public Folder rootFolder = null;
+		public NodeInterface file = null;
+		public NodeInterface rootFolder = null;
 
-		public FolderAndFile(final Folder rootFolder, final AbstractFile file) {
+		public FolderAndFile(final NodeInterface rootFolder, final NodeInterface file) {
 			this.rootFolder = rootFolder;
 			this.file       = file;
 		}
 
 		void handle() throws FrameworkException {
 
-			final PropertyKey<Boolean> doFulltextIndexing = StructrApp.key(Folder.class, "mountDoFulltextIndexing");
-			final PropertyKey<Long> lastSeenMounted       = StructrApp.key(AbstractFile.class, "lastSeenMounted");
+			final PropertyKey<Boolean> doFulltextIndexing = Traits.of("Folder").key("mountDoFulltextIndexing");
+			final PropertyKey<Long> lastSeenMounted       = Traits.of("AbstractFile").key("lastSeenMounted");
 
-			if (file instanceof File) {
+			if (file.is("File")) {
 
-				final File fileBase = (File)file;
+				final File fileBase = file.as(File.class);
 
 				if (rootFolder != null && rootFolder.getProperty(doFulltextIndexing)) {
-					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(fileBase);
+					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
 				}
 
 				FileHelper.updateMetadata(fileBase, new PropertyMap(lastSeenMounted, System.currentTimeMillis()), true);
 
-			} else if (file instanceof AbstractFile) {
+			} else if (file.is("AbstractFile")) {
 
 				final AbstractFile abstractFile = (AbstractFile)file;
 
-				abstractFile.setProperty(lastSeenMounted, System.currentTimeMillis());
+				file.setProperty(lastSeenMounted, System.currentTimeMillis());
 			}
 		}
 	}

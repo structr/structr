@@ -30,89 +30,90 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 public class HMACFunction extends CoreFunction {
-    public static final String ERROR_MESSAGE_HMAC    = "Usage: ${hmac(value, secret [, hashAlgorithm ])}. Example: ${hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}";
-    public static final String ERROR_MESSAGE_HMAC_JS = "Usage: ${{Structr.hmac(value, secret [, hashAlgorithm ])}}. Example: ${{Structr.hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}}";
 
-    @Override
-    public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public static final String ERROR_MESSAGE_HMAC = "Usage: ${hmac(value, secret [, hashAlgorithm ])}. Example: ${hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}";
+	public static final String ERROR_MESSAGE_HMAC_JS = "Usage: ${{Structr.hmac(value, secret [, hashAlgorithm ])}}. Example: ${{Structr.hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}}";
 
-        try {
-            assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-            final String algorithmPrefix = "Hmac";
+		try {
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-            final String value = (String) sources[0];
-            final String secret = (String) sources[1];
+			final String algorithmPrefix = "Hmac";
 
-            String algorithm = null;
-            if (sources.length > 2) {
-                algorithm = (String) sources[2];
-            } else {
-                algorithm = "SHA256";
-            }
-            algorithm = algorithmPrefix.concat(algorithm);
+			final String value = (String) sources[0];
+			final String secret = (String) sources[1];
 
-            Boolean returnRawHash = false;
-            if (sources.length > 3) {
-                returnRawHash = true;
-            }
+			String algorithm = null;
+			if (sources.length > 2) {
+				algorithm = (String) sources[2];
+			} else {
+				algorithm = "SHA256";
+			}
+			algorithm = algorithmPrefix.concat(algorithm);
 
-            SecretKeySpec key = new SecretKeySpec((secret).getBytes("UTF-8"), algorithm);
-            Mac mac = Mac.getInstance(algorithm);
-            mac.init(key);
+			Boolean returnRawHash = false;
+			if (sources.length > 3) {
+				returnRawHash = true;
+			}
 
-            byte[] rawBytesHash = mac.doFinal(value.getBytes("UTF-8"));
+			SecretKeySpec key = new SecretKeySpec((secret).getBytes("UTF-8"), algorithm);
+			Mac mac = Mac.getInstance(algorithm);
+			mac.init(key);
 
-            if (returnRawHash) {
-                return rawBytesHash;
-            }
-            
-            // Create Hex String and fill with 0 if needed
-            StringBuffer hash = new StringBuffer();
-            for (final byte b : rawBytesHash ) {
-                String hex = Integer.toHexString(0xFF & b);
-                if (hex.length() == 1) {
-                    hash.append('0');
-                }
-                hash.append(hex);
-            }
+			byte[] rawBytesHash = mac.doFinal(value.getBytes("UTF-8"));
 
-            return hash.toString();
+			if (returnRawHash) {
+				return rawBytesHash;
+			}
 
-        } catch (UnsupportedEncodingException e) {
-            logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-        } catch (NoSuchAlgorithmException e) {
-            logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-        } catch (InvalidKeyException e) {
-            logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-        } catch (ArgumentNullException pe) {
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-            return usage(ctx.isJavaScriptContext());
-        } catch (ArgumentCountException pe) {
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-            return usage(ctx.isJavaScriptContext());
-        }
+			// Create Hex String and fill with 0 if needed
+			StringBuffer hash = new StringBuffer();
+			for (final byte b : rawBytesHash) {
+				String hex = Integer.toHexString(0xFF & b);
+				if (hex.length() == 1) {
+					hash.append('0');
+				}
+				hash.append(hex);
+			}
 
-        return null;
-    }
+			return hash.toString();
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return (inJavaScriptContext ? ERROR_MESSAGE_HMAC_JS : ERROR_MESSAGE_HMAC);
-    }
+		} catch (UnsupportedEncodingException e) {
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+		} catch (NoSuchAlgorithmException e) {
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+		} catch (InvalidKeyException e) {
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		} catch (ArgumentCountException pe) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
 
-    @Override
-    public String shortDescription() {
-        return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm,";
-    }
+		return null;
+	}
 
-    @Override
-    public String getSignature() {
-        return "value, secret [, hashAlgorithm ]";
-    }
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return (inJavaScriptContext ? ERROR_MESSAGE_HMAC_JS : ERROR_MESSAGE_HMAC);
+	}
 
-    @Override
-    public String getName() {
-        return "hmac";
-    }
+	@Override
+	public String shortDescription() {
+		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm,";
+	}
+
+	@Override
+	public String getSignature() {
+		return "value, secret [, hashAlgorithm ]";
+	}
+
+	@Override
+	public String getName() {
+		return "hmac";
+	}
 }

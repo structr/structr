@@ -37,6 +37,8 @@ public interface Page extends DOMNode {
 	Content createTextNode(final String text);
 	Comment createComment(final String comment);
 
+	void adoptNode(final DOMNode newHtmlNode);
+
 	List<DOMNode> getElementsByTagName(final String head) throws FrameworkException;
 
 	/**

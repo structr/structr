@@ -18,16 +18,12 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Link extends DOMElement implements LinkSource {
+public interface Link extends DOMElement, LinkSource {
 
+	/*
 	public static final Property<String> _href     = new HtmlProperty("href").partOfBuiltInSchema();
 	public static final Property<String> _rel      = new HtmlProperty("rel").partOfBuiltInSchema();
 	public static final Property<String> _media    = new HtmlProperty("media").partOfBuiltInSchema();
@@ -48,4 +44,6 @@ public class Link extends DOMElement implements LinkSource {
 	public boolean isVoidElement() {
 		return true;
 	}
+
+	 */
 }

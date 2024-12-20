@@ -70,7 +70,7 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 	}
 
 	@Override
-	public boolean supports(final String type) {
+	public boolean supports(final Class type) {
 		return converters.containsKey(type);
 	}
 

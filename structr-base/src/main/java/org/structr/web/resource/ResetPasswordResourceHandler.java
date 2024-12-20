@@ -24,6 +24,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -83,18 +85,19 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			// cleanup user input
 			emailString = emailString.trim().toLowerCase();
 
-			final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
-			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
+			final Traits traits                       = Traits.of("User");
+			final PropertyKey<String> confirmationKey = traits.key("confirmationKey");
+			final PropertyKey<String> eMail           = traits.key("eMail");
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final Principal user                      = StructrApp.getInstance().nodeQuery("User").and(eMail, emailString).getFirst();
+			final NodeInterface user                  = StructrApp.getInstance().nodeQuery("User").and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
 				// update confirmation key
 				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(confirmationKey, confKey));
 
-				if (!sendResetPasswordLink(securityContext, user, propertySet, localeString, confKey)) {
+				if (!sendResetPasswordLink(securityContext, user.as(Principal.class), propertySet, localeString, confKey)) {
 
 					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
 				}
@@ -117,7 +120,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 	private boolean sendResetPasswordLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
 
-		final String userEmail  = user.getProperty("eMail");
+		final String userEmail  = user.getEMail();
 		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
 		// Populate the replacement map with all POSTed values
@@ -158,16 +161,16 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
 
 			if (localeString != null) {
-				query.and("locale", localeString);
+				query.and(Traits.of("MailTemplate").key("locale"), localeString);
 			}
 
-			MailTemplate template = query.getFirst();
+			NodeInterface template = query.getFirst();
 			if (template != null) {
 
-				final String text = template.getProperty("text");
+				final String text = template.as(MailTemplate.class).getText();
 				return text != null ? text : defaultValue;
 
 			} else {

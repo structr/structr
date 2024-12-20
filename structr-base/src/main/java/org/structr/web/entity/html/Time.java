@@ -24,8 +24,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Time extends DOMElement {
+public interface Time extends DOMElement {
 
+	/*
 	public static final Property<String> htmlDateTimeProperty = new StringProperty("_html_datetime").partOfBuiltInSchema();
 
 	public static final View htmlView = new View(Time.class, PropertyView.Html, htmlDateTimeProperty);
@@ -34,4 +35,5 @@ public class Time extends DOMElement {
 	public boolean avoidWhitespace() {
 		return true;
 	}
+	*/
 }

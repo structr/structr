@@ -26,12 +26,10 @@ import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.search.AndPredicate;
 import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -51,12 +49,9 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		final List<AbstractHint> hints = new LinkedList<>();
 		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
-		for (final Entry<String, Class<? extends NodeInterface>> entry : StructrApp.getConfiguration().getNodeEntities().entrySet()) {
+		for (final String type : Traits.getAllTypes(t -> t.isNodeType())) {
 
-			final String name = entry.getKey();
-			final Class type  = entry.getValue();
-
-			hints.add(new TypeNameHint(quoteChar + name + quoteChar, type.getSimpleName()));
+			hints.add(new TypeNameHint(quoteChar + name + quoteChar, type));
 		}
 
 		return hints;
@@ -88,7 +83,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 			final Traits traits = query.getTraits();
 			if (traits != null) {
 
-				final PropertyKey<?> key = StructrApp.key(traits, sortKey);
+				final PropertyKey<?> key = traits.key(sortKey);
 				if (key != null) {
 
 					query.sort(key, contextStore.getSortDescending());
@@ -140,14 +135,14 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		return false;
 	}
 
-	protected Object handleQuerySources(final SecurityContext securityContext, final Traits type, final Query query, final Object[] sources, final boolean exact, final String errorMessage) throws FrameworkException {
+	protected Object handleQuerySources(final SecurityContext securityContext, final Traits traits, final Query query, final Object[] sources, final boolean exact, final String errorMessage) throws FrameworkException {
 
 		// extension for native javascript objects
 		if (sources.length == 2) {
 
 			if (sources[1] instanceof Map) {
 
-				handleObject(securityContext, type, query, sources[1], exact);
+				handleObject(securityContext, traits, query, sources[1], exact);
 
 			} else {
 
@@ -156,14 +151,14 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					throw new IllegalArgumentException();
 				}
 
-				if (!isAdvancedSearch(securityContext, type, null, sources[1], query, exact)) {
+				if (!isAdvancedSearch(securityContext, traits, null, sources[1], query, exact)) {
 
 					final String uuid = sources[1].toString();
 
 					if (Settings.isValidUuid(uuid)) {
 
 						// special case: second parameter is a UUID
-						final PropertyKey key = StructrApp.key(type, "id");
+						final PropertyKey key = traits.key("id");
 
 						query.and(key, sources[1].toString());
 
@@ -191,9 +186,9 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					throw new IllegalArgumentException();
 				}
 
-				if (!isAdvancedSearch(securityContext, type, null, sources[c], query, exact)) {
+				if (!isAdvancedSearch(securityContext, traits, null, sources[c], query, exact)) {
 
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					final PropertyKey key = traits.key(sources[c].toString());
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
@@ -206,7 +201,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 						Object value = sources[++c]; // increment c to
 
-						if (!isAdvancedSearch(securityContext, type, key, value, query, exact)) {
+						if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
 							if (inputConverter != null) {
 
@@ -225,7 +220,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 	}
 
 	// ----- private methods -----
-	private void handleObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
+	private void handleObject(final SecurityContext securityContext, final Traits traits, final Query query, final Object source, final boolean exact) throws FrameworkException {
 
 		if (source instanceof Map) {
 
@@ -241,23 +236,23 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					switch (operator) {
 
 						case "and":
-							handleAndObject(securityContext, type, query, value, exact);
+							handleAndObject(securityContext, traits, query, value, exact);
 							break;
 
 						case "or":
-							handleOrObject(securityContext, type, query, value, exact);
+							handleOrObject(securityContext, traits, query, value, exact);
 							break;
 
 						case "not":
-							handleNotObject(securityContext, type, query, value, exact);
+							handleNotObject(securityContext, traits, query, value, exact);
 							break;
 					}
 
 				} else {
 
-					final PropertyKey key = StructrApp.key(type, keyName);
+					final PropertyKey key = traits.key(keyName);
 
-					if (!isAdvancedSearch(securityContext, type, key, value, query, exact)) {
+					if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 						if (inputConverter != null) {

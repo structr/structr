@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import net.openhft.hashing.Access;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessControllable;
@@ -33,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -40,6 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -67,7 +68,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		AbstractNode obj   = getNode(webSocketData.getId());
+		NodeInterface obj  = getNode(webSocketData.getId());
 		boolean rec        = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
 		String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
 		String permissions = webSocketData.getNodeDataStringValue(PERMISSIONS_KEY);
@@ -131,7 +132,7 @@ public class SetPermissionCommand extends AbstractCommand {
 				}
 
 
-				setPermission(value, app, obj, principal, action, permissionSet, rec);
+				setPermission(value, app, obj.as(AccessControllable.class), principal, action, permissionSet, rec);
 
 				// commit and close transaction
 				final Tx tx = value.get(null);
@@ -146,7 +147,7 @@ public class SetPermissionCommand extends AbstractCommand {
 					value.set(null, null);
 				}
 
-				webSocketData.setResult(Arrays.asList(principal));
+				webSocketData.setResult(List.of(principal.getWrappedNode()));
 
 				// send only over local connection (no broadcast)
 				getWebSocket().send(webSocketData, true);

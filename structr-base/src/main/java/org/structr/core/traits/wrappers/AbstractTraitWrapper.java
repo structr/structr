@@ -56,6 +56,10 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 		wrappedObject.setProperty(traits.key("name"), name);
 	}
 
+	public Date getCreatedDate() {
+		return wrappedObject.getProperty(traits.key("createdDate"));
+	}
+
 	public Date getLastModifiedDate() {
 		return wrappedObject.getProperty(traits.key("lastModifiedDate"));
 	}
@@ -64,11 +68,11 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 		return wrappedObject;
 	}
 
-	public boolean visibleToPublicUsers() {
+	public boolean isVisibleToPublicUsers() {
 		return wrappedObject.getProperty(traits.key("visibleToPublicUsers"));
 	}
 
-	public boolean visibleToAuthenticatedUsers() {
+	public boolean isVisibleToAuthenticatedUsers() {
 		return wrappedObject.getProperty(traits.key("visibleToAuthenticatedUsers"));
 	}
 

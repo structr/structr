@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -42,7 +42,7 @@ public class DeleteRelationshipCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String nodeId                   = webSocketData.getNodeDataStringValueTrimmed("nodeId");
-		final AbstractRelationship obj        = getRelationship(webSocketData.getId(), nodeId);
+		final RelationshipInterface obj       = getRelationship(webSocketData.getId(), nodeId);
 
 		if (obj != null) {
 

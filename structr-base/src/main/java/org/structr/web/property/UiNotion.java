@@ -18,9 +18,8 @@
  */
 package org.structr.web.property;
 
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.traits.Traits;
 
 /**
  * Convenience wrapper for (id, name) tuple.
@@ -30,6 +29,6 @@ import org.structr.core.notion.PropertySetNotion;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(GraphObject.id, AbstractNode.name);
+		super(Traits.idProperty(), Traits.nameProperty());
 	}
 }

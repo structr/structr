@@ -32,6 +32,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +51,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	protected PropertyKey[] propertyKeys        = null;
 	protected boolean createIfNotExisting       = false;
 
-	public TypeAndPropertySetDeserializationStrategy(PropertyKey... propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(final PropertyKey... propertyKeys) {
 		this(false, propertyKeys);
 	}
 
@@ -64,12 +66,12 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty<S> relationProperty) {
+	public void setRelationProperty(RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source, final Object context) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		if (source instanceof Map) {
 
@@ -77,11 +79,11 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			return deserialize(securityContext, type, attributes);
 		}
 
-		if (source != null && type.isAssignableFrom(source.getClass())) {
+		if (source instanceof NodeInterface) {
 			return (T) source;
 		}
 
-		if (source != null && source instanceof String && Settings.isValidUuid((String) source)) {
+		if (source instanceof String && Settings.isValidUuid((String) source)) {
 
 			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById((String) source), type);
 
@@ -90,7 +92,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		return null;
 	}
 
-	private T deserialize(final SecurityContext securityContext, Class<T> type, final PropertyMap attributes) throws FrameworkException {
+	private T deserialize(final SecurityContext securityContext, String type, final PropertyMap attributes) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -99,9 +101,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			final List<T> result = new LinkedList<>();
 
 			// Check if properties contain the UUID attribute
-			if (attributes.containsKey(GraphObject.id)) {
+			if (attributes.containsKey(Traits.idProperty())) {
 
-				result.add((T)app.getNodeById(attributes.get(GraphObject.id)));
+				result.add((T)app.getNodeById(attributes.get(Traits.idProperty())));
 
 			} else {
 
@@ -126,7 +128,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						}
 					}
 
-					result.addAll(app.nodeQuery(type).and(searchAttributes).getAsList());
+					for (final NodeInterface n : app.nodeQuery(type).and(searchAttributes).getResultStream()) {
+						result.add((T)n);
+					}
 
 				}
 			}
@@ -141,10 +145,10 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 					if (createIfNotExisting) {
 
 						// create node and return it
-						T newNode = app.create(type, attributes);
+						NodeInterface newNode = app.create(type, attributes);
 						if (newNode != null) {
 
-							return newNode;
+							return (T)newNode;
 						}
 					}
 
@@ -167,21 +171,21 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
 					logger.error(errorMessage +
-						". This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
+						". This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type, size);
 
 					break;
 			}
 
-			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
+			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type, null, attributes));
 		}
 
 		return null;
 	}
 
-	private T getTypedResult(final T obj, Class<T> type) throws FrameworkException {
+	private T getTypedResult(final T obj, String type) throws FrameworkException {
 
-		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+		if (!obj.getTraits().contains(type)) {
+			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 		}
 
 		return obj;

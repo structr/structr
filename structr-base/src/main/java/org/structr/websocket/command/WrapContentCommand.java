@@ -18,12 +18,12 @@
  */
 package org.structr.websocket.command;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 /**
  * Wrap a content node in a new DOM element
@@ -66,13 +66,13 @@ public class WrapContentCommand extends AbstractCommand {
 				return;
 			}
 
-			final Document document = getPage(pageId);
+			final Page document = getPage(pageId);
 			if (document != null) {
 
 				final String tagName  = webSocketData.getNodeDataStringValue("tagName");
 				webSocketData.getNodeData().remove("tagName");
 
-				final DOMNode parentNode = (DOMNode) contentNode.getParentNode();
+				final DOMNode parentNode = contentNode.getParent();
 
 
 				try {
@@ -80,7 +80,7 @@ public class WrapContentCommand extends AbstractCommand {
 					DOMNode elementNode = null;
 					if (tagName != null && !tagName.isEmpty()) {
 
-						elementNode = (DOMNode) document.createElement(tagName);
+						elementNode = document.createElement(tagName);
 
 					}
 
@@ -99,7 +99,7 @@ public class WrapContentCommand extends AbstractCommand {
 
 					}
 
-				} catch (DOMException dex) {
+				} catch (FrameworkException dex) {
 
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);

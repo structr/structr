@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Slot extends DOMElement {
+public interface Slot extends DOMElement {
 
+	/*
 	public static final Property<String> htmlNameProperty = new StringProperty("_html_name").partOfBuiltInSchema();
 
 	public static final View htmlView = new View(Slot.class, PropertyView.Html, htmlNameProperty);
@@ -35,4 +36,6 @@ public class Slot extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

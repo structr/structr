@@ -21,6 +21,7 @@ package org.structr.schema.parser;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -65,7 +66,7 @@ public class StringArrayPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
 		if ("[]".equals(expression)) {
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));

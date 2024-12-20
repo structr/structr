@@ -18,14 +18,11 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 public interface Button extends DOMElement {
 
+	/*
 	public static final Property<String> htmlAutofocusProperty      = new StringProperty("_html_autofocus");
 	public static final Property<String> htmlDisabledProperty       = new StringProperty("_html_disabled");
 	public static final Property<String> htmlFormProperty           = new StringProperty("_html_form");
@@ -41,4 +38,5 @@ public interface Button extends DOMElement {
 		htmlAutofocusProperty, htmlDisabledProperty, htmlFormProperty, htmlFormActionProperty, htmlFormEnctypeProperty, htmlFormMethodProperty, htmlFormNoValidateProperty,
 		htmlFormTargetProperty, htmlTypeProperty, htmlValueProperty
 	);
+	*/
 }

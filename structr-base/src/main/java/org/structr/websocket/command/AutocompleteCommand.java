@@ -69,7 +69,7 @@ public class AutocompleteCommand extends AbstractCommand {
 
 			try {
 
-				final List<GraphObject> hints = AbstractHintProvider.getHints(new ActionContext(securityContext), isAutoscriptEnv, StructrApp.getInstance().get(AbstractNode.class, id), before, after, line, cursorPosition);
+				final List<GraphObject> hints = AbstractHintProvider.getHints(new ActionContext(securityContext), isAutoscriptEnv, StructrApp.getInstance().get("NodeInterface", id), before, after, line, cursorPosition);
 				result.addAll(hints);
 
 			} catch(FrameworkException fex) {

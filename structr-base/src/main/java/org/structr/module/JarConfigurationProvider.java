@@ -27,8 +27,6 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.Transformation;
-import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.web.common.UiModule;
 
@@ -72,7 +70,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final String testClassesDir                                                            = fileSep.concat("test-classes");
 	private final String classesDir                                                                = fileSep.concat("classes");
 
-	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap            = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, Method>> exportedMethodMap                               = new ConcurrentHashMap<>(100);
 
 	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
@@ -432,9 +429,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					modules.add(jarPath);
 				}
-
 			}
-
 		}
 
 		for (final String resource : Services.getInstance().getResources()) {
@@ -445,16 +440,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				modules.add(resource);
 			}
-
 		}
 
 		return modules;
-	}
-
-	public void printCacheStats() {
-
-		logger.info("{}", globalTransformationMap.size());
-		logger.info("{}", exportedMethodMap.size());
-		logger.info("{}", dynamicViews.size());
 	}
 }

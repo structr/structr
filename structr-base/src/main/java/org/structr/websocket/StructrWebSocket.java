@@ -423,9 +423,9 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	// ----- file handling -----
-	public void createFileUploadHandler(File file) {
+	public void createFileUploadHandler(final File file) {
 
-		final String uuid = file.getProperty(GraphObject.id);
+		final String uuid = file.getUuid();
 
 		uploads.put(uuid, new FileUploadHandler(file, securityContext, true));
 	}

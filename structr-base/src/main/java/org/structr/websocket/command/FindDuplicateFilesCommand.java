@@ -26,8 +26,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -54,27 +57,24 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final PropertyKey<String> path        = StructrApp.key(AbstractFile.class, "path");
+		final PropertyKey<String> path        = Traits.of("AbstractFile").key("path");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final Query query                     = StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").sort(path);
+		final Query<NodeInterface> query      = StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").sort(path);
 
 		try {
 
 			AbstractFile lastFile = null;
-			String lastFilepath = null;
-			boolean lastWasDupe = false;
-			final ArrayList<GraphObject> filesWithSamePath = new ArrayList<>();
+			String lastFilepath   = null;
+			boolean lastWasDupe   = false;
 
-			final Iterator it = query.getAsList().iterator();
+			final ArrayList<NodeInterface> filesWithSamePath = new ArrayList<>();
 
-			while (it.hasNext()) {
-
-				final AbstractNode node = (AbstractNode)it.next();
+			for (final NodeInterface node : query.getResultStream()) {
 
 				try {
 
-					final AbstractFile file = (AbstractFile)node;
-					final String currentFilepath = file.getProperty(path);
+					final File file              = node.as(File.class);
+					final String currentFilepath = file.getPath();
 
 					// skip the first file as we can not compare it to the previous one
 					if (lastFile != null) {
@@ -82,10 +82,12 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 						if (currentFilepath.equals(lastFilepath)) {
 
 							if (!lastWasDupe) {
+
 								// if this is the first duplicate found we need to add both files
-								filesWithSamePath.add(lastFile);
+								filesWithSamePath.add(lastFile.getWrappedNode());
 							}
-							filesWithSamePath.add(file);
+
+							filesWithSamePath.add(file.getWrappedNode());
 							lastWasDupe = true;
 
 						} else {

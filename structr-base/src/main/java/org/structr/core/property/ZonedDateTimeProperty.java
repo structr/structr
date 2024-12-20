@@ -51,8 +51,8 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 	}
 
 	@Override
-	public String valueType() {
-		return "ZonedDateTime";
+	public Class valueType() {
+		return ZonedDateTime.class;
 	}
 
 	@Override
@@ -91,6 +91,11 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

@@ -50,8 +50,8 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	}
 
 	@Override
-	public String valueType() {
-		return "Long";
+	public Class valueType() {
+		return Long.class;
 	}
 
 	@Override
@@ -85,6 +85,11 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

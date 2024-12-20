@@ -34,8 +34,6 @@ import org.structr.schema.NonIndexed;
  */
 public interface RelationshipInterface extends GraphObject, NonIndexed {
 
-	<T extends RelationshipTrait> T as(final Class<T> type);
-
 	NodeInterface getSourceNode();
 	NodeInterface getTargetNode();
 	NodeInterface getSourceNodeAsSuperUser();

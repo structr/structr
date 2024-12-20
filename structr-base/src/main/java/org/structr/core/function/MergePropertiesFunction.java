@@ -59,8 +59,8 @@ public class MergePropertiesFunction extends CoreFunction {
 
 				for (int i = 2; i < paramCount; i++) {
 
-					final String keyName = sources[i].toString();
-					final PropertyKey key = StructrApp.key(target.getClass(), keyName);
+					final String keyName  = sources[i].toString();
+					final PropertyKey key = target.getTraits().key(keyName);
 
 					mergeKeys.add(key);
 				}

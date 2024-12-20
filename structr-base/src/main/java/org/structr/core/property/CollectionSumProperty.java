@@ -56,7 +56,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	}
 
 	@Override
-	public String valueType() {
+	public Class valueType() {
 		return valueKey.valueType();
 	}
 
@@ -122,6 +122,11 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

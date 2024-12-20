@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
-	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
 	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
 
@@ -65,9 +65,10 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore store");
 
-			final Traits sessionTraits      = Traits.of("SessionDataNode");
-			final String[] value            = new String[] { id };
-			final NodeInterface user        = app.nodeQuery("Principal").and("sessionIds", value).disableSorting().getFirst();
+			final Traits sessionTraits   = Traits.of("SessionDataNode");
+			final Traits principalTraits = Traits.of("Principal");
+			final String[] value         = new String[] { id };
+			final NodeInterface user     = app.nodeQuery("Principal").and(principalTraits.key("sessionIds"), value).disableSorting().getFirst();
 
 			if (user != null) {
 
@@ -76,9 +77,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 					final PropertyMap properties = new PropertyMap();
 
-					properties.put("lastAccessed", new Date(data.getLastAccessed()));
-					properties.put("contextPath",  data.getContextPath());
-					properties.put("vhost",        data.getVhost());
+					properties.put(sessionTraits.key("lastAccessed"), new Date(data.getLastAccessed()));
+					properties.put(sessionTraits.key("contextPath"),  data.getContextPath());
+					properties.put(sessionTraits.key("vhost"),        data.getVhost());
 
 					node.setProperties(ctx, properties);
 				}
@@ -116,7 +117,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore exists");
 
-			final NodeInterface node = app.nodeQuery("SessionDataNode").and("sessionId", id).getFirst();
+			final NodeInterface node = app.nodeQuery("SessionDataNode").and(Traits.of("SessionDataNode").key("sessionId"), id).getFirst();
 
 			tx.success();
 
@@ -146,13 +147,14 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore load");
 
-			final NodeInterface node = app.nodeQuery("SessionDataNode").and("sessionId", id).getFirst();
+			final Traits traits      = Traits.of("SessionDataNode");
+			final NodeInterface node = app.nodeQuery("SessionDataNode").and(traits.key("sessionId"), id).getFirst();
 			if (node != null) {
 
 				result = new SessionData(
 						id,
-						node.getProperty("contextPath"),
-						node.getProperty("vhost"),
+						node.getProperty(traits.key("contextPath")),
+						node.getProperty(traits.key("vhost")),
 						node.getCreatedDate().getTime(),
 						node.getLastModifiedDate().getTime(),
 						node.getLastModifiedDate().getTime(),
@@ -180,14 +182,15 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		final App app = StructrApp.getInstance();
+		final Traits traits = Traits.of("SessionDataNode");
+		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			tx.prefetchHint("StructrSessionDataStore delete");
 
 			// delete nodes
-			for (final NodeInterface node : app.nodeQuery("SessionDataNode").and("sessionId", id).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("SessionDataNode").and(traits.key("sessionId"), id).getAsList()) {
 
 				app.delete(node);
 			}
@@ -211,7 +214,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
-		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
+
+		final Date timeoutDate = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
 
@@ -224,15 +228,16 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			}
 		}
 
-		final App app = StructrApp.getInstance();
+		final Traits traits = Traits.of("SessionDataNode");
+		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			tx.prefetchHint("StructrSessionDataStore doCheckExpired");
 
-			for (final NodeInterface node : app.nodeQuery("SessionDataNode").andRange("lastAccessed", new Date(0), timeoutDate).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("SessionDataNode").andRange(traits.key("lastAccessed"), new Date(0), timeoutDate).getAsList()) {
 
-				candidates.add(node.getProperty("sessionId"));
+				candidates.add(node.getProperty(traits.key("sessionId")));
 			}
 
 			tx.success();
@@ -262,15 +267,16 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			}
 		}
 
-		final App app = StructrApp.getInstance();
+		final Traits traits = Traits.of("SessionDataNode");
+		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			tx.prefetchHint("StructrSessionDataStore doGetExpired");
 
-			for (final NodeInterface node : app.nodeQuery("SessionDataNode").andRange("lastAccessed", new Date(0), timeoutDate).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("SessionDataNode").andRange(traits.key("lastAccessed"), new Date(0), timeoutDate).getAsList()) {
 
-				candidates.add(node.getProperty("sessionId"));
+				candidates.add(node.getProperty(traits.key("sessionId")));
 			}
 
 			tx.success();
@@ -314,10 +320,10 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private NodeInterface getOrCreateSessionDataNode(final App app, final Traits traits, final String id) throws FrameworkException {
 
-		NodeInterface node = app.nodeQuery("SessionDataNode").and("sessionId", id).getFirst();
+		NodeInterface node = app.nodeQuery("SessionDataNode").and(traits.key("sessionId"), id).getFirst();
 		if (node == null) {
 
-			node= app.create("SessionDataNode", new NodeAttribute<>("sessionId", id));
+			node= app.create("SessionDataNode", new NodeAttribute<>(traits.key("sessionId"), id));
 		}
 
 		return node;

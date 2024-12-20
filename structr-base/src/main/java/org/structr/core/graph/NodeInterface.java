@@ -31,16 +31,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
-
-	<T extends NodeTrait> T as(final Class<T> type);
-	boolean is(final String type);
 
 	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);

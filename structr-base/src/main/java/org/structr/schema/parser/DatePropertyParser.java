@@ -21,6 +21,8 @@ package org.structr.schema.parser;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.DateProperty;
 import org.structr.schema.SchemaHelper.Type;
@@ -70,7 +72,7 @@ public class DatePropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
 		if (expression != null && !expression.isEmpty()) {
 

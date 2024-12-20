@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Meta extends DOMElement {
+public interface Meta extends DOMElement {
 
+	/*
 	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name").partOfBuiltInSchema();
 	public static final Property<String> htmlHttpEquivProperty = new StringProperty("_html_http-equiv").partOfBuiltInSchema();
 	public static final Property<String> htmlContentProperty   = new StringProperty("_html_content").partOfBuiltInSchema();
@@ -45,4 +46,5 @@ public class Meta extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+	*/
 }

@@ -80,7 +80,7 @@ public abstract class RESTEndpoint {
 		return pattern.matcher(path);
 	}
 
-	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView, final Class userType) {
+	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView, final String userType) {
 
 		final RESTCall call = new RESTCall(matcher.group(), viewName, isDefaultView, userType);
 		int group           = 1;

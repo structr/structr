@@ -18,15 +18,12 @@
  */
 package org.structr.core.property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.CryptFunction;
-import org.structr.core.graph.NodeInterface;
 
 /**
  * A {@link StringProperty} that stores an encrypted string.

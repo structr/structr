@@ -43,11 +43,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to respond to a GraphQL request
- *
+ * Websocket command to respond to a GraphQL request.
  */
 public class GraphQLCommand extends AbstractCommand {
 
@@ -56,14 +53,12 @@ public class GraphQLCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(GraphQLCommand.class);
-
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final StructrWebSocket socket          = getWebSocket();
-		
 		final SecurityContext securityContext  = socket.getSecurityContext();
 		final List<GraphObject> result         = new LinkedList<>();
 		final String query                     = webSocketData.getNodeDataStringValue("query");

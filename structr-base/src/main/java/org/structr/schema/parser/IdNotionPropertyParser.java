@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
@@ -82,7 +83,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, NodeInterface> schemaNodes, final NodeInterface node, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
 		if (StringUtils.isBlank(expression)) {
 
@@ -95,10 +96,9 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 
 		if (parts.length > 0) {
 
-			final SchemaRelationshipNode entity = node.as(SchemaRelationshipNode.class);
 			boolean isBuiltinProperty           = false;
 			baseProperty                        = parts[0];
-			multiplicity                        = entity.getMultiplicity(schemaNodes, baseProperty);
+			multiplicity                        = entity.as(SchemaRelationshipNode.class).getMultiplicity(schemaNodes, baseProperty);
 
 			if (multiplicity != null) {
 

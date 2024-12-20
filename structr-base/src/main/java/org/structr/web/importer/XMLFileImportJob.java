@@ -130,7 +130,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 						while (iterator.hasNext() && ++count <= batchSize) {
 
-							app.create(AbstractNode.class, PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
+							app.create("NodeInterface", PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
 							overallCount++;
 						}
 

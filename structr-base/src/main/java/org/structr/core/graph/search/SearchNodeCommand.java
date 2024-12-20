@@ -39,9 +39,6 @@ import org.structr.core.graph.NodeInterface;
  *    <p>if no TextualSearchAttribute is given, return any node matching the other
  *       search criteria
  * </ol>
- *
- *
- * @param <T>
  */
 public class SearchNodeCommand extends SearchCommand<Node, NodeInterface> {
 

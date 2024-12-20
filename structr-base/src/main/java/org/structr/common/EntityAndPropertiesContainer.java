@@ -77,11 +77,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public <T extends NodeTrait> T as(Class<T> type) {
-		return null;
-	}
-
-	@Override
 	public boolean is(final String type) {
 		return false;
 	}
@@ -227,6 +222,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public <T> T as(final Class<T> type) {
+		return null;
+	}
+
+	@Override
 	public String getType() {
 		return entity.getType();
 	}
@@ -287,11 +287,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation) {
-		return false;
-	}
-
-	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		return false;
 	}
@@ -339,6 +334,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public void lockReadOnlyProperties() {
 
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
 	}
 
 	@Override

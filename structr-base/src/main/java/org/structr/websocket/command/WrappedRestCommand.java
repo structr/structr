@@ -80,7 +80,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, "User"));
 
 		} catch (IllegalPathException | NotFoundException e) {
 

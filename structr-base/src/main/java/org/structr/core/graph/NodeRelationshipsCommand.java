@@ -40,8 +40,6 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipsCommand.class.getName());
 
-	//~--- methods --------------------------------------------------------
-
 	/**
 	 * Fetch relationships for the given source node.
 	 *

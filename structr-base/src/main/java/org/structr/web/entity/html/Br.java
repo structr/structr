@@ -22,8 +22,10 @@ import org.structr.web.entity.dom.DOMElement;
 
 public interface Br extends DOMElement {
 
+	/*
 	@Override
 	public boolean isVoidElement() {
 		return true;
 	}
+	*/
 }

@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Input extends DOMElement {
+public interface Input extends DOMElement {
 
+	/*
 	public static final Property<String> _accept         = new HtmlProperty("accept").partOfBuiltInSchema();
 	public static final Property<String> _alt            = new HtmlProperty("alt").partOfBuiltInSchema();
 	public static final Property<String> _autocomplete   = new HtmlProperty("autocomplete").partOfBuiltInSchema();
@@ -74,4 +75,6 @@ public class Input extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

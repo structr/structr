@@ -34,6 +34,7 @@ import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -79,6 +80,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	private T deserialize(final SecurityContext securityContext, final String type, final PropertyMap attributes, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
+		final PropertyKey<String> idProperty = Traits.idProperty();
 
 		if (attributes != null) {
 
@@ -102,9 +104,9 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 			final String sourceTypeName   = (String)((Map)context).get("name");
 
 			// Check if properties contain the UUID attribute
-			if (attributes.containsKey(GraphObject.id)) {
+			if (attributes.containsKey(idProperty)) {
 
-				result.add((T)app.getNodeById(attributes.get(GraphObject.id)));
+				result.add((T)app.getNodeById(attributes.get(idProperty)));
 
 			} else {
 
@@ -127,7 +129,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 						identifyingKeyValues.put(key, attributes.get(key));
 					}
 
-					result.addAll(app.nodeQuery(type).and(identifyingKeyValues).getAsList());
+					result.addAll((List)app.nodeQuery(type).and(identifyingKeyValues).getAsList());
 
 				}
 			}
@@ -150,7 +152,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 					if (createIfNotExisting) {
 
 						// create node and return it
-						T newNode = app.create(type, attributes);
+						T newNode = (T)app.create(type, attributes);
 						if (newNode != null) {
 
 							notionPropertyMap.put(getStorageKey(relationProperty, newNode, sourceTypeName), foreignProperties);
@@ -179,21 +181,21 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
 					logger.error("Found {} nodes for given type and properties, property set is ambiguous!\n"
-						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
+						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type, size);
 
 					break;
 			}
 
-			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), AbstractNode.base.jsonName(), attributes));
+			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type, "base", attributes));
 		}
 
 		return null;
 	}
 
-	private T getTypedResult(final T obj, Class<T> type) throws FrameworkException {
+	private T getTypedResult(final T obj, final String type) throws FrameworkException {
 
-		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+		if (!obj.getTraits().contains(type)) {
+			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 		}
 
 		return obj;

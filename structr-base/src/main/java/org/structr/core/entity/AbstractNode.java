@@ -68,11 +68,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public <T extends NodeTrait> T as(final Class<T> type) {
-		return typeHandler.as(type, this);
-	}
-
-	@Override
 	public boolean is(final String type) {
 		return typeHandler.contains(type);
 	}
@@ -145,7 +140,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	 * If name is null, return node id as fallback
 	 */
 	@Override
-	public final String getName() {
+	public String getName() {
 
 		String _name = getProperty(typeHandler.key("name"));
 		if (_name == null) {
@@ -183,7 +178,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public final Node getNode() {
+	public Node getNode() {
 		return (Node) getPropertyContainer();
 	}
 
@@ -208,32 +203,32 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public final Iterable<RelationshipInterface> getRelationships(final String type) {
+	public Iterable<RelationshipInterface> getRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getRelationships(this, type);
 	}
 
 	@Override
-	public final RelationshipInterface getIncomingRelationship(final String type) {
+	public RelationshipInterface getIncomingRelationship(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationship(this, type);
 	}
 
 	@Override
-	public final RelationshipInterface getIncomingRelationshipAsSuperUser(final String type) {
+	public RelationshipInterface getIncomingRelationshipAsSuperUser(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipAsSuperUser(this, type);
 	}
 
 	@Override
-	public final Iterable<RelationshipInterface> getIncomingRelationships(final String type) {
+	public Iterable<RelationshipInterface> getIncomingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationships(this, type);
 	}
 
 	@Override
-	public final RelationshipInterface getOutgoingRelationship(final String type) {
+	public RelationshipInterface getOutgoingRelationship(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationship(this, type);
 	}
 
 	@Override
-	public final Iterable<RelationshipInterface> getOutgoingRelationships(final String type) {
+	public Iterable<RelationshipInterface> getOutgoingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationships(this, type);
 	}
 
@@ -258,7 +253,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public final Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<GraphObject> predicate) {
+	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<GraphObject> predicate) {
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipsAsSuperUser(this, type, predicate);
 	}
 
@@ -267,46 +262,21 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationshipAsSuperUser(this, type);
 	}
 
-	public final boolean hasRelationship(final String type) {
+	public boolean hasRelationship(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).hasRelationship(this, type);
 	}
 
 	@Override
-	public final boolean hasIncomingRelationships(final String type) {
+	public boolean hasIncomingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).hasIncomingRelationships(this, type);
 	}
 
 	@Override
-	public final boolean hasOutgoingRelationships(final String type) {
+	public boolean hasOutgoingRelationships(final String type) {
 		return typeHandler.getMethod(GetRelationships.class).hasOutgoingRelationships(this, type);
 	}
 
-	@Override
-	public boolean isVisibleToPublicUsers() {
-		return getVisibleToPublicUsers();
-	}
-
-	@Override
-	public boolean isVisibleToAuthenticatedUsers() {
-		return getVisibleToAuthenticatedUsers();
-	}
-
-	@Override
-	public final boolean isHidden() {
-		return getHidden();
-	}
-
-	@Override
-	public final Date getCreatedDate() {
-		return getProperty(typeHandler.key("createdDate"));
-	}
-
-	@Override
-	public final Date getLastModifiedDate() {
-		return getProperty(typeHandler.key("lastModifiedDate"));
-	}
-
-	public final Object getPath(final SecurityContext currentSecurityContext) {
+	public Object getPath(final SecurityContext currentSecurityContext) {
 
 		if (rawPathSegmentId != null) {
 
@@ -366,7 +336,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public final void setRawPathSegmentId(final Identity rawPathSegmentId) {
+	public void setRawPathSegmentId(final Identity rawPathSegmentId) {
 		this.rawPathSegmentId = rawPathSegmentId;
 	}
 
@@ -382,12 +352,12 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public final NodeInterface getSyncNode() {
+	public NodeInterface getSyncNode() {
 		return this;
 	}
 
 	@Override
-	public final RelationshipInterface getSyncRelationship() {
+	public RelationshipInterface getSyncRelationship() {
 		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.RelationshipInterface");
 	}
 

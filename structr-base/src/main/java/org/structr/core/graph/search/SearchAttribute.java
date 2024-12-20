@@ -124,7 +124,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	}
 
 	@Override
-	public String getType() {
+	public Class getType() {
 
 		final PropertyKey key = getKey();
 		if (key != null) {

@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final List<AbstractRelationship> list = new ArrayList<>();
+		final List<RelationshipInterface> list = new ArrayList<>();
 
 		try {
 
@@ -71,7 +72,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 			if (sources.length == 2) {
 
-				for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -88,7 +89,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 				// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 				final String relType = (String)sources[2];
 
-				for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();

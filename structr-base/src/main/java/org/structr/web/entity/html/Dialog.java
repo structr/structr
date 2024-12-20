@@ -24,9 +24,11 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Dialog extends DOMElement {
+public interface Dialog extends DOMElement {
 
+	/*
 	public static final Property<String> htmlOpenProperty = new StringProperty("_html_open").partOfBuiltInSchema();
 
 	public static final View htmlView = new View(Dialog.class, PropertyView.Html, htmlOpenProperty);
+	*/
 }

@@ -21,6 +21,7 @@ package org.structr.files.ssh.filesystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -65,7 +66,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal fileOwner = file.getOwnerNode();
+			final Principal fileOwner = file.as(AccessControllable.class).getOwnerNode();
 			if (fileOwner == null) {
 
 				owner = securityContext.getUser(false)::getName;
@@ -92,7 +93,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal owner = file.getOwnerNode();
+			final Principal owner = file.as(AccessControllable.class).getOwnerNode();
 			if (owner != null) {
 
 				groups.addAll(Iterables.toList(owner.getGroups()));
@@ -426,8 +427,8 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			file.setProperty(AbstractNode.visibleToAuthenticatedUsers, perms.contains(PosixFilePermission.GROUP_READ));
-			file.setProperty(AbstractNode.visibleToPublicUsers,        perms.contains(PosixFilePermission.OTHERS_READ));
+			file.setVisibleToAuthenticatedUsers(perms.contains(PosixFilePermission.GROUP_READ));
+			file.setVisibleToPublicUsers(perms.contains(PosixFilePermission.OTHERS_READ));
 
 			tx.success();
 
