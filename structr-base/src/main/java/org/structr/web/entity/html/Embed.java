@@ -23,8 +23,9 @@ import org.structr.common.PropertyView;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Embed extends DOMElement {
+public interface Embed extends DOMElement {
 
+	/*
 	public static final Property<String> _src		= new HtmlProperty("src").partOfBuiltInSchema();
 	public static final Property<String> _type		= new HtmlProperty("type").partOfBuiltInSchema();
 	public static final Property<String> _width		= new HtmlProperty("width").partOfBuiltInSchema();
@@ -38,4 +39,5 @@ public class Embed extends DOMElement {
 	public boolean isVoidElement() {
 		return true;
 	}
+	*/
 }

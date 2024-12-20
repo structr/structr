@@ -59,7 +59,7 @@ public class PingCommand extends AbstractCommand {
 
 			getWebSocket().send(MessageBuilder.status()
 				.callback(webSocketData.getCallback())
-				.data("username", currentUser.getProperty(AbstractNode.name))
+				.data("username", currentUser.getName())
 				.data("isAdmin", currentUser.isAdmin())
 				.code(100).build(), true);
 

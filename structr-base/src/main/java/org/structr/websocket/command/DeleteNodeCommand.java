@@ -94,17 +94,17 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj instanceof DOMNode) {
+				if (obj.is("DOMNode")) {
 
-					DOMNode node = (DOMNode) obj;
+					DOMNode node = obj.as(DOMNode.class);
 
-					filteredResults.addAll(DOMNode.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 
-				} else if (obj instanceof Folder) {
+				} else if (obj.is("Folder")) {
 
-					Folder node = (Folder) obj;
+					Folder node = obj.as(Folder.class);
 
-					filteredResults.addAll(Folder.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 				}
 
 				for (NodeInterface node : filteredResults) {

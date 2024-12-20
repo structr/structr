@@ -53,8 +53,8 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
-	public String valueType() {
-		return "Long";
+	public Class valueType() {
+		return Long.class;
 	}
 
 	@Override
@@ -151,6 +151,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

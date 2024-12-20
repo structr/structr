@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -36,7 +37,7 @@ public class AppendChildCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
@@ -58,18 +59,16 @@ public class AppendChildCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		final AbstractNode parentNode = getNode(parentId);
-
+		final NodeInterface parentNode = getNode(parentId);
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 			return;
 		}
 
-		if (parentNode instanceof DOMNode) {
+		if (parentNode.is("DOMNode")) {
 
 			final DOMNode parentDOMNode = getDOMNode(parentId);
-
 			if (parentDOMNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
@@ -83,7 +82,7 @@ public class AppendChildCommand extends AbstractCommand {
 
 				try {
 
-					if (!(parentDOMNode instanceof Page)) {
+					if (!(parentDOMNode.is("Page"))) {
 
 						final boolean isShadowPage = (parentDOMNode.getOwnerDocument() != null && parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument()));
 						final boolean isTemplate   = (parentDOMNode instanceof Template);
@@ -111,7 +110,7 @@ public class AppendChildCommand extends AbstractCommand {
 				}
 			}
 
-			TransactionCommand.registerNodeCallback(node, callback);
+			TransactionCommand.registerNodeCallback(node.getWrappedNode(), callback);
 
 		} else {
 

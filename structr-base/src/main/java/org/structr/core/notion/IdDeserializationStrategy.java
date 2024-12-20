@@ -25,82 +25,78 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
- *
- *
  */
 public class IdDeserializationStrategy<S, T extends NodeInterface> extends DeserializationStrategy<S, T> {
 
-	protected RelationProperty<S> relationProperty = null;
+	protected RelationProperty relationProperty = null;
 
 	public IdDeserializationStrategy() {
 	}
 
 	@Override
-	public void setRelationProperty(final RelationProperty<S> parentProperty) {
+	public void setRelationProperty(final RelationProperty parentProperty) {
 		this.relationProperty = parentProperty;
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source, final Object context) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
+		final PropertyKey<String> idProperty = Traits.idProperty();
 
 		if (source != null) {
 
 			if (source instanceof Map) {
 
 				final Map<String, Object> properties = (Map<String, Object>) source;
-				Class<T> actualType                  = type;
+				Traits actualType                    = Traits.of(type);
 				T relatedNode                        = null;
 
-				if (properties.containsKey(NodeInterface.id.jsonName())) {
+				if (properties.containsKey("id")) {
 
 					// fetch node by ID
-					relatedNode = (T) app.getNodeById(properties.get(NodeInterface.id.jsonName()).toString());
+					relatedNode = (T) app.getNodeById(properties.get("id").toString());
 					if (relatedNode != null) {
 
 						// fetch type from actual node
-						actualType = (Class)relatedNode.getClass();
+						actualType = relatedNode.getTraits();
 					}
 
-				} else if (properties.containsKey(NodeInterface.type.jsonName())) {
+				} else if (properties.containsKey("type")) {
 
-					final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
-					actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+					final String typeFromInput = properties.get("type").toString();
+					final Traits traits        = Traits.of(typeFromInput);
 
-					// reset type on failed check
-					if (actualType == null) {
-						actualType = type;
+					if (traits != null) {
+
+						actualType = traits;
 					}
 				}
 
-				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType, properties);
-				final Set<PropertyKey> allProperties   = StructrApp.getConfiguration().getPropertySet(type, "all");
+				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType.getName(), properties);
+				final Set<PropertyKey> allProperties   = actualType.getAllPropertyKeys();
 				final Map<String, Object> foreignProps = new HashMap<>();
 
 				// If property map contains the uuid, search only for uuid
-				if (convertedProperties.containsKey(GraphObject.id)) {
+				if (convertedProperties.containsKey(Traits.idProperty())) {
 
 					// related node is already found
 					if (relatedNode != null) {
 
-						if ( !SearchCommand.isTypeAssignableFromOtherType(type, relatedNode.getClass()) ) {
-							throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+						if ( !SearchCommand.isTypeAssignableFromOtherType(actualType, relatedNode.getTraits()) ) {
+							throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 						}
 
 						for (final PropertyKey key : convertedProperties.keySet()) {
@@ -113,7 +109,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 						}
 
 						// node found, remove UUID
-						convertedProperties.remove(GraphObject.id);
+						convertedProperties.remove(idProperty);
 					}
 
 				} else {
@@ -137,7 +133,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					//  (this is quite similar to the Cypher MERGE command),
 					if (!uniqueKeyValues.isEmpty()) {
 
-						final List<T> possibleResults = app.nodeQuery(type).and(uniqueKeyValues).getAsList();
+						final List<T> possibleResults = convert(app.nodeQuery(type).and(uniqueKeyValues).getResultStream());
 						final int num                 = possibleResults.size();
 
 						switch (num) {
@@ -154,7 +150,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 								// more than one => not unique??
 								throw new FrameworkException(422, concat(
 									"Unable to resolve related node of type ",
-									type.getSimpleName(),
+									type,
 									", ambiguous result: found ",
 									num,
 									" nodes for the given property set."
@@ -177,13 +173,13 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 						if (relationProperty.doAutocreate()) {
 
-							return app.create(type, convertedProperties);
+							return (T)app.create(type, convertedProperties);
 
 						} else {
 
 							throw new FrameworkException(422, concat(
-								"Cannot create ", relation.getOtherType(type).getSimpleName(),
-								": no matching ", type.getSimpleName(),
+								"Cannot create ", relation.getOtherType(type),
+								": no matching ", type,
 								" found for the given property set ",
 								convertedProperties,
 								" and autoCreate has a value of ",
@@ -196,7 +192,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					// FIXME: when can the relationProperty be null at all?
 					throw new FrameworkException(500, concat(
 						"Unable to resolve related node of type ",
-						type.getSimpleName(),
+						type,
 						", no relation defined."
 					));
 
@@ -251,7 +247,18 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 		return buf.toString();
 	}
 
-	private boolean isIdentifying(final Class actualType, final PropertyKey key) {
-		return (Principal.class.isAssignableFrom(actualType) && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
+	private boolean isIdentifying(final Traits actualType, final PropertyKey key) {
+		return (actualType.contains("Principal") && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
+	}
+
+	private List<T> convert(final Iterable<NodeInterface> iterable) {
+
+		final List<T> list = new LinkedList<>();
+
+		for (final NodeInterface n : iterable) {
+			list.add((T)n);
+		}
+
+		return list;
 	}
 }

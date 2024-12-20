@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Ol extends DOMElement {
+public interface Ol extends DOMElement {
 
+	/*
 	public static final Property<String> htmlReversedProperty = new StringProperty("_html_reversed").partOfBuiltInSchema();
 	public static final Property<String> htmlStartProperty    = new StringProperty("_html_start").partOfBuiltInSchema();
 
@@ -38,4 +39,6 @@ public class Ol extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

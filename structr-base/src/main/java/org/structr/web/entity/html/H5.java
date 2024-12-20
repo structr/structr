@@ -20,5 +20,5 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class H5 extends DOMElement {
+public interface H5 extends DOMElement {
 }

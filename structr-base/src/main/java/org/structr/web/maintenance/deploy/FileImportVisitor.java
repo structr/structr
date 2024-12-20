@@ -31,9 +31,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
@@ -53,12 +55,12 @@ import java.util.Map;
 
 public class FileImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger      = LoggerFactory.getLogger(FileImportVisitor.class.getName());
-	protected Map<String, Object> metadata    = null;
-	protected SecurityContext securityContext = null;
-	protected Path basePath                   = null;
-	protected App app                         = null;
-	protected Map<String, Folder> folderCache = null;
+	private static final Logger logger               = LoggerFactory.getLogger(FileImportVisitor.class.getName());
+	protected Map<String, Object> metadata           = null;
+	protected SecurityContext securityContext        = null;
+	protected Path basePath                          = null;
+	protected App app                                = null;
+	protected Map<String, NodeInterface> folderCache = null;
 
 	private final ArrayList<String> encounteredPaths               = new ArrayList<>();
 	private final Set<String> encounteredButNotConfiguredFilePaths = new HashSet<>();
@@ -115,7 +117,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	}
 
 	// ----- private methods -----
-	protected Folder getExistingFolder(final String path) throws FrameworkException {
+	protected NodeInterface getExistingFolder(final String path) throws FrameworkException {
 
 		if (this.folderCache.containsKey(path)) {
 
@@ -127,7 +129,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final Map<String, Object> raw = getRawPropertiesForFileOrFolder(path);
 			if (raw != null) {
 
-				final Folder existingFolder = app.get(Folder.class, (String) raw.get("id"));
+				final NodeInterface existingFolder = app.get("Folder", (String) raw.get("id"));
 				if (existingFolder != null) {
 
 					this.folderCache.put(path, existingFolder);
@@ -143,6 +145,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	protected void createFolder(final Path folderObj) {
 
 		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
+		final Traits traits     = Traits.of("Folder");
 
 		encounteredPaths.add(folderPath);
 
@@ -150,13 +153,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			tx.disableChangelog();
 
-			final Folder existingFolder        = getExistingFolder(folderPath);
-			final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
+			final NodeInterface existingFolder = getExistingFolder(folderPath);
+			final PropertyMap folderProperties = new PropertyMap(traits.key("name"), folderObj.getFileName().toString());
 
 			if (!basePath.equals(folderObj.getParent())) {
 
 				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
-				folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
+				folderProperties.put(traits.key("parent"), getExistingFolder(parentPath));
 			}
 
 			// load properties from files.json
@@ -168,7 +171,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (existingFolder == null) {
 
-				final Folder newFolder = app.create(Folder.class, folderProperties);
+				final NodeInterface newFolder = app.create("Folder", folderProperties);
 
 				this.folderCache.put(folderPath, newFolder);
 
@@ -196,6 +199,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
+			final Traits traits                     = Traits.of("File");
+			final PropertyKey<String> idProperty    = traits.key("id");
 
 			encounteredPaths.add(fullPath);
 
@@ -207,13 +212,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				final PropertyMap fileProperties = new PropertyMap(AbstractNode.name, fileName);
+				final PropertyMap fileProperties = new PropertyMap(traits.key("name"), fileName);
 				fileProperties.putAll(convertRawPropertiesForFileOrFolder(rawProperties));
 
-				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
+				final PropertyKey isThumbnailKey = traits.key("isThumbnail");
 
-				Folder parent    = null;
-				boolean skipFile = false;
+				NodeInterface parent = null;
+				boolean skipFile     = false;
 
 				if (!basePath.equals(path.getParent())) {
 
@@ -227,11 +232,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					skipFile = true;
 				}
 
-				File file = app.get(File.class, fileProperties.get(AbstractNode.id));
-
+				NodeInterface file = app.get("File", fileProperties.get(traits.key("id")));
 				if (file != null) {
 
-					final Long checksumOfExistingFile = FileHelper.getChecksum(file);
+					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
 					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
 					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
@@ -252,28 +256,28 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
 
 						final PropertyMap props = new PropertyMap();
-						Class fileType          = File.class;
+						String fileType         = "File";
 
-						props.put(StructrApp.key(AbstractFile.class, "name"), fileName);
+						props.put(traits.key("name"), fileName);
 
 						// make sure the file is created with the same UUID
-						props.put(AbstractNode.id, fileProperties.get(AbstractNode.id));
+						props.put(idProperty, fileProperties.get(idProperty));
 
 						if (parent != null) {
 
-							props.put(StructrApp.key(File.class, "hasParent"), true);
-							props.put(StructrApp.key(File.class, "parent"), parent);
+							props.put(traits.key("hasParent"), true);
+							props.put(traits.key("parent"), parent);
 						}
 
-						newFileUuid = fileProperties.get(GraphObject.id);
+						newFileUuid = fileProperties.get(idProperty);
 
 						if (newFileUuid != null) {
-							props.put(StructrApp.key(GraphObject.class, "id"), newFileUuid);
+							props.put(traits.key("id"), newFileUuid);
 						}
 
-						if (fileProperties.containsKey(AbstractNode.typeHandler)) {
+						if (fileProperties.containsKey(traits.key("type"))) {
 
-							final Class typeFromConfig = StructrApp.getConfiguration().getNodeEntityClass(fileProperties.get(AbstractNode.typeHandler));
+							final String typeFromConfig = fileProperties.get(traits.key("type"));
 							if (typeFromConfig != null) {
 
 								fileType = typeFromConfig;
@@ -293,7 +297,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 						 */
 
-						file                     = FileHelper.createFile(securityContext, fis, fileType, props);
+						file = FileHelper.createFile(securityContext, fis, fileType, props);
 
 
 						newFileUuid = file.getUuid();
@@ -308,16 +312,16 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (newFileUuid != null) {
 
-					final File createdFile = app.get(File.class, newFileUuid);
-					String type            = createdFile.getType();
-					boolean isImage        = createdFile instanceof Image;
+					final NodeInterface createdFile = app.get("File", newFileUuid);
+					String type                     = createdFile.getType();
+					boolean isImage                 = createdFile instanceof Image;
 
 					logger.debug("File {}: {}, isImage? {}", new Object[] { createdFile.getName(), type, isImage });
 
 					if (isImage) {
 
 						try {
-							ImageHelper.updateMetadata(createdFile);
+							ImageHelper.updateMetadata(createdFile.as(File.class));
 							handleThumbnails((Image) createdFile);
 
 						} catch (Throwable t) {
@@ -336,12 +340,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void handleThumbnails(final Image img) {
 
-		final Class<Relation> thumbnailRel = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final String thumbnailRel = "ImageTHUMBNAILImage";
+		final Traits traits       = Traits.of(thumbnailRel);
 
-		if (img.getProperty(StructrApp.key(Image.class, "isThumbnail"))) {
+		if (img.isThumbnail()) {
 
 			// thumbnail image
-			if (img.getIncomingRelationship(thumbnailRel) == null) {
+			if (img.getWrappedNode().getIncomingRelationship(thumbnailRel) == null) {
 
 				ImageHelper.findAndReconnectOriginalImage(img);
 			}
@@ -349,7 +354,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		} else {
 
 			// original image
-			if (!img.getOutgoingRelationships(thumbnailRel).iterator().hasNext()) {
+			if (!img.getWrappedNode().getOutgoingRelationships(thumbnailRel).iterator().hasNext()) {
 
 				ImageHelper.findAndReconnectThumbnails(img);
 
@@ -383,7 +388,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		DeployCommand.checkOwnerAndSecurity(data, false);
 
-		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrApp.getConfiguration().getNodeEntityClass((String)data.get("type")), data);
+		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), (String)data.get("type"), data);
 
 	}
 

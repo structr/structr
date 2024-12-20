@@ -100,14 +100,15 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final String valueType        = valueType();
+		final Class valueType         = valueType();
 
 		final Map<String, String> openApiTypeMap = new HashMap<>();
 		openApiTypeMap.put("image", "object");
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
-			String simpleName = valueType.toLowerCase();
+
+			String simpleName = valueType.getSimpleName().toLowerCase();
 
 			if (openApiTypeMap.containsKey(simpleName)) {
 				simpleName = openApiTypeMap.get(simpleName);
@@ -128,11 +129,11 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final String valueType        = valueType();
+		final Class valueType         = valueType();
 
 		if (valueType != null) {
 
-			map.put("type", valueType.toLowerCase());
+			map.put("type", valueType.getSimpleName().toLowerCase());
 			map.put("example", getExampleValue(type, viewName));
 
 			if (this.isReadOnly()) {

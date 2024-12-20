@@ -25,6 +25,8 @@ import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
@@ -54,7 +56,7 @@ public class ChildrenCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final RelationshipFactory factory = new RelationshipFactory(getWebSocket().getSecurityContext());
-		final AbstractNode node           = getNode(webSocketData.getId());
+		final NodeInterface node          = getNode(webSocketData.getId());
 
 		if (node == null) {
 
@@ -63,20 +65,23 @@ public class ChildrenCommand extends AbstractCommand {
 
 		final List<GraphObject> result = new LinkedList();
 
-		if (node instanceof Page page) {
+		if (node.is("Page")) {
 
-			DOMNode subNode = (DOMNode) (page).treeGetFirstChild();
+			final Page page = node.as(Page.class);
 
-			while (subNode != null) {
+			for (final DOMNode child : page.getChildren()) {
 
-				result.add(subNode);
-
-				subNode = (DOMNode) subNode.getNextSibling();
+				result.add(child.getWrappedNode());
 			}
 
-		} else  if (node instanceof Group group) {
+		} else  if (node.is("Group")) {
 
-			result.addAll(Iterables.toList(group.getMembers()));
+			final Group group = node.as(Group.class);
+
+			for (final Principal p : group.getMembers()) {
+
+				result.add(p.getWrappedNode());
+			}
 
 		} else  if (node instanceof Content content) {
 

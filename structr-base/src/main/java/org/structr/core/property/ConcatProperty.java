@@ -64,12 +64,17 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String valueType() {
-		return "String";
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 
@@ -94,11 +99,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final String valueType         = valueType();
+		final Class valueType         = valueType();
 
 		if (valueType != null) {
 
-			map.put("type",    valueType.toLowerCase());
+			map.put("type",    valueType.getSimpleName().toLowerCase());
 			map.put("example", getExampleValue(type, viewName));
 
 			if (this.readOnly) {
@@ -113,11 +118,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final String valueType        = valueType();
+		final Class valueType         = valueType();
 
 		if (valueType != null) {
 
-			map.put("type", valueType.toLowerCase());
+			map.put("type", valueType.getSimpleName().toLowerCase());
 			map.put("readOnly",    true);
 			map.put("example", getExampleValue(type, viewName));
 		}

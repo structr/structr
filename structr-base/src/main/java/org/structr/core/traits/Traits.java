@@ -19,9 +19,11 @@
 package org.structr.core.traits;
 
 import org.structr.api.Predicate;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -40,13 +42,14 @@ public class Traits {
 	private static PropertyKey<String> cachedTypeProperty      = null;
 	private static PropertyKey<String> cachedIdProperty        = null;
 
-	private final Map<String, TraitDefinition> types              = new LinkedHashMap<>();
-	private final Map<String, AbstractMethod> dynamicMethods      = new LinkedHashMap<>();
-	private final Map<Class, FrameworkMethod> overwritableMethods = new LinkedHashMap<>();
-	private final Map<Class, NodeTraitFactory> traitFactories     = new LinkedHashMap<>();
-	private final Map<Class, Set> composableMethods               = new LinkedHashMap<>();
-	private final Map<String, PropertyKey> propertyKeys           = new LinkedHashMap<>();
-	private final Map<String, Set<String>> views                  = new LinkedHashMap<>();
+	private final Map<String, TraitDefinition> types                              = new LinkedHashMap<>();
+	private final Map<String, AbstractMethod> dynamicMethods                      = new LinkedHashMap<>();
+	private final Map<Class, FrameworkMethod> overwritableMethods                 = new LinkedHashMap<>();
+	private final Map<Class, NodeTraitFactory> nodeTraitFactories                 = new LinkedHashMap<>();
+	private final Map<Class, RelationshipTraitFactory> relationshipTraitFactories = new LinkedHashMap<>();
+	private final Map<Class, Set> composableMethods                               = new LinkedHashMap<>();
+	private final Map<String, PropertyKey> propertyKeys                           = new LinkedHashMap<>();
+	private final Map<String, Set<String>> views                                  = new LinkedHashMap<>();
 
 	private final boolean isNodeType;
 	private final String typeName;
@@ -60,6 +63,14 @@ public class Traits {
 		this.isRelationshipType = isRelationshipType;
 
 		globalTraitMap.put(typeName, this);
+	}
+
+	@Deprecated
+	/**
+	 * Marked as deprecated to find problems in migrated code.
+	 */
+	public boolean equals(final Object o) {
+		return false;
 	}
 
 	public Set<String> getLabels() {
@@ -130,7 +141,7 @@ public class Traits {
 	 *
 	 * @return
 	 */
-	public Set<PropertyKey> getViewPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeysForView(final String propertyView) {
 
 		final Set<String> view = views.get(propertyView);
 		if (view != null) {
@@ -153,12 +164,24 @@ public class Traits {
 		return dynamicMethods;
 	}
 
-	public <T> T as(final Class<T> type, final NodeInterface node) {
+	public <T> T as(final Class<T> type, final GraphObject obj) {
 
-		final NodeTraitFactory factory = traitFactories.get(type);
-		if (factory != null) {
+		if (obj.isNode()) {
 
-			return (T)factory.newInstance(this, node);
+			final NodeTraitFactory factory = nodeTraitFactories.get(type);
+			if (factory != null) {
+
+				return (T) factory.newInstance(this, (NodeInterface) obj);
+			}
+
+		} else {
+
+			final RelationshipTraitFactory factory = relationshipTraitFactories.get(type);
+			if (factory != null) {
+
+				return (T) factory.newInstance(this, (RelationshipInterface) obj);
+			}
+
 		}
 
 		return null;
@@ -205,7 +228,8 @@ public class Traits {
 
 
 		// trait implementations
-		this.traitFactories.putAll(trait.getNodeTraitFactories());
+		this.nodeTraitFactories.putAll(trait.getNodeTraitFactories());
+		this.relationshipTraitFactories.putAll(trait.getRelationshipTraitFactories());
 
 		// relation (for relationship types)
 		this.relation = trait.getRelation();
@@ -295,5 +319,13 @@ public class Traits {
 
 		// TODO: implement, as unmodifiable collection!
 		return Set.of();
+	}
+
+	public static Set<String> getAllViews() {
+		return Set.of();
+	}
+
+	public Set<String> getAllTraits() {
+		return Collections.unmodifiableSet(types.keySet());
 	}
 }

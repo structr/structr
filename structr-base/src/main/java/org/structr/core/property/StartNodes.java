@@ -91,12 +91,12 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String typeName() {
-		return "collection";
+		return destType;
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return Iterable.class;
 	}
 
 	@Override
@@ -158,6 +158,11 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 

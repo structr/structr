@@ -20,10 +20,13 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Keygen extends DOMElement {
+public interface Keygen extends DOMElement {
 
+	/*
 	@Override
 	public boolean isVoidElement() {
 		return true;
 	}
+
+	 */
 }

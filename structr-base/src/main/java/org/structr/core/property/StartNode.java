@@ -100,12 +100,12 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 	@Override
 	public String typeName() {
-		return "object";
+		return destType;
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override
@@ -173,6 +173,11 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

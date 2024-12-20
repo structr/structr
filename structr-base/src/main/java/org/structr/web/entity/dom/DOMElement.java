@@ -18,9 +18,13 @@
  */
 package org.structr.web.entity.dom;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Element;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
@@ -47,6 +51,7 @@ public interface DOMElement extends DOMNode  {
 	// ----- public methods -----
 	String getTag();
 	String getHtmlId();
+	String getHtmlName();
 	String getEventMapping();
 	String getRenderingMode();
 	String getDelayOrInterval();
@@ -100,5 +105,44 @@ public interface DOMElement extends DOMNode  {
 		});
 
 		return buf.toString();
+	}
+
+	static org.jsoup.nodes.Element getMatchElement(final DOMElement domElement) {
+
+		final NodeInterface node = domElement.getWrappedNode();
+		final Traits traits      = node.getTraits();
+		final String tag         = domElement.getTag();
+
+		if (StringUtils.isNotBlank(tag)) {
+
+			final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(tag);
+			final String classes                  = domElement.getCssClass();
+
+			if (classes != null) {
+
+				for (final String css : classes.split(" ")) {
+
+					if (StringUtils.isNotBlank(css)) {
+
+						element.addClass(css.trim());
+					}
+				}
+			}
+
+			final String name = node.getProperty(traits.key("name"));
+			if (name != null) {
+				element.attr("name", name);
+			}
+
+			final String htmlId = node.getProperty(traits.key("_html_id"));
+			if (htmlId != null) {
+
+				element.attr("id", htmlId);
+			}
+
+			return element;
+		}
+
+		return null;
 	}
 }

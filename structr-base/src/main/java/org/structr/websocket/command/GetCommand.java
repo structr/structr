@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.traits.definitions.SchemaReloadingNodeTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
@@ -32,8 +31,6 @@ import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to retrieve a single graph object by id.
- *
- *
  *
  */
 public class GetCommand extends AbstractCommand {
@@ -62,10 +59,6 @@ public class GetCommand extends AbstractCommand {
 		if (graphObject != null) {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
-
-			if (graphObject instanceof SchemaReloadingNodeTraitDefinition) {
-				SchemaService.prefetchSchemaNodes(TransactionCommand.getCurrentTransaction());
-			}
 
 			// prefetching test
 			//SearchCommand.prefetch(graphObject.getClass(), webSocketData.getId());

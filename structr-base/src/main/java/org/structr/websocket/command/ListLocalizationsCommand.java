@@ -67,9 +67,10 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, false)) {
 
-			final Page page                = app.get(Page.class, id);
+			final NodeInterface pageNode                = app.get("Page", id);
+			if (pageNode != null) {
 
-			if (page != null) {
+				final Page page = pageNode.as(Page.class);
 
 				// using this, we differentiate in the localize() function how to proceed
 				securityContext.setAccessMode(AccessMode.Backend);
@@ -79,11 +80,14 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 				if (queryString != null) {
 
-					String[] parts = StringUtils.split(queryString, "&");
+					String[] parts                     = StringUtils.split(queryString, "&");
 					Map<String, String[]> parameterMap = new HashMap();
+
 					for (String p : parts) {
+
 						String[] kv = StringUtils.split(p, "=");
 						if (kv.length > 1) {
+
 							parameterMap.put(kv[0], new String[]{kv[1]});
 						}
 					}

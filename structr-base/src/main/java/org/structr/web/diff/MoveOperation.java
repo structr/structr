@@ -73,10 +73,10 @@ public class MoveOperation extends InvertibleModificationOperation {
 		final InsertPosition insertPosition = findInsertPosition(sourcePage, parentHash, siblingHashes, newNode);
 		if (insertPosition != null) {
 
-			final DOMNode parent       = insertPosition.getParent();
-			final DOMNode sibling      = insertPosition.getSibling();
-			final Node originalSibling = originalNode.getNextSibling();
-			final Node originalParent = originalNode.getParentNode();
+			final DOMNode parent          = insertPosition.getParent();
+			final DOMNode sibling         = insertPosition.getSibling();
+			final DOMNode originalSibling = originalNode.getNextSibling();
+			final DOMNode originalParent  = originalNode.getParent();
 
 			// do not modify synced nodes (nodes that are shared between multiple pages)
 			if (parent.isSynced()) {
@@ -101,7 +101,7 @@ public class MoveOperation extends InvertibleModificationOperation {
 			// was moved up or down, this method tries to insert the new
 			// node next to its sibling's parent, ascending the tree until
 			// no parents are left.
-			Node localSibling = sibling;
+			DOMNode localSibling = sibling;
 			boolean found = false;
 			int count = 0;
 
@@ -116,7 +116,7 @@ public class MoveOperation extends InvertibleModificationOperation {
 				}
 
 				// ascend to parent
-				localSibling = localSibling.getParentNode();
+				localSibling = localSibling.getParent();
 			}
 
 			// try direct insertion

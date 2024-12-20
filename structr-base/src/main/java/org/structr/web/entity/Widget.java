@@ -6,6 +6,7 @@ import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -85,9 +86,12 @@ public interface Widget extends NodeTrait {
 				final String tableChildElement = importer.getTableChildElement();
 				if (tableChildElement != null) {
 
-					for (final DOMNode child : parent.getAllChildNodes()) {
+					for (final NodeInterface child : parent.getAllChildNodes()) {
+
 						if (child.getType().toLowerCase().equals(tableChildElement)) {
-							parent.appendChild(child);
+
+							parent.appendChild(child.as(DOMNode.class));
+
 						} else {
 							StructrApp.getInstance().delete(child);
 						}

@@ -26,8 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.Image;
+import org.structr.core.traits.Traits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -62,9 +61,9 @@ public class GetByTypeCommand extends AbstractCommand {
 			final String rawType                   = webSocketData.getNodeDataStringValue(TYPE_KEY);
 			final String properties                = webSocketData.getNodeDataStringValue(PROPERTIES_KEY);
 			final boolean includeHidden            = webSocketData.getNodeDataBooleanValue(INCLUDE_HIDDEN_KEY);
-			final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
+			final Traits traits                    = Traits.of(rawType);
 
-			if (type == null) {
+			if (traits == null) {
 				getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 				return;
 			}
@@ -79,11 +78,11 @@ public class GetByTypeCommand extends AbstractCommand {
 			final int page           = webSocketData.getPage();
 
 
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden(includeHidden);
+			final Query query = StructrApp.getInstance(securityContext).nodeQuery(rawType).includeHidden(includeHidden);
 
 			if (sortKey != null) {
 
-				final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+				final PropertyKey sortProperty = traits.key(sortKey);
 				if (sortProperty != null) {
 
 					query.sort(sortProperty, "desc".equals(sortOrder));
@@ -91,8 +90,8 @@ public class GetByTypeCommand extends AbstractCommand {
 			}
 
 			// for image lists, suppress thumbnails
-			if (type.equals(Image.class)) {
-				query.and(StructrApp.key(Image.class, "isThumbnail"), false);
+			if (traits.contains("Image")) {
+				query.and(traits.key("isThumbnail"), false);
 			}
 
 			webSocketData.setResult(query.getResultStream());
@@ -106,11 +105,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
-
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

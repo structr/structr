@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Iframe extends DOMElement {
+public interface Iframe extends DOMElement {
 
+	/*
 	public static final Property<String> htmlNameProperty            = new StringProperty("_html_name").partOfBuiltInSchema();
 	public static final Property<String> htmlSrcProperty             = new StringProperty("_html_src").partOfBuiltInSchema();
 	public static final Property<String> htmlSrcDocProperty          = new StringProperty("_html_srcdoc").partOfBuiltInSchema();
@@ -44,4 +45,6 @@ public class Iframe extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

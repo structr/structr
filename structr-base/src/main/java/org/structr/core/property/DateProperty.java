@@ -71,8 +71,8 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
-	public String valueType() {
-		return "Date";
+	public Class valueType() {
+		return Date.class;
 	}
 
 	@Override
@@ -124,6 +124,11 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {

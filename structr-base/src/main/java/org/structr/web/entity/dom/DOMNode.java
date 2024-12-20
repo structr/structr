@@ -164,7 +164,9 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode {
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;
-	DOMNode removeChild(DOMNode newChild) throws FrameworkException;
+	DOMNode removeChild(final DOMNode newChild) throws FrameworkException;
+	DOMNode replaceChild(final DOMNode newNode, final DOMNode refNode) throws FrameworkException;
+	DOMNode insertBefore(final DOMNode newClonedTemplate, final DOMNode templateToBeReplaced) throws FrameworkException;
 
 	Page getOwnerDocument();
 	Page getOwnerDocumentAsSuperUser();

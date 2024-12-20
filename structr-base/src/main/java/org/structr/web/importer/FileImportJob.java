@@ -33,6 +33,7 @@ import org.structr.core.scheduler.ScheduledJob;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -187,7 +188,7 @@ abstract class FileImportJob extends ScheduledJob {
 		TransactionCommand.simpleBroadcastException(ex, data, true);
 	}
 
-	protected InputStream getFileInputStream(final SecurityContext ctx) {
+	protected InputStream getFileInputStream(final SecurityContext ctx) throws IOException {
 
 		final App app = StructrApp.getInstance(ctx);
 
@@ -195,7 +196,7 @@ abstract class FileImportJob extends ScheduledJob {
 
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.get(File.class, fileUuid);
+			final File file = app.get("File", fileUuid).as(File.class);
 			is              = file.getInputStream();
 
 			tx.success();

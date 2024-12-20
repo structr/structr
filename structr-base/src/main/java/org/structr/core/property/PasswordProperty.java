@@ -28,6 +28,7 @@ import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Date;
@@ -69,6 +70,7 @@ public class PasswordProperty extends StringProperty {
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, String clearTextPassword) throws FrameworkException {
 
+		final Traits traits = Traits.of("Principal");
 		final Object returnValue;
 		GraphObject wrappedObject = null;
 
@@ -100,19 +102,19 @@ public class PasswordProperty extends StringProperty {
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
 					if (passwordChangedOrFirstPassword) {
 
-						obj.setProperty("passwordChangeDate", new Date().getTime());
+						obj.setProperty(traits.key("passwordChangeDate"), new Date().getTime());
 					}
 				}
 			}
 
 			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty("salt", salt);
+			obj.setProperty(traits.key("salt"), salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
-			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-				wrappedObject.removeProperty("sessionIds");
+			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is("Principal")) {
+				wrappedObject.removeProperty(traits.key("sessionIds"));
 			}
 
 		} else {
@@ -120,8 +122,8 @@ public class PasswordProperty extends StringProperty {
 			returnValue = super.setProperty(securityContext, obj, null);
 		}
 
-		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof Principal) {
-			wrappedObject.removeProperty("sessionIds");
+		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is("Principal")) {
+			wrappedObject.removeProperty(traits.key("sessionIds"));
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {

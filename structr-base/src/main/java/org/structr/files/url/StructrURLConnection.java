@@ -24,7 +24,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
 
 import java.io.FileNotFoundException;
@@ -63,10 +65,14 @@ public class StructrURLConnection extends URLConnection {
 
 			try (final Tx tx = app.tx()) {
 
-				final String path = url.getPath();
-				final File file   = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), path).getFirst();
+				final NodeInterface node = app
+					.nodeQuery("File")
+					.and(Traits.of("File").key("path"), url.getPath())
+					.getFirst();
 
-				if (file != null) {
+				if (node != null) {
+
+					final File file = node.as(File.class);
 
 					return file.getInputStream();
 				}

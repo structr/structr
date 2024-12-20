@@ -18,15 +18,11 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Th extends DOMElement {
+public interface Th extends DOMElement {
 
+	/*
 	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan").partOfBuiltInSchema();
 	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan").partOfBuiltInSchema();
 	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers").partOfBuiltInSchema();
@@ -41,4 +37,5 @@ public class Th extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+	*/
 }

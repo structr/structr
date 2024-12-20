@@ -41,6 +41,7 @@ import org.structr.core.traits.operations.propertycontainer.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,6 +73,11 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final Traits getTraits() {
 		return typeHandler;
+	}
+
+	@Override
+	public <T> T as(final Class<T> type) {
+		return typeHandler.as(type, this);
 	}
 
 	@Override
@@ -126,11 +132,11 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public final boolean isGranted(final Permission permission, SecurityContext securityContext, boolean isCreation) {
+	public final boolean isGranted(final Permission permission, SecurityContext securityContext) {
 
 		if (this instanceof NodeInterface node) {
 
-			return typeHandler.getMethod(IsGranted.class).isGranted(node, permission, securityContext, isCreation);
+			return typeHandler.getMethod(IsGranted.class).isGranted(node, permission, securityContext, false);
 		}
 
 		return true;
@@ -278,7 +284,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 *
 	 * @return whether this node is visible to public users
 	 */
-	public final boolean getVisibleToPublicUsers() {
+	public boolean isVisibleToPublicUsers() {
 		return getProperty(typeHandler.key("visibleToPublicUsers"));
 	}
 
@@ -287,7 +293,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 *
 	 * @return whether this node is visible to authenticated users
 	 */
-	public final boolean getVisibleToAuthenticatedUsers() {
+	public boolean isVisibleToAuthenticatedUsers() {
 		return getProperty(typeHandler.key("visibleToPublicUsers"));
 	}
 
@@ -296,8 +302,16 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 *
 	 * @return whether this node is hidden
 	 */
-	public final boolean getHidden() {
+	public boolean isHidden() {
 		return getProperty(typeHandler.key("hidden"));
+	}
+
+	public final Date getCreatedDate() {
+		return getProperty(typeHandler.key("createdDate"));
+	}
+
+	public final Date getLastModifiedDate() {
+		return getProperty(typeHandler.key("lastModifiedDate"));
 	}
 
 	/**
@@ -388,11 +402,6 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 		}
 
 		return result;
-	}
-
-	@Override
-	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
-		return null;
 	}
 
 	@Override

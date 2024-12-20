@@ -62,21 +62,21 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 
 	@Override
 	public String typeName() {
-		return "Node";
+		return "NodeInterface";
 	}
 
 	@Override
-	public String valueType() {
-		return relatedType();
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override
 	public String relatedType() {
-		return "RelationshipInterface";
+		return "NodeInterface";
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 
 		if (notion != null) {
 			return notion.getEntityConverter(securityContext);
@@ -86,7 +86,7 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -97,6 +97,11 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

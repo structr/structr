@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.dom.DOMNode;
@@ -89,12 +90,11 @@ public class ImportCommand extends AbstractCommand {
 
 					if (withTemplate) {
 
-						final App app = StructrApp.getInstance(securityContext);
-
-						final Page newPage = (Page) app.get(Page.class, pageId);
-
-						final RenderContext ctx = new RenderContext(securityContext);
+						final App app                   = StructrApp.getInstance(securityContext);
+						final NodeInterface newPageNode = app.get("Page", pageId);
+						final RenderContext ctx         = new RenderContext(securityContext);
 						final StringRenderBuffer buffer = new StringRenderBuffer();
+						final Page newPage              = newPageNode.as(Page.class);
 						ctx.setBuffer(buffer);
 
 						// render
@@ -103,13 +103,15 @@ public class ImportCommand extends AbstractCommand {
 						final String renderedContent = buffer.getBuffer().toString();
 						logger.info("Rendered content of page " + pageId + ": " + renderedContent);
 
-						final Template template = (Template) app.create(Template.class, templateName != null ? templateName : "Main Page Template");
+						final Template template = app.create("Template", templateName != null ? templateName : "Main Page Template").as(Template.class);
+
 						template.setContent(renderedContent);
 						template.setContentType("text/html");
 
 						for (final DOMNode node : newPage.getChildren()) {
+
 							newPage.removeChild(node);
-							app.delete(node);
+							app.delete(node.getWrappedNode());
 						}
 
 						newPage.appendChild(template);

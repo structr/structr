@@ -41,8 +41,9 @@ import org.structr.web.entity.dom.DOMNode;
 
 import java.util.List;
 
-public class Option extends DOMElement {
+public interface Option extends DOMElement {
 
+	/*
 	static final GenericProperty valueKey = new GenericProperty("value");
 	static final EqualFunction EqualFunction = new EqualFunction();
 
@@ -142,5 +143,5 @@ public class Option extends DOMElement {
 			DOMNode.logScriptingError(logger, t, "Error while evaluating script in Option[{}]", this.getUuid());
 		}
 	}
-
+	*/
 }

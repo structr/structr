@@ -20,5 +20,5 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Section extends DOMElement {
+public interface Section extends DOMElement {
 }

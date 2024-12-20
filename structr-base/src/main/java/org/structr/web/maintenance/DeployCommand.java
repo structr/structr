@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -869,8 +868,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("name",                        site.getName());
 				entry.put("hostname",                    site.getHostname());
 				entry.put("port",                        site.getPort());
-				entry.put("visibleToAuthenticatedUsers", site.visibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        site.visibleToPublicUsers());
+				entry.put("visibleToAuthenticatedUsers", site.isVisibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        site.isVisibleToPublicUsers());
 
 				final List<String> pageNames = new LinkedList<>();
 
@@ -1294,8 +1293,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final AbstractFile abstractFile = node.as(AbstractFile.class);
 
 		putData(config, "id",                          abstractFile.getUuid());
-		putData(config, "visibleToPublicUsers",        abstractFile.visibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", abstractFile.visibleToAuthenticatedUsers());
+		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
+		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
 		putData(config, "type",                        abstractFile.getType());
 
 		if (abstractFile instanceof File) {
@@ -1488,8 +1487,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, "name",                        mailTemplate.getName());
 					putData(entry, "filename",                    filename);
 					putData(entry, "locale",                      mailTemplate.getLocale());
-					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.visibleToAuthenticatedUsers());
-					putData(entry, "visibleToPublicUsers",        mailTemplate.visibleToPublicUsers());
+					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.isVisibleToAuthenticatedUsers());
+					putData(entry, "visibleToPublicUsers",        mailTemplate.isVisibleToPublicUsers());
 
 					final Path mailTemplateFile = targetFolder.resolve(filename);
 					writeStringToFile(mailTemplateFile, mailTemplate.getText());
@@ -1533,8 +1532,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				putData(entry, "id",                          widget.getUuid());
 				putData(entry, "name",                        widget.getName());
-				putData(entry, "visibleToAuthenticatedUsers", widget.visibleToAuthenticatedUsers());
-				putData(entry, "visibleToPublicUsers",        widget.visibleToPublicUsers());
+				putData(entry, "visibleToAuthenticatedUsers", widget.isVisibleToAuthenticatedUsers());
+				putData(entry, "visibleToPublicUsers",        widget.isVisibleToPublicUsers());
 				putData(entry, "source",                      widget.getSource());
 				putData(entry, "description",                 widget.getDescription());
 				putData(entry, "isWidget",                    widget.isWidget());
@@ -1616,8 +1615,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("domain",                      localization.getDomain());
 				entry.put("locale",                      localization.getLocale());
 				entry.put("imported",                    localization.isImported());
-				entry.put("visibleToAuthenticatedUsers", localization.visibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        localization.visibleToPublicUsers());
+				entry.put("visibleToAuthenticatedUsers", localization.isVisibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        localization.isVisibleToPublicUsers());
 			}
 
 			tx.success();
@@ -1658,8 +1657,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				putData(entry, "id",                          actionMapping.getUuid());
 				putData(entry, "name",                        actionMapping.getName());
-				putData(entry, "visibleToAuthenticatedUsers", actionMapping.visibleToAuthenticatedUsers());
-				putData(entry, "visibleToPublicUsers",        actionMapping.visibleToPublicUsers());
+				putData(entry, "visibleToAuthenticatedUsers", actionMapping.isVisibleToAuthenticatedUsers());
+				putData(entry, "visibleToPublicUsers",        actionMapping.isVisibleToPublicUsers());
 
 				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
 				if (!triggerElements.isEmpty()) {
@@ -1758,8 +1757,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				putData(entry, "id",                          parameterMapping.getUuid());
 				putData(entry, "name",                        parameterMapping.getName());
-				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.visibleToAuthenticatedUsers());
-				putData(entry, "visibleToPublicUsers",        parameterMapping.visibleToPublicUsers());
+				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.isVisibleToAuthenticatedUsers());
+				putData(entry, "visibleToPublicUsers",        parameterMapping.isVisibleToPublicUsers());
 
 				putData(entry, "parameterType",    parameterMapping.getParameterType());
 				putData(entry, "parameterName",    parameterMapping.getParameterName());

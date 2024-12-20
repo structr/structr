@@ -78,8 +78,8 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 	}
 
 	@Override
-	public String valueType() {
-		return "[L" + Date.class.getName() + ";";
+	public Class valueType() {
+		return Date[].class;
 	}
 
 	@Override
@@ -204,6 +204,11 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 

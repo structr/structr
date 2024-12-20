@@ -65,8 +65,8 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public String valueType() {
-		return "String";
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override
@@ -143,6 +143,11 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	// ----- private methods -----

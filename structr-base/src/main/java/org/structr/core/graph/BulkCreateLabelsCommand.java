@@ -59,7 +59,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-				TypeProperty.updateLabels(graphDb, node, node.getClass(), removeUnused);
+				TypeProperty.updateLabels(graphDb, node, node.getTraits(), removeUnused);
 
 				return true;
 			}

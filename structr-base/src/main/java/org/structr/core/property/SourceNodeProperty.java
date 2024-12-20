@@ -89,6 +89,11 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public SortType getSortType() {
 		return SortType.Default;
 	}
@@ -100,12 +105,12 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 
 	@Override
 	public String typeName() {
-		return null;
+		return "NodeInterface";
 	}
 
 	@Override
-	public String valueType() {
-		return "String";
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override

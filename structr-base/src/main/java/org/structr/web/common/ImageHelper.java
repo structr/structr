@@ -79,7 +79,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static Image createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final String imageType, final String name, final boolean markAsThumbnail)
+	public static NodeInterface createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final String imageType, final String name, final boolean markAsThumbnail)
 			throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
@@ -92,7 +92,7 @@ public abstract class ImageHelper extends FileHelper {
 		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props).as(Image.class);
 		setFileData(newImage, imageStream, contentType);
 
-		return newImage;
+		return newImage.getWrappedNode();
 
 	}
 
@@ -109,7 +109,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static Image createImageNode(final SecurityContext securityContext, final byte[] imageData, final String contentType, final String imageType, final String name, final boolean markAsThumbnail)
+	public static NodeInterface createImageNode(final SecurityContext securityContext, final byte[] imageData, final String contentType, final String imageType, final String name, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
@@ -119,11 +119,11 @@ public abstract class ImageHelper extends FileHelper {
 		props.put(traits.key("isThumbnail"), markAsThumbnail);
 		props.put(traits.key("name"),        name);
 
-		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props).as(Image.class);
+		final NodeInterface newImage = StructrApp.getInstance(securityContext).create(imageType, props);
 
 		if (imageData != null && imageData.length > 0) {
 
-			setFileData(newImage, imageData, contentType);
+			setFileData(newImage.as(File.class), imageData, contentType);
 		}
 
 		return newImage;
@@ -415,7 +415,7 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	private static Thumbnail createThumbnailFromBufferedImage(final BufferedImage source, final Image originalImage, final Integer reqOffsetX, final Integer reqOffsetY, final Integer maxWidth, final Integer maxHeight, final String formatString) {
+	private static Thumbnail createThumbnailFromBufferedImage(final BufferedImage source, final Image originalImage, final Integer reqOffsetX, final Integer reqOffsetY, final Integer maxWidth, final Integer maxHeight, final String formatString) throws FrameworkException {
 
 		final String imageFormatString = getImageFormatString(originalImage);
 		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);

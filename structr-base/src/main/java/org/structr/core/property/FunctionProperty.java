@@ -29,12 +29,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -182,27 +185,32 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public SortType getSortType() {
 		return SortType.Default;
 	}
 
 	@Override
-	public String valueType() {
+	public Class valueType() {
 
 		if (typeHint != null) {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": return "Boolean";
-				case "string":  return "String";
-				case "int":     return "Integer";
-				case "long":    return "Long";
-				case "double":  return "Double";
-				case "date":    return "Date";
+				case "boolean": return Boolean.class;
+				case "string":  return String.class;
+				case "int":     return Integer.class;
+				case "long":    return Long.class;
+				case "double":  return Double.class;
+				case "date":    return Date.class;
 			}
 		}
 
-		return "Object";
+		return Object.class;
 	}
 
 	@Override
@@ -212,7 +220,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public String typeName() {
-		return valueType();
+		return valueType().getSimpleName();
 	}
 
 
@@ -325,15 +333,15 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- private methods -----
 	private String getReadFunction() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.readFunction, this.readFunction);
+		return getCachedSourceCode(Traits.of("SchemaProperty").key("readFunction"), this.readFunction);
 	}
 
 	private String getWriteFunction() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.writeFunction, this.writeFunction);
+		return getCachedSourceCode(Traits.of("SchemaProprty").key("writeFunction"), this.writeFunction);
 	}
 
 	private String getOpenAPIReturnType() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.openAPIReturnType, this.openAPIReturnType);
+		return getCachedSourceCode(Traits.of("SchemaProprty").key("openAPIReturnType"), this.openAPIReturnType);
 	}
 
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
@@ -343,7 +351,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		if (src == null) {
 
-			final SchemaProperty property = getCodeSource();
+			final NodeInterface property = getCodeSource();
 			if (property != null) {
 
 				final String value = property.getProperty(key);
@@ -367,8 +375,8 @@ public class FunctionProperty<T> extends Property<T> {
 		cache.clear();
 	}
 
-	public SchemaProperty getCodeSource() throws FrameworkException {
-		return (SchemaProperty)StructrApp.getInstance().getNodeById("SchemaProperty", sourceUuid);
+	public NodeInterface getCodeSource() throws FrameworkException {
+		return StructrApp.getInstance().getNodeById("SchemaProperty", sourceUuid);
 	}
 
 	// ----- OpenAPI -----

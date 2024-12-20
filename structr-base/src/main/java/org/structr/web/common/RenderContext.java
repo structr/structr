@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -426,10 +427,11 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (data instanceof LinkSource) {
+						if (data instanceof NodeInterface node && node.is("LinkSource")) {
 
 							hints.reportExistingKey(key);
-							final LinkSource linkSource = (LinkSource)data;
+
+							final LinkSource linkSource = node.as(LinkSource.class);
 							return linkSource.getLinkable();
 						}
 						break;
@@ -460,9 +462,9 @@ public class RenderContext extends ActionContext {
 
 					case "template":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is("DOMNode")) {
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getClosestTemplate(getPage());
+							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
 						break;
 
@@ -476,18 +478,18 @@ public class RenderContext extends ActionContext {
 
 					case "parent":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is("DOMNode")) {
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getParentNode();
+							return entity.as(DOMNode.class).getParent();
 						}
 						break;
 
 					case "children":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is("DOMNode")) {
 
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getChildNodes();
+							return entity.as(DOMNode.class).getChildNodes();
 
 						}
 						break;
@@ -495,10 +497,12 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (entity instanceof LinkSource) {
+						if (entity.is("LinkSource")) {
 
 							hints.reportExistingKey(key);
-							final LinkSource linkSource = (LinkSource)entity;
+
+							final LinkSource linkSource = entity.as(LinkSource.class);
+
 							return linkSource.getLinkable();
 						}
 						break;

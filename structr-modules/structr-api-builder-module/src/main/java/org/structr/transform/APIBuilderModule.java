@@ -123,8 +123,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				entry.put("sourceType",                  virtualType.getSourceType());
 				entry.put("position",                    virtualType.getPosition());
 				entry.put("filterExpression",            virtualType.getFilterExpression());
-				entry.put("visibleToAuthenticatedUsers", virtualType.visibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        virtualType.visibleToPublicUsers());
+				entry.put("visibleToAuthenticatedUsers", virtualType.isVisibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        virtualType.isVisibleToPublicUsers());
 
 				final List<Map<String, Object>> properties = new LinkedList();
 				entry.put("properties", properties);
@@ -140,8 +140,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 					virtualPropEntry.put("inputFunction",               virtualProperty.getInputFunction());
 					virtualPropEntry.put("outputFunction",              virtualProperty.getOutputFunction());
 					virtualPropEntry.put("position",                    virtualProperty.getPosition());
-					virtualPropEntry.put("visibleToAuthenticatedUsers", virtualProperty.visibleToAuthenticatedUsers());
-					virtualPropEntry.put("visibleToPublicUsers",        virtualProperty.visibleToPublicUsers());
+					virtualPropEntry.put("visibleToAuthenticatedUsers", virtualProperty.isVisibleToAuthenticatedUsers());
+					virtualPropEntry.put("visibleToPublicUsers",        virtualProperty.isVisibleToPublicUsers());
 				}
 			}
 

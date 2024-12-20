@@ -91,8 +91,8 @@ public class StructrGlobalSchemaMethods {
 
 				// TODO: remove
 				entry.put("virtualFileName",             schemaMethod.getVirtualFileName());
-				entry.put("visibleToAuthenticatedUsers", schemaMethod.visibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        schemaMethod.visibleToPublicUsers());
+				entry.put("visibleToAuthenticatedUsers", schemaMethod.isVisibleToAuthenticatedUsers());
+				entry.put("visibleToPublicUsers",        schemaMethod.isVisibleToPublicUsers());
 
 				for (final SchemaMethodParameter param : schemaMethod.getParameters()) {
 

@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  * Deletes the relationship supplied as a parameter.

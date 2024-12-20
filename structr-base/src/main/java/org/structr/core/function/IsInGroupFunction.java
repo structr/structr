@@ -91,11 +91,11 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final Principal principal, final RelationshipType relType, final boolean checkHierarchy) {
 
-		boolean isInGroup = group.hasRelationshipTo(relType, principal);
+		boolean isInGroup = group.getWrappedNode().hasRelationshipTo(relType, principal.getWrappedNode());
 
 		if (!isInGroup && checkHierarchy) {
 
-			for (final GroupTraitDefinition principalGroup : principal.getGroups()) {
+			for (final Group principalGroup : principal.getGroups()) {
 
 				if (!isInGroup && !seenGroups.contains(principalGroup.getUuid())) {
 

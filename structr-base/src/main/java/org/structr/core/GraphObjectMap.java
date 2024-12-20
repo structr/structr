@@ -62,6 +62,16 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public <T> T as(Class<T> type) {
+		return null;
+	}
+
+	@Override
+	public boolean is(String type) {
+		return false;
+	}
+
+	@Override
 	public String getType() {
 		return getProperty(Traits.idProperty());
 	}
@@ -103,7 +113,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
 		return false;
 	}
 
@@ -178,7 +188,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 		return newMap;
 	}
 
-	// ----- interface map -----
+	// ----- interface Map -----
 	@Override
 	public int size() {
 		return properties.size();
@@ -229,53 +239,68 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean isVisibleToPublicUsers() {
+		return false;
+	}
 
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return false;
+	}
+
+	@Override
+	public boolean isHidden() {
+		return false;
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-
 	}
 
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
 	}
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
-
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) throws FrameworkException {
-
 	}
 
 	@Override
 	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
-
 	}
 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
-
 	}
 
 	@Override
 	public void securityModified(SecurityContext securityContext) {
-
 	}
 
 	@Override
 	public void locationModified(SecurityContext securityContext) {
-
 	}
 
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
-
 	}
 
 	@Override

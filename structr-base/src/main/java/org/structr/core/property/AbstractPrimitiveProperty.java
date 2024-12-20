@@ -35,6 +35,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.Transformer;
 
@@ -181,7 +182,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				internalSystemPropertiesUnlocked = obj.systemPropertiesUnlocked();
 
-			} else if (obj instanceof AbstractRelationship) {
+			} else if (obj instanceof RelationshipInterface rel) {
 
 				if (!unvalidated) {
 
@@ -194,7 +195,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					);
 				}
 
-				internalSystemPropertiesUnlocked = ((AbstractRelationship) obj).internalSystemPropertiesUnlocked;
+				internalSystemPropertiesUnlocked = rel.systemPropertiesUnlocked();
 			}
 
 			// catch all sorts of errors and wrap them in a FrameworkException
@@ -253,14 +254,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final String valueType        = valueType();
+		final Class valueType         = valueType();
 
 		final Map<String, String> openApiTypeMap = new HashMap<>();
 		openApiTypeMap.put("image", "object");
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
-			String simpleName = valueType.toLowerCase();
+			String simpleName = valueType.getSimpleName().toLowerCase();
 
 			if (openApiTypeMap.containsKey(simpleName)) {
 				simpleName = openApiTypeMap.get(simpleName);
@@ -281,11 +282,11 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
-		final String valueType        = valueType();
+		final Class valueType         = valueType();
 
 		if (valueType != null) {
 
-			String valueTypeName = valueType.toLowerCase();
+			String valueTypeName = valueType.getSimpleName().toLowerCase();
 
 			if (StringUtils.equals(valueTypeName, "double")) {
 				valueTypeName = "number";

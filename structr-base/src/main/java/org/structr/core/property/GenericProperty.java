@@ -45,23 +45,12 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public String typeName() {
-		return valueType();
+		return null;
 	}
 
 	@Override
-	public String valueType() {
-
-		ParameterizedType pType = (ParameterizedType) getClass().getGenericSuperclass();
-
-		if ("T".equals(pType.getRawType().toString())) {
-
-			final String relType = relatedType();
-
-			return relType != null ? relType : null;
-
-		}
-
-		return pType.getRawType().getClass().getSimpleName();
+	public Class valueType() {
+		return null;
 	}
 
 	@Override
@@ -93,6 +82,11 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

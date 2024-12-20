@@ -25,6 +25,7 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreationContainer;
@@ -52,6 +53,8 @@ public interface GraphObject {
 	String VISIBILITY_CATEGORY = "Visibility";
 
 	Traits getTraits();
+	<T> T as(final Class<T> type);
+	boolean is(final String type);
 
 	String getType();
 	String getUuid();
@@ -87,7 +90,7 @@ public interface GraphObject {
 	void lockReadOnlyProperties();
 
 	// lifecycle methods
-	boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation);
+	boolean isGranted(final Permission permission, final SecurityContext securityContext);
 	boolean isValid(final ErrorBuffer errorBuffer);
 
 	void indexPassiveProperties();
@@ -151,4 +154,37 @@ public interface GraphObject {
 			}
 		}
 	}
+
+	default Comparable getComparableProperty(final PropertyKey key) {
+
+		if (key != null) {
+
+			final Object propertyValue = getProperty(key);
+
+			// check property converter
+			PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
+			if (converter != null) {
+
+				try {
+					return converter.convertForSorting(propertyValue);
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
+
+			// conversion failed, may the property value itself is comparable
+			if (propertyValue instanceof Comparable) {
+				return (Comparable) propertyValue;
+			}
+
+			// last try: convertFromInput to String to make comparable
+			if (propertyValue != null) {
+				return propertyValue.toString();
+			}
+		}
+
+		return null;
+	}
+
 }

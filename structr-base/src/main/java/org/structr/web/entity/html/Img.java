@@ -18,16 +18,12 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Img extends DOMElement implements LinkSource {
+public interface Img extends DOMElement, LinkSource {
 
+	/*
 	public static final Property<String> htmlAltProperty         = new StringProperty("_html_alt").partOfBuiltInSchema();
 	public static final Property<String> htmlSrcProperty         = new StringProperty("_html_src").partOfBuiltInSchema();
 	public static final Property<String> htmlCrossoriginProperty = new StringProperty("_html_crossorigin").partOfBuiltInSchema();
@@ -54,4 +50,6 @@ public class Img extends DOMElement implements LinkSource {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

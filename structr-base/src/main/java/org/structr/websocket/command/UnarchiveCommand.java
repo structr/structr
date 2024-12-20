@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -80,12 +81,14 @@ public class UnarchiveCommand extends AbstractCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				file = app.get(File.class, id);
+				final NodeInterface fileNode = app.get("File", id);
 
-				if (file == null) {
+				if (fileNode == null) {
 					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
 					return;
 				}
+
+				file = fileNode.as(File.class);
 
 				final String fileExtension = StringUtils.substringAfterLast(file.getName(), ".");
 				if (!supportedByArchiveStreamFactory.contains(fileExtension)) {

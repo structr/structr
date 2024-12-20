@@ -529,16 +529,15 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		for (final Map.Entry entry : source.entrySet()) {
 
-			final ConfigurationProvider provider = StructrApp.getConfiguration();
-			final String key                     = entry.getKey().toString();
-			final Object value                   = entry.getValue();
+			final String key   = entry.getKey().toString();
+			final Object value = entry.getValue();
 
 			if (value instanceof Map) {
 
 				final Map<String, Object> map = (Map<String, Object>)value;
 				final GraphObjectMap obj = new GraphObjectMap();
 
-				destination.put(provider.getPropertyKeyForJSONName(obj.getClass(), key), obj);
+				destination.put(obj.getTraits().key(key), obj);
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
@@ -562,11 +561,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 					}
 				}
 
-				destination.put(provider.getPropertyKeyForJSONName(list.getClass(), key), list);
+				destination.put(new GenericProperty(key), list);
 
 			} else {
 
-				destination.put(value != null ? provider.getPropertyKeyForJSONName(value.getClass(), key) : new StringProperty(key), value);
+				destination.put(new GenericProperty(key), value);
 			}
 		}
 	}

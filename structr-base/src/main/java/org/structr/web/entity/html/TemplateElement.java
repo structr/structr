@@ -30,8 +30,9 @@ import org.w3c.dom.Node;
 import java.util.Arrays;
 import java.util.Map.Entry;
 
-public class TemplateElement extends DOMElement {
+public interface TemplateElement extends DOMElement {
 
+	/*
 	public void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 	}
 
@@ -131,4 +132,6 @@ public class TemplateElement extends DOMElement {
 			}
 		}
 	}
+
+	 */
 }

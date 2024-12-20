@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Video extends DOMElement {
+public interface Video extends DOMElement {
 
+	/*
 	public static final Property<String> htmlSrcProperty            = new StringProperty("_html_src").partOfBuiltInSchema();
 	public static final Property<String> htmlCrossoriginProperty    = new StringProperty("_html_crossorigin").partOfBuiltInSchema();
 	public static final Property<String> htmlPosterProperty         = new StringProperty("_html_poster").partOfBuiltInSchema();
@@ -48,4 +49,6 @@ public class Video extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+
+	 */
 }

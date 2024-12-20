@@ -97,6 +97,11 @@ public class SourceId extends Property<String> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public SortType getSortType() {
 		return SortType.Default;
 	}
@@ -112,8 +117,8 @@ public class SourceId extends Property<String> {
 	}
 
 	@Override
-	public String valueType() {
-		return "String";
+	public Class valueType() {
+		return String.class;
 	}
 
 	@Override

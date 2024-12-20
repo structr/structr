@@ -20,5 +20,5 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Progress extends DOMElement {
+public interface Progress extends DOMElement {
 }

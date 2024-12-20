@@ -55,7 +55,7 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public String valueType() {
+	public Class valueType() {
 		return sourceKey.valueType();
 	}
 
@@ -86,6 +86,11 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Style extends DOMElement {
+public interface Style extends DOMElement {
 
+	/*
 	public static final Property<String> htmlMediaProperty = new StringProperty("_html_media").partOfBuiltInSchema();
 	public static final Property<String> htmlTypeProperty = new StringProperty("_html_type").partOfBuiltInSchema();
 	public static final Property<String> htmlScopedProperty = new StringProperty("_html_scoped").partOfBuiltInSchema();
@@ -39,4 +40,5 @@ public class Style extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+	*/
 }

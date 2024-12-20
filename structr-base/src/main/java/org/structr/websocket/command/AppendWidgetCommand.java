@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -58,16 +59,14 @@ public class AppendWidgetCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		AbstractNode parentNode = getNode(parentId);
-
+		NodeInterface parentNode = getNode(parentId);
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
-
 			return;
 		}
 
-		if (parentNode instanceof DOMNode) {
+		if (parentNode.is("DOMNode")) {
 
 			DOMNode parentDOMNode = getDOMNode(parentId);
 			if (parentDOMNode == null) {

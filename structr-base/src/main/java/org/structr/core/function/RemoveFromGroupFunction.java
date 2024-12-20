@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -49,11 +50,11 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			if (!(sources[0] instanceof GroupTraitDefinition)) {
+			if (!(sources[0] instanceof NodeInterface n1 && n1.is("Group"))) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof Principal)) {
+			} else if (!(sources[1] instanceof NodeInterface n2 && n2.is("Principal"))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 
@@ -63,10 +64,10 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Group group    = (Group)sources[0];
-				final Principal user = (Principal)sources[1];
+				final NodeInterface group = (NodeInterface)sources[0];
+				final NodeInterface user  = (NodeInterface)sources[1];
 
-				group.removeMember(ctx.getSecurityContext(), user);
+				group.as(Group.class).removeMember(ctx.getSecurityContext(), user.as(Principal.class));
 			}
 
 		} catch (ArgumentNullException pe) {

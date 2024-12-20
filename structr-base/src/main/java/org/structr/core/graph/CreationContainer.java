@@ -34,10 +34,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -78,17 +75,21 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public void clearCaches() {
-
-	}
-
-	@Override
-	public void init(SecurityContext securityContext, PropertyContainer dbObject, String type, long sourceTransactionId) {
-
 	}
 
 	@Override
 	public Traits getTraits() {
 		return null;
+	}
+
+	@Override
+	public <T> T as(final Class<T> type) {
+		return null;
+	}
+
+	@Override
+	public boolean is(final String type) {
+		return false;
 	}
 
 	@Override
@@ -194,8 +195,8 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
-		return false;
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return true;
 	}
 
 	@Override
@@ -256,6 +257,31 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	@Override
 	public void addToIndex() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public boolean isVisibleToPublicUsers() {
+		return true;
+	}
+
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return true;
+	}
+
+	@Override
+	public boolean isHidden() {
+		return false;
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
 	}
 
 	@Override

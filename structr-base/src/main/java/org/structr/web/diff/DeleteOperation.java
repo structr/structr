@@ -20,11 +20,9 @@ package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.w3c.dom.Node;
 
 import java.util.Map;
 
@@ -46,11 +44,11 @@ public class DeleteOperation extends InvertibleModificationOperation {
 	@Override
 	public String toString() {
 
-		if (existingNode instanceof Content) {
+		if (existingNode.is("Content")) {
 
 			return "Delete Content(" + existingNode.getIdHash() + ")";
 
-		} else if (existingNode instanceof DOMElement) {
+		} else if (existingNode.is("DOMElement")) {
 
 			return "Delete " + ((DOMElement)existingNode).getTag() + "(" + existingNode.getIdHash();
 		}
@@ -66,13 +64,13 @@ public class DeleteOperation extends InvertibleModificationOperation {
 		if (!existingNode.isSynced()) {
 
 			// remove node from parent, do not simply delete it
-			final Node parent = existingNode.getParentNode();
+			final DOMNode parent = existingNode.getParent();
 			if (parent != null) {
 
 				parent.removeChild(existingNode);
 			}
 
-			app.delete(existingNode);
+			app.delete(existingNode.getWrappedNode());
 		}
 	}
 

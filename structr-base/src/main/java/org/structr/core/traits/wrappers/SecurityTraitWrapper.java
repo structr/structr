@@ -3,7 +3,9 @@ package org.structr.core.traits.wrappers;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.Permission;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -27,6 +29,16 @@ public class SecurityTraitWrapper extends AbstractTraitWrapper<RelationshipInter
 	@Override
 	public RelationshipInterface getRelationship() {
 		return wrappedObject;
+	}
+
+	@Override
+	public Principal getSourceNode() {
+		return wrappedObject.getSourceNode().as(Principal.class);
+	}
+
+	@Override
+	public NodeInterface getTargetNode() {
+		return wrappedObject.getTargetNode();
 	}
 
 	@Override

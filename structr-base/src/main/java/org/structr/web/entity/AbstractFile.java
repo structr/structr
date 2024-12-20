@@ -22,7 +22,6 @@ package org.structr.web.entity;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.NodeTrait;
 
 /**

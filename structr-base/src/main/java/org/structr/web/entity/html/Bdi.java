@@ -22,8 +22,10 @@ import org.structr.web.entity.dom.DOMElement;
 
 public interface Bdi extends DOMElement {
 
+	/*
 	@Override
 	public boolean avoidWhitespace() {
 		return true;
 	}
+	*/
 }

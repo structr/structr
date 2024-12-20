@@ -670,7 +670,7 @@ public class SchemaService implements Service {
 
 		try { return Class.forName(name); } catch (ClassNotFoundException ignore) {}
 
-		final Class nodeClass = StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
+		final Class nodeClass = Traits.of(StringUtils.substringAfterLast(name, "."));
 		if (nodeClass != null) {
 
 			return nodeClass;

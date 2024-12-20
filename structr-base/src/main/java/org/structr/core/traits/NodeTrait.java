@@ -20,9 +20,10 @@ public interface NodeTrait {
 
 	void setName(final String name) throws FrameworkException;
 
-	boolean visibleToPublicUsers();
-	boolean visibleToAuthenticatedUsers();
+	boolean isVisibleToPublicUsers();
+	boolean isVisibleToAuthenticatedUsers();
 
+	Date getCreatedDate();
 	Date getLastModifiedDate();
 
 	void setVisibleToAuthenticatedUsers(final boolean visible) throws FrameworkException;
@@ -53,11 +54,11 @@ public interface NodeTrait {
 		getWrappedNode().unlockSystemPropertiesOnce();
 	}
 
-	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) {
+	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 		setProperties(securityContext, properties, false);
 	}
 
-	default void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) {
+	default void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 		getWrappedNode().setProperties(securityContext, properties, isCreation);
 	}
 }

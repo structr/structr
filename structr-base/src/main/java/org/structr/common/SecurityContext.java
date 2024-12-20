@@ -472,7 +472,7 @@ public class SecurityContext {
 		return false;
 	}
 
-	public boolean isVisible(final NodeInterface node) {
+	public boolean isVisible(final GraphObject node) {
 
 		switch (accessMode) {
 
@@ -527,7 +527,7 @@ public class SecurityContext {
 	}
 
 	// ----- private methods -----
-	private boolean isVisibleInBackend(final NodeInterface node) {
+	private boolean isVisibleInBackend(final GraphObject node) {
 
 		if (isVisibleInFrontend(node)) {
 
@@ -570,7 +570,7 @@ public class SecurityContext {
 	 * @param node
 	 * @return isVisible
 	 */
-	private boolean isVisibleInFrontend(final NodeInterface node) {
+	private boolean isVisibleInFrontend(final GraphObject node) {
 
 		if (node == null) {
 
@@ -1081,7 +1081,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isVisible(final NodeInterface node) {
+		public boolean isVisible(final GraphObject node) {
 			return true;
 		}
 

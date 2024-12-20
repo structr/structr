@@ -89,10 +89,8 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 	}
 
 	@Override
-	public String valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		return "[L" + Boolean.class.getName() + ";";
+	public Class valueType() {
+		return Boolean[].class;
 	}
 
 	@Override
@@ -182,6 +180,11 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 

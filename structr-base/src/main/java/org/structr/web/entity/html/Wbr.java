@@ -20,8 +20,9 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 
-public class Wbr extends DOMElement {
+public interface Wbr extends DOMElement {
 
+	/*
 	@Override
 	public boolean avoidWhitespace() {
 		return true;
@@ -31,4 +32,5 @@ public class Wbr extends DOMElement {
 	public boolean isVoidElement() {
 		return true;
 	}
+	*/
 }

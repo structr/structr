@@ -69,6 +69,11 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public Object fixDatabaseProperty(Object value) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
@@ -79,8 +84,8 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public String valueType() {
-		return "Boolean";
+	public Class valueType() {
+		return Boolean.class;
 	}
 
 	@Override

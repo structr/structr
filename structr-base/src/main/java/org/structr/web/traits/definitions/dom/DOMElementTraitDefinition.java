@@ -970,7 +970,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 								final Iterable<ParameterMapping> parameterMappings = thisElementWithSuperuserContext.getParameterMappings();
 
-								outputStructrId |= (thisElementWithSuperuserContext instanceof TemplateElement || parameterMappings.iterator().hasNext());
+								outputStructrId |= (thisElementWithSuperuserContext.is("TemplateElement") || parameterMappings.iterator().hasNext());
 
 								// output data-structr-id only once
 								if (outputStructrId) {
@@ -990,7 +990,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 				@Override
 				public Iterable<PropertyKey> getHtmlAttributes(final DOMElement element) {
-					return element.getTraits().getViewPropertyKeys(PropertyView.Html);
+					return element.getTraits().getPropertyKeysForView(PropertyView.Html);
 				}
 
 				@Override
@@ -1994,18 +1994,18 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 			final List<DOMElement> actualReloadSources = new LinkedList<>();
 			final List<DOMElement> actualReloadTargets = new LinkedList<>();
-			final org.jsoup.nodes.Element matchElement = getMatchElement(domElement);
+			final org.jsoup.nodes.Element matchElement = DOMElement.getMatchElement(domElement);
 			final String reloadTargets                 = domElement.getDataReloadTarget();
-			final Page page                            = (Page) domElement.getOwnerDocument();
+			final Page page                            = domElement.getOwnerDocument();
 
 			if (page != null) {
 
 				for (final DOMNode possibleReloadTargetNode : page.getElements()) {
 
-					if (possibleReloadTargetNode instanceof DOMElement) {
+					if (possibleReloadTargetNode.is("DOMElement")) {
 
-						final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
-						final org.jsoup.nodes.Element element = getMatchElement(possibleTarget);
+						final DOMElement possibleTarget       = possibleReloadTargetNode.as(DOMElement.class);
+						final org.jsoup.nodes.Element element = DOMElement.getMatchElement(possibleTarget);
 						final String otherReloadTarget        = possibleTarget.getDataReloadTarget();
 
 						if (reloadTargets != null && element != null) {
@@ -2059,45 +2059,6 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 			t.printStackTrace();
 		}
-	}
-
-	public org.jsoup.nodes.Element getMatchElement(final DOMElement domElement) {
-
-		final NodeInterface node = domElement.getWrappedNode();
-		final Traits traits      = node.getTraits();
-		final String tag         = domElement.getTag();
-
-		if (StringUtils.isNotBlank(tag)) {
-
-			final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(tag);
-			final String classes                  = domElement.getCssClass();
-
-			if (classes != null) {
-
-				for (final String css : classes.split(" ")) {
-
-					if (StringUtils.isNotBlank(css)) {
-
-						element.addClass(css.trim());
-					}
-				}
-			}
-
-			final String name = node.getProperty(traits.key("name"));
-			if (name != null) {
-				element.attr("name", name);
-			}
-
-			final String htmlId = node.getProperty(traits.key("_html_id"));
-			if (htmlId != null) {
-
-				element.attr("id", htmlId);
-			}
-
-			return element;
-		}
-
-		return null;
 	}
 
 	public boolean isTargetElement(final DOMElement thisElement) {

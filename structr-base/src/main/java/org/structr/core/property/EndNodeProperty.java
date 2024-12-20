@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipEndNodeConverter;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Map;
 
@@ -56,13 +57,18 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public String typeName() {
-		return null;
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override
-	public String valueType() {
-		return null;
+	public String typeName() {
+		return "NodeInterface";
+	}
+
+	@Override
+	public Class valueType() {
+		return NodeInterface.class;
 	}
 
 	@Override

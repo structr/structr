@@ -26,12 +26,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.w3c.dom.Document;
 
 import java.util.Collections;
 import java.util.Map;
@@ -92,7 +94,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 			return;
 		}
 
-		final Document document = getPage(pageId);
+		final Page document = getPage(pageId);
 
 		if (document == null) {
 
@@ -100,7 +102,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 			return;
 		}
 
-		final DOMNode parentNode = (DOMNode) refNode.getParentNode();
+		final DOMNode parentNode = refNode.getParent();
 
 		if (parentNode == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node has no parent node").build(), true);
@@ -112,16 +114,16 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 			if ("comment".equals(tagName)) {
 
-				newNode = (DOMNode) document.createComment("#comment");
+				newNode = document.createComment("#comment");
 
 			} else if ("#template".equals(tagName)) {
 
-				newNode = (DOMNode) document.createTextNode("#template");
+				newNode = document.createTextNode("#template");
 
 				try {
 
 					newNode.unlockSystemPropertiesOnce();
-					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
+					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.typeProperty(), "Template"));
 
 				} catch (FrameworkException fex) {
 
@@ -131,11 +133,11 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 			} else if ("#content".equals(tagName)) {
 
 				// TODO: this can not work - content elements can not have children!
-				newNode = (DOMNode) document.createTextNode("#text");
+				newNode = document.createTextNode("#text");
 
 			} else {
 
-				newNode = (DOMNode) document.createElement(tagName);
+				newNode = document.createElement(tagName);
 			}
 
 			newNode = getDOMNode(newNode.getUuid());
@@ -152,13 +154,14 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				parentNode.replaceChild(newNode, refNode);
 
 				// copy attributes etc..
-				DOMNode.copyAllAttributes(refNode, newNode);
+				DOMNodeTraitWrapper.copyAllAttributes(refNode, newNode);
 
 				// Remove old node from page
 				final PropertyMap changedProperties = new PropertyMap();
+				final Traits traits                 = Traits.of("DOMNode");
 
-				changedProperties.put(StructrApp.key(DOMNode.class, "syncedNodes"), Collections.EMPTY_LIST);
-				changedProperties.put(StructrApp.key(DOMNode.class, "pageId"),      null);
+				changedProperties.put(traits.key("syncedNodes"), Collections.EMPTY_LIST);
+				changedProperties.put(traits.key("pageId"),      null);
 
 				refNode.setProperties(securityContext, changedProperties);
 
@@ -174,7 +177,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				}
 			}
 
-			TransactionCommand.registerNodeCallback(newNode, callback);
+			TransactionCommand.registerNodeCallback(newNode.getWrappedNode(), callback);
 
 		} catch (Exception ex) {
 

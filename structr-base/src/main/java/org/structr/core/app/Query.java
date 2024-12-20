@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.Comparator;
 import java.util.List;
@@ -45,6 +46,7 @@ public interface Query<T> {
 	ResultStream<T> getResultStream() throws FrameworkException;
 	List<T> getAsList() throws FrameworkException;
 	T getFirst() throws FrameworkException;
+	Traits getTraits();
 
 	// ----- builder methods -----
 	Query<T> disableSorting();
@@ -59,6 +61,7 @@ public interface Query<T> {
 	Query<T> publicOnly(final boolean publicOnly);
 	Query<T> includeHidden(final boolean includeHidden);
 	Query<T> uuid(final String uuid);
+	Query<T> andTypes(final Traits type);
 	Query<T> andType(final String type);
 	Query<T> orType(final String type);
 
@@ -97,4 +100,5 @@ public interface Query<T> {
 	Predicate<GraphObject> toPredicate();
 
 	Occurrence getCurrentOccurrence();
+
 }

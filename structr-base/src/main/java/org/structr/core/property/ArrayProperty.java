@@ -97,10 +97,16 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public String valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		return "[L" + componentType.getName() + ";";
+	public Class valueType() {
+
+		try {
+			// This trick results in returning the proper array class for array properties.
+			// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
+			return Class.forName("[L" + componentType.getName() + ";");
+
+		} catch (ClassNotFoundException e) {}
+
+		return null;
 	}
 
 	@Override
@@ -242,6 +248,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 

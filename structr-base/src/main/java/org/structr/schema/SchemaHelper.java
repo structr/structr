@@ -21,10 +21,11 @@ package org.structr.schema;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.ServiceResult;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -328,7 +329,7 @@ public class SchemaHelper {
 
 	public static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Traits type, final String propertyView) throws FrameworkException {
 
-		final Set<PropertyKey> properties              = new LinkedHashSet<>(type.getViewPropertyKeys(propertyView));
+		final Set<PropertyKey> properties              = new LinkedHashSet<>(type.getPropertyKeysForView(propertyView));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
 		for (PropertyKey property : properties) {
@@ -347,12 +348,14 @@ public class SchemaHelper {
 		}
 	}
 
-	/*
-
-
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload, final boolean notifyCluster) {
-		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
+
+		//return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
+
+		return new ServiceResult(true);
 	}
+
+	/*
 
 	public static void getSource(final SourceFile sourceFile, final SchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
 

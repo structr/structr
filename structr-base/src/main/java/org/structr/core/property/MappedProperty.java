@@ -52,7 +52,7 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public String valueType() {
+	public Class valueType() {
 		return mappedKey.valueType();
 	}
 
@@ -80,6 +80,11 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return mappedKey.isArray();
 	}
 
 	// ----- OpenAPI -----

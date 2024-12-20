@@ -23,9 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -50,17 +53,18 @@ import org.w3c.dom.DOMException;
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		final String nodeId            = webSocketData.getId();
-		final AbstractNode nodeToClone = getNode(nodeId);
+		final String nodeId             = webSocketData.getId();
+		final NodeInterface nodeToClone = getNode(nodeId);
 
 		if (nodeToClone != null) {
 
 			try {
-				final Page pageToClone = nodeToClone instanceof Page ? (Page) nodeToClone : null;
+				final Page pageToClone = nodeToClone.is("Page") ? nodeToClone.as(Page.class) : null;
 				if (pageToClone != null) {
 
-					final Page newPage = (Page) pageToClone.cloneNode(false);
-					newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getPropertyContainer().getId().toString()));
+					final Page newPage = pageToClone.cloneNode(false).as(Page.class);
+
+					newPage.setProperties(securityContext, new PropertyMap(Traits.of("Page").key("name"), pageToClone.getName() + "-" + newPage.getWrappedNode().getNode().getId().toString()));
 
 //					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 //
@@ -74,15 +78,25 @@ import org.w3c.dom.DOMException;
 //						newPage.appendChild(newHtmlNode);
 //					}
 
-					DOMNode subNode = (DOMNode) pageToClone.treeGetFirstChild();
+					NodeInterface subNodeNode = pageToClone.treeGetFirstChild();
+					while (subNodeNode != null) {
 
-					while (subNode != null) {
+						final DOMNode subNode     = subNodeNode.as(DOMNode.class);
+						final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, subNode.as(DOMNode.class));
 
-						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, subNode);
 						newPage.adoptNode(newHtmlNode);
 						newPage.appendChild(newHtmlNode);
 
-						subNode = (DOMNode) subNode.getNextSibling();
+						final DOMNode tmp = subNode.getNextSibling();
+						if (tmp != null) {
+
+							subNodeNode = tmp.getWrappedNode();
+
+						} else {
+
+							// must be set to null to break loop
+							subNodeNode = null;
+						}
 					}
 				}
 

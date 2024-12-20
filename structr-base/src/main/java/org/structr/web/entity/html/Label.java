@@ -25,8 +25,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Label extends DOMElement {
+public interface Label extends DOMElement {
 
+	/*
 	public static final Property<String> htmlForProperty  = new StringProperty("_html_for").partOfBuiltInSchema();
 	public static final Property<String> htmlFormProperty = new StringProperty("_html_form").partOfBuiltInSchema();
 
@@ -38,4 +39,5 @@ public class Label extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+	*/
 }

@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -66,9 +67,9 @@ public abstract class AbstractCommand {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof Page) {
+		if (node != null && node.is("Page")) {
 
-			return (Page) node;
+			return node.as(Page.class);
 		}
 
 		return null;
@@ -78,9 +79,9 @@ public abstract class AbstractCommand {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof DOMNode) {
+		if (node != null && node.is("DOMNode")) {
 
-			return (DOMNode) node;
+			return node.as(DOMNode.class);
 		}
 
 		return null;
@@ -90,9 +91,9 @@ public abstract class AbstractCommand {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof Widget) {
+		if (node != null && node.is("Widget")) {
 
-			return (Widget) node;
+			return node.as(Widget.class);
 		}
 
 		return null;
@@ -105,7 +106,6 @@ public abstract class AbstractCommand {
 	 * @return the graph object
 	 */
 	public GraphObject getGraphObject(final String id) {
-
 		return getGraphObject(id, null);
 	}
 
@@ -267,9 +267,9 @@ public abstract class AbstractCommand {
 	 * @param sourceNode
 	 * @param targetNode
 	 */
-	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
+	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException {
 
-		DOMNode child = (DOMNode) sourceNode.getFirstChild();
+		DOMNode child = sourceNode.getFirstChild();
 
 		while (child != null) {
 
@@ -299,21 +299,23 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			ShadowDocument doc = app.nodeQuery("ShadowDocument").includeHidden().getFirst();
+			NodeInterface doc = app.nodeQuery("ShadowDocument").includeHidden().getFirst();
 			if (doc == null) {
 
 				final PropertyMap properties = new PropertyMap();
-				properties.put(AbstractNode.typeHandler, ShadowDocument.class.getSimpleName());
-				properties.put(AbstractNode.name, "__ShadowDocument__");
-				properties.put(AbstractNode.hidden, true);
-				properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+				final Traits traits          = Traits.of("ShadowDocument");
 
-				doc = app.create(ShadowDocument.class, properties);
+				properties.put(traits.key("type"), traits.getName());
+				properties.put(traits.key("name"), "__ShadowDocument__");
+				properties.put(traits.key("hidden"), true);
+				properties.put(traits.key("visibleToAuthenticatedUsers"), true);
+
+				doc = app.create("ShadowDocument", properties);
 			}
 
 			tx.success();
 
-			return doc;
+			return doc.as(ShadowDocument.class);
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to create container for shared components: {}", fex.getMessage());

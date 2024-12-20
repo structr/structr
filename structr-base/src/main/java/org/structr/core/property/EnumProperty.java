@@ -68,8 +68,8 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public String valueType() {
-		return enumType.getSimpleName();
+	public Class valueType() {
+		return enumType;
 	}
 
 	@Override
@@ -103,6 +103,11 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	public Class<T> getEnumType() {

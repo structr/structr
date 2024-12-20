@@ -24,8 +24,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Object extends DOMElement {
+public interface Object extends DOMElement {
 
+	/*
 	public static final Property<String> htmlTypeProperty          = new StringProperty("_html_type").partOfBuiltInSchema();
 	public static final Property<String> htmlTypeMustMatchProperty = new StringProperty("_html_typemustmatch").partOfBuiltInSchema();
 	public static final Property<String> htmlUsemapProperty        = new StringProperty("_html_usemap").partOfBuiltInSchema();
@@ -36,4 +37,6 @@ public class Object extends DOMElement {
 	public static final View htmlView = new View(Object.class, PropertyView.Html,
 		htmlTypeProperty, htmlTypeMustMatchProperty, htmlUsemapProperty, htmlFormProperty, htmlWidthProperty, htmlHeightProperty
 	);
+
+	 */
 }

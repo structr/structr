@@ -31,6 +31,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.RestDataSource;
@@ -84,10 +85,10 @@ public class SearchCommand extends AbstractCommand {
 		final int pageSize        = webSocketData.getPageSize();
 		final int page            = webSocketData.getPage();
 
-		Class type = null;
+		Traits type = null;
 		if (typeString != null) {
 
-			type = SchemaHelper.getEntityClassForRawType(typeString);
+			type = Traits.of(typeString);
 		}
 
 		if (searchString == null) {
@@ -156,15 +157,15 @@ public class SearchCommand extends AbstractCommand {
 
 		}
 
-		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
-		final PropertyKey sortProperty = StructrApp.key(AbstractNode.class, sortKey);
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
+		final String sortOrder         = webSocketData.getSortOrder();
+		final String sortKey           = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
+		final PropertyKey sortProperty = type.key(sortKey);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
 
-		query.and(AbstractNode.name, searchString, exactSearch);
+		query.and(type.key("name"), searchString, exactSearch);
 
 		if (type != null) {
-			query.andType(type);
+			query.andTypes(type);
 		}
 
 		try {

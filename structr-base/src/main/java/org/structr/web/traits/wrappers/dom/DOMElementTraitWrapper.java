@@ -30,7 +30,8 @@ import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.*;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.traits.operations.GetAttributes;
@@ -113,6 +114,11 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	@Override
 	public String getHtmlId() {
 		return wrappedObject.getProperty(traits.key("_html_id"));
+	}
+
+	@Override
+	public String getHtmlName() {
+		return wrappedObject.getProperty(traits.key("_html_name"));
 	}
 
 	@Override

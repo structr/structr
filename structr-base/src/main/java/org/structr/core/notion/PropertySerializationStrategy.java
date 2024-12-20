@@ -33,7 +33,7 @@ public class PropertySerializationStrategy implements SerializationStrategy {
 
 	private PropertyKey propertyKey    = null;
 
-	public PropertySerializationStrategy(PropertyKey propertyKey) {
+	public PropertySerializationStrategy(final PropertyKey propertyKey) {
 		this.propertyKey = propertyKey;
 
 		if (propertyKey == null) {
@@ -42,11 +42,11 @@ public class PropertySerializationStrategy implements SerializationStrategy {
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 	}
 
 	@Override
-	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
+	public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) throws FrameworkException {
 		if(source != null) {
 			return source.getProperty(propertyKey);
 		}

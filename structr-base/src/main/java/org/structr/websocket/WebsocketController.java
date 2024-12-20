@@ -33,6 +33,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationEvent;
@@ -55,15 +57,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WebsocketController implements StructrTransactionListener {
 
-	private static final Logger logger                 = LoggerFactory.getLogger(WebsocketController.class.getName());
-	private static final Set<String> BroadcastCommands = new HashSet<>(Arrays.asList("UPDATE", "ADD", "CREATE"));
+	private static final Logger logger                                   = LoggerFactory.getLogger(WebsocketController.class.getName());
+	private static final Set<String> BroadcastCommands                   = Set.of("UPDATE", "ADD", "CREATE");
+	private static final Set<String> BroadcastBlacklistForNodeTypes      = Set.of("IndexedWord");
+	private static final Set<String> BroadcastBlacklistForNodeProperties = Set.of("grantedNodes", "ownedNodes");
+	private static final Set<String> BroadcastBlacklistForRelTypes       = Set.of("INDEXED_WORD");
 
 	private final Set<StructrWebSocket> clients = ConcurrentHashMap.newKeySet();
 	private Gson gson                           = null;
-
-	private static final Set<String> BroadcastBlacklistForNodeTypes           = new HashSet<>(Arrays.asList("IndexedWord"));
-	private static final Set<PropertyKey> BroadcastBlacklistForNodeProperties = new HashSet<>(Arrays.asList(Principal.grantedNodes, Principal.ownedNodes));
-	private static final Set<String> BroadcastBlacklistForRelTypes            = new HashSet<>(Arrays.asList("INDEXED_WORD"));
 
 	public WebsocketController(final Gson gson) {
 
@@ -159,7 +160,7 @@ public class WebsocketController implements StructrTransactionListener {
 	}
 
 	private <T extends GraphObject> Iterable<T> filter(final SecurityContext securityContext, final Iterable<T> all) {
-		return Iterables.filter(e -> { return securityContext.isVisible((AccessControllable)e); }, all);
+		return Iterables.filter(e -> securityContext.isVisible(e), all);
 	}
 
 	// ----- interface StructrTransactionListener -----
@@ -193,6 +194,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
 		final String callbackId = modificationEvent.getCallbackId();
+		final PropertyKey<String> idProperty = Traits.idProperty();
 
 		if (modificationEvent.isNode()) {
 
@@ -202,7 +204,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				final WebSocketMessage message = createMessage("DELETE", callbackId);
 
-				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
+				message.setId(modificationEvent.getRemovedProperties().get(idProperty));
 				message.setCode(200);
 
 				return message;
@@ -211,7 +213,7 @@ public class WebsocketController implements StructrTransactionListener {
 			if (BroadcastBlacklistForNodeTypes.contains(node.getType())) {
 				return null;
 			}
-			if (modificationEvent.getModifiedProperties().keySet().stream().anyMatch((property) -> { return BroadcastBlacklistForNodeProperties.contains(property); })) {
+			if (modificationEvent.getModifiedProperties().keySet().stream().anyMatch((property) -> { return BroadcastBlacklistForNodeProperties.contains(property.jsonName()); })) {
 				return null;
 			}
 
@@ -281,8 +283,8 @@ public class WebsocketController implements StructrTransactionListener {
 		} else {
 
 			// handle relationship
-			final RelationshipTrait relationship = (RelationshipTrait) modificationEvent.getGraphObject();
-			final RelationshipType relType = modificationEvent.getRelationshipType();
+			final RelationshipInterface relationship = (RelationshipInterface) modificationEvent.getGraphObject();
+			final RelationshipType relType           = modificationEvent.getRelationshipType();
 
 			if (BroadcastBlacklistForRelTypes.contains(relType.name())) {
 				return null;
@@ -321,16 +323,16 @@ public class WebsocketController implements StructrTransactionListener {
 					message.setCode(200);
 					message.setCommand("APPEND_CHILD");
 
-					if (endNode instanceof DOMNode) {
+					if (endNode.is("DOMNode")) {
 
-						org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
+						DOMNode refNode = endNode.as(DOMNode.class).getNextSibling();
 						if (refNode != null) {
 
 							message.setCommand("INSERT_BEFORE");
-							message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
+							message.setNodeData("refId", refNode.getUuid());
 						}
 
-					} else if (endNode instanceof User || endNode instanceof GroupTraitDefinition) {
+					} else if (endNode.is("User") || endNode.is("Group")) {
 
 						message.setCommand("APPEND_MEMBER");
 						message.setNodeData("refId", startNode.getUuid());
@@ -348,7 +350,7 @@ public class WebsocketController implements StructrTransactionListener {
 			if (modificationEvent.isDeleted()) {
 
 				final WebSocketMessage message = createMessage("DELETE", callbackId);
-				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
+				message.setId(modificationEvent.getRemovedProperties().get(idProperty));
 				message.setCode(200);
 
 				return message;
@@ -373,7 +375,7 @@ public class WebsocketController implements StructrTransactionListener {
 				//relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
 				//relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
-				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getTrait(), relProperties);
+				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getType(), relProperties);
 
 				message.setRelData(properties);
 

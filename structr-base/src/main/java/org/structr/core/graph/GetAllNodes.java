@@ -29,7 +29,7 @@ import java.util.Collections;
  */
 public class GetAllNodes extends NodeServiceCommand {
 
-	public Iterable<AbstractNode> execute() throws FrameworkException {
+	public Iterable<NodeInterface> execute() throws FrameworkException {
 
 		DatabaseService graphDb = (DatabaseService)arguments.get("graphDb");
 		NodeFactory nodeFactory = new NodeFactory(securityContext);

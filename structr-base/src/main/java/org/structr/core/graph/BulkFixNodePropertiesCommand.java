@@ -107,7 +107,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 					if (propertyName != null) {
 
-						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), propertyName);
+						final PropertyKey key = node.getTraits().key(propertyName);
 						if (key != null) {
 
 							// needs type cast to Property to use fixDatabaseProperty method

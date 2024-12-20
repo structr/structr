@@ -29,8 +29,9 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 
-public class Html extends DOMElement {
+public interface Html extends DOMElement {
 
+	/*
 	public static final Property<String> _manifest         = (new HtmlProperty("manifest")).partOfBuiltInSchema();
 	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag").partOfBuiltInSchema();
 
@@ -40,7 +41,6 @@ public class Html extends DOMElement {
 	 * <!--[if IE 7]>         <html class="no-js ie8 ie7"> <![endif]-->
 	 * <!--[if IE 8]>         <html class="no-js ie8"> <![endif]-->
 	 * <!--[if gt IE 8]><!--> <html class="no-js ie9"> <!--<![endif]-->
-	 */
 
 	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest
@@ -68,4 +68,5 @@ public class Html extends DOMElement {
 	public Property[] getHtmlAttributes() {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 	}
+	*/
 }

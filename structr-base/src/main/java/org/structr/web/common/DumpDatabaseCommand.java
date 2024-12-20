@@ -53,10 +53,10 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			try (final Tx tx = app.tx()) {
 
-				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName, false);
+				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", "File", fileName, false).as(File.class);
 
 				// make file visible for auth. users
-				file.setProperties(securityContext, new PropertyMap(File.visibleToAuthenticatedUsers, true));
+				file.setVisibleToAuthenticatedUsers(true);
 
 				// Don't include files
 				SyncCommand.exportToStream(

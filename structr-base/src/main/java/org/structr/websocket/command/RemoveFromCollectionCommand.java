@@ -95,7 +95,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 			try {
 
-				PropertyKey key = StructrApp.key(obj.getClass(), keyString);
+				PropertyKey key = obj.getTraits().key(keyString);
 				if (key != null) {
 
 					List collection = Iterables.toList((Iterable) obj.getProperty(key));
