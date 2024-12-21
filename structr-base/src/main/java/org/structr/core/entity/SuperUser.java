@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
@@ -54,6 +55,11 @@ public class SuperUser implements Principal {
 
 	@Override
 	public NodeInterface getWrappedNode() {
+		return null;
+	}
+
+	@Override
+	public SecurityContext getSecurityContext() {
 		return null;
 	}
 
@@ -98,6 +104,41 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
+	public void setName(String name) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isVisibleToPublicUsers() {
+		return false;
+	}
+
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return false;
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
+	}
+
+	@Override
+	public void setVisibleToAuthenticatedUsers(boolean visible) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setVisibleToPublicUsers(boolean visible) throws FrameworkException {
+
+	}
+
+	@Override
 	public Iterable<NodeInterface> getOwnedNodes() {
 		return null;
 	}
@@ -115,6 +156,11 @@ public class SuperUser implements Principal {
 	@Override
 	public boolean addRefreshToken(String refreshToken) {
 		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public String[] getRefreshTokens() {
+		return new String[0];
 	}
 
 	@Override
@@ -200,6 +246,26 @@ public class SuperUser implements Principal {
 	@Override
 	public String[] getSessionIds() {
 		return new String[0];
+	}
+
+	@Override
+	public String getProxyUrl() {
+		return "";
+	}
+
+	@Override
+	public String getProxUsername() {
+		return "";
+	}
+
+	@Override
+	public String getProxyPassword() {
+		return "";
+	}
+
+	@Override
+	public void onAuthenticate() {
+
 	}
 
 	@Override

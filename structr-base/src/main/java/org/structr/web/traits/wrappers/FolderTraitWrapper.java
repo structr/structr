@@ -31,6 +31,8 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Folder {
@@ -86,8 +88,24 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value instanceof Image, getChildren()));
 	}
 
-	public String removeDuplicateSlashes(final String src) {
-		return src.replaceAll("[/]+", "/");
+	@Override
+	public List<NodeInterface> getAllChildNodes() {
+
+		final List<NodeInterface> allChildren = new LinkedList<>();
+
+		for (AbstractFile child : getFiles()) {
+
+			allChildren.add(child.getWrappedNode());
+		}
+
+		for (Folder child : getFolders()) {
+
+			allChildren.add(child.getWrappedNode());
+
+			allChildren.addAll(child.getAllChildNodes());
+		}
+
+		return allChildren;
 	}
 
 	static void updateWatchService(final Folder thisFolder, final boolean mount) {
@@ -107,24 +125,5 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 				}
 			}
 		}
-	}
-
-	public static Set<AbstractFile> getAllChildNodes(final Folder node) {
-
-		final Set<AbstractFile> allChildren = new LinkedHashSet<>();
-
-		for (AbstractFile child : node.getFiles()) {
-
-			allChildren.add(child);
-		}
-
-		for (Folder child : node.getFolders()) {
-
-			allChildren.add(child);
-
-			allChildren.addAll(getAllChildNodes(child));
-		}
-
-		return allChildren;
 	}
 }

@@ -67,9 +67,9 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 					IOUtils.copy(is, os);
 
-					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
-					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");
-					final PropertyKey<Long> sizeKey       = StructrApp.key(File.class, "size");
+					final PropertyKey<Integer> versionKey = Traits.of("File").key("version");
+					final PropertyKey<Long> checksumKey   = Traits.of("File").key("checksum");
+					final PropertyKey<Long> sizeKey       = Traits.of("File").key("size");
 					final PropertyMap changedProperties   = new PropertyMap();
 
 					changedProperties.put(checksumKey, FileHelper.getChecksum(nodeToBeReplaced));

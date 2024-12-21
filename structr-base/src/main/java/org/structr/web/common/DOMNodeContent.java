@@ -117,7 +117,7 @@ public class DOMNodeContent {
 			if (data != null) {
 
 				// remove existing?
-				target.setProperty(StructrApp.key(DOMNode.class, "children"), Collections.EMPTY_LIST);
+				target.setProperty(Traits.of("DOMNode").key("children"), Collections.EMPTY_LIST);
 
 				// add
 				final List<DOMNode> children = data.getNextSlotElements();

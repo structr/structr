@@ -194,42 +194,6 @@ public class AbstractFileTraitDefinition extends AbstractTraitDefinition {
 	*/
 
 	// ----- protected methods -----
-	static java.io.File defaultGetFileOnDisk(final File fileBase, final boolean create) {
-
-		final String uuid       = fileBase.getUuid();
-		final String filePath   = Settings.FilesPath.getValue();
-		final String uuidPath   = AbstractFileTraitDefinition.getDirectoryPath(uuid);
-		final String finalPath  = filePath + "/" + uuidPath + "/" + uuid;
-		final Path path         = Paths.get(finalPath);
-		final java.io.File file = path.toFile();
-
-		// create parent directory tree
-		file.getParentFile().mkdirs();
-
-		// create file only if requested
-		if (!file.exists() && create && !fileBase.isExternal()) {
-
-			try {
-
-				file.createNewFile();
-
-			} catch (IOException ioex) {
-
-				final Logger logger = LoggerFactory.getLogger(AbstractFileTraitDefinition.class);
-				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
-			}
-		}
-
-		return file;
-	}
-
-	static String getDirectoryPath(final String uuid) {
-
-		return (uuid != null)
-			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
-			: null;
-
-	}
 
 	static void updateHasParent(final GraphObject obj, final NodeInterface value) throws FrameworkException {
 		((AbstractFile) obj).setHasParent(value != null);

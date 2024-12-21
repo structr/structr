@@ -53,6 +53,7 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
+import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.io.IOException;
@@ -471,7 +472,7 @@ public class UiAuthenticator implements Authenticator {
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
-			if (user.getConfirmationKey() != null && !allowLoginBeforeConfirmation) {
+			if (user.is("User") && user.as(User.class).getConfirmationKey() != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as '{}' not allowed before confirmation.", user.getName());
 				RuntimeEventLog.failedLogin("Login attempt before confirmation", Map.of("id", user.getUuid(), "name", user.getName()));

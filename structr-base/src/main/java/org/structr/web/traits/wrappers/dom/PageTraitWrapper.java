@@ -84,8 +84,28 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
+	public Integer getPosition() {
+		return wrappedObject.getProperty(traits.key("position"));
+	}
+
+	@Override
 	public String getPath() {
 		return wrappedObject.getProperty(traits.key("path"));
+	}
+
+	@Override
+	public String getCategory() {
+		return wrappedObject.getProperty(traits.key("category"));
+	}
+
+	@Override
+	public String getShowOnErrorCodes() {
+		return wrappedObject.getProperty(traits.key("showOnErrorCodes"));
+	}
+
+	@Override
+	public boolean pageCreatesRawData() {
+		return wrappedObject.getProperty(traits.key("pageCreatesRawData"));
 	}
 
 	@Override
@@ -149,6 +169,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		return buffer.getBuffer().toString();
 	}
 
+	@Override
 	public DOMElement createElement(final String tag, final boolean suppressException) {
 
 		final Logger logger = LoggerFactory.getLogger(Page.class);
@@ -421,5 +442,10 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		}
 
 		return null;
+	}
+
+	@Override
+	public void adoptNode(DOMNode newHtmlNode) {
+
 	}
 }

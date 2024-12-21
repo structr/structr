@@ -26,7 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +58,8 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 				try {
 
-					final App app = StructrApp.getInstance();
+					final App app       = StructrApp.getInstance();
+					final Traits traits = Traits.of("SchemaNode");
 
 					// extract info
 					final String methodName = matcher.group(1);
@@ -65,7 +68,7 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
+						NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
 
 						if (schemaNode == null) {
 
@@ -74,9 +77,9 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 						if (schemaNode != null) {
 
-							for (final SchemaMethod method : app.nodeQuery("SchemaMethod")
-								.and(SchemaMethod.schemaNode, schemaNode)
-								.and(SchemaMethod.name,       methodName)
+							for (final NodeInterface method : app.nodeQuery("SchemaMethod")
+								.and(traits.key("schemaNode"), schemaNode)
+								.and(traits.key("name"),       methodName)
 								.getAsList()) {
 
 								app.delete(method);

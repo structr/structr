@@ -179,9 +179,10 @@ public class PageImporter extends HtmlFileImporter {
 				}
 
 				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
-				final String contentType = get(properties, StructrApp.key(Page.class, "contentType"), "text/html");
-				boolean visibleToPublic  = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth    = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
+				final Traits traits      = Traits.of("Page");
+				final String contentType = get(properties, traits.key("contentType"),                 "text/html");
+				boolean visibleToPublic  = get(properties, traits.key("visibleToPublicUsers"),        false);
+				boolean visibleToAuth    = get(properties, traits.key("visibleToAuthenticatedUsers"), false);
 
 				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false, relativeVisibility);
 

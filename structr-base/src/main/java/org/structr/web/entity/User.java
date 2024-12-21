@@ -117,7 +117,7 @@ public interface User extends Principal {
 
 			setSecurityContext(SecurityContext.getSuperUserInstance());
 
-			final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
+			final PropertyKey<Boolean> skipSecurityRels = Traits.of("User").key("skipSecurityRelationships");
 			if (getProperty(skipSecurityRels).equals(Boolean.TRUE) && !isAdmin()) {
 
 				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
@@ -132,8 +132,8 @@ public interface User extends Principal {
 
 			if (Settings.FilesystemEnabled.getValue()) {
 
-				final PropertyKey<Folder> homeFolderKey = StructrApp.key(Folder.class, "homeFolderOfUser");
-				final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
+				final PropertyKey<Folder> homeFolderKey = Traits.of("Folder").key("homeFolderOfUser");
+				final PropertyKey<Folder> parentKey     = Traits.of("AbstractFile").key("parent");
 
 				try {
 

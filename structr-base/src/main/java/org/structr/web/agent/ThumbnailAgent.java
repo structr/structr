@@ -140,9 +140,9 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create a thumbnail relationship
 					final PropertyMap relProperties = new PropertyMap();
-					relProperties.put(StructrApp.key(Image.class, "width"),                  tnWidth);
-					relProperties.put(StructrApp.key(Image.class, "height"),                 tnHeight);
-					relProperties.put(StructrApp.key(Image.class, "checksum"),               originalImage.getChecksum());
+					relProperties.put(Traits.of("Image").key("width"),                  tnWidth);
+					relProperties.put(Traits.of("Image").key("height"),                 tnHeight);
+					relProperties.put(Traits.of("Image").key("checksum"),               originalImage.getChecksum());
 
 					// We have to store the specs here in order to find existing thumbnails based on the specs they've been created for, not actual dimensions.
 					relProperties.put(new IntProperty("maxWidth"),                           maxWidth);
@@ -153,15 +153,15 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create thumbnail Image node
 					final PropertyMap properties = new PropertyMap();
-					properties.put(StructrApp.key(Image.class, "width"),                              tnWidth);
-					properties.put(StructrApp.key(Image.class, "height"),                             tnHeight);
-					properties.put(StructrApp.key(AbstractNode.class, "hidden"),                      originalImage.getProperty(AbstractNode.hidden));
-					properties.put(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-					properties.put(StructrApp.key(AbstractNode.class, "visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-					properties.put(StructrApp.key(File.class, "size"),                                Long.valueOf(data.length));
-					properties.put(StructrApp.key(AbstractNode.class, "owner"),                       originalImage.getProperty(AbstractNode.owner));
-					properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
-					properties.put(StructrApp.key(File.class, "hasParent"),                           originalImage.getProperty(StructrApp.key(Image.class, "hasParent")));
+					properties.put(Traits.of("Image").key("width"),                              tnWidth);
+					properties.put(Traits.of("Image").key("height"),                             tnHeight);
+					properties.put(Traits.of("AbstractNode").key("hidden"),                      originalImage.getProperty(AbstractNode.hidden));
+					properties.put(Traits.of("AbstractNode").key("visibleToAuthenticatedUsers"), originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+					properties.put(Traits.of("AbstractNode").key("visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+					properties.put(Traits.of("File").key("size"),                                Long.valueOf(data.length));
+					properties.put(Traits.of("AbstractNode").key("owner"),                       originalImage.getProperty(AbstractNode.owner));
+					properties.put(Traits.of("File").key("parent"),                              originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
+					properties.put(Traits.of("File").key("hasParent"),                           originalImage.getProperty(Traits.of("Image").key("hasParent")));
 
 					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperties(securityContext, properties);
@@ -172,7 +172,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 				logger.warn("Could not create thumbnail for image {} ({})", originalImage.getName(), imageUuid);
 
 				// mark file so we don't try to create a thumbnail again
-				originalImage.setProperty(StructrApp.key(Image.class, "thumbnailCreationFailed"), true);
+				originalImage.setProperty(Traits.of("Image").key("thumbnailCreationFailed"), true);
 			}
 
 			originalImage.unlockSystemPropertiesOnce();

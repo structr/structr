@@ -468,7 +468,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 				}
 
-				if (file != null && securityContext.isVisible(file.as(AccessControllable.class))) {
+				if (file != null && securityContext.isVisible(file.getWrappedNode())) {
 
 					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();
@@ -496,7 +496,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				if (!securityContext.isVisible(rootElement.as(AccessControllable.class))) {
+				if (!securityContext.isVisible(rootElement.getWrappedNode())) {
 
 					rootElement = notFound(response, securityContext);
 					if (rootElement == null) {
@@ -797,7 +797,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				if (!securityContext.isVisible(rootElement.as(AccessControllable.class))) {
+				if (!securityContext.isVisible(rootElement.getWrappedNode())) {
 
 					rootElement = notFound(response, securityContext);
 					if (rootElement == null) {
@@ -808,7 +808,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				if (securityContext.isVisible(rootElement.as(AccessControllable.class))) {
+				if (securityContext.isVisible(rootElement.getWrappedNode())) {
 
 					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement.getWrappedNode(), dontCache)) {
 
@@ -1237,7 +1237,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final Page page = node.as(Page.class);
 
-			if (securityContext.isVisible(page.as(AccessControllable.class)) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
+			if (securityContext.isVisible(page.getWrappedNode()) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
 
 				return page;
 			}

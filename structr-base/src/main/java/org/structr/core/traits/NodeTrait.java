@@ -61,4 +61,12 @@ public interface NodeTrait {
 	default void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 		getWrappedNode().setProperties(securityContext, properties, isCreation);
 	}
+
+	default <T> T getProperty(final PropertyKey<T> key) {
+		return getWrappedNode().getProperty(key);
+	}
+
+	default <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+		return getWrappedNode().setProperty(key, value);
+	}
 }
