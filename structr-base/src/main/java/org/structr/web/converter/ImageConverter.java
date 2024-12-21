@@ -75,7 +75,7 @@ public class ImageConverter extends PropertyConverter {
 
 					if (keyAndClass != null) {
 
-						img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
+						img = ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getType()).as(Image.class);
 
 					} else {
 
@@ -94,12 +94,12 @@ public class ImageConverter extends PropertyConverter {
 							// UUID?
 							if (sourceString.length() == 32) {
 
-								img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+								img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getType() : null);
 							}
 
 							if (img == null) {
 
-								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getType() : null);
 
 							}
 
@@ -120,7 +120,7 @@ public class ImageConverter extends PropertyConverter {
 			if (img != null) {
 
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-				img.addToIndex();
+				img.getWrappedNode().addToIndex();
 				
 				currentObject.setProperties(securityContext, new PropertyMap(keyAndClass.getPropertyKey(), img));
 			}

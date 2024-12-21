@@ -51,7 +51,6 @@ import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;

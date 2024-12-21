@@ -39,7 +39,7 @@ public interface Script extends DOMElement, LinkSource {
 
 		super.onCreation(securityContext, errorBuffer);
 
-		final PropertyKey<String> key = StructrApp.key(Script.class, "_html_type");
+		final PropertyKey<String> key = Traits.of("Script").key("_html_type");
 		final String value            = getProperty(key);
 
 		if (StringUtils.isBlank(value)) {
@@ -53,7 +53,7 @@ public interface Script extends DOMElement, LinkSource {
 		if (newChild instanceof Content) {
 
 			try {
-				final String scriptType = getProperty(StructrApp.key(Script.class, "_html_type"));
+				final String scriptType = getProperty(Traits.of("Script").key("_html_type"));
 
 				if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(((Content)newChild).getContentType())) {
 

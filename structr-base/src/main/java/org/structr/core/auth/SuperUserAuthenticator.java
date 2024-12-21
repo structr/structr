@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
-
+import org.structr.core.traits.Traits;
 
 
 /**
@@ -67,7 +67,7 @@ public class SuperUserAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Class getUserClass() {
+	public Traits getUserClass() {
 		return null;
 	}
 }

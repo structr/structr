@@ -35,4 +35,8 @@ public interface Folder extends AbstractFile {
 	Iterable<File> getFiles();
 
 	List<NodeInterface> getAllChildNodes();
+
+	static String removeDuplicateSlashes(final String src) {
+		return src.replaceAll("[/]+", "/");
+	}
 }

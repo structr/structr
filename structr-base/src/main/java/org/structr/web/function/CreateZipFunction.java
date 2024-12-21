@@ -107,14 +107,14 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			if (sources[1] instanceof File) {
 
 				File file = (File) sources[1];
-				addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
+				addFileToZipArchive(file.getName(), file, zipFile, params);
 
 			} else if (sources[1] instanceof Folder) {
 
 				Folder folder = (Folder) sources[1];
 
-				addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-				addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+				addFilesToArchive(folder.getName() + "/", folder.getFiles(), zipFile, params);
+				addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zipFile, params);
 
 			} else if (sources[1] instanceof Collection) {
 
@@ -133,13 +133,13 @@ public class CreateZipFunction extends UiAdvancedFunction {
 						if (fileOrFolder instanceof File) {
 
 							File file = (File) fileOrFolder;
-							addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
+							addFileToZipArchive(file.getName(), file, zipFile, params);
 
 						} else if (fileOrFolder instanceof Folder) {
 
 							Folder folder = (Folder) fileOrFolder;
-							addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-							addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+							addFilesToArchive(folder.getName() + "/", folder.getFiles(), zipFile, params);
+							addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zipFile, params);
 
 						} else {
 
@@ -189,7 +189,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		for (final File fileForArchive : list) {
 
 			params.setFileNameInZip(fileForArchive.getName());
-			addFileToZipArchive(path + fileForArchive.getProperty(AbstractFile.name), fileForArchive, zipFile, params);
+			addFileToZipArchive(path + fileForArchive.getName(), fileForArchive, zipFile, params);
 		}
 	}
 
@@ -197,8 +197,8 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 		for (final Folder folder : list) {
 
-			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+			addFilesToArchive(path + folder.getName() + "/", folder.getFiles(), zipFile, params);
+			addFoldersToArchive(path + folder.getName() + "/", folder.getFolders(), zipFile, params);
 		}
 	}
 }

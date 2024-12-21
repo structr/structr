@@ -86,7 +86,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node instanceof LinkSource) {
 
-				final Linkable file = StructrApp.getInstance().nodeQuery("Linkable").and(StructrApp.key(AbstractFile.class, "path"), parameters).getFirst();
+				final Linkable file = StructrApp.getInstance().nodeQuery("Linkable").and(Traits.of("AbstractFile").key("path"), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = (LinkSource)node;
@@ -104,27 +104,27 @@ public class DeploymentCommentHandler implements CommentHandler {
 		});
 
 		handlers.put("content", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(StructrApp.key(Content.class, "contentType"), parameters);
+			node.setProperty(Traits.of("Content").key("contentType"), parameters);
 		});
 
 		handlers.put("name", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(StructrApp.key(DOMNode.class, "name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of("DOMNode").key("name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(StructrApp.key(DOMNode.class, "showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of("DOMNode").key("showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("hide", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of("DOMNode").key("hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("show-for-locales", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(StructrApp.key(DOMNode.class, "showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of("DOMNode").key("showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("hide-for-locales", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperty(StructrApp.key(DOMNode.class, "hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of("DOMNode").key("hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {

@@ -89,9 +89,9 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		if (propertySet.containsKey("eMail")) {
 
-			final PropertyKey<String> confKeyKey  = StructrApp.key(User.class, "confirmationKey");
-			final PropertyKey<String> eMailKey    = StructrApp.key(User.class, "eMail");
-			final PropertyKey<String> passwordKey = StructrApp.key(User.class, "password");
+			final PropertyKey<String> confKeyKey  = Traits.of("User").key("confirmationKey");
+			final PropertyKey<String> eMailKey    = Traits.of("User").key("eMail");
+			final PropertyKey<String> passwordKey = Traits.of("User").key("password");
 			final String emailString              = (String) propertySet.get(eMailKey.jsonName());
 			final String passwordString           = (String) propertySet.get(passwordKey.jsonName());
 
@@ -187,7 +187,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 	private void sendInvitationLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
 
-		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+		final PropertyKey<String> eMailKey = Traits.of("User").key("eMail");
 		final String userEmail             = user.getProperty(eMailKey);
 		final ActionContext ctx            = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
@@ -382,7 +382,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Traits traits, final String confKey) throws FrameworkException {
 
-		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = Traits.of("User").key("confirmationKey");
 		Principal user = null;
 
 		// First, search for a person with that e-mail address

@@ -637,7 +637,7 @@ public class SchemaService implements Service {
 
 							} else {
 
-								final boolean wasIdIndex = GraphObject.id.equals(propertyKey);
+								final boolean wasIdIndex = Traits.idProperty().equals(propertyKey);
 								final boolean dropIndex  = wasIndexed && !wasIdIndex;
 
 								typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));

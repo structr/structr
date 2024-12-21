@@ -69,8 +69,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 			} else {
 
 				final PropertyMap props = new PropertyMap();
-				props.put(StructrApp.key(Folder.class, "name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
-				props.put(StructrApp.key(Folder.class, "parent"), archiveFile.getParent());
+				props.put(Traits.of("Folder").key("name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				props.put(Traits.of("Folder").key("parent"), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
 				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(Folder.class, props);

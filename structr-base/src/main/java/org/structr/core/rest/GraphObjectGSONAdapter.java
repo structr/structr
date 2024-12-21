@@ -53,7 +53,7 @@ public class GraphObjectGSONAdapter {
 
 	static {
 
-		idTypeNameOnly.add(GraphObject.id);
+		idTypeNameOnly.add(Traits.idProperty());
 		idTypeNameOnly.add(AbstractNode.typeHandler);
 		idTypeNameOnly.add(AbstractNode.name);
 	}

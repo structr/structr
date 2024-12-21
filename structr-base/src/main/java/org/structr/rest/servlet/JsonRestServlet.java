@@ -122,7 +122,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				final Principal currentUser = securityContext.getUser(false);
 
-				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				RuntimeEventLog.rest("Delete", handler.getResourceSignature(), currentUser);
@@ -245,7 +245,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// results, especially in the /me resource where the result might depend on the actual user type that makes the call
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
+				final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), "User");
 				if (handler != null) {
 
 					RuntimeEventLog.rest("Options", handler.getResourceSignature(), null);
@@ -341,7 +341,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					final Principal currentUser = securityContext.getUser(false);
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 					RuntimeEventLog.rest("Post", handler.getResourceSignature(), currentUser);
@@ -532,7 +532,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 					final Principal currentUser = securityContext.getUser(false);
 
 					// evaluate constraint chain
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 					RuntimeEventLog.rest("Put", handler.getResourceSignature(), currentUser);
@@ -669,7 +669,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					final Principal currentUser = securityContext.getUser(false);
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 					RuntimeEventLog.rest("Patch", handler.getResourceSignature(), currentUser);
@@ -792,7 +792,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			final Principal currentUser = securityContext.getUser(false);
 
-			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), currentUser);
@@ -808,7 +808,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
 			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-			final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
+			final String type                       = handler.getEntityClassOrDefault(securityContext);
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();

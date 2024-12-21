@@ -25,6 +25,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
 /**
  *
@@ -33,7 +35,6 @@ public class ExtendNotionPropertyWithUuid implements MigrationHandler {
 
 	@Override
 	public void handleMigration(final ErrorToken errorToken) throws FrameworkException {
-
 
 		final Object messageObject = errorToken.getDetail();
 		if (messageObject != null) {
@@ -48,21 +49,22 @@ public class ExtendNotionPropertyWithUuid implements MigrationHandler {
 					final InvalidPropertySchemaToken token = (InvalidPropertySchemaToken)errorToken;
 					final String typeName                  = token.getType();
 					final String propertyName              = token.getProperty();
-					final SchemaNode type = app.nodeQuery("SchemaNode").andName(typeName).getFirst();
+					final NodeInterface type               = app.nodeQuery("SchemaNode").andName(typeName).getFirst();
+					final Traits traits                    = Traits.of("SchemaProperty");
 
 					if (type != null) {
 
-						final SchemaProperty property = app.nodeQuery("SchemaProperty")
-							.and(SchemaProperty.schemaNode, type)
-							.and(SchemaProperty.name, propertyName).getFirst();
+						final NodeInterface property = app.nodeQuery("SchemaProperty")
+							.and(traits.key("schemaNode"), type)
+							.and(traits.key("name"), propertyName).getFirst();
 
 						if (property != null) {
 
 							// load format property
-							final String format = property.getProperty(SchemaProperty.format);
+							final String format = property.as(SchemaProperty.class).getFormat();
 
 							// store corrected version of format property
-							property.setProperty(SchemaProperty.format, format + ", id");
+							property.setProperty(traits.key("format"), format + ", id");
 						}
 					}
 				}

@@ -61,7 +61,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import java.util.*;
 
 /**
- * Combines AbstractNode and org.w3c.dom.Node.
+ * Combines AbstractNode and DOMnode
  */
 public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements DOMNode {
 
@@ -2288,5 +2288,4 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		return false;
 	}
-
 }

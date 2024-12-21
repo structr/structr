@@ -75,13 +75,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public void mountFolder(final Folder folder) {
 
-		final boolean watchContents     = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
-		final Integer scanInterval      = folder.getProperty(StructrApp.key(Folder.class, "mountScanInterval"));
+		final boolean watchContents     = folder.getProperty(Traits.of("Folder").key("mountWatchContents"));
+		final Integer scanInterval      = folder.getProperty(Traits.of("Folder").key("mountScanInterval"));
 		final StorageProvider prov      = StorageProviderFactory.getStorageProvider(folder);
 		final StorageConfiguration conf = prov.getConfig();
 		final Map<String, String> data  = conf != null ? conf.getConfiguration() : null;
 		final String mountTarget        = data != null ? data.get("mountTarget") : null;
-		final String folderPath         = folder.getProperty(StructrApp.key(Folder.class, "path"));
+		final String folderPath         = folder.getProperty(Traits.of("Folder").key("path"));
 		final String uuid               = folder.getUuid();
 
 		synchronized (watchedRoots) {
@@ -126,7 +126,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		final FolderInfo info = watchedRoots.get(uuid);
 
 		// upon creation, set the last scanned date correctly to prevent early scanning
-		final Long lastScanDate       = folder.getProperty(StructrApp.key(Folder.class, "mountLastScanned"));
+		final Long lastScanDate       = folder.getProperty(Traits.of("Folder").key("mountLastScanned"));
 		final boolean wasNeverScanned = (lastScanDate == null);
 
 		if (!wasNeverScanned) {
@@ -280,7 +280,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
-		final PropertyKey<String> storageConfigurationKey = StructrApp.key(AbstractFile.class, "storageConfiguration");
+		final PropertyKey<String> storageConfigurationKey = Traits.of("AbstractFile").key("storageConfiguration");
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx(false, false, false)) {
@@ -564,7 +564,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		@Override
 		public void run() {
 
-			final PropertyKey<Long> lastScannedKey   = StructrApp.key(Folder.class, "mountLastScanned");
+			final PropertyKey<Long> lastScannedKey   = Traits.of("Folder").key("mountLastScanned");
 			boolean canStart                         = false;
 
 			// wait for transaction to finish so we can be

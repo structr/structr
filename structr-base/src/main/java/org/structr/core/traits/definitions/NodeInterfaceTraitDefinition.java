@@ -51,7 +51,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 	private static final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
 
 	private static final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship").partOfBuiltInSchema();
-	private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
+	//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 	public NodeInterfaceTraitDefinition() {
 		super("NodeInterface");
@@ -268,8 +268,8 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 			hiddenProperty,
 			ownerProperty,
 			ownerIdProperty,
-			granteesProperty,
-			internalPathProperty
+			granteesProperty
+			//internalPathProperty
 		);
 	}
 

@@ -82,7 +82,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 			// remove child
 			parent.removeChild(child);
 
-			final DOMNode newChild = importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+			final DOMNode newChild = importer.createChildNodes(parent, parent.getOwnerDocument(), true).as(DOMNode.class);
 
 			// store existing content
 			content.moveTo(newChild);

@@ -123,7 +123,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
 
 		final String currentPart = parts.remove(0);
-		final List<AbstractFile> res = app.nodeQuery("AbstractFile").and(StructrApp.key(AbstractFile.class, "parent"), (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
+		final List<AbstractFile> res = app.nodeQuery("AbstractFile").and(Traits.of("AbstractFile").key("parent"), (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
 
 		if (parts.isEmpty()) {
 			for (final AbstractFile fileOrFolder : res) {

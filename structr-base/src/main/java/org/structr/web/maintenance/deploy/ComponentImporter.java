@@ -95,7 +95,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = (DOMNode) StructrApp.getInstance().nodeQuery("DOMNode").and(GraphObject.id, name).getFirst();
+				result = (DOMNode) StructrApp.getInstance().nodeQuery("DOMNode").and(Traits.idProperty(), name).getFirst();
 			} else {
 
 				result = Importer.findSharedComponentByName(name);
@@ -205,7 +205,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				if (existingComponent != null && isHullMode()) {
 
-					final PropertyKey<String> contentKey = StructrApp.key(Template.class, "content");
+					final PropertyKey<String> contentKey = Traits.of("Template").key("content");
 
 					properties.put(contentKey, existingComponent.getProperty(contentKey));
 
@@ -266,7 +266,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(GraphObject.id, componentName);
+							rootElement.setProperty(Traits.idProperty(), componentName);
 
 						} else if (byNameAndId) {
 
@@ -277,7 +277,7 @@ public class ComponentImporter extends HtmlFileImporter {
 							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(GraphObject.id, uuid);
+							rootElement.setProperty(Traits.idProperty(), uuid);
 							properties.put(AbstractNode.name, name);
 
 						} else {

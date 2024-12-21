@@ -25,6 +25,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -71,7 +72,7 @@ public class IncludeChildFunction extends IncludeFunction {
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
-			final List<DOMNode> nodeList             = app.nodeQuery("DOMNode").andName((String)sources[0]).getAsList();
+			final List<NodeInterface> nodeList       = app.nodeQuery("DOMNode").andName((String)sources[0]).getAsList();
 
 			DOMNode node = null;
 
@@ -84,14 +85,14 @@ public class IncludeChildFunction extends IncludeFunction {
 
 				final List<DOMNode> children = new ArrayList<>();
 
-				for (final DOMNode n : nodeList) {
+				for (final NodeInterface ni : nodeList) {
 
-					final DOMNode parentNode = n.getParent();
+					final DOMNode domNode    = ni.as(DOMNode.class);
+					final DOMNode parentNode = domNode.getParent();
 
-					if (parentNode != null && parentNode.equals(templateNode) && !n.inTrash()) {
-						children.add(n);
+					if (parentNode != null && parentNode.equals(templateNode) && !domNode.inTrash()) {
+						children.add(domNode);
 					}
-
 				}
 
 				if (children.size() == 1) {

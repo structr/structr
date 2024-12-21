@@ -187,4 +187,9 @@ public interface GraphObject {
 		return null;
 	}
 
+	default void setVisibility(final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
+		setProperty(getTraits().key("visibleToPublicUsers"),        visibleToPublic);
+		setProperty(getTraits().key("visibleToAuthenticatedUsers"), visibleToAuth);
+	}
+
 }
