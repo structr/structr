@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
@@ -51,11 +53,12 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
-import static org.structr.web.agent.ThumbnailAgent.logger;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
 public class RegistrationResourceHandler extends RESTCallHandler {
+
+	private static final Logger logger = LoggerFactory.getLogger(RegistrationResourceHandler.class.getName());
 
 	private enum TemplateKey {
 		CONFIRM_REGISTRATION_SENDER_NAME,
