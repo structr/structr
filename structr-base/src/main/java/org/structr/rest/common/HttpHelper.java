@@ -35,10 +35,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
@@ -81,7 +78,7 @@ public class HttpHelper {
 
 	private static CloseableHttpClient client;
 
-	private static void configure(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+	private static void configure(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates, final Integer timeout) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
 		if (StringUtils.isBlank(requestCharset)) {
 			charset = Settings.HttpDefaultCharset.getValue();
@@ -138,6 +135,7 @@ public class HttpHelper {
 		final HttpClientBuilder clientBuilder = HttpClients.custom()
 				.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
 				.setUserAgent(Settings.HttpUserAgent.getValue())
+				.setRedirectStrategy(new LaxRedirectStrategy())
 				.setDefaultCredentialsProvider(credsProvider);
 
 		if (Boolean.FALSE.equals(validateCertificates)) {
@@ -157,11 +155,13 @@ public class HttpHelper {
 
 		client = clientBuilder.build();
 
+		final int connectTimeout = (timeout != null)? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
+
 		final RequestConfig reqConfig = RequestConfig.custom()
 			.setProxy(proxy)
 			.setRedirectsEnabled(followRedirects)
 			.setCookieSpec(CookieSpecs.STANDARD)
-			.setConnectTimeout(Settings.HttpConnectTimeout.getValue() * 1000)
+			.setConnectTimeout(connectTimeout)
 			.setSocketTimeout(Settings.HttpSocketTimeout.getValue() * 1000)
 			.setConnectionRequestTimeout(Settings.HttpConnectionRequestTimeout.getValue() * 1000)
 			.build();
@@ -195,7 +195,7 @@ public class HttpHelper {
 
 	public static CloseableHttpClient getClient(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
-		configure(req, requestCharset, username, password, proxyUrlParameter, proxyUsernameParameter, proxyPasswordParameter, cookieParameter, headers, followRedirects, validateCertificates);
+		configure(req, requestCharset, username, password, proxyUrlParameter, proxyUsernameParameter, proxyPasswordParameter, cookieParameter, headers, followRedirects, validateCertificates, null);
 		return client;
 	}
 
@@ -233,7 +233,7 @@ public class HttpHelper {
 			final URI     uri = new URL(address).toURI();
 			final HttpGet req = new HttpGet(uri);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
 			final CloseableHttpResponse resp = client.execute(req);
 
@@ -296,7 +296,7 @@ public class HttpHelper {
 			final URI      uri = new URL(address).toURI();
 			final HttpHead req = new HttpHead(uri);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
 
 			final CloseableHttpResponse response = client.execute(req);
 
@@ -326,7 +326,7 @@ public class HttpHelper {
 			final URI url     = URI.create(address);
 			final HttpPut req = new HttpPatch(url);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -371,7 +371,7 @@ public class HttpHelper {
 
 	public static Map<String,Object> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates)	throws FrameworkException {
 
-		return post(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
+		return post(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates, null);
 	}
 
 	public static Map<String,Object> post(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates)	throws FrameworkException {
@@ -381,10 +381,16 @@ public class HttpHelper {
 
 	public static Map<String,Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates)	throws FrameworkException {
 
-		return post(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates);
+		return post(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates, null);
 	}
 
-	public static Map<String,Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> post(String address, String requestBody, String proxyUrl, String proxyUsername, Map<String, String> headers, String charset, boolean validateCertificates, Map<String, Object> config) throws FrameworkException {
+
+		return post(address, requestBody, null, null, proxyUrl, proxyUsername, null, null, headers, charset, validateCertificates, config);
+	}
+
+
+	public static Map<String,Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
 
 		final Map<String, Object> responseData = new HashMap<>();
 
@@ -393,7 +399,18 @@ public class HttpHelper {
 			final URI      uri = new URL(address).toURI();
 			final HttpPost req = new HttpPost(uri);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
+			Integer timeout = null;
+			boolean redirects = false;
+
+			if(config.containsKey("timeout")){
+				timeout = (Integer) config.get("timeout");
+			}
+
+			if(config.containsKey("redirects")){
+				redirects = (Boolean) config.get("redirects");
+			}
+
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirects, validateCertificates, timeout);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -449,7 +466,7 @@ public class HttpHelper {
 			final URI     uri = new URL(address).toURI();
 			final HttpPut req = new HttpPut(uri);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -500,7 +517,7 @@ public class HttpHelper {
 			final URI        uri = new URL(address).toURI();
 			final HttpDelete req = new HttpDelete(uri);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
 			final CloseableHttpResponse response = client.execute(req);
 			final HttpEntity responseEntity = response.getEntity();
@@ -544,7 +561,7 @@ public class HttpHelper {
 			final URI     uri = new URL(address).toURI();
 			final HttpGet req = new HttpGet(uri);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
 
 			final CloseableHttpResponse resp = client.execute(req);
 
@@ -603,7 +620,7 @@ public class HttpHelper {
 
 			logger.info("Downloading from {}", address);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
 
 			req.addHeader("User-Agent", "curl/7.35.0");
 
