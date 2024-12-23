@@ -440,7 +440,7 @@ public class Importer {
 
 		for (final Node node : parsedDocument.childNodes()) {
 
-			String tag = node.nodeName();
+			final String tag  = node.nodeName();
 			final String type = CaseHelper.toUpperCamelCase(tag);
 
 			if (ignoreElementNames.contains(type)) {

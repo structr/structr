@@ -609,7 +609,7 @@ public class MigrationService {
 				if (node.is("DOMElement")) {
 
 					final DOMElement element   = node.as(DOMElement.class);
-					final Element matchElement = element.getMatchElement();
+					final Element matchElement = DOMElement.getMatchElement(element);
 
 					if (matchElement != null && matchElement.is(cssSelector)) {
 						return element;

@@ -93,12 +93,12 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 								final String declaringUuid    = key.getSourceUuid();
 								final String propertyName     = key.jsonName();
 								final GraphObjectMap property = new GraphObjectMap();
-								final String valueType        = key.valueType();
+								final Class valueType         = key.valueType();
 								String valueTypeName          = "Unknown";
 								boolean _isDisabled           = false;
 
 								if (valueType != null) {
-									valueTypeName = valueType;
+									valueTypeName = valueType.getSimpleName();
 								}
 
 								property.put(Traits.idProperty(),                                     key.getSourceUuid());

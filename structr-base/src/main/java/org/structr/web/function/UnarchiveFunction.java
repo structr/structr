@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
@@ -73,7 +74,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 				props.put(Traits.of("Folder").key("parent"), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(Folder.class, props);
+				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create("Folder", props).as(Folder.class);
 			}
 
 			FileHelper.unarchive(ctx.getSecurityContext(), (File) sources[0], parentFolder == null ? null : parentFolder.getUuid());

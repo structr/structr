@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,8 +114,8 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 			try (final Tx tx = app.tx(true, true, true)) {
 
-				user = app.nodeQuery("User").and(eMailKey, emailString).getFirst();
-				if (user != null) {
+				final NodeInterface userNode = app.nodeQuery("User").and(eMailKey, emailString).getFirst();
+				if (userNode != null) {
 
 					// For existing users, update confirmation key
 					user.setProperty(confKeyKey, confKey);
@@ -233,16 +234,16 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
 
 			if (localeString != null) {
-				query.and("locale", localeString);
+				query.and(Traits.of("MailTemplate").key("locale"), localeString);
 			}
 
-			MailTemplate template = query.getFirst();
+			NodeInterface template = query.getFirst();
 			if (template != null) {
 
-				final String text = template.getProperty("text");
+				final String text = template.as(MailTemplate.class).getText();
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -337,13 +338,13 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param autoCreate
-	 * @param traits
+	 * @param userType
 	 * @param confKey
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Traits traits, final String confKey) throws FrameworkException {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String userType, final String confKey) throws FrameworkException {
 
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, traits, confKey);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userType, confKey);
 	}
 
 	/**
@@ -362,7 +363,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 */
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) throws FrameworkException {
 
-		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class, confKey);
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, "User", confKey);
 	}
 
 	/**
@@ -376,11 +377,10 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 * @param credentialValue
 	 * @param propertySet
 	 * @param autoCreate
-	 * @param userClass
 	 * @param confKey
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Traits traits, final String confKey) throws FrameworkException {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String userClass, final String confKey) throws FrameworkException {
 
 		final PropertyKey<String> confirmationKeyKey = Traits.of("User").key("confirmationKey");
 		Principal user = null;
@@ -390,13 +390,13 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		if (user != null) {
 
-			user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
+			user = new NodeFactory(securityContext).instantiate(user.getWrappedNode().getNode()).as(Principal.class);
 
 			// convert to user
 			user.unlockSystemPropertiesOnce();
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.typeHandler, User.class.getSimpleName());
+			changedProperties.put(Traits.typeProperty(), "User");
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 
@@ -408,7 +408,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			propertySet.remove(credentialKey.jsonName());
 			propertySet.remove("confirmationKey");
 
-			PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, Traits.of("Principal"), propertySet);
+			PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, "Principal", propertySet);
 
 			// Remove any property which is not included in configuration
 			// eMail is mandatory and necessary

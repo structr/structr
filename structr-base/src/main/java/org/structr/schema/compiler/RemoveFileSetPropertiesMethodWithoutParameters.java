@@ -24,9 +24,9 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,11 +58,12 @@ public class RemoveFileSetPropertiesMethodWithoutParameters implements Migration
 
                     try (final Tx tx = app.tx()) {
 
-                        final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName("File").getFirst();
+                        final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName("File").getFirst();
+                        final Traits traits            = Traits.of("SchemaMethod");
 
                         if (schemaNode != null) {
 
-                            for (final SchemaMethod method : app.nodeQuery("SchemaMethod").and(SchemaMethod.schemaNode, schemaNode).and(SchemaMethod.name, "setProperties").getAsList()) {
+                            for (final NodeInterface method : app.nodeQuery("SchemaMethod").and(traits.key("schemaNode"), schemaNode).and(traits.key("name"), "setProperties").getAsList()) {
                                 app.delete(method);
                             }
                         }

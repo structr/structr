@@ -239,6 +239,10 @@ public class Traits {
 		return relation;
 	}
 
+	public Set<TraitDefinition> getTraits() {
+		return Collections.unmodifiableSet(new LinkedHashSet<>(types.values()));
+	}
+
 	// ----- static methods -----
 	public static Traits of(final String name) {
 		return globalTraitMap.get(name);

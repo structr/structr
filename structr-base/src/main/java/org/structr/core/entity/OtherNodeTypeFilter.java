@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.traits.Traits;
 
 import java.util.Set;

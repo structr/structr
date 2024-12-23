@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -44,10 +45,10 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
-		assertArrayHasMinLengthAndTypes(sources, 2, DOMElement.class, String.class);
+		assertArrayHasMinLengthAndTypes(sources, 2, NodeInterface.class, String.class);
 
-		final DOMElement parent = (DOMElement) sources[0];
-		final String html       = (String) sources[1];
+		final NodeInterface parent = (NodeInterface)sources[0];
+		final String html          = (String) sources[1];
 
 		return InsertHtmlFunction.apply(ctx.getSecurityContext(), parent, html);
 	}
@@ -62,7 +63,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 		return "Inserts a new HTML subtree into the DOM";
 	}
 
-	public static DOMNode apply(final SecurityContext securityContext, final DOMElement parent, final String htmlSource) throws FrameworkException {
+	public static NodeInterface apply(final SecurityContext securityContext, final NodeInterface parent, final String htmlSource) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, htmlSource, null, null, false, false, false, false);
 
@@ -71,6 +72,8 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 		importer.parse(true);
 
-		return importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+		final DOMNode domNodeParent = parent.as(DOMNode.class);
+
+		return importer.createChildNodes(domNodeParent, domNodeParent.getOwnerDocument(), true);
 	}
 }

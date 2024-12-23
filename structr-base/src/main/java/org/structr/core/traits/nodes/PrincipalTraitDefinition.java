@@ -46,32 +46,6 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> groupsProperty       = new StartNodes("groups", "GroupCONTAINSPrincipal");
-	private static final Property<Iterable<NodeInterface>> ownedNodesProperty   = new EndNodes("ownedNodes", "PrincipalOwnsNode").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> grantedNodesProperty = new EndNodes("grantedNodes", "SecurityRelationship").partOfBuiltInSchema();
-
-	private static final Property<Boolean> isAdminProperty                      = new BooleanProperty("isAdmin").indexed().readOnly();
-	private static final Property<Boolean> blockedProperty                      = new BooleanProperty("blocked");
-	private static final Property<String> sessionIdsProperty                    = new ArrayProperty("sessionIds", String.class).indexed();
-	private static final Property<String> refreshTokensProperty                 = new ArrayProperty("refreshTokens", String.class).indexed();
-	private static final Property<String> sessionDataProperty                   = new StringProperty("sessionData");
-	private static final Property<String> eMailProperty                         = new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName());
-	private static final Property<String> passwordProperty                      = new PasswordProperty("password");
-	private static final Property<Date> passwordChangeDateProperty              = new DateProperty("passwordChangeDate");
-	private static final Property<Integer> passwordAttemptsProperty             = new IntProperty("passwordAttempts");
-	private static final Property<Date> lastLoginDateProperty                   = new DateProperty("lastLoginDate");
-	private static final Property<String> twoFactorSecretProperty               = new StringProperty("twoFactorSecret");
-	private static final Property<String> twoFactorTokenProperty                = new StringProperty("twoFactorToken").indexed();
-	private static final Property<Boolean> isTwoFactorUserProperty              = new BooleanProperty("isTwoFactorUser");
-	private static final Property<Boolean> twoFactorConfirmedProperty           = new BooleanProperty("twoFactorConfirmed");
-	private static final Property<String> saltProperty                          = new StringProperty("salt");
-	private static final Property<String> localeProperty                        = new StringProperty("locale");
-	private static final Property<String> publicKeyProperty                     = new StringProperty("publicKey");
-	private static final Property<String> proxyUrlProperty                      = new StringProperty("proxyUrl");
-	private static final Property<String> proxyUsernameProperty                 = new StringProperty("proxyUsername");
-	private static final Property<String> proxyPasswordProperty                 = new StringProperty("proxyPassword");
-	private static final Property<String> publicKeysProperty                    = new ArrayProperty("publicKeys", String.class);
-
 	public PrincipalTraitDefinition() {
 		super("Principal");
 	}
@@ -87,6 +61,7 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
+					final PropertyKey<String> eMailProperty = obj.getTraits().key("eMail");
 					boolean valid = true;
 
 					valid &= ValidationHelper.isValidUniqueProperty(obj, eMailProperty, errorBuffer);
@@ -106,10 +81,12 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 			GetProperty.class,
 			new GetProperty() {
 
+				final Set<String> hiddenProperties = Set.of("password", "salt", "twoFactorSecret");
+
 				@Override
 				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> predicate) {
 
-					if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) {
+					if (hiddenProperties.contains(key.jsonName())) {
 
 						return (V) Principal.HIDDEN;
 
@@ -151,32 +128,30 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
-
-			groupsProperty,
-			ownedNodesProperty,
-			grantedNodesProperty,
-
-			isAdminProperty,
-			blockedProperty,
-			sessionIdsProperty,
-			refreshTokensProperty,
-			sessionDataProperty,
-			eMailProperty,
-			passwordProperty,
-			passwordChangeDateProperty,
-			passwordAttemptsProperty,
-			lastLoginDateProperty,
-			twoFactorSecretProperty,
-			twoFactorTokenProperty,
-			isTwoFactorUserProperty,
-			twoFactorConfirmedProperty,
-			saltProperty,
-			localeProperty,
-			publicKeyProperty,
-			proxyUrlProperty,
-			proxyUsernameProperty,
-			proxyPasswordProperty,
-			publicKeysProperty
+			new StartNodes("groups", "GroupCONTAINSPrincipal"),
+			new EndNodes("ownedNodes", "PrincipalOwnsNode").partOfBuiltInSchema(),
+			new EndNodes("grantedNodes", "SecurityRelationship").partOfBuiltInSchema(),
+			new BooleanProperty("isAdmin").indexed().readOnly(),
+			new BooleanProperty("blocked"),
+			new ArrayProperty("sessionIds", String.class).indexed(),
+			new ArrayProperty("refreshTokens", String.class).indexed(),
+			new StringProperty("sessionData"),
+			new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName()),
+			new PasswordProperty("password"),
+			new DateProperty("passwordChangeDate"),
+			new IntProperty("passwordAttempts"),
+			new DateProperty("lastLoginDate"),
+			new StringProperty("twoFactorSecret"),
+			new StringProperty("twoFactorToken").indexed(),
+			new BooleanProperty("isTwoFactorUser"),
+			new BooleanProperty("twoFactorConfirmed"),
+			new StringProperty("salt"),
+			new StringProperty("locale"),
+			new StringProperty("publicKey"),
+			new StringProperty("proxyUrl"),
+			new StringProperty("proxyUsername"),
+			new StringProperty("proxyPassword"),
+			new ArrayProperty("publicKeys", String.class)
 		);
 	}
 

@@ -40,7 +40,7 @@ public class CoreModule implements StructrModule {
 
 		// relationship types
 		StructrTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
-		StructrTraits.registerRelationshipType("Security",                          new SecurityRelationshipDefinition());
+		StructrTraits.registerRelationshipType("SecurityRelationship",              new SecurityRelationshipDefinition());
 		StructrTraits.registerRelationshipType("PrincipalSchemaGrantRelationship",  new PrincipalSchemaGrantRelationshipDefinition());
 		StructrTraits.registerRelationshipType("GroupCONTAINSPrincipal",            new GroupContainsPrincipalDefinition());
 		StructrTraits.registerRelationshipType("SchemaExcludedViewProperty",        new SchemaExcludedViewPropertyDefinition());

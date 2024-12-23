@@ -18,10 +18,13 @@
  */
 package org.structr.web.function;
 
+import graphql.GraphQLContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.rest.entity.LogEvent;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -47,6 +50,8 @@ public class LogEventFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
+		final Traits traits  = Traits.of("LogEvent");
+
 		if (sources.length == 1 && sources[0] instanceof Map) {
 
 			// support javascript objects here
@@ -57,12 +62,12 @@ public class LogEventFunction extends UiAdvancedFunction {
 			final String subject = DOMNode.objectToString(map.get("subject"));
 			final String object  = DOMNode.objectToString(map.get("object"));
 
-			return StructrApp.getInstance().create(LogEvent.class,
-				new NodeAttribute(LogEvent.actionProperty, action),
-				new NodeAttribute(LogEvent.messageProperty, message),
-				new NodeAttribute(LogEvent.timestampProperty, new Date()),
-				new NodeAttribute(LogEvent.subjectProperty, subject),
-				new NodeAttribute(LogEvent.objectProperty, object)
+			return StructrApp.getInstance().create("LogEvent",
+				new NodeAttribute(traits.key("action"), action),
+				new NodeAttribute(traits.key("message"), message),
+				new NodeAttribute(traits.key("timestamp"), new Date()),
+				new NodeAttribute(traits.key("subject"), subject),
+				new NodeAttribute(traits.key("object"), object)
 			);
 
 		} else {
@@ -74,22 +79,22 @@ public class LogEventFunction extends UiAdvancedFunction {
 				final String action = sources[0].toString();
 				final String message = sources[1].toString();
 
-				final LogEvent logEvent = StructrApp.getInstance().create(LogEvent.class,
-					new NodeAttribute(LogEvent.actionProperty, action),
-					new NodeAttribute(LogEvent.messageProperty, message),
-					new NodeAttribute(LogEvent.timestampProperty, new Date())
+				final NodeInterface logEvent = StructrApp.getInstance().create("LogEvent",
+					new NodeAttribute(traits.key("action"), action),
+					new NodeAttribute(traits.key("message"), message),
+					new NodeAttribute(traits.key("timestamp"), new Date())
 				);
 
 				switch (sources.length) {
 
 					case 4:
 						final String object = sources[3].toString();
-						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(LogEvent.objectProperty, object));
+						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(traits.key("object"), object));
 						// no break, next case should be included
 
 					case 3:
 						final String subject = sources[2].toString();
-						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(LogEvent.subjectProperty, subject));
+						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(traits.key("subject"), subject));
 						break;
 				}
 

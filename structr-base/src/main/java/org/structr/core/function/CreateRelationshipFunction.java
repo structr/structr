@@ -28,6 +28,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -73,22 +74,22 @@ public class CreateRelationshipFunction extends CoreFunction {
 				return "Error: entities are not nodes.";
 			}
 
-			final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+			final String relationshipTypeName = sourceNode.getType() + relType + targetNode.getType();
+			final Traits traits               = Traits.of(relationshipTypeName);
 
-			if (relClass != null) {
+			if (relationshipTypeName != null) {
 
 				final SecurityContext securityContext = ctx.getSecurityContext();
-				final ConfigurationProvider config = StructrApp.getConfiguration();
 				PropertyMap propertyMap;
 
 				// extension for native javascript objects
 				if (sources.length == 4 && sources[3] instanceof Map) {
 
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relClass, (Map)sources[3]);
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relationshipTypeName, (Map)sources[3]);
 
 				} else if (sources.length == 4 && sources[3] instanceof GraphObjectMap) {
 
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relClass, ((GraphObjectMap)sources[3]).toMap());
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relationshipTypeName, ((GraphObjectMap)sources[3]).toMap());
 
 				} else {
 
@@ -102,7 +103,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 					for (int c = 3; c < parameter_count; c += 2) {
 
-						final PropertyKey key = StructrApp.key(relClass, sources[c].toString());
+						final PropertyKey key = traits.key(sources[c].toString());
 
 						if (key != null) {
 
@@ -119,7 +120,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 					}
 				}
 
-				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass, propertyMap);
+				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relationshipTypeName, propertyMap);
 
 			} else {
 

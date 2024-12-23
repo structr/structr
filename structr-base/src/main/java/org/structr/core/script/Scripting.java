@@ -688,17 +688,18 @@ public class Scripting {
 			final NodeInterface codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
 			if (codeSource != null) {
 
-				nodeType = codeSource.getClass().getSimpleName();
+				nodeType = codeSource.getTraits().getName();
 				nodeId = codeSource.getUuid();
 
-				if (codeSource instanceof SchemaMethod && ((SchemaMethod)codeSource).isStaticMethod()) {
+				if (codeSource.is("SchemaMethod") && codeSource.as(SchemaMethod.class).isStaticMethod()) {
 
-					final AbstractSchemaNode node = codeSource.getProperty(SchemaMethod.schemaNode);
-					final String staticTypeName = node.getName();
-					messageData.put("staticType", staticTypeName);
+					final AbstractSchemaNode node = codeSource.as(SchemaMethod.class).getSchemaNode();
+					final String staticTypeName   = node.getName();
+
+					messageData.put("staticType",     staticTypeName);
 					messageData.put("isStaticMethod", true);
-					eventData.put("staticType", staticTypeName);
-					eventData.put("isStaticMethod", true);
+					eventData.put("staticType",       staticTypeName);
+					eventData.put("isStaticMethod",   true);
 
 					exceptionPrefix.append(staticTypeName).append("[static]:");
 				} else {

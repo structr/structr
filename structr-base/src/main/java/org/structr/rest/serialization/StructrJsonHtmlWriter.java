@@ -114,7 +114,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				.replace("/" + propertyView, "");																// remove current view
 
 		final Traits traits     = Traits.of(currentType);
-		final Set<String> views = (traits != null) ? StructrApp.getConfiguration().getPropertyViewsForType(traits) : StructrApp.getConfiguration().getPropertyViews();
+		final Set<String> views = (traits != null) ? traits.getViewNames() : Traits.getAllViews();
 
 		for (String view : views.stream().sorted().toList()) {
 

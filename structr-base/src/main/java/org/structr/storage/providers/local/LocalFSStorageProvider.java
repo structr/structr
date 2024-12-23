@@ -87,7 +87,15 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getAbstractFile().getContentType();
+
+		final AbstractFile file = getAbstractFile();
+
+		if (file.is("File")) {
+
+			return file.as(org.structr.web.entity.File.class).getContentType();
+		}
+
+		return null;
 	}
 
 	@Override

@@ -122,16 +122,15 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 			pathBuffer.append(originalParentFolder.getPath());
 		}
 
-		final Folder folder =  FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathBuffer.toString());
+		final NodeInterface folder =  FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathBuffer.toString());
 
 		if (!folder.isVisibleToAuthenticatedUsers() || !folder.isVisibleToPublicUsers()) {
 
-			folder.setVisibleToAuthenticatedUsers(true);
-			folder.setVisibleToPublicUsers(true);
+			folder.setVisibility(true, true);
 
 		}
 
-		return folder;
+		return folder.as(Folder.class);
 	}
 
 	@Override

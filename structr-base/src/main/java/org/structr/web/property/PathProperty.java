@@ -29,9 +29,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
@@ -58,7 +60,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -95,6 +97,11 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public SortType getSortType() {
 		return SortType.Default;
 	}
@@ -122,17 +129,21 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
 
-		final String currentPart = parts.remove(0);
-		final List<AbstractFile> res = app.nodeQuery("AbstractFile").and(Traits.of("AbstractFile").key("parent"), (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
+		final String currentPart      = parts.remove(0);
+		final Traits traits           = Traits.of("File");
+
+		final List<NodeInterface> res = app.nodeQuery("AbstractFile").and(Traits.of("AbstractFile").key("parent"), (parent == null) ? null : parent).and(traits.key("name"), currentPart).getAsList();
 
 		if (parts.isEmpty()) {
-			for (final AbstractFile fileOrFolder : res) {
+
+			for (final NodeInterface fileOrFolder : res) {
 
 				attr.addToResult(fileOrFolder);
 			}
 
 		} else {
-			for (final AbstractFile folder : res) {
+
+			for (final NodeInterface folder : res) {
 				searchRecursively(app, (Folder)folder, attr, (ArrayList<String>) parts.clone());
 			}
 		}

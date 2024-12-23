@@ -34,13 +34,15 @@ import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -65,11 +67,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	@Override
 	public String getType() {
 		return getProperty(typeHandler.key("type"));
-	}
-
-	@Override
-	public boolean is(final String type) {
-		return typeHandler.contains(type);
 	}
 
 	@Override

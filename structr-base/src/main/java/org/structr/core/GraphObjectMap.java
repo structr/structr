@@ -118,6 +118,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		return false;
 	}

@@ -215,7 +215,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					}
 				}
 
-			} else if (type.isAssignableFrom(source.getClass())) {
+			} else if (source instanceof GraphObject g && g.getTraits().contains(type)) {
 
 				return (T)source;
 
@@ -224,8 +224,8 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				// interpret source as a raw ID string and fetch entity
 				final GraphObject obj = app.getNodeById(source.toString());
 
-				if (obj != null && !type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type.getSimpleName()));
+				if (obj != null && !obj.getTraits().contains(type)) {
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
 				}
 
 				return (T) obj;

@@ -28,8 +28,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -286,9 +288,9 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			// find all folders with storageConfigurations and try to mount them
-			for (final Folder folder : app.nodeQuery("Folder").not().blank(storageConfigurationKey).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery("Folder").not().blank(storageConfigurationKey).getAsList()) {
 
-				mountFolder(folder);
+				mountFolder(folder.as(Folder.class));
 			}
 
 			tx.success();
@@ -609,7 +611,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 								try (final Tx tx = StructrApp.getInstance().tx()) {
 
-									final Folder rootFolder = StructrApp.getInstance().nodeQuery("Folder").uuid(uuid).getFirst();
+									final NodeInterface rootFolder = StructrApp.getInstance().nodeQuery("Folder").uuid(uuid).getFirst();
 									if (rootFolder != null) {
 
 										rootFolder.setProperty(lastScannedKey, System.currentTimeMillis());

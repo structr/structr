@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
-import org.structr.core.entity.AbstractNode;
 
 /**
  * A node predicate that evaluates to <b>true</b> if the type of the given node
@@ -42,9 +41,9 @@ public class TypePredicate implements Predicate<Node> {
 	@Override
 	public boolean accept(Node node) {
 
-		if(node.hasProperty(AbstractNode.typeHandler.dbName())) {
+		if(node.hasProperty("type")) {
 
-			String value = (String)node.getProperty(AbstractNode.typeHandler.dbName());
+			String value = (String)node.getProperty("type");
 
 			logger.debug("Type property: {}, expected {}", new Object[] { value, type } );
 

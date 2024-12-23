@@ -329,7 +329,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 							try (final InputStream is = p.getInputStream()) {
 
-								newFile = FileHelper.createFile(securityContext, is, contentType, type, name, uploadFolder);
+								newFile = FileHelper.createFile(securityContext, is, contentType, type, name, uploadFolder).as(File.class);
 
 								final PropertyMap changedProperties = new PropertyMap();
 
@@ -662,7 +662,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			Folder folder = FileHelper.createFolderPath(securityContext, path);
+			Folder folder = FileHelper.createFolderPath(securityContext, path).as(Folder.class);
 			tx.success();
 
 			return folder;

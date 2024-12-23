@@ -288,9 +288,9 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					try {
 
 						// experimental: create DOM element with literal tag
-						newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create("DOMElement",
+						newNode = StructrApp.getInstance(webSocket.getSecurityContext()).create("DOMElement",
 							new NodeAttribute(Traits.of("DOMElement").key("tag"), "custom")
-						);
+						).as(DOMElement.class);
 
 						if (newNode != null && document != null) {
 							newNode.doAdopt(document);
@@ -312,7 +312,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 		} else {
 
-			newNode = (DOMNode) document.createTextNode("#text");
+			newNode = document.createTextNode("#text");
 		}
 
 		return newNode;

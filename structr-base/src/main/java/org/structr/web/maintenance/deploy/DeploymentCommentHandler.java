@@ -20,12 +20,15 @@ package org.structr.web.maintenance.deploy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -48,88 +51,88 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 	static {
 
-		handlers.put("public-only", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("public-only", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.visibleToPublicUsers,        true);
-			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, false);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        true);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), false);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
-		handlers.put("public", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("public", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.visibleToPublicUsers,        true);
-			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        true);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
-		handlers.put("protected", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("protected", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.visibleToPublicUsers,        false);
-			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        false);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
-		handlers.put("private", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("private", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.visibleToPublicUsers,        false);
-			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, false);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        false);
+			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), false);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
-		handlers.put("hidden", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("hidden", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.hidden, true);
+			changedProperties.put(Traits.of("NodeInterface").key("hidden"), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
-		handlers.put("link", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("link", (final Page page, final DOMNode node, final String parameters) -> {
 
-			if (node instanceof LinkSource) {
+			if (node.is("LinkSource")) {
 
-				final Linkable file = StructrApp.getInstance().nodeQuery("Linkable").and(Traits.of("AbstractFile").key("path"), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery("Linkable").and(Traits.of("AbstractFile").key("path"), parameters).getFirst();
 				if (file != null) {
 
-					final LinkSource linkSource = (LinkSource)node;
+					final LinkSource linkSource = node.as(LinkSource.class);
 
-					linkSource.setLinkable(file);
+					linkSource.setLinkable(file.as(Linkable.class));
 				}
 			}
 		});
 
-		handlers.put("pagelink", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("pagelink", (final Page page, final DOMNode node, final String parameters) -> {
 
 			if (node instanceof LinkSource) {
 				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});
 
-		handlers.put("content", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("content", (final Page page, final DOMNode node, final String parameters) -> {
 			node.setProperty(Traits.of("Content").key("contentType"), parameters);
 		});
 
-		handlers.put("name", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("name", (final Page page, final DOMNode node, final String parameters) -> {
 			node.setProperty(Traits.of("DOMNode").key("name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("show", (final Page page, final DOMNode node, final String parameters) -> {
 			node.setProperty(Traits.of("DOMNode").key("showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("hide", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("hide", (final Page page, final DOMNode node, final String parameters) -> {
 			node.setProperty(Traits.of("DOMNode").key("hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("show-for-locales", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("show-for-locales", (final Page page, final DOMNode node, final String parameters) -> {
 			node.setProperty(Traits.of("DOMNode").key("showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("hide-for-locales", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("hide-for-locales", (final Page page, final DOMNode node, final String parameters) -> {
 			node.setProperty(Traits.of("DOMNode").key("hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("owner", (final Page page, final DOMNode node, final String parameters) -> {
 
-			final List<Principal> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parameters).getAsList();
+			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parameters).getAsList();
 
 			if (principals.isEmpty()) {
 
@@ -143,16 +146,16 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			} else {
 
-				node.setProperty(AbstractNode.owner, principals.get(0));
+				node.setProperty(Traits.of("NodeInterface").key("owner"), principals.get(0));
 			}
 		});
 
-		handlers.put("grant", (Page page, DOMNode node, final String parameters) -> {
+		handlers.put("grant", (final Page page, final DOMNode node, final String parameters) -> {
 
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<Principal> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parts[0]).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -166,26 +169,28 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				} else {
 
-					final Principal grantee = principals.get(0);
+					final NodeInterface granteeNode = principals.get(0);
+					final AccessControllable ac     = node.as(AccessControllable.class);
+					final Principal grantee         = granteeNode.as(Principal.class);
 
 					for (final char c : parts[1].toCharArray()) {
 
 						switch (c) {
 
 							case 'a':
-								node.grant(Permission.accessControl, grantee);
+								ac.grant(Permission.accessControl, grantee);
 								break;
 
 							case 'r':
-								node.grant(Permission.read, grantee);
+								ac.grant(Permission.read, grantee);
 								break;
 
 							case 'w':
-								node.grant(Permission.write, grantee);
+								ac.grant(Permission.write, grantee);
 								break;
 
 							case 'd':
-								node.grant(Permission.delete, grantee);
+								ac.grant(Permission.delete, grantee);
 								break;
 
 							default:

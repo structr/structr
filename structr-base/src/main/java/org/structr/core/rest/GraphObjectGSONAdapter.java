@@ -33,6 +33,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -54,8 +55,8 @@ public class GraphObjectGSONAdapter {
 	static {
 
 		idTypeNameOnly.add(Traits.idProperty());
-		idTypeNameOnly.add(AbstractNode.typeHandler);
-		idTypeNameOnly.add(AbstractNode.name);
+		idTypeNameOnly.add(Traits.typeProperty());
+		idTypeNameOnly.add(Traits.nameProperty());
 	}
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>(100);

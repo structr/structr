@@ -21,7 +21,6 @@ package org.structr.core.traits.definitions;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;

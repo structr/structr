@@ -183,7 +183,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 						FileHelper.updateMetadata(thisFile);
 						thisFile.setVersion(0);
 
-					} catch (FrameworkException ex) {
+					} catch (IOException ex) {
 
 						final Logger logger = LoggerFactory.getLogger(org.structr.web.entity.File.class);
 						logger.error("Could not update metadata of {}: {}", thisFile.getPath(), ex.getMessage());

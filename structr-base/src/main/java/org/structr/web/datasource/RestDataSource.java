@@ -106,7 +106,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		RESTCallHandler handler = null;
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, "User"));
 
 		} catch (IllegalPathException | NotFoundException e) {
 

@@ -23,6 +23,7 @@ import org.structr.api.schema.JsonType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 import org.structr.schema.export.StructrTypeDefinition;
 
@@ -39,9 +40,9 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 		if (level > 0 && Schema.RestrictedViews.contains(viewName)) {
 
-			handleProperty(type, AbstractNode.id,   viewName, level);
-			handleProperty(type, AbstractNode.typeHandler, viewName, level);
-			handleProperty(type, AbstractNode.name, viewName, level);
+			handleProperty(type, Traits.idProperty(),   viewName, level);
+			handleProperty(type, Traits.typeProperty(), viewName, level);
+			handleProperty(type, Traits.nameProperty(), viewName, level);
 
 		} else {
 

@@ -81,7 +81,11 @@ public class TemplateImporter extends HtmlFileImporter {
 
 		try (final Tx tx = app.tx()) {
 
-			return Importer.findSharedComponentByName(name);
+			final NodeInterface node = Importer.findSharedComponentByName(name);
+			if (node != null) {
+
+				return node.as(DOMNode.class);
+			}
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to determine if template {} already exists, ignoring.", name);

@@ -274,7 +274,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		map.putAll(definitions.serializeOpenAPI(map, tag));
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
+		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput("AbstractNode", PropertyView.Public, 0));
 
 		// base responses for GET and PUT,POST operations
 		Map<String, Object> getResponseBaseSchema = new HashMap<>();

@@ -342,6 +342,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
 	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

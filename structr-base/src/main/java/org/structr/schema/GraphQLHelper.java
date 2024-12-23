@@ -27,6 +27,7 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -61,10 +62,10 @@ public class GraphQLHelper {
 		graphQLTypeMap.put(ZonedDateTimeProperty.class, Scalars.GraphQLString);
 	}
 
-	public void initializeGraphQLForNodeType(final Class nodeType, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws IllegalAccessException {
+	public void initializeGraphQLForNodeType(final String nodeType, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws IllegalAccessException {
 
 		// check if some base class already initialized us
-		if (graphQLTypes.containsKey(nodeType.getSimpleName())) {
+		if (graphQLTypes.containsKey(nodeType)) {
 
 			// nothing to do
 			return;
@@ -82,17 +83,19 @@ public class GraphQLHelper {
 
 		// variables
 		final Map<String, GraphQLFieldDefinition> fields = new LinkedHashMap<>();
-		final String className                           = nodeType.getSimpleName();
-		final Class parentType                           = nodeType.getSuperclass();
+		final String className                           = nodeType;
 
+		//final Class parentType                           = nodeType.getSuperclass();
+		/*
 		if (parentType != null && !InternalTypes.contains(parentType) && GraphObject.class.isAssignableFrom(parentType)) {
 
 			// add inherited fields from superclass
 			registerParentType(parentType, graphQLTypes, fields, blacklist);
 		}
+		*/
 
 		// add inherited fields from interfaces
-		for (final Class ifaceType : getInterfaceClasses(nodeType)) {
+		for (final String ifaceType : getInterfaceClasses(nodeType)) {
 
 			if (!InternalTypes.contains(ifaceType)) {
 
@@ -124,7 +127,7 @@ public class GraphQLHelper {
 
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(AbstractNode.name)).build());
+		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.nameProperty())).build());
 		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
@@ -142,17 +145,16 @@ public class GraphQLHelper {
 		graphQLTypes.put(className, builder.build());
 	}
 
-	public void initializeGraphQLForRelationshipType(final Class relType, final Map<String, GraphQLType> graphQLTypes) throws IllegalAccessException {
+	public void initializeGraphQLForRelationshipType(final String className, final Map<String, GraphQLType> graphQLTypes) throws IllegalAccessException {
 
 		final List<GraphQLFieldDefinition> fields = new LinkedList<>();
-		final String className                    = relType.getSimpleName();
 
 		// add static fields (id, name etc.)
 		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).build());
 		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
 
 		// add dynamic fields
-		for (final Property property : getNonRelationshipProperties(relType)) {
+		for (final Property property : getNonRelationshipProperties(className)) {
 
 			final GraphQLFieldDefinition field = getGraphQLField(property);
 			if (field != null) {
@@ -161,7 +163,7 @@ public class GraphQLHelper {
 			}
 		}
 
-		final GraphQLObjectType graphQLType = GraphQLObjectType.newObject().name(relType.getSimpleName()).fields(fields).build();
+		final GraphQLObjectType graphQLType = GraphQLObjectType.newObject().name(className).fields(fields).build();
 
 		// register type in GraphQL schema
 		graphQLTypes.put(className, graphQLType);
@@ -232,10 +234,11 @@ public class GraphQLHelper {
 		return Scalars.GraphQLString;
 	}
 
-	public List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final Set<String> queryTypeNames, final Class type) throws FrameworkException, IllegalAccessException {
+	public List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final Set<String> queryTypeNames, final String type) throws FrameworkException, IllegalAccessException {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
 
+		/*
 		// register parent type arguments as well!
 		final Class parentType = type.getSuperclass();
 
@@ -243,6 +246,7 @@ public class GraphQLHelper {
 
 			arguments.addAll(getGraphQLQueryArgumentsForType(selectionTypes, queryTypeNames, parentType));
 		}
+		*/
 
 		// outgoing relationships
 		for (final Property outProperty : getRelationshipProperties(type, true)) {
@@ -250,7 +254,7 @@ public class GraphQLHelper {
 			final RelationProperty relationProperty = (RelationProperty) outProperty;
 			final String targetType                 = relationProperty.getTargetType();
 			final String propertyName               = outProperty.jsonName();
-			final String queryTypeName              = type.getSimpleName() + propertyName + targetType + "InInput";
+			final String queryTypeName              = type + propertyName + targetType + "InInput";
 
 			if (!queryTypeNames.contains(queryTypeName)) {
 
@@ -268,10 +272,9 @@ public class GraphQLHelper {
 		for (final Property inProperty : getRelationshipProperties(type, false)) {
 
 			final RelationProperty relationProperty = (RelationProperty) inProperty;
-			final Class sourceType                  = relationProperty.getTargetType();
-			final String sourceTypeName             = sourceType.getSimpleName();
+			final String sourceType                 = relationProperty.getTargetType();
 			final String propertyName               = inProperty.jsonName();
-			final String queryTypeName              = type.getSimpleName() + propertyName + sourceTypeName + "OutInput";
+			final String queryTypeName              = type + propertyName + sourceType + "OutInput";
 
 			if (!queryTypeNames.contains(queryTypeName)) {
 
@@ -291,7 +294,7 @@ public class GraphQLHelper {
 			if (property.isIndexed() || property.isCompound()) {
 
 				final String name          = property.jsonName();
-				final String selectionName = type.getSimpleName() + name + "Selection";
+				final String selectionName = type + name + "Selection";
 
 				GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
 				if (selectionType == null) {
@@ -314,14 +317,14 @@ public class GraphQLHelper {
 			}
 		}
 
-		final String ownerTypeName = type.getSimpleName() + "ownerInput";
+		final String ownerTypeName = type + "ownerInput";
 
 		if (!queryTypeNames.contains(ownerTypeName)) {
 
 			// manual registration for built-in relationships that are not dynamic
 			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 				.name(ownerTypeName)
-				.fields(getGraphQLInputFieldsForType(selectionTypes, Principal.class))
+				.fields(getGraphQLInputFieldsForType(selectionTypes, "Principal"))
 				.build()
 			).build());
 
@@ -339,6 +342,7 @@ public class GraphQLHelper {
 
 			final Map<String, GraphQLInputObjectField> fields = new LinkedHashMap<>();
 
+			/*
 			// register parent type arguments as well!
 			final Class parentType = type.getSuperclass();
 
@@ -349,6 +353,7 @@ public class GraphQLHelper {
 					fields.put(field.getName(), field);
 				}
 			}
+			*/
 
 			for (final Property property : getNonRelationshipProperties(type)) {
 
@@ -401,11 +406,11 @@ public class GraphQLHelper {
 		return data;
 	}
 
-	private void registerParentType(final Class parentType, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws IllegalAccessException {
+	private void registerParentType(final String parentType, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws IllegalAccessException {
 
 		if (parentType != null && !AbstractNode.class.equals(parentType) && !parentType.equals(this)) {
 
-			final String parentName = parentType.getSimpleName();
+			final String parentName = parentType;
 			if (parentName != null && !blacklist.contains(parentName)) {
 
 				if (!graphQLTypes.containsKey(parentName)) {
@@ -435,7 +440,7 @@ public class GraphQLHelper {
 
 		final RelationProperty relationProperty = (RelationProperty)property;
 		final String propertyName               = property.jsonName();
-		final String targetTypeName             = relationProperty.getTargetType().getSimpleName();
+		final String targetTypeName             = relationProperty.getTargetType();
 
 		if (blacklist.contains(targetTypeName)) {
 			return;
@@ -469,7 +474,7 @@ public class GraphQLHelper {
 
 		final RelationProperty relationProperty = (RelationProperty)property;
 		final String propertyName               = property.jsonName();
-		final String sourceTypeName             = relationProperty.getTargetType().getSimpleName();
+		final String sourceTypeName             = relationProperty.getTargetType();
 
 		if (blacklist.contains(sourceTypeName)) {
 			return;
@@ -524,7 +529,7 @@ public class GraphQLHelper {
 		return null;
 	}
 
-	private List<GraphQLArgument> getGraphQLArgumentsForPropertyType(final Property property) {
+	private List<GraphQLArgument> getGraphQLArgumentsForPropertyType(final PropertyKey property) {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
 
@@ -571,14 +576,15 @@ public class GraphQLHelper {
 		return arguments;
 	}
 
-	private List<Class> getInterfaceClasses(final Class type) {
-		return Arrays.stream(type.getInterfaces()).filter(c -> NodeInterface.class.isAssignableFrom(c)).toList();
+	private List<String> getInterfaceClasses(final String type) {
+		return Traits.of(type).getTraits().stream().filter(t -> t.isInterface()).map(t -> t.getName()).toList();
 	}
 
 	private List<Property> getNonRelationshipProperties(final String graphObjectClass) throws IllegalAccessException {
 
 		final List<Property> properties = new LinkedList<>();
 
+		/* FIXME
 		for (final java.lang.reflect.Field field : graphObjectClass.getDeclaredFields()) {
 
 			final int modifiers = field.getModifiers();
@@ -596,47 +602,37 @@ public class GraphQLHelper {
 				}
 			}
 		}
+		*/
 
 		return properties;
 	}
 
-	private List<Property> getRelationshipProperties(final Class graphObjectClass, final boolean outgoing) throws IllegalAccessException {
+	private List<Property> getRelationshipProperties(final String graphObjectClass, final boolean outgoing) throws IllegalAccessException {
 
 		final List<Property> properties = new LinkedList<>();
+		final Traits traits             = Traits.of(graphObjectClass);
 
-		for (final java.lang.reflect.Field field : graphObjectClass.getDeclaredFields()) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-			final int modifiers = field.getModifiers();
+			if (key instanceof RelationProperty property) {
 
-			if (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && !Modifier.isPrivate(modifiers)) {
+				final Relation relation = property.getRelation();
+				if (outgoing) {
 
-				field.setAccessible(true);
+					final PropertyKey source = relation.getSourceProperty();
 
-				final Object value    = field.get(null);
-				final Class type      = value.getClass();
+					if (source != null && source.equals(property)) {
 
-				if (RelationProperty.class.isAssignableFrom(type)) {
+						properties.add((Property)property);
+					}
 
-					final RelationProperty property = (RelationProperty)value;
-					final Relation relation         = property.getRelation();
+				} else {
 
-					if (outgoing) {
+					final PropertyKey target = relation.getTargetProperty();
 
-						final PropertyKey source = relation.getSourceProperty();
+					if (target != null && target.equals(property)) {
 
-						if (source != null && source.equals(property)) {
-
-							properties.add((Property)property);
-						}
-
-					} else {
-
-						final PropertyKey target = relation.getTargetProperty();
-
-						if (target != null && target.equals(property)) {
-
-							properties.add((Property)property);
-						}
+						properties.add((Property)property);
 					}
 				}
 			}

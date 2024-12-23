@@ -77,7 +77,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 					for (File fileNode : fileNodes) {
 
 						final DynamicMailAttachment attachment = new DynamicMailAttachment();
-						attachment.setName(fileNode.getProperty(File.name));
+						attachment.setName(fileNode.getName());
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
 
 						if (fileNode.isTemplate()) {
