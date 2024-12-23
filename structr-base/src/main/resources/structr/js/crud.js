@@ -926,7 +926,7 @@ let _Crud = {
 			let isCypher         = _Crud.helpers.isCypherProperty(key, type);
 			let relatedType      = _Crud.helpers.getRelatedTypeForAttribute(key, type);
 			let readOnly         = _Crud.helpers.isReadOnly(key, type);
-			let isSourceOrTarget = isRelType && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
+			let isSourceOrTarget = isRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
 			let propertyType     = _Crud.types[type]?.views.all[key]?.type;
 
 			if (readOnly) {
@@ -1287,10 +1287,10 @@ let _Crud = {
 			_Helpers.fastRemoveAllChildren(cell[0]);
 
 			let select = _Helpers.createSingleDOMElementFromHTML(`
-			<select name="${key}">
-				${possibleValues.map(value => `<option ${value === oldValue ? 'selected="selected"' : ''}value="${value}">${value}</option>`).join()}
-			</select>
-		`);
+				<select name="${key}">
+					${possibleValues.map(value => `<option ${value === oldValue ? 'selected="selected"' : ''}value="${value}">${value}</option>`).join()}
+				</select>
+			`);
 
 			cell[0].appendChild(select);
 			select.focus();
@@ -1460,7 +1460,8 @@ let _Crud = {
 
 			let nodeHandler = (node) => {
 
-				let isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
+				let parentIsRelType  = _Crud.helpers.isRelType(parentType);
+				let isSourceOrTarget = parentIsRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
 
 				let newElement = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node, null, !isSourceOrTarget));
 				let nodeEl = $(newElement);
@@ -1472,30 +1473,27 @@ let _Crud = {
 
 				if (node.isImage) {
 
-					if (node.isThumbnail) {
-						nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-					} else if (node.tnSmall) {
-						nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.tnSmall.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-					} else if (node.contentType === 'image/svg+xml') {
-						nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-					}
+					let nodeIDToShow = (node.tnSmall) ? node.tnSmall.id : node.id;
+					let resText      = `${node.width||'?'} x ${node.height||'?'}`;
 
-					if (node.tnMid || node.contentType === 'image/svg+xml') {
-						$('.thumbnail', nodeEl).on('mouseenter', function(e) {
-							e.stopPropagation();
-							$('.thumbnailZoom').remove();
-							nodeEl.parent().append(`<img class="thumbnailZoom" src="/${node.tnMid ? node.tnMid.id : node.id}">`);
-							var tnZoom = $($('.thumbnailZoom', nodeEl.parent())[0]);
-							tnZoom.css({
-								top: (nodeEl.position().top) + 'px',
-								left: (nodeEl.position().left - 42) + 'px'
-							});
-							tnZoom.on('mouseleave', function(e) {
-								e.stopPropagation();
-								$('.thumbnailZoom').remove();
-							});
+					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${nodeIDToShow}"><div class="image-info-overlay">${resText}</div></div>`);
+
+					$('.thumbnail', nodeEl).on('mouseenter', function(e) {
+						e.stopPropagation();
+						$('.thumbnailZoom').remove();
+
+						let tnZoom = $(_Helpers.createSingleDOMElementFromHTML(`<img class="thumbnailZoom" src="/${node.tnMid?.id ?? node.id}">`));
+						nodeEl.parent().append(tnZoom);
+
+						tnZoom.css({
+							top:  (nodeEl.position().top) + 'px',
+							left: (nodeEl.position().left - 42) + 'px'
 						});
-					}
+						tnZoom.on('mouseleave', function(e) {
+							e.stopPropagation();
+							_Helpers.fastRemoveElement(tnZoom[0])
+						});
+					});
 				}
 
 				$('.remove', nodeEl).on('click', function(e) {

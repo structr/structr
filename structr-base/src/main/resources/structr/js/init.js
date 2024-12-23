@@ -1901,6 +1901,8 @@ let Structr = {
 		visibleToPublicUsers: 'visibleToPublicUsers',
 		visibleToAuthenticatedUsers: 'visibleToAuthenticatedUsers',
 
+		sourceId: 'sourceId',
+		targetId: 'targetId',
 		sourceNode: 'sourceNode',
 		targetNode: 'targetNode',
 		internalTimestamp: 'internalTimestamp',
