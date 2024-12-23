@@ -158,7 +158,7 @@ public class NodeExtender {
 				}
 
 				for (final Class oldType : classes.values()) {
-					StructrApp.getConfiguration().unregisterEntityType(oldType);
+					//StructrApp.getConfiguration().unregisterEntityType(oldType);
 				}
 
 				// clear classes map

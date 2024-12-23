@@ -43,6 +43,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -88,9 +89,9 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			Principal person = this.createTestNode(User.class);
+			NodeInterface person = this.createTestNode("User");
 
-			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
+			final SecurityContext securityContext = SecurityContext.getInstance(person.as(Principal.class), null, AccessMode.Backend);
 			testCallbacks(securityContext);
 
 		} catch (FrameworkException fex) {
@@ -102,6 +103,8 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testCallbackOrder() {
 
+		final PropertyKey<Integer> testProperty = Traits.of("TestEight").key("testProperty");
+
 		try {
 
 // ##################################### test creation callbacks
@@ -110,7 +113,7 @@ public class SystemTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
+				test = app.create("TestEight", new NodeAttribute(testProperty, 123)).as(TestEight.class);
 				tx.success();
 			}
 
@@ -131,7 +134,7 @@ public class SystemTest extends StructrTest {
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
-				test.setProperty(TestEight.testProperty, 234);
+				test.setProperty(testProperty, 234);
 				tx.success();
 			}
 
@@ -151,7 +154,7 @@ public class SystemTest extends StructrTest {
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
-				test.setProperty(TestEight.testProperty, 234);
+				test.setProperty(testProperty, 234);
 				tx.success();
 			}
 
@@ -172,7 +175,7 @@ public class SystemTest extends StructrTest {
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
-				app.delete(test);
+				app.delete(test.getWrappedNode());
 				tx.success();
 			}
 

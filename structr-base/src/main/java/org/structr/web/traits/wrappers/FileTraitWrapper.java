@@ -27,10 +27,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.common.ContextStore;
-import org.structr.common.Permission;
-import org.structr.common.RequestKeywords;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.fulltext.FulltextIndexer;
@@ -194,8 +191,18 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
+	public void setSize(final Long size) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("size"), size);
+	}
+
+	@Override
 	public boolean isTemplate() {
 		return wrappedObject.getProperty(traits.key("isTemplate"));
+	}
+
+	@Override
+	public boolean dontCache() {
+		return wrappedObject.getProperty(traits.key("dontCache"));
 	}
 
 	@Override
@@ -483,7 +490,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public Folder getCurrentWorkingDir() {
 
-		final Principal _owner  = wrappedObject.getOwnerNode();
+		final Principal _owner  = as(AccessControllable.class).getOwnerNode();
 		Folder workingOrHomeDir = null;
 
 		if (_owner != null && _owner instanceof User) {
@@ -586,7 +593,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public boolean isImmutable() {
 
-		final Principal _owner = wrappedObject.getOwnerNode();
+		final Principal _owner = as(AccessControllable.class).getOwnerNode();
 		if (_owner != null) {
 
 			return !_owner.getWrappedNode().isGranted(Permission.write, wrappedObject.getSecurityContext());

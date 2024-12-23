@@ -27,4 +27,24 @@ public class LocalizationTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	public LocalizationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
+
+	@Override
+	public String getLocalizedName() {
+		return wrappedObject.getProperty(traits.key("localizedName"));
+	}
+
+	@Override
+	public String getLocale() {
+		return wrappedObject.getProperty(traits.key("locale"));
+	}
+
+	@Override
+	public String getDomain() {
+		return wrappedObject.getProperty(traits.key("domain"));
+	}
+
+	@Override
+	public boolean isImported() {
+		return wrappedObject.getProperty(traits.key("isImported"));
+	}
 }

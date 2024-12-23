@@ -890,7 +890,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Traits getUserClass() {
+	public String getUserClass() {
 
 		String configuredCustomClassName = Settings.RegistrationCustomUserClass.getValue();
 		if (StringUtils.isEmpty(configuredCustomClassName)) {
@@ -898,6 +898,6 @@ public class UiAuthenticator implements Authenticator {
 			configuredCustomClassName = "User";
 		}
 
-		return Traits.of(configuredCustomClassName);
+		return configuredCustomClassName;
 	}
 }

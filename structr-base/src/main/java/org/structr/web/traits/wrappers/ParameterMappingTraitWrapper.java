@@ -43,7 +43,32 @@ public class ParameterMappingTraitWrapper extends AbstractTraitWrapper<NodeInter
 	}
 
 	@Override
+	public String getParameterType() {
+		return wrappedObject.getProperty(traits.key("parameterType"));
+	}
+
+	@Override
+	public String getParameterName() {
+		return wrappedObject.getProperty(traits.key("parameterName"));
+	}
+
+	@Override
 	public String getConstantValue() {
 		return wrappedObject.getProperty(traits.key("constantValue"));
+	}
+
+	@Override
+	public String getScriptExpression() {
+		return wrappedObject.getProperty(traits.key("scriptExpression"));
+	}
+
+	@Override
+	public String getMethodResult() {
+		return wrappedObject.getProperty(traits.key("methodResult"));
+	}
+
+	@Override
+	public String getFlowResult() {
+		return wrappedObject.getProperty(traits.key("flowResult"));
 	}
 }

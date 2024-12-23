@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
@@ -68,7 +69,7 @@ public class SortFunction extends CoreFunction {
 				if (!list.isEmpty()) {
 
 					final Object firstElement = list.get(0);
-					if (firstElement instanceof GraphObject) {
+					if (firstElement instanceof GraphObject graphObject) {
 
 						final List<GraphObject> sortCollection = (List<GraphObject>)list;
 						final int length                       = sources.length;
@@ -84,12 +85,12 @@ public class SortFunction extends CoreFunction {
 						} else {
 
 							final DefaultSortOrder order           = new DefaultSortOrder();
-							final Class type                       = firstElement.getClass();
+							final Traits type                      = graphObject.getTraits();
 
 							for (int i=1; i<length; i+=2) {
 
 								final String name        = (String)sources[i];
-								final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name);
+								final PropertyKey key    = type.key(name);
 								final boolean descending = length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
 
 								order.addElement(key, descending);

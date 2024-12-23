@@ -23,6 +23,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 
@@ -38,13 +40,43 @@ public class ActionMappingTraitWrapper extends AbstractTraitWrapper<NodeInterfac
 	}
 
 	@Override
+	public String getEvent() {
+		return wrappedObject.getProperty(traits.key("event"));
+	}
+
+	@Override
 	public String getAction() {
 		return wrappedObject.getProperty(traits.key("action"));
 	}
 
 	@Override
+	public String getMethod() {
+		return wrappedObject.getProperty(traits.key("method"));
+	}
+
+	@Override
+	public String getDataType() {
+		return wrappedObject.getProperty(traits.key("dataType"));
+	}
+
+	@Override
+	public String getIdExpression() {
+		return wrappedObject.getProperty(traits.key("idExpression"));
+	}
+
+	@Override
 	public String getDialogType() {
 		return wrappedObject.getProperty(traits.key("dialogType"));
+	}
+
+	@Override
+	public String getDialogTitle() {
+		return wrappedObject.getProperty(traits.key("dialogTitle"));
+	}
+
+	@Override
+	public String getDialogText() {
+		return wrappedObject.getProperty(traits.key("dialogText"));
 	}
 
 	@Override
@@ -56,6 +88,30 @@ public class ActionMappingTraitWrapper extends AbstractTraitWrapper<NodeInterfac
 	}
 
 	@Override
+	public Iterable<DOMElement> getTriggerElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("triggerElements");
+
+		return Iterables.map(n -> n.as(DOMElement.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getSuccessTargets() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("successTargets");
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getFailureTargets() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureTargets");
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
 	public String getSuccessNotifications() {
 		return wrappedObject.getProperty(traits.key("successNotifications"));
 	}
@@ -63,6 +119,21 @@ public class ActionMappingTraitWrapper extends AbstractTraitWrapper<NodeInterfac
 	@Override
 	public String getSuccessBehaviour() {
 		return wrappedObject.getProperty(traits.key("successBehaviour"));
+	}
+
+	@Override
+	public String getSuccessPartial() {
+		return wrappedObject.getProperty(traits.key("successPartial"));
+	}
+
+	@Override
+	public String getSuccessURL() {
+		return wrappedObject.getProperty(traits.key("successURL"));
+	}
+
+	@Override
+	public String getSuccessEvent() {
+		return wrappedObject.getProperty(traits.key("successEvent"));
 	}
 
 	@Override
@@ -88,6 +159,21 @@ public class ActionMappingTraitWrapper extends AbstractTraitWrapper<NodeInterfac
 	@Override
 	public String getFailureBehaviour() {
 		return wrappedObject.getProperty(traits.key("failureBehaviour"));
+	}
+
+	@Override
+	public String getFailurePartial() {
+		return wrappedObject.getProperty(traits.key("failurePartial"));
+	}
+
+	@Override
+	public String getFailureURL() {
+		return wrappedObject.getProperty(traits.key("failureURL"));
+	}
+
+	@Override
+	public String getFailureEvent() {
+		return wrappedObject.getProperty(traits.key("failureEvent"));
 	}
 
 	@Override

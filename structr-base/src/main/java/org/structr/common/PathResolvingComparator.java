@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -107,8 +108,8 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 		for (final String part : parts) {
 
-			final Class type      = current.getClass();
-			final PropertyKey key = config.getPropertyKeyForJSONName(type, part);
+			final Traits type     = current.getTraits();
+			final PropertyKey key = type.key(part);
 
 			if (key == null) {
 

@@ -148,7 +148,7 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 
 						for (final RelationshipInterface rel : relationships) {
 
-							if (!rel.isInternal()) {
+							if (!rel.getRelation().isInternal()) {
 								resultList.add(rel);
 							}
 						}

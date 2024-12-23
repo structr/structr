@@ -33,6 +33,6 @@ public class TokenServlet extends LoginServlet {
 
 	@Override
 	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
-		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
+		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), "User");
 	}
 }

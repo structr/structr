@@ -200,6 +200,11 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return true;
+	}
+
+	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}

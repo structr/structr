@@ -46,6 +46,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.service.HttpServiceServlet;
@@ -125,7 +126,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				tx.success();
@@ -147,7 +148,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-				final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
+				final String type                       = handler.getEntityClassOrDefault(securityContext);
 				final SortOrder sortOrder               = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 
 				// Should line breaks be removed?
@@ -268,7 +269,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 					tx.success();
 				}

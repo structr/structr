@@ -703,18 +703,18 @@ public class DeployDataCommand extends DeployCommand {
 
 			final Path fileSystemPath = filesDir.resolve(path.substring(1));
 
-			if (Folder.class.isAssignableFrom(fileOrFolder.getClass())) {
+			if (fileOrFolder.is("Folder")) {
 
 				Files.createDirectories(fileSystemPath);
 
 				final Map<String, Object> properties = new TreeMap<>();
-				exportFileConfiguration(fileOrFolder, properties);
+				exportFileConfiguration(fileOrFolder.getWrappedNode(), properties);
 
 				filesAndFoldersMap.put(path, properties);
 
 			} else {
 
-				exportFile(fileSystemPath.getParent(), (File)fileOrFolder, filesAndFoldersMap);
+				exportFile(fileSystemPath.getParent(), fileOrFolder.getWrappedNode(), filesAndFoldersMap);
 			}
 		}
 

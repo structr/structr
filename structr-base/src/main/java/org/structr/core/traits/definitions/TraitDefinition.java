@@ -49,4 +49,12 @@ public interface TraitDefinition {
 	Set<PropertyKey> getPropertyKeys();
 
 	Relation getRelation();
+
+	default boolean isAbstract() {
+		return false;
+	}
+
+	default boolean isInterface() {
+		return false;
+	}
 }

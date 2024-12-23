@@ -107,7 +107,7 @@ public class TokenResource extends ExactMatchEndpoint {
 
 			RuntimeEventLog.token("Token creation successful", Map.of("id", user.getUuid(), "name", user.getName()));
 
-			user.setSecurityContext(securityContext);
+			user.getWrappedNode().setSecurityContext(securityContext);
 
 			// make logged in user available to caller
 			securityContext.setCachedUser(user);

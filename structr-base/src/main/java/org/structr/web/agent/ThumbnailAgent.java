@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -31,6 +32,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
@@ -98,7 +100,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 			final String thumbnailRel = "ImageTHUMBNAILImage";
 			final NodeInterface node  = app.nodeQuery("Image").uuid(imageUuid).getFirst();
-			Image thumbnail           = null;
+			NodeInterface thumbnail   = null;
 
 			if (node == null) {
 				return;
@@ -129,7 +131,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					final String thumbnailName = ImageHelper.getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 
 					// create thumbnail node
-					thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + ImageHelper.Thumbnail.defaultFormat, Image.class, thumbnailName, true);
+					thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + ImageHelper.Thumbnail.defaultFormat, "Image", thumbnailName, true);
 
 				} catch (IOException ex) {
 
@@ -149,17 +151,17 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					relProperties.put(new IntProperty("maxHeight"),                          maxHeight);
 					relProperties.put(new BooleanProperty( "cropToFit"),                     cropToFit);
 
-					app.create(originalImage, thumbnail, thumbnailRel, relProperties);
+					app.create(node, thumbnail, thumbnailRel, relProperties);
 
 					// Create thumbnail Image node
 					final PropertyMap properties = new PropertyMap();
 					properties.put(Traits.of("Image").key("width"),                              tnWidth);
 					properties.put(Traits.of("Image").key("height"),                             tnHeight);
-					properties.put(Traits.of("AbstractNode").key("hidden"),                      originalImage.getProperty(AbstractNode.hidden));
-					properties.put(Traits.of("AbstractNode").key("visibleToAuthenticatedUsers"), originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-					properties.put(Traits.of("AbstractNode").key("visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+					properties.put(Traits.of("AbstractNode").key("hidden"),                      originalImage.getWrappedNode().isHidden());
+					properties.put(Traits.of("AbstractNode").key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
+					properties.put(Traits.of("AbstractNode").key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
 					properties.put(Traits.of("File").key("size"),                                Long.valueOf(data.length));
-					properties.put(Traits.of("AbstractNode").key("owner"),                       originalImage.getProperty(AbstractNode.owner));
+					properties.put(Traits.of("AbstractNode").key("owner"),                       originalImage.as(AccessControllable.class).getOwnerNode());
 					properties.put(Traits.of("File").key("parent"),                              originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
 					properties.put(Traits.of("File").key("hasParent"),                           originalImage.getProperty(Traits.of("Image").key("hasParent")));
 

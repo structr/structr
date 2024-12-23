@@ -44,7 +44,7 @@ public interface Authenticator {
 	 * Return user class
 	 * @return userClass
 	 */
-	public Traits getUserClass();
+	public String getUserClass();
 
 	/**
 	 * Initializes the authenticator with data from the given request.

@@ -91,6 +91,7 @@ public interface GraphObject {
 
 	// lifecycle methods
 	boolean isGranted(final Permission permission, final SecurityContext securityContext);
+	boolean isGranted(final Permission permission, final SecurityContext securityContext, final boolean isCreation);
 	boolean isValid(final ErrorBuffer errorBuffer);
 
 	void indexPassiveProperties();

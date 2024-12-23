@@ -1608,11 +1608,9 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof DOMElement) {
+			if (target instanceof NodeInterface node && node.is("DOMElement")) {
 
-				final DOMElement parent = (DOMElement) target;
-
-				return InsertHtmlFunction.apply(securityContext, parent, htmlSource);
+				return InsertHtmlFunction.apply(securityContext, node, htmlSource);
 
 			} else {
 

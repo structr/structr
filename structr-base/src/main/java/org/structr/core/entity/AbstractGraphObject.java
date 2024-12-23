@@ -39,7 +39,6 @@ import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.propertycontainer.*;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Date;
 import java.util.List;
@@ -78,6 +77,11 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public <T> T as(final Class<T> type) {
 		return typeHandler.as(type, this);
+	}
+
+	@Override
+	public boolean is(final String type) {
+		return typeHandler.contains(type);
 	}
 
 	@Override
@@ -133,10 +137,15 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final boolean isGranted(final Permission permission, SecurityContext securityContext) {
+		return isGranted(permission, securityContext, false);
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
 
 		if (this instanceof NodeInterface node) {
 
-			return typeHandler.getMethod(IsGranted.class).isGranted(node, permission, securityContext, false);
+			return typeHandler.getMethod(IsGranted.class).isGranted(node, permission, securityContext, isCreation);
 		}
 
 		return true;

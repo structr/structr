@@ -69,6 +69,9 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final BooleanProperty allTargetTypesPossibleProperty  = new BooleanProperty("allTargetTypesPossible");
 	public static final BooleanProperty htmlSourceTypesPossibleProperty = new BooleanProperty("htmlSourceTypesPossible");
 	public static final BooleanProperty htmlTargetTypesPossibleProperty = new BooleanProperty("htmlTargetTypesPossible");
+	private static final StringProperty sourceMultiplicityProperty      = new StringProperty("sourceMultiplicity");
+	private static final StringProperty targetMultiplicityProperty      = new StringProperty("targetMultiplicity");
+	private static final StringProperty relationshipTypeProperty        = new StringProperty("relationshipType");
 
 	public enum UriPart {
 		_schema
@@ -197,13 +200,17 @@ public class SchemaResource extends ExactMatchEndpoint {
 		 *
 		 */
 
-		map.put(SchemaRelationshipNode.sourceMultiplicity, multiplictyToString(relation.getSourceMultiplicity()));
-		map.put(SchemaRelationshipNode.targetMultiplicity, multiplictyToString(relation.getTargetMultiplicity()));
-		map.put(typeProperty, relation.getClass().getSimpleName());
-		map.put(SchemaRelationshipNode.relationshipType, relation.name());
+		map.put(sourceMultiplicityProperty, multiplictyToString(relation.getSourceMultiplicity()));
+		map.put(targetMultiplicityProperty, multiplictyToString(relation.getTargetMultiplicity()));
+		map.put(typeProperty,               relation.getClass().getSimpleName());
+		map.put(relationshipTypeProperty,   relation.name());
 
 		final String sourceType = relation.getSourceType();
 		final String targetType = relation.getTargetType();
+
+		/*
+
+		FIXME: this needs to be changed
 
 		// select AbstractNode and SUPERCLASSES (not subclasses!)
 		if (sourceType.isAssignableFrom(AbstractNode.class)) {
@@ -244,6 +251,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(htmlTargetTypesPossibleProperty, false);
 			map.put(possibleTargetTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(targetType.getSimpleName()), ","));
 		}
+
+		 */
 
 		return map;
 	}

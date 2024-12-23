@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.User;
 
@@ -123,7 +124,7 @@ public class TestHelper {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
@@ -141,12 +142,12 @@ public class TestHelper {
 
 			final String typeName                   = entry.getKey();
 			final Map<String, List<String>> typeMap = entry.getValue();
-			final Class type                        = SchemaHelper.getEntityClassForRawType(typeName);
+			final Traits type                       = Traits.of(typeName);
 
 			if (type != null) {
 
 				// only test node types for now..
-				if (!Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
+				if (!type.isAbstract() && !type.isInterface() && !type.isRelationshipType()) {
 
 					final String namePrefix = useLowercaseNameForTypes.contains(typeName) ? "test" : "Test";
 					final String body       = createPostBody(requiredAttributes.get(typeName), namePrefix);
@@ -195,7 +196,7 @@ public class TestHelper {
 
 						if (!expectedKeys.isEmpty()) {
 
-							System.out.println(type.getSimpleName() + "." + viewName + " is missing the following keys: " + expectedKeys);
+							System.out.println(type.getName() + "." + viewName + " is missing the following keys: " + expectedKeys);
 							fail = true;
 						}
 
@@ -206,7 +207,7 @@ public class TestHelper {
 
 						if (!itemKeySet.isEmpty()) {
 
-							System.out.println(type.getSimpleName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
+							System.out.println(type.getName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
 							fail = true;
 						}
 					}
