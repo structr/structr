@@ -24,16 +24,11 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
+import java.util.Set;
+
 import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
 public abstract class RelationshipTraitDefinition extends AbstractTraitDefinition {
-
-	protected static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	protected static final Property<String>        relType            = new RelationshipTypeProperty();
-	protected static final SourceId                sourceId           = new SourceId("sourceId");
-	protected static final TargetId                targetId           = new TargetId("targetId");
-	protected static final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
-	protected static final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
 
 	protected abstract String getSourceType();
 	protected abstract String getTargetType();
@@ -46,6 +41,26 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 
 	public RelationshipTraitDefinition(final String name) {
 		super(name);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+		final Property<String>        relType            = new RelationshipTypeProperty();
+		final SourceId                sourceId           = new SourceId("sourceId");
+		final TargetId                targetId           = new TargetId("targetId");
+		final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
+		final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
+
+		return Set.of(
+			internalTimestamp,
+			relType,
+			sourceId,
+			targetId,
+			sourceNode,
+			targetNode
+		);
 	}
 
 	@Override
@@ -65,6 +80,10 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 		if (Relation.Multiplicity.Many.equals(getTargetMultiplicity())) {
 			which += 2;
 		}
+
+		// FIXME
+		final Property<String> sourceId = null;
+		final Property<String> targetId = null;
 
 		switch (which) {
 

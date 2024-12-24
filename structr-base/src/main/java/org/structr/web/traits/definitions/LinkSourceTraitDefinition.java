@@ -40,9 +40,6 @@ import java.util.Set;
  */
 public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 
-	Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable").partOfBuiltInSchema();
-	Property<String> linkableIdProperty      = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
-
 	/*
 	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,
 		linkableProperty, linkableIdProperty
@@ -78,6 +75,9 @@ public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable").partOfBuiltInSchema();
+		final Property<String> linkableIdProperty      = new EntityIdProperty("linkableId", linkableProperty).partOfBuiltInSchema();
 
 		return Set.of(
 			linkableProperty,

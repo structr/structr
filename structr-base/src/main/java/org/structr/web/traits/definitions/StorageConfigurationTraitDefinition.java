@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -41,11 +42,6 @@ import java.util.Set;
  */
 
 public class StorageConfigurationTraitDefinition extends AbstractTraitDefinition {
-
-	public static final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry").partOfBuiltInSchema();
-	public static final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", "AbstractFileCONFIGURED_BYStorageConfiguration").partOfBuiltInSchema();
-	public static final Property<String> nameProperty                     = new StringProperty("name").indexed().unique().notNull().partOfBuiltInSchema();
-	public static final Property<String> providerProperty                 = new StringProperty("provider").indexed().notNull().partOfBuiltInSchema();
 
 	/*
 	public static final View uiView = new View(StorageConfiguration.class, PropertyView.Ui,
@@ -69,6 +65,10 @@ public class StorageConfigurationTraitDefinition extends AbstractTraitDefinition
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					boolean valid = true;
+
+					final Traits traits                = obj.getTraits();
+					final PropertyKey nameProperty     = traits.key("name");
+					final PropertyKey providerProperty = traits.key("provider");
 
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);
 					valid &= ValidationHelper.isValidUniqueProperty(obj,  nameProperty, errorBuffer);
@@ -101,6 +101,11 @@ public class StorageConfigurationTraitDefinition extends AbstractTraitDefinition
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", "AbstractFileCONFIGURED_BYStorageConfiguration").partOfBuiltInSchema();
+		final Property<String> nameProperty                     = new StringProperty("name").indexed().unique().notNull().partOfBuiltInSchema();
+		final Property<String> providerProperty                 = new StringProperty("provider").indexed().notNull().partOfBuiltInSchema();
 
 		return Set.of(
 			entriesProperty,

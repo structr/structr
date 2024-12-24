@@ -41,11 +41,6 @@ import java.util.*;
  */
 public class PagePathTraitDefinition extends AbstractTraitDefinition {
 
-	private static Property<NodeInterface> pageProperty                 = new StartNode("page", "PageHAS_PATHPagePath").partOfBuiltInSchema();
-	private static Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", "PagePathHAS_PARAMETERPagePathParameter").partOfBuiltInSchema();
-	private static Property<String> nameProperty                        = new StringProperty("name").notNull().partOfBuiltInSchema();
-	private static Property<Integer> priorityProperty                   = new IntProperty("priority").partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(PagePath.class, PropertyView.Public,
 		nameProperty, priorityProperty, parametersProperty
@@ -97,6 +92,11 @@ public class PagePathTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> pageProperty                 = new StartNode("page", "PageHAS_PATHPagePath").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", "PagePathHAS_PARAMETERPagePathParameter").partOfBuiltInSchema();
+		final Property<String> nameProperty                        = new StringProperty("name").notNull().partOfBuiltInSchema();
+		final Property<Integer> priorityProperty                   = new IntProperty("priority").partOfBuiltInSchema();
 
 		return Set.of(
 			pageProperty,

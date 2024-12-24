@@ -25,6 +25,7 @@ import org.structr.core.entity.SchemaGrant;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.SchemaGrantTraitWrapper;
@@ -37,14 +38,6 @@ import java.util.Set;
  *
  */
 public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
-
-	private static final Property<NodeInterface>  principal    = new StartNode("principal", "PrincipalSchemaGrantRelationship").partOfBuiltInSchema();
-	private static final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", "SchemaGrantSchemaNodeRelationship").partOfBuiltInSchema();
-	private static final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
-	private static final Property<Boolean> allowRead           = new BooleanProperty("allowRead").partOfBuiltInSchema();
-	private static final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite").partOfBuiltInSchema();
-	private static final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete").partOfBuiltInSchema();
-	private static final Property<Boolean> allowAccessControl  = new BooleanProperty("allowAccessControl").partOfBuiltInSchema();
 
 	/*
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
@@ -79,6 +72,11 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
+					final Traits traits                    = obj.getTraits();
+					final PropertyKey principal            = traits.key("principal");
+					final PropertyKey schemaNode           = traits.key("schemaNode");
+					final PropertyKey staticSchemaNodeName = traits.key("staticSchemaNodeName");
+
 					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, principal, schemaNode, staticSchemaNodeName);
 				}
 			}
@@ -95,6 +93,14 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface>  principal    = new StartNode("principal", "PrincipalSchemaGrantRelationship").partOfBuiltInSchema();
+		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", "SchemaGrantSchemaNodeRelationship").partOfBuiltInSchema();
+		final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
+		final Property<Boolean> allowRead           = new BooleanProperty("allowRead").partOfBuiltInSchema();
+		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite").partOfBuiltInSchema();
+		final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete").partOfBuiltInSchema();
+		final Property<Boolean> allowAccessControl  = new BooleanProperty("allowAccessControl").partOfBuiltInSchema();
 
 		return Set.of(
 			principal,

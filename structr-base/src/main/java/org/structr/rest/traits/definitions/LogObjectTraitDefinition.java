@@ -40,8 +40,6 @@ import java.util.Set;
  */
 public class LogObjectTraitDefinition extends AbstractTraitDefinition {
 
-	public static final Property<Iterable<NodeInterface>> logEvents = new StartNodes("logEvents", "ObjectEventRelationship");
-
 	public LogObjectTraitDefinition() {
 		super("LogObject");
 	}
@@ -71,6 +69,8 @@ public class LogObjectTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> logEvents = new StartNodes("logEvents", "ObjectEventRelationship");
 
 		return Set.of(
 			logEvents

@@ -32,17 +32,6 @@ import java.util.Set;
  */
 public final class LocationTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Double> latitudeProperty      = new DoubleProperty("latitude").indexed().partOfBuiltInSchema();
-	private static final Property<Double> longitudeProperty     = new DoubleProperty("longitude").indexed().partOfBuiltInSchema();
-	private static final Property<Double> altitudeProperty      = new DoubleProperty("altitude").indexed().partOfBuiltInSchema();
-	private static final Property<String> countryProperty       = new StringProperty("country").indexed().partOfBuiltInSchema();
-	private static final Property<String> postalCodeProperty    = new StringProperty("postalCode").indexed().partOfBuiltInSchema();
-	private static final Property<String> cityProperty          = new StringProperty("city").indexed().partOfBuiltInSchema();
-	private static final Property<String> streetProperty        = new StringProperty("street").indexed().partOfBuiltInSchema();
-	private static final Property<String> houseNumberProperty   = new StringProperty("houseNumber").indexed().partOfBuiltInSchema();
-	private static final Property<String> stateProperty         = new StringProperty("state").indexed().partOfBuiltInSchema();
-	private static final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed().partOfBuiltInSchema();
-
 	public LocationTraitDefinition() {
 		super("Location");
 	}
@@ -66,6 +55,18 @@ public final class LocationTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Double> latitudeProperty      = new DoubleProperty("latitude").indexed().partOfBuiltInSchema();
+		final Property<Double> longitudeProperty     = new DoubleProperty("longitude").indexed().partOfBuiltInSchema();
+		final Property<Double> altitudeProperty      = new DoubleProperty("altitude").indexed().partOfBuiltInSchema();
+		final Property<String> countryProperty       = new StringProperty("country").indexed().partOfBuiltInSchema();
+		final Property<String> postalCodeProperty    = new StringProperty("postalCode").indexed().partOfBuiltInSchema();
+		final Property<String> cityProperty          = new StringProperty("city").indexed().partOfBuiltInSchema();
+		final Property<String> streetProperty        = new StringProperty("street").indexed().partOfBuiltInSchema();
+		final Property<String> houseNumberProperty   = new StringProperty("houseNumber").indexed().partOfBuiltInSchema();
+		final Property<String> stateProperty         = new StringProperty("state").indexed().partOfBuiltInSchema();
+		final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed().partOfBuiltInSchema();
+
 		return Set.of(
 			latitudeProperty,
 			longitudeProperty,

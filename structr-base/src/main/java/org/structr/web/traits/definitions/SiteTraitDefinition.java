@@ -42,16 +42,6 @@ import java.util.Set;
 public class SiteTraitDefinition extends AbstractTraitDefinition {
 
 	/*
-	TODO: migrate this:
-	1. extract interface, rename original class to SiteTraitDefinition
-	2. implement SiteTraitWrapper extends AbstractTraitWrapper
-	*/
-
-	private static final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", "SiteCONTAINSPage").partOfBuiltInSchema();
-	private static final Property<String> hostnameProperty               = new StringProperty("hostname").indexed().partOfBuiltInSchema();
-	private static final Property<Integer> portProperty                  = new IntProperty("port").indexed().partOfBuiltInSchema();
-
-	/*
 	public static final View defaultView = new View(Site.class, PropertyView.Public,
 		pagesProperty, hostnameProperty, portProperty
 	);
@@ -90,6 +80,16 @@ public class SiteTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+	/*
+	TODO: migrate this:
+	1. extract interface, rename original class to SiteTraitDefinition
+	2. implement SiteTraitWrapper extends AbstractTraitWrapper
+	*/
+
+		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", "SiteCONTAINSPage").partOfBuiltInSchema();
+		final Property<String> hostnameProperty               = new StringProperty("hostname").indexed().partOfBuiltInSchema();
+		final Property<Integer> portProperty                  = new IntProperty("port").indexed().partOfBuiltInSchema();
 
 		return Set.of(
 			pagesProperty,

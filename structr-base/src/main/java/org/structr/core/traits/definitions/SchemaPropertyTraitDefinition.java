@@ -38,42 +38,7 @@ import java.util.Set;
 
 public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
-
 	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
-
-	private static final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
-	private static final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
-	private static final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
-
-	private static final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
-	private static final Property<String>             declaringClass        = new StringProperty("declaringClass");
-	private static final Property<String>             defaultValue          = new StringProperty("defaultValue");
-	private static final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
-	private static final Property<String>             contentType           = new StringProperty("contentType");
-	private static final Property<String>             dbName                = new StringProperty("dbName");
-	private static final Property<String>             fqcn                  = new StringProperty("fqcn");
-	private static final Property<String>             format                = new StringProperty("format");
-	private static final Property<String>             typeHint              = new StringProperty("typeHint");
-	private static final Property<String>             hint                  = new StringProperty("hint");
-	private static final Property<String>             category              = new StringProperty("category");
-	private static final Property<Boolean>            notNull               = new BooleanProperty("notNull");
-	private static final Property<Boolean>            compound              = new BooleanProperty("compound");
-	private static final Property<Boolean>            unique                = new BooleanProperty("unique");
-	private static final Property<Boolean>            indexed               = new BooleanProperty("indexed");
-	private static final Property<Boolean>            readOnly              = new BooleanProperty("readOnly");
-	private static final Property<Boolean>            isDynamic             = new BooleanProperty("isDynamic");
-	private static final Property<Boolean>            isBuiltinProperty     = new BooleanProperty("isBuiltinProperty");
-	private static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
-	private static final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
-	private static final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
-	private static final Property<Boolean>            isCachingEnabled      = new BooleanProperty("isCachingEnabled").defaultValue(false);
-	private static final Property<String>             contentHash           = new StringProperty("contentHash");
-	private static final Property<String>             readFunction          = new StringProperty("readFunction");
-	private static final Property<String>             writeFunction         = new StringProperty("writeFunction");
-	private static final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
-	private static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
-	private static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	/*
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
@@ -123,6 +88,39 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
+
+		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
+		final Property<String>             declaringClass        = new StringProperty("declaringClass");
+		final Property<String>             defaultValue          = new StringProperty("defaultValue");
+		final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
+		final Property<String>             contentType           = new StringProperty("contentType");
+		final Property<String>             dbName                = new StringProperty("dbName");
+		final Property<String>             fqcn                  = new StringProperty("fqcn");
+		final Property<String>             format                = new StringProperty("format");
+		final Property<String>             typeHint              = new StringProperty("typeHint");
+		final Property<String>             hint                  = new StringProperty("hint");
+		final Property<String>             category              = new StringProperty("category");
+		final Property<Boolean>            notNull               = new BooleanProperty("notNull");
+		final Property<Boolean>            compound              = new BooleanProperty("compound");
+		final Property<Boolean>            unique                = new BooleanProperty("unique");
+		final Property<Boolean>            indexed               = new BooleanProperty("indexed");
+		final Property<Boolean>            readOnly              = new BooleanProperty("readOnly");
+		final Property<Boolean>            isDynamic             = new BooleanProperty("isDynamic");
+		final Property<Boolean>            isBuiltinProperty     = new BooleanProperty("isBuiltinProperty");
+		final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
+		final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
+		final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
+		final Property<Boolean>            isCachingEnabled      = new BooleanProperty("isCachingEnabled").defaultValue(false);
+		final Property<String>             contentHash           = new StringProperty("contentHash");
+		final Property<String>             readFunction          = new StringProperty("readFunction");
+		final Property<String>             writeFunction         = new StringProperty("writeFunction");
+		final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
+		final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
+		final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 		return Set.of(
 

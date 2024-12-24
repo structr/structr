@@ -28,9 +28,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
-import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
-import org.structr.schema.SchemaService;
 
 import java.io.Reader;
 import java.io.StringReader;

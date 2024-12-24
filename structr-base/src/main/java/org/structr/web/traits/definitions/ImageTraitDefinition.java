@@ -18,26 +18,15 @@
  */
 package org.structr.web.traits.definitions;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
@@ -48,19 +37,12 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.SetProperties;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
-import org.structr.schema.SchemaService;
-import org.structr.web.agent.ThumbnailTask;
-import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 import org.structr.web.traits.wrappers.ImageTraitWrapper;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,30 +51,10 @@ import java.util.Set;
  */
 public class ImageTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> imageParentProperty          = new StartNode("imageParent", "FolderCONTAINSImage").partOfBuiltInSchema();
-	private static final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", "ImagePICTURE_OFUser").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", "ImageTHUMBNAILImage").partOfBuiltInSchema();
-	private static final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", "ImageTHUMBNAILImage").partOfBuiltInSchema();
-	private static final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint("Image").partOfBuiltInSchema().dynamic();
-	private static final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint("Image").partOfBuiltInSchema().dynamic();
-	private static final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Boolean> isImageProperty                    = new BooleanProperty("isImage").readOnly().transformators("org.structr.common.ConstantBooleanTrue").partOfBuiltInSchema().dynamic();
-	private static final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty("thumbnailCreationFailed").partOfBuiltInSchema().dynamic();
-	private static final Property<Integer> heightProperty                     = new IntProperty("height").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Integer> orientationProperty                = new IntProperty("orientation").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Integer> widthProperty                      = new IntProperty("width").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<String> exifIFD0DataProperty                = new StringProperty("exifIFD0Data").partOfBuiltInSchema().dynamic();
-	private static final Property<String> exifSubIFDDataProperty              = new StringProperty("exifSubIFDData").partOfBuiltInSchema().dynamic();
-	private static final Property<String> gpsDataProperty                     = new StringProperty("gpsData").partOfBuiltInSchema().dynamic();
-	private static final Property<String> imageDataProperty                   = new ImageDataProperty("imageData").typeHint("String").partOfBuiltInSchema().dynamic();
-
-
 	/*
 	View publicView = new View(Image.class, PropertyView.Public, parentProperty);
 	View uiView     = new View(Image.class, PropertyView.Ui,     parentProperty);
 	*/
-
 
 	public ImageTraitDefinition() {
 		super("Image");
@@ -225,6 +187,24 @@ public class ImageTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> imageParentProperty          = new StartNode("imageParent", "FolderCONTAINSImage").partOfBuiltInSchema();
+		final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", "ImagePICTURE_OFUser").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", "ImageTHUMBNAILImage").partOfBuiltInSchema();
+		final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", "ImageTHUMBNAILImage").partOfBuiltInSchema();
+		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint("Image").partOfBuiltInSchema().dynamic();
+		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint("Image").partOfBuiltInSchema().dynamic();
+		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed().partOfBuiltInSchema().dynamic();
+		final Property<Boolean> isImageProperty                    = new BooleanProperty("isImage").readOnly().transformators("org.structr.common.ConstantBooleanTrue").partOfBuiltInSchema().dynamic();
+		final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed().partOfBuiltInSchema().dynamic();
+		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty("thumbnailCreationFailed").partOfBuiltInSchema().dynamic();
+		final Property<Integer> heightProperty                     = new IntProperty("height").indexed().partOfBuiltInSchema().dynamic();
+		final Property<Integer> orientationProperty                = new IntProperty("orientation").indexed().partOfBuiltInSchema().dynamic();
+		final Property<Integer> widthProperty                      = new IntProperty("width").indexed().partOfBuiltInSchema().dynamic();
+		final Property<String> exifIFD0DataProperty                = new StringProperty("exifIFD0Data").partOfBuiltInSchema().dynamic();
+		final Property<String> exifSubIFDDataProperty              = new StringProperty("exifSubIFDData").partOfBuiltInSchema().dynamic();
+		final Property<String> gpsDataProperty                     = new StringProperty("gpsData").partOfBuiltInSchema().dynamic();
+		final Property<String> imageDataProperty                   = new ImageDataProperty("imageData").typeHint("String").partOfBuiltInSchema().dynamic();
 
 		return Set.of(
 			imageParentProperty,

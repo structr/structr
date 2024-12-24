@@ -32,12 +32,6 @@ import java.util.Set;
  */
 public class SchemaMethodParameterTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> schemaMethod = new StartNode("schemaMethod", "SchemaMethodParameters");
-	private static final Property<String> parameterType       = new StringProperty("parameterType");
-	private static final Property<Integer> index              = new IntProperty("index").defaultValue(0);
-	private static final Property<String> description         = new StringProperty("description");
-	private static final Property<String> exampleValue        = new StringProperty("exampleValue");
-
 	public SchemaMethodParameterTraitDefinition() {
 		super("SchemaMethodParameter");
 	}
@@ -52,6 +46,12 @@ public class SchemaMethodParameterTraitDefinition extends AbstractTraitDefinitio
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> schemaMethod = new StartNode("schemaMethod", "SchemaMethodParameters");
+		final Property<String> parameterType       = new StringProperty("parameterType");
+		final Property<Integer> index              = new IntProperty("index").defaultValue(0);
+		final Property<String> description         = new StringProperty("description");
+		final Property<String> exampleValue        = new StringProperty("exampleValue");
 
 		return Set.of(
 			schemaMethod,

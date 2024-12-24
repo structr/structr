@@ -29,14 +29,6 @@ import java.util.Set;
 
 public final class UserTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", "UserHOME_DIRFolder").partOfBuiltInSchema();
-	private static final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", "UserWORKING_DIRFolder").partOfBuiltInSchema();
-	private static final Property<NodeInterface> imgProperty                 = new StartNode("img", "ImagePICTURE_OFUser");
-	private static final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
-	private static final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
-	private static final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
-	private static final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
-
 	public UserTraitDefinition() {
 		super("User");
 	}
@@ -51,6 +43,14 @@ public final class UserTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", "UserHOME_DIRFolder").partOfBuiltInSchema();
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", "UserWORKING_DIRFolder").partOfBuiltInSchema();
+		final Property<NodeInterface> imgProperty                 = new StartNode("img", "ImagePICTURE_OFUser");
+		final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
+		final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
+		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
+		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
 
 		return Set.of(
 			homeDirectoryProperty,

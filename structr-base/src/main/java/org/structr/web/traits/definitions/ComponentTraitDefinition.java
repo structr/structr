@@ -42,9 +42,6 @@ import java.util.Set;
  */
 public class ComponentTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> kindProperty      = new StringProperty("kind").partOfBuiltInSchema();
-	private static final Property<Integer> positionProperty = new IntProperty("position").partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(Component.class,PropertyView.Public,
 		kindProperty
@@ -86,6 +83,9 @@ public class ComponentTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> kindProperty      = new StringProperty("kind").partOfBuiltInSchema();
+		final Property<Integer> positionProperty = new IntProperty("position").partOfBuiltInSchema();
 
 		return Set.of(
 			kindProperty,

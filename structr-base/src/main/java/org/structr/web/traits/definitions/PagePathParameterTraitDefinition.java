@@ -37,12 +37,6 @@ import java.util.Set;
  */
 public class PagePathParameterTraitDefinition extends AbstractTraitDefinition {
 
-	private static Property<NodeInterface> pathProperty        = new StartNode("path", "PagePathHAS_PARAMETERPagePathParameter").partOfBuiltInSchema();
-	private static final Property<Integer> positionProperty    = new IntProperty("position").indexed().partOfBuiltInSchema();
-	private static final Property<String> valueTypeProperty    = new StringProperty("valueType").partOfBuiltInSchema();
-	private static final Property<String> defaultValueProperty = new StringProperty("defaultValue").partOfBuiltInSchema();
-	private static final Property<Boolean> isOptionalProperty  = new BooleanProperty("isOptional").partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(PagePathParameter.class, PropertyView.Public,
 		positionProperty, valueTypeProperty, defaultValueProperty, isOptionalProperty
@@ -82,6 +76,12 @@ public class PagePathParameterTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> pathProperty  = new StartNode("path", "PagePathHAS_PARAMETERPagePathParameter").partOfBuiltInSchema();
+		final Property<Integer> positionProperty    = new IntProperty("position").indexed().partOfBuiltInSchema();
+		final Property<String> valueTypeProperty    = new StringProperty("valueType").partOfBuiltInSchema();
+		final Property<String> defaultValueProperty = new StringProperty("defaultValue").partOfBuiltInSchema();
+		final Property<Boolean> isOptionalProperty  = new BooleanProperty("isOptional").partOfBuiltInSchema();
 
 		return Set.of(
 			pathProperty,

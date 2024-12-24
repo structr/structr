@@ -41,11 +41,6 @@ import java.util.Set;
 
 public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> localizedNameProperty = new StringProperty("localizedName").indexed().partOfBuiltInSchema();
-	private static final Property<String> domainProperty        = new StringProperty("domain").indexed().partOfBuiltInSchema();
-	private static final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed().partOfBuiltInSchema();
-	private static final Property<Boolean> importedProperty     = new BooleanProperty("imported").partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(Localization.class, PropertyView.Public,
 		localizedNameProperty, domainProperty, localeProperty, importedProperty
@@ -70,7 +65,9 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					return ValidationHelper.isValidPropertyNotNull(obj, localeProperty, errorBuffer);
+					final Traits traits = obj.getTraits();
+
+					return ValidationHelper.isValidPropertyNotNull(obj, traits.key("locale"), errorBuffer);
 				}
 			},
 
@@ -121,6 +118,11 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> localizedNameProperty = new StringProperty("localizedName").indexed().partOfBuiltInSchema();
+		final Property<String> domainProperty        = new StringProperty("domain").indexed().partOfBuiltInSchema();
+		final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed().partOfBuiltInSchema();
+		final Property<Boolean> importedProperty     = new BooleanProperty("imported").partOfBuiltInSchema();
 
 		return Set.of(
 			localizedNameProperty,

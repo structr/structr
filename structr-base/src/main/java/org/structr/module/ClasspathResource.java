@@ -25,7 +25,7 @@ import java.util.Set;
  * A Structr module record, contains all the information needed to
  * scan and initialize a module.
  */
-public class StructrModuleInfo {
+public class ClasspathResource {
 
 	private final Set<String> rawClasses = new LinkedHashSet<>();
 	private final Set<String> properties = new LinkedHashSet<>();
@@ -33,7 +33,7 @@ public class StructrModuleInfo {
 	private final Set<String> libraries  = new LinkedHashSet<>();
 	private String modulePath            = null;
 
-	public StructrModuleInfo(String modulePath) {
+	public ClasspathResource(final String modulePath) {
 		this.modulePath = modulePath;
 	}
 

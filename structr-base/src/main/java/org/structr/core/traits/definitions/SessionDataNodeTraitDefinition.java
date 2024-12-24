@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -42,12 +43,6 @@ import java.util.Set;
  */
 
 public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
-
-	private static final Property<String>               sessionIdProperty    = new StringProperty("sessionId").indexed();
-	private static final Property<String>               contextPathProperty  = new StringProperty("cpath");
-	private static final Property<String>               vhostProperty        = new StringProperty("vhost");
-	private static final Property<Date>                 lastAccessedProperty = new DateProperty("lastAccessed").indexed();
-	private static final Property<Long>                 versionProperty      = new LongProperty("version");
 
 	public SessionDataNodeTraitDefinition() {
 		super("SessionDataNode");
@@ -70,16 +65,24 @@ public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 			OnCreation.class, new OnCreation() {
 
 				@Override
-				public void onCreation(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-					incrementVersion(graphObject);
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					if (graphObject instanceof NodeInterface node && node.is("SessionDataNode")) {
+
+						node.as(SessionDataNode.class).incrementVersion();
+					}
 				}
 			},
 
 			OnModification.class, new OnModification() {
 
 				@Override
-				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-					incrementVersion(graphObject);
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					if (graphObject instanceof NodeInterface node && node.is("SessionDataNode")) {
+
+						node.as(SessionDataNode.class).incrementVersion();
+					}
 				}
 			}
 		);
@@ -95,6 +98,13 @@ public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String>  sessionIdProperty    = new StringProperty("sessionId").indexed();
+		final Property<String>  contextPathProperty  = new StringProperty("cpath");
+		final Property<String>  vhostProperty        = new StringProperty("vhost");
+		final Property<Date>    lastAccessedProperty = new DateProperty("lastAccessed").indexed();
+		final Property<Long>    versionProperty      = new LongProperty("version");
+
 		return Set.of(
 			sessionIdProperty,
 			contextPathProperty,
@@ -102,20 +112,5 @@ public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 			lastAccessedProperty,
 			versionProperty
 		);
-	}
-
-	// ----- private methods -----
-	private void incrementVersion(final GraphObject graphObject) throws FrameworkException {
-
-		// increment version on each change
-		final Long version = graphObject.getProperty(versionProperty);
-		if (version == null) {
-
-			graphObject.setProperty(versionProperty, 1L);
-
-		} else {
-
-			graphObject.setProperty(versionProperty,  version + 1);
-		}
 	}
 }

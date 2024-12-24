@@ -38,9 +38,6 @@ import java.util.Set;
  */
 public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> configTypeProperty = new StringProperty("configType").indexed().partOfBuiltInSchema();
-	private static final Property<String> contentProperty    = new StringProperty("content").partOfBuiltInSchema();
-
 	/*
 	public static final View uiView = new View(ApplicationConfigurationDataNode.class, PropertyView.Ui,
 		configTypeProperty, contentProperty
@@ -76,6 +73,9 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractTra
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> configTypeProperty = new StringProperty("configType").indexed().partOfBuiltInSchema();
+		final Property<String> contentProperty    = new StringProperty("content").partOfBuiltInSchema();
 
 		return Set.of(
 			configTypeProperty,

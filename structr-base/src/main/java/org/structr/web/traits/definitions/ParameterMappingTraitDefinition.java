@@ -38,17 +38,6 @@ import java.util.Set;
 
 public class ParameterMappingTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> actionMappingProperty = new StartNode("actionMapping", "ActionMappingPARAMETERParameterMapping").partOfBuiltInSchema();
-	private static final Property<NodeInterface> inputElement          = new StartNode("inputElement", "DOMElementINPUT_ELEMENTParameterMapping").partOfBuiltInSchema();
-
-	// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
-	private static final Property<String> parameterType    = new StringProperty("parameterType").hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...").partOfBuiltInSchema();
-	private static final Property<String> parameterName    = new StringProperty("parameterName").hint("Parameter name").partOfBuiltInSchema();
-	private static final Property<String> constantValue    = new StringProperty("constantValue").hint("Constant value").partOfBuiltInSchema();
-	private static final Property<String> scriptExpression = new StringProperty("scriptExpression").hint("Script expression to be evaluated to result value").partOfBuiltInSchema();
-	private static final Property<String> methodResult     = new StringProperty("methodResult").hint("Method to be evaluated to result value").partOfBuiltInSchema();
-	private static final Property<String> flowResult       = new StringProperty("flowResult").hint("Flow to be evaluated to result value").partOfBuiltInSchema();
-
 	/*
 	public static final View uiView = new View(ParameterMapping.class, PropertyView.Ui,
 		parameterType, parameterName, constantValue, scriptExpression, methodResult, flowResult, inputElement
@@ -89,6 +78,17 @@ public class ParameterMappingTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> actionMappingProperty = new StartNode("actionMapping", "ActionMappingPARAMETERParameterMapping").partOfBuiltInSchema();
+		final Property<NodeInterface> inputElement          = new StartNode("inputElement", "DOMElementINPUT_ELEMENTParameterMapping").partOfBuiltInSchema();
+
+		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
+		final Property<String> parameterType    = new StringProperty("parameterType").hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...").partOfBuiltInSchema();
+		final Property<String> parameterName    = new StringProperty("parameterName").hint("Parameter name").partOfBuiltInSchema();
+		final Property<String> constantValue    = new StringProperty("constantValue").hint("Constant value").partOfBuiltInSchema();
+		final Property<String> scriptExpression = new StringProperty("scriptExpression").hint("Script expression to be evaluated to result value").partOfBuiltInSchema();
+		final Property<String> methodResult     = new StringProperty("methodResult").hint("Method to be evaluated to result value").partOfBuiltInSchema();
+		final Property<String> flowResult       = new StringProperty("flowResult").hint("Flow to be evaluated to result value").partOfBuiltInSchema();
 
 		return Set.of(
 			actionMappingProperty,

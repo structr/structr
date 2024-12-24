@@ -34,7 +34,6 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
 
@@ -43,24 +42,8 @@ import java.util.Set;
 
 public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
 
-	// properties
-	private static final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed().partOfBuiltInSchema();
-	private static final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
-
-	private static final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode").partOfBuiltInSchema();
-	private static final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
-
-	private static final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship").partOfBuiltInSchema();
-	//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
-
 	public NodeInterfaceTraitDefinition() {
 		super("NodeInterface");
-	}
-
-	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-
-		return Map.of();
 	}
 
 	@Override
@@ -262,6 +245,14 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		// properties
+		final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed().partOfBuiltInSchema();
+		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
+		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode").partOfBuiltInSchema();
+		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
+		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship").partOfBuiltInSchema();
+		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
 		return Set.of(
 			nameProperty,

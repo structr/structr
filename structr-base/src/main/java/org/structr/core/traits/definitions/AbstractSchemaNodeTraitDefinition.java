@@ -37,17 +37,6 @@ import java.util.Set;
  */
 public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Map<String, Iterable<SchemaMethod>> cachedSchemaMethods = new HashMap<>();
-
-	private static final Property<Iterable<NodeInterface>> schemaProperties      = new EndNodes("schemaProperties", "SchemaNodeProperty");
-	private static final Property<Iterable<NodeInterface>> schemaMethods         = new EndNodes("schemaMethods", "SchemaNodeMethod");
-	private static final Property<Iterable<NodeInterface>> schemaViews           = new EndNodes("schemaViews", "SchemaNodeView");
-
-	private static final Property<Boolean>                 changelogDisabled     = new BooleanProperty("changelogDisabled");
-	private static final Property<String>                  icon                  = new StringProperty("icon");
-	private static final Property<String>                  description           = new StringProperty("description");
-	private static final Set<String>                       hiddenPropertyNames   = new LinkedHashSet<>();
-
 	/*
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
 		name, icon, changelogDisabled
@@ -94,6 +83,15 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefini
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> schemaProperties      = new EndNodes("schemaProperties", "SchemaNodeProperty");
+		final Property<Iterable<NodeInterface>> schemaMethods         = new EndNodes("schemaMethods", "SchemaNodeMethod");
+		final Property<Iterable<NodeInterface>> schemaViews           = new EndNodes("schemaViews", "SchemaNodeView");
+
+		final Property<Boolean>                 changelogDisabled     = new BooleanProperty("changelogDisabled");
+		final Property<String>                  icon                  = new StringProperty("icon");
+		final Property<String>                  description           = new StringProperty("description");
+
 
 		return Set.of(
 			schemaProperties,

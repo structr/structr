@@ -34,12 +34,6 @@ import java.util.Set;
 
 public class CssRuleTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes("childRules", "CssRuleCONTAINSCssRule").partOfBuiltInSchema();
-	private static final Property<NodeInterface> parentRuleProperty           = new StartNode("parentRule", "CssRuleCONTAINSCssRule").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes("selectors", "CssRuleHAS_SELECTORCssSelector").partOfBuiltInSchema();
-	private static final Property<String> cssTextProperty                     = new StringProperty("cssText").indexed().partOfBuiltInSchema();
-	private static final Property<Integer>  ruleTypeProperty                  = new IntProperty("ruleType").indexed().partOfBuiltInSchema();
-
 	/*
 	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
 		cssTextProperty, ruleTypeProperty, childRulesProperty, parentRuleProperty, selectorsProperty
@@ -75,6 +69,12 @@ public class CssRuleTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes("childRules", "CssRuleCONTAINSCssRule").partOfBuiltInSchema();
+		final Property<NodeInterface> parentRuleProperty           = new StartNode("parentRule", "CssRuleCONTAINSCssRule").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes("selectors", "CssRuleHAS_SELECTORCssSelector").partOfBuiltInSchema();
+		final Property<String> cssTextProperty                     = new StringProperty("cssText").indexed().partOfBuiltInSchema();
+		final Property<Integer>  ruleTypeProperty                  = new IntProperty("ruleType").indexed().partOfBuiltInSchema();
 
 		return Set.of(
 			childRulesProperty,

@@ -37,10 +37,6 @@ import java.util.Set;
  */
 public class StorageConfigurationEntryTraitDefinition  extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> configurationProperty = new StartNode("configuration", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry").partOfBuiltInSchema();
-	private static final Property<String> nameProperty                 = new StringProperty("name").partOfBuiltInSchema();
-	private static final Property<String> valueProperty                = new EncryptedStringProperty("value").partOfBuiltInSchema();
-
 	/*
 	public static final View uiView = new View(StorageConfigurationEntry.class, PropertyView.Ui,
 		nameProperty, valueProperty, configurationProperty
@@ -78,6 +74,10 @@ public class StorageConfigurationEntryTraitDefinition  extends AbstractTraitDefi
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> configurationProperty = new StartNode("configuration", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry").partOfBuiltInSchema();
+		final Property<String> nameProperty                 = new StringProperty("name").partOfBuiltInSchema();
+		final Property<String> valueProperty                = new EncryptedStringProperty("value").partOfBuiltInSchema();
 
 		return Set.of(
 			configurationProperty,

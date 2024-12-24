@@ -33,34 +33,6 @@ import java.util.Set;
 
 public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", "SchemaRelationshipSourceNode");
-	private static final Property<NodeInterface> targetNode          = new EndNode("targetNode", "SchemaRelationshipTargetNode");
-	private static final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(Traits.idProperty()));
-	private static final Property<String>     targetId               = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(Traits.idProperty()));
-	private static final Property<String>     sourceType             = new StringProperty("sourceType");
-	private static final Property<String>     targetType             = new StringProperty("targetType");
-	private static final Property<String>     name                   = new StringProperty("name").indexed();
-	private static final Property<String>     relationshipType       = new StringProperty("relationshipType").indexed();
-	private static final Property<String>     sourceMultiplicity     = new StringProperty("sourceMultiplicity");
-	private static final Property<String>     targetMultiplicity     = new StringProperty("targetMultiplicity");
-	private static final Property<String>     sourceNotion           = new StringProperty("sourceNotion");
-	private static final Property<String>     targetNotion           = new StringProperty("targetNotion");
-	private static final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName").indexed();
-	private static final Property<String>     targetJsonName         = new StringProperty("targetJsonName").indexed();
-	private static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName").indexed();
-	private static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName").indexed();
-	private static final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
-	private static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
-	private static final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
-
-	// permission propagation via domain relationships
-	private static final Property<PropagationDirection> permissionPropagation    = new EnumProperty("permissionPropagation", PropagationDirection.class, PropagationDirection.None);
-	private static final Property<PropagationMode>      readPropagation          = new EnumProperty<>("readPropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<PropagationMode>      writePropagation         = new EnumProperty<>("writePropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<PropagationMode>      deletePropagation        = new EnumProperty<>("deletePropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<PropagationMode>      accessControlPropagation = new EnumProperty<>("accessControlPropagation", PropagationMode.class, PropagationMode.Remove);
-	private static final Property<String>               propertyMask             = new StringProperty("propertyMask");
-
 	/*
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
@@ -100,6 +72,34 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", "SchemaRelationshipSourceNode");
+		final Property<NodeInterface> targetNode          = new EndNode("targetNode", "SchemaRelationshipTargetNode");
+		final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(Traits.idProperty()));
+		final Property<String>     targetId               = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(Traits.idProperty()));
+		final Property<String>     sourceType             = new StringProperty("sourceType");
+		final Property<String>     targetType             = new StringProperty("targetType");
+		final Property<String>     name                   = new StringProperty("name").indexed();
+		final Property<String>     relationshipType       = new StringProperty("relationshipType").indexed();
+		final Property<String>     sourceMultiplicity     = new StringProperty("sourceMultiplicity");
+		final Property<String>     targetMultiplicity     = new StringProperty("targetMultiplicity");
+		final Property<String>     sourceNotion           = new StringProperty("sourceNotion");
+		final Property<String>     targetNotion           = new StringProperty("targetNotion");
+		final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName").indexed();
+		final Property<String>     targetJsonName         = new StringProperty("targetJsonName").indexed();
+		final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName").indexed();
+		final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName").indexed();
+		final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
+		final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
+		final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
+
+		// permission propagation via domain relationships
+		final Property<PropagationDirection> permissionPropagation    = new EnumProperty("permissionPropagation", PropagationDirection.class, PropagationDirection.None);
+		final Property<PropagationMode>      readPropagation          = new EnumProperty<>("readPropagation", PropagationMode.class, PropagationMode.Remove);
+		final Property<PropagationMode>      writePropagation         = new EnumProperty<>("writePropagation", PropagationMode.class, PropagationMode.Remove);
+		final Property<PropagationMode>      deletePropagation        = new EnumProperty<>("deletePropagation", PropagationMode.class, PropagationMode.Remove);
+		final Property<PropagationMode>      accessControlPropagation = new EnumProperty<>("accessControlPropagation", PropagationMode.class, PropagationMode.Remove);
+		final Property<String>               propertyMask             = new StringProperty("propertyMask");
 
 		return Set.of(
 			sourceNode,

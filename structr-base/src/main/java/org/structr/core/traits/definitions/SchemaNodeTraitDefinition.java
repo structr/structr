@@ -51,29 +51,6 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 		"Relation", "Property"
 	}));
 
-	public static final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes("relatedTo", "SchemaRelationshipSourceNode");
-	public static final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes("relatedFrom", "SchemaRelationshipTargetNode");
-	public static final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes("schemaGrants", "SchemaGrantSchemaNodeRelationship");
-	public static final Property<NodeInterface>                    extendsClass           = new EndNode("extendsClass", "SchemaNodeExtendsSchemaNode");
-	public static final Property<Iterable<NodeInterface>>          extendedByClasses      = new StartNodes("extendedByClasses", "SchemaNodeExtendsSchemaNode");
-	public static final Property<String>                           extendsClassInternal   = new StringProperty("extendsClassInternal").indexed();
-	public static final Property<String>                           implementsInterfaces   = new StringProperty("implementsInterfaces").indexed();
-	public static final Property<String>                           defaultSortKey         = new StringProperty("defaultSortKey");
-	public static final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
-	public static final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty("defaultVisibleToPublic").readOnly().indexed();
-	public static final Property<Boolean>                          defaultVisibleToAuth   = new BooleanProperty("defaultVisibleToAuth").readOnly().indexed();
-	public static final Property<Boolean>                          isBuiltinType          = new BooleanProperty("isBuiltinType").readOnly().indexed();
-	public static final Property<Integer>                          hierarchyLevel         = new IntProperty("hierarchyLevel").indexed();
-	public static final Property<Integer>                          relCount               = new IntProperty("relCount").indexed();
-	public static final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
-	public static final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
-	public static final Property<String>                           category               = new StringProperty("category").indexed();
-	public static final Property<String[]>                         tags                   = new ArrayProperty("tags", String.class).indexed();
-	public static final Property<Boolean>                          includeInOpenAPI       = new BooleanProperty("includeInOpenAPI").indexed();
-	public static final Property<String>                           summary                = new StringProperty("summary").indexed();
-	public static final Property<String>                           description            = new StringProperty("description").indexed();
-
-
 	/*
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		id, typeHandler, name, icon, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
@@ -150,6 +127,28 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes("relatedTo", "SchemaRelationshipSourceNode");
+		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes("relatedFrom", "SchemaRelationshipTargetNode");
+		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes("schemaGrants", "SchemaGrantSchemaNodeRelationship");
+		final Property<NodeInterface>                    extendsClass           = new EndNode("extendsClass", "SchemaNodeExtendsSchemaNode");
+		final Property<Iterable<NodeInterface>>          extendedByClasses      = new StartNodes("extendedByClasses", "SchemaNodeExtendsSchemaNode");
+		final Property<String>                           extendsClassInternal   = new StringProperty("extendsClassInternal").indexed();
+		final Property<String>                           implementsInterfaces   = new StringProperty("implementsInterfaces").indexed();
+		final Property<String>                           defaultSortKey         = new StringProperty("defaultSortKey");
+		final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
+		final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty("defaultVisibleToPublic").readOnly().indexed();
+		final Property<Boolean>                          defaultVisibleToAuth   = new BooleanProperty("defaultVisibleToAuth").readOnly().indexed();
+		final Property<Boolean>                          isBuiltinType          = new BooleanProperty("isBuiltinType").readOnly().indexed();
+		final Property<Integer>                          hierarchyLevel         = new IntProperty("hierarchyLevel").indexed();
+		final Property<Integer>                          relCount               = new IntProperty("relCount").indexed();
+		final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
+		final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
+		final Property<String>                           category               = new StringProperty("category").indexed();
+		final Property<String[]>                         tags                   = new ArrayProperty("tags", String.class).indexed();
+		final Property<Boolean>                          includeInOpenAPI       = new BooleanProperty("includeInOpenAPI").indexed();
+		final Property<String>                           summary                = new StringProperty("summary").indexed();
+		final Property<String>                           description            = new StringProperty("description").indexed();
 
 		return Set.of(
 			relatedTo,
