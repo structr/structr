@@ -44,22 +44,6 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
  */
 public class PageTraitDefinition extends AbstractTraitDefinition {
 
-	public static final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", "DOMNodePAGEPage").category(PAGE_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", "PageHAS_PATHPagePath").partOfBuiltInSchema();
-	public static final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", "SiteCONTAINSPage").partOfBuiltInSchema();
-
-	public static final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true).partOfBuiltInSchema();
-	public static final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false).partOfBuiltInSchema();
-
-	public static final Property<Integer> versionProperty         = new IntProperty("version").indexed().readOnly().defaultValue(0).partOfBuiltInSchema();
-	public static final Property<Integer> positionProperty        = new IntProperty("position").indexed().partOfBuiltInSchema();
-	public static final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds").partOfBuiltInSchema();
-
-	public static final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
-	public static final Property<String> showOnErrorCodesProperty = new StringProperty("showOnErrorCodes").indexed().partOfBuiltInSchema();
-	public static final Property<String> contentTypeProperty      = new StringProperty("contentType").indexed().partOfBuiltInSchema();
-	public static final Property<String> categoryProperty         = new StringProperty("category").indexed().partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(Page.class, PropertyView.Public,
 		linkingElementsProperty, enableBasicAuthProperty, basicAuthRealmProperty, dontCacheProperty, childrenProperty, name, owner, sitesProperty,
@@ -178,6 +162,22 @@ public class PageTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", "DOMNodePAGEPage").category(PAGE_CATEGORY).partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", "PageHAS_PATHPagePath").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", "SiteCONTAINSPage").partOfBuiltInSchema();
+
+		final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true).partOfBuiltInSchema();
+		final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false).partOfBuiltInSchema();
+
+		final Property<Integer> versionProperty         = new IntProperty("version").indexed().readOnly().defaultValue(0).partOfBuiltInSchema();
+		final Property<Integer> positionProperty        = new IntProperty("position").indexed().partOfBuiltInSchema();
+		final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds").partOfBuiltInSchema();
+
+		final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
+		final Property<String> showOnErrorCodesProperty = new StringProperty("showOnErrorCodes").indexed().partOfBuiltInSchema();
+		final Property<String> contentTypeProperty      = new StringProperty("contentType").indexed().partOfBuiltInSchema();
+		final Property<String> categoryProperty         = new StringProperty("category").indexed().partOfBuiltInSchema();
 
 		return Set.of(
 			elementsProperty,

@@ -97,12 +97,13 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
 
 					final SecurityContext securityContext = graphObject.getSecurityContext();
+					final Traits traits                   = graphObject.getTraits();
 
 					// check for custom view in content-type field
 					if (securityContext != null && securityContext.hasCustomView()) {
 
 						final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
-						final Set<PropertyKey> keys  = new LinkedHashSet<>(graphObject.getPropertyKeys(view));
+						final Set<PropertyKey> keys  = new LinkedHashSet<>(traits.getPropertyKeysForView(view));
 						final Set<String> customView = securityContext.getCustomView();
 
 						for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
@@ -117,7 +118,7 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 					}
 
 					// this is the default if no application/json; properties=[...] content-type header is present on the request
-					return graphObject.getPropertyKeys(propertyView);
+					return traits.getPropertyKeysForView(propertyView);
 				}
 			},
 

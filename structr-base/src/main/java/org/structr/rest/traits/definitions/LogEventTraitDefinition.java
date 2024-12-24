@@ -41,12 +41,6 @@ import java.util.Set;
  */
 public class LogEventTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> messageProperty   = new StringProperty("message");
-	private static final Property<String> actionProperty    = new StringProperty("action").indexed();
-	private static final Property<Date>   timestampProperty = new ISO8601DateProperty("timestamp").indexed();
-	private static final Property<String> subjectProperty   = new StringProperty("subject").indexed();
-	private static final Property<String> objectProperty    = new StringProperty("object").indexed();
-
 	public LogEventTraitDefinition() {
 		super("LogEvent");
 	}
@@ -82,6 +76,12 @@ public class LogEventTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> messageProperty   = new StringProperty("message");
+		final Property<String> actionProperty    = new StringProperty("action").indexed();
+		final Property<Date>   timestampProperty = new ISO8601DateProperty("timestamp").indexed();
+		final Property<String> subjectProperty   = new StringProperty("subject").indexed();
+		final Property<String> objectProperty    = new StringProperty("object").indexed();
 
 		return Set.of(
 			messageProperty,

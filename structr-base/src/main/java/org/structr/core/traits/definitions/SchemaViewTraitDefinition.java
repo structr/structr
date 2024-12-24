@@ -37,12 +37,6 @@ public class SchemaViewTraitDefinition extends AbstractTraitDefinition {
 
 	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
-	private static final Property<NodeInterface>           schemaNode         = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
-	private static final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinProperty")));
-	private static final Property<Boolean>                 isBuiltinView      = new BooleanProperty("isBuiltinView");
-	private static final Property<String>                  nonGraphProperties = new StringProperty("nonGraphProperties");
-	private static final Property<String>                  sortOrder          = new StringProperty("sortOrder");
-
 	/*
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
 		id, name, schemaNode, schemaProperties, nonGraphProperties
@@ -74,6 +68,12 @@ public class SchemaViewTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface>           schemaNode         = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
+		final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinProperty")));
+		final Property<Boolean>                 isBuiltinView      = new BooleanProperty("isBuiltinView");
+		final Property<String>                  nonGraphProperties = new StringProperty("nonGraphProperties");
+		final Property<String>                  sortOrder          = new StringProperty("sortOrder");
 
 		return Set.of(
 			schemaNode,

@@ -37,16 +37,6 @@ import java.util.Set;
  */
 public class WidgetTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> sourceProperty          = new StringProperty("source").partOfBuiltInSchema();
-	private static final Property<String> descriptionProperty     = new StringProperty("description").partOfBuiltInSchema();
-	private static final Property<String> configurationProperty   = new StringProperty("configuration").partOfBuiltInSchema();
-	private static final Property<String> svgIconPathProperty     = new StringProperty("svgIconPath").partOfBuiltInSchema();
-	private static final Property<String> thumbnailPathProperty   = new StringProperty("thumbnailPath").partOfBuiltInSchema();
-	private static final Property<String> treePathProperty        = new StringProperty("treePath").partOfBuiltInSchema();
-	private static final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty("isWidget", true).partOfBuiltInSchema();
-	private static final Property<String[]> selectorsProperty     = new ArrayProperty("selectors", String[].class).partOfBuiltInSchema();
-	private static final Property<Boolean> isPageTemplateProperty = new BooleanProperty("isPageTemplate").partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(Widget.class, PropertyView.Public,
 		name, sourceProperty, descriptionProperty, configurationProperty, svgIconPathProperty, thumbnailPathProperty, treePathProperty, isWidgetProperty, selectorsProperty, isPageTemplateProperty
@@ -91,6 +81,16 @@ public class WidgetTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> sourceProperty          = new StringProperty("source").partOfBuiltInSchema();
+		final Property<String> descriptionProperty     = new StringProperty("description").partOfBuiltInSchema();
+		final Property<String> configurationProperty   = new StringProperty("configuration").partOfBuiltInSchema();
+		final Property<String> svgIconPathProperty     = new StringProperty("svgIconPath").partOfBuiltInSchema();
+		final Property<String> thumbnailPathProperty   = new StringProperty("thumbnailPath").partOfBuiltInSchema();
+		final Property<String> treePathProperty        = new StringProperty("treePath").partOfBuiltInSchema();
+		final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty("isWidget", true).partOfBuiltInSchema();
+		final Property<String[]> selectorsProperty     = new ArrayProperty("selectors", String[].class).partOfBuiltInSchema();
+		final Property<Boolean> isPageTemplateProperty = new BooleanProperty("isPageTemplate").partOfBuiltInSchema();
 
 		return Set.of(
 			sourceProperty,

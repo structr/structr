@@ -28,13 +28,13 @@ import org.structr.core.traits.Traits;
  *
  * @param <S>
  */
-public class EntityIdProperty<S extends NodeInterface> extends EntityNotionProperty<S, String> {
+public class EntityIdProperty extends EntityNotionProperty<NodeInterface, String> {
 	
-	public EntityIdProperty(final String name, final Property<S> base) {
+	public EntityIdProperty(final String name, final Property<NodeInterface> base) {
 		this(name, base, false);
 	}
 	
-	public EntityIdProperty(final String name, final Property<S> base, final boolean createIfNotExisting) {
+	public EntityIdProperty(final String name, final Property<NodeInterface> base, final boolean createIfNotExisting) {
 		
 		super(name, base, new PropertyNotion(Traits.idProperty(), createIfNotExisting));
 	}

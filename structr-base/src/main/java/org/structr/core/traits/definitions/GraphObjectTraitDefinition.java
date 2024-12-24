@@ -31,6 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AddToIndex;
@@ -40,16 +41,6 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 import java.util.*;
 
 public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
-
-	private static final PropertyKey<String> baseProperty                  = new StringProperty("base").partOfBuiltInSchema();
-	private static final PropertyKey<String> typeProperty                  = new TypeProperty().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY);
-	private static final PropertyKey<String> idProperty                    = new UuidProperty().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY);
-	private static final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<String> createdByProperty             = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-	private static final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
 	public GraphObjectTraitDefinition() {
 		super("GraphObject");
@@ -64,9 +55,12 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 			new IsValid() {
 
 				@Override
-				public Boolean isValid(final org.structr.core.GraphObject graphObject, final ErrorBuffer errorBuffer) {
+				public Boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
 
 					final SecurityContext securityContext = graphObject.getSecurityContext();
+					final Traits traits                   = graphObject.getTraits();
+					final PropertyKey idProperty          = traits.key("id");
+					final PropertyKey typeProperty        = traits.key("type");
 					boolean valid = true;
 
 					// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
@@ -139,6 +133,16 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final PropertyKey<String> baseProperty                  = new StringProperty("base").partOfBuiltInSchema();
+		final PropertyKey<String> typeProperty                  = new TypeProperty().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY);
+		final PropertyKey<String> idProperty                    = new UuidProperty().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY);
+		final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<String> createdByProperty             = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).partOfBuiltInSchema().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
 		return Set.of(
 			baseProperty,

@@ -106,9 +106,9 @@ public class Traits {
 	 * id, type and name.
 	 * @return
 	 */
-	public List<PropertyKey> getDefaultKeys() {
+	public Set<PropertyKey> getDefaultKeys() {
 
-		final List<PropertyKey> keys = new LinkedList<>();
+		final Set<PropertyKey> keys = new LinkedHashSet<>();
 
 		keys.add(propertyKeys.get("id"));
 		keys.add(propertyKeys.get("type"));
@@ -153,7 +153,14 @@ public class Traits {
 	}
 
 	public <T> Set<T> getMethods(final Class<T> type) {
-		return composableMethods.get(type);
+
+		final Set<T> methods = composableMethods.get(type);
+		if (methods != null) {
+
+			return methods;
+		}
+
+		return Collections.EMPTY_SET;
 	}
 
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
@@ -245,7 +252,14 @@ public class Traits {
 
 	// ----- static methods -----
 	public static Traits of(final String name) {
-		return globalTraitMap.get(name);
+
+		final Traits traits = globalTraitMap.get(name);
+		if (traits != null) {
+
+			return traits;
+		}
+
+		throw new RuntimeException("Missing trait definition for " + name + ".");
 	}
 
 	public static Set<String> getAllTypes(final Predicate<Traits> filter) {
@@ -287,7 +301,7 @@ public class Traits {
 	public static PropertyKey<String> nameProperty() {
 
 		if (cachedNameProperty == null) {
-			cachedNameProperty = Traits.key("GraphObject", "name");
+			cachedNameProperty = Traits.key("NodeInterface", "name");
 		}
 
 		return cachedNameProperty;

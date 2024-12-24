@@ -25,6 +25,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.GroupTraitWrapper;
@@ -35,11 +36,6 @@ import java.util.Set;
 /**
  */
 public final class GroupTraitDefinition extends AbstractTraitDefinition {
-
-	private static final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", "GroupCONTAINSPrincipal").partOfBuiltInSchema();
-	private static final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique().partOfBuiltInSchema();
-	private static final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique().partOfBuiltInSchema();
-	private static final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true).partOfBuiltInSchema();
 
 	/*
 	public static final View defaultView = new View(GroupTraitDefinition.class, PropertyView.Public,
@@ -68,9 +64,13 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, GroupTraitDefinition.nameProperty, errorBuffer);
-					valid &= ValidationHelper.isValidUniqueProperty(obj,  GroupTraitDefinition.nameProperty, errorBuffer);
-					valid &= ValidationHelper.isValidUniqueProperty(obj,  GroupTraitDefinition.jwksReferenceIdProperty, errorBuffer);
+					final Traits traits                       = obj.getTraits();
+					final PropertyKey nameProperty            = traits.key("name");
+					final PropertyKey jwksReferenceIdProperty = traits.key("name");
+
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj,  nameProperty, errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj,  jwksReferenceIdProperty, errorBuffer);
 
 					return valid;
 				}
@@ -88,6 +88,12 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", "GroupCONTAINSPrincipal").partOfBuiltInSchema();
+		final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique().partOfBuiltInSchema();
+		final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique().partOfBuiltInSchema();
+		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true).partOfBuiltInSchema();
+
 		return Set.of(
 			membersProperty,
 			jwksReferenceIdProperty,

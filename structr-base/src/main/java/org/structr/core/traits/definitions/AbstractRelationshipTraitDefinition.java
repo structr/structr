@@ -31,13 +31,6 @@ import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
  */
 public final class AbstractRelationshipTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-	private static final Property<String>        relType            = new RelationshipTypeProperty();
-	private static final SourceId                sourceId           = new SourceId("sourceId");
-	private static final TargetId                targetId           = new TargetId("targetId");
-	private static final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
-	private static final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
-
 	/*
 	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, typeHandler, relType, sourceId, targetId
@@ -59,6 +52,13 @@ public final class AbstractRelationshipTraitDefinition extends AbstractTraitDefi
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+		final Property<String>        relType            = new RelationshipTypeProperty();
+		final SourceId                sourceId           = new SourceId("sourceId");
+		final TargetId                targetId           = new TargetId("targetId");
+		final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
+		final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
 
 		return Set.of(
 			internalTimestamp,

@@ -38,6 +38,9 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
+		StructrTraits.registerBaseType(new PropertyContainerTraitDefinition());
+		StructrTraits.registerBaseType(new GraphObjectTraitDefinition());
+
 		// relationship types
 		StructrTraits.registerRelationshipType("PrincipalOwnsNode",                 new PrincipalOwnsNodeDefinition());
 		StructrTraits.registerRelationshipType("SecurityRelationship",              new SecurityRelationshipDefinition());
@@ -54,6 +57,8 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerRelationshipType("SchemaRelationshipTargetNode",      new SchemaRelationshipTargetNodeDefinition());
 		StructrTraits.registerRelationshipType("SchemaViewProperty",                new SchemaViewPropertyDefinition());
 
+		StructrTraits.registerBaseType(new NodeInterfaceTraitDefinition());
+
 		// node types
 		StructrTraits.registerNodeType("Principal",              new PrincipalTraitDefinition());
 		StructrTraits.registerNodeType("Group",                  new PrincipalTraitDefinition(), new GroupTraitDefinition());
@@ -63,9 +68,9 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType("Person",                 new PersonTraitDefinition());
 		StructrTraits.registerNodeType("SessionDataNode",        new SessionDataNodeTraitDefinition());
 		StructrTraits.registerNodeType("SchemaGrant",            new SchemaGrantTraitDefinition());
+		StructrTraits.registerNodeType("SchemaNode",             new AbstractSchemaNodeTraitDefinition(), new SchemaNodeTraitDefinition());
 		StructrTraits.registerNodeType("SchemaMethod",           new SchemaMethodTraitDefinition());
 		StructrTraits.registerNodeType("SchemaMethodParameter",  new SchemaMethodParameterTraitDefinition());
-		StructrTraits.registerNodeType("SchemaNode",             new AbstractSchemaNodeTraitDefinition(), new SchemaNodeTraitDefinition());
 		StructrTraits.registerNodeType("SchemaRelationshipNode", new AbstractSchemaNodeTraitDefinition(), new SchemaRelationshipNodeTraitDefinition());
 		StructrTraits.registerNodeType("SchemaView",             new SchemaViewTraitDefinition());
 		StructrTraits.registerNodeType("SchemaProperty",         new SchemaPropertyTraitDefinition());

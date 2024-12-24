@@ -33,14 +33,6 @@ import java.util.Set;
 
 public class ATraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> htmlHrefProperty     = new StringProperty("_html_href");
-	private static final Property<String> htmlTargetProperty   = new StringProperty("_html_target");
-	private static final Property<String> htmlPingProperty     = new StringProperty("_html_ping");
-	private static final Property<String> htmlRelProperty      = new StringProperty("_html_rel");
-	private static final Property<String> htmlMediaProperty    = new StringProperty("_html_media");
-	private static final Property<String> htmlHrefLangProperty = new StringProperty("_html_hreflang");
-	private static final Property<String> htmlTypeProperty     = new StringProperty("_html_type");
-
 	/*
 	public static final View htmlView = new View(A.class, PropertyView.Html,
 		htmlHrefProperty, htmlTargetProperty, htmlPingProperty, htmlRelProperty, htmlMediaProperty, htmlHrefLangProperty, htmlTypeProperty
@@ -77,6 +69,14 @@ public class ATraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> htmlHrefProperty     = new StringProperty("_html_href");
+		final Property<String> htmlTargetProperty   = new StringProperty("_html_target");
+		final Property<String> htmlPingProperty     = new StringProperty("_html_ping");
+		final Property<String> htmlRelProperty      = new StringProperty("_html_rel");
+		final Property<String> htmlMediaProperty    = new StringProperty("_html_media");
+		final Property<String> htmlHrefLangProperty = new StringProperty("_html_hreflang");
+		final Property<String> htmlTypeProperty     = new StringProperty("_html_type");
 
 		return Set.of(
 			htmlHrefProperty,

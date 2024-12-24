@@ -47,6 +47,13 @@ public class StructrTraits {
 	}
 	*/
 
+	public static void registerBaseType(final TraitDefinition definition) {
+
+		final Traits traits = new Traits(definition.getName(), false, false);
+
+		traits.registerImplementation(definition);
+	}
+
 	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, true, false);

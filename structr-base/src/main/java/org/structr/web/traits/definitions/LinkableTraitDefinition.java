@@ -18,8 +18,6 @@
  */
 package org.structr.web.traits.definitions;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -39,11 +37,6 @@ import java.util.Set;
  *
  */
 public class LinkableTraitDefinition extends AbstractTraitDefinition {
-
-	private static final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", "LinkSourceLINKLinkable").partOfBuiltInSchema().partOfBuiltInSchema();
-	private static final Property<Iterable<String>> linkinkElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", linkingElementsProperty).partOfBuiltInSchema().partOfBuiltInSchema();
-	private static final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed().partOfBuiltInSchema();
-	private static final Property<String> basicAuthRealmProperty                   = new StringProperty("basicAuthRealm").partOfBuiltInSchema();
 
 	public LinkableTraitDefinition() {
 		super("Linkable");
@@ -85,6 +78,11 @@ public class LinkableTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", "LinkSourceLINKLinkable").partOfBuiltInSchema();
+		final Property<Iterable<String>> linkinkElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", linkingElementsProperty).partOfBuiltInSchema();
+		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
+		final Property<String> basicAuthRealmProperty                   = new StringProperty("basicAuthRealm").partOfBuiltInSchema();
 
 		return Set.of(
 			linkingElementsProperty,

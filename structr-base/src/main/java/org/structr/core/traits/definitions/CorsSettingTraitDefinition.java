@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.CorsSetting;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.CorsSettingTraitWrapper;
@@ -39,16 +40,6 @@ import java.util.Set;
  * These settings overwrite the system default and the settings defined in {@see Settings.java}.
  */
 public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
-
-	private static final Logger logger                                    = LoggerFactory.getLogger(CorsSettingTraitDefinition.class.getName());
-	private static final Property<String>               requestUri        = new StringProperty("requestUri").indexed();
-	private static final Property<String>               acceptedOrigins   = new StringProperty("acceptedOrigins").indexed();
-	private static final Property<Integer>              maxAge            = new IntProperty("maxAge").indexed();
-	private static final Property<String>               allowMethods      = new StringProperty("allowMethods").indexed();
-	private static final Property<String>               allowHeaders      = new StringProperty("allowHeaders").indexed();
-	private static final Property<String>               allowCredentials  = new StringProperty("allowCredentials").indexed();
-	private static final Property<String>               exposeHeaders     = new StringProperty("exposeHeaders").indexed();
-	private static final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty("isCorsSetting", true);
 
 	public CorsSettingTraitDefinition() {
 		super("CorsSetting");
@@ -74,7 +65,9 @@ public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					return ValidationHelper.isValidStringNotBlank(obj,  CorsSettingTraitDefinition.requestUri, errorBuffer);
+					final Traits traits = obj.getTraits();
+
+					return ValidationHelper.isValidStringNotBlank(obj, traits.key("requestUri"), errorBuffer);
 				}
 			}
 		);
@@ -90,6 +83,16 @@ public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String>               requestUri        = new StringProperty("requestUri").indexed();
+		final Property<String>               acceptedOrigins   = new StringProperty("acceptedOrigins").indexed();
+		final Property<Integer>              maxAge            = new IntProperty("maxAge").indexed();
+		final Property<String>               allowMethods      = new StringProperty("allowMethods").indexed();
+		final Property<String>               allowHeaders      = new StringProperty("allowHeaders").indexed();
+		final Property<String>               allowCredentials  = new StringProperty("allowCredentials").indexed();
+		final Property<String>               exposeHeaders     = new StringProperty("exposeHeaders").indexed();
+		final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty("isCorsSetting", true);
+
 		return Set.of(
 			requestUri,
 			acceptedOrigins,

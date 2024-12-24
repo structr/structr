@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
@@ -204,7 +205,7 @@ public class MigrationService {
 			}
 
 			final Traits domElementTraits             = Traits.of("DOMElement");
-			final PropertyKey<String> actionKey       = domElementTraits.key("data-structr-action");
+			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");// domElementTraits.key("data-structr-action");
 			final PropertyKey<String> eventMappingKey = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations

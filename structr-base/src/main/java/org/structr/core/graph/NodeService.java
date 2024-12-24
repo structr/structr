@@ -244,6 +244,8 @@ public class NodeService implements SingletonService {
 
 						} catch (Throwable t) {
 
+							t.printStackTrace();
+
 							logger.warn("Unable to create initial user: {}", t.getMessage());
 						}
 					}

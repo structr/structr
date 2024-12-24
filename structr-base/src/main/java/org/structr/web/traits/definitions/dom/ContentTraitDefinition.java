@@ -50,7 +50,10 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Textarea;
-import org.structr.web.traits.operations.*;
+import org.structr.web.traits.operations.DoImport;
+import org.structr.web.traits.operations.GetContextName;
+import org.structr.web.traits.operations.RenderContent;
+import org.structr.web.traits.operations.UpdateFromNode;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -62,10 +65,6 @@ import java.util.Set;
  * All methods in the W3C Text interface are based on the raw database content.
  */
 public class ContentTraitDefinition extends AbstractTraitDefinition {
-
-	public static final Property<String> contentProperty     = new StringProperty("content").indexed().partOfBuiltInSchema();
-	public static final Property<String> contentTypeProperty = new StringProperty("contentType").indexed().partOfBuiltInSchema();
-	public static final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true).partOfBuiltInSchema();
 
 	/*
 	public static final View defaultView = new View(Content.class, PropertyView.Public,
@@ -324,6 +323,10 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> contentProperty     = new StringProperty("content").indexed().partOfBuiltInSchema();
+		final Property<String> contentTypeProperty = new StringProperty("contentType").indexed().partOfBuiltInSchema();
+		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true).partOfBuiltInSchema();
 
 		return Set.of(
 			contentProperty,

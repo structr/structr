@@ -23,6 +23,8 @@ import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.UserTraitDefinition;
+import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
@@ -71,7 +73,9 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerRelationshipType("DOMNodeFAILURE_TARGETActionMapping",                        new DOMNodeFAILURE_TARGETActionMapping());
 		StructrTraits.registerRelationshipType("DOMNodePAGEPage",                                           new DOMNodePAGEPage());
 		StructrTraits.registerRelationshipType("DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping",          new DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping());
+		StructrTraits.registerRelationshipType("DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping",          new DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping());
 		StructrTraits.registerRelationshipType("DOMNodeSUCCESS_TARGETActionMapping",                        new DOMNodeSUCCESS_TARGETActionMapping());
+		StructrTraits.registerRelationshipType("DOMNodeFAILURE_TARGETActionMapping",                        new DOMNodeFAILURE_TARGETActionMapping());
 		StructrTraits.registerRelationshipType("DOMNodeSYNCDOMNode",                                        new DOMNodeSYNCDOMNode());
 		StructrTraits.registerRelationshipType("FolderCONTAINSAbstractFile",                                new FolderCONTAINSAbstractFile());
 		StructrTraits.registerRelationshipType("FolderCONTAINSFile",                                        new FolderCONTAINSFile());
@@ -113,6 +117,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("StorageConfiguration",             new StorageConfigurationTraitDefinition());
 		StructrTraits.registerNodeType("StorageConfigurationEntry",        new StorageConfigurationEntryTraitDefinition());
 		StructrTraits.registerNodeType("Template",                         new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new TemplateTraitDefinition());
+		StructrTraits.registerNodeType("User",                             new PrincipalTraitDefinition(), new UserTraitDefinition());
 		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
 
 		// HTML elements
@@ -219,7 +224,7 @@ public class UiModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("rest");
 	}
 
 	@Override

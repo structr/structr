@@ -58,7 +58,7 @@ public class RestModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("core");
 	}
 
 	@Override

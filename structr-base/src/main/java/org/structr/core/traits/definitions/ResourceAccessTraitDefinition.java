@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.AfterModification;
@@ -68,10 +69,6 @@ import java.util.Set;
  */
 public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String>               signature          = new StringProperty("signature").indexed().partOfBuiltInSchema();
-	private static final Property<Long>                 flags              = new LongProperty("flags").indexed().partOfBuiltInSchema();
-	private static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true).partOfBuiltInSchema();
-
 	/*
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, isResourceAccess
@@ -98,8 +95,10 @@ public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidStringNotBlank(obj, ResourceAccessTraitDefinition.signature, errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, ResourceAccessTraitDefinition.flags, errorBuffer);
+					final Traits traits = obj.getTraits();
+
+					valid &= ValidationHelper.isValidStringNotBlank(obj, traits.key("signature"), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("flags"),    errorBuffer);
 
 					return valid;
 				}
@@ -144,6 +143,10 @@ public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String>               signature          = new StringProperty("signature").indexed().partOfBuiltInSchema();
+		final Property<Long>                 flags              = new LongProperty("flags").indexed().partOfBuiltInSchema();
+		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true).partOfBuiltInSchema();
 
 		return Set.of(
 			signature,

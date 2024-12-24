@@ -92,105 +92,6 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 	private static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
-	private static final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes("reloadSources", "DOMElementRELOADSDOMElement").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes("reloadTargets", "DOMElementRELOADSDOMElement").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes("triggeredActions", "DOMElementTRIGGERED_BYActionMapping").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes("parameterMappings", "DOMElementINPUT_ELEMENTParameterMapping").partOfBuiltInSchema();
-
-	private static final Property<String> tagProperty              = new StringProperty("tag").indexed().category(PAGE_CATEGORY).partOfBuiltInSchema();
-	private static final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
-	private static final Property<String> partialUpdateKeyProperty = new StringProperty("partialUpdateKey").indexed().partOfBuiltInSchema();
-
-	private static final Property<Boolean> manualReloadTargetProperty = new BooleanProperty("data-structr-manual-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.").partOfBuiltInSchema();
-	private static final Property<Boolean> fromWidgetProperty         = new BooleanProperty("fromWidget").partOfBuiltInSchema();
-	private static final Property<Boolean> dataInsertProperty         = new BooleanProperty("data-structr-insert").partOfBuiltInSchema();
-	private static final Property<Boolean> dataFromWidgetProperty     = new BooleanProperty("data-structr-from-widget").partOfBuiltInSchema();
-
-	private static final Property<String> eventMappingProperty       = new StringProperty("eventMapping").category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).").partOfBuiltInSchema();
-	// probably useless ATM because EAM does not support trees yet
-	private static final Property<String> dataTreeChildrenProperty   = new StringProperty("data-structr-tree-children").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.").partOfBuiltInSchema();
-	private static final Property<String> dataReloadTargetProperty   = new StringProperty("data-structr-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.").partOfBuiltInSchema();
-	private static final Property<String> renderingModeProperty      = new StringProperty("data-structr-rendering-mode").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval").partOfBuiltInSchema();
-	private static final Property<String> delayOrIntervalProperty    = new StringProperty("data-structr-delay-or-interval").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode").partOfBuiltInSchema();
-	private static final Property<String> onAbortProperty            = new StringProperty("_html_onabort").partOfBuiltInSchema();
-	private static final Property<String> onBlurProperty             = new StringProperty("_html_onblur").partOfBuiltInSchema();
-	private static final Property<String> onCanPlayProperty          = new StringProperty("_html_oncanplay").partOfBuiltInSchema();
-	private static final Property<String> onCanPlayThroughProperty   = new StringProperty("_html_oncanplaythrough").partOfBuiltInSchema();
-	private static final Property<String> onChangeProperty           = new StringProperty("_html_onchange").partOfBuiltInSchema();
-	private static final Property<String> onClickProperty            = new StringProperty("_html_onclick").partOfBuiltInSchema();
-	private static final Property<String> onContextMenuProperty      = new StringProperty("_html_oncontextmenu").partOfBuiltInSchema();
-	private static final Property<String> onDblClickProperty         = new StringProperty("_html_ondblclick").partOfBuiltInSchema();
-	private static final Property<String> onDragProperty             = new StringProperty("_html_ondrag").partOfBuiltInSchema();
-	private static final Property<String> onDragEndProperty          = new StringProperty("_html_ondragend").partOfBuiltInSchema();
-	private static final Property<String> onDragEnterProperty        = new StringProperty("_html_ondragenter").partOfBuiltInSchema();
-	private static final Property<String> onDragLeaveProperty        = new StringProperty("_html_ondragleave").partOfBuiltInSchema();
-	private static final Property<String> onDragOverProperty         = new StringProperty("_html_ondragover").partOfBuiltInSchema();
-	private static final Property<String> onDragStartProperty        = new StringProperty("_html_ondragstart").partOfBuiltInSchema();
-	private static final Property<String> onDropProperty             = new StringProperty("_html_ondrop").partOfBuiltInSchema();
-	private static final Property<String> onDurationChangeProperty   = new StringProperty("_html_ondurationchange").partOfBuiltInSchema();
-	private static final Property<String> onEmptiedProperty          = new StringProperty("_html_onemptied").partOfBuiltInSchema();
-	private static final Property<String> onEndedProperty            = new StringProperty("_html_onended").partOfBuiltInSchema();
-	private static final Property<String> onErrorProperty            = new StringProperty("_html_onerror").partOfBuiltInSchema();
-	private static final Property<String> onFocusProperty            = new StringProperty("_html_onfocus").partOfBuiltInSchema();
-	private static final Property<String> onInputProperty            = new StringProperty("_html_oninput").partOfBuiltInSchema();
-	private static final Property<String> onInvalidProperty          = new StringProperty("_html_oninvalid").partOfBuiltInSchema();
-	private static final Property<String> onKeyDownProperty          = new StringProperty("_html_onkeydown").partOfBuiltInSchema();
-	private static final Property<String> onKeyPressProperty         = new StringProperty("_html_onkeypress").partOfBuiltInSchema();
-	private static final Property<String> onKeyUpProperty            = new StringProperty("_html_onkeyup").partOfBuiltInSchema();
-	private static final Property<String> onLoadProperty             = new StringProperty("_html_onload").partOfBuiltInSchema();
-	private static final Property<String> onLoadedDataProperty       = new StringProperty("_html_onloadeddata").partOfBuiltInSchema();
-	private static final Property<String> onLoadedMetadataProperty   = new StringProperty("_html_onloadedmetadata").partOfBuiltInSchema();
-	private static final Property<String> onLoadStartProperty        = new StringProperty("_html_onloadstart").partOfBuiltInSchema();
-	private static final Property<String> onMouseDownProperty        = new StringProperty("_html_onmousedown").partOfBuiltInSchema();
-	private static final Property<String> onMouseMoveProperty        = new StringProperty("_html_onmousemove").partOfBuiltInSchema();
-	private static final Property<String> onMouseOutProperty         = new StringProperty("_html_onmouseout").partOfBuiltInSchema();
-	private static final Property<String> onMouseOverProperty        = new StringProperty("_html_onmouseover").partOfBuiltInSchema();
-	private static final Property<String> onMouseUpProperty          = new StringProperty("_html_onmouseup").partOfBuiltInSchema();
-	private static final Property<String> onMouseWheelProperty       = new StringProperty("_html_onmousewheel").partOfBuiltInSchema();
-	private static final Property<String> onPauseProperty            = new StringProperty("_html_onpause").partOfBuiltInSchema();
-	private static final Property<String> onPlayProperty             = new StringProperty("_html_onplay").partOfBuiltInSchema();
-	private static final Property<String> onPlayingProperty          = new StringProperty("_html_onplaying").partOfBuiltInSchema();
-	private static final Property<String> onProgressProperty         = new StringProperty("_html_onprogress").partOfBuiltInSchema();
-	private static final Property<String> onRateChangeProperty       = new StringProperty("_html_onratechange").partOfBuiltInSchema();
-	private static final Property<String> onReadyStateChangeProperty = new StringProperty("_html_onreadystatechange").partOfBuiltInSchema();
-	private static final Property<String> onResetProperty            = new StringProperty("_html_onreset").partOfBuiltInSchema();
-	private static final Property<String> onScrollProperty           = new StringProperty("_html_onscroll").partOfBuiltInSchema();
-	private static final Property<String> onSeekedProperty           = new StringProperty("_html_onseeked").partOfBuiltInSchema();
-	private static final Property<String> onSeekingProperty          = new StringProperty("_html_onseeking").partOfBuiltInSchema();
-	private static final Property<String> onSelectProperty           = new StringProperty("_html_onselect").partOfBuiltInSchema();
-	private static final Property<String> onShowProperty             = new StringProperty("_html_onshow").partOfBuiltInSchema();
-	private static final Property<String> onStalledProperty          = new StringProperty("_html_onstalled").partOfBuiltInSchema();
-	private static final Property<String> onSubmitProperty           = new StringProperty("_html_onsubmit").partOfBuiltInSchema();
-	private static final Property<String> onSuspendProperty          = new StringProperty("_html_onsuspend").partOfBuiltInSchema();
-	private static final Property<String> onTimeUpdateProperty       = new StringProperty("_html_ontimeupdate").partOfBuiltInSchema();
-	private static final Property<String> onVolumechangeProperty     = new StringProperty("_html_onvolumechange").partOfBuiltInSchema();
-	private static final Property<String> onWaitingProperty          = new StringProperty("_html_onwaiting").partOfBuiltInSchema();
-	private static final Property<String> htmlDataProperty           = new StringProperty("_html_data").partOfBuiltInSchema();
-
-	// Core attributes
-	private static final Property<String> htmlAcceskeyProperty        = new StringProperty("_html_accesskey").partOfBuiltInSchema();
-	private static final Property<String> htmlClassProperty           = new StringProperty("_html_class").partOfBuiltInSchema();
-	private static final Property<String> htmlContentEditableProperty = new StringProperty("_html_contenteditable").partOfBuiltInSchema();
-	private static final Property<String> htmlContextMenuProperty     = new StringProperty("_html_contextmenu").partOfBuiltInSchema();
-	private static final Property<String> htmlDirProperty             = new StringProperty("_html_dir").partOfBuiltInSchema();
-	private static final Property<String> htmlDraggableProperty       = new StringProperty("_html_draggable").partOfBuiltInSchema();
-	private static final Property<String> htmlDropzoneProperty        = new StringProperty("_html_dropzone").partOfBuiltInSchema();
-	private static final Property<String> htmlHiddenProperty          = new StringProperty("_html_hidden").partOfBuiltInSchema();
-	private static final Property<String> htmlIdProperty              = new StringProperty("_html_id").indexed().partOfBuiltInSchema();
-	private static final Property<String> htmlLangProperty            = new StringProperty("_html_lang").partOfBuiltInSchema();
-	private static final Property<String> htmlSpellcheckProperty      = new StringProperty("_html_spellcheck").partOfBuiltInSchema();
-	private static final Property<String> htmlStyleProperty           = new StringProperty("_html_style").partOfBuiltInSchema();
-	private static final Property<String> htmlTabindexProperty        = new StringProperty("_html_tabindex").partOfBuiltInSchema();
-	private static final Property<String> htmlTitleProperty           = new StringProperty("_html_title").partOfBuiltInSchema();
-	private static final Property<String> htmlTranslateProperty       = new StringProperty("_html_translate").partOfBuiltInSchema();
-
-	// new properties for Polymer support
-	private static final Property<String> htmlIsProperty         = new StringProperty("_html_is").partOfBuiltInSchema();
-	private static final Property<String> htmlPropertiesProperty = new StringProperty("_html_properties").partOfBuiltInSchema();
-
-	// The role attribute, see http://www.w3.org/TR/role-attribute/
-	private static final Property<String> htmlRoleProperty            = new StringProperty("_html_role").partOfBuiltInSchema();
-
 	/*
 	public static final View defaultView = new View(DOMElement.class, PropertyView.Public,
 		tagProperty, pathProperty, partialUpdateKeyProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
@@ -1127,6 +1028,105 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes("reloadSources", "DOMElementRELOADSDOMElement").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes("reloadTargets", "DOMElementRELOADSDOMElement").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes("triggeredActions", "DOMElementTRIGGERED_BYActionMapping").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes("parameterMappings", "DOMElementINPUT_ELEMENTParameterMapping").partOfBuiltInSchema();
+
+		final Property<String> tagProperty              = new StringProperty("tag").indexed().category(PAGE_CATEGORY).partOfBuiltInSchema();
+		final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
+		final Property<String> partialUpdateKeyProperty = new StringProperty("partialUpdateKey").indexed().partOfBuiltInSchema();
+
+		final Property<Boolean> manualReloadTargetProperty = new BooleanProperty("data-structr-manual-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.").partOfBuiltInSchema();
+		final Property<Boolean> fromWidgetProperty         = new BooleanProperty("fromWidget").partOfBuiltInSchema();
+		final Property<Boolean> dataInsertProperty         = new BooleanProperty("data-structr-insert").partOfBuiltInSchema();
+		final Property<Boolean> dataFromWidgetProperty     = new BooleanProperty("data-structr-from-widget").partOfBuiltInSchema();
+
+		final Property<String> eventMappingProperty       = new StringProperty("eventMapping").category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).").partOfBuiltInSchema();
+		// probably useless ATM because EAM does not support trees yet
+		final Property<String> dataTreeChildrenProperty   = new StringProperty("data-structr-tree-children").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.").partOfBuiltInSchema();
+		final Property<String> dataReloadTargetProperty   = new StringProperty("data-structr-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.").partOfBuiltInSchema();
+		final Property<String> renderingModeProperty      = new StringProperty("data-structr-rendering-mode").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval").partOfBuiltInSchema();
+		final Property<String> delayOrIntervalProperty    = new StringProperty("data-structr-delay-or-interval").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode").partOfBuiltInSchema();
+		final Property<String> onAbortProperty            = new StringProperty("_html_onabort").partOfBuiltInSchema();
+		final Property<String> onBlurProperty             = new StringProperty("_html_onblur").partOfBuiltInSchema();
+		final Property<String> onCanPlayProperty          = new StringProperty("_html_oncanplay").partOfBuiltInSchema();
+		final Property<String> onCanPlayThroughProperty   = new StringProperty("_html_oncanplaythrough").partOfBuiltInSchema();
+		final Property<String> onChangeProperty           = new StringProperty("_html_onchange").partOfBuiltInSchema();
+		final Property<String> onClickProperty            = new StringProperty("_html_onclick").partOfBuiltInSchema();
+		final Property<String> onContextMenuProperty      = new StringProperty("_html_oncontextmenu").partOfBuiltInSchema();
+		final Property<String> onDblClickProperty         = new StringProperty("_html_ondblclick").partOfBuiltInSchema();
+		final Property<String> onDragProperty             = new StringProperty("_html_ondrag").partOfBuiltInSchema();
+		final Property<String> onDragEndProperty          = new StringProperty("_html_ondragend").partOfBuiltInSchema();
+		final Property<String> onDragEnterProperty        = new StringProperty("_html_ondragenter").partOfBuiltInSchema();
+		final Property<String> onDragLeaveProperty        = new StringProperty("_html_ondragleave").partOfBuiltInSchema();
+		final Property<String> onDragOverProperty         = new StringProperty("_html_ondragover").partOfBuiltInSchema();
+		final Property<String> onDragStartProperty        = new StringProperty("_html_ondragstart").partOfBuiltInSchema();
+		final Property<String> onDropProperty             = new StringProperty("_html_ondrop").partOfBuiltInSchema();
+		final Property<String> onDurationChangeProperty   = new StringProperty("_html_ondurationchange").partOfBuiltInSchema();
+		final Property<String> onEmptiedProperty          = new StringProperty("_html_onemptied").partOfBuiltInSchema();
+		final Property<String> onEndedProperty            = new StringProperty("_html_onended").partOfBuiltInSchema();
+		final Property<String> onErrorProperty            = new StringProperty("_html_onerror").partOfBuiltInSchema();
+		final Property<String> onFocusProperty            = new StringProperty("_html_onfocus").partOfBuiltInSchema();
+		final Property<String> onInputProperty            = new StringProperty("_html_oninput").partOfBuiltInSchema();
+		final Property<String> onInvalidProperty          = new StringProperty("_html_oninvalid").partOfBuiltInSchema();
+		final Property<String> onKeyDownProperty          = new StringProperty("_html_onkeydown").partOfBuiltInSchema();
+		final Property<String> onKeyPressProperty         = new StringProperty("_html_onkeypress").partOfBuiltInSchema();
+		final Property<String> onKeyUpProperty            = new StringProperty("_html_onkeyup").partOfBuiltInSchema();
+		final Property<String> onLoadProperty             = new StringProperty("_html_onload").partOfBuiltInSchema();
+		final Property<String> onLoadedDataProperty       = new StringProperty("_html_onloadeddata").partOfBuiltInSchema();
+		final Property<String> onLoadedMetadataProperty   = new StringProperty("_html_onloadedmetadata").partOfBuiltInSchema();
+		final Property<String> onLoadStartProperty        = new StringProperty("_html_onloadstart").partOfBuiltInSchema();
+		final Property<String> onMouseDownProperty        = new StringProperty("_html_onmousedown").partOfBuiltInSchema();
+		final Property<String> onMouseMoveProperty        = new StringProperty("_html_onmousemove").partOfBuiltInSchema();
+		final Property<String> onMouseOutProperty         = new StringProperty("_html_onmouseout").partOfBuiltInSchema();
+		final Property<String> onMouseOverProperty        = new StringProperty("_html_onmouseover").partOfBuiltInSchema();
+		final Property<String> onMouseUpProperty          = new StringProperty("_html_onmouseup").partOfBuiltInSchema();
+		final Property<String> onMouseWheelProperty       = new StringProperty("_html_onmousewheel").partOfBuiltInSchema();
+		final Property<String> onPauseProperty            = new StringProperty("_html_onpause").partOfBuiltInSchema();
+		final Property<String> onPlayProperty             = new StringProperty("_html_onplay").partOfBuiltInSchema();
+		final Property<String> onPlayingProperty          = new StringProperty("_html_onplaying").partOfBuiltInSchema();
+		final Property<String> onProgressProperty         = new StringProperty("_html_onprogress").partOfBuiltInSchema();
+		final Property<String> onRateChangeProperty       = new StringProperty("_html_onratechange").partOfBuiltInSchema();
+		final Property<String> onReadyStateChangeProperty = new StringProperty("_html_onreadystatechange").partOfBuiltInSchema();
+		final Property<String> onResetProperty            = new StringProperty("_html_onreset").partOfBuiltInSchema();
+		final Property<String> onScrollProperty           = new StringProperty("_html_onscroll").partOfBuiltInSchema();
+		final Property<String> onSeekedProperty           = new StringProperty("_html_onseeked").partOfBuiltInSchema();
+		final Property<String> onSeekingProperty          = new StringProperty("_html_onseeking").partOfBuiltInSchema();
+		final Property<String> onSelectProperty           = new StringProperty("_html_onselect").partOfBuiltInSchema();
+		final Property<String> onShowProperty             = new StringProperty("_html_onshow").partOfBuiltInSchema();
+		final Property<String> onStalledProperty          = new StringProperty("_html_onstalled").partOfBuiltInSchema();
+		final Property<String> onSubmitProperty           = new StringProperty("_html_onsubmit").partOfBuiltInSchema();
+		final Property<String> onSuspendProperty          = new StringProperty("_html_onsuspend").partOfBuiltInSchema();
+		final Property<String> onTimeUpdateProperty       = new StringProperty("_html_ontimeupdate").partOfBuiltInSchema();
+		final Property<String> onVolumechangeProperty     = new StringProperty("_html_onvolumechange").partOfBuiltInSchema();
+		final Property<String> onWaitingProperty          = new StringProperty("_html_onwaiting").partOfBuiltInSchema();
+		final Property<String> htmlDataProperty           = new StringProperty("_html_data").partOfBuiltInSchema();
+
+		// Core attributes
+		final Property<String> htmlAcceskeyProperty        = new StringProperty("_html_accesskey").partOfBuiltInSchema();
+		final Property<String> htmlClassProperty           = new StringProperty("_html_class").partOfBuiltInSchema();
+		final Property<String> htmlContentEditableProperty = new StringProperty("_html_contenteditable").partOfBuiltInSchema();
+		final Property<String> htmlContextMenuProperty     = new StringProperty("_html_contextmenu").partOfBuiltInSchema();
+		final Property<String> htmlDirProperty             = new StringProperty("_html_dir").partOfBuiltInSchema();
+		final Property<String> htmlDraggableProperty       = new StringProperty("_html_draggable").partOfBuiltInSchema();
+		final Property<String> htmlDropzoneProperty        = new StringProperty("_html_dropzone").partOfBuiltInSchema();
+		final Property<String> htmlHiddenProperty          = new StringProperty("_html_hidden").partOfBuiltInSchema();
+		final Property<String> htmlIdProperty              = new StringProperty("_html_id").indexed().partOfBuiltInSchema();
+		final Property<String> htmlLangProperty            = new StringProperty("_html_lang").partOfBuiltInSchema();
+		final Property<String> htmlSpellcheckProperty      = new StringProperty("_html_spellcheck").partOfBuiltInSchema();
+		final Property<String> htmlStyleProperty           = new StringProperty("_html_style").partOfBuiltInSchema();
+		final Property<String> htmlTabindexProperty        = new StringProperty("_html_tabindex").partOfBuiltInSchema();
+		final Property<String> htmlTitleProperty           = new StringProperty("_html_title").partOfBuiltInSchema();
+		final Property<String> htmlTranslateProperty       = new StringProperty("_html_translate").partOfBuiltInSchema();
+
+		// new properties for Polymer support
+		final Property<String> htmlIsProperty         = new StringProperty("_html_is").partOfBuiltInSchema();
+		final Property<String> htmlPropertiesProperty = new StringProperty("_html_properties").partOfBuiltInSchema();
+
+		// The role attribute, see http://www.w3.org/TR/role-attribute/
+		final Property<String> htmlRoleProperty            = new StringProperty("_html_role").partOfBuiltInSchema();
 
 		return Set.of(
 			reloadSourcesProperty,

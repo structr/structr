@@ -50,14 +50,6 @@ public class GraphObjectGSONAdapter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
-	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>();
-
-	static {
-
-		idTypeNameOnly.add(Traits.idProperty());
-		idTypeNameOnly.add(Traits.typeProperty());
-		idTypeNameOnly.add(Traits.nameProperty());
-	}
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>(100);
 	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
@@ -266,12 +258,14 @@ public class GraphObjectGSONAdapter {
 	public class RootSerializer extends Serializer<GraphObject> {
 
 		@Override
-		public JsonElement serialize(GraphObject source, String localPropertyView, int depth) {
+		public JsonElement serialize(final GraphObject source, final String localPropertyView, final int depth) {
 
-			JsonObject jsonObject = new JsonObject();
+			final JsonObject jsonObject = new JsonObject();
+			final Traits traits         = source.getTraits();
+			final String uuid           = source.getUuid();
 
-			final String uuid = source.getUuid();
 			if (uuid != null) {
+
 				jsonObject.add("id", new JsonPrimitive(uuid));
 
 			} else {
@@ -288,7 +282,7 @@ public class GraphObjectGSONAdapter {
 
 					// speciality for the Ui view: limit recursive rendering to (id, name)
 					if (compactNestedProperties && depth > 0 && ((PropertyView.Ui.equals(localPropertyView) && !securityContext.isSuperUserSecurityContext()) || PropertyView.All.equals(localPropertyView))) {
-						keys = idTypeNameOnly;
+						keys = traits.getDefaultKeys();
 					}
 
 					// prefetching hook

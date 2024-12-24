@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.web.common.UiModule;
@@ -33,8 +32,6 @@ import org.structr.web.common.UiModule;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
@@ -57,22 +54,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
 
 	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
-
 	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
-
-	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
-
 	private final Map<String, StructrModule> modules                                               = new ConcurrentHashMap<>(100);
-
+	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
 	private final String fileSep                                                                   = System.getProperty("file.separator");
 	private final String pathSep                                                                   = System.getProperty("path.separator");
 	private final String fileSepEscaped                                                            = fileSep.replaceAll("\\\\", "\\\\\\\\");
 	private final String testClassesDir                                                            = fileSep.concat("test-classes");
 	private final String classesDir                                                                = fileSep.concat("classes");
-
-	private final Map<String, Map<String, Method>> exportedMethodMap                               = new ConcurrentHashMap<>(100);
-
-	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
 
 	private LicenseManager licenseManager                                                          = null;
 
@@ -82,7 +71,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		this.licenseManager = licenseManager;
 
-		scanResources();
+		final List<ClasspathResource> resources = scanResources();
+
+		for (final ClasspathResource resource : resources) {
+
+			try {
+
+				importResource(resource);
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		loadModules(resolveModuleDependencies());
 	}
 
 	@Override
@@ -140,37 +142,94 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	// ----- private methods -----
-	private void scanResources() {
+	private List<ClasspathResource> scanResources() {
+		
+		final List<ClasspathResource> modules = new LinkedList<>();
+		final Set<String> resourcePaths       = getResourcesToScan();
 
-		Set<String> resourcePaths = getResourcesToScan();
 		for (String resourcePath : resourcePaths) {
 
-			scanResource(resourcePath);
+			try {
+				
+				modules.add(loadResource(resourcePath));
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		logger.info("{} JARs scanned", resourcePaths.size());
-
+		
+		return modules;
 	}
 
-	private void scanResource(final String resourceName) {
+	private List<StructrModule> resolveModuleDependencies() {
 
-		try {
+		final List<StructrModule> sortedList         = new LinkedList<>();
+		final Map<String, Set<String>> dependencyMap = new LinkedHashMap<>();
 
-			final StructrModuleInfo module = loadResource(resourceName);
-			if (module != null) {
+		for (final StructrModule module : modules.values()) {
 
-				importResource(module);
+			final Set<String> dependencies = module.getDependencies();
+			final String moduleName        = module.getName();
 
-			} else {
+			if (dependencies != null) {
 
-				logger.warn("Module was null!");
+				dependencyMap.computeIfAbsent(moduleName, k -> new LinkedHashSet<>()).addAll(dependencies);
 			}
 
-		} catch (IOException ignore) {}
+			sortedList.add(module);
+		}
 
+		Collections.sort(sortedList, (m1, m2) -> {
+
+			final int level1 = getHierarchyLevel(dependencyMap, m1.getName());
+			final int level2 = getHierarchyLevel(dependencyMap, m2.getName());
+
+			return Integer.compare(level1, level2);
+		});
+
+		return sortedList;
 	}
 
-	private void importResource(final StructrModuleInfo module) throws IOException {
+	private int getHierarchyLevel(final Map<String, Set<String>> dependencyMap, final String name) {
+
+		final Set<String> dependencies = dependencyMap.get(name);
+		if (dependencies == null) {
+
+			return 0;
+
+		}
+
+		int level = 1;
+
+		for (final String dependency : dependencies) {
+
+			level += getHierarchyLevel(dependencyMap, dependency);
+		}
+
+		return level;
+	}
+
+	private void loadModules(final List<StructrModule> sortedModules) {
+
+		for (final StructrModule structrModule : sortedModules) {
+
+			final String moduleName = structrModule.getName();
+
+			structrModule.registerModuleFunctions(licenseManager);
+
+			if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
+
+				modules.put(moduleName, structrModule);
+				logger.info("Activating module {}", moduleName);
+
+				structrModule.onLoad(licenseManager);
+			}
+		}
+	}
+
+	private void importResource(final ClasspathResource module) throws IOException {
 
 		final Set<String> classes = module.getClasses();
 
@@ -211,18 +270,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 						if (!modules.containsKey(moduleName)) {
 
-							structrModule.registerModuleFunctions(licenseManager);
-
-							if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
-
-								modules.put(moduleName, structrModule);
-								logger.info("Activating module {}", moduleName);
-
-								structrModule.onLoad(licenseManager);
-							}
+							modules.put(moduleName, structrModule);
 						}
 
 					} catch (Throwable t) {
+
+						t.printStackTrace();
 
 						// log only errors from internal classes
 						if (className.startsWith("org.structr.") && !UiModule.class.getName().equals(className)) {
@@ -233,15 +286,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				}
 
 			} catch (Throwable t) {
+				t.printStackTrace();
 				logger.warn("Error trying to load class {}: {}",  className, t.getMessage());
 			}
 		}
 	}
 
-	private StructrModuleInfo loadResource(String resource) throws IOException {
+	private ClasspathResource loadResource(String resource) throws IOException {
 
 		// create module
-		final StructrModuleInfo ret   = new StructrModuleInfo(resource);
+		final ClasspathResource ret   = new ClasspathResource(resource);
 		final Set<String> classes = ret.getClasses();
 
 		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
@@ -324,6 +378,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 												}
 
 											} catch (Throwable t) {
+												t.printStackTrace();
 												logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
 											}
 										}

@@ -61,7 +61,6 @@ import java.util.concurrent.Future;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(Traits.idProperty(), Traits.typeProperty(), Traits.nameProperty()));
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
@@ -452,19 +451,19 @@ public abstract class StreamingWriter {
 					final boolean hasView = traits.getViewNames().contains(localPropertyView);
 
 					if ((keys == null || keys.isEmpty()) && depth > 0 && !hasView) {
-						keys = idTypeNameOnly;
+						keys = traits.getDefaultKeys();
 					}
 
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, type, name)
 						if (reduceNestedObjectsForRestrictedViews && depth > reduceNestedObjectsInRestrictedViewsDepth && Schema.RestrictedViews.contains(localPropertyView)) {
-							keys = idTypeNameOnly;
+							keys = traits.getDefaultKeys();
 						}
 
 						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
 						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
-							keys = idTypeNameOnly;
+							keys = traits.getDefaultKeys();
 						}
 
 						// prefetching hook

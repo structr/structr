@@ -18,13 +18,32 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 public class SessionDataNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SessionDataNode {
 
 	public SessionDataNodeTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
+	}
+
+	@Override
+	public void incrementVersion() throws FrameworkException {
+
+		final PropertyKey<Long> versionProperty = traits.key("version");
+
+		// increment version on each change
+		final Long version = wrappedObject.getProperty(versionProperty);
+		if (version == null) {
+
+			wrappedObject.setProperty(versionProperty, 1L);
+
+		} else {
+
+			wrappedObject.setProperty(versionProperty,  version + 1);
+		}
 	}
 }

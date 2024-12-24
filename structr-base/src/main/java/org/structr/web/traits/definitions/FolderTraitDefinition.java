@@ -45,27 +45,6 @@ import java.util.Set;
 
 public class FolderTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes("workFolderOfUsers", "UserWORKING_DIRFolder").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes("children", "FolderCONTAINSAbstractFile").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes("files", "FolderCONTAINSFile").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes("folders", "FolderCONTAINSFolder").partOfBuiltInSchema();
-	private static final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", "FolderCONTAINSImage").partOfBuiltInSchema();
-	private static final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", "FolderCONTAINSFolder").partOfBuiltInSchema();
-	private static final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", "UserHOME_DIRFolder").partOfBuiltInSchema();
-	public static final Property<Boolean> isFolderProperty                           = new BooleanProperty("isFolder").readOnly().transformators("org.structr.common.ConstantBooleanTrue").partOfBuiltInSchema().dynamic();
-	public static final Property<Boolean> mountDoFulltextIndexingProperty            = new BooleanProperty("mountDoFulltextIndexing").partOfBuiltInSchema().dynamic();
-	public static final Property<Boolean> mountWatchContentsProperty                 = new BooleanProperty("mountWatchContents").partOfBuiltInSchema().dynamic();
-	public static final Property<Integer> mountScanIntervalProperty                  = new IntProperty("mountScanInterval").partOfBuiltInSchema().dynamic();
-	public static final Property<Integer> positionProperty                           = new IntProperty("position").indexed().partOfBuiltInSchema().dynamic();
-	public static final Property<String> enabledChecksumsProperty                    = new StringProperty("enabledChecksums").partOfBuiltInSchema().dynamic();
-	public static final Property<String> mountTargetProperty                         = new StringProperty("mountTarget").indexed().partOfBuiltInSchema().dynamic();
-	public static final Property<String> mountTargetFileTypeProperty                 = new StringProperty("mountTargetFileType").partOfBuiltInSchema().dynamic();
-	public static final Property<String> mountTargetFolderTypeProperty               = new StringProperty("mountTargetFolderType").partOfBuiltInSchema().dynamic();
-	public static final Property<Long> mountLastScannedProperty                      = new LongProperty("mountLastScanned").partOfBuiltInSchema().dynamic();
-	public static final Property<Object> filesCountProperty                          = new FunctionProperty("filesCount").typeHint("int").partOfBuiltInSchema().dynamic();
-	public static final Property<Object> foldersCountProperty                        = new FunctionProperty("foldersCount").typeHint("int").partOfBuiltInSchema().dynamic();
-
-
 	/*
 		type.addBooleanProperty("isFolder", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
@@ -168,6 +147,26 @@ public class FolderTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes("workFolderOfUsers", "UserWORKING_DIRFolder").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes("children", "FolderCONTAINSAbstractFile").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes("files", "FolderCONTAINSFile").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes("folders", "FolderCONTAINSFolder").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", "FolderCONTAINSImage").partOfBuiltInSchema();
+		final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", "FolderCONTAINSFolder").partOfBuiltInSchema();
+		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", "UserHOME_DIRFolder").partOfBuiltInSchema();
+		final Property<Boolean> isFolderProperty                           = new BooleanProperty("isFolder").readOnly().transformators("org.structr.common.ConstantBooleanTrue").partOfBuiltInSchema().dynamic();
+		final Property<Boolean> mountDoFulltextIndexingProperty            = new BooleanProperty("mountDoFulltextIndexing").partOfBuiltInSchema().dynamic();
+		final Property<Boolean> mountWatchContentsProperty                 = new BooleanProperty("mountWatchContents").partOfBuiltInSchema().dynamic();
+		final Property<Integer> mountScanIntervalProperty                  = new IntProperty("mountScanInterval").partOfBuiltInSchema().dynamic();
+		final Property<Integer> positionProperty                           = new IntProperty("position").indexed().partOfBuiltInSchema().dynamic();
+		final Property<String> enabledChecksumsProperty                    = new StringProperty("enabledChecksums").partOfBuiltInSchema().dynamic();
+		final Property<String> mountTargetProperty                         = new StringProperty("mountTarget").indexed().partOfBuiltInSchema().dynamic();
+		final Property<String> mountTargetFileTypeProperty                 = new StringProperty("mountTargetFileType").partOfBuiltInSchema().dynamic();
+		final Property<String> mountTargetFolderTypeProperty               = new StringProperty("mountTargetFolderType").partOfBuiltInSchema().dynamic();
+		final Property<Long> mountLastScannedProperty                      = new LongProperty("mountLastScanned").partOfBuiltInSchema().dynamic();
+		final Property<Object> filesCountProperty                          = new FunctionProperty("filesCount").typeHint("int").partOfBuiltInSchema().dynamic();
+		final Property<Object> foldersCountProperty                        = new FunctionProperty("foldersCount").typeHint("int").partOfBuiltInSchema().dynamic();
 
 		return Set.of(
 			childrenProperty,

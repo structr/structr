@@ -40,14 +40,6 @@ import java.util.Set;
 
 public class AudioTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<String> htmlSrcProperty         = new StringProperty("_html_src");
-	private static final Property<String> htmlCrossOriginProperty = new StringProperty("_html_crossorigin");
-	private static final Property<String> htmlPreloadProperty     = new StringProperty("_html_preload");
-	private static final Property<String> htmlAutoplayProperty    = new StringProperty("_html_autoplay");
-	private static final Property<String> htmlLoopProperty        = new StringProperty("_html_loop");
-	private static final Property<String> htmlMutedProperty       = new StringProperty("_html_muted");
-	private static final Property<String> htmlControlsProperty    = new StringProperty("_html_controls");
-
 	/*
 	public static final View htmlView = new View(Audio.class, PropertyView.Html,
 		htmlSrcProperty, htmlCrossOriginProperty, htmlPreloadProperty, htmlAutoplayProperty, htmlLoopProperty, htmlMutedProperty, htmlControlsProperty
@@ -88,6 +80,14 @@ public class AudioTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<String> htmlSrcProperty         = new StringProperty("_html_src");
+		final Property<String> htmlCrossOriginProperty = new StringProperty("_html_crossorigin");
+		final Property<String> htmlPreloadProperty     = new StringProperty("_html_preload");
+		final Property<String> htmlAutoplayProperty    = new StringProperty("_html_autoplay");
+		final Property<String> htmlLoopProperty        = new StringProperty("_html_loop");
+		final Property<String> htmlMutedProperty       = new StringProperty("_html_muted");
+		final Property<String> htmlControlsProperty    = new StringProperty("_html_controls");
 
 		return Set.of(
 			htmlSrcProperty,

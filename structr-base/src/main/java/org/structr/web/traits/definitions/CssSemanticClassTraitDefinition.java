@@ -36,8 +36,6 @@ import java.util.Set;
 
 public class CssSemanticClassTraitDefinition extends AbstractTraitDefinition {
 
-	public static final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes("selectors", "CssSemanticClassMAPS_TOCssSelector").partOfBuiltInSchema();
-
 	/*
 	public static final View uiView = new View(CssSemanticClass.class, PropertyView.Ui,
 		selectorsProperty
@@ -73,6 +71,8 @@ public class CssSemanticClassTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes("selectors", "CssSemanticClassMAPS_TOCssSelector").partOfBuiltInSchema();
 
 		return Set.of(
 			selectorsProperty

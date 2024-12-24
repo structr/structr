@@ -55,17 +55,6 @@ import java.util.Set;
  */
 public class AbstractFileTraitDefinition extends AbstractTraitDefinition {
 
-	private static final Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration").partOfBuiltInSchema();
-	private static final Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").partOfBuiltInSchema().updateCallback(AbstractFileTraitDefinition::updateHasParent);
-	private static final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", AbstractFileTraitDefinition.parentProperty).format("parent, {},").partOfBuiltInSchema();
-	private static final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<String> nameProperty                        = new StringProperty("name").format("[^\\\\/\\\\x00]+").notNull().indexed().partOfBuiltInSchema().dynamic();
-	private static final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted").partOfBuiltInSchema().dynamic();
-	private static final Property<Object> isMountedProperty                   = new MethodProperty("isMounted").format("org.structr.web.entity.AbstractFile, isMounted").typeHint("Boolean").partOfBuiltInSchema().dynamic();
-	private static final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed().partOfBuiltInSchema().dynamic();
-
 	public AbstractFileTraitDefinition() {
 		super("AbstractFile");
 	}
@@ -164,6 +153,17 @@ public class AbstractFileTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration").partOfBuiltInSchema();
+		final Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").partOfBuiltInSchema().updateCallback(AbstractFileTraitDefinition::updateHasParent);
+		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", parentProperty).format("parent, {},").partOfBuiltInSchema();
+		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed().partOfBuiltInSchema().dynamic();
+		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed().partOfBuiltInSchema().dynamic();
+		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed().partOfBuiltInSchema().dynamic();
+		final Property<String> nameProperty                        = new StringProperty("name").format("[^\\\\/\\\\x00]+").notNull().indexed().partOfBuiltInSchema().dynamic();
+		final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted").partOfBuiltInSchema().dynamic();
+		final Property<Object> isMountedProperty                   = new MethodProperty("isMounted").format("org.structr.web.entity.AbstractFile, isMounted").typeHint("Boolean").partOfBuiltInSchema().dynamic();
+		final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed().partOfBuiltInSchema().dynamic();
 
 		return Set.of(
 			storageConfigurationProperty,
