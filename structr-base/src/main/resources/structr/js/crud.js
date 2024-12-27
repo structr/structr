@@ -1619,6 +1619,15 @@ let _Crud = {
 								}
 							}
 
+							if (key === Structr.internalKeys.name) {
+
+								// if the name changed, update all occurrences as a related node
+								let otherDisplayedNodes = document.querySelectorAll('.related-node._' + id);
+								for (let other of otherDisplayedNodes) {
+									_Entities.updateRelatedNodeName(other, newValue);
+								}
+							}
+
 						} else {
 
 							// update complete row

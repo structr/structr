@@ -1337,11 +1337,16 @@ let _Entities = {
 		}
 
 		return `
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node related-node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
 				<span class="abbr-ellipsis abbr-80">${displayName}</span>
 				${includeRemoveIcon ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])) : ''}
 			</div>
 		`;
+	},
+	updateRelatedNodeName: (relatedNodeEl, newName) => {
+
+		relatedNodeEl.title = _Helpers.escapeForHtmlAttributes(newName);
+		relatedNodeEl.querySelector('span').textContent = newName;
 	},
 	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
 		/** Alternative function to appendRelatedNode

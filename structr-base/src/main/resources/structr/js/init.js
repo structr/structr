@@ -1898,6 +1898,7 @@ let Structr = {
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
+		name: 'name',
 		visibleToPublicUsers: 'visibleToPublicUsers',
 		visibleToAuthenticatedUsers: 'visibleToAuthenticatedUsers',
 
