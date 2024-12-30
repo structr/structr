@@ -215,8 +215,8 @@ public class CSVFileImportJob extends FileImportJob {
 
 								} else {
 
-									final AbstractNode sourceNode = (AbstractNode)app.get(relSourceType, (String)input.get("sourceId"));
-									final AbstractNode targetNode = (AbstractNode)app.get(relTargetType, (String)input.get("targetId"));
+									final AbstractNode sourceNode = (AbstractNode)app.getNodeById(relSourceType, (String)input.get("sourceId"));
+									final AbstractNode targetNode = (AbstractNode)app.getNodeById(relTargetType, (String)input.get("targetId"));
 
 									app.create(sourceNode, targetNode, targetEntityType.getName(), PropertyMap.inputTypeToJavaType(threadContext, targetEntityType.getName(), input));
 									overallCount++;

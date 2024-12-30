@@ -69,8 +69,8 @@ public class LifecycleMethodsTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class<NodeInterface> customerType = StructrApp.getConfiguration().getNodeEntityClass("Customer");
-		final Class<NodeInterface> logEntryType = StructrApp.getConfiguration().getNodeEntityClass("LogEntry");
+		final Class<NodeInterface> customerType = Traits.of("Customer");
+		final Class<NodeInterface> logEntryType = Traits.of("LogEntry");
 
 		// create object
 		try (final Tx tx = app.tx()) {
@@ -89,7 +89,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(AbstractNode.name, "Tester");
+			customer.setProperty(Traits.of("AbstractNode").key("name"), "Tester");
 
 			tx.success();
 
@@ -115,7 +115,7 @@ public class LifecycleMethodsTest extends StructrTest {
 		// check results
 		try (final Tx tx = app.tx()) {
 
-			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(AbstractNode.name).getAsList();
+			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			final AbstractNode afterCreate    = logEntries.get(0);
 			final AbstractNode afterDelete    = logEntries.get(1);
@@ -166,7 +166,7 @@ public class LifecycleMethodsTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class<NodeInterface> customerType = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+		final Class<NodeInterface> customerType = Traits.of("Customer");
 
 		// create object
 		try (final Tx tx = app.tx()) {
@@ -207,7 +207,7 @@ public class LifecycleMethodsTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class<NodeInterface> customerType = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+		final Class<NodeInterface> customerType = Traits.of("Customer");
 
 		// create object
 		try (final Tx tx = app.tx()) {
@@ -226,7 +226,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(AbstractNode.name, "Tester");
+			customer.setProperty(Traits.of("AbstractNode").key("name"), "Tester");
 
 			tx.success();
 
@@ -262,7 +262,7 @@ public class LifecycleMethodsTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class<NodeInterface> customerType = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+		final Class<NodeInterface> customerType = Traits.of("Customer");
 
 		// create object
 		try (final Tx tx = app.tx()) {
@@ -281,7 +281,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(AbstractNode.name, "Tester");
+			customer.setProperty(Traits.of("AbstractNode").key("name"), "Tester");
 
 			tx.success();
 
@@ -335,14 +335,14 @@ public class LifecycleMethodsTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class<NodeInterface> customerType = StructrApp.getConfiguration().getNodeEntityClass("Customer");
-		final Class<NodeInterface> logEntryType = StructrApp.getConfiguration().getNodeEntityClass("LogEntry");
+		final Class<NodeInterface> customerType = Traits.of("Customer");
+		final Class<NodeInterface> logEntryType = Traits.of("LogEntry");
 
 		// create object
 		try (final Tx tx = app.tx()) {
 
 			System.out.println("##################################################################");
-			System.out.println(app.nodeQuery(SchemaNode.class).andName("Customer").getFirst().getGeneratedSourceCode(securityContext));
+			System.out.println(app.nodeQuery("SchemaNode").andName("Customer").getFirst().getGeneratedSourceCode(securityContext));
 			System.out.println("##################################################################");
 
 			app.create(customerType, "Customer");
@@ -371,7 +371,7 @@ public class LifecycleMethodsTest extends StructrTest {
 		// check results
 		try (final Tx tx = app.tx()) {
 
-			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(AbstractNode.name).getAsList();
+			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			final AbstractNode afterDelete = logEntries.get(0);
 

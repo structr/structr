@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 
@@ -60,7 +59,6 @@ public interface App extends Closeable {
 	NodeInterface getNodeById(final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String type, final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
-	<T extends GraphObject> T get(final String type, final String uuid) throws FrameworkException;
 
 	Query<? extends NodeInterface> nodeQuery();
 	<T extends NodeInterface> Query<T> nodeQuery(final String type);

@@ -268,25 +268,6 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends GraphObject> T get(final String type, final String uuid) throws FrameworkException {
-
-		final Traits traits = Traits.of(type);
-		if (traits != null) {
-
-			if (traits.isNodeType()) {
-
-				return (T) getNodeById(type, uuid);
-
-			} else {
-
-				return (T)getRelationshipById(type, uuid);
-			}
-		}
-
-		return null;
-	}
-
-	@Override
 	public Query<NodeInterface> nodeQuery() {
 		return command(SearchNodeCommand.class);
 	}

@@ -32,6 +32,7 @@ import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -46,6 +47,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
@@ -74,16 +76,16 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestSix testSix = this.createTestNode(TestSix.class);
-				final TestOne testOne = this.createTestNode(TestOne.class);
-				SixOneOneToOne rel            = null;
+				final NodeInterface testSix = this.createTestNode("TestSix");
+				final NodeInterface testOne = this.createTestNode("TestOne");
+				RelationshipInterface rel   = null;
 
 				assertNotNull(testSix);
 				assertNotNull(testOne);
 
 				try (final Tx tx = app.tx()) {
 
-					rel = app.create(testSix, testOne, SixOneOneToOne.class);
+					rel = app.create(testSix, testOne, "SixOneOneToOne");
 					tx.success();
 				}
 
@@ -129,9 +131,9 @@ public class CypherTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne  = createTestNode(TestOne.class);
-			final TestSix testSix  = createTestNode(TestSix.class);
-			SixOneOneToOne rel     = null;
+			final NodeInterface testOne  = createTestNode("TestOne");
+			final NodeInterface testSix  = createTestNode("TestSix");
+			RelationshipInterface rel    = null;
 			String uuid = null;
 
 			assertNotNull(testOne);
@@ -139,7 +141,7 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, "SixOneOneToOne");
 				uuid = rel.getUuid();
 				tx.success();
 			}
@@ -179,16 +181,16 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestOne testOne  = createTestNode(TestOne.class);
-				final TestSix testSix  = createTestNode(TestSix.class);
-				SixOneOneToOne rel     = null;
+				final NodeInterface testOne  = createTestNode("TestOne");
+				final NodeInterface testSix  = createTestNode("TestSix");
+				RelationshipInterface rel    = null;
 
 				assertNotNull(testOne);
 				assertNotNull(testSix);
 
 				try (final Tx tx = app.tx()) {
 
-					rel = app.create(testSix, testOne, SixOneOneToOne.class);
+					rel = app.create(testSix, testOne, "SixOneOneToOne");
 					tx.success();
 				}
 
@@ -236,17 +238,17 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestOne testOne = createTestNode(TestOne.class);
-				final TestSix testSix = createTestNode(TestSix.class);
-				String relId          = null;
-				SixOneOneToOne rel    = null;
+				final NodeInterface testOne  = createTestNode("TestOne");
+				final NodeInterface testSix  = createTestNode("TestSix");
+				String relId                 = null;
+				RelationshipInterface rel    = null;
 
 				assertNotNull(testOne);
 				assertNotNull(testSix);
 
 				try (final Tx tx = app.tx()) {
 
-					rel   = app.create(testSix, testOne, SixOneOneToOne.class);
+					rel   = app.create(testSix, testOne, "SixOneOneToOne");
 					relId = rel.getUuid();
 					tx.success();
 				}
@@ -284,12 +286,12 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
-				List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+				List<NodeInterface> testOnes = createTestNodes("TestOne", 10);
+				List<NodeInterface> testSixs = createTestNodes("TestSix", 10);
 
-				for (final TestOne testOne : testOnes) {
+				for (final NodeInterface testOne : testOnes) {
 
-					testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+					testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
 				}
 
 				tx.success();
@@ -468,10 +470,10 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final TestOne t1 = createTestNode(TestOne.class, "singleTestOne");
-				final TestSix t6 = createTestNode(TestSix.class, "singleTestSix");
+				final NodeInterface t1 = createTestNode("TestOne", "singleTestOne");
+				final NodeInterface t6 = createTestNode("TestSix", "singleTestSix");
 
-				t1.setProperty(TestOne.manyToManyTestSixs, Arrays.asList(t6));
+				t1.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), Arrays.asList(t6));
 
 				testOneId = t1.getUuid();
 				testSixId = t6.getUuid();
@@ -494,7 +496,7 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - both end nodes of relationship are not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(GraphObject.visibleToPublicUsers, true);
+				t1.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -510,10 +512,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - source node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(GraphObject.visibleToPublicUsers, false);
+				t1.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), false);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(GraphObject.visibleToPublicUsers, true);
+				t6.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -529,10 +531,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - target node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(GraphObject.visibleToPublicUsers, true);
+				t1.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(GraphObject.visibleToPublicUsers, true);
+				t6.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -564,22 +566,22 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
-				final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+				final List<NodeInterface> testOnes = createTestNodes("TestOne", 10);
+				final List<NodeInterface> testSixs = createTestNodes("TestSix", 10);
 				int count                    = 0;
 
-				tester = app.create(User.class, "tester");
+				tester = app.create("User", "tester").as(Principal.class);
 
-				for (final TestSix testSix : testSixs) {
-					testSix.grant(Permission.read, tester);
+				for (final NodeInterface testSix : testSixs) {
+					testSix.as(AccessControllable.class).grant(Permission.read, tester);
 				}
 
-				for (final TestOne testOne : testOnes) {
+				for (final NodeInterface testOne : testOnes) {
 
-					testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+					testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
 
 					if (count++ < 3) {
-						testOne.grant(Permission.read, tester);
+						testOne.as(AccessControllable.class).grant(Permission.read, tester);
 					}
 				}
 
@@ -659,7 +661,7 @@ public class CypherTest extends StructrTest {
 
 				try (final Tx tx = app.tx()) {
 
-					final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+					final NodeInterface testSix = this.createTestNode("TestSix", "testnode");
 					final String uuid     = testSix.getUuid();
 
 					assertNotNull(testSix);
@@ -715,18 +717,18 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final Class projectType      = StructrApp.getConfiguration().getNodeEntityClass("Project");
-				final Class taskType         = StructrApp.getConfiguration().getNodeEntityClass("Task");
-				final PropertyKey projectKey = StructrApp.key(taskType, "project");
+				final String projectType     = "Project";
+				final String taskType        = "Task";
+				final PropertyKey projectKey = Traits.of(taskType).key("project");
 
 				createTestNode(taskType,
-					new NodeAttribute<>(AbstractNode.name, "Task1"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(AbstractNode.name, "Project1")))
+					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task1"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1")))
 				);
 
 				createTestNode(taskType,
-					new NodeAttribute<>(AbstractNode.name, "Task2"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(AbstractNode.name, "Project2")))
+					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task2"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2")))
 				);
 
 			} catch (FrameworkException t) {

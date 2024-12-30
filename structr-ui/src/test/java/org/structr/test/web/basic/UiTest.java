@@ -968,7 +968,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = testerApp.tx()) {
 
-			final Image deleteMe = testerApp.get(Image.class, uuid);
+			final Image deleteMe = testerApp.getNodeById(Image.class, uuid);
 
 			assertNotNull("Image should be visible to test user", deleteMe);
 

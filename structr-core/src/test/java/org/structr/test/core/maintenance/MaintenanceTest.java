@@ -99,7 +99,7 @@ public class MaintenanceTest extends StructrTest {
 
 		try {
 			// create test nodes
-			createTestNodes(TestOne.class, 100);
+			createTestNodes("TestOne", 100);
 
 			// test export
 			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
@@ -115,7 +115,7 @@ public class MaintenanceTest extends StructrTest {
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
 
 			try (final Tx tx = app.tx()) {
-				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(100, app.nodeQuery("TestOne").getAsList().size());
 				tx.success();
 			}
 
@@ -134,7 +134,7 @@ public class MaintenanceTest extends StructrTest {
 
 		try {
 			// create test nodes
-			createTestNodes(TestOne.class, 100);
+			createTestNodes("TestOne", 100);
 
 			// test export
 			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
@@ -149,7 +149,7 @@ public class MaintenanceTest extends StructrTest {
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));
 
 			try (final Tx tx = app.tx()) {
-				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(100, app.nodeQuery("TestOne").getAsList().size());
 				tx.success();
 			}
 
@@ -167,7 +167,7 @@ public class MaintenanceTest extends StructrTest {
 
 		try {
 			// create test nodes
-			final List<TestEleven> testNodes = createTestNodes(TestEleven.class, 10);
+			final List<NodeInterface> testNodes = createTestNodes("TestEleven", 10);
 			final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
 			int labelCount                   = 5;
 
@@ -178,7 +178,7 @@ public class MaintenanceTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final TestEleven node : testNodes) {
+				for (final NodeInterface node : testNodes) {
 
 					final List<String> labels = Iterables.toList(node.getNode().getLabels());
 
@@ -220,10 +220,10 @@ public class MaintenanceTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<TestEleven> result = app.nodeQuery(TestEleven.class).getAsList();
+				final List<NodeInterface> result = app.nodeQuery("TestEleven").getAsList();
 				assertEquals(10, result.size());
 
-				for (final TestEleven node : result) {
+				for (final NodeInterface node : result) {
 
 					Iterable<String> labels = node.getNode().getLabels();
 					final Set<String> set   = new HashSet<>(Iterables.toList(labels));
@@ -295,10 +295,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 3000 Groups here
-				assertEquals(3000, app.nodeQuery(GroupTraitDefinition.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery("GroupTraitDefinition").getAsList().size());
 
 				// check nodes
-				for (final GroupTraitDefinition group : app.nodeQuery(GroupTraitDefinition.class).getResultStream()) {
+				for (final NodeInterface group : app.nodeQuery("GroupTraitDefinition").getResultStream()) {
 
 					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
 					assertNotNull("No UUID was set by BulkSetUUIDCommand", group.getUuid());
@@ -358,10 +358,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(3000, app.nodeQuery(GroupTraitDefinition.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery("GroupTraitDefinition").getAsList().size());
 
 				// check nodes
-				for (final Group group : app.nodeQuery(GroupTraitDefinition.class).getResultStream()) {
+				for (final NodeInterface group : app.nodeQuery("GroupTraitDefinition").getResultStream()) {
 
 					final Set<String> labels = new TreeSet<>(Iterables.toSet(group.getNode().getLabels()));
 
@@ -387,7 +387,7 @@ public class MaintenanceTest extends StructrTest {
 			// nodes should not be found yet..
 			try (final Tx tx = app.tx()) {
 
-				createTestNodes(TestOne.class, 3000);
+				createTestNodes("TestOne", 3000);
 				tx.success();
 			}
 
@@ -401,7 +401,7 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestOnes here, and none TestTwos
-				assertEquals(3000, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery("TestOne").getAsList().size());
 				tx.success();
 			}
 
@@ -420,7 +420,7 @@ public class MaintenanceTest extends StructrTest {
 		try {
 
 			// create test nodes first
-			createTestNodes(TestOne.class, 3000);
+			createTestNodes("TestOne", 3000);
 
 			try {
 
@@ -457,11 +457,11 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestOnes here, and none TestTwos
-				assertEquals(  0, app.nodeQuery(TestTwo.class).getAsList().size());
-				assertEquals(3000, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(  0, app.nodeQuery("TestTwo").getAsList().size());
+				assertEquals(3000, app.nodeQuery("TestOne").getAsList().size());
 
 				// check nodes
-				for (final TestOne test : app.nodeQuery(TestOne.class).getResultStream()) {
+				for (final NodeInterface test : app.nodeQuery("TestOne").getResultStream()) {
 
 					assertEquals(one, test.getProperty(TestOne.anInt));
 					assertEquals("one", test.getProperty(TestOne.aString));
@@ -474,8 +474,8 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestTwos here, and none TestOnes
-				assertEquals(  0, app.nodeQuery(TestOne.class).getAsList().size());
-				assertEquals(3000, app.nodeQuery(TestTwo.class).getAsList().size());
+				assertEquals(  0, app.nodeQuery("TestOne").getAsList().size());
+				assertEquals(3000, app.nodeQuery("TestTwo").getAsList().size());
 
 				tx.success();
 			}
@@ -507,8 +507,8 @@ public class MaintenanceTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class test1 = StructrApp.getConfiguration().getNodeEntityClass("Test123");
-		final Class test2 = StructrApp.getConfiguration().getNodeEntityClass("OneTwoThreeFour");
+		final String test1 = "Test123";
+		final String test2 = "OneTwoThreeFour";
 
 		// setup 2: create test nodes
 		try (final Tx tx = app.tx()) {
@@ -516,7 +516,7 @@ public class MaintenanceTest extends StructrTest {
 			createTestNodes(test1, 100);
 			createTestNodes(test2, 100);
 
-			app.create(GroupTraitDefinition.class, "Group1");
+			app.create("GroupTraitDefinition", "Group1");
 
 			tx.success();
 
@@ -541,12 +541,12 @@ public class MaintenanceTest extends StructrTest {
 		// test 2: verify that nothing except the initial schema is there..
 		try (final Tx tx = app.tx()) {
 
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(SchemaNode.class).andName("Test123").getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(SchemaNode.class).andName("OneTwoTreeFour").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("SchemaNode").andName("Test123").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("SchemaNode").andName("OneTwoTreeFour").getFirst());
 
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test1).getFirst());
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test2).getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(GroupTraitDefinition.class).getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("GroupTraitDefinition").getFirst());
 
 			tx.success();
 

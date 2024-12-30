@@ -91,7 +91,7 @@ public class FileTest extends StructrUiTest {
 		// test scripting call with two different argument types (unnamed and map)
 		try (final Tx tx = app.tx()) {
 
-			final File file           = app.get(File.class, uuid);
+			final File file           = app.getNodeById(File.class, uuid);
 			final GraphObjectMap map1 = (GraphObjectMap)Scripting.evaluate(new ActionContext(securityContext), file, "${{ return $.this.getSearchContext('that', 5); }}", "testGetSearchContextMethod");
 			final GraphObjectMap map2 = (GraphObjectMap)Scripting.evaluate(new ActionContext(securityContext), file, "${{ return $.this.getSearchContext({ searchString: 'that', contextLength: 5 }); }}", "testGetSearchContextMethod");
 
@@ -152,7 +152,7 @@ public class FileTest extends StructrUiTest {
 		// test scripting calls with two different argument types (no arguments and empty map)
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.get(File.class, uuid);
+			final File file = app.getNodeById(File.class, uuid);
 			final Map map1  = (Map)Scripting.evaluate(new ActionContext(securityContext), file, "${{ return $.this.extractStructure(); }}", "testExtractStructureMethod");
 			final Map map2  = (Map)Scripting.evaluate(new ActionContext(securityContext), file, "${{ return $.this.extractStructure({ }); }}", "testExtractStructureMethod");
 

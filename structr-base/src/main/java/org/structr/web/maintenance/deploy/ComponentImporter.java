@@ -23,10 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -36,7 +34,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -183,14 +180,14 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(componentName)) {
 
-				existingComponent = app.get("DOMNode", componentName);
+				existingComponent = app.getNodeById("DOMNode", componentName);
 
 			} else {
 
 				final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(componentName);
 				if (uuidAtEnd != null) {
 
-					existingComponent = app.get("DOMNode", uuidAtEnd);
+					existingComponent = app.getNodeById("DOMNode", uuidAtEnd);
 
 				} else {
 

@@ -205,7 +205,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			entity = app.create(TestFive.class);
+			entity = app.create("TestFive"));
 			tx.success();
 
 		} catch (Throwable t) {
@@ -232,7 +232,7 @@ public class SystemTest extends StructrTest {
 
 			final TestFive finalEntity = entity;
 
-			finalEntity.setProperty(TestFive.intProperty, 123);
+			finalEntity.setProperty(Traits.of("TestFive").key("intProperty"), 123);
 			tx.success();
 
 		} catch (Throwable t) {
@@ -263,7 +263,7 @@ public class SystemTest extends StructrTest {
 		// setup: create dynamic type with onCreate() method
 		try (final Tx tx = app.tx()) {
 
-			createTestType = createTestNode(SchemaNode.class, "CreateTest");
+			createTestType = createTestNode("SchemaNode", "CreateTest");
 
 			tx.success();
 
@@ -273,7 +273,7 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		Class testType = StructrApp.getConfiguration().getNodeEntityClass("CreateTest");
+		Class testType = Traits.of("CreateTest");
 
 		assertNotNull("Type CreateTest should have been created", testType);
 
@@ -303,7 +303,7 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		testType = StructrApp.getConfiguration().getNodeEntityClass("CreateTest");
+		testType = Traits.of("CreateTest");
 		NodeInterface node = null;
 
 		// third step: create a single node in a separate transaction
@@ -347,9 +347,9 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			testNode = createTestNode(TestOne.class);
-			testNode.setProperty(TestOne.aString, "InitialString");
-			testNode.setProperty(TestOne.anInt, 42);
+			testNode = createTestNode("TestOne");
+			testNode.setProperty(Traits.of("TestOne").key("aString"), "InitialString");
+			testNode.setProperty(Traits.of("TestOne").key("anInt"), 42);
 
 			tx.success();
 
@@ -397,7 +397,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
+			app.create("SchemaNode",
 				new NodeAttribute(SchemaNode.name, "Item"),
 				new NodeAttribute(SchemaNode.schemaProperties,
 					Arrays.asList(app.create(
@@ -416,7 +416,7 @@ public class SystemTest extends StructrTest {
 			fail("Error creating schema node");
 		}
 
-		final Class itemType = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final Class itemType = Traits.of("Item");
 
 		assertNotNull("Error creating schema node", itemType);
 
@@ -468,7 +468,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> items = app.nodeQuery(itemType).sort(AbstractNode.name).getAsList();
+			final List<NodeInterface> items = app.nodeQuery(itemType).sort(Traits.of("NodeInterface").key("name")).getAsList();
 			int i                           = 0;
 
 			assertEquals("Invalid concurrent constraint test result", 1000, items.size());
@@ -498,7 +498,7 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			final TestOne test             = createTestNode(TestOne.class);
+			final TestOne test             = createTestNode("TestOne");
 			final ExecutorService executor = Executors.newCachedThreadPool();
 			final List<TestRunner> tests   = new LinkedList<>();
 			final List<Future> futures     = new LinkedList<>();
@@ -543,7 +543,7 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			final TestOne test                  = createTestNode(TestOne.class);
+			final TestOne test                  = createTestNode("TestOne");
 			final ExecutorService executor      = Executors.newCachedThreadPool();
 			final List<FailingTestRunner> tests = new LinkedList<>();
 			final List<Future> futures          = new LinkedList<>();
@@ -587,8 +587,8 @@ public class SystemTest extends StructrTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(User.class, "tester1");
-			tester2 = app.create(User.class, "tester2");
+			tester1 = app.create("User", "tester1");
+			tester2 = app.create("User", "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -606,19 +606,19 @@ public class SystemTest extends StructrTest {
 
 		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
 		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
-		final Class<AbstractNode> type       = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final Class<AbstractNode> type       = Traits.of("Item");
 		final App tester1App                 = StructrApp.getInstance(tester1Context);
 		final App tester2App                 = StructrApp.getInstance(tester2Context);
-		final PropertyKey next               = StructrApp.key(type, "next");
+		final PropertyKey next               = Traits.of(type).key("next");
 
 		try (final Tx tx = tester1App.tx()) {
 
 			final AbstractNode item1 = tester1App.create(type,
-				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item1"),
 				new NodeAttribute<>(next, tester1App.create(type,
-					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item2"),
 					new NodeAttribute<>(next, tester1App.create(type,
-						new NodeAttribute<>(AbstractNode.name, "item3")
+						new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item3")
 					))
 				))
 			);
@@ -679,8 +679,8 @@ public class SystemTest extends StructrTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(User.class, "tester1");
-			tester2 = app.create(User.class, "tester2");
+			tester1 = app.create("User", "tester1");
+			tester2 = app.create("User", "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -698,19 +698,19 @@ public class SystemTest extends StructrTest {
 
 		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
 		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
-		final Class<AbstractNode> itemType   = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final Class<AbstractNode> itemType   = Traits.of("Item");
 		final App tester1App                 = StructrApp.getInstance(tester1Context);
 		final App tester2App                 = StructrApp.getInstance(tester2Context);
-		final PropertyKey prev               = StructrApp.key(itemType, "prev");
+		final PropertyKey prev               = Traits.of(itemType).key("prev");
 
 		try (final Tx tx = tester1App.tx()) {
 
 			final AbstractNode item1 = tester1App.create(itemType,
-				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item1"),
 				new NodeAttribute<>(prev, tester1App.create(itemType,
-					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item2"),
 					new NodeAttribute<>(prev, tester1App.create(itemType,
-						new NodeAttribute<>(AbstractNode.name, "item3")
+						new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item3")
 					))
 				))
 			);
@@ -775,8 +775,8 @@ public class SystemTest extends StructrTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(User.class, "tester1");
-			tester2 = app.create(User.class, "tester2");
+			tester1 = app.create("User", "tester1");
+			tester2 = app.create("User", "tester2");
 
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Item");
@@ -794,19 +794,19 @@ public class SystemTest extends StructrTest {
 
 		final SecurityContext tester1Context = SecurityContext.getInstance(tester1, AccessMode.Backend);
 		final SecurityContext tester2Context = SecurityContext.getInstance(tester2, AccessMode.Backend);
-		final Class<AbstractNode> type       = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final Class<AbstractNode> type       = Traits.of("Item");
 		final App tester1App                 = StructrApp.getInstance(tester1Context);
 		final App tester2App                 = StructrApp.getInstance(tester2Context);
-		final PropertyKey next               = StructrApp.key(type, "next");
+		final PropertyKey next               = Traits.of(type).key("next");
 
 		try (final Tx tx = tester1App.tx()) {
 
 			final AbstractNode item1 = tester1App.create(type,
-				new NodeAttribute<>(AbstractNode.name, "item1"),
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item1"),
 				new NodeAttribute<>(next, tester1App.create(type,
-					new NodeAttribute<>(AbstractNode.name, "item2"),
+					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item2"),
 					new NodeAttribute<>(next, tester1App.create(type,
-						new NodeAttribute<>(AbstractNode.name, "item3")
+						new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "item3")
 					))
 				))
 			);
@@ -869,8 +869,8 @@ public class SystemTest extends StructrTest {
 
 			System.out.println("Creating supernode with " + num + " relationships.");
 
-			list.add(createTestNode(TestOne.class,
-				new NodeAttribute<>(TestOne.manyToManyTestSixs, createTestNodes(TestSix.class, num))
+			list.add(createTestNode("TestOne",
+				new NodeAttribute<>(Traits.of("TestOne").key("manyToManyTestSixs"), createTestNodes("TestSix", num))
 			));
 
 			tx.success();
@@ -886,7 +886,7 @@ public class SystemTest extends StructrTest {
 			for (int i=0; i<10; i++) {
 
 				final long t0 = System.currentTimeMillis();
-				createTestNode(TestSix.class, new NodeAttribute<>(TestSix.manyToManyTestOnes, list));
+				createTestNode("TestSix", new NodeAttribute<>(Traits.of("TestSix").key("manyToManyTestOnes"), list));
 				final long t1 = System.currentTimeMillis();
 
 				System.out.println((t1 - t0) + "ms");
@@ -907,9 +907,9 @@ public class SystemTest extends StructrTest {
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(Principal.name, "tester"),
-				new NodeAttribute<>(Principal.passwordProperty, "password")
+			app.create("User",
+				new NodeAttribute<>(Traits.of("Principal").key("name"), "tester"),
+				new NodeAttribute<>(Traits.of("Principal").key("passwordProperty"), "password")
 			);
 
 			tx.success();
@@ -921,7 +921,7 @@ public class SystemTest extends StructrTest {
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {
 
-			final Principal user = app.nodeQuery(User.class).getFirst();
+			final Principal user = app.nodeQuery("User").getFirst();
 
 			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Principal.passwordProperty));
 			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Principal.saltProperty));
@@ -940,7 +940,7 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test group
-			app.create(GroupTraitDefinition.class, "group");
+			app.create("GroupTraitDefinition", "group");
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
 			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this, 'read')");
@@ -954,7 +954,7 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("GrantTest");
+		final Class type = Traits.of("GrantTest");
 
 		final long t0 = System.currentTimeMillis();
 		try (final Tx tx = app.tx()) {
@@ -982,8 +982,8 @@ public class SystemTest extends StructrTest {
 		for (int i=0; i<1000; i++) {
 
 			try {
-				final TestSix source          = createTestNode(TestSix.class);
-				final TestOne target          = createTestNode(TestOne.class);
+				final TestSix source          = createTestNode("TestSix");
+				final TestOne target          = createTestNode("TestOne");
 
 				final Future one = service.submit(new RelationshipCreator(source, target));
 				final Future two = service.submit(new RelationshipCreator(source, target));
@@ -1021,11 +1021,11 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode deleteTestNode = app.create(SchemaNode.class, "DeleteTest");
-			final SchemaMethod onDelete     = app.create(SchemaMethod.class,
-				new NodeAttribute<>(SchemaMethod.name, "onDelete"),
-				new NodeAttribute<>(SchemaMethod.schemaNode, deleteTestNode),
-				new NodeAttribute<>(SchemaMethod.source, "log('deleted')")
+			final SchemaNode deleteTestNode = app.create("SchemaNode", "DeleteTest");
+			final SchemaMethod onDelete     = app.create("SchemaMethod",
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "onDelete"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"), deleteTestNode),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "log('deleted')")
 			);
 
 			tx.success();
@@ -1040,8 +1040,8 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(GroupTraitDefinition.class).getAsList();
-			app.nodeQuery(GroupTraitDefinition.class).andName("test").getAsList();
+			app.nodeQuery("GroupTraitDefinition").getAsList();
+			app.nodeQuery("GroupTraitDefinition").andName("test").getAsList();
 
 			tx.success();
 
@@ -1074,7 +1074,7 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Contact");
+		final Class type = Traits.of("Contact");
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -1090,7 +1090,7 @@ public class SystemTest extends StructrTest {
 
 			final GraphObject node = app.nodeQuery(type).getFirst();
 
-			node.setProperty(AbstractNode.name, "new name");
+			node.setProperty(Traits.of("AbstractNode").key("name"), "new name");
 
 			tx.success();
 
@@ -1107,12 +1107,12 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			tester = createTestNode(User.class, "tester");
+			tester = createTestNode("User", "tester");
 
 			// create global schema method that creates another object
-			app.create(SchemaMethod.class,
-				new NodeAttribute<>(AbstractNode.name,   "globalTestMethod"),
-				new NodeAttribute<>(SchemaMethod.source, "(log('Before create in globalTestMethod'),create('Test2', 'name', 'test2'),log('After create in globalTestMethod'))")
+			app.create("SchemaMethod",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"),   "globalTestMethod"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "(log('Before create in globalTestMethod'),create('Test2', 'name', 'test2'),log('After create in globalTestMethod'))")
 			);
 
 			tx.success();
@@ -1139,7 +1139,7 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class type                  = StructrApp.getConfiguration().getNodeEntityClass("Test1");
+		final Class type                  = Traits.of("Test1");
 		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 
 		try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
@@ -1176,15 +1176,15 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class<NodeInterface> type1 = StructrApp.getConfiguration().getNodeEntityClass("Test1");
-		final Class<NodeInterface> type2 = StructrApp.getConfiguration().getNodeEntityClass("Test2");
+		final Class<NodeInterface> type1 = Traits.of("Test1");
+		final Class<NodeInterface> type2 = Traits.of("Test2");
 
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test1 = app.create(type1, "test1");
 			app.create(type2,
-				new NodeAttribute<>(AbstractNode.name, "test2"),
-				new NodeAttribute<>(StructrApp.key(type2, "source"), test1)
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test2"),
+				new NodeAttribute<>(Traits.of("StructrApp").key("key")(type2, "source"), test1)
 			);
 
 			tx.success();
@@ -1316,14 +1316,14 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final PropertyKey key1 = StructrApp.key(type, "test1");
-		final PropertyKey key2 = StructrApp.key(type, "test2");
+		final Class type       = Traits.of("Test");
+		final PropertyKey key1 = Traits.of(type).key("test1");
+		final PropertyKey key2 = Traits.of(type).key("test2");
 
 		// setup
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			app.create(type, new NodeAttribute<>(AbstractNode.name, "Test"), new NodeAttribute<>(key1, "test.key1"), new NodeAttribute<>(key2, "test.key2"));
+			app.create(type, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"), new NodeAttribute<>(key1, "test.key1"), new NodeAttribute<>(key2, "test.key2"));
 
 			tx.success();
 
@@ -1412,31 +1412,31 @@ public class SystemTest extends StructrTest {
 		// setup 2 - schema grant
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1       = app.create(GroupTraitDefinition.class, "Group1");
-			final GroupTraitDefinition testGroup2       = app.create(GroupTraitDefinition.class, "Group2");
-			final GroupTraitDefinition testGroup3       = app.create(GroupTraitDefinition.class, "Group3");
+			final Group testGroup1       = app.create("GroupTraitDefinition", "Group1");
+			final GroupTraitDefinition testGroup2       = app.create("GroupTraitDefinition", "Group2");
+			final GroupTraitDefinition testGroup3       = app.create("GroupTraitDefinition", "Group3");
 
 			// create group hierarchy
 			testGroup1.addMember(securityContext, testGroup2);
 			testGroup2.addMember(securityContext, testGroup3);
 
-			final Principal user = app.create(User.class,
-				new NodeAttribute<>(AbstractNode.name, "user"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
+			final Principal user = app.create("User",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "user"),
+				new NodeAttribute<>(Traits.of("StructrApp").key("key")(User.class, "password"), "password")
 			);
 
 			testGroup3.addMember(securityContext, user);
 
-			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+			final SchemaNode projectNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
 
 			// create grant
-			app.create(SchemaGrant.class,
-				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
-				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
-				new NodeAttribute<>(SchemaGrant.allowRead,           true),
-				new NodeAttribute<>(SchemaGrant.allowWrite,          true),
-				new NodeAttribute<>(SchemaGrant.allowDelete,         true),
-				new NodeAttribute<>(SchemaGrant.allowAccessControl,  true)
+			app.create("SchemaGrant",
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           true),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          true),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         true),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowAccessControl"),  true)
 			);
 
 			tx.success();
@@ -1460,7 +1460,7 @@ public class SystemTest extends StructrTest {
 		// verify that no groups and no schema grants exist
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(Traits.of("SchemaGrant").key("class")).getAsList().size());
 
 			tx.success();
 
@@ -1472,16 +1472,16 @@ public class SystemTest extends StructrTest {
 		// setup schema grant again
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1       = app.create(GroupTraitDefinition.class, "Group1");
-			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+			final Group testGroup1       = app.create("GroupTraitDefinition", "Group1");
+			final SchemaNode projectNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
 
-			app.create(SchemaGrant.class,
-				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
-				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
-				new NodeAttribute<>(SchemaGrant.allowRead,           true),
-				new NodeAttribute<>(SchemaGrant.allowWrite,          true),
-				new NodeAttribute<>(SchemaGrant.allowDelete,         true),
-				new NodeAttribute<>(SchemaGrant.allowAccessControl,  true)
+			app.create("SchemaGrant",
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           true),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          true),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         true),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowAccessControl"),  true)
 			);
 
 			tx.success();
@@ -1493,7 +1493,7 @@ public class SystemTest extends StructrTest {
 		// test - delete schema node
 		try (final Tx tx = app.tx()) {
 
-			app.delete(app.nodeQuery(SchemaNode.class).andName("Project").getFirst());
+			app.delete(app.nodeQuery("SchemaNode").andName("Project").getFirst());
 
 			tx.success();
 
@@ -1505,7 +1505,7 @@ public class SystemTest extends StructrTest {
 		// verify that no groups and no schema grants exist
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(SchemaGrant.class).getAsList().size());
+			assertEquals("Schema permissions should be removed automatically when principal or schema node are removed", 0, app.nodeQuery(Traits.of("SchemaGrant").key("class")).getAsList().size());
 
 			tx.success();
 
@@ -1523,13 +1523,13 @@ public class SystemTest extends StructrTest {
 		// setup: create groups
 		try (final Tx tx = app.tx()) {
 
-			final Group root      = app.create(GroupTraitDefinition.class, "root");
-			final PropertyKey key = StructrApp.key(GroupTraitDefinition.class, "groups");
+			final Group root      = app.create("GroupTraitDefinition", "root");
+			final PropertyKey key = Traits.of("GroupTraitDefinition").key("groups");
 
 			for (int i=0; i<num; i++) {
 
-				app.create(GroupTraitDefinition.class,
-					new NodeAttribute<>(AbstractNode.name, "child" + i),
+				app.create("GroupTraitDefinition",
+					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "child" + i),
 					new NodeAttribute<>(key, Arrays.asList(root))
 				);
 			}
@@ -1546,7 +1546,7 @@ public class SystemTest extends StructrTest {
 		// test: load all groups
 		try (final Tx tx = app.tx()) {
 
-			final Group root = app.nodeQuery(GroupTraitDefinition.class).andName("root").getFirst();
+			final Group root = app.nodeQuery("GroupTraitDefinition").andName("root").getFirst();
 			int count        = 0;
 
 			for (final Principal p : root.getMembers()) {
@@ -1580,7 +1580,7 @@ public class SystemTest extends StructrTest {
 
 				for (int j=0; j<10; j++) {
 
-					app.create(GroupTraitDefinition.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
+					app.create("GroupTraitDefinition", "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
 				}
 
 				tx.success();
@@ -1608,7 +1608,7 @@ public class SystemTest extends StructrTest {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Group group : app.nodeQuery(GroupTraitDefinition.class).pageSize(5).getAsList()) {
+						for (final Group group : app.nodeQuery("GroupTraitDefinition").pageSize(5).getAsList()) {
 
 							app.delete(group);
 							run = true;
@@ -1657,7 +1657,7 @@ public class SystemTest extends StructrTest {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Group group : app.nodeQuery(GroupTraitDefinition.class).getResultStream()) {
+						for (final Group group : app.nodeQuery("GroupTraitDefinition").getResultStream()) {
 
 							run = true;
 							count++;
@@ -1712,7 +1712,7 @@ public class SystemTest extends StructrTest {
 
 			for (int i=0; i<100; i++) {
 
-				app.create(GroupTraitDefinition.class, "Group" + StringUtils.leftPad(String.valueOf(i), 5));
+				app.create("GroupTraitDefinition", "Group" + StringUtils.leftPad(String.valueOf(i), 5));
 			}
 
 			tx.success();
@@ -1728,7 +1728,7 @@ public class SystemTest extends StructrTest {
 
 				System.out.println(Thread.currentThread().getName() + ": fetching groups");
 
-				final List<Group> groups = app.nodeQuery(GroupTraitDefinition.class).getAsList();
+				final List<Group> groups = app.nodeQuery("GroupTraitDefinition").getAsList();
 
 				for (int i=0; i<10; i++) {
 
@@ -1760,7 +1760,7 @@ public class SystemTest extends StructrTest {
 
 				System.out.println(Thread.currentThread().getName() + ": fetching single group");
 
-				final Group group = app.nodeQuery(GroupTraitDefinition.class).getFirst();
+				final Group group = app.nodeQuery("GroupTraitDefinition").getFirst();
 
 				System.out.println(Thread.currentThread().getName() + ": deleting group");
 
@@ -1813,13 +1813,13 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		final Class left   = StructrApp.getConfiguration().getNodeEntityClass("Left");
-		final Class middle = StructrApp.getConfiguration().getNodeEntityClass("Middle");
-		final Class right  = StructrApp.getConfiguration().getNodeEntityClass("Right");
+		final Class left   = Traits.of("Left");
+		final Class middle = Traits.of("Middle");
+		final Class right  = Traits.of("Right");
 
-		final PropertyKey leftToMiddle  = StructrApp.key(left,   "middle");
-		final PropertyKey rightToMiddle = StructrApp.key(right,  "middle");
-		final PropertyKey middleToLeft  = StructrApp.key(middle, "lefts");
+		final PropertyKey leftToMiddle  = Traits.of(left).key(  "middle");
+		final PropertyKey rightToMiddle = Traits.of(right).key( "middle");
+		final PropertyKey middleToLeft  = Traits.of(middle).key("lefts");
 
 		logger.info("Creating data..");
 
@@ -1873,9 +1873,9 @@ public class SystemTest extends StructrTest {
 		// test setup, create some nodes and expect rollback even with tx.success()!
 		try (final Tx tx = app.tx()) {
 
-			app.create(GroupTraitDefinition.class, "group1");
-			app.create(GroupTraitDefinition.class, "group2");
-			app.create(GroupTraitDefinition.class, "group3");
+			app.create("GroupTraitDefinition", "group1");
+			app.create("GroupTraitDefinition", "group2");
+			app.create("GroupTraitDefinition", "group3");
 
 			Actions.execute(securityContext, null, "${rollback_transaction()}", "testRollbackFunction");
 
@@ -1889,7 +1889,7 @@ public class SystemTest extends StructrTest {
 		// assert that no groups exist!
 		try (final Tx tx = app.tx()) {
 
-			final List<Group> groups = app.nodeQuery(GroupTraitDefinition.class).getAsList();
+			final List<Group> groups = app.nodeQuery("GroupTraitDefinition").getAsList();
 
 			assertTrue(groups.isEmpty());
 
@@ -1926,7 +1926,7 @@ public class SystemTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// set property on node
-				test.setProperty(TestOne.name, name);
+				test.setProperty(Traits.of("TestOne").key("name"), name);
 
 				for (int i=0; i<100; i++) {
 
@@ -1973,7 +1973,7 @@ public class SystemTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// set property on node
-				test.setProperty(TestOne.name, name);
+				test.setProperty(Traits.of("TestOne").key("name"), name);
 
 				for (int i=0; i<100; i++) {
 
@@ -2018,7 +2018,7 @@ public class SystemTest extends StructrTest {
 				final List<TestOne> list = new LinkedList<>();
 				list.add(target);
 
-				source.setProperty(TestSix.oneToManyTestOnes, list);
+				source.setProperty(Traits.of("TestSix").key("oneToManyTestOnes"), list);
 
 				tx.success();
 

@@ -105,7 +105,7 @@ public class StructuredTextNode extends AbstractNode implements LinkedTreeNode<S
 		if (id != null) {
 
 			final App app                      = StructrApp.getInstance(securityContext);
-			final StructuredTextNode otherNode = app.get(StructuredTextNode.class, id);
+			final StructuredTextNode otherNode = app.getNodeById(StructuredTextNode.class, id);
 
 			if (otherNode != null) {
 

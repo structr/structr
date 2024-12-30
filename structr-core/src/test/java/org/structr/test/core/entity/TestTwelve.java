@@ -31,7 +31,7 @@ public class TestTwelve extends TestOne {
 
 		boolean valid = super.isValid(buf);
 
-		valid &= ValidationHelper.isValidUniqueProperty(this, AbstractNode.name, buf);
+		valid &= ValidationHelper.isValidUniqueProperty(this, Traits.of("NodeInterface").key("name"), buf);
 
 		return valid;
 	}

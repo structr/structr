@@ -462,10 +462,10 @@ public class RenderContextTest extends StructrUiTest {
 
 			final RenderContext ctx               = new RenderContext(securityContext);
 			final NodeInterface detailsDataObject = app.getNodeById(detailsId);
-			final Page page                       = app.get(Page.class, pageId);
-			final DOMNode p1                      = app.get(DOMNode.class, p1Id);
-			final DOMNode p2                      = app.get(DOMNode.class, p2Id);
-			final DOMNode a                       = app.get(DOMNode.class, aId);
+			final Page page                       = app.getNodeById(Page.class, pageId);
+			final DOMNode p1                      = app.getNodeById(DOMNode.class, p1Id);
+			final DOMNode p2                      = app.getNodeById(DOMNode.class, p2Id);
+			final DOMNode a                       = app.getNodeById(DOMNode.class, aId);
 			TestOne testOne                       = null;
 
 			ctx.setDetailsDataObject(detailsDataObject);

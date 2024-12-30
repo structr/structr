@@ -2409,7 +2409,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final NodeInterface linkElementNode = StructrApp.getInstance().get("DOMNode", linkableUUID);
+					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById("DOMNode", linkableUUID);
 					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery("Linkable").and(traits.key("path"), pagePath).or(traits.key("name"), pagePath).getFirst();
 
 
