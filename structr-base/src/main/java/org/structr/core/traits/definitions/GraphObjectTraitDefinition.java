@@ -157,6 +157,19 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 		);
 	}
 
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			Set.of("id", "type"),
+
+			PropertyView.Ui,
+			Set.of("id", "type", "createdBy", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers")
+		);
+	}
+
 	// ----- private methods -----
 	private void addToIndex(final GraphObject obj, final Set<PropertyKey> indexKeys) {
 

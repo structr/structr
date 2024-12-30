@@ -196,6 +196,9 @@ public class Traits {
 
 	public void registerImplementation(final TraitDefinition trait) {
 
+		// register trait
+		types.put(trait.getName(), trait);
+
 		// composable methods (like callbacks etc.)
 		for (final Map.Entry<Class, LifecycleMethod> entry : trait.getLifecycleMethods().entrySet()) {
 
@@ -226,12 +229,25 @@ public class Traits {
 		// properties
 		for (final PropertyKey key : trait.getPropertyKeys()) {
 
-			propertyKeys.put(key.jsonName(), key);
+			final String name = key.jsonName();
 
+			// register property key
+			propertyKeys.put(name, key);
+
+			// set declaring trait
 			key.setDeclaringTrait(trait);
+
+			// add key to "all" view
+			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
 		}
 
 		// views
+		for (final Map.Entry<String, Set<String>> views : trait.getViews().entrySet()) {
+
+			final Set<String> set = this.views.computeIfAbsent(views.getKey(), k -> new LinkedHashSet<>());
+
+			set.addAll(views.getValue());
+		}
 
 
 		// trait implementations
@@ -248,6 +264,22 @@ public class Traits {
 
 	public Set<TraitDefinition> getTraits() {
 		return Collections.unmodifiableSet(new LinkedHashSet<>(types.values()));
+	}
+
+	public boolean isInterface() {
+		return false;
+	}
+
+	public boolean isAbstract() {
+		return false;
+	}
+
+	public Set<String> getViewNames() {
+		return views.keySet();
+	}
+
+	public Set<String> getAllTraits() {
+		return Collections.unmodifiableSet(types.keySet());
 	}
 
 	// ----- static methods -----
@@ -325,25 +357,15 @@ public class Traits {
 		return cachedCreatedDateProperty;
 	}
 
-	public boolean isInterface() {
-		return false;
-	}
-
-	public boolean isAbstract() {
-		return false;
-	}
-
-	public Set<String> getViewNames() {
-
-		// TODO: implement, as unmodifiable collection!
-		return Set.of();
-	}
-
 	public static Set<String> getAllViews() {
-		return Set.of();
-	}
 
-	public Set<String> getAllTraits() {
-		return Collections.unmodifiableSet(types.keySet());
+		final Set<String> allViews = new LinkedHashSet<>();
+
+		for (final Traits traits : globalTraitMap.values()) {
+
+			traits.getViewNames().forEach(allViews::add);
+		}
+
+		return allViews;
 	}
 }

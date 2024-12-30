@@ -22,17 +22,16 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
@@ -229,18 +228,8 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 	}
 
 	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
 	}
 
 	@Override
@@ -265,7 +254,15 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 	}
 
 	@Override
-	public Relation getRelation() {
-		return null;
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			Set.of("name"),
+
+			PropertyView.Ui,
+			Set.of("name", "owner", "hidden")
+		);
 	}
 }

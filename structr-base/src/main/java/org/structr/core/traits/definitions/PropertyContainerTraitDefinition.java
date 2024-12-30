@@ -297,6 +297,12 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 		return Map.of();
 	}
 
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of();
+	}
+
 	private static <T> Object setPropertyInternal(final GraphObject graphObject, final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		final SecurityContext securityContext = graphObject.getSecurityContext();
