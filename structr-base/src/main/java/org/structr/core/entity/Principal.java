@@ -32,13 +32,6 @@ public interface Principal extends NodeTrait {
 	String SUPERUSER_ID                      = "00000000000000000000000000000000";
 	String ANONYMOUS                         = "anonymous";
 
-	/*
-
-	View uiView = new View(Principal.class, PropertyView.Ui,
-		blockedProperty
-	);
-	*/
-
 	String getUuid();
 	String getName();
 

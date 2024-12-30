@@ -68,6 +68,11 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	}
 
 	@Override
+	public Map<String, Set<String>> getViews() {
+		return Map.of();
+	}
+
+	@Override
 	public Relation getRelation() {
 		return null;
 	}

@@ -21,6 +21,7 @@ package org.structr.core.traits.nodes;
 import org.structr.api.Predicate;
 import org.structr.common.EMailValidator;
 import org.structr.common.LowercaseTransformator;
+import org.structr.common.PropertyView;
 import org.structr.common.TrimTransformator;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -152,6 +153,15 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 			new StringProperty("proxyUsername"),
 			new StringProperty("proxyPassword"),
 			new ArrayProperty("publicKeys", String.class)
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Ui,
+			Set.of("blocked")
 		);
 	}
 

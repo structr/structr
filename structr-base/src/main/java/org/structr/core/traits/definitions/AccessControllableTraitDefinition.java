@@ -314,16 +314,6 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 		);
 	}
 
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
-	}
-
 	public static void clearCaches() {
 		globalPermissionResolutionCache.clear();
 		isGrantedResultCache.clear();

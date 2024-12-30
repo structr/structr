@@ -42,6 +42,7 @@ public interface TraitDefinition {
 	Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories();
 	Map<Class, NodeTraitFactory> getNodeTraitFactories();
 	Set<AbstractMethod> getDynamicMethods();
+	Map<String, Set<String>> getViews();
 
 	// FIXME
 	//Set<String> requiredTraits();
@@ -57,4 +58,5 @@ public interface TraitDefinition {
 	default boolean isInterface() {
 		return false;
 	}
+
 }

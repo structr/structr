@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -60,6 +61,23 @@ public final class UserTraitDefinition extends AbstractTraitDefinition {
 			localStorageProperty,
 			skipSecurityRelationshipsProperty,
 			isUserProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			Set.of("isUser", "name"),
+
+			PropertyView.Ui,
+			Set.of(
+				"isUser", "confirmationKey", "eMail", "favorites", "groups", "homeDirectory", "isAdmin", "locale", "password", "proxyPassword",
+				"proxyUrl", "proxyUsername", "publicKey", "sessionIds", "refreshTokens", "workingDirectory", "twoFactorToken", "isTwoFactorUser",
+				"twoFactorConfirmed", "passwordAttempts", "passwordChangeDate", "lastLoginDate", "skipSecurityRelationships", "img"
+			)
 		);
 	}
 }
