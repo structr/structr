@@ -117,7 +117,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 									try {
 
-										final GraphObject declaringEntity = StructrApp.getInstance().get("NodeInterface", declaringUuid);
+										final GraphObject declaringEntity = StructrApp.getInstance().getNodeById("NodeInterface", declaringUuid);
 										if (declaringEntity != null) {
 
 											if (declaringEntity.is("SchemaProperty")) {

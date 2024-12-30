@@ -32,8 +32,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.function.CryptFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -67,7 +65,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<String[]> instance = TestFour.stringArrayProperty;
-			final TestFour testEntity         = createTestNode(TestFour.class);
+			final TestFour testEntity         = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -109,7 +107,7 @@ public class PropertyTest extends StructrTest {
 
 			TestFour testEntity = null;
 			try (final Tx tx = app.tx()) {
-				testEntity = createTestNode(TestFour.class, properties);
+				testEntity = createTestNode("TestFour", properties);
 				tx.success();
 			}
 
@@ -119,7 +117,7 @@ public class PropertyTest extends StructrTest {
 			List<TestFour> result = null;
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one"}).getAsList();
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 			}
@@ -132,7 +130,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one"}).getAsList();
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
@@ -140,20 +138,20 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one", "two"}).getAsList();
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "two"}).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one", "foo"}).getAsList();
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "foo"}).getAsList();
 				assertEquals(0, result.size());
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one", "foo"}, false).getAsList();
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "foo"}, false).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 			}
@@ -172,7 +170,7 @@ public class PropertyTest extends StructrTest {
 
 
 			final Property<Boolean> key = TestFour.booleanProperty;
-			final TestFour testEntity        = createTestNode(TestFour.class);
+			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -207,7 +205,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, true);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -216,7 +214,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, true).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, true).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -234,8 +232,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode(TestOne.class);
-			final TestFour testFour      = createTestNode(TestFour.class);
+			final TestOne testOne        = createTestNode("TestOne");
+			final TestFour testFour      = createTestNode("TestFour");
 			final Property<Boolean> key = OneFourOneToOne.booleanProperty;
 
 			assertNotNull(testOne);
@@ -282,19 +280,19 @@ public class PropertyTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			testOne        = createTestNode(TestOne.class);
-			testSixs       = createTestNodes(TestSix.class, 20);
+			testOne        = createTestNode("TestOne");
+			testSixs       = createTestNodes("TestSix", 20);
 
 			for (final TestSix testSix : testSixs) {
 				int i = index++;
-				testSix.setProperty(TestSix.index, i);
+				testSix.setProperty(Traits.of("TestSix").key("index"), i);
 				System.out.print(i + ", ");
 				index1.add(i);
 			}
 
 			System.out.println();
 
-			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+			testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
 
 			tx.success();
 
@@ -330,11 +328,11 @@ public class PropertyTest extends StructrTest {
 			TestOne testOne1  = null;
 			TestOne testOne2  = null;
 
-			testSix1 = createTestNode(TestSix.class);
-			testSix2 = createTestNode(TestSix.class);
+			testSix1 = createTestNode("TestSix");
+			testSix2 = createTestNode("TestSix");
 
-			testOne1 = createTestNode(TestOne.class);
-			testOne2 = createTestNode(TestOne.class);
+			testOne1 = createTestNode("TestOne");
+			testOne2 = createTestNode("TestOne");
 
 			assertNotNull(testSix1);
 			assertNotNull(testSix2);
@@ -461,7 +459,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<Date> instance = TestFour.dateProperty;
-			final TestFour testEntity     = createTestNode(TestFour.class);
+			final TestFour testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -492,7 +490,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<Date[]> instance = TestFour.dateArrayProperty;
-			final TestFour testEntity         = createTestNode(TestFour.class);
+			final TestFour testEntity         = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -529,7 +527,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key,value);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -538,7 +536,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, value).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, value).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -565,7 +563,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, value);
 
-			final TestFour testEntity = createTestNode(TestFour.class, properties);
+			final TestFour testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -574,7 +572,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, minValue, maxValue).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, minValue, maxValue).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -584,7 +582,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, maxValue, maxMaxValue).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, maxValue, maxMaxValue).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -605,7 +603,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<Double> instance = TestFour.doubleProperty;
-			final TestFour testEntity        = createTestNode(TestFour.class);
+			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -636,7 +634,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<Double> instance = TestFour.doubleProperty;
-			final TestFour testEntity        = createTestNode(TestFour.class);
+			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -672,7 +670,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 3.141592653589793238);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -681,7 +679,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(3.141592653589793238, testEntity.getProperty(key), 0.0);
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, 3.141592653589793238).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, 3.141592653589793238).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -704,7 +702,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, Double.NaN);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -713,7 +711,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.NaN, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, Double.NaN).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, Double.NaN).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -737,7 +735,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, Double.NEGATIVE_INFINITY);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -746,7 +744,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.NEGATIVE_INFINITY, testEntity.getProperty(key), 0.0);
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, Double.NEGATIVE_INFINITY).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, Double.NEGATIVE_INFINITY).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -769,7 +767,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, Double.POSITIVE_INFINITY);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -778,7 +776,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.POSITIVE_INFINITY, testEntity.getProperty(key), 0.0);
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, Double.POSITIVE_INFINITY).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, Double.POSITIVE_INFINITY).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -796,8 +794,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne      = createTestNode(TestOne.class);
-			final TestFour testFour    = createTestNode(TestFour.class);
+			final TestOne testOne      = createTestNode("TestOne");
+			final TestFour testFour    = createTestNode("TestFour");
 			final Property<Double> key = OneFourOneToOne.doubleProperty;
 
 			assertNotNull(testOne);
@@ -840,7 +838,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 123456.2);
 
-			final TestFour testEntity = createTestNode(TestFour.class, properties);
+			final TestFour testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -849,7 +847,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Double)123456.2, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123455.1, 123457.6).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123455.1, 123457.6).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -859,7 +857,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123456.3, 123456.7).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123456.3, 123456.7).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -879,17 +877,17 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestSix a   = createTestNode(TestSix.class);
-			final TestSix c   = createTestNode(TestSix.class);
-			final TestThree b = createTestNode(TestThree.class);
-			final TestThree d = createTestNode(TestThree.class);
+			final TestSix a   = createTestNode("TestSix");
+			final TestSix c   = createTestNode("TestSix");
+			final TestThree b = createTestNode("TestThree");
+			final TestThree d = createTestNode("TestThree");
 
 			try (final Tx tx = app.tx()) {
 
-				a.setProperty(AbstractNode.name, "a");
-				c.setProperty(AbstractNode.name, "c");
-				b.setProperty(AbstractNode.name, "b");
-				d.setProperty(AbstractNode.name, "d");
+				a.setProperty(Traits.of("AbstractNode").key("name"), "a");
+				c.setProperty(Traits.of("AbstractNode").key("name"), "c");
+				b.setProperty(Traits.of("AbstractNode").key("name"), "b");
+				d.setProperty(Traits.of("AbstractNode").key("name"), "d");
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -916,8 +914,8 @@ public class PropertyTest extends StructrTest {
 			// create two connections
 			try (final Tx tx = app.tx()) {
 
-				a.setProperty(TestSix.oneToOneTestThree, b);
-				c.setProperty(TestSix.oneToOneTestThree, d);
+				a.setProperty(Traits.of("TestSix").key("oneToOneTestThree"), b);
+				c.setProperty(Traits.of("TestSix").key("oneToOneTestThree"), d);
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -939,7 +937,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				a.setProperty(TestSix.oneToOneTestThree, d);
+				a.setProperty(Traits.of("TestSix").key("oneToOneTestThree"), d);
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -970,17 +968,17 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestSix testSix1     = createTestNode(TestSix.class);
-			final TestSix testSix2     = createTestNode(TestSix.class);
-			final TestThree testThree1 = createTestNode(TestThree.class);
-			final TestThree testThree2 = createTestNode(TestThree.class);
+			final TestSix testSix1     = createTestNode("TestSix");
+			final TestSix testSix2     = createTestNode("TestSix");
+			final TestThree testThree1 = createTestNode("TestThree");
+			final TestThree testThree2 = createTestNode("TestThree");
 
 			try (final Tx tx = app.tx()) {
 
-				testSix1.setProperty(AbstractNode.name, "a");
-				testSix2.setProperty(AbstractNode.name, "c");
-				testThree1.setProperty(AbstractNode.name, "b");
-				testThree2.setProperty(AbstractNode.name, "d");
+				testSix1.setProperty(Traits.of("AbstractNode").key("name"), "a");
+				testSix2.setProperty(Traits.of("AbstractNode").key("name"), "c");
+				testThree1.setProperty(Traits.of("AbstractNode").key("name"), "b");
+				testThree2.setProperty(Traits.of("AbstractNode").key("name"), "d");
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -1005,8 +1003,8 @@ public class PropertyTest extends StructrTest {
 			 */
 			try (final Tx tx = app.tx()) {
 
-				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree1));
-				testSix2.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
+				testSix1.setProperty(Traits.of("TestSix").key("oneToManyTestThrees"), toList(testThree1));
+				testSix2.setProperty(Traits.of("TestSix").key("oneToManyTestThrees"), toList(testThree2));
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -1028,7 +1026,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
+				testSix1.setProperty(Traits.of("TestSix").key("oneToManyTestThrees"), toList(testThree2));
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -1120,7 +1118,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(TestFour.enumProperty, TestEnum.Status1);
 
-			final TestFour testEntity        = createTestNode(TestFour.class, properties);
+			final TestFour testEntity        = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1146,7 +1144,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, TestEnum.Status1);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1155,7 +1153,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, TestEnum.Status1).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, TestEnum.Status1).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1173,8 +1171,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode(TestOne.class);
-			final TestFour testFour      = createTestNode(TestFour.class);
+			final TestOne testOne        = createTestNode("TestOne");
+			final TestFour testFour      = createTestNode("TestFour");
 			final Property<TestEnum> key = OneFourOneToOne.enumProperty;
 
 			assertNotNull(testOne);
@@ -1217,10 +1215,10 @@ public class PropertyTest extends StructrTest {
 
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(AbstractNode.name, "Test");
+			properties.put(Traits.of("NodeInterface").key("name"), "Test");
 			properties.put(new StringProperty("_functionTest"), "Function({ // \"})");
 
-			app.create(SchemaNode.class, properties);
+			app.create("SchemaNode", properties);
 
 			tx.success();
 
@@ -1240,7 +1238,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<Integer> instance = TestFour.integerProperty;
-			final TestFour testEntity        = createTestNode(TestFour.class);
+			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1275,7 +1273,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 2345);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1284,7 +1282,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, 2345).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, 2345).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1302,8 +1300,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode(TestOne.class);
-			final TestFour testFour      = createTestNode(TestFour.class);
+			final TestOne testOne        = createTestNode("TestOne");
+			final TestFour testFour      = createTestNode("TestFour");
 			final Property<Integer> key = OneFourOneToOne.integerProperty;
 
 			assertNotNull(testOne);
@@ -1346,7 +1344,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 123456);
 
-			final TestFour testEntity = createTestNode(TestFour.class, properties);
+			final TestFour testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1355,7 +1353,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)123456, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123455, 123457).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123455, 123457).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1365,7 +1363,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123457, 123458).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123457, 123458).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1386,7 +1384,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<Long> instance = TestFour.longProperty;
-			final TestFour testEntity     = createTestNode(TestFour.class);
+			final TestFour testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1421,7 +1419,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 2857312362L);
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1430,7 +1428,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, 2857312362L).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, 2857312362L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1448,8 +1446,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode(TestOne.class);
-			final TestFour testFour      = createTestNode(TestFour.class);
+			final TestOne testOne        = createTestNode("TestOne");
+			final TestFour testFour      = createTestNode("TestFour");
 			final Property<Long> key = OneFourOneToOne.longProperty;
 
 			assertNotNull(testOne);
@@ -1492,7 +1490,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 123456L);
 
-			final TestFour testEntity = createTestNode(TestFour.class, properties);
+			final TestFour testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1501,7 +1499,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)123456L, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123455L, 123457L).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123455L, 123457L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1511,7 +1509,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).andRange(key, 123457L, 123458L).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123457L, 123458L).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1532,7 +1530,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final Property<String> instance = TestFour.stringProperty;
-			final TestFour testEntity        = createTestNode(TestFour.class);
+			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1567,7 +1565,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "test");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1576,7 +1574,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
 
 				assertEquals(result.size(), 1);
 				assertEquals(result.get(0), testEntity);
@@ -1599,7 +1597,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "test\nabc");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1608,7 +1606,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test\nabc", testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test\nabc").getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test\nabc").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1631,7 +1629,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "test\nabc");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1640,7 +1638,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test\nabc", testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
 
 				assertEquals(0, result.size());
 			}
@@ -1662,7 +1660,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "xyz\ntest\nabc");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1672,7 +1670,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\ntest\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test", false).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1695,7 +1693,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "xyz\r\ntest\r\nabc");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1705,7 +1703,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\r\ntest\r\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test", false).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1728,7 +1726,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "{\n return fooBar;\n}");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1738,7 +1736,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("{\n return fooBar;\n}", testEntity.getProperty(key));
 
 				// inexact search
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "foo", false).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "foo", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1761,7 +1759,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "xyz\r\nTeSt\r\nabc");
 
-			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			final TestFour testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1771,7 +1769,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\r\nTeSt\r\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test", false).getAsList();
+				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1789,8 +1787,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode(TestOne.class);
-			final TestFour testFour      = createTestNode(TestFour.class);
+			final TestOne testOne        = createTestNode("TestOne");
+			final TestFour testFour      = createTestNode("TestFour");
 			final Property<String> key   = OneFourOneToOne.stringProperty;
 
 			assertNotNull(testOne);
@@ -1843,7 +1841,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create entity of typeProperty TestFour
-			final TestFour testEntity = createTestNode(TestFour.class);
+			final TestFour testEntity = createTestNode("TestFour");
 
 			// check if node exists
 			assertNotNull(testEntity);
@@ -1857,7 +1855,7 @@ public class PropertyTest extends StructrTest {
 			// change typeProperty to TestFive
 			// system properties have to be unlocked now, admin rights are not enough anymore
 			testEntity.unlockSystemPropertiesOnce();
-			testEntity.setProperty(GraphObject.type, TestFive.class.getSimpleName());
+			testEntity.setProperty(Traits.of("GraphObject").key("type"), TestFive.class.getSimpleName());
 
 			// commit transaction
 			tx.success();
@@ -1871,7 +1869,7 @@ public class PropertyTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestFive testEntity = app.get(TestFive.class, id);
+			final TestFive testEntity = app.getNodeById(TestFive.class, id);
 
 			assertNotNull(testEntity);
 
@@ -1899,21 +1897,21 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Test"),
+			final SchemaNode test  = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testFunction"), "Function(this.group.name)")
 			);
 
 			assertNotNull("Invalid schema setup result", test);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, test),
-				new NodeAttribute<>(SchemaRelationshipNode.targetType, "org.structr.core.entity.Group"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "tests"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "group"),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "group")
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), test),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetType"), "org.structr.core.entity.Group"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "tests"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "group"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "group")
 			);
 
 			tx.success();
@@ -1953,7 +1951,7 @@ public class PropertyTest extends StructrTest {
 			final GraphObject test  = app.nodeQuery(testType).getFirst();
 
 			// create Test with link to Group
-			test.setProperty(StructrApp.key(testType, "group"), group);
+			test.setProperty(Traits.of("StructrApp").key("key")(testType, "group"), group);
 
 			tx.success();
 
@@ -1968,7 +1966,7 @@ public class PropertyTest extends StructrTest {
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Class testType  = config.getNodeEntityClass("Test");
-			final PropertyKey key = StructrApp.key(testType, "testFunction");
+			final PropertyKey key = Traits.of(testType).key("testFunction");
 
 			// fetch test node
 			final GraphObject testNode = app.nodeQuery(testType).getFirst();
@@ -1997,50 +1995,50 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Test")
+			final SchemaNode test  = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerName"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner, name"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerName"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner, name"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerEmail"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner, eMail"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerEmail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner, eMail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner, Principal.eMail"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner, Principal.eMail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerName"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner,name"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerName"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner,name"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerEmail"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner,  eMail"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerEmail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner,  eMail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner , Principal.eMail"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner , Principal.eMail"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
 			);
 
 			tx.success();
@@ -2063,24 +2061,24 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			message  = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Message")
+			message  = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Message")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "messageId"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "children"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), message),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), message),
+				new NodeAttribute<>(Traits.of("Traits").key("of"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "children"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "parent"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "HAS_PARENT")
 			);
 
 			tx.success();
@@ -2093,60 +2091,60 @@ public class PropertyTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId1"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, _messageId"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId1"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, _messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId2"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, messageId"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId2"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId3"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, _messageIdProperty"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId3"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, _messageIdProperty"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId4"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, messageIdProperty"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId4"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, messageIdProperty"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId5"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, Message._messageId"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId5"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, Message._messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId6"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, Message.messageId"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId6"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, Message.messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId7"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, Message._messageIdProperty"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId7"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, Message._messageIdProperty"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageId8"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, Message.messageIdProperty"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageId8"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, Message.messageIdProperty"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
 			tx.success();
@@ -2168,31 +2166,31 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode message  = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Message")
+			final SchemaNode message  = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Message")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "messageId"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "children"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), message),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), message),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "children"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "parent"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "HAS_PARENT")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageName1"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, name"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageName1"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, name"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
 			tx.success();
@@ -2213,38 +2211,38 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode message  = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Message")
+			final SchemaNode message  = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Message")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "messageId"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "messageId"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "children"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), message),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), message),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "children"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "parent"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "HAS_PARENT")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageTrue"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, name, true"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageTrue"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, name, true"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "parentMessageFalse"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "parent, name, false"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			app.create("SchemaProperty",
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "parentMessageFalse"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "parent, name, false"),
+					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), message)
 			);
 
 			tx.success();
@@ -2284,7 +2282,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
@@ -2304,7 +2302,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
@@ -2403,7 +2401,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test"),
 				new NodeAttribute<>(encrypted, "structrtest")
 			);
 

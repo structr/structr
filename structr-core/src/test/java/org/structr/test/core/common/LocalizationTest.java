@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -43,34 +44,35 @@ public class LocalizationTest extends StructrTest {
 	@Test
 	public void testLocalizationWithoutDomain() {
 
-		final PropertyKey<String> localizedName = StructrApp.key(Localization.class, "localizedName");
-		final PropertyKey<String> domain        = StructrApp.key(Localization.class, "domain");
-		final PropertyKey<String> locale        = StructrApp.key(Localization.class, "locale");
+		final PropertyKey<String> localizedName = Traits.of("Localization").key("localizedName");
+		final PropertyKey<String> domain        = Traits.of("Localization").key("domain");
+		final PropertyKey<String> locale        = Traits.of("Localization").key("locale");
+		final PropertyKey<String> name        = Traits.of("Localization").key("name");
 
 		// create
 		try (final Tx tx = app.tx()) {
 
-			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name, "test1"),
+			app.create("Localization",
+				new NodeAttribute<>(name, "test1"),
 				new NodeAttribute<>(locale, "de"),
 				new NodeAttribute<>(localizedName, "test1-de-no_domain")
 			);
 
-			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name, "test2"),
+			app.create("Localization",
+				new NodeAttribute<>(name, "test2"),
 				new NodeAttribute<>(locale, "de"),
 				new NodeAttribute<>(domain, "ExistingDomain"),
 				new NodeAttribute<>(localizedName, "test2-de-ExistingDomain")
 			);
 
-			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name, "test3"),
+			app.create("Localization",
+				new NodeAttribute<>(name, "test3"),
 				new NodeAttribute<>(locale, "de_DE"),
 				new NodeAttribute<>(localizedName, "test3-de_DE-no_domain")
 			);
 
-			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name, "test4"),
+			app.create("Localization",
+				new NodeAttribute<>(name, "test4"),
 				new NodeAttribute<>(locale, "de_DE"),
 				new NodeAttribute<>(domain, "ExistingDomain"),
 				new NodeAttribute<>(localizedName, "test4-de_DE-ExistingDomain")

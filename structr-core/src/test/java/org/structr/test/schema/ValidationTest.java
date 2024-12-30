@@ -24,20 +24,24 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestTwelve;
 import org.testng.annotations.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -58,7 +62,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test 31 characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "1234567890123456789012345678901"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "1234567890123456789012345678901"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -78,7 +82,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test 33 characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "123456789012345678901234567890123"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "123456789012345678901234567890123"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -98,7 +102,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test 40 characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "1234567890123456789012345678901234567890"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "1234567890123456789012345678901234567890"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -118,7 +122,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test wrong characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "123456789012345678g0123456789012"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "123456789012345678g0123456789012"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -138,7 +142,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test wrong characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "!bcdefabcdefabcdefabcdefabcdefab"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "!bcdefabcdefabcdefabcdefabcdefab"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -158,7 +162,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test wrong characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "sdfkgjh34t"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "sdfkgjh34t"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -178,7 +182,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// test all allowed characters
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "abcdef1234567890ABCDEF1234567890"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "abcdef1234567890ABCDEF1234567890"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -188,7 +192,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, "xy-"));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), "xy-"));
 			tx.success();
 
 			fail("UUID format constraint violated!");
@@ -207,7 +211,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(TestOne.class, new NodeAttribute<>(GraphObject.id, ""));
+			app.create("TestOne", new NodeAttribute<>(Traits.of("GraphObject").key("id"), ""));
 			tx.success();
 
 			fail("UUID not empty constraint violated!");
@@ -236,7 +240,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, "lowercase");
+			app.create("SchemaNode", "lowercase");
 			tx.success();
 
 			fail("SchemaNode name constraint violation!");
@@ -255,7 +259,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, "7NumberAsFirstChar");
+			app.create("SchemaNode", "7NumberAsFirstChar");
 			tx.success();
 
 			fail("SchemaNode name constraint violation!");
@@ -274,7 +278,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, "7Number");
+			app.create("SchemaNode", "7Number");
 			tx.success();
 
 			fail("SchemaNode name constraint violation!");
@@ -293,7 +297,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, "7Number");
+			app.create("SchemaNode", "7Number");
 			tx.success();
 
 			fail("SchemaNode name constraint violation!");
@@ -312,8 +316,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, "Valid");
-			app.create(SchemaNode.class, "Valid");
+			app.create("SchemaNode", "Valid");
+			app.create("SchemaNode", "Valid");
 			tx.success();
 
 			fail("SchemaNode uniqueness constraint violation!");
@@ -336,21 +340,21 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, new NodeAttribute<>(AbstractNode.name, "Test"));
+			app.create("SchemaNode", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testType = "Test";
 		if (testType != null) {
 
 			String uuid = null;
 
 			try (final Tx tx = app.tx()) {
 
-				uuid = app.create(testType, new NodeAttribute<>(GraphObject.id, "00000000000000000000000000000000")).getUuid();
+				uuid = app.create(testType, new NodeAttribute<>(Traits.of("GraphObject").key("id"), "00000000000000000000000000000000")).getUuid();
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -362,7 +366,7 @@ public class ValidationTest extends StructrTest {
 
 				try (final Tx tx = app.tx()) {
 
-					app.create(testType, new NodeAttribute<>(GraphObject.id, "00000000000000000000000000000000"));
+					app.create(testType, new NodeAttribute<>(Traits.of("GraphObject").key("id"), "00000000000000000000000000000000"));
 					tx.success();
 
 					fail("UUID uniqueness constraint violated!");
@@ -389,8 +393,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Item"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Item"),
 				new NodeAttribute<>(new StringProperty("_name"), "+String!")
 			);
 
@@ -403,11 +407,11 @@ public class ValidationTest extends StructrTest {
 		}
 
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final String type = "Item";
 		assertNotNull(type);
 
 
-		final PropertyKey name = StructrApp.key(type, "name");
+		final PropertyKey name = Traits.of(type).key("name");
 		assertNotNull(name);
 
 		final Runnable tester = new Runnable() {
@@ -444,7 +448,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (Throwable ex) {}
 
-		List<GraphObject> result = null;
+		List<NodeInterface> result = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -474,14 +478,14 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode item = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Item"),
+			final NodeInterface item = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Item"),
 				new NodeAttribute<>(new StringProperty("_name"), "+String!")
 			);
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "ItemDerived"),
-				new NodeAttribute<>(SchemaNode.extendsClass, item)
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ItemDerived"),
+				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), item)
 			);
 
 			tx.success();
@@ -493,13 +497,13 @@ public class ValidationTest extends StructrTest {
 		}
 
 
-		final Class baseType    = StructrApp.getConfiguration().getNodeEntityClass("Item");
-		final Class derivedType = StructrApp.getConfiguration().getNodeEntityClass("ItemDerived");
+		final String baseType    = "Item";
+		final String derivedType = "ItemDerived";
 
 		assertNotNull(baseType);
 		assertNotNull(derivedType);
 
-		final PropertyKey name = StructrApp.key(baseType, "name");
+		final PropertyKey name = Traits.of(baseType).key("name");
 		assertNotNull(name);
 
 		final Runnable tester = new Runnable() {
@@ -542,7 +546,7 @@ public class ValidationTest extends StructrTest {
 		} catch (Throwable ex) {}
 
 
-		List<GraphObject> result = null;
+		List<NodeInterface> result = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -572,8 +576,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Item"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Item"),
 				new NodeAttribute<>(new StringProperty("_testXYZ"), "+String!")
 			);
 
@@ -586,11 +590,11 @@ public class ValidationTest extends StructrTest {
 		}
 
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Item");
+		final String type = "Item";
 		assertNotNull(type);
 
 
-		final PropertyKey testXYZ = StructrApp.key(type, "testXYZ");
+		final PropertyKey testXYZ = Traits.of(type).key("testXYZ");
 		assertNotNull(testXYZ);
 
 		final Runnable tester = new Runnable() {
@@ -627,7 +631,7 @@ public class ValidationTest extends StructrTest {
 		} catch (Throwable ex) {}
 
 
-		List<GraphObject> result = null;
+		List<NodeInterface> result = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -658,8 +662,8 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create some nodes with identical names
-			app.create(GroupTraitDefinition.class,   "unique");
-			app.create(TestOne.class, "unique");
+			app.create("GroupTraitDefinition",   "unique");
+			app.create("TestOne", "unique");
 
 			tx.success();
 
@@ -671,7 +675,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// should succeed
-			app.create(TestTwelve.class, new NodeAttribute<>(AbstractNode.name, "unique"));
+			app.create("TestTwelve", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique"));
 
 			tx.success();
 
@@ -687,8 +691,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Test"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -699,10 +703,10 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testType = "Test";
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.key(testType, "testUnique");
+			final PropertyKey key = Traits.of(testType).key("testUnique");
 			if (key != null) {
 
 				String uuid = null;
@@ -743,8 +747,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Test"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -755,10 +759,10 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testType = "Test";
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.key(testType, "testUnique");
+			final PropertyKey key = Traits.of(testType).key("testUnique");
 			if (key != null) {
 
 				String uuid = null;
@@ -789,8 +793,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Test"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -801,10 +805,10 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testType = "Test";
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.key(testType, "testUnique");
+			final PropertyKey key = Traits.of(testType).key("testUnique");
 			if (key != null) {
 
 				try (final Tx tx = app.tx()) {
@@ -849,14 +853,14 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Test"),
+			final NodeInterface testType = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "TestDerived"),
-				new NodeAttribute<>(SchemaNode.extendsClass, testType)
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "TestDerived"),
+				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), testType)
 			);
 
 			tx.success();
@@ -866,10 +870,10 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("TestDerived");
+		final String testType = "TestDerived";
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.key(testType, "testUnique");
+			final PropertyKey key = Traits.of(testType).key("testUnique");
 			if (key != null) {
 
 				try (final Tx tx = app.tx()) {
@@ -914,8 +918,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Test"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -926,23 +930,23 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testType = "Test";
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.key(testType, "testUnique");
+			final PropertyKey key = Traits.of(testType).key("testUnique");
 			if (key != null) {
 
 				final Random random = new Random();
 
 				try (final Tx tx = app.tx()) {
 
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique06"), new NodeAttribute<>(key, "unique00"));
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique05"), new NodeAttribute<>(key, "unique01"));
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique04"), new NodeAttribute<>(key, "unique02"));
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique03"), new NodeAttribute<>(key, "unique03"));
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique02"), new NodeAttribute<>(key, "unique04"));
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique01"), new NodeAttribute<>(key, "unique05"));
-					app.create(testType, new NodeAttribute<>(AbstractNode.name, "unique00"), new NodeAttribute<>(key, "unique06"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique06"), new NodeAttribute<>(key, "unique00"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique05"), new NodeAttribute<>(key, "unique01"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique04"), new NodeAttribute<>(key, "unique02"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique03"), new NodeAttribute<>(key, "unique03"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique02"), new NodeAttribute<>(key, "unique04"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique01"), new NodeAttribute<>(key, "unique05"));
+					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique00"), new NodeAttribute<>(key, "unique06"));
 					tx.success();
 
 				} catch (FrameworkException fex) {
@@ -980,8 +984,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Test"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_nonempty"), "+String")
 			);
 
@@ -992,10 +996,10 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testType = "Test";
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.key(testType, "nonempty");
+			final PropertyKey key = Traits.of(testType).key("nonempty");
 			if (key != null) {
 
 				try (final Tx tx = app.tx()) {
@@ -1024,8 +1028,8 @@ public class ValidationTest extends StructrTest {
 	public void testStringPropertyRegexMatch() {
 
 		final String keyName  = "regex";
-		final Class testType  = createTypeWithProperty("Test", keyName, "String([a-zA-Z0-9]+)");
-		final PropertyKey key = StructrApp.key(testType, keyName);
+		final String testType  = createTypeWithProperty("Test", keyName, "String([a-zA-Z0-9]+)");
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1055,8 +1059,8 @@ public class ValidationTest extends StructrTest {
 	public void testArrayPropertyNotNullValidation() {
 
 		final String keyName  = "stringArray";
-		final Class testType  = createTypeWithProperty("Test", keyName, "+String[]");
-		final PropertyKey key = StructrApp.key(testType, keyName);
+		final String testType  = createTypeWithProperty("Test", keyName, "+String[]");
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1083,8 +1087,8 @@ public class ValidationTest extends StructrTest {
 	public void testArrayPropertyUniquenessValidation() {
 
 		final String keyName                = "stringArray";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "String[]!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "String[]!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		String uuid1                        = null;
 		String uuid2                        = null;
 
@@ -1139,8 +1143,8 @@ public class ValidationTest extends StructrTest {
 	public void testBooleanPropertyNotNullValidation() {
 
 		final String keyName                = "notNull";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Boolean");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "+Boolean");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1169,8 +1173,8 @@ public class ValidationTest extends StructrTest {
 	public void testBooleanPropertyUniquenessValidation() {
 
 		final String keyName                = "unique";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Boolean!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "Boolean!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1210,8 +1214,8 @@ public class ValidationTest extends StructrTest {
 	public void testDatePropertyUniquenessValidation() {
 
 		final String keyName                = "unique";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Date!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "Date!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		final Date date                     = new Date();
 		String uuid                         = null;
 
@@ -1250,8 +1254,8 @@ public class ValidationTest extends StructrTest {
 	public void testDatePropertyNotNullValidation() {
 
 		final String keyName                = "notnull";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Date");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "+Date");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1283,8 +1287,8 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyUniquenessValidation() {
 
 		final String keyName                = "unique";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Double!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "Double!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1322,8 +1326,8 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyNotNullValidation() {
 
 		final String keyName                = "notnull";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Double");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "+Double");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1353,8 +1357,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation1() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([1,5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Double([1,5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1.0);
 		checkRangeSuccess(testType, range1, 1.00001);
@@ -1375,8 +1379,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation2() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0.0);
 		checkRangeSuccess(testType, range1, 0.0);
@@ -1397,8 +1401,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation3() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5[)");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5[)");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0.0);
 		checkRangeSuccess(testType, range1, 0.0);
@@ -1419,8 +1423,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation4() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 0.00001);
 		checkRangeSuccess(testType, range1, 0.1);
@@ -1441,8 +1445,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation5() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5[)");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5[)");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 0.00001);
 		checkRangeSuccess(testType, range1, 0.1);
@@ -1464,8 +1468,8 @@ public class ValidationTest extends StructrTest {
 	public void testEnumPropertyUniquenessValidation() {
 
 		final String keyName                = "unique";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Enum(one, two, three)!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "Enum(one, two, three)!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1505,8 +1509,8 @@ public class ValidationTest extends StructrTest {
 	public void testEnumPropertyNotNullValidation() {
 
 		final String keyName                = "notnull";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Enum(one, two, three)");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "+Enum(one, two, three)");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 
 		// test failure
 		try (final Tx tx = app.tx()) {
@@ -1535,8 +1539,8 @@ public class ValidationTest extends StructrTest {
 	public void testIntPropertyUniquenessValidation() {
 
 		final String keyName                = "unique";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Integer!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "Integer!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1574,8 +1578,8 @@ public class ValidationTest extends StructrTest {
 	public void testIntPropertyNotNullValidation() {
 
 		final String keyName                = "notnull";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Integer");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "+Integer");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1605,8 +1609,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation1() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer([1,5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Integer([1,5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1623,8 +1627,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation3() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer([0,5[)");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Integer([0,5[)");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0);
 		checkRangeSuccess(testType, range1, 0);
@@ -1641,8 +1645,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation4() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1657,8 +1661,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation5() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5[)");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5[)");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1675,8 +1679,8 @@ public class ValidationTest extends StructrTest {
 	public void testLongPropertyUniquenessValidation() {
 
 		final String keyName                = "unique";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Long!");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "Long!");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1714,8 +1718,8 @@ public class ValidationTest extends StructrTest {
 	public void testLongPropertyNotNullValidation() {
 
 		final String keyName                = "notnull";
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Long");
-		final PropertyKey key               = StructrApp.key(testType, keyName);
+		final String testType = createTypeWithProperty("Test", keyName, "+Long");
+		final PropertyKey key               = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1745,8 +1749,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation1() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([1,5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Long([1,5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1L);
 		checkRangeSuccess(testType, range1, 2L);
@@ -1763,8 +1767,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation3() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0L);
 		checkRangeSuccess(testType, range1,  0L);
@@ -1781,8 +1785,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation4() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5])");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Long(]0,5])");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1L);
 		checkRangeSuccess(testType, range1, 2L);
@@ -1797,8 +1801,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation5() {
 
-		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5[)");
-		final PropertyKey range1            = StructrApp.key(testType, "range1");
+		final String testType = createTypeWithProperty("Test", "range1", "+Long(]0,5[)");
+		final PropertyKey range1            = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1L);
 		checkRangeSuccess(testType, range1, 2L);
@@ -1816,7 +1820,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaRelationshipNode.class);
+			app.create("SchemaRelationshipNode");
 
 			tx.success();
 
@@ -1858,10 +1862,10 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), null),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), null)
 			);
 
 			tx.success();
@@ -1899,14 +1903,14 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode node = app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "TestType")
+			final NodeInterface node = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "TestType")
 			);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, node),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), node),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), null)
 			);
 
 			tx.success();
@@ -1933,14 +1937,14 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode node = app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "TestType")
+			final NodeInterface node = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "TestType")
 			);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, node)
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), null),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), node)
 			);
 
 			tx.success();
@@ -1967,10 +1971,10 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceType, "org.structr.core.entity.Group"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, null)
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceType"), "org.structr.core.entity.Group"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), null)
 			);
 
 			tx.success();
@@ -2002,10 +2006,10 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, null),
-				new NodeAttribute<>(SchemaRelationshipNode.targetType, "org.structr.core.entity.Group")
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), null),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetType"), "org.structr.core.entity.Group")
 			);
 
 			tx.success();
@@ -2041,8 +2045,8 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "TestType"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("Traits").key("of"), "TestType"),
 				new NodeAttribute<>(new StringProperty("_key1"), "String!!"),
 				new NodeAttribute<>(new StringProperty("_key2"), "String!!"),
 				new NodeAttribute<>(new StringProperty("_key3"), "String!!")
@@ -2054,10 +2058,10 @@ public class ValidationTest extends StructrTest {
 			fex.printStackTrace();
 		}
 
-		final Class type         = StructrApp.getConfiguration().getNodeEntityClass("TestType");
-		final PropertyKey key1   = StructrApp.key(type, "key1");
-		final PropertyKey key2   = StructrApp.key(type, "key2");
-		final PropertyKey key3   = StructrApp.key(type, "key3");
+		final String type        = "TestType";
+		final PropertyKey key1   = Traits.of(type).key("key1");
+		final PropertyKey key2   = Traits.of(type).key("key2");
+		final PropertyKey key3   = Traits.of(type).key("key3");
 		final PropertyKey[] keys = new PropertyKey[] { key1, key2, key3 };
 
 		// test success
@@ -2151,7 +2155,7 @@ public class ValidationTest extends StructrTest {
 		// test that two identical SchemaGrant objects (identical SchemaNode and Principal) throw an error
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class, new NodeAttribute<>(AbstractNode.name, "Project"));
+			app.create("SchemaNode", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2161,11 +2165,11 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
-			final Group group           = app.create(GroupTraitDefinition.class, "Group1");
+			final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
+			final NodeInterface group      = app.create("GroupTraitDefinition", "Group1");
 
-			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));
-			app.create(SchemaGrant.class, new NodeAttribute<>(SchemaGrant.principal, group), new NodeAttribute<>(SchemaGrant.schemaNode, schemaNode));
+			app.create("SchemaGrant", new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"), group), new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"), schemaNode));
+			app.create("SchemaGrant", new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"), group), new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"), schemaNode));
 
 			tx.success();
 
@@ -2182,16 +2186,16 @@ public class ValidationTest extends StructrTest {
 
 			assertEquals("Invalid SchemaGrant validation result", "SchemaGrant",          token.getType());
 			assertEquals("Invalid SchemaGrant validation result", "already_taken",        token.getToken());
-			assertEquals("Invalid SchemaGrant validation result", SchemaGrant.principal,  ((PropertyKey[])token.getValue())[0]);
-			assertEquals("Invalid SchemaGrant validation result", SchemaGrant.schemaNode, ((PropertyKey[])token.getValue())[1]);
+			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("principal"),  ((PropertyKey[])token.getValue())[0]);
+			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("schemaNode"), ((PropertyKey[])token.getValue())[1]);
 		}
 
 		// test that tho Group objects with the same name throw an error
 		try (final Tx tx = app.tx()) {
 
 			// create a second group with name Group1
-			app.create(GroupTraitDefinition.class, "Group1");
-			app.create(GroupTraitDefinition.class, "Group1");
+			app.create("GroupTraitDefinition", "Group1");
+			app.create("GroupTraitDefinition", "Group1");
 
 			tx.success();
 
@@ -2215,7 +2219,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a second group with name Group1
-			app.create(GroupTraitDefinition.class);
+			app.create("Group");
 
 			tx.success();
 
@@ -2237,7 +2241,7 @@ public class ValidationTest extends StructrTest {
 	}
 
 	// ----- private methods -----
-	private void checkRangeSuccess(final Class<NodeInterface> type, final PropertyKey key, final Object value) {
+	private void checkRangeSuccess(final String type, final PropertyKey key, final Object value) {
 
 		try (final Tx tx = app.tx()) {
 
@@ -2250,7 +2254,7 @@ public class ValidationTest extends StructrTest {
 		}
 	}
 
-	private void checkRangeError(final Class<NodeInterface> type, final PropertyKey key, final Object value) throws FrameworkException {
+	private void checkRangeError(final String type, final PropertyKey key, final Object value) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -2286,12 +2290,12 @@ public class ValidationTest extends StructrTest {
 
 	}
 
-	private Class createTypeWithProperty(final String typeName, final String keyName, final String keyType) {
+	private String createTypeWithProperty(final String typeName, final String keyName, final String keyType) {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, typeName),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), typeName),
 				new NodeAttribute<>(new StringProperty("_" + keyName), keyType)
 			);
 
@@ -2302,10 +2306,10 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		return StructrApp.getConfiguration().getNodeEntityClass(typeName);
+		return typeName;
 	}
 
-	private void removeInstances(final Class<NodeInterface> type) {
+	private void removeInstances(final String type) {
 
 		// clear database
 		try (final Tx tx = app.tx()) {

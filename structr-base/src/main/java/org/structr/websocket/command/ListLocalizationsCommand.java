@@ -67,7 +67,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, false)) {
 
-			final NodeInterface pageNode                = app.get("Page", id);
+			final NodeInterface pageNode                = app.getNodeById("Page", id);
 			if (pageNode != null) {
 
 				final Page page = pageNode.as(Page.class);

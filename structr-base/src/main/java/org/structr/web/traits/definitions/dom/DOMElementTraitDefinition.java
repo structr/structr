@@ -69,7 +69,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
-import org.structr.web.entity.html.TemplateElement;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
@@ -646,7 +645,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 							case NONE:
 
 								// Get actions in superuser context
-								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get("DOMElement", uuid);
+								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById("DOMElement", uuid);
 								final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getTriggeredActions();
 								final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
 								boolean outputStructrId = false;
@@ -949,7 +948,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 					}
 
 					ActionMapping triggeredAction;
-					final NodeInterface domElementNode         = StructrApp.getInstance().get("DOMElement", entity.getUuid());
+					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById("DOMElement", entity.getUuid());
 					final DOMElement domElement                = domElementNode.as(DOMElement.class);
 					final List<ActionMapping> triggeredActions = Iterables.toList(domElement.getTriggeredActions());
 
@@ -1497,7 +1496,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 		}
 
 		// load child node
-		final NodeInterface child = StructrApp.getInstance(securityContext).get("DOMNode", childId);
+		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById("DOMNode", childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child (object with ID not found or not a DOMNode).");
@@ -1540,7 +1539,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 		}
 
 		// load child node
-		final NodeInterface child = StructrApp.getInstance(securityContext).get("DOMNode", childId);
+		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById("DOMNode", childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child (object with ID not found or not a DOMNode).");
@@ -1580,7 +1579,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
 		}
 
-		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).get("NodeInterface", sourceObjectId);
+		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", sourceObjectId);
 		if (sourceObject == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
@@ -1638,7 +1637,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 		}
 
 		// load child node
-		final NodeInterface child = StructrApp.getInstance(securityContext).get("DOMNode", childId);
+		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById("DOMNode", childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
@@ -1650,7 +1649,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
 		}
 
-		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).get("NodeInterface", sourceObjectId);
+		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", sourceObjectId);
 		if (sourceObject == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");

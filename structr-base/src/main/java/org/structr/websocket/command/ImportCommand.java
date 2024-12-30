@@ -91,7 +91,7 @@ public class ImportCommand extends AbstractCommand {
 					if (withTemplate) {
 
 						final App app                   = StructrApp.getInstance(securityContext);
-						final NodeInterface newPageNode = app.get("Page", pageId);
+						final NodeInterface newPageNode = app.getNodeById("Page", pageId);
 						final RenderContext ctx         = new RenderContext(securityContext);
 						final StringRenderBuffer buffer = new StringRenderBuffer();
 						final Page newPage              = newPageNode.as(Page.class);

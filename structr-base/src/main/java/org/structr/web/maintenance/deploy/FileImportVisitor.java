@@ -26,11 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -38,9 +35,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -129,7 +124,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final Map<String, Object> raw = getRawPropertiesForFileOrFolder(path);
 			if (raw != null) {
 
-				final NodeInterface existingFolder = app.get("Folder", (String) raw.get("id"));
+				final NodeInterface existingFolder = app.getNodeById("Folder", (String) raw.get("id"));
 				if (existingFolder != null) {
 
 					this.folderCache.put(path, existingFolder);
@@ -232,7 +227,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					skipFile = true;
 				}
 
-				NodeInterface file = app.get("File", fileProperties.get(traits.key("id")));
+				NodeInterface file = app.getNodeById("File", fileProperties.get(traits.key("id")));
 				if (file != null) {
 
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
@@ -312,7 +307,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (newFileUuid != null) {
 
-					final NodeInterface createdFile = app.get("File", newFileUuid);
+					final NodeInterface createdFile = app.getNodeById("File", newFileUuid);
 					String type                     = createdFile.getType();
 					boolean isImage                 = createdFile instanceof Image;
 

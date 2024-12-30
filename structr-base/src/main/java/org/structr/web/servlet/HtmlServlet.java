@@ -34,13 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.PathHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -80,7 +78,6 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -1206,7 +1203,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		// Check direct access by UUID
 		if (name.length() == 32) {
 
-			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).get("NodeInterface", name);
+			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", name);
 
 			if (possiblePage != null && possiblePage instanceof Page && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), (Page) possiblePage))) {
 
@@ -1433,7 +1430,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (!uuid.isEmpty()) {
 
-			final NodeInterface node = StructrApp.getInstance(securityContext).get("NodeInterface", uuid);
+			final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", uuid);
 			if (node != null) {
 
 				return List.of(node.as(Linkable.class));
@@ -1870,7 +1867,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					// find and instantiate the page again so that the SuperUserSecurityContext
 					// can not leak into any of the children of the given page. This is dangerous..
-					final NodeInterface page = StructrApp.getInstance(securityContext).get("Linkable", possiblePage.getUuid());
+					final NodeInterface page = StructrApp.getInstance(securityContext).getNodeById("Linkable", possiblePage.getUuid());
 					if (page != null) {
 
 						securityContext.setRequest(request);

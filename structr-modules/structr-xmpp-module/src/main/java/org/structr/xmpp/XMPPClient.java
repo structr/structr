@@ -307,7 +307,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			final XMPPClient client = StructrApp.getInstance().get(XMPPClient.class, uuid);
+			final XMPPClient client = StructrApp.getInstance().getNodeById(XMPPClient.class, uuid);
 			if (client != null) {
 
 				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
@@ -338,7 +338,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			final XMPPClient client = StructrApp.getInstance().get(XMPPClient.class, uuid);
+			final XMPPClient client = StructrApp.getInstance().getNodeById(XMPPClient.class, uuid);
 			if (client != null) {
 
 				app.create(XMPPRequest.class,

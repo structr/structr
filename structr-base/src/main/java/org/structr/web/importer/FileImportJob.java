@@ -196,7 +196,7 @@ abstract class FileImportJob extends ScheduledJob {
 
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.get("File", fileUuid).as(File.class);
+			final File file = app.getNodeById("File", fileUuid).as(File.class);
 			is              = file.getInputStream();
 
 			tx.success();

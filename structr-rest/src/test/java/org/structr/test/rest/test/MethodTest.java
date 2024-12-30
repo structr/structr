@@ -438,7 +438,7 @@ public class MethodTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Class type       = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
-			final GraphObject node = app.get(type, uuid);
+			final GraphObject node = app.getNodeById(type, uuid);
 
 			try {
 

@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -170,7 +169,7 @@ public class TemplateImporter extends HtmlFileImporter {
 
 					logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
 
-					final NodeInterface existingTemplate = app.get("DOMNode", templateName);
+					final NodeInterface existingTemplate = app.getNodeById("DOMNode", templateName);
 					if (existingTemplate != null) {
 
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
@@ -186,7 +185,7 @@ public class TemplateImporter extends HtmlFileImporter {
 
 					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
 
-					final NodeInterface existingTemplate = app.get("DOMNode", uuid);
+					final NodeInterface existingTemplate = app.getNodeById("DOMNode", uuid);
 					if (existingTemplate != null) {
 
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));

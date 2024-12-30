@@ -81,7 +81,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface fileNode = app.get("File", id);
+				final NodeInterface fileNode = app.getNodeById("File", id);
 
 				if (fileNode == null) {
 					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
