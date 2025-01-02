@@ -1055,7 +1055,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @return node
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findFirstNodeByName(final SecurityContext securityContext, final String path) throws FrameworkException {
+	private NodeInterface findFirstNodeByName(final SecurityContext securityContext, final String path) throws FrameworkException {
 
 		final String name = PathHelper.getName(path);
 
@@ -1063,7 +1063,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested name: {}", name);
 
-			final Query<AbstractNode> query    = StructrApp.getInstance(securityContext).nodeQuery("AbstractNode");
+			final Query<NodeInterface> query    = StructrApp.getInstance(securityContext).nodeQuery("NodeInterface");
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {

@@ -47,7 +47,7 @@ public interface App extends Closeable {
 	NodeInterface create(final String type, final PropertyMap properties) throws FrameworkException;
 	NodeInterface create(final String type, final NodeAttribute<?>... attributes) throws FrameworkException;
 
-	<T extends NodeInterface> void deleteAllNodesOfType(final String type) throws FrameworkException;
+	void deleteAllNodesOfType(final String type) throws FrameworkException;
 	void delete(final NodeInterface node) throws FrameworkException;
 
 	RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException;
@@ -60,11 +60,11 @@ public interface App extends Closeable {
 	RelationshipInterface getRelationshipById(final String type, final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
 
-	Query<? extends NodeInterface> nodeQuery();
-	<T extends NodeInterface> Query<T> nodeQuery(final String type);
+	Query<NodeInterface> nodeQuery();
+	Query<NodeInterface> nodeQuery(final String type);
 
-	Query<? extends RelationshipInterface> relationshipQuery();
-	<T extends RelationshipInterface> Query<T> relationshipQuery(final String type);
+	Query<RelationshipInterface> relationshipQuery();
+	Query<RelationshipInterface> relationshipQuery(final String type);
 
 	void shutdown();
 

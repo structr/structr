@@ -32,15 +32,16 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.web.entity.User;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.test.core.entity.*;
+import org.structr.core.traits.Traits;
+import org.structr.test.core.entity.OneThreeOneToOne;
+import org.structr.test.core.entity.TestOne;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -1445,14 +1446,14 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				node = app.create("GroupTraitDefinition", props);
+				node = app.create("Group", props);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
 				// Check defaults
-				assertEquals(GroupTraitDefinition.class.getSimpleName(), node.getProperty(Traits.of("NodeInterface").key("type")));
+				assertEquals(Group.class.getSimpleName(), node.getProperty(Traits.of("NodeInterface").key("type")));
 				assertTrue(node.getProperty(Traits.of("NodeInterface").key("name")).equals(name));
 				assertTrue(node.getProperty(key));
 			}
@@ -1807,12 +1808,13 @@ public class BasicTest extends StructrTest {
 		}
 
 		final SecurityContext ctx = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
+		final Traits traits       = Traits.of("RelationshipInterface");
 		final App app             = StructrApp.getInstance(ctx);
 
 		// create object with user context
 		try (final Tx tx = app.tx()) {
 
-			test = app.create("TestOne"));
+			test = app.create("TestOne");
 
 			tx.success();
 
@@ -1824,28 +1826,28 @@ public class BasicTest extends StructrTest {
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
-			final List<? extends RelationshipInterface> rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
-			final List<Class> classes1                        = rels1.stream().map(r -> r.getClass()).collect(Collectors.toList());
+			final List<RelationshipInterface> rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
+			final Set<String> classes1              = rels1.stream().map(r -> r.getType()).collect(Collectors.toSet());
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
-			assertTrue("Invalid relationship type after object creation", classes1.contains(SecurityRelationship.class));
-			assertTrue("Invalid relationship type after object creation", classes1.contains(PrincipalOwnsNode.class));
+			assertTrue("Invalid relationship type after object creation", classes1.contains("SecurityRelationship"));
+			assertTrue("Invalid relationship type after object creation", classes1.contains("PrincipalOwnsNode"));
 
-			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
+			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(traits.key("targetId"), test.getUuid()).getAsList();
 			final List<Class> classes2                        = rels2.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
-			assertTrue("Invalid relationship type after object creation", classes2.contains(SecurityRelationship.class));
-			assertTrue("Invalid relationship type after object creation", classes2.contains(PrincipalOwnsNode.class));
+			assertTrue("Invalid relationship type after object creation", classes2.contains("SecurityRelationship"));
+			assertTrue("Invalid relationship type after object creation", classes2.contains("PrincipalOwnsNode"));
 
 			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
 			final List<Class> classes3                        = rels3.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());
-			assertTrue("Invalid relationship type after object creation", classes3.contains(SecurityRelationship.class));
-			assertTrue("Invalid relationship type after object creation", classes3.contains(PrincipalOwnsNode.class));
+			assertTrue("Invalid relationship type after object creation", classes3.contains("SecurityRelationship"));
+			assertTrue("Invalid relationship type after object creation", classes3.contains("PrincipalOwnsNode"));
 
-			final Security sec = app.relationshipQuery(SecurityRelationship.class).getFirst();
+			final RelationshipInterface sec = app.relationshipQuery("SecurityRelationship").getFirst();
 			assertNotNull("Relationship caching on node creation is broken", sec);
 
-			final PrincipalOwnsNode owns = app.relationshipQuery(PrincipalOwnsNode.class).getFirst();
+			final RelationshipInterface owns = app.relationshipQuery("PrincipalOwnsNode").getFirst();
 			assertNotNull("Relationship caching on node creation is broken", owns);
 
 			tx.success();
@@ -1882,15 +1884,16 @@ public class BasicTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
+		final SecurityContext ctx = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
+		final Traits traits       = Traits.of("RelationshipInterface");
 		final App app             = StructrApp.getInstance(ctx);
 
 		String uuid = null;
 
-		List<? extends RelationshipInterface> rels1 = Collections.EMPTY_LIST;
-		List<? extends RelationshipInterface> rels2 = Collections.EMPTY_LIST;
-		List<? extends RelationshipInterface> rels3 = Collections.EMPTY_LIST;
-		List<? extends RelationshipInterface> rels4 = Collections.EMPTY_LIST;
+		List<RelationshipInterface> rels1 = Collections.EMPTY_LIST;
+		List<RelationshipInterface> rels2 = Collections.EMPTY_LIST;
+		List<RelationshipInterface> rels3 = Collections.EMPTY_LIST;
+		List<RelationshipInterface> rels4 = Collections.EMPTY_LIST;
 
 		// create object with user context
 		try (final Tx tx = app.tx()) {
@@ -1898,8 +1901,8 @@ public class BasicTest extends StructrTest {
 			test = app.create("TestThirteen");
 			uuid = test.getUuid();
 
-			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
-			rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
+			rels2 = app.relationshipQuery().and(traits.key("targetId"), test.getUuid()).getAsList();
 			rels3 = Iterables.toList(test.getIncomingRelationships());
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
 
@@ -1921,7 +1924,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface test2 = app.getNodeById("TestThirteen", uuid);
 			assertNull(test2);
 
-			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
 
 			System.out.println("rels1: " + rels1.size());
@@ -1943,18 +1946,16 @@ public class BasicTest extends StructrTest {
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
-			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
-			final List<Class> classes1                        = rels1.stream().map(r -> r.getClass()).collect(Collectors.toList());
+			rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
 			assertEquals("Invalid number of relationships after object creation", 0, rels1.size());
 
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
-			final List<Class> classes4                        = rels4.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 0, rels4.size());
 
-			final Security sec = app.relationshipQuery(SecurityRelationship.class).getFirst();
+			final RelationshipInterface sec = app.relationshipQuery("SecurityRelationship").getFirst();
 			assertNull("Relationship caching on node creation is broken", sec);
 
-			final PrincipalOwnsNode owns = app.relationshipQuery(PrincipalOwnsNode.class).getFirst();
+			final RelationshipInterface owns = app.relationshipQuery("PrincipalOwnsNode").getFirst();
 			assertNull("Relationship caching on node creation is broken", owns);
 
 			tx.success();
@@ -1979,7 +1980,7 @@ public class BasicTest extends StructrTest {
 			for (int i=0; i<10; i++) {
 
 				final NodeInterface testThree = createTestNode("TestThree", new NodeAttribute<>(Traits.of("TestThree").key("oneToManyTestSix"), testSix));
-				final RelationshipInterface rel = testThree.getRelationships(SixThreeOneToMany.class).iterator().next();
+				final RelationshipInterface rel = testThree.getRelationships("SixThreeOneToMany").iterator().next();
 
 				if (i%2 == 0) {
 					rel.getRelationship().setProperty("internalTimestamp", null);
@@ -1998,14 +1999,9 @@ public class BasicTest extends StructrTest {
 			final NodeInterface testSix = app.getNodeById("TestSix", id);
 
 			// This calls NodeWrapper#toList internally
-			List<OneTwoOneToOne> rels = Iterables.toList(testSix.getRelationships());
+			List<RelationshipInterface> rels = Iterables.toList(testSix.getRelationships());
 
 			assertEquals("Wrong number of relationships", 10, rels.size());
-
-			for (RelationshipInterface rel : rels) {
-				System.out.println(rel.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(RelationshipInterface.class, "internalTimestamp")));
-			}
-
 
 			tx.success();
 
@@ -2112,9 +2108,9 @@ public class BasicTest extends StructrTest {
 		// create object with user context
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid create node result",       "test", test.getProperty(Traits.of("NodeInterface").key("name")));
-			assertEquals("Invalid create node result", Boolean.TRUE, test.getProperty(GraphObject.visibleToPublicUsers));
-			assertEquals("Invalid create node result", Boolean.TRUE, test.getProperty(GraphObject.visibleToAuthenticatedUsers));
+			assertEquals("Invalid create node result", "test", test.getProperty(Traits.of("NodeInterface").key("name")));
+			assertTrue("Invalid create node result",  test.isVisibleToPublicUsers());
+			assertTrue("Invalid create node result",  test.isVisibleToAuthenticatedUsers());
 			assertEquals("Invalid create node result", Boolean.TRUE, test.getProperty(Traits.of("NodeInterface").key("hidden")));
 
 			tx.success();

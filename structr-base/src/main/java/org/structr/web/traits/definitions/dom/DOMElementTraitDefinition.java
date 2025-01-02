@@ -645,7 +645,7 @@ public class DOMElementTraitDefinition extends AbstractTraitDefinition {
 							case NONE:
 
 								// Get actions in superuser context
-								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById("DOMElement", uuid);
+								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById("DOMElement", uuid).as(DOMElement.class);
 								final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getTriggeredActions();
 								final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
 								boolean outputStructrId = false;

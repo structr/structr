@@ -438,7 +438,7 @@ public class AccessControlTest extends StructrTest {
 
 				t.setProperty(Traits.of("TestOne").key("aString"), "aString");
 
-				assertEquals("aString", t.getProperty(TestOne.aString));
+				assertEquals("aString", t.getProperty(Traits.of("TestOne").key("aString")));
 
 				tx.success();
 			}
@@ -478,7 +478,7 @@ public class AccessControlTest extends StructrTest {
 				assertNotNull(t);
 
 				t.setProperty(Traits.of("TestOne").key("aString"), "aString");
-				assertEquals("aString", t.getProperty(TestOne.aString));
+				assertEquals("aString", t.getProperty(Traits.of("TestOne").key("aString")));
 
 				tx.success();
 			}

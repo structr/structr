@@ -20,12 +20,10 @@ package org.structr.core.graph;
 
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.RelationshipTrait;
 import org.structr.schema.NonIndexed;
 
 /**

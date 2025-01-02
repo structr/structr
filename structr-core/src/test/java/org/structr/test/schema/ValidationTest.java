@@ -22,11 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -34,7 +29,6 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
@@ -662,7 +656,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create some nodes with identical names
-			app.create("GroupTraitDefinition",   "unique");
+			app.create("Group",   "unique");
 			app.create("TestOne", "unique");
 
 			tx.success();
@@ -2166,7 +2160,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
-			final NodeInterface group      = app.create("GroupTraitDefinition", "Group1");
+			final NodeInterface group      = app.create("Group", "Group1");
 
 			app.create("SchemaGrant", new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"), group), new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"), schemaNode));
 			app.create("SchemaGrant", new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"), group), new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"), schemaNode));
@@ -2194,8 +2188,8 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a second group with name Group1
-			app.create("GroupTraitDefinition", "Group1");
-			app.create("GroupTraitDefinition", "Group1");
+			app.create("Group", "Group1");
+			app.create("Group", "Group1");
 
 			tx.success();
 
