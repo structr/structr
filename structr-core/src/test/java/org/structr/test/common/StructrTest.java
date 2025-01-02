@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -34,20 +35,21 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.test.core.entity.TestOneTraitDefinition;
 import org.testng.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -154,6 +156,12 @@ public class StructrTest {
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
+	}
+
+	@BeforeClass(alwaysRun = true)
+	public void createSchema() {
+
+		StructrTraits.registerNodeType("TestOne", new TestOneTraitDefinition());
 	}
 
 	@AfterClass(alwaysRun = true)
@@ -420,7 +428,7 @@ public class StructrTest {
 		}
 	}
 
-	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {

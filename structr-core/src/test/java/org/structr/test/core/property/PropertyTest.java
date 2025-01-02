@@ -34,12 +34,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.function.CryptFunction;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.core.traits.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
@@ -64,8 +65,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<String[]> instance = TestFour.stringArrayProperty;
-			final TestFour testEntity         = createTestNode("TestFour");
+			final PropertyKey<String[]> instance = TestFour.stringArrayProperty;
+			final NodeInterface testEntity    = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -105,7 +106,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, arr1);
 
-			TestFour testEntity = null;
+			NodeInterface testEntity = null;
 			try (final Tx tx = app.tx()) {
 				testEntity = createTestNode("TestFour", properties);
 				tx.success();
@@ -114,7 +115,7 @@ public class PropertyTest extends StructrTest {
 			assertNotNull(testEntity);
 
 
-			List<TestFour> result = null;
+			List<NodeInterface> result = null;
 			try (final Tx tx = app.tx()) {
 
 				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}).getAsList();
@@ -169,8 +170,8 @@ public class PropertyTest extends StructrTest {
 		try {
 
 
-			final Property<Boolean> key = TestFour.booleanProperty;
-			final TestFour testEntity        = createTestNode("TestFour");
+			final PropertyKey<Boolean> key = TestFour.booleanProperty;
+			final NodeInterface testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -205,7 +206,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, true);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -214,7 +215,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, true).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, true).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -232,14 +233,14 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode("TestOne");
-			final TestFour testFour      = createTestNode("TestFour");
-			final Property<Boolean> key = OneFourOneToOne.booleanProperty;
+			final NodeInterface testOne    = createTestNode("TestOne");
+			final NodeInterface testFour   = createTestNode("TestFour");
+			final PropertyKey<Boolean> key = OneFourOneToOne.booleanProperty;
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 
-			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
+			final RelationshipInterface testEntity = createTestRelationship(testOne, testFour, "OneFourOneToOne");
 
 			assertNotNull(testEntity);
 
@@ -254,7 +255,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
 
-				List<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, true).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, true).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -270,9 +271,9 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testOneToManyOnCollectionProperty() throws Exception {
 
-		TestOne testOne                   = null;
-		Iterable<TestSix> testSixs        = null;
-		Iterable<TestSix> testSixs2       = null;
+		NodeInterface testOne                   = null;
+		Iterable<NodeInterface> testSixs        = null;
+		Iterable<NodeInterface> testSixs2       = null;
 		int index                         = 0;
 
 		List<Integer> index1              = new LinkedList<>();
@@ -283,7 +284,7 @@ public class PropertyTest extends StructrTest {
 			testOne        = createTestNode("TestOne");
 			testSixs       = createTestNodes("TestSix", 20);
 
-			for (final TestSix testSix : testSixs) {
+			for (final NodeInterface testSix : testSixs) {
 				int i = index++;
 				testSix.setProperty(Traits.of("TestSix").key("index"), i);
 				System.out.print(i + ", ");
@@ -300,10 +301,10 @@ public class PropertyTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			testSixs2 = testOne.getProperty(TestOne.manyToManyTestSixs);
+			testSixs2 = testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"));
 
-			for (final TestSix testSix : testSixs2) {
-				int i = testSix.getProperty(TestSix.index);
+			for (final NodeInterface testSix : testSixs2) {
+				int i = testSix.getProperty(Traits.of("TestSix").key("index"));
 				index2.add(i);
 			}
 
@@ -322,11 +323,11 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
-			TestSix testSix1  = null;
-			TestSix testSix2  = null;
-			TestOne testOne1  = null;
-			TestOne testOne2  = null;
+			PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
+			NodeInterface testSix1  = null;
+			NodeInterface testSix2  = null;
+			NodeInterface testOne1  = null;
+			NodeInterface testOne2  = null;
 
 			testSix1 = createTestNode("TestSix");
 			testSix2 = createTestNode("TestSix");
@@ -340,7 +341,7 @@ public class PropertyTest extends StructrTest {
 			assertNotNull(testOne2);
 
 			// set two TestOne entities on both TestSix entities
-			List<TestOne> twoTestOnesList = new LinkedList<>();
+			List<NodeInterface> twoTestOnesList = new LinkedList<>();
 			twoTestOnesList.add(testOne1);
 			twoTestOnesList.add(testOne2);
 
@@ -348,13 +349,14 @@ public class PropertyTest extends StructrTest {
 
 				instance.setProperty(securityContext, testSix1, twoTestOnesList);
 				instance.setProperty(securityContext, testSix2, twoTestOnesList);
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestOne> testOnesFromTestSix1 = Iterables.toList(instance.getProperty(securityContext, testSix1, true));
-				List<TestOne> testOnesFromTestSix2 = Iterables.toList(instance.getProperty(securityContext, testSix2, true));
+				List<NodeInterface> testOnesFromTestSix1 = Iterables.toList(instance.getProperty(securityContext, testSix1, true));
+				List<NodeInterface> testOnesFromTestSix2 = Iterables.toList(instance.getProperty(securityContext, testSix2, true));
 
 				assertNotNull(testOnesFromTestSix1);
 				assertNotNull(testOnesFromTestSix2);
@@ -362,10 +364,12 @@ public class PropertyTest extends StructrTest {
 				// both entities should have the two related nodes
 				assertEquals(2, testOnesFromTestSix1.size());
 				assertEquals(2, testOnesFromTestSix2.size());
+
+				tx.success();
 			}
 
 			// create new list with one TestOne entity
-			List<TestOne> oneTestOneList = new LinkedList<>();
+			List<NodeInterface> oneTestOneList = new LinkedList<>();
 			oneTestOneList.add(testOne1);
 
 			try (final Tx tx = app.tx()) {
@@ -377,13 +381,15 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestOne> oneTestOnesFromTestSix1 = Iterables.toList(instance.getProperty(securityContext, testSix1, true));
+				List<NodeInterface> oneTestOnesFromTestSix1 = Iterables.toList(instance.getProperty(securityContext, testSix1, true));
 
 				// entity should have exactly one related node
 				assertNotNull(oneTestOnesFromTestSix1);
 				assertEquals(1, oneTestOnesFromTestSix1.size());
 
 				assertEquals(oneTestOnesFromTestSix1.get(0).getUuid(), testOne1.getUuid());
+
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
@@ -398,9 +404,10 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testTypeNameOnCollectionProperty() {
 
-		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
-		String expResult = "collection";
-		String result = instance.typeName();
+		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
+		String expResult                              = "collection";
+		String result                                 = instance.typeName();
+
 		assertEquals(expResult, result);
 	}
 
@@ -410,9 +417,10 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testDatabaseConverterOnCollectionProperty() {
 
-		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
-		PropertyConverter expResult = null;
-		PropertyConverter result = instance.databaseConverter(securityContext, null);
+		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
+		PropertyConverter expResult                   = null;
+		PropertyConverter result                      = instance.databaseConverter(securityContext, null);
+
 		assertEquals(expResult, result);
 	}
 
@@ -422,7 +430,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testInputConverterOnCollectionProperty() {
 
-		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
+		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
 		PropertyConverter result = instance.inputConverter(securityContext);
 
 		assertTrue(result != null);
@@ -434,9 +442,10 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testRelatedTypeOnCollectionProperty() {
 
-		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
-		Class expResult = TestOne.class;
-		Class result = instance.relatedType();
+		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
+		String expResult                              = "TestOne";
+		String result                                 = instance.relatedType();
+
 		assertEquals(expResult, result);
 	}
 
@@ -446,9 +455,10 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testIsCollectionOnCollectionProperty() {
 
-		Property<Iterable<TestOne>> instance = TestSix.manyToManyTestOnes;
-		boolean expResult = true;
-		boolean result = instance.isCollection();
+		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
+		boolean expResult                             = true;
+		boolean result                                = instance.isCollection();
+
 		assertEquals(expResult, result);
 	}
 
@@ -458,8 +468,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Date> instance = TestFour.dateProperty;
-			final TestFour testEntity     = createTestNode("TestFour");
+			final PropertyKey<Date> instance = TestFour.dateProperty;
+			final NodeInterface testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -489,8 +499,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Date[]> instance = TestFour.dateArrayProperty;
-			final TestFour testEntity         = createTestNode("TestFour");
+			final PropertyKey<Date[]> instance = TestFour.dateArrayProperty;
+			final NodeInterface testEntity         = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -527,7 +537,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key,value);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -536,7 +546,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, value).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, value).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -563,7 +573,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, value);
 
-			final TestFour testEntity = createTestNode("TestFour", properties);
+			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -572,7 +582,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, minValue, maxValue).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, minValue, maxValue).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -582,7 +592,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, maxValue, maxMaxValue).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, maxValue, maxMaxValue).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -602,8 +612,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Double> instance = TestFour.doubleProperty;
-			final TestFour testEntity        = createTestNode("TestFour");
+			final PropertyKey<Double> instance = TestFour.doubleProperty;
+			final NodeInterface testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -633,7 +643,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Double> instance = TestFour.doubleProperty;
+			final PropertyKey<Double> instance = TestFour.doubleProperty;
 			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -670,7 +680,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 3.141592653589793238);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -679,7 +689,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(3.141592653589793238, testEntity.getProperty(key), 0.0);
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, 3.141592653589793238).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, 3.141592653589793238).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -735,7 +745,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, Double.NEGATIVE_INFINITY);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -744,7 +754,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.NEGATIVE_INFINITY, testEntity.getProperty(key), 0.0);
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, Double.NEGATIVE_INFINITY).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, Double.NEGATIVE_INFINITY).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -767,7 +777,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, Double.POSITIVE_INFINITY);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -776,7 +786,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.POSITIVE_INFINITY, testEntity.getProperty(key), 0.0);
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, Double.POSITIVE_INFINITY).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, Double.POSITIVE_INFINITY).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -794,14 +804,14 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne      = createTestNode("TestOne");
-			final TestFour testFour    = createTestNode("TestFour");
-			final Property<Double> key = OneFourOneToOne.doubleProperty;
+			final NodeInterface testOne      = createTestNode("TestOne");
+			final NodeInterface testFour    = createTestNode("TestFour");
+			final PropertyKey<Double> key = OneFourOneToOne.doubleProperty;
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 
-			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
+			final RelationshipInterface testEntity = createTestRelationship(testOne, testFour, "OneFourOneToOne");
 
 			assertNotNull(testEntity);
 
@@ -816,7 +826,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(3.141592653589793238, testEntity.getProperty(key), 0.0);
 
-				List<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 3.141592653589793238).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, 3.141592653589793238).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -834,11 +844,11 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties = new PropertyMap();
-			final Property<Double> key   = OneFourOneToOne.doubleProperty;
+			final PropertyKey<Double> key   = OneFourOneToOne.doubleProperty;
 
 			properties.put(key, 123456.2);
 
-			final TestFour testEntity = createTestNode("TestFour", properties);
+			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -847,7 +857,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Double)123456.2, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123455.1, 123457.6).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455.1, 123457.6).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -857,7 +867,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123456.3, 123456.7).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123456.3, 123456.7).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -877,10 +887,10 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestSix a   = createTestNode("TestSix");
-			final TestSix c   = createTestNode("TestSix");
-			final TestThree b = createTestNode("TestThree");
-			final TestThree d = createTestNode("TestThree");
+			final NodeInterface a   = createTestNode("TestSix");
+			final NodeInterface c   = createTestNode("TestSix");
+			final NodeInterface b = createTestNode("TestThree");
+			final NodeInterface d = createTestNode("TestThree");
 
 			try (final Tx tx = app.tx()) {
 
@@ -928,8 +938,8 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connections
-				TestThree verifyB = a.getProperty(TestSix.oneToOneTestThree);
-				TestThree verifyD = c.getProperty(TestSix.oneToOneTestThree);
+				TestThree verifyB = a.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
+				TestThree verifyD = c.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
 
 				assertTrue(verifyB != null && verifyB.equals(b));
 				assertTrue(verifyD != null && verifyD.equals(d));
@@ -950,11 +960,11 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connection
-				TestThree verifyD2 = a.getProperty(TestSix.oneToOneTestThree);
+				TestThree verifyD2 = a.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
 				assertTrue(verifyD2 != null && verifyD2.equals(d));
 
 				// testSix2 should not have a testThree associated
-				TestThree vrfy4 = c.getProperty(TestSix.oneToOneTestThree);
+				TestThree vrfy4 = c.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
 				assertNull(vrfy4);
 			}
 
@@ -968,10 +978,10 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestSix testSix1     = createTestNode("TestSix");
-			final TestSix testSix2     = createTestNode("TestSix");
-			final TestThree testThree1 = createTestNode("TestThree");
-			final TestThree testThree2 = createTestNode("TestThree");
+			final NodeInterface testSix1     = createTestNode("TestSix");
+			final NodeInterface testSix2     = createTestNode("TestSix");
+			final NodeInterface testThree1 = createTestNode("TestThree");
+			final NodeInterface testThree2 = createTestNode("TestThree");
 
 			try (final Tx tx = app.tx()) {
 
@@ -1017,11 +1027,13 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connections
-				List<TestThree> verifyB = Iterables.toList(testSix1.getProperty(TestSix.oneToManyTestThrees));
-				List<TestThree> verifyD = Iterables.toList(testSix2.getProperty(TestSix.oneToManyTestThrees));
+				List<TestThree> verifyB = Iterables.toList((Iterable)testSix1.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
+				List<TestThree> verifyD = Iterables.toList((Iterable)testSix2.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
 
 				assertTrue(verifyB != null && verifyB.get(0).equals(testThree1));
 				assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
+
+				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -1039,13 +1051,15 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connection
-				List<TestThree> verifyD2 = Iterables.toList(testSix1.getProperty(TestSix.oneToManyTestThrees));
+				List<NodeInterface> verifyD2 = Iterables.toList((Iterable)testSix1.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
 				assertEquals(1, verifyD2.size());
 				assertEquals(testThree2, verifyD2.get(0));
 
 				// testSix2 should not have a testThree associated
-				List<TestThree> vrfy4 = Iterables.toList(testSix2.getProperty(TestSix.oneToManyTestThrees));
+				List<NodeInterface> vrfy4 = Iterables.toList((Iterable)testSix2.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
 				assertEquals(0, vrfy4.size());
+
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
@@ -1092,8 +1106,9 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testRelatedTypeOnEntityProperty() {
 
-		Class expResult = TestThree.class;
-		Class result = TestSix.oneToOneTestThree.relatedType();
+		String expResult = "TestThree";
+		String result    = Traits.of("TestSix").key("oneToOneTestThree").relatedType();
+
 		assertEquals(expResult, result);
 	}
 
@@ -1104,7 +1119,8 @@ public class PropertyTest extends StructrTest {
 	public void testIsCollectionOnEntityProperty() {
 
 		boolean expResult = false;
-		boolean result = TestSix.oneToOneTestThree.isCollection();
+		boolean result    = Traits.of("TestSix").key("oneToOneTestThree").isCollection();
+
 		assertEquals(expResult, result);
 	}
 
@@ -1114,18 +1130,18 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties    = new PropertyMap();
+			final PropertyMap properties = new PropertyMap();
 
 			properties.put(TestFour.enumProperty, TestEnum.Status1);
 
-			final TestFour testEntity        = createTestNode("TestFour", properties);
+			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
-				assertEquals(TestEnum.Status1, testEntity.getProperty(TestFour.enumProperty));
+				assertEquals(TestEnum.Status1, testEntity.getProperty(Traits.of("TestFour").key("enumProperty")));
 			}
 
 		} catch (FrameworkException fex) {
@@ -1139,12 +1155,12 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties  = new PropertyMap();
+			final PropertyMap properties    = new PropertyMap();
 			final PropertyKey<TestEnum> key = TestFour.enumProperty;
 
 			properties.put(key, TestEnum.Status1);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1153,7 +1169,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, TestEnum.Status1).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, TestEnum.Status1).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1171,14 +1187,14 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode("TestOne");
-			final TestFour testFour      = createTestNode("TestFour");
-			final Property<TestEnum> key = OneFourOneToOne.enumProperty;
+			final NodeInterface testOne        = createTestNode("TestOne");
+			final NodeInterface testFour      = createTestNode("TestFour");
+			final PropertyKey<TestEnum> key = OneFourOneToOne.enumProperty;
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 
-			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
+			final RelationshipInterface testEntity = createTestRelationship(testOne, testFour, "OneFourOneToOne");
 
 			assertNotNull(testEntity);
 
@@ -1193,7 +1209,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
 
-				List<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, TestEnum.Status1).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, TestEnum.Status1).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1237,8 +1253,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Integer> instance = TestFour.integerProperty;
-			final TestFour testEntity        = createTestNode("TestFour");
+			final PropertyKey<Integer> instance = TestFour.integerProperty;
+			final NodeInterface testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1273,7 +1289,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 2345);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1282,7 +1298,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, 2345).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, 2345).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1300,14 +1316,14 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode("TestOne");
-			final TestFour testFour      = createTestNode("TestFour");
-			final Property<Integer> key = OneFourOneToOne.integerProperty;
+			final NodeInterface testOne        = createTestNode("TestOne");
+			final NodeInterface testFour      = createTestNode("TestFour");
+			final PropertyKey<Integer> key = OneFourOneToOne.integerProperty;
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 
-			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
+			final RelationshipInterface testEntity = createTestRelationship(testOne, testFour, "OneFourOneToOne");
 
 			assertNotNull(testEntity);
 
@@ -1322,7 +1338,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 
-				List<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 2345).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, 2345).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1340,11 +1356,11 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties = new PropertyMap();
-			final Property<Integer> key  = OneFourOneToOne.integerProperty;
+			final PropertyKey<Integer> key  = OneFourOneToOne.integerProperty;
 
 			properties.put(key, 123456);
 
-			final TestFour testEntity = createTestNode("TestFour", properties);
+			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1353,7 +1369,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)123456, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123455, 123457).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455, 123457).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1363,7 +1379,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123457, 123458).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123457, 123458).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1383,8 +1399,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Long> instance = TestFour.longProperty;
-			final TestFour testEntity     = createTestNode("TestFour");
+			final PropertyKey<Long> instance = TestFour.longProperty;
+			final NodeInterface testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1419,7 +1435,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 2857312362L);
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1428,7 +1444,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, 2857312362L).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, 2857312362L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1446,14 +1462,14 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode("TestOne");
-			final TestFour testFour      = createTestNode("TestFour");
-			final Property<Long> key = OneFourOneToOne.longProperty;
+			final NodeInterface testOne        = createTestNode("TestOne");
+			final NodeInterface testFour      = createTestNode("TestFour");
+			final PropertyKey<Long> key = OneFourOneToOne.longProperty;
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 
-			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
+			final RelationshipInterface testEntity = createTestRelationship(testOne, testFour, "OneFourOneToOne");
 
 			assertNotNull(testEntity);
 
@@ -1468,7 +1484,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
-				List<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 2857312362L).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, 2857312362L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1490,7 +1506,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, 123456L);
 
-			final TestFour testEntity = createTestNode("TestFour", properties);
+			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1499,7 +1515,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)123456L, testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123455L, 123457L).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455L, 123457L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1509,7 +1525,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestFour> result = app.nodeQuery("TestFour").andRange(key, 123457L, 123458L).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123457L, 123458L).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1529,8 +1545,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<String> instance = TestFour.stringProperty;
-			final TestFour testEntity        = createTestNode("TestFour");
+			final PropertyKey<String> instance = TestFour.stringProperty;
+			final NodeInterface testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1565,7 +1581,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "test");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1574,7 +1590,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
 
 				assertEquals(result.size(), 1);
 				assertEquals(result.get(0), testEntity);
@@ -1597,7 +1613,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "test\nabc");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1606,7 +1622,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test\nabc", testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test\nabc").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test\nabc").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1629,7 +1645,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "test\nabc");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1638,7 +1654,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test\nabc", testEntity.getProperty(key));
 
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
 
 				assertEquals(0, result.size());
 			}
@@ -1660,7 +1676,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "xyz\ntest\nabc");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1670,7 +1686,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\ntest\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1693,7 +1709,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "xyz\r\ntest\r\nabc");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1703,7 +1719,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\r\ntest\r\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1726,7 +1742,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "{\n return fooBar;\n}");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1736,7 +1752,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("{\n return fooBar;\n}", testEntity.getProperty(key));
 
 				// inexact search
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "foo", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "foo", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1759,7 +1775,7 @@ public class PropertyTest extends StructrTest {
 
 			properties.put(key, "xyz\r\nTeSt\r\nabc");
 
-			final TestFour testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity     = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
@@ -1769,7 +1785,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\r\nTeSt\r\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<TestFour> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1787,14 +1803,14 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne        = createTestNode("TestOne");
-			final TestFour testFour      = createTestNode("TestFour");
-			final Property<String> key   = OneFourOneToOne.stringProperty;
+			final NodeInterface testOne   = createTestNode("TestOne");
+			final NodeInterface testFour  = createTestNode("TestFour");
+			final PropertyKey<String> key = OneFourOneToOne.stringProperty;
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 
-			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
+			final RelationshipInterface testEntity = createTestRelationship(testOne, testFour, "OneFourOneToOne");
 
 			assertNotNull(testEntity);
 
@@ -1809,7 +1825,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
 
-				List<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, "test").getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, "test").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1841,7 +1857,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create entity of typeProperty TestFour
-			final TestFour testEntity = createTestNode("TestFour");
+			final NodeInterface testEntity = createTestNode("TestFour");
 
 			// check if node exists
 			assertNotNull(testEntity);
@@ -1869,12 +1885,14 @@ public class PropertyTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestFive testEntity = app.getNodeById(TestFive.class, id);
+			final NodeInterface testEntity = app.getNodeById("TestFive", id);
 
 			assertNotNull(testEntity);
 
 			// check labels after typeProperty change
 			assertTrue(Iterables.toSet(testEntity.getNode().getLabels()).containsAll(labelsAfter));
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 
@@ -1897,7 +1915,7 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create("SchemaNode",
+			final NodeInterface test  = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testFunction"), "Function(this.group.name)")
 			);
@@ -1925,9 +1943,7 @@ public class PropertyTest extends StructrTest {
 		// entity setup
 		try (final Tx tx = app.tx()) {
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-
-			final Class testType = config.getNodeEntityClass("Test");
+			final String testType = "Test";
 
 			// create test typeProperty without link to group!
 			app.create(testType);
@@ -1945,13 +1961,13 @@ public class PropertyTest extends StructrTest {
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 
-			final Class testType    = config.getNodeEntityClass("Test");
-			final Class groupType   = config.getNodeEntityClass("Group");
+			final String testType   = "Test";
+			final String groupType  = "Group";
 			final GraphObject group = app.create(groupType, "testgroup");
 			final GraphObject test  = app.nodeQuery(testType).getFirst();
 
 			// create Test with link to Group
-			test.setProperty(Traits.of("StructrApp").key("key")(testType, "group"), group);
+			test.setProperty(Traits.of(testType).key("group"), group);
 
 			tx.success();
 
@@ -1964,13 +1980,12 @@ public class PropertyTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Class testType  = config.getNodeEntityClass("Test");
-			final PropertyKey key = Traits.of(testType).key("testFunction");
+			final String testType         = "Test";
+			final PropertyKey<String> key = Traits.of(testType).key("testFunction");
 
 			// fetch test node
-			final GraphObject testNode = app.nodeQuery(testType).getFirst();
-			final GraphObject result   = app.nodeQuery(testType).and(key, "testgroup").getFirst();
+			final NodeInterface testNode = app.nodeQuery(testType).getFirst();
+			final NodeInterface result   = app.nodeQuery(testType).and(key, "testgroup").getFirst();
 
 			// test indexing
 			assertEquals("Invalid FunctionProperty indexing result", testNode, result);
@@ -1995,7 +2010,7 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create("SchemaNode",
+			final NodeInterface test  = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test")
 			);
 
@@ -2056,7 +2071,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testNotionPropertyMessageId() {
 
-		SchemaNode message = null;
+		NodeInterface message = null;
 
 		// schema setup
 		try (final Tx tx = app.tx()) {
@@ -2166,7 +2181,7 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode message  = app.create("SchemaNode",
+			final NodeInterface message  = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Message")
 			);
 
@@ -2211,7 +2226,7 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode message  = app.create("SchemaNode",
+			final NodeInterface message  = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Message")
 			);
 
@@ -2275,8 +2290,8 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		final Traits<NodeInterface> projectType = Traits.of("Project");
-		final PropertyKey<String> encrypted = projectType.key("encrypted");
+		final String projectType            = "Project";
+		final PropertyKey<String> encrypted = Traits.of(projectType).key("encrypted");
 
 		// test initial error when no key is set
 		try (final Tx tx = app.tx()) {
@@ -2317,7 +2332,7 @@ public class PropertyTest extends StructrTest {
 		// test encryption
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+			final NodeInterface node = app.nodeQuery(projectType).getFirst();
 
 			assertEquals("Invalid getProperty() result of encrypted string property with correct key", "plaintext", node.getProperty(encrypted));
 
@@ -2335,7 +2350,7 @@ public class PropertyTest extends StructrTest {
 		// test encryption
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+			final NodeInterface node = app.nodeQuery(projectType).getFirst();
 
 			assertNull("Invalid getProperty() result of encrypted string property with wrong key", node.getProperty(encrypted));
 
@@ -2416,7 +2431,7 @@ public class PropertyTest extends StructrTest {
 		// test encryption
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = app.nodeQuery(projectType).getFirst();
+			final NodeInterface node = app.nodeQuery(projectType).getFirst();
 
 			assertEquals("Invalid getProperty() result of encrypted string property with correct key", "structrtest", node.getProperty(encrypted));
 

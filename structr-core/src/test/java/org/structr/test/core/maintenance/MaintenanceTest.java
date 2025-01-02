@@ -26,16 +26,10 @@ import org.structr.api.graph.Node;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Group;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.entity.TestEleven;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestTwo;
 import org.testng.annotations.Test;
 
 import java.nio.file.Files;
@@ -295,10 +289,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 3000 Groups here
-				assertEquals(3000, app.nodeQuery("GroupTraitDefinition").getAsList().size());
+				assertEquals(3000, app.nodeQuery("Group").getAsList().size());
 
 				// check nodes
-				for (final NodeInterface group : app.nodeQuery("GroupTraitDefinition").getResultStream()) {
+				for (final NodeInterface group : app.nodeQuery("Group").getResultStream()) {
 
 					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
 					assertNotNull("No UUID was set by BulkSetUUIDCommand", group.getUuid());
@@ -358,10 +352,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(3000, app.nodeQuery("GroupTraitDefinition").getAsList().size());
+				assertEquals(3000, app.nodeQuery("Group").getAsList().size());
 
 				// check nodes
-				for (final NodeInterface group : app.nodeQuery("GroupTraitDefinition").getResultStream()) {
+				for (final NodeInterface group : app.nodeQuery("Group").getResultStream()) {
 
 					final Set<String> labels = new TreeSet<>(Iterables.toSet(group.getNode().getLabels()));
 
@@ -463,8 +457,8 @@ public class MaintenanceTest extends StructrTest {
 				// check nodes
 				for (final NodeInterface test : app.nodeQuery("TestOne").getResultStream()) {
 
-					assertEquals(one, test.getProperty(TestOne.anInt));
-					assertEquals("one", test.getProperty(TestOne.aString));
+					assertEquals(one, test.getProperty(Traits.of("TestOne").key("anInt")));
+					assertEquals("one", test.getProperty(Traits.of("TestOne").key("aString")));
 				}
 			}
 
@@ -516,7 +510,7 @@ public class MaintenanceTest extends StructrTest {
 			createTestNodes(test1, 100);
 			createTestNodes(test2, 100);
 
-			app.create("GroupTraitDefinition", "Group1");
+			app.create("Group", "Group1");
 
 			tx.success();
 
@@ -546,7 +540,7 @@ public class MaintenanceTest extends StructrTest {
 
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test1).getFirst());
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test2).getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("GroupTraitDefinition").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("Group").getFirst());
 
 			tx.success();
 
