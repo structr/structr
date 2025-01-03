@@ -1024,7 +1024,7 @@ public class SchemaTest extends StructrTest {
 
 			assertNotNull("Base type schema node not found", base);
 
-			base.setProperty(Traits.of("AbstractNode").key("name"), "ModifiedBaseType");
+			base.setProperty(Traits.of("NodeInterface").key("name"), "ModifiedBaseType");
 
 			app.delete(base);
 

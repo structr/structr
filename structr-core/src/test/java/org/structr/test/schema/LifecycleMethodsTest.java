@@ -88,7 +88,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(Traits.of("AbstractNode").key("name"), "Tester");
+			customer.setProperty(Traits.of("NodeInterface").key("name"), "Tester");
 
 			tx.success();
 
@@ -225,7 +225,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(Traits.of("AbstractNode").key("name"), "Tester");
+			customer.setProperty(Traits.of("NodeInterface").key("name"), "Tester");
 
 			tx.success();
 
@@ -280,7 +280,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(Traits.of("AbstractNode").key("name"), "Tester");
+			customer.setProperty(Traits.of("NodeInterface").key("name"), "Tester");
 
 			tx.success();
 

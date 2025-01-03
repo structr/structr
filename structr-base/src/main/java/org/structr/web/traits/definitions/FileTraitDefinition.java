@@ -54,6 +54,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.*;
 import org.structr.web.entity.File;
 import org.structr.web.property.FileDataProperty;
+import org.structr.web.traits.wrappers.FileTraitWrapper;
 
 import java.io.*;
 import java.net.URI;
@@ -184,7 +185,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
-					final File thisFile = ((NodeInterface) graphObject).as(File.class);
+					final File thisFile = graphObject.as(File.class);
 
 					FileTraitDefinition.OnSetProperty(thisFile, key, value, isCreation);
 
@@ -198,7 +199,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
-					final File thisFile = ((NodeInterface) graphObject).as(File.class);
+					final File thisFile = graphObject.as(File.class);
 
 					FileTraitDefinition.OnSetProperties(thisFile, securityContext, properties, isCreation);
 
@@ -215,7 +216,10 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			File.class, (traits, node) -> new FileTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -267,6 +271,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 		return null;
 	}
 
+	/*
 	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
@@ -370,6 +375,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 		type.addViewProperty(PropertyView.Ui, "path");
 
 	}}
+	*/
 
 	private static <T> void OnSetProperty(final org.structr.web.entity.File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
 

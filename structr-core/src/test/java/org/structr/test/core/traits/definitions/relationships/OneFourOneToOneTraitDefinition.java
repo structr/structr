@@ -21,13 +21,13 @@ package org.structr.test.core.traits.definitions.relationships;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.test.core.entity.TestEnum;
 
 import java.util.Map;
 import java.util.Set;
 
-public class OneFourOneToOneTraitDefinition extends RelationshipTraitDefinition {
+public class OneFourOneToOneTraitDefinition extends RelationshipBaseTraitDefinition {
 
 	public OneFourOneToOneTraitDefinition() {
 		super("OneFourOneToOne");

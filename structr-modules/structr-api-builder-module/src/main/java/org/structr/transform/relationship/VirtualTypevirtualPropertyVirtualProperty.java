@@ -23,7 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.transform.VirtualProperty;
@@ -33,7 +33,7 @@ import org.structr.transform.VirtualType;
 import java.util.Map;
 import java.util.Set;
 
-public class VirtualTypevirtualPropertyVirtualProperty extends RelationshipTraitDefinition {
+public class VirtualTypevirtualPropertyVirtualProperty extends RelationshipBaseTraitDefinition {
 
 	public VirtualTypevirtualPropertyVirtualProperty() {
 		super("VirtualTypevirtualPropertyVirtualProperty");

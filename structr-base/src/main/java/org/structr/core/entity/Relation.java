@@ -83,14 +83,17 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 		"CONSTRAINT_BASED"
 	};
 
+	/*
 	default String getType() {
 		return getSourceType() + name() + getTargetType();
 	}
+	*/
 
 	enum Multiplicity { One, Many }
 
 	String getSourceType();
 	String getTargetType();
+	String getType();
 
 	String getOtherType(final String type);
 	Direction getDirectionForType(final String type);

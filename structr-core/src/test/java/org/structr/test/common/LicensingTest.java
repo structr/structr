@@ -90,8 +90,6 @@ public class LicensingTest {
 
 			FlushCachesCommand.flushAll();
 
-			SchemaService.ensureBuiltinTypesExist(app);
-
 		} catch (Throwable t) {
 
 			t.printStackTrace();

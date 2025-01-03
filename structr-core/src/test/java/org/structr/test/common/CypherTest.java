@@ -716,13 +716,13 @@ public class CypherTest extends StructrTest {
 				final PropertyKey projectKey = Traits.of(taskType).key("project");
 
 				createTestNode(taskType,
-					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task1"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1")))
+					new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task1"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1")))
 				);
 
 				createTestNode(taskType,
-					new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task2"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2")))
+					new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task2"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2")))
 				);
 
 			} catch (FrameworkException t) {

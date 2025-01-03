@@ -91,7 +91,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -149,7 +149,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -200,7 +200,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -251,7 +251,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -302,7 +302,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -548,7 +548,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -616,7 +616,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 
@@ -684,7 +684,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), "TestOne-" + name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), "TestOne-" + name);
 
 					node.setProperty(Traits.of("TestOne").key("aDate"), new Date());
 
@@ -756,7 +756,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 					// slow down execution speed to make sure distinct changes fall in different milliseconds
 					try { Thread.sleep(2); } catch (Throwable t) {}
@@ -820,7 +820,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				for (NodeInterface node : nodes) {
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), Integer.toString(i));
+					node.setProperty(Traits.of("NodeInterface").key("name"), Integer.toString(i));
 					node.setProperty(key, i);
 
 					i++;
@@ -889,7 +889,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), "TestOne-" + name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), "TestOne-" + name);
 
 					if ((i % 2) != 0) {
 						node.setProperty(Traits.of("TestOne").key("aDate"), new Date());
@@ -961,7 +961,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				for (NodeInterface node : nodes) {
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), Long.toString(i));
+					node.setProperty(Traits.of("NodeInterface").key("name"), Long.toString(i));
 					if (i < 7) {
 						node.setProperty(Traits.of("TestOne").key("anInt"), i);
 					}
@@ -1582,7 +1582,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), _name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), _name);
 				}
 				tx.success();
 			}
@@ -1643,7 +1643,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), _name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), _name);
 				}
 				tx.success();
 			}
@@ -1748,7 +1748,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), _name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), _name);
 				}
 
 				tx.success();
@@ -1845,9 +1845,9 @@ public class SearchAndSortingTest extends StructrTest {
 			final NodeInterface test2 = testOnes.get(4);
 			final NodeInterface test3 = testOnes.get(7);
 
-			test1.setProperty(Traits.of("AbstractNode").key("hidden"), true);
+			test1.setProperty(Traits.of("NodeInterface").key("hidden"), true);
 
-			test3.setProperty(Traits.of("AbstractNode").key("hidden"), true);
+			test3.setProperty(Traits.of("NodeInterface").key("hidden"), true);
 
 			tx.success();
 
@@ -2554,16 +2554,16 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal ownerC = createTestNode("User", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "C")).as(Principal.class);
-			final Principal ownerD = createTestNode("User", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "D")).as(Principal.class);
-			final Principal ownerA = createTestNode("User", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "A")).as(Principal.class);
-			final Principal ownerE = createTestNode("User", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "E")).as(Principal.class);
+			final Principal ownerC = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "C")).as(Principal.class);
+			final Principal ownerD = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "D")).as(Principal.class);
+			final Principal ownerA = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "A")).as(Principal.class);
+			final Principal ownerE = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "E")).as(Principal.class);
 
 			createTestNode("Group", new NodeAttribute<>(Traits.of("Traits").key("of"), "zzz"));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "aaa"), new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), ownerA));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "ttt"), new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), ownerE));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "xxx"), new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), ownerC));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "bbb"), new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), ownerD));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaa"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerA));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ttt"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerE));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "xxx"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerC));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbb"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerD));
 
 			tx.success();
 
@@ -2616,7 +2616,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("AbstractNode").key("name"), name);
+					node.setProperty(Traits.of("NodeInterface").key("name"), name);
 
 				}
 

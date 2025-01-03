@@ -157,11 +157,11 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					final PropertyMap properties = new PropertyMap();
 					properties.put(Traits.of("Image").key("width"),                              tnWidth);
 					properties.put(Traits.of("Image").key("height"),                             tnHeight);
-					properties.put(Traits.of("AbstractNode").key("hidden"),                      originalImage.getWrappedNode().isHidden());
-					properties.put(Traits.of("AbstractNode").key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
-					properties.put(Traits.of("AbstractNode").key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
+					properties.put(Traits.of("NodeInterface").key("hidden"),                      originalImage.getWrappedNode().isHidden());
+					properties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
+					properties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
 					properties.put(Traits.of("File").key("size"),                                Long.valueOf(data.length));
-					properties.put(Traits.of("AbstractNode").key("owner"),                       originalImage.as(AccessControllable.class).getOwnerNode());
+					properties.put(Traits.of("NodeInterface").key("owner"),                       originalImage.as(AccessControllable.class).getOwnerNode());
 					properties.put(Traits.of("File").key("parent"),                              originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
 					properties.put(Traits.of("File").key("hasParent"),                           originalImage.getProperty(Traits.of("Image").key("hasParent")));
 

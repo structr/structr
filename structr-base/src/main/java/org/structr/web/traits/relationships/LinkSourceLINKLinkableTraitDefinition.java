@@ -22,14 +22,14 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.Map;
 import java.util.Set;
 
-public class LinkSourceLINKLinkableTraitDefinition extends RelationshipTraitDefinition {
+public class LinkSourceLINKLinkableTraitDefinition extends RelationshipBaseTraitDefinition {
 
 	public LinkSourceLINKLinkableTraitDefinition() {
 		super("LinkSourceLINKLinkable");

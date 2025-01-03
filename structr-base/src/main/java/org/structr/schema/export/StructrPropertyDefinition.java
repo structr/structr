@@ -280,7 +280,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
 			getOrCreateProperties.put(traits.key("name"), getName());
-			getOrCreateProperties.put(traits.key("schemaNode"), schemaNode);
+			getOrCreateProperties.put(traits.key("schemaNode"), schemaNode.getWrappedNode());
 			getOrCreateProperties.put(traits.key("compound"), isCompoundUnique());
 			getOrCreateProperties.put(traits.key("unique"), isUnique());
 			getOrCreateProperties.put(traits.key("indexed"), isIndexed());

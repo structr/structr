@@ -90,7 +90,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 			if ("/ready".equals(request.getPathInfo())) {
 
-				if (error || DeployCommand.isDeploymentActive() || SchemaService.isCompiling() || !Services.getInstance().isInitialized()) {
+				if (error || DeployCommand.isDeploymentActive() || SchemaService.getSchemaIsBeingReplaced() || !Services.getInstance().isInitialized()) {
 
 					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 

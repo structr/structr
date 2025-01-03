@@ -110,8 +110,6 @@ public class StructrTest {
 
 				FlushCachesCommand.flushAll();
 
-				SchemaService.ensureBuiltinTypesExist(app);
-
 			} catch (Throwable t) {
 
 				t.printStackTrace();
@@ -157,7 +155,7 @@ public class StructrTest {
 		app = StructrApp.getInstance(securityContext);
 	}
 
-	@BeforeClass(alwaysRun = true)
+	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
 		StructrTraits.registerRelationshipType("OneOneOneToOne",                    new OneOneOneToOneTraitDefinition());
@@ -219,8 +217,7 @@ public class StructrTest {
 
 			final PropertyMap properties    = new PropertyMap();
 			final List<NodeInterface> nodes = new LinkedList<>();
-			final Traits traits             = Traits.of("NodeInterface");
-
+			final Traits traits             = Traits.of(type);
 
 			properties.put(traits.key("visibleToAuthenticatedUsers"), false);
 			properties.put(traits.key("visibleToPublicUsers"), false);
@@ -241,6 +238,8 @@ public class StructrTest {
 			return nodes;
 
 		} catch (Throwable t) {
+
+			t.printStackTrace();
 
 			logger.warn("Unable to create test nodes of type {}: {}", type, t.getMessage());
 		}

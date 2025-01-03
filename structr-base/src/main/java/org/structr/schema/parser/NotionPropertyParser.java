@@ -228,7 +228,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 		}
 
 		final String tmpPropertyName  = StringUtils.contains(extendedPropertyName, ".") ? StringUtils.substringAfterLast(extendedPropertyName, ".") : extendedPropertyName;
-		final PropertyKey propertyKey = Traits.of("AbstractNode").key(tmpPropertyName);
+		final PropertyKey propertyKey = Traits.of("NodeInterface").key(tmpPropertyName);
 
 		if (propertyKey != null) {
 			return extendedPropertyName;

@@ -21,14 +21,9 @@ package org.structr.core.traits.definitions;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.*;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.Property;
 
-import java.util.Set;
-
-import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
-
-public abstract class RelationshipTraitDefinition extends AbstractTraitDefinition {
+public abstract class RelationshipBaseTraitDefinition extends AbstractTraitDefinition {
 
 	protected abstract String getSourceType();
 	protected abstract String getTargetType();
@@ -39,28 +34,8 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 	protected abstract int getAutocreationFlag();
 	protected abstract boolean isInternal();
 
-	public RelationshipTraitDefinition(final String name) {
+	public RelationshipBaseTraitDefinition(final String name) {
 		super(name);
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-
-		final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
-		final Property<String>        relType            = new RelationshipTypeProperty();
-		final SourceId                sourceId           = new SourceId("sourceId");
-		final TargetId                targetId           = new TargetId("targetId");
-		final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
-		final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
-
-		return Set.of(
-			internalTimestamp,
-			relType,
-			sourceId,
-			targetId,
-			sourceNode,
-			targetNode
-		);
 	}
 
 	@Override
@@ -93,62 +68,67 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 
 					@Override
 					public String name() {
-						return RelationshipTraitDefinition.this.getRelationshipType();
+						return RelationshipBaseTraitDefinition.this.getRelationshipType();
+					}
+
+					@Override
+					public String getType() {
+						return getName();
 					}
 
 					@Override
 					public String getSourceType() {
-						return RelationshipTraitDefinition.this.getSourceType();
+						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
-						return RelationshipTraitDefinition.this.getTargetType();
+						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
-						return RelationshipTraitDefinition.this.getCascadingDeleteFlag();
+						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
-						return RelationshipTraitDefinition.this.getAutocreationFlag();
+						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
-						return RelationshipTraitDefinition.this.getPropagationDirection();
+						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
-						return RelationshipTraitDefinition.this.getReadPropagation();
+						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
-						return RelationshipTraitDefinition.this.getWritePropagation();
+						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
-						return RelationshipTraitDefinition.this.getDeletePropagation();
+						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
-						return RelationshipTraitDefinition.this.getAccessControlPropagation();
+						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
-						return RelationshipTraitDefinition.this.getDeltaProperties();
+						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
-						return RelationshipTraitDefinition.this.isInternal();
+						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
 			}
@@ -159,62 +139,67 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 
 					@Override
 					public String name() {
-						return RelationshipTraitDefinition.this.getRelationshipType();
+						return RelationshipBaseTraitDefinition.this.getRelationshipType();
+					}
+
+					@Override
+					public String getType() {
+						return getName();
 					}
 
 					@Override
 					public String getSourceType() {
-						return RelationshipTraitDefinition.this.getSourceType();
+						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
-						return RelationshipTraitDefinition.this.getTargetType();
+						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
-						return RelationshipTraitDefinition.this.getCascadingDeleteFlag();
+						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
-						return RelationshipTraitDefinition.this.getAutocreationFlag();
+						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
-						return RelationshipTraitDefinition.this.getPropagationDirection();
+						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
-						return RelationshipTraitDefinition.this.getReadPropagation();
+						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
-						return RelationshipTraitDefinition.this.getWritePropagation();
+						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
-						return RelationshipTraitDefinition.this.getDeletePropagation();
+						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
-						return RelationshipTraitDefinition.this.getAccessControlPropagation();
+						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
-						return RelationshipTraitDefinition.this.getDeltaProperties();
+						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
-						return RelationshipTraitDefinition.this.isInternal();
+						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
 			}
@@ -225,62 +210,67 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 
 					@Override
 					public String name() {
-						return RelationshipTraitDefinition.this.getRelationshipType();
+						return RelationshipBaseTraitDefinition.this.getRelationshipType();
+					}
+
+					@Override
+					public String getType() {
+						return getName();
 					}
 
 					@Override
 					public String getSourceType() {
-						return RelationshipTraitDefinition.this.getSourceType();
+						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
-						return RelationshipTraitDefinition.this.getTargetType();
+						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
-						return RelationshipTraitDefinition.this.getCascadingDeleteFlag();
+						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
-						return RelationshipTraitDefinition.this.getAutocreationFlag();
+						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
-						return RelationshipTraitDefinition.this.getPropagationDirection();
+						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
-						return RelationshipTraitDefinition.this.getReadPropagation();
+						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
-						return RelationshipTraitDefinition.this.getWritePropagation();
+						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
-						return RelationshipTraitDefinition.this.getDeletePropagation();
+						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
-						return RelationshipTraitDefinition.this.getAccessControlPropagation();
+						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
-						return RelationshipTraitDefinition.this.getDeltaProperties();
+						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
-						return RelationshipTraitDefinition.this.isInternal();
+						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
 			}
@@ -291,62 +281,67 @@ public abstract class RelationshipTraitDefinition extends AbstractTraitDefinitio
 
 					@Override
 					public String name() {
-						return RelationshipTraitDefinition.this.getRelationshipType();
+						return RelationshipBaseTraitDefinition.this.getRelationshipType();
+					}
+
+					@Override
+					public String getType() {
+						return getName();
 					}
 
 					@Override
 					public String getSourceType() {
-						return RelationshipTraitDefinition.this.getSourceType();
+						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
-						return RelationshipTraitDefinition.this.getTargetType();
+						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
-						return RelationshipTraitDefinition.this.getCascadingDeleteFlag();
+						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
-						return RelationshipTraitDefinition.this.getAutocreationFlag();
+						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
-						return RelationshipTraitDefinition.this.getPropagationDirection();
+						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
-						return RelationshipTraitDefinition.this.getReadPropagation();
+						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
-						return RelationshipTraitDefinition.this.getWritePropagation();
+						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
-						return RelationshipTraitDefinition.this.getDeletePropagation();
+						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
-						return RelationshipTraitDefinition.this.getAccessControlPropagation();
+						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
-						return RelationshipTraitDefinition.this.getDeltaProperties();
+						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
-						return RelationshipTraitDefinition.this.isInternal();
+						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
 			}

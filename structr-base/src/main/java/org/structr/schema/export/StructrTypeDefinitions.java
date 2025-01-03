@@ -443,8 +443,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 					typeDefinitions.add(type);
 
-					if (type instanceof StructrRelationshipTypeDefinition) {
-						relationships.add((StructrRelationshipTypeDefinition)type);
+					if (type instanceof StructrRelationshipTypeDefinition r) {
+						relationships.add(r);
 					}
 
 				}
@@ -474,7 +474,14 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaNode);
 			if (type != null) {
 
-				typeDefinitions.add(type);
+				try {
+					typeDefinitions.add(type);
+
+				} catch (Throwable t) {
+
+					System.out.println(schemaNode.getName());
+					t.printStackTrace();
+				}
 			}
 		}
 
