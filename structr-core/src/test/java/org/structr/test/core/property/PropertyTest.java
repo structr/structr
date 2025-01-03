@@ -65,7 +65,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<String[]> instance = TestFour.stringArrayProperty;
+			final PropertyKey<String[]> instance = Traits.of("TestFour").key("stringArrayProperty");
 			final NodeInterface testEntity    = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -97,7 +97,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 			final PropertyMap properties    = new PropertyMap();
-			final PropertyKey<String[]> key = TestFour.stringArrayProperty;
+			final PropertyKey<String[]> key = Traits.of("TestFour").key("stringArrayProperty");
 
 			// store a string array in the test entitiy
 
@@ -170,7 +170,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 
-			final PropertyKey<Boolean> key = TestFour.booleanProperty;
+			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
 			final NodeInterface testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -202,7 +202,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Boolean> key = TestFour.booleanProperty;
+			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
 
 			properties.put(key, true);
 
@@ -235,7 +235,7 @@ public class PropertyTest extends StructrTest {
 
 			final NodeInterface testOne    = createTestNode("TestOne");
 			final NodeInterface testFour   = createTestNode("TestFour");
-			final PropertyKey<Boolean> key = OneFourOneToOne.booleanProperty;
+			final PropertyKey<Boolean> key = Traits.of("OneFourOneToOne").key("booleanProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -468,7 +468,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<Date> instance = TestFour.dateProperty;
+			final PropertyKey<Date> instance = Traits.of("TestFour").key("dateProperty");
 			final NodeInterface testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -499,7 +499,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<Date[]> instance = TestFour.dateArrayProperty;
+			final PropertyKey<Date[]> instance = Traits.of("TestFour").key("dateArrayProperty");
 			final NodeInterface testEntity         = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -532,7 +532,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Date> key   = TestFour.dateProperty;
+			final PropertyKey<Date> key   = Traits.of("TestFour").key("dateProperty");
 			final Date value              = new Date(123456789L);
 
 			properties.put(key,value);
@@ -565,7 +565,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties = new PropertyMap();
-			final PropertyKey<Date> key  = TestFour.dateProperty;
+			final PropertyKey<Date> key  = Traits.of("TestFour").key("dateProperty");
 			final Date minValue          = new Date(1234567880L);
 			final Date value             = new Date(1234567890L);
 			final Date maxValue          = new Date(1234567900L);
@@ -612,7 +612,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<Double> instance = TestFour.doubleProperty;
+			final PropertyKey<Double> instance = Traits.of("TestFour").key("doubleProperty");
 			final NodeInterface testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -643,7 +643,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<Double> instance = TestFour.doubleProperty;
+			final PropertyKey<Double> instance = Traits.of("TestFour").key("doubleProperty");
 			final TestFour testEntity        = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
@@ -676,7 +676,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Double> key = TestFour.doubleProperty;
+			final PropertyKey<Double> key = Traits.of("TestFour").key("doubleProperty");
 
 			properties.put(key, 3.141592653589793238);
 
@@ -708,7 +708,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Double> key = TestFour.doubleProperty;
+			final PropertyKey<Double> Traits.of("TestFour").key("doubleProperty");
 
 			properties.put(key, Double.NaN);
 
@@ -741,7 +741,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Double> key = TestFour.doubleProperty;
+			final PropertyKey<Double> key = Traits.of("TestFour").key("doubleProperty");
 
 			properties.put(key, Double.NEGATIVE_INFINITY);
 
@@ -773,7 +773,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Double> key = TestFour.doubleProperty;
+			final PropertyKey<Double> key = Traits.of("TestFour").key("doubleProperty");
 
 			properties.put(key, Double.POSITIVE_INFINITY);
 
@@ -804,9 +804,9 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final NodeInterface testOne      = createTestNode("TestOne");
-			final NodeInterface testFour    = createTestNode("TestFour");
-			final PropertyKey<Double> key = OneFourOneToOne.doubleProperty;
+			final NodeInterface testOne   = createTestNode("TestOne");
+			final NodeInterface testFour  = createTestNode("TestFour");
+			final PropertyKey<Double> key = Traits.of("OneFourOneToOne").key("doubleProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -844,7 +844,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties = new PropertyMap();
-			final PropertyKey<Double> key   = OneFourOneToOne.doubleProperty;
+			final PropertyKey<Double> key   =Traits.of("OneFourOneToOne").key("doubleProperty");
 
 			properties.put(key, 123456.2);
 
@@ -938,8 +938,8 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connections
-				TestThree verifyB = a.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
-				TestThree verifyD = c.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
+				NodeInterface verifyB = a.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
+				NodeInterface verifyD = c.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
 
 				assertTrue(verifyB != null && verifyB.equals(b));
 				assertTrue(verifyD != null && verifyD.equals(d));
@@ -960,11 +960,11 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connection
-				TestThree verifyD2 = a.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
+				NodeInterface verifyD2 = a.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
 				assertTrue(verifyD2 != null && verifyD2.equals(d));
 
 				// testSix2 should not have a testThree associated
-				TestThree vrfy4 = c.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
+				NodeInterface vrfy4 = c.getProperty(Traits.of("TestSix").key("oneToOneTestThree"));
 				assertNull(vrfy4);
 			}
 
@@ -1027,8 +1027,8 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// verify connections
-				List<TestThree> verifyB = Iterables.toList((Iterable)testSix1.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
-				List<TestThree> verifyD = Iterables.toList((Iterable)testSix2.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
+				List<NodeInterface> verifyB = Iterables.toList((Iterable)testSix1.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
+				List<NodeInterface> verifyD = Iterables.toList((Iterable)testSix2.getProperty(Traits.of("TestSix").key("oneToManyTestThrees")));
 
 				assertTrue(verifyB != null && verifyB.get(0).equals(testThree1));
 				assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
@@ -1074,7 +1074,7 @@ public class PropertyTest extends StructrTest {
 	public void testTypeNameOnEntityProperty() {
 
 		String expResult = "object";
-		String result = TestSix.oneToOneTestThree.typeName();
+		String result = Traits.of("TestSix").key("oneToOneTestThree").typeName();
 		assertEquals(expResult, result);
 	}
 
@@ -1085,7 +1085,7 @@ public class PropertyTest extends StructrTest {
 	public void testDatabaseConverterOnEntityProperty() {
 
 		PropertyConverter expResult = null;
-		PropertyConverter result = TestSix.oneToOneTestThree.databaseConverter(securityContext, null);
+		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").databaseConverter(securityContext, null);
 		assertEquals(expResult, result);
 	}
 
@@ -1095,7 +1095,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testInputConverterOnEntityProperty() {
 
-		PropertyConverter result = TestSix.oneToOneTestThree.inputConverter(securityContext);
+		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").inputConverter(securityContext);
 
 		assertTrue(result != null);
 	}
@@ -1132,7 +1132,7 @@ public class PropertyTest extends StructrTest {
 
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(TestFour.enumProperty, TestEnum.Status1);
+			properties.put(Traits.of("TestFour").key("enumProperty"), TestEnum.Status1);
 
 			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
@@ -1156,7 +1156,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties    = new PropertyMap();
-			final PropertyKey<TestEnum> key = TestFour.enumProperty;
+			final PropertyKey<TestEnum> key = Traits.of("TestFour").key("enumProperty");
 
 			properties.put(key, TestEnum.Status1);
 
@@ -1187,9 +1187,9 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final NodeInterface testOne        = createTestNode("TestOne");
-			final NodeInterface testFour      = createTestNode("TestFour");
-			final PropertyKey<TestEnum> key = OneFourOneToOne.enumProperty;
+			final NodeInterface testOne     = createTestNode("TestOne");
+			final NodeInterface testFour    = createTestNode("TestFour");
+			final PropertyKey<TestEnum> key = Traits.of("OneFourOneToOne").key("enumProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -1253,8 +1253,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<Integer> instance = TestFour.integerProperty;
-			final NodeInterface testEntity        = createTestNode("TestFour");
+			final PropertyKey<Integer> instance = Traits.of("TestFour").key("integerProperty");
+			final NodeInterface testEntity      = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1285,7 +1285,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Integer> key = TestFour.integerProperty;
+			final PropertyKey<Integer> key = Traits.of("TestFour").key("integerProperty");
 
 			properties.put(key, 2345);
 
@@ -1316,9 +1316,9 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final NodeInterface testOne        = createTestNode("TestOne");
-			final NodeInterface testFour      = createTestNode("TestFour");
-			final PropertyKey<Integer> key = OneFourOneToOne.integerProperty;
+			final NodeInterface testOne    = createTestNode("TestOne");
+			final NodeInterface testFour   = createTestNode("TestFour");
+			final PropertyKey<Integer> key = Traits.of("OneFourOneToOne").key("integerProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -1355,8 +1355,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties = new PropertyMap();
-			final PropertyKey<Integer> key  = OneFourOneToOne.integerProperty;
+			final PropertyMap properties   = new PropertyMap();
+			final PropertyKey<Integer> key = Traits.of("OneFourOneToOne").key("integerProperty");
 
 			properties.put(key, 123456);
 
@@ -1399,8 +1399,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<Long> instance = TestFour.longProperty;
-			final NodeInterface testEntity     = createTestNode("TestFour");
+			final PropertyKey<Long> instance = Traits.of("TestFour").key("longProperty");
+			final NodeInterface testEntity   = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1430,8 +1430,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Long> key = TestFour.longProperty;
+			final PropertyMap properties = new PropertyMap();
+			final PropertyKey<Long> key  = Traits.of("TestFour").key("longProperty");
 
 			properties.put(key, 2857312362L);
 
@@ -1462,9 +1462,9 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final NodeInterface testOne        = createTestNode("TestOne");
-			final NodeInterface testFour      = createTestNode("TestFour");
-			final PropertyKey<Long> key = OneFourOneToOne.longProperty;
+			final NodeInterface testOne  = createTestNode("TestOne");
+			final NodeInterface testFour = createTestNode("TestFour");
+			final PropertyKey<Long> key  = Traits.of("OneFourOneToOne").key("longProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -1502,7 +1502,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<Long> key = TestFour.longProperty;
+			final PropertyKey<Long> key = Traits.of("TestFour").key("longProperty");
 
 			properties.put(key, 123456L);
 
@@ -1545,8 +1545,8 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyKey<String> instance = TestFour.stringProperty;
-			final NodeInterface testEntity        = createTestNode("TestFour");
+			final PropertyKey<String> instance = Traits.of("TestFour").key("stringProperty");
+			final NodeInterface testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -1577,7 +1577,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "test");
 
@@ -1609,7 +1609,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "test\nabc");
 
@@ -1641,7 +1641,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "test\nabc");
 
@@ -1672,7 +1672,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "xyz\ntest\nabc");
 
@@ -1705,7 +1705,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "xyz\r\ntest\r\nabc");
 
@@ -1738,7 +1738,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "{\n return fooBar;\n}");
 
@@ -1771,7 +1771,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
-			final PropertyKey<String> key = TestFour.stringProperty;
+			final PropertyKey<String> key = Traits.of("TestFour").key("stringProperty");
 
 			properties.put(key, "xyz\r\nTeSt\r\nabc");
 
@@ -1805,7 +1805,7 @@ public class PropertyTest extends StructrTest {
 
 			final NodeInterface testOne   = createTestNode("TestOne");
 			final NodeInterface testFour  = createTestNode("TestFour");
-			final PropertyKey<String> key = OneFourOneToOne.stringProperty;
+			final PropertyKey<String> key = Traits.of("OneFourOneToOne").key("stringProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -1847,10 +1847,10 @@ public class PropertyTest extends StructrTest {
 		String id                     = null;
 
 		labelsBefore.add(AccessControllable.class.getSimpleName());
-		labelsBefore.add(TestFour.class.getSimpleName());
+		labelsBefore.add("TestFour");
 
 		labelsAfter.add(AccessControllable.class.getSimpleName());
-		labelsAfter.add(TestFive.class.getSimpleName());
+		labelsAfter.add("TestFive");
 
 		// create a new node, check labels, modify typeProperty, check labels again
 
@@ -1871,7 +1871,7 @@ public class PropertyTest extends StructrTest {
 			// change typeProperty to TestFive
 			// system properties have to be unlocked now, admin rights are not enough anymore
 			testEntity.unlockSystemPropertiesOnce();
-			testEntity.setProperty(Traits.of("GraphObject").key("type"), TestFive.class.getSimpleName());
+			testEntity.setProperty(Traits.of("GraphObject").key("type"), "TestFive");
 
 			// commit transaction
 			tx.success();

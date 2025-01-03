@@ -60,7 +60,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 	public void setup(@Optional String testDatabaseConnection) {
 
 		// important: these settings must be made before HttpService is initialized..
-		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
+		Settings.HtmlResolveProperties.setValue("Traits.of("TestOne").key("anInt"), Traits.of("TestOne").key("aString"), Traits.of("TestOne").key("aDouble")");
 
 		super.setup(testDatabaseConnection);
 	}
@@ -73,9 +73,9 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// setup three different test objects to be found by HtmlServlet
-			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(TestOne.anInt, 123)).getUuid());
-			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(TestOne.aDouble, 0.345)).getUuid());
-			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(TestOne.aString, "abcdefg")).getUuid());
+			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 123)).getUuid());
+			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("aDouble"), 0.345)).getUuid());
+			testObjectIDs.add(app.create("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("aString"), "abcdefg")).getUuid());
 
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "testPage");

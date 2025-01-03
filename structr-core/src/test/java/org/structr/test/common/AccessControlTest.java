@@ -45,7 +45,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.core.entity.TestOne;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 

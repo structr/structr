@@ -16,34 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.core.entity;
+package org.structr.test.core.traits.definitions;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Relation;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 
-/**
- *
- *
- */
-public class SixThreeOneToManyCascadeOutgoing extends OneToMany<TestSix, TestThree> {
-	
-	@Override
-	public Class<TestSix> getSourceType() {
-		return TestSix.class;
+import java.util.Map;
+
+public class TestElevenTraitDefinition extends AbstractTraitDefinition {
+
+	public TestElevenTraitDefinition() {
+		super("TestElevent");
 	}
 
 	@Override
-	public String name() {
-		return "ONE_TO_MANY";
-	}
-
-	@Override
-	public Class<TestThree> getTargetType() {
-		return TestThree.class;
-	}
-	
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.SOURCE_TO_TARGET;
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
 	}
 }

@@ -1287,7 +1287,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			for (int i=14; i>=0; i--) {
-				app.create(TestOne.class, new NodeAttribute<>(TestOne.aString, "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
+				app.create(TestOne.class, new NodeAttribute<>(Traits.of("TestOne").key("aString"), "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
 			}
 
 			tx.success();
@@ -1301,7 +1301,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptFindWithPredicateList.js"));
 
-			assertEquals("Wrong result for predicate list,", "[string01, string03, string13]", result1.stream().map(r -> r.getProperty(TestOne.aString)).collect(Collectors.toList()).toString());
+			assertEquals("Wrong result for predicate list,", "[string01, string03, string13]", result1.stream().map(r -> r.getProperty(Traits.of("TestOne").key("aString"))).collect(Collectors.toList()).toString());
 
 			tx.success();
 

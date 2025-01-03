@@ -231,7 +231,7 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface finalEntity = entity;
 
-			finalEntity.setProperty(Traits.of("TestFive").key("intProperty"), 123);
+			finalEntity.setProperty(Traits.of("TestFive").key("integerProperty"), 123);
 			tx.success();
 
 		} catch (Throwable t) {

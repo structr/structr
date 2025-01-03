@@ -54,8 +54,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSeven;
+import org.structr.test.core.traits.definitions.TestOneTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -312,7 +311,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery(type).and(TestOne.stringWithDefault, "default value", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery(type).and(Traits.of("TestOne").key("stringWithDefault"), "default value", false).getAsList();
 
 				assertEquals(4, result.size());
 
@@ -450,23 +449,23 @@ public class SearchAndSortingTest extends StructrTest {
 			final Date date    = new Date();
 			final NodeInterface test = createTestNode("TestOne",
 				new NodeAttribute(Traits.of("TestOne").key("name"), "TestOne"),
-				new NodeAttribute(TestOne.aBoolean, true),
-				new NodeAttribute(TestOne.aDate, date),
-				new NodeAttribute(TestOne.aDouble, 1.234),
-				new NodeAttribute(TestOne.aLong, 12345L),
-				new NodeAttribute(TestOne.anEnum, TestOne.Status.One),
-				new NodeAttribute(TestOne.anInt, 123)
+				new NodeAttribute(Traits.of("TestOne").key("aBoolean"), true),
+				new NodeAttribute(Traits.of("TestOne").key("aDate"), date),
+				new NodeAttribute(Traits.of("TestOne").key("aDouble"), 1.234),
+				new NodeAttribute(Traits.of("TestOne").key("aLong"), 12345L),
+				new NodeAttribute(Traits.of("TestOne").key("anEnum"), TestOneTraitDefinition.Status.One),
+				new NodeAttribute(Traits.of("TestOne").key("anInt"), 123)
 			);
 
 			try (final Tx tx = app.tx()) {
 
-				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("name"),    "TestOne",           false).getFirst());
-				assertEquals("Invalid inexact search result for type Boolean", test, app.nodeQuery("TestOne").and(TestOne.aBoolean, true,               false).getFirst());
-				assertEquals("Invalid inexact search result for type Date",    test, app.nodeQuery("TestOne").and(TestOne.aDate,    date,               false).getFirst());
-				assertEquals("Invalid inexact search result for type Double",  test, app.nodeQuery("TestOne").and(TestOne.aDouble,  1.234,              false).getFirst());
-				assertEquals("Invalid inexact search result for type Long",    test, app.nodeQuery("TestOne").and(TestOne.aLong,    12345L,             false).getFirst());
-				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(TestOne.anEnum,   TestOne.Status.One, false).getFirst());
-				assertEquals("Invalid inexact search result for type Enum",    test, app.nodeQuery("TestOne").and(TestOne.anInt,    123,                false).getFirst());
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("name"),    "TestOne", false).getFirst());
+				assertEquals("Invalid inexact search result for type Boolean", test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aBoolean"), true,     false).getFirst());
+				assertEquals("Invalid inexact search result for type Date",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDate"),    date,     false).getFirst());
+				assertEquals("Invalid inexact search result for type Double",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDouble"),  1.234,    false).getFirst());
+				assertEquals("Invalid inexact search result for type Long",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aLong"),    12345L,   false).getFirst());
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anEnum"),   TestOneTraitDefinition.Status.One, false).getFirst());
+				assertEquals("Invalid inexact search result for type Enum",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anInt"),    123,      false).getFirst());
 
 				tx.success();
 			}
@@ -702,7 +701,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = TestOne.aDate;
+				PropertyKey sortKey = Traits.of("TestOne").key("aDate");
 				boolean sortDesc    = false;
 				int pageSize        = 10;
 				int page            = 1;
@@ -810,7 +809,7 @@ public class SearchAndSortingTest extends StructrTest {
 			String type                      = "TestOne";
 			int number                      = 61;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
-			final PropertyKey key           = TestOne.anInt;
+			final PropertyKey key           = Traits.of("TestOne").key("anInt");
 			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -914,7 +913,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = TestOne.aDate;
+				PropertyKey sortKey = Traits.of("TestOne").key("aDate");
 				boolean sortDesc    = true;
 				int pageSize        = 10;
 				int page            = 2;
@@ -978,7 +977,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				final PropertyKey<String> nameKey   = Traits.of("TestOne").key("name");
 				final PropertyKey<Integer> anIntKey = Traits.of("TestOne").key("anInt");
-				final List<NodeInterface> result    = app.nodeQuery("TestOne").sort(TestOne.anInt, sortDesc).sort(nameKey).getAsList();
+				final List<NodeInterface> result    = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("anInt"), sortDesc).sort(nameKey).getAsList();
 
 
 				// check that the sorting is stable, i.e. the position of nodes
@@ -1091,7 +1090,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			PropertyMap props = new PropertyMap();
-			PropertyKey key   = TestOne.aDate;
+			PropertyKey key   = Traits.of("TestOne").key("aDate");
 			Date date         = new Date();
 			String type        = "TestOne";
 
@@ -1179,8 +1178,8 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			final PropertyKey lat   = TestSeven.latitude;
-			final PropertyKey lon   = TestSeven.longitude;
+			final PropertyKey lat   = Traits.of("TestSeven").key("latitude");
+			final PropertyKey lon   = Traits.of("TestSeven").key("longitude");
 			final String type       = "TestSeven";
 
 			props.put(lat, 50.12284d);
@@ -1217,8 +1216,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final String type       = "TestSeven";
 			final PropertyMap props = new PropertyMap();
-			final PropertyKey lat   = TestSeven.latitude;
-			final PropertyKey lon   = TestSeven.longitude;
+			final PropertyKey lat   = Traits.of("TestSeven").key("latitude");
+			final PropertyKey lon   = Traits.of("TestSeven").key("longitude");
 
 			props.put(Traits.of("NodeInterface").key("typeHandler"), type);
 			props.put(lat, 50.12284d);
@@ -1382,7 +1381,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(TestOne.aString, null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aString"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1411,7 +1410,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(TestOne.aDate, null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDate"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1440,7 +1439,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(TestOne.anInt, null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anInt"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1469,7 +1468,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(TestOne.aLong, null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aLong"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1498,7 +1497,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(TestOne.aDouble, null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDouble"), null).includeHidden().getAsList();
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
 
