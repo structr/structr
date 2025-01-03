@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
@@ -1120,6 +1121,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.category                    = schemaNode.getCategory();
 		this.schemaNode                  = schemaNode;
 
+		/*
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
 			final JsonType type = SchemaService.getDynamicSchema().getType(this.getName(), false);
@@ -1128,6 +1130,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				this.category = type.getCategory();
 			}
 		}
+		*/
 
 		final String[] tagArray = schemaNode.getTags();
 		if (tagArray != null) {
@@ -1167,15 +1170,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// create views and associate the properties
 		for (final Entry<String, Set<String>> view : views.entrySet()) {
 
-			final List<SchemaProperty> viewProperties = new LinkedList<>();
-			final List<String> nonGraphProperties     = new LinkedList<>();
+			final List<NodeInterface> viewProperties = new LinkedList<>();
+			final List<String> nonGraphProperties    = new LinkedList<>();
 
 			for (final String propertyName : view.getValue()) {
 
 				final SchemaProperty property = schemaProperties.get(propertyName);
 				if (property != null) {
 
-					viewProperties.add(property);
+					viewProperties.add(property.getWrappedNode());
 
 				} else {
 
@@ -1188,7 +1191,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 
 				viewNode = app.create("SchemaView",
-					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
+					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode.getWrappedNode()),
 					new NodeAttribute<>(schemaViewTraits.key("name"), view.getKey())
 				).as(SchemaView.class);
 			}

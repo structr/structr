@@ -54,12 +54,14 @@ public class Traits {
 	private final boolean isNodeType;
 	private final String typeName;
 	private final boolean isRelationshipType;
+	private final boolean isBuiltInType;
 	private Relation relation;
 
-	Traits(final String typeName, final boolean isNodeType, final boolean isRelationshipType) {
+	Traits(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType) {
 
 		this.typeName           = typeName;
 		this.isNodeType         = isNodeType;
+		this.isBuiltInType      = isBuiltInType;
 		this.isRelationshipType = isRelationshipType;
 
 		globalTraitMap.put(typeName, this);
@@ -255,7 +257,16 @@ public class Traits {
 		this.relationshipTraitFactories.putAll(trait.getRelationshipTraitFactories());
 
 		// relation (for relationship types)
-		this.relation = trait.getRelation();
+		final Relation r = trait.getRelation();
+		if (r != null) {
+
+			if (this.relation != null) {
+
+				throw new RuntimeException("Duplicate Relation specification!");
+			}
+
+			this.relation = r;
+		}
 	}
 
 	public Relation getRelation() {
@@ -367,5 +378,17 @@ public class Traits {
 		}
 
 		return allViews;
+	}
+
+	public static void removeDynamicTypes() {
+
+		for (final Iterator<Traits> it = globalTraitMap.values().iterator(); it.hasNext();) {
+
+			final Traits traits = it.next();
+			if (!traits.isBuiltInType) {
+
+				it.remove();
+			}
+		}
 	}
 }

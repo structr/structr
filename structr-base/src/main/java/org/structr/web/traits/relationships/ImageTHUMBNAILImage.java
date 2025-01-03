@@ -22,16 +22,11 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-import java.util.Map;
 import java.util.Set;
 
-public class ImageTHUMBNAILImage extends RelationshipTraitDefinition {
+public class ImageTHUMBNAILImage extends RelationshipBaseTraitDefinition {
 
 	private static final PropertyKey<Integer> checksum   = new IntProperty("checksum");
 	private static final PropertyKey<Integer> maxWidth   = new IntProperty("maxWidth");
@@ -80,26 +75,6 @@ public class ImageTHUMBNAILImage extends RelationshipTraitDefinition {
 	@Override
 	protected boolean isInternal() {
 		return false;
-	}
-
-	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
 	}
 
 	@Override

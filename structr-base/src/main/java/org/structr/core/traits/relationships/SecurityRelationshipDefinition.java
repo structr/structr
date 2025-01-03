@@ -24,7 +24,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
@@ -39,7 +39,7 @@ import java.util.Set;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SecurityRelationshipDefinition extends RelationshipTraitDefinition {
+public class SecurityRelationshipDefinition extends RelationshipBaseTraitDefinition {
 
 	public SecurityRelationshipDefinition() {
 		super("SecurityRelationship");

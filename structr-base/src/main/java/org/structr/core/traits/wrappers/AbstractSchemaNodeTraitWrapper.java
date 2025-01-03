@@ -24,6 +24,8 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -251,6 +253,17 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	@Override
 	public void setExtendsClass(final SchemaNode schemaNode) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("extendsClass"), schemaNode.getWrappedNode());
+	}
+
+	@Override
+	public TraitDefinition[] getTraitDefinitions() {
+
+		final List<TraitDefinition> definitions = new ArrayList<>();
+
+		definitions.add(new AbstractTraitDefinition(getName()) {
+		});
+
+		return definitions.toArray(new TraitDefinition[0]);
 	}
 
 	/*

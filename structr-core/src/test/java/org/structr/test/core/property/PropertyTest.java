@@ -30,14 +30,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.function.CryptFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -45,7 +42,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.entity.*;
+import org.structr.test.core.entity.TestEnum;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -894,10 +891,10 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				a.setProperty(Traits.of("AbstractNode").key("name"), "a");
-				c.setProperty(Traits.of("AbstractNode").key("name"), "c");
-				b.setProperty(Traits.of("AbstractNode").key("name"), "b");
-				d.setProperty(Traits.of("AbstractNode").key("name"), "d");
+				a.setProperty(Traits.of("NodeInterface").key("name"), "a");
+				c.setProperty(Traits.of("NodeInterface").key("name"), "c");
+				b.setProperty(Traits.of("NodeInterface").key("name"), "b");
+				d.setProperty(Traits.of("NodeInterface").key("name"), "d");
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -985,10 +982,10 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				testSix1.setProperty(Traits.of("AbstractNode").key("name"), "a");
-				testSix2.setProperty(Traits.of("AbstractNode").key("name"), "c");
-				testThree1.setProperty(Traits.of("AbstractNode").key("name"), "b");
-				testThree2.setProperty(Traits.of("AbstractNode").key("name"), "d");
+				testSix1.setProperty(Traits.of("NodeInterface").key("name"), "a");
+				testSix2.setProperty(Traits.of("NodeInterface").key("name"), "c");
+				testThree1.setProperty(Traits.of("NodeInterface").key("name"), "b");
+				testThree2.setProperty(Traits.of("NodeInterface").key("name"), "d");
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -2089,7 +2086,7 @@ public class PropertyTest extends StructrTest {
 			app.create("SchemaRelationshipNode",
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), message),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), message),
-				new NodeAttribute<>(Traits.of("Traits").key("of"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "*"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "children"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "parent"),
@@ -2297,7 +2294,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
@@ -2317,7 +2314,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
@@ -2416,7 +2413,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test"),
 				new NodeAttribute<>(encrypted, "structrtest")
 			);
 

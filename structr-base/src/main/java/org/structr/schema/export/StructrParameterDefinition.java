@@ -179,7 +179,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
 			getOrCreateProperties.put(traits.key("name"),         getName());
-			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod);
+			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod.getWrappedNode());
 
 			parameter = app.create("SchemaMethodParameter", getOrCreateProperties).as(SchemaMethodParameter.class);
 		}

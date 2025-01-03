@@ -19,12 +19,9 @@
 package org.structr.test.core.traits.definitions.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-import java.util.Map;
-
-public class SixThreeOneToManyCascadeIncomingTraitDefinition extends RelationshipTraitDefinition {
+public class SixThreeOneToManyCascadeIncomingTraitDefinition extends RelationshipBaseTraitDefinition {
 
 	public SixThreeOneToManyCascadeIncomingTraitDefinition() {
 		super("SixThreeOneToManyCascadeIncoming");
@@ -68,10 +65,5 @@ public class SixThreeOneToManyCascadeIncomingTraitDefinition extends Relationshi
 	@Override
 	protected boolean isInternal() {
 		return false;
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
 	}
 }

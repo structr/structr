@@ -18,55 +18,16 @@
  */
 package org.structr.core.traits.relationships;
 
-import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
-
-import java.util.Map;
-import java.util.Set;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 import static org.structr.core.entity.Relation.Multiplicity.One;
 
-public class SchemaNodePropertyDefinition extends RelationshipTraitDefinition {
+public class SchemaNodePropertyDefinition extends RelationshipBaseTraitDefinition {
 
 	public SchemaNodePropertyDefinition() {
 		super("SchemaNodeProperty");
-	}
-
-	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
 	}
 
 	@Override

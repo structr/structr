@@ -137,11 +137,15 @@ public interface GraphObject {
 		for (final Iterator<Map.Entry<PropertyKey, Object>> iterator = src.entrySet().iterator(); iterator.hasNext();) {
 
 			final Map.Entry<PropertyKey, Object> attr = iterator.next();
-			final PropertyKey key                 = attr.getKey();
-			final Object value                    = attr.getValue();
+			final PropertyKey key                     = attr.getKey();
+			final Object value                        = attr.getValue();
 
 			if (key instanceof FunctionProperty) {
 				continue;
+			}
+
+			if (key == null) {
+				throw new RuntimeException("Key is null, value is " + value + ".");
 			}
 
 			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {

@@ -89,7 +89,7 @@ public class ServicePrincipal implements Principal {
 
 				try {
 
-					final PropertyKey<String> jwksReferenceIdKey = Traits.of("Principal").key("jwksReferenceId");
+					final PropertyKey<String> jwksReferenceIdKey = Traits.of("Group").key("jwksReferenceId");
 
 					for (final String id : jwksReferenceIds) {
 

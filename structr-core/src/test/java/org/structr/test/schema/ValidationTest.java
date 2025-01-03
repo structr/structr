@@ -334,7 +334,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"));
+			app.create("SchemaNode", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -669,7 +669,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// should succeed
-			app.create("TestTwelve", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique"));
+			app.create("TestTwelve", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique"));
 
 			tx.success();
 
@@ -686,7 +686,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -742,7 +742,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -788,7 +788,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -848,12 +848,12 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface testType = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "TestDerived"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "TestDerived"),
 				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), testType)
 			);
 
@@ -913,7 +913,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
 
@@ -934,13 +934,13 @@ public class ValidationTest extends StructrTest {
 
 				try (final Tx tx = app.tx()) {
 
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique06"), new NodeAttribute<>(key, "unique00"));
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique05"), new NodeAttribute<>(key, "unique01"));
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique04"), new NodeAttribute<>(key, "unique02"));
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique03"), new NodeAttribute<>(key, "unique03"));
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique02"), new NodeAttribute<>(key, "unique04"));
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique01"), new NodeAttribute<>(key, "unique05"));
-					app.create(testType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "unique00"), new NodeAttribute<>(key, "unique06"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique06"), new NodeAttribute<>(key, "unique00"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique05"), new NodeAttribute<>(key, "unique01"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique04"), new NodeAttribute<>(key, "unique02"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique03"), new NodeAttribute<>(key, "unique03"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique02"), new NodeAttribute<>(key, "unique04"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique01"), new NodeAttribute<>(key, "unique05"));
+					app.create(testType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "unique00"), new NodeAttribute<>(key, "unique06"));
 					tx.success();
 
 				} catch (FrameworkException fex) {
@@ -979,7 +979,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Test"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_nonempty"), "+String")
 			);
 
@@ -1761,8 +1761,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation3() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0L);
 		checkRangeSuccess(testType, range1,  0L);
@@ -1898,7 +1898,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "TestType")
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "TestType")
 			);
 
 			app.create("SchemaRelationshipNode",
@@ -1932,7 +1932,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "TestType")
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "TestType")
 			);
 
 			app.create("SchemaRelationshipNode",
@@ -2149,7 +2149,7 @@ public class ValidationTest extends StructrTest {
 		// test that two identical SchemaGrant objects (identical SchemaNode and Principal) throw an error
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project"));
+			app.create("SchemaNode", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2289,7 +2289,7 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), typeName),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), typeName),
 				new NodeAttribute<>(new StringProperty("_" + keyName), keyType)
 			);
 

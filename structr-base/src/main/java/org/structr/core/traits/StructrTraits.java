@@ -22,41 +22,31 @@ import org.structr.core.traits.definitions.*;
 
 public class StructrTraits {
 
-	/*
-	private static final PropertyContainerTraitDefinition propertyContainerTraitImplementation;
-	private static final GraphObjectTraitDefinition graphObjectTraitImplementation;
-	private static final NodeInterfaceTraitDefinition nodeInterfaceTraitImplementation;
-	private static final AccessControllableTraitDefinition accessControllableTraitImplementation;
-
-	static {
-
-		propertyContainerTraitImplementation  = new PropertyContainerTraitDefinition();
-		graphObjectTraitImplementation        = new GraphObjectTraitDefinition();
-		nodeInterfaceTraitImplementation      = new NodeInterfaceTraitDefinition();
-		accessControllableTraitImplementation = new AccessControllableTraitDefinition();
-
-
-		final Traits graphObjectTraits   = new Traits("GraphObject",   false, false);
-		final Traits nodeInterfaceTraits = new Traits("NodeInterface", true, false);
-
-		graphObjectTraits.registerImplementation(graphObjectTraitImplementation);
-
-		// NodeInterface extends GraphObject
-		nodeInterfaceTraits.registerImplementation(graphObjectTraitImplementation);
-		nodeInterfaceTraits.registerImplementation(nodeInterfaceTraitImplementation);
-	}
-	*/
-
 	public static void registerBaseType(final TraitDefinition definition) {
 
-		final Traits traits = new Traits(definition.getName(), false, false);
+		final Traits traits = new Traits(definition.getName(), true, false, false);
 
 		traits.registerImplementation(definition);
 	}
 
+	public static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {
+
+		final Traits traits = new Traits(typeName, false, true, false);
+
+		// Node types consist of at least the following traits
+		traits.registerImplementation(new PropertyContainerTraitDefinition());
+		traits.registerImplementation(new GraphObjectTraitDefinition());
+		traits.registerImplementation(new NodeInterfaceTraitDefinition());
+		traits.registerImplementation(new AccessControllableTraitDefinition());
+
+		for (final TraitDefinition definition : definitions) {
+			traits.registerImplementation(definition);
+		}
+	}
+
 	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new Traits(typeName, true, false);
+		final Traits traits = new Traits(typeName, true, true, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -71,11 +61,12 @@ public class StructrTraits {
 
 	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new Traits(typeName, false, true);
+		final Traits traits = new Traits(typeName, true, false, true);
 
 		// Relationship types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
 		traits.registerImplementation(new GraphObjectTraitDefinition());
+		traits.registerImplementation(new RelationshipInterfaceTraitDefinition());
 
 		for (final TraitDefinition definition : definitions) {
 			traits.registerImplementation(definition);

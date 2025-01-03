@@ -279,22 +279,22 @@ public class PermissionResolutionTest extends StructrTest {
 			final Principal tester = app.nodeQuery("User").getFirst().as(Principal.class);
 
 			final NodeInterface p1 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), tester)
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester.getWrappedNode())
 			);
 
 			final NodeInterface p2 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"),
 				new NodeAttribute<>(key, p1)
 			);
 
 			final NodeInterface p3 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project3"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"),
 				new NodeAttribute<>(key, p2)
 			);
 
 			final NodeInterface p4 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project4"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"),
 				new NodeAttribute<>(key, p3)
 			);
 
@@ -371,22 +371,22 @@ public class PermissionResolutionTest extends StructrTest {
 			final Principal tester = app.nodeQuery("User").getFirst().as(Principal.class);
 
 			final NodeInterface p1 = app.create(mooType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), tester)
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester.getWrappedNode())
 			);
 
 			final NodeInterface p2 = app.create(testType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"),
 				new NodeAttribute<>(key, p1)
 			);
 
 			final NodeInterface p3 = app.create(mooType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project3"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"),
 				new NodeAttribute<>(key, p2)
 			);
 
 			final NodeInterface p4 = app.create(testType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project4"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"),
 				new NodeAttribute<>(key, p3)
 			);
 
@@ -453,7 +453,7 @@ public class PermissionResolutionTest extends StructrTest {
 			final NodeInterface projectNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
 			final NodeInterface grant      = app.create("SchemaGrant",
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1.getWrappedNode()),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           false),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          false),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         false),
@@ -475,10 +475,10 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final Principal tester = app.nodeQuery("User").andName("tester").getFirst().as(Principal.class);
 
-			app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1"), new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), tester));
-			app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2"));
-			app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project3"));
-			app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project4"));
+			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester.getWrappedNode()));
+			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"));
+			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"));
+			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"));
 
 			tx.success();
 
@@ -588,7 +588,7 @@ public class PermissionResolutionTest extends StructrTest {
 			group2.addMember(ctx, group3);
 
 			// Group3 has jwksReferenceId for ServicePrincipal
-			group3.setProperty(Traits.of("StructrApp").key("jwksReferenceId"), "admin_group");
+			group3.setProperty(Traits.of("Group").key("jwksReferenceId"), "admin_group");
 
 			tx.success();
 

@@ -19,12 +19,9 @@
 package org.structr.test.core.traits.definitions.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-import java.util.Map;
-
-public class SixOneManyToManyTraitDefinition extends RelationshipTraitDefinition {
+public class SixOneManyToManyTraitDefinition extends RelationshipBaseTraitDefinition {
 
 	public SixOneManyToManyTraitDefinition() {
 		super("SixOneManyToMany");
@@ -68,10 +65,5 @@ public class SixOneManyToManyTraitDefinition extends RelationshipTraitDefinition
 	@Override
 	protected boolean isInternal() {
 		return false;
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
 	}
 }

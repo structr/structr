@@ -21,6 +21,7 @@ package org.structr.core.traits.definitions;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -54,6 +55,11 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
 	}
 

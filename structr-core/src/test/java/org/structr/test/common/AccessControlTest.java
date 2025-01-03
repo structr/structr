@@ -72,10 +72,10 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			User user = (User)createTestNode(principalType);
+			NodeInterface user = createTestNode(principalType);
 
 			// Create node with user context
-			createTestNode("TestOne", user);
+			createTestNode("TestOne", user.as(User.class));
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
@@ -144,19 +144,19 @@ public class AccessControlTest extends StructrTest {
 		try {
 
 			final List<NodeInterface> users = createTestNodes("User", 1);
-			User user = (User) users.get(0);
+			NodeInterface user              =  users.get(0);
 
 			PropertyMap props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
-			NodeInterface t1 = createTestNode("TestOne", props, user);
+			NodeInterface t1 = createTestNode("TestOne", props, user.as(User.class));
 
 			props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 
-			NodeInterface t2 = createTestNode("TestOne", props, user);
+			NodeInterface t2 = createTestNode("TestOne", props, user.as(User.class));
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
@@ -186,23 +186,23 @@ public class AccessControlTest extends StructrTest {
 		try {
 
 			final List<NodeInterface> users = createTestNodes("User", 2);
-			User user1 = (User) users.get(0);
-			User user2 = (User) users.get(1);
+			NodeInterface user1             = users.get(0);
+			NodeInterface user2             =  users.get(1);
 
 			PropertyMap props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
-			NodeInterface t1 = createTestNode("TestOne", props, user1);
+			NodeInterface t1 = createTestNode("TestOne", props, user1.as(User.class));
 
 			props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 
-			NodeInterface t2 = createTestNode("TestOne", props, user1);
+			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
 			// Let another user search
-			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
+			SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
 
 			try (final Tx tx = app.tx()) {
 				List<NodeInterface> result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
@@ -228,23 +228,23 @@ public class AccessControlTest extends StructrTest {
 		try {
 
 			final List<NodeInterface> users = createTestNodes("User", 2);
-			User user1 = (User) users.get(0);
-			User user2 = (User) users.get(1);
+			NodeInterface user1             = users.get(0);
+			NodeInterface user2             = users.get(1);
 
 			PropertyMap props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
-			NodeInterface t1 = createTestNode("TestOne", props, user1);
+			NodeInterface t1 = createTestNode("TestOne", props, user1.as(User.class));
 
 			props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 
-			NodeInterface t2 = createTestNode("TestOne", props, user1);
+			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
 			// Let another user search
-			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Frontend);
+			SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Frontend);
 
 			try (final Tx tx = app.tx()) {
 
@@ -271,23 +271,23 @@ public class AccessControlTest extends StructrTest {
 		try {
 
 			final List<NodeInterface> users = createTestNodes("User", 2);
-			User user1 = (User) users.get(0);
-			User user2 = (User) users.get(1);
-			List<NodeInterface> result = null;
+			NodeInterface user1             = users.get(0);
+			NodeInterface user2             = users.get(1);
+			List<NodeInterface> result      = null;
 
 			// Let user 1 create a node
 			String type = "TestOne";
-			final AccessControllable t1 = createTestNode("TestOne", user1).as(AccessControllable.class);
+			final AccessControllable t1 = createTestNode("TestOne", user1.as(User.class)).as(AccessControllable.class);
 
 			try (final Tx tx = app.tx()) {
 
 				// Grant read permission to user 2
-				t1.grant(Permission.read, user2);
+				t1.grant(Permission.read, user2.as(User.class));
 				tx.success();
 			}
 
 			// Let user 2 search
-			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
+			SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
 
 			try (final Tx tx = app.tx()) {
 
@@ -300,7 +300,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Revoke permission again
-				t1.revoke(Permission.read, user2);
+				t1.revoke(Permission.read, user2.as(User.class));
 				tx.success();
 			}
 
@@ -331,9 +331,9 @@ public class AccessControlTest extends StructrTest {
 			final List<NodeInterface> nodes = createTestNodes(type, 10, 100);
 
 			try (final Tx tx = app.tx()) {
-				nodes.get(3).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
-				nodes.get(5).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
-				nodes.get(7).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
+				nodes.get(3).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+				nodes.get(5).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+				nodes.get(7).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
 				tx.success();
 			}
 
@@ -376,13 +376,13 @@ public class AccessControlTest extends StructrTest {
 
 				// add names to make sorting work...
 				for (final NodeInterface node : nodes) {
-					node.setProperty(Traits.of("AbstractNode").key("name"), "node0" + count++);
+					node.setProperty(Traits.of("NodeInterface").key("name"), "node0" + count++);
 				}
 
-				nodes.get(3).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
-				nodes.get(5).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
-				nodes.get(7).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
-				nodes.get(9).setProperty(Traits.of("AbstractNode").key("visibleToPublicUsers"), true);
+				nodes.get(3).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+				nodes.get(5).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+				nodes.get(7).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+				nodes.get(9).setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
 				tx.success();
 			}
 
@@ -1164,13 +1164,13 @@ public class AccessControlTest extends StructrTest {
 	public void test00CreatePrincipal() {
 
 		final PropertyKey<String> eMail = Traits.of("User").key("eMail");
-		User user1                      = null;
+		NodeInterface user1             = null;
 
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes("User", 1);
-			user1 = (User) users.get(0);
-			user1.setProperty(Traits.of("AbstractNode").key("name"), "user1");
+			user1 = users.get(0);
+			user1.setProperty(Traits.of("NodeInterface").key("name"), "user1");
 
 			tx.success();
 
@@ -1181,7 +1181,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes("User", 1);
-			final User invalidUser = (User) users.get(0);
+			final NodeInterface invalidUser =  users.get(0);
 			invalidUser.setProperty(Traits.of("User").key("name") , "tester");
 			invalidUser.setProperty(eMail, "invalid");
 
@@ -1202,12 +1202,14 @@ public class AccessControlTest extends StructrTest {
 		}
 
 		// Switch user context to user1
-		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Frontend));
+		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1.as(User.class), AccessMode.Frontend));
 		try (final Tx tx = user1App.tx()) {
 
 			final User user2 = user1App.create("User").as(User.class);
 
 			assertNotNull(user2);
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.error(ex.toString());
@@ -1220,23 +1222,23 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			User user1 = null;
-			User user2 = null;
-			NodeInterface t1 = null;
-			String type = "TestOne";
+			NodeInterface user1 = null;
+			NodeInterface user2 = null;
+			NodeInterface t1    = null;
+			String type         = "TestOne";
 
 			try (final Tx tx = app.tx()) {
 
 				final List<NodeInterface> users = createTestNodes("User", 2);
-				user1 = (User) users.get(0);
-				user1.setProperty(Traits.of("AbstractNode").key("name"), "user1");
+				user1 = users.get(0);
+				user1.setProperty(Traits.of("NodeInterface").key("name"), "user1");
 
-				user2 = (User) users.get(1);
-				user2.setProperty(Traits.of("AbstractNode").key("name"), "user2");
+				user2 = users.get(1);
+				user2.setProperty(Traits.of("NodeInterface").key("name"), "user2");
 
 				t1 = createTestNode("TestOne");
 
-				t1.setProperty(Traits.of("AbstractNode").key("owner"), user1);
+				t1.setProperty(Traits.of("NodeInterface").key("owner"), user1);
 
 				tx.success();
 
@@ -1249,7 +1251,7 @@ public class AccessControlTest extends StructrTest {
 				assertEquals(user1, t1.getProperty(Traits.of("NodeInterface").key("owner")));
 
 				// Switch user context to user1
-				final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
+				final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1.as(User.class), AccessMode.Backend));
 
 				// Check if user1 can see t1
 				assertEquals(t1, user1App.nodeQuery(type).getFirst());
@@ -1258,7 +1260,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// As superuser, make another user the owner
-				t1.setProperty(Traits.of("AbstractNode").key("owner"), user2);
+				t1.setProperty(Traits.of("NodeInterface").key("owner"), user2);
 
 				tx.success();
 
@@ -1269,7 +1271,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Switch user context to user2
-				final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2, AccessMode.Backend));
+				final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend));
 
 				// Check if user2 can see t1
 				assertEquals(t1, user2App.nodeQuery(type).getFirst());
@@ -1293,12 +1295,12 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes("User", 2);
-			final User user1       = (User) users.get(0);
-			final Group group1         = createTestNode("Group", "test group").as(Group.class);
+			final NodeInterface user1        = users.get(0);
+			final Group group1               = createTestNode("Group", "test group").as(Group.class);
 			final NodeInterface t1           = createTestNode("TestOne");
 
-			t1.setProperty(Traits.of("AbstractNode").key("owner"), user1);
-			t1.setProperty(Traits.of("AbstractNode").key("owner"), group1);
+			t1.setProperty(Traits.of("NodeInterface").key("owner"), user1);
+			t1.setProperty(Traits.of("NodeInterface").key("owner"), group1);
 			assertEquals(group1, t1.getProperty(Traits.of("NodeInterface").key("owner")));
 
 			RelationshipInterface ownerRel = t1.getIncomingRelationship("PrincipalOwnsNode");
@@ -1380,13 +1382,13 @@ public class AccessControlTest extends StructrTest {
 
 		final String type               = "User";
 		final PropertyKey<String> eMail = Traits.of(type).key("eMail");
-		User user1                      = null;
+		NodeInterface user1             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = (User)createTestNode(type);
+			user1 = createTestNode(type);
 
-			user1.setProperty(Traits.of("AbstractNode").key("name"), "user1");
+			user1.setProperty(Traits.of("NodeInterface").key("name"), "user1");
 			user1.setProperty(eMail, "LOWERCASE@TEST.com");
 
 			tx.success();
@@ -1642,7 +1644,7 @@ public class AccessControlTest extends StructrTest {
 			app.create(bothClass, "both2");
 
 			user = app.create("User",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "user"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "password")
 			).as(User.class);
 

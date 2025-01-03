@@ -18,42 +18,32 @@
  */
 package org.structr.schema;
 
-import graphql.Scalars;
-import graphql.schema.*;
-import org.apache.commons.lang3.StringUtils;
+import graphql.schema.GraphQLSchema;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.config.Settings;
-import org.structr.api.index.IndexConfig;
-import org.structr.api.index.NodeIndexConfig;
-import org.structr.api.index.RelationshipIndexConfig;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.api.service.*;
-import org.structr.common.AccessPathCache;
-import org.structr.common.error.*;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
-import org.structr.core.graph.*;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.definitions.AccessControllableTraitDefinition;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.schema.compiler.*;
-import org.structr.schema.export.StructrSchema;
 
-import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.structr.web.maintenance.DeployCommand;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -64,9 +54,9 @@ public class SchemaService implements Service {
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
-	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
+	//private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
-	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
+	private static final AtomicBoolean schemaIsBeingReplaced      = new AtomicBoolean(false);
 	private static final Set<String> blacklist                    = new LinkedHashSet<>();
 	private static GraphQLSchema graphQLSchema                    = null;
 
@@ -94,19 +84,66 @@ public class SchemaService implements Service {
 		return new ServiceResult(true);
 	}
 
+	/*
 	public static JsonSchema getDynamicSchema() {
 		return dynamicSchema;
 	}
+	*/
 
 	public static synchronized GraphQLSchema getGraphQLSchema() {
 		return graphQLSchema;
 	}
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload, final boolean notifyCluster) {
+
+		// compiling must only be done once
+		if (!schemaIsBeingReplaced.compareAndSet(false, true)) {
+
+			errorBuffer.add(new InvalidSchemaToken("Base", "source", "token"));
+
+		} else {
+
+			final App app = StructrApp.getInstance();
+			final long t0 = System.currentTimeMillis();
+
+			try (final Tx tx = app.tx()) {
+
+				tx.prefetchHint("Reload schema");
+
+				final List<SchemaNode> schemaNodes = new LinkedList<>();
+
+				// fetch all schema nodes
+				for (final NodeInterface node : app.nodeQuery("SchemaNode").getResultStream()) {
+
+					schemaNodes.add(node.as(SchemaNode.class));
+				}
+
+				Traits.removeDynamicTypes();
+
+				for (final SchemaNode schemaNode : schemaNodes) {
+
+					final String name                   = schemaNode.getName();
+					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
+
+					StructrTraits.registerDynamicNodeType(name, definitions);
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				logger.error(ExceptionUtils.getStackTrace(t));
+
+			} finally {
+
+				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
+
+				schemaIsBeingReplaced.set(false);
+			}
+		}
 		/*
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final App app                      = StructrApp.getInstance();
 		boolean success                    = true;
 		int retryCount                     = 2;
 
@@ -494,9 +531,11 @@ public class SchemaService implements Service {
 		return SchemaService.blacklist;
 	}
 
+	/*
 	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
 		StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 	}
+	*/
 
 	@Override
 	public boolean isVital() {
@@ -518,8 +557,8 @@ public class SchemaService implements Service {
 		return 1;
 	}
 
-	public static boolean isCompiling() {
-		return compiling.get();
+	public static boolean getSchemaIsBeingReplaced() {
+		return schemaIsBeingReplaced.get();
 	}
 
 	// ----- interface Feature -----

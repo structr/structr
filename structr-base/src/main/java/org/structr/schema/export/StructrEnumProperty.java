@@ -123,6 +123,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 			final String typeName = this.parent.getName();
 			if (typeName != null) {
 
+				/*
 				final JsonSchema builtInSchema = SchemaService.getDynamicSchema();
 				final JsonType type            = builtInSchema.getType(typeName, false);
 
@@ -142,6 +143,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 						}
 					}
 				}
+				*/
 
 				if (this.fqcn == null) {
 

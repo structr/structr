@@ -20,34 +20,15 @@ package org.structr.core.traits.definitions;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
 
-import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
-/**
- */
-public final class AbstractRelationshipTraitDefinition extends AbstractTraitDefinition {
+public final class RelationshipInterfaceTraitDefinition extends AbstractTraitDefinition {
 
-	/*
-	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
-		id, typeHandler, relType, sourceId, targetId
-	);
-
-	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
-		id, typeHandler, relType, sourceId, targetId
-	);
-	*/
-
-	public AbstractRelationshipTraitDefinition() {
-		super("AbstractRelationship");
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+	public RelationshipInterfaceTraitDefinition() {
+		super("RelationshipInterface");
 	}
 
 	@Override

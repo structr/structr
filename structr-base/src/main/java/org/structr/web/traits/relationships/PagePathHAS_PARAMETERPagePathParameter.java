@@ -19,17 +19,9 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-import java.util.Map;
-import java.util.Set;
-
-public class PagePathHAS_PARAMETERPagePathParameter extends RelationshipTraitDefinition {
+public class PagePathHAS_PARAMETERPagePathParameter extends RelationshipBaseTraitDefinition {
 
 	public PagePathHAS_PARAMETERPagePathParameter() {
 		super("PagePathHAS_PARAMETERPagePathParameter");
@@ -73,30 +65,5 @@ public class PagePathHAS_PARAMETERPagePathParameter extends RelationshipTraitDef
 	@Override
 	protected boolean isInternal() {
 		return false;
-	}
-
-	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
 	}
 }

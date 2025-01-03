@@ -43,7 +43,7 @@ import java.util.*;
 
 public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Principal {
 
-	public PrincipalTraitWrapper(Traits traits, NodeInterface nodeInterface) {
+	public PrincipalTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
 	}
 
@@ -201,11 +201,13 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 
 		try {
 
-			final App app             = StructrApp.getInstance();
-			final NodeInterface node  = app.getNodeById("Principal", wrappedObject.getUuid());
-			final Principal principal = new PrincipalTraitWrapper(null, node);
+			final App app            = StructrApp.getInstance();
+			final NodeInterface node = app.getNodeById("Principal", wrappedObject.getUuid());
 
-			return principal.getGroups();
+			if (node != null) {
+
+				return node.as(Principal.class).getGroups();
+			}
 
 		} catch (FrameworkException fex) {
 
@@ -216,6 +218,8 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 
 			return Collections.emptyList();
 		}
+
+		return Collections.emptyList();
 	}
 
 	@Override

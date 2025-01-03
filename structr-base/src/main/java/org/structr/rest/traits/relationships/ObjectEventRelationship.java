@@ -22,7 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.RelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
@@ -33,7 +33,7 @@ import java.util.Set;
  *
  *
  */
-public class ObjectEventRelationship extends RelationshipTraitDefinition {
+public class ObjectEventRelationship extends RelationshipBaseTraitDefinition {
 
 	public ObjectEventRelationship() {
 		super("ObjectEventRelationship");

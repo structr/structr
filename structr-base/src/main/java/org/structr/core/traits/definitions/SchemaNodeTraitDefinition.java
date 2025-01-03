@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +28,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
@@ -34,7 +36,9 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
+import org.structr.schema.ReloadSchema;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -50,24 +54,6 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation", "Property"
 	}));
-
-	/*
-	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		id, typeHandler, name, icon, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
-	);
-
-	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		id, typeHandler, name, owner, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
-	);
-
-	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, typeHandler, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, extendsClass, extendsClassInternal, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
-	);
-
-	public static final View exportView = new View(SchemaNode.class, "export",
-		id, typeHandler, name, icon, description, changelogDisabled, extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
-	);
-	*/
 
 	public SchemaNodeTraitDefinition() {
 		super("SchemaNode");
@@ -87,7 +73,7 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 					boolean valid = true;
 
 					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.nameProperty(), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty() , SchemaNode.schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty(), SchemaNode.schemaNodeNamePattern, errorBuffer);
 
 					return valid;
 				}
@@ -100,6 +86,8 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					throwExceptionIfTypeAlreadyExists(graphObject);
+
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			},
 
@@ -112,6 +100,18 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 					if (modificationQueue.isPropertyModified(graphObject, Traits.nameProperty())) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
 					}
+
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
+				}
+			},
+
+			OnNodeDeletion.class,
+			new OnNodeDeletion() {
+
+				@Override
+				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			}
 		);
@@ -172,6 +172,25 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 			includeInOpenAPI,
 			summary,
 			description
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			Set.of("id", "typeHandler", "name", "icon", "changelogDisabled", "extendsClass", "implementsInterfaces", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth", "tags", "summary", "description"),
+
+			PropertyView.Ui,
+			Set.of("id", "typeHandler", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "extendsClass", "implementsInterfaces", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "defaultVisibleToPublic", "defaultVisibleToAuth", "tags", "summary", "description", "includeInOpenAPI"),
+
+			"schema",
+			Set.of("id", "typeHandler", "name", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "extendsClass", "extendsClassInternal", "implementsInterfaces", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "schemaGrants", "defaultVisibleToPublic", "defaultVisibleToAuth", "tags", "summary", "description", "includeInOpenAPI"),
+
+			"export",
+			Set.of("id", "typeHandler", "name", "icon", "changelogDisabled", "extendsClass", "implementsInterfaces", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth", "tags", "summary", "description")
 		);
 	}
 

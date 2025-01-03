@@ -80,7 +80,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				importResource(resource);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				//t.printStackTrace();
 			}
 		}
 
@@ -275,19 +275,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					} catch (Throwable t) {
 
-						t.printStackTrace();
-
+						/*
 						// log only errors from internal classes
 						if (className.startsWith("org.structr.") && !UiModule.class.getName().equals(className)) {
 
 							logger.warn("Unable to instantiate module " + clazz.getName(), t);
 						}
+						*/
 					}
 				}
 
 			} catch (Throwable t) {
-				t.printStackTrace();
-				logger.warn("Error trying to load class {}: {}",  className, t.getMessage());
+				//t.printStackTrace();
+				//logger.warn("Error trying to load class {}: {}",  className, t.getMessage());
 			}
 		}
 	}
@@ -378,8 +378,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 												}
 
 											} catch (Throwable t) {
-												t.printStackTrace();
-												logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
+												//t.printStackTrace();
+												//logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
 											}
 										}
 									}

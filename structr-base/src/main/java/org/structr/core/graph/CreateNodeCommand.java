@@ -229,12 +229,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
-			final Traits relationshipTraits                   = Traits.of("RelationshipInterface");
 			final Traits securityTraits                       = Traits.of("SecurityRelationship");
-			final PropertyKey<String> internalTimestampKey    = relationshipTraits.key("internalTimestamp");
-			final PropertyKey<String> sourceIdKey             = relationshipTraits.key("sourceId");
-			final PropertyKey<String> targetIdKey             = relationshipTraits.key("targetId");
-			final PropertyKey<String> relTypeKey              = relationshipTraits.key("relType");
+			final PropertyKey<String> internalTimestampKey    = securityTraits.key("internalTimestamp");
+			final PropertyKey<String> sourceIdKey             = securityTraits.key("sourceId");
+			final PropertyKey<String> targetIdKey             = securityTraits.key("targetId");
+			final PropertyKey<String> relTypeKey              = securityTraits.key("relType");
 			final PropertyKey<String> principalIdKey          = securityTraits.key("allowed");
 			final PropertyKey<String> accessControllableIdKey = securityTraits.key("allowed");
 			final PropertyKey<String[]> allowedKey            = securityTraits.key("allowed");

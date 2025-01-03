@@ -62,7 +62,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 
-		final Traits relationshipTraits                = Traits.of("RelationshipInterface");
+		final Traits relationshipTraits                = Traits.of(entityType);
 		final PropertyKey<String> internalTimestampKey = relationshipTraits.key("internalTimestamp");
 		final PropertyKey<String> sourceIdKey          = relationshipTraits.key("sourceId");
 		final PropertyKey<String> targetIdKey          = relationshipTraits.key("targetId");
@@ -135,7 +135,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				final Object value    = entry.getValue();
 
 				if (!key.isUnvalidated()) {
-					TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)newRel, key, null, value);
+					TransactionCommand.relationshipModified(securityContext.getCachedUser(), newRel, key, null, value);
 				}
 			}
 
