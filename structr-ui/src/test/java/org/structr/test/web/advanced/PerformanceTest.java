@@ -92,10 +92,10 @@ public class PerformanceTest extends StructrUiTest {
 
 					nodes.add(app.create(TestOne.class,
 						new NodeAttribute(TestOne.name, "TestOne" + i),
-						new NodeAttribute(TestOne.aDate, new Date()),
-						new NodeAttribute(TestOne.aDouble, 1.234),
-						new NodeAttribute(TestOne.aLong, 12345L),
-						new NodeAttribute(TestOne.anInt, 123)
+						new NodeAttribute(Traits.of("TestOne").key("aDate"), new Date()),
+						new NodeAttribute(Traits.of("TestOne").key("aDouble"), 1.234),
+						new NodeAttribute(Traits.of("TestOne").key("aLong"), 12345L),
+						new NodeAttribute(Traits.of("TestOne").key("anInt"), 123)
 					));
 				}
 

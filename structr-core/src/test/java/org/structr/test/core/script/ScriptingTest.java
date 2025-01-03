@@ -59,9 +59,7 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestOne.Status;
-import org.structr.test.core.entity.TestSix;
+import org.structr.test.core.traits.definitions.TestOneTraitDefinition;
 import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -379,7 +377,7 @@ public class ScriptingTest extends StructrTest {
 			testOne1.setProperty(Traits.of("TestOne").key("aLong")             , long1);
 			testOne1.setProperty(Traits.of("TestOne").key("aDouble")           , double1);
 			testOne1.setProperty(Traits.of("TestOne").key("aDate")             , date1);
-			testOne1.setProperty(Traits.of("TestOne").key("anEnum")            , Status.One);
+			testOne1.setProperty(Traits.of("TestOne").key("anEnum")            , TestOneTraitDefinition.Status.One);
 			testOne1.setProperty(Traits.of("TestOne").key("aString")           , "aString1");
 			testOne1.setProperty(Traits.of("TestOne").key("aBoolean")          , true);
 			testOne1.setProperty(Traits.of("TestOne").key("testTwo")           , testTwo1);
@@ -391,7 +389,7 @@ public class ScriptingTest extends StructrTest {
 			testOne2.setProperty(Traits.of("TestOne").key("aLong")             , long2);
 			testOne2.setProperty(Traits.of("TestOne").key("aDouble")           , double2);
 			testOne2.setProperty(Traits.of("TestOne").key("aDate")             , date2);
-			testOne2.setProperty(Traits.of("TestOne").key("anEnum")            , Status.Two);
+			testOne2.setProperty(Traits.of("TestOne").key("anEnum")            , TestOneTraitDefinition.Status.Two);
 			testOne2.setProperty(Traits.of("TestOne").key("aString")           , "aString2");
 			testOne2.setProperty(Traits.of("TestOne").key("aBoolean")          , false);
 			testOne2.setProperty(Traits.of("TestOne").key("testTwo")           , testTwo2);
@@ -711,7 +709,7 @@ public class ScriptingTest extends StructrTest {
 			testOne.setProperty(Traits.of("TestOne").key("aLong"), 235242522552L);
 			testOne.setProperty(Traits.of("TestOne").key("aDouble"), 2.234);
 			testOne.setProperty(Traits.of("TestOne").key("aDate"), now);
-			testOne.setProperty(Traits.of("TestOne").key("anEnum"), TestOne.Status.One);
+			testOne.setProperty(Traits.of("TestOne").key("anEnum"), TestOneTraitDefinition.Status.One);
 			testOne.setProperty(Traits.of("TestOne").key("aBoolean"), true);
 			testOne.setProperty(Traits.of("TestOne").key("testTwo"), testTwo);
 			testOne.setProperty(Traits.of("TestOne").key("testThree"), testThree);
@@ -5333,8 +5331,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			//final List<TestOne> result1 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.name).getAsList();
-			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name'))}}", "test1");
+			//final List<TestOne> result1 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name'))}}", "test1");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
@@ -5346,8 +5344,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
 
-			//final List<TestOne> result2 = app.nodeQuery("TestOne").sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong', true), $.predicate.sort('name'))}}", "test2");
+			//final List<TestOne> result2 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong"), true).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong', true), $.predicate.sort('name'))}}", "test2");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
@@ -5359,8 +5357,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
 
-			//final List<TestOne> result3 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
-			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name', true))}}", "test3");
+			//final List<TestOne> result3 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(TestOne.name, true).getAsList();
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name', true))}}", "test3");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
@@ -5372,8 +5370,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
 
-			//final List<TestOne> result4 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
-			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt'), $.predicate.sort('name'))}}", "test4");
+			//final List<TestOne> result4 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(Traits.of("TestOne").key("anInt")).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result4 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt'), $.predicate.sort('name'))}}", "test4");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
@@ -5385,8 +5383,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
 
-			//final List<TestOne> result5 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt', true), $.predicate.sort('name'))}}", "test5");
+			//final List<TestOne> result5 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(Traits.of("TestOne").key("anInt"), true).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result5 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt', true), $.predicate.sort('name'))}}", "test5");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
@@ -5432,8 +5430,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			//final List<TestOne> result1 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.name).getAsList();
-			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name'))}", "test1");
+			//final List<TestOne> result1 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name'))}", "test1");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
@@ -5445,8 +5443,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
 
-			//final List<TestOne> result2 = app.nodeQuery("TestOne").sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong', true), sort('name'))}", "test2");
+			//final List<TestOne> result2 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong"), true).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong', true), sort('name'))}", "test2");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
@@ -5458,8 +5456,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
 
-			//final List<TestOne> result3 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
-			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name', true))}", "test3");
+			//final List<TestOne> result3 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(TestOne.name, true).getAsList();
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name', true))}", "test3");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
@@ -5471,8 +5469,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
 
-			//final List<TestOne> result4 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
-			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt'), sort('name'))}", "test4");
+			//final List<TestOne> result4 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(Traits.of("TestOne").key("anInt")).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result4 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt'), sort('name'))}", "test4");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
@@ -5484,8 +5482,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
 
-			//final List<TestOne> result5 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt', true), sort('name'))}", "test5");
+			//final List<TestOne> result5 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(Traits.of("TestOne").key("anInt"), true).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result5 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt', true), sort('name'))}", "test5");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
@@ -5531,8 +5529,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			//final List<TestOne> result1 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.name).getAsList();
-			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne') 'aLong', false, 'name', false)}", "test1");
+			//final List<TestOne> result1 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne') 'aLong', false, 'name', false)}", "test1");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
@@ -5544,8 +5542,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name5", result1.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
 
-			//final List<TestOne> result2 = app.nodeQuery("TestOne").sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', true, 'name')}", "test2");
+			//final List<TestOne> result2 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong"), true).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', true, 'name')}", "test2");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
@@ -5557,8 +5555,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
 
-			//final List<TestOne> result3 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
-			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'name', true)}", "test3");
+			//final List<TestOne> result3 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(TestOne.name, true).getAsList();
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'name', true)}", "test3");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
@@ -5570,8 +5568,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result3.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
 
-			//final List<TestOne> result4 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
-			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'anInt', false, 'name', false)}", "test4");
+			//final List<TestOne> result4 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(Traits.of("TestOne").key("anInt")).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result4 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'anInt', false, 'name', false)}", "test4");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
@@ -5583,8 +5581,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result4.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
 
-			//final List<TestOne> result5 = app.nodeQuery("TestOne").sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'anInt', true, 'name')}", "test5");
+			//final List<TestOne> result5 = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("aLong")).sort(Traits.of("TestOne").key("anInt"), true).sort(TestOne.name).getAsList();
+			final List<NodeInterface> result5 = (List)Scripting.evaluate(ctx, null, "${sort(find('TestOne'), 'aLong', false, 'anInt', true, 'name')}", "test5");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
@@ -5784,8 +5782,8 @@ public class ScriptingTest extends StructrTest {
 			List resultList = (List)result;
 
 			assertEquals(resultList.size(), 10);
-			assertTrue(resultList.get(0) instanceof TestOne);
-			assertEquals(((TestOne)resultList.get(0)).getName(), "TestOne9");
+			assertTrue(resultList.get(0) instanceof NodeInterface);
+			assertEquals(((NodeInterface)resultList.get(0)).getName(), "TestOne9");
 
 			tx.success();
 

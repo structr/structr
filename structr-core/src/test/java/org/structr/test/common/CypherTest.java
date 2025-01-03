@@ -37,28 +37,22 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.core.entity.SixOneManyToMany;
-import org.structr.test.core.entity.SixOneOneToOne;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSix;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -311,7 +305,7 @@ public class CypherTest extends StructrTest {
 				for (final GraphObject obj : result) {
 
 					System.out.println(obj);
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, obj.getClass());
+					assertEquals("Invalid wrapped cypher query result", "TestOne", obj.getType());
 				}
 
 				tx.success();
@@ -330,12 +324,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());		// m
 				}
 
 				tx.success();
@@ -353,12 +347,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());		// m
 
 					resultCount++;
 				}
@@ -382,21 +376,21 @@ public class CypherTest extends StructrTest {
 
 					assertEquals("Invalid wrapped cypher query result", GraphObjectMap.class, obj.getClass());
 
-					final Object nodes = obj.getProperty(new StringProperty("nodes"));
-					final Object rels  = obj.getProperty(new StringProperty("rels"));
+					final Object nodes = obj.getProperty(new GenericProperty("nodes"));
+					final Object rels  = obj.getProperty(new GenericProperty("rels"));
 
 					assertTrue("Invalid wrapped cypher query result", nodes instanceof Collection);
 					assertTrue("Invalid wrapped cypher query result", rels instanceof Collection);
 
-					final Iterator it = ((Collection)nodes).iterator();
+					final Iterator<GraphObject> it = ((Collection)nodes).iterator();
 					while (it.hasNext()) {
 
-						assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());
-						assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());
+						assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());
+						assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());
 					}
 
-					for (final Object node : ((Collection)rels)) {
-						assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, node.getClass());
+					for (final GraphObject node : ((Collection<GraphObject>)rels)) {
+						assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", node.getType());
 					}
 
 				}
@@ -442,16 +436,16 @@ public class CypherTest extends StructrTest {
 
 					assertEquals("Invalid wrapped cypher query result", GraphObjectMap.class, obj.getClass());
 
-					final Object nodes = obj.getProperty(new StringProperty("nodes"));
+					final Object nodes = obj.getProperty(new GenericProperty("nodes"));
 					assertTrue("Invalid wrapped cypher query result", nodes instanceof GraphObjectMap);
 
-					final Object x = ((GraphObjectMap)nodes).getProperty(new StringProperty("x"));
+					final Object x = ((GraphObjectMap)nodes).getProperty(new GenericProperty("x"));
 					assertTrue("Invalid wrapped cypher query result", x instanceof GraphObjectMap);
 
-					final Object y = ((GraphObjectMap)x).getProperty(new StringProperty("y"));
+					final Object y = ((GraphObjectMap)x).getProperty(new GenericProperty("y"));
 					assertTrue("Invalid wrapped cypher query result", y instanceof GraphObjectMap);
 
-					final Object z = ((GraphObjectMap)y).getProperty(new StringProperty("z"));
+					final Object z = ((GraphObjectMap)y).getProperty(new GenericProperty("z"));
 					assertTrue("Invalid wrapped cypher query result", z instanceof Collection);
 
 				}
@@ -601,12 +595,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne",          it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix",          it.next().getType());		// m
 
 					resultCount++;
 				}
@@ -631,12 +625,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne",          it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix",          it.next().getType());		// m
 
 					resultCount++;
 				}
@@ -666,17 +660,17 @@ public class CypherTest extends StructrTest {
 
 					assertNotNull(testSix);
 
-					final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
-					final Iterator rit    = result.iterator();
+					final Iterable<GraphObject> result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
+					final Iterator<GraphObject> rit    = result.iterator();
 
 					while (rit.hasNext()) {
 
-						final Iterable tuple = (Iterable)rit.next();
-						final Iterator it    = tuple.iterator();
-						final TestSix test   = (TestSix)it.next();
+						final Iterable<GraphObject> tuple = (Iterable)rit.next();
+						final Iterator<GraphObject> it    = tuple.iterator();
+						final GraphObject test            = it.next();
 
-						assertEquals("Invalid wrapped cypher query result", TestSix.class, test.getClass());
-						assertEquals("Invalid wrapped cypher query result", uuid,          test.getUuid());
+						assertEquals("Invalid wrapped cypher query result", "TestSix", test.getType());
+						assertEquals("Invalid wrapped cypher query result", uuid,      test.getUuid());
 					}
 
 					tx.success();

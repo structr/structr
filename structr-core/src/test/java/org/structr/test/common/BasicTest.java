@@ -39,8 +39,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.test.core.entity.OneThreeOneToOne;
-import org.structr.test.core.entity.TestOne;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -1036,7 +1034,7 @@ public class BasicTest extends StructrTest {
 			}
 
 			assertTrue(node != null);
-			assertTrue(node instanceof TestOne);
+			assertEquals("TestOne", node.getType());
 
 		} catch (FrameworkException ex) {
 
@@ -1068,8 +1066,10 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				assertTrue(node != null);
-				assertTrue(node instanceof TestOne);
-				assertEquals(node.getUuid(), uuid);
+				assertEquals("TestOne", node.getType());
+				assertEquals(uuid, node.getUuid());
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -1097,7 +1097,7 @@ public class BasicTest extends StructrTest {
 				node = app.create("TestOne", props);
 
 				assertTrue(node != null);
-				assertTrue(node instanceof TestOne);
+				assertEquals("TestOne", node.getType());
 				assertEquals(node.getUuid(), uuid);
 
 				node = app.create("TestOne", props);
@@ -1129,7 +1129,7 @@ public class BasicTest extends StructrTest {
 				node = app.create("TestOne", props);
 
 				assertTrue(node != null);
-				assertTrue(node instanceof TestOne);
+				assertEquals("TestOne", node.getType());
 				assertEquals(node.getUuid(), uuid);
 
 				tx.success();
@@ -1492,7 +1492,7 @@ public class BasicTest extends StructrTest {
 				final NodeInterface a = createTestNode("TestOne");
 				final NodeInterface b = createTestNode("TestOne");
 
-				Comparator comp = TestOne.anInt.sorted(false);
+				Comparator comp = Traits.of("TestOne").key("anInt").sorted(false);
 
 				try {
 					comp.compare(null, null);
@@ -1526,28 +1526,28 @@ public class BasicTest extends StructrTest {
 				// a: 0
 				// b: null
 				// a < b => -1
-				setPropertyTx(a, TestOne.anInt, 0);
+				setPropertyTx(a, Traits.of("TestOne").key("anInt"), 0);
 				assertEquals(-1, comp.compare(a, b));
 
 				// a: null
 				// b: 0
 				// a > b => 1
-				setPropertyTx(a, TestOne.anInt, null);
-				setPropertyTx(b, TestOne.anInt, 0);
+				setPropertyTx(a, Traits.of("TestOne").key("anInt"), null);
+				setPropertyTx(b, Traits.of("TestOne").key("anInt"), 0);
 				assertEquals(1, comp.compare(a, b));
 
 				// a: 1
 				// b: 2
 				// a < b => -1
-				setPropertyTx(a, TestOne.anInt, 1);
-				setPropertyTx(b, TestOne.anInt, 2);
+				setPropertyTx(a, Traits.of("TestOne").key("anInt"), 1);
+				setPropertyTx(b, Traits.of("TestOne").key("anInt"), 2);
 				assertEquals(-1, comp.compare(a, b));
 
 				// a: 2
 				// b: 1
 				// a > b => 1
-				setPropertyTx(a, TestOne.anInt, 2);
-				setPropertyTx(b, TestOne.anInt, 1);
+				setPropertyTx(a, Traits.of("TestOne").key("anInt"), 2);
+				setPropertyTx(b, Traits.of("TestOne").key("anInt"), 1);
 				assertEquals(1, comp.compare(a, b));
 
 				tx.success();
@@ -1568,7 +1568,7 @@ public class BasicTest extends StructrTest {
 			NodeInterface a = createTestNode("TestOne");
 			NodeInterface b = createTestNode("TestOne");
 
-			Comparator comp = TestOne.anInt.sorted(true);
+			Comparator comp = Traits.of("TestOne").key("anInt").sorted(true);
 
 			try {
 				comp.compare(null, null);
@@ -1605,7 +1605,7 @@ public class BasicTest extends StructrTest {
 			// a: 0
 			// b: null
 			// a > b => 1
-			setPropertyTx(a, TestOne.anInt, 0);
+			setPropertyTx(a, Traits.of("TestOne").key("anInt"), 0);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1615,8 +1615,8 @@ public class BasicTest extends StructrTest {
 			// a: null
 			// b: 0
 			// a < b => -1
-			setPropertyTx(a, TestOne.anInt, null);
-			setPropertyTx(b, TestOne.anInt, 0);
+			setPropertyTx(a, Traits.of("TestOne").key("anInt"), null);
+			setPropertyTx(b, Traits.of("TestOne").key("anInt"), 0);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1626,8 +1626,8 @@ public class BasicTest extends StructrTest {
 			// a: 1
 			// b: 2
 			// a > b => 1
-			setPropertyTx(a, TestOne.anInt, 1);
-			setPropertyTx(b, TestOne.anInt, 2);
+			setPropertyTx(a, Traits.of("TestOne").key("anInt"), 1);
+			setPropertyTx(b, Traits.of("TestOne").key("anInt"), 2);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1637,8 +1637,8 @@ public class BasicTest extends StructrTest {
 			// a: 2
 			// b: 1
 			// a < b => -1
-			setPropertyTx(a, TestOne.anInt, 2);
-			setPropertyTx(b, TestOne.anInt, 1);
+			setPropertyTx(a, Traits.of("TestOne").key("anInt"), 2);
+			setPropertyTx(b, Traits.of("TestOne").key("anInt"), 1);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1778,7 +1778,7 @@ public class BasicTest extends StructrTest {
 			assertEquals("Relationship query returns wrong number of results", 1, rels.size());
 
 			for (final RelationshipInterface rel : rels) {
-				assertEquals("Relationship query returns wrong type", OneThreeOneToOne.class, rel.getClass());
+				assertEquals("Relationship query returns wrong type", "OneThreeOneToOne", rel.getType());
 			}
 
 			tx.success();

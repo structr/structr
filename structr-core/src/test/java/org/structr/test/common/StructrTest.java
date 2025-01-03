@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -37,14 +36,14 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
-import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.test.core.entity.TestOneTraitDefinition;
+import org.structr.test.core.traits.definitions.*;
+import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.*;
 
 import java.io.File;
@@ -161,7 +160,36 @@ public class StructrTest {
 	@BeforeClass(alwaysRun = true)
 	public void createSchema() {
 
-		StructrTraits.registerNodeType("TestOne", new TestOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneOneOneToOne",                    new OneOneOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneTwoOneToOne",                    new OneTwoOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneThreeOneToOne",                  new OneThreeOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneFourOneToOne",                   new OneFourOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("SixOneOneToOne",                    new SixOneOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("SixOneOneToMany",                   new SixOneOneToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("SixOneManyToMany",                  new SixOneManyToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToMany",                 new SixThreeOneToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToOne",                  new SixThreeOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeBoth",      new SixThreeOneToManyCascadeBothTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeIncoming",  new SixThreeOneToManyCascadeIncomingTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeOutgoing",  new SixThreeOneToManyCascadeOutgoingTraitDefinition());
+		StructrTraits.registerRelationshipType("SixNineOneToManyCascadeConstraint", new SixNineOneToManyCascadeConstraintTraitDefinition());
+		StructrTraits.registerRelationshipType("TenTenOneToMany",                   new TenTenOneToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("TenTenOneToOne",                    new TenTenOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("TwoOneOneToOne",                    new TwoOneOneToOneTraitDefinition());
+
+		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
+		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
+		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
+		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
+		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		StructrTraits.registerNodeType("TestSix",      new TestSixTraitDefinition());
+		StructrTraits.registerNodeType("TestSeven",    new TestSevenTraitDefinition());
+		StructrTraits.registerNodeType("TestEight",    new TestEightTraitDefinition());
+		StructrTraits.registerNodeType("TestNine",     new TestNineTraitDefinition());
+		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
+		StructrTraits.registerNodeType("TestEleven",   new TestOneTraitDefinition(), new TestElevenTraitDefinition());
+		StructrTraits.registerNodeType("TestTwelve",   new TestOneTraitDefinition(), new TestTwelveTraitDefinition());
+		StructrTraits.registerNodeType("TestThirteen", new TestThirteenTraitDefinition());
 	}
 
 	@AfterClass(alwaysRun = true)
