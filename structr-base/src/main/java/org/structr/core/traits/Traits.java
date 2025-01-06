@@ -59,6 +59,9 @@ public class Traits {
 
 	Traits(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType) {
 
+		System.out.println("#############################################################################################################################################################################################################################################################################");
+		System.out.println("                                CREATING trait " + typeName + ", isBuiltinType: " + isBuiltInType + ", isNodeType: " + isNodeType + ", isRelationshipType: " + isRelationshipType);
+
 		this.typeName           = typeName;
 		this.isNodeType         = isNodeType;
 		this.isBuiltInType      = isBuiltInType;
@@ -88,7 +91,14 @@ public class Traits {
 	}
 
 	public <T> PropertyKey<T> key(final String name) {
-		return propertyKeys.get(name);
+
+		final PropertyKey<T> key = propertyKeys.get(name);
+		if (key != null) {
+
+			return key;
+		}
+
+		throw new RuntimeException("Missing property key " + name + " of type " + typeName);
 	}
 
 	public String getName() {
@@ -170,7 +180,7 @@ public class Traits {
 	}
 
 	public Map<String, AbstractMethod> getDynamicMethods() {
-		return dynamicMethods;
+		return Collections.unmodifiableMap(dynamicMethods);
 	}
 
 	public <T> T as(final Class<T> type, final GraphObject obj) {
@@ -196,7 +206,15 @@ public class Traits {
 		return null;
 	}
 
-	public void registerImplementation(final TraitDefinition trait) {
+	public synchronized void registerImplementation(final TraitDefinition trait) {
+
+		System.out.println("#############################################################################################################################################################################################################################################################################");
+		System.out.println("                                registering trait definition " + trait.getName());
+
+		if ("Principal".equals(trait.getName())) {
+
+			Thread.dumpStack();
+		}
 
 		// register trait
 		types.put(trait.getName(), trait);
@@ -232,6 +250,8 @@ public class Traits {
 		for (final PropertyKey key : trait.getPropertyKeys()) {
 
 			final String name = key.jsonName();
+
+			System.out.println("                                        " + trait.getName() + "." + name);
 
 			// register property key
 			propertyKeys.put(name, key);
@@ -286,7 +306,7 @@ public class Traits {
 	}
 
 	public Set<String> getViewNames() {
-		return views.keySet();
+		return Collections.unmodifiableSet(views.keySet());
 	}
 
 	public Set<String> getAllTraits() {
@@ -325,7 +345,14 @@ public class Traits {
 		final Traits traits = Traits.of(type);
 		if (traits != null) {
 
-			return traits.key(name);
+			final PropertyKey<T> key = traits.key(name);
+
+			if (key != null) {
+
+				return key;
+			}
+
+			throw new RuntimeException("Invalid key " + type + "." + name + " requested!");
 		}
 
 		// fixme

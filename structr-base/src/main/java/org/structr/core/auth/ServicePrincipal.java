@@ -18,7 +18,6 @@
  */
 package org.structr.core.auth;
 
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;

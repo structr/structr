@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -59,7 +60,10 @@ public class PrincipalTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 
 	@Override
 	public Iterable<Group> getGroups() {
-		return wrappedObject.getProperty(traits.key("groups"));
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("groups"));
+
+		return Iterables.map(n -> n.as(Group.class), nodes);
 	}
 
 	@Override

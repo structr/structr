@@ -70,7 +70,7 @@ public class SchemaViewTraitDefinition extends AbstractTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface>           schemaNode         = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
-		final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinProperty")));
+		final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaProperty").key("isBuiltinProperty")));
 		final Property<Boolean>                 isBuiltinView      = new BooleanProperty("isBuiltinView");
 		final Property<String>                  nonGraphProperties = new StringProperty("nonGraphProperties");
 		final Property<String>                  sortOrder          = new StringProperty("sortOrder");

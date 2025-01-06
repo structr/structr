@@ -45,6 +45,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -123,7 +124,7 @@ public class StructrTest {
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void startSystem(final String testDatabaseConnection) {
+	public void startSystem(@Optional final String testDatabaseConnection) {
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();

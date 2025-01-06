@@ -411,8 +411,7 @@ public class PropertyMap {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
-						// fixme
-						if (converter != null && value != null) { // && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
+						if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
 
 							try {
 
@@ -423,6 +422,8 @@ public class PropertyMap {
 								resultMap.put(propertyKey, propertyValue);
 
 							} catch (ClassCastException cce) {
+
+								cce.printStackTrace();
 
 								throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 							}

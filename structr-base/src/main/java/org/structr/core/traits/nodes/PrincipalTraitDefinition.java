@@ -29,11 +29,10 @@ import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
-import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -41,7 +40,6 @@ import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
