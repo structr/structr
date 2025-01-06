@@ -436,6 +436,6 @@ public final class PropertyContainerTraitDefinition extends AbstractTraitDefinit
 		final String userString     = PropertyContainerTraitDefinition.getCurrentUserString(ctx);
 		final String thisNodeString = obj.getType() + "(" + obj.getUuid()      + ")";
 
-		return "Modification of node " + thisNodeString + " by " + userString + "not permitted.";
+		return "Modification of node " + thisNodeString + " by " + userString + " not permitted.";
 	}
 }

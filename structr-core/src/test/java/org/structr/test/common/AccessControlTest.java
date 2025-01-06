@@ -1295,9 +1295,9 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes("User", 2);
-			final NodeInterface user1        = users.get(0);
-			final Group group1               = createTestNode("Group", "test group").as(Group.class);
-			final NodeInterface t1           = createTestNode("TestOne");
+			final NodeInterface user1       = users.get(0);
+			final NodeInterface group1      = createTestNode("Group", "test group");
+			final NodeInterface t1          = createTestNode("TestOne");
 
 			t1.setProperty(Traits.of("NodeInterface").key("owner"), user1);
 			t1.setProperty(Traits.of("NodeInterface").key("owner"), group1);

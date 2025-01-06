@@ -59,9 +59,6 @@ public class Traits {
 
 	Traits(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType) {
 
-		System.out.println("#############################################################################################################################################################################################################################################################################");
-		System.out.println("                                CREATING trait " + typeName + ", isBuiltinType: " + isBuiltInType + ", isNodeType: " + isNodeType + ", isRelationshipType: " + isRelationshipType);
-
 		this.typeName           = typeName;
 		this.isNodeType         = isNodeType;
 		this.isBuiltInType      = isBuiltInType;
@@ -208,14 +205,6 @@ public class Traits {
 
 	public synchronized void registerImplementation(final TraitDefinition trait) {
 
-		System.out.println("#############################################################################################################################################################################################################################################################################");
-		System.out.println("                                registering trait definition " + trait.getName());
-
-		if ("Principal".equals(trait.getName())) {
-
-			Thread.dumpStack();
-		}
-
 		// register trait
 		types.put(trait.getName(), trait);
 
@@ -250,8 +239,6 @@ public class Traits {
 		for (final PropertyKey key : trait.getPropertyKeys()) {
 
 			final String name = key.jsonName();
-
-			System.out.println("                                        " + trait.getName() + "." + name);
 
 			// register property key
 			propertyKeys.put(name, key);

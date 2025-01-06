@@ -36,6 +36,22 @@ public abstract class AbstractTraitWrapper<T extends GraphObject> {
 		this.traits        = traits;
 	}
 
+	@Override
+	public boolean equals(final Object other) {
+
+		if (other instanceof AbstractTraitWrapper w) {
+
+			return wrappedObject.equals(w.getWrappedNode());
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return wrappedObject.hashCode();
+	}
+
 	public SecurityContext getSecurityContext() {
 		return wrappedObject.getSecurityContext();
 	}

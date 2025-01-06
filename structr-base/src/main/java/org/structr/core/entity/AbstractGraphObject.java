@@ -70,6 +70,22 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	}
 
 	@Override
+	public boolean equals(final Object other) {
+
+		if (other instanceof AbstractGraphObject g) {
+
+			return g.id.equals(this.id);
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
+
+	@Override
 	public final Traits getTraits() {
 		return typeHandler;
 	}

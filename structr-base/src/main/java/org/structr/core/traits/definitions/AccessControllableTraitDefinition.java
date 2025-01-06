@@ -152,14 +152,14 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 
 							// ensureCardinality is not neccessary here
 							final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-							final Traits traits                    = Traits.of("PrincipalOwnsNode");
+							final Traits traits                    = Traits.of("SecurityRelationship");
 							final PropertyMap properties           = new PropertyMap();
 
 							superUserContext.disablePreventDuplicateRelationships();
 
 							// performance improvement for grant(): add properties to the CREATE call that would
 							// otherwise be set in separate calls later in the transaction.
-							properties.put(traits.key("principalId"),         principal.getUuid());
+							properties.put(traits.key("principalId"),          principal.getUuid());
 							properties.put(traits.key("accessControllableId"), node.getUuid());
 							properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
 
@@ -225,7 +225,7 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 
 								// ensureCardinality is not necessary here
 								final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-								final Traits traits                    = Traits.of("PrincipalOwnsNode");
+								final Traits traits                    = Traits.of("SecurityRelationship");
 								final PropertyMap properties           = new PropertyMap();
 
 								superUserContext.disablePreventDuplicateRelationships();
@@ -257,7 +257,6 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 				public List<Security> getSecurityRelationships(final NodeInterface node) {
 
 					final List<RelationshipInterface> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser("SecurityRelationship", null));
-					final Traits traits                      = Traits.of("Security");
 
 					// sort list by principal name (important for diff'able export)
 					Collections.sort(grants, (o1, o2) -> {
@@ -369,15 +368,16 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 			}
 		}
 
-		final Principal _owner = node.as(AccessControllable.class).getOwnerNode();
-		final boolean hasOwner          = (_owner != null);
+		final NodeInterface accessingUserNode = accessingUser != null ? accessingUser.getWrappedNode() :  null;
+		final Principal _owner                = node.as(AccessControllable.class).getOwnerNode();
+		final boolean hasOwner                = (_owner != null);
 
-		if (isCreation && (accessingUser == null || accessingUser.equals(node) || accessingUser.equals(_owner) ) ) {
+		if (isCreation && (accessingUser == null || accessingUserNode.equals(node) || accessingUser.equals(_owner) ) ) {
 			return true;
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
-		if (node.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
+		if (node.equals(accessingUserNode) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
 			return true;
 		}
 

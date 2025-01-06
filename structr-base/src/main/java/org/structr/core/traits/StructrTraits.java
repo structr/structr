@@ -29,7 +29,21 @@ public class StructrTraits {
 		traits.registerImplementation(definition);
 	}
 
+	public static void registerNodeInterface() {
+
+		final Traits traits = new Traits("NodeInterface", true, false, false);
+
+		traits.registerImplementation(new PropertyContainerTraitDefinition());
+		traits.registerImplementation(new GraphObjectTraitDefinition());
+		traits.registerImplementation(new NodeInterfaceTraitDefinition());
+	}
+
 	public static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {
+
+		// do not overwrite types
+		if (Traits.getAllTypes(null).contains(typeName)) {
+			return;
+		}
 
 		final Traits traits = new Traits(typeName, false, true, false);
 
