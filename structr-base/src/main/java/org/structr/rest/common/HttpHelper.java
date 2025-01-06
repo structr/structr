@@ -402,12 +402,14 @@ public class HttpHelper {
 			Integer timeout = null;
 			boolean redirects = false;
 
-			if(config.containsKey("timeout")){
-				timeout = (Integer) config.get("timeout");
-			}
+			if(config != null){
+				if(config.containsKey("timeout")){
+					timeout = (Integer) config.get("timeout");
+				}
 
-			if(config.containsKey("redirects")){
-				redirects = (Boolean) config.get("redirects");
+				if(config.containsKey("redirects")){
+					redirects = (Boolean) config.get("redirects");
+				}
 			}
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirects, validateCertificates, timeout);
