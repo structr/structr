@@ -73,8 +73,8 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType("SchemaMethod",           new SchemaReloadingNodeTraitDefinition(), new SchemaMethodTraitDefinition());
 		StructrTraits.registerNodeType("SchemaMethodParameter",  new SchemaReloadingNodeTraitDefinition(), new SchemaMethodParameterTraitDefinition());
 		StructrTraits.registerNodeType("SchemaRelationshipNode", new SchemaReloadingNodeTraitDefinition(), new AbstractSchemaNodeTraitDefinition(), new SchemaRelationshipNodeTraitDefinition());
-		StructrTraits.registerNodeType("SchemaView",             new SchemaReloadingNodeTraitDefinition(), new SchemaViewTraitDefinition());
 		StructrTraits.registerNodeType("SchemaProperty",         new SchemaReloadingNodeTraitDefinition(), new SchemaPropertyTraitDefinition());
+		StructrTraits.registerNodeType("SchemaView",             new SchemaReloadingNodeTraitDefinition(), new SchemaViewTraitDefinition());
 		StructrTraits.registerNodeType("CorsSetting",            new CorsSettingTraitDefinition());
 		StructrTraits.registerNodeType("ResourceAccess",         new ResourceAccessTraitDefinition("ResourceAccess"));
 		StructrTraits.registerNodeType("DynamicResourceAccess",  new ResourceAccessTraitDefinition("DynamicResourceAccess"));

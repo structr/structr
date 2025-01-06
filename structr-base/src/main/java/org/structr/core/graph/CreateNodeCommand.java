@@ -47,17 +47,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
 
-	private final PropertyKey<String> idKey                           = Traits.key("GraphObject", "id");
-	private final PropertyKey<String> typeKey                         = Traits.key("GraphObject", "type");
-	private final PropertyKey<Date> createdDateKey                    = Traits.key("GraphObject", "createdDate");
-	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key("GraphObject", "lastModifiedDate");
-	private final PropertyKey<String> createdByKey                    = Traits.key("GraphObject", "createdBy");
-	private final PropertyKey<String> lastModifiedByKey               = Traits.key("GraphObject", "lastModifiedBy");
-	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
-	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
-	private final PropertyKey<Boolean> hiddenKey                      = Traits.key("NodeInterface", "hidden");
-	private final PropertyKey<String> passwordKey                     = Traits.key("Principal", "password");
-
 	public NodeInterface execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
@@ -83,9 +72,19 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	public NodeInterface execute(final PropertyMap attributes) throws FrameworkException {
 
-		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final Principal user          = securityContext.getUser(false);
-		NodeInterface node	      = null;
+		final PropertyKey<String> idKey                           = Traits.key("GraphObject", "id");
+		final PropertyKey<String> typeKey                         = Traits.key("GraphObject", "type");
+		final PropertyKey<Date> createdDateKey                    = Traits.key("GraphObject", "createdDate");
+		final PropertyKey<Date> lastModifiedDateKey               = Traits.key("GraphObject", "lastModifiedDate");
+		final PropertyKey<String> createdByKey                    = Traits.key("GraphObject", "createdBy");
+		final PropertyKey<String> lastModifiedByKey               = Traits.key("GraphObject", "lastModifiedBy");
+		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
+		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
+		final PropertyKey<Boolean> hiddenKey                      = Traits.key("NodeInterface", "hidden");
+		final PropertyKey<String> passwordKey                     = Traits.key("Principal", "password");
+		final DatabaseService graphDb                             = (DatabaseService) arguments.get("graphDb");
+		final Principal user                                      = securityContext.getUser(false);
+		NodeInterface node	                                  = null;
 
 		if (graphDb != null) {
 
@@ -223,9 +222,14 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	// ----- private methods -----
 	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
-		final Map<String, Object> ownsProperties     = new HashMap<>();
-		final Map<String, Object> securityProperties = new HashMap<>();
-		final String newUuid                         = (String)properties.get(idKey);
+
+		final PropertyKey<String> idKey                           = Traits.key("GraphObject", "id");
+		final PropertyKey<String> typeKey                         = Traits.key("GraphObject", "type");
+		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
+		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
+		final Map<String, Object> ownsProperties                  = new HashMap<>();
+		final Map<String, Object> securityProperties              = new HashMap<>();
+		final String newUuid                                      = (String)properties.get(idKey);
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 

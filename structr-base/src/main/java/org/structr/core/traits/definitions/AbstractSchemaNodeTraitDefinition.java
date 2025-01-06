@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -87,10 +88,12 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefini
 		final Property<Iterable<NodeInterface>> schemaProperties      = new EndNodes("schemaProperties", "SchemaNodeProperty");
 		final Property<Iterable<NodeInterface>> schemaMethods         = new EndNodes("schemaMethods", "SchemaNodeMethod");
 		final Property<Iterable<NodeInterface>> schemaViews           = new EndNodes("schemaViews", "SchemaNodeView");
+		final Property<String[]> tags                                 = new ArrayProperty("tags", String.class).indexed();
 
 		final Property<Boolean>                 changelogDisabled     = new BooleanProperty("changelogDisabled");
 		final Property<String>                  icon                  = new StringProperty("icon");
-		final Property<String>                  description           = new StringProperty("description");
+		final Property<String>                  summary               = new StringProperty("summary").indexed();
+		final Property<String>                  description           = new StringProperty("description").indexed();
 
 
 		return Set.of(
@@ -99,7 +102,28 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefini
 			schemaViews,
 			changelogDisabled,
 			icon,
+			tags,
+			summary,
 			description
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			Set.of("changelogDisabled", "icon", "tags", "summary", "description"),
+
+			PropertyView.Ui,
+			Set.of("tags", "summary", "description", "includeInOpenAPI"),
+
+			"schema",
+			Set.of("tags", "summary", "description", "includeInOpenAPI"),
+
+			"export",
+			Set.of("changelogDisabled", "tags", "summary", "description")
 		);
 	}
 
