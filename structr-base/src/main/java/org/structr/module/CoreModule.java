@@ -57,7 +57,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerRelationshipType("SchemaRelationshipTargetNode",      new SchemaRelationshipTargetNodeDefinition());
 		StructrTraits.registerRelationshipType("SchemaViewProperty",                new SchemaViewPropertyDefinition());
 
-		StructrTraits.registerBaseType(new NodeInterfaceTraitDefinition());
+		StructrTraits.registerNodeInterface();
 
 		// node types
 		StructrTraits.registerNodeType("Principal",              new PrincipalTraitDefinition());
