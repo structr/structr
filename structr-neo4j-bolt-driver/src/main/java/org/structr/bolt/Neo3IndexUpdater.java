@@ -159,7 +159,7 @@ public class Neo3IndexUpdater {
 
 							try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-								tx.prefetchHint("Neo4IndexUpdater update");
+								tx.prefetchHint("Neo3IndexUpdater update");
 
 								if (indexConfig.createOrDropIndex()) {
 
@@ -244,7 +244,7 @@ public class Neo3IndexUpdater {
 
 					if (indexExists && indexConfig.createOrDropIndex()) {
 
-						final AtomicBoolean retry = new AtomicBoolean(true);
+						final AtomicBoolean retry      = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);
 
 						while (retry.get()) {
@@ -257,7 +257,7 @@ public class Neo3IndexUpdater {
 
 									try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-										tx.prefetchHint("Neo4IndexUpdater update");
+										tx.prefetchHint("Neo3IndexUpdater update");
 
 										// drop index
 										db.execute("DROP " + indexDescription);

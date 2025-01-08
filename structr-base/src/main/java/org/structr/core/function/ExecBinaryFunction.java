@@ -18,7 +18,8 @@
  */
 package org.structr.core.function;
 
-import org.structr.api.config.Setting;
+import java.util.Collection;
+import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -28,21 +29,16 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ExecBinaryFunction extends AdvancedScriptingFunction {
+public class ExecBinaryFunction extends ExecFunction {
 
-	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec_binary(output, fileName [, parameters...]}";
-	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{Structr.exec_binary(output, fileName [, parameters...]}}";
+	public static final String ERROR_MESSAGE_EXEC_BINARY    = "Usage: ${exec_binary(outputStream, scriptConfigKey [, parameterArray [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', ['param1', 'param2'], 1)}";
+	public static final String ERROR_MESSAGE_EXEC_BINARY_JS = "Usage: ${{Structr.exec_binary(outputStream, scriptConfigKey [, parameterArray [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
 
 	@Override
 	public String getName() {
@@ -51,7 +47,7 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "outputStream, scriptName [, parameterMap ]";
+		return "outputStream, scriptConfigKey [, parameterArray [, logBehaviour ] ]";
 	}
 
 	@Override
@@ -61,69 +57,79 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final String scriptKey              = sources[1].toString();
-			final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
-			final OutputStream out              = (OutputStream)sources[0];
+			final String sanityCheckedAbsolutePathOrNull = getSanityCheckedPathForScriptSetting(sources[1].toString());
 
-			if (scriptSetting == null) {
+			if (sanityCheckedAbsolutePathOrNull != null) {
 
-				logger.warn("{}(): No script found for key '{}' in structr.conf, nothing executed.", getName(), scriptKey);
+				final OutputStream out                  = (OutputStream)sources[0];
+				final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), sanityCheckedAbsolutePathOrNull, out);
 
-			} else if (!scriptSetting.isDynamic()) {
+				if (sources.length > 2) {
 
-				logger.warn("{}(): Key '{}' in structr.conf is builtin. This is not allowed, nothing executed.", getName(), scriptKey);
+					final boolean isNewCallSignature = (sources[2] instanceof Collection<?>);
 
-			} else {
+					if (!isNewCallSignature) {
 
-				final String scriptName              = scriptSetting.getValue();
-				final Path scriptPath                = Paths.get(ExecFunction.SCRIPTS_FOLDER.concat(File.separator).concat(scriptName));
-				final String absolutePath            = scriptPath.toAbsolutePath().toString();
-				final String canonicalPath           = scriptPath.toFile().getCanonicalPath();
-
-				final boolean pathExists        = Files.exists(scriptPath);
-				final boolean pathIsRegularFile = Files.isRegularFile(scriptPath, LinkOption.NOFOLLOW_LINKS);
-				final boolean pathIsAllowed     = absolutePath.equals(canonicalPath);
-
-				if (!pathExists) {
-
-					logger.warn("{}(): No file found for script key '{}' = '{}' ({}), nothing executed.", getName(), scriptKey, scriptName, absolutePath);
-
-				} else if (!pathIsRegularFile) {
-
-					logger.warn("{}(): Script key '{}' = '{}' points to script file '{}' which is either not a file (or a symlink) and not allowed, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
-
-				} else if (!pathIsAllowed) {
-
-					logger.warn("{}(): Script key '{}' = '{}' resolves to '{}' which seems to contain a directory traversal attack, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
-
-				} else {
-
-					final StringBuilder scriptBuilder = new StringBuilder(absolutePath);
-					if (sources.length > 2) {
+						logger.warn("{}(): Deprecation Warning: The call signature for this method has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
 
 						for (int i = 2; i < sources.length; i++) {
+
 							if (sources[i] != null) {
 
-								scriptBuilder.append(" ").append(sources[i].toString());
+								scriptingProcess.addParameter(sources[i].toString());
+							}
+						}
+
+					} else {
+
+						if (sources.length > 3) {
+
+							if (sources[3] instanceof Number) {
+
+								final int logBehavior = ((Number)sources[3]).intValue();
+
+								scriptingProcess.setLogBehaviour(logBehavior);
+
+							} else {
+
+								logger.warn("{}(): If using a collection of parameters as third argument, the fourth argument (logBehaviour) must either be 0, 1 or 2 (or omitted, where default 2 will apply). Value given: {}", getName(), sources[2]);
+							}
+						}
+
+						final Collection params = (Collection)sources[2];
+
+						for (final Object param : params) {
+
+							if (param instanceof Map<?,?>) {
+
+								scriptingProcess.addParameter((Map)param);
+
+							} else {
+
+								if (param == null) {
+
+									throw new ArgumentNullException();
+								}
+
+								scriptingProcess.addParameter(param.toString());
 							}
 						}
 					}
+				}
 
-					final ExecutorService executorService = Executors.newSingleThreadExecutor();
-					final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), scriptBuilder.toString(), out);
+				final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-					try {
+				try {
 
-						return executorService.submit(process).get();
+					return executorService.submit(scriptingProcess).get();
 
-					} catch (InterruptedException | ExecutionException iex) {
+				} catch (InterruptedException | ExecutionException iex) {
 
-						logException(caller, iex, sources);
+					logException(caller, iex, sources);
 
-					} finally {
+				} finally {
 
-						executorService.shutdown();
-					}
+					executorService.shutdown();
 				}
 			}
 
@@ -146,33 +152,82 @@ public class ExecBinaryFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_EXEC_JS : ERROR_MESSAGE_EXEC);
+		return (inJavaScriptContext ? ERROR_MESSAGE_EXEC_BINARY_JS : ERROR_MESSAGE_EXEC_BINARY);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Executes a script configured in structr.conf with the given script name and parameters, returning the raw output";
+		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the raw output directly into the output stream. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked.";
 	}
 
 	private static class ScriptingProcess extends AbstractBinaryProcess<String> {
 
-		private final StringBuilder commandLine = new StringBuilder();
+		private static final String MASK_STRING = "***";
 
-		public ScriptingProcess(final SecurityContext securityContext, final String commandLine, final OutputStream out) {
+		private final StringBuilder cmdLineBuilder = new StringBuilder();
+		private final StringBuilder logLineBuilder = new StringBuilder();
+
+		public ScriptingProcess(final SecurityContext securityContext, final String scriptName, final OutputStream out) {
 
 			super(securityContext, out);
 
-			this.commandLine.append(commandLine);
+			// put quotes around full path for script to allow for spaces etc.
+			this.cmdLineBuilder.append("\"" + scriptName + "\"");
+
+			this.logLineBuilder.append(scriptName);
 		}
 
 		@Override
 		public StringBuilder getCommandLine() {
-			return commandLine;
+			return cmdLineBuilder;
+		}
+
+		@Override
+		public StringBuilder getLogLine() {
+			return logLineBuilder;
 		}
 
 		@Override
 		public String processExited(final int exitCode) {
 			return errorStream();
+		}
+
+		private void addParameter(final String parameter) {
+			this.addParameter(parameter, false);
+		}
+
+		private void addParameter(final Map parameterConfig) {
+
+			final Object parameter     = parameterConfig.get("value");
+			final Object maskParameter = parameterConfig.get("mask");
+
+			if (parameter == null) {
+
+				logger.warn("exec_binary(): Critical: Expected attribute 'value' to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true })");
+
+				throw new ArgumentNullException();
+			}
+
+			if (maskParameter == null) {
+
+				logger.info("exec_binary(): Expected 'mask' attribute to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true }). Assuming 'mask = false'");
+			}
+
+			this.addParameter(parameter.toString(), Boolean.TRUE.equals(maskParameter));
+		}
+
+		private void addParameter(final String parameter, final boolean maskInLog) {
+
+			// put quotes around full path for script to allow for spaces etc.
+			// also escape quotes in the parameter to not break the quoting
+			final String safeParam = "\"" + parameter.replaceAll("\"", "\\\\\"") + "\"";
+
+			this.cmdLineBuilder.append(" ").append(safeParam);
+
+			if (this.getLogBehaviour() == Settings.SCRIPT_PROCESS_LOG_STYLE.CUSTOM) {
+
+				this.logLineBuilder.append(" ").append(maskInLog ? MASK_STRING : safeParam);
+			}
 		}
 
 		@Override

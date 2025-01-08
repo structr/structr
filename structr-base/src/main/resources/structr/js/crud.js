@@ -22,187 +22,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Crud = {
 	_moduleName: 'crud',
-	defaultCollectionPageSize: 10,
-	resultCountSoftLimit: 10000,
-	defaultType: 'Page',
 	defaultView: 'custom',
 	defaultSort: 'createdDate',
 	defaultOrder: 'desc',
-	defaultPage: 1,
-	defaultPageSize: 10,
-	crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
-	crudTypeKey: 'structrCrudType_' + location.port,
-	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + location.port,
-	crudSortedColumnsKey: 'structrCrudSortedColumns_' + location.port,
-	crudResizerLeftKey: 'structrCrudResizerLeft_' + location.port,
-	crudExactTypeKey: 'structrCrudExactType_' + location.port,
 	types: {},
 	typeColumnSort: {},
-	relInfo: {},
 	keys: {},
-	hiddenKeysForAllTypes: [
-		'base',
-		'createdBy',
-		'lastModifiedBy',
-		'ownerId',
-		'hidden',
-		'internalEntityContextPath',
-		'grantees'
-	],
-	hiddenKeysForFileTypes: [
-		'base64Data',
-		'favoriteContent',
-		'favoriteContext',
-		'favoriteUsers',
-		'relationshipId',
-		'resultDocumentForExporter',
-		'documentTemplateForExporter',
-		'isFile',
-		'position',
-		'extractedContent',
-		'indexedWords',
-		'fileModificationDate',
-		'nextSiblingId'
-	],
-	hiddenKeysForImageTypes: [
-		'base64Data',
-		'imageData',
-		'favoriteContent',
-		'favoriteContext',
-		'favoriteUsers',
-		'resultDocumentForExporter',
-		'documentTemplateForExporter',
-		'isFile',
-		'position',
-		'extractedContent',
-		'indexedWords',
-		'fileModificationDate'
-	],
-	hiddenKeysForPrincipalTypes: [
-		'isUser',
-		'isAdmin',
-		'createdBy',
-		'sessionIds',
-		'publicKeys',
-		'sessionData',
-		'password',
-		'passwordChangeDate',
-		'salt',
-		'twoFactorSecret',
-		'twoFactorToken',
-		'isTwoFactorUser',
-		'twoFactorConfirmed',
-		'ownedNodes',
-		'localStorage'
-	],
-	crudCache: new AsyncObjectCache(async (obj) => {
-
-		let response = await fetch(Structr.rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + _Crud.defaultView, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-			}
-		})
-
-		if (response.ok) {
-
-			let data = await response.json();
-
-			if (data && data.result) {
-				let node = data.result;
-				_Crud.crudCache.addObject(node, node.id);
-			}
-		}
-	}),
-	crudListFetchAbortMechanism: {
-		abortController: undefined,
-		lastType: null,
-		init: (type) => {
-			_Crud.crudListFetchAbortMechanism.lastType        = type;
-			_Crud.crudListFetchAbortMechanism.abortController = new AbortController();
-		},
-		abortListFetch: (type) => {
-
-			if (_Crud.crudListFetchAbortMechanism.abortController) {
-
-				_Crud.crudListFetchAbortMechanism.abortController.signal.onabort = () => {
-					_Crud.crudListFetchAbortMechanism.init(type);
-				};
-				_Crud.crudListFetchAbortMechanism.abortController.abort(`Loading of "${type}" aborted loading of "${_Crud.crudListFetchAbortMechanism.lastType}"`);
-
-			} else {
-
-				_Crud.crudListFetchAbortMechanism.init(type);
-			}
-		}
-	},
-	getTypeInfo: (type, callback) => {
-
-		let url = `${Structr.rootUrl}_schema/${type}`;
-
-		fetch(url).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				if (data && data.result && data.result[0]) {
-
-					_Crud.types[type] = data.result[0];
-
-					if (typeof callback === 'function') {
-						callback();
-					}
-
-				} else {
-
-					new ErrorMessage().text(`No type information found for type: ${type}`).delayDuration(5000).show();
-					_Crud.delayedMessage.showMessageAfterDelay(`<span class="mr-1">No type information found for type: </span><b>${type}</b>`, 500);
-				}
-
-			} else {
-				Structr.errorFromResponse(data, url);
-			}
-		})
-	},
-	getProperties: (type, callback) => {
-
-		if (type === null) {
-			return;
-		}
-
-		let properties = _Crud.types[type]?.views?.all;
-
-		if (properties) {
-
-			callback?.();
-
-		} else {
-
-			_Crud.getTypeInfo(type, () => {
-
-				properties = _Crud.types[type].views.all;
-
-				if (Object.keys(properties).length === 0) {
-
-					new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
-					_Crud.delayedMessage.showMessageAfterDelay(`Unable to find schema information for type '${type}'.<br>There might be database nodes with no type information or a type unknown to Structr in the database.`, 500);
-
-				} else {
-
-					callback?.();
-				}
-			});
-		}
-	},
 	type: null,
 	pageCount: null,
 	view: {},
 	sort: {},
 	order: {},
 	page: {},
-	exact: {},
 	pageSize: {},
 	prevAnimFrameReqId_moveResizer: undefined,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + location.port,
 	moveResizer: (left) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Crud.prevAnimFrameReqId_moveResizer, () => {
@@ -213,10 +47,10 @@ let _Crud = {
 			document.getElementById('crud-recent-types').style.width = left - 12 + 'px';
 		});
 	},
-	reloadList: () => {
-		_Crud.typeList.typeSelected(_Crud.type);
-	},
-	init: () => {
+	resize: () => {},
+	onload: () => {
+
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('crud'));
 
 		Structr.setMainContainerHTML(_Crud.templates.main());
 		Structr.setFunctionBarHTML(_Crud.templates.functions());
@@ -227,14 +61,12 @@ let _Crud = {
 
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-		_Crud.typeList.addListeners();
-		_Crud.typeList.filtering.activateFilterElements();
-
-		_Crud.exact         = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
-		_Crud.schemaLoading = false;
-		_Crud.schemaLoaded  = false;
+		_Crud.objectList.excludeInheritingTypes.restoreConfig();
 
 		_Crud.loadBasicSchemaInformation().then(() => {
+
+			_Crud.typeList.addListeners();
+			_Crud.typeList.filtering.activateFilterElements();
 
 			_Crud.typeList.setCurrentTypeIfNotYetSet();
 
@@ -252,56 +84,11 @@ let _Crud = {
 
 		_Crud.search.setupGlobalSearch();
 	},
-	onload: () => {
-
-		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('crud'));
-
-		_Crud.init();
-	},
-	getCurrentProperties: (type) => {
-
-		let properties = _Crud.types[type].views.all;
-
-		if (_Crud.view[type] !== 'all') {
-			let viewDef = _Crud.types[type].views[_Crud.view[type]];
-
-			if (viewDef) {
-				properties = viewDef;
-			}
-		}
-
-		return properties;
-	},
-	updateCrudTableHeader: (type) => {
-
-		let properties     = _Crud.getCurrentProperties(type);
-		let tableHeaderRow = document.querySelector('#crud-type-detail table thead tr');
-
-		_Helpers.fastRemoveAllChildren(tableHeaderRow);
-
-		let newHeaderHTML = `
-			<th class="___action_header" data-key="action_header">Actions</th>
-			${_Crud.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Helpers.getCSSClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
-		`;
-
-		tableHeaderRow.insertAdjacentHTML('beforeend', newHeaderHTML);
-	},
-	updateUrl: (type) => {
-
-		if (type) {
-			_Crud.type = type;
-			_Crud.storeCurrentType(type);
-			_Crud.storePagerData();
-			_Crud.updateResourceLink(type);
-		}
-
-		_Crud.search.focusSearchField();
-	},
 	loadBasicSchemaInformation: async () => {
 
-		_Crud.delayedMessage.showLoadingMessageAfterDelay('Loading data', 100);
+		_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay('Loading data', 100);
 
-		let response = await fetch(Structr.rootUrl + '_schema');
+		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
@@ -313,2443 +100,9 @@ let _Crud = {
 			}
 		}
 	},
-	isRelType: (type) => (_Crud.types[type]?.isRel === true),
-	/**
-	 * Return true if the combination of the given property key
-	 * and the given type is a collection
-	 */
-	isCollection: (key, type) => {
-		return (key && type && _Crud.types[type]?.views.all[key]?.isCollection === true);
-	},
-	/* returns if given type is supported (in create dialog) */
-	isSupportedArrayType: (key, type) => {
-		return (
-			_Crud.types[type]?.views.all[key]?.type === 'String[]' ||
-			_Crud.types[type]?.views.all[key]?.type === 'Integer[]' ||
-			_Crud.types[type]?.views.all[key]?.type === 'Long[]' ||
-			_Crud.types[type]?.views.all[key]?.type === 'Double[]'
-		);
-	},
-	isBaseProperty: (key, type) => {
-		return ('base' === _Crud.types[type]?.views.all[key]?.jsonName && 'GraphObject' === _Crud.types[type]?.views.all[key]?.declaringClass);
-	},
-	isHiddenProperty: (key, type) => {
-		return ('hidden' === _Crud.types[type]?.views.all[key]?.jsonName && 'NodeInterface' === _Crud.types[type]?.views.all[key]?.declaringClass);
-	},
-	isFunctionProperty: (key, type) => {
-		return ('org.structr.core.property.FunctionProperty' === _Crud.types[type]?.views.all[key]?.className);
-	},
-	isCypherProperty: (key, type) => {
-		return ('org.structr.core.property.CypherQueryProperty' === _Crud.types[type]?.views.all[key]?.className);
-	},
-	/**
-	 * Return true if the combination of the given property key
-	 * and the given type is an Enum
-	 */
-	isEnum: (key, type) => {
-		return (key && type && _Crud.types[type]?.views.all[key]?.className === 'org.structr.core.property.EnumProperty');
-	},
-	/**
-	 * Return true if the combination of the given property key
-	 * and the given type is a read-only property
-	 */
-	readOnly: (key, type) => {
-		return (key && type && (_Crud.types[type]?.views.all[key]?.readOnly === true || _Crud.isCypherProperty(key, type)));
-	},
-	/**
-	 * Return the related type of the given property key of the given type (or a comma-separated list of possible related types)
-	 */
-	getRelatedTypeForAttribute: (key, type) => {
-
-		if (key && type && _Crud.types[type] && _Crud.types[type].views.all[key]) {
-
-			let info;
-
-			let isRelType = _Crud.isRelType(type);
-			if (!isRelType) {
-
-				info = _Crud.types[type].views.all[key].relatedType;
-
-			} else {
-
-				// special handling for relationship types where we want to display the start and end node
-				if (key === 'sourceId' || key === 'sourceNode') {
-
-					info = _Crud.types[type].relInfo.possibleSourceTypes;
-
-				} else if (key === 'targetId' || key === 'targetNode') {
-
-					info = _Crud.types[type].relInfo.possibleTargetTypes;
-				}
-			}
-
-			return info;
-		}
-	},
-	getFormat: (key, type) => {
-		return _Crud.types[type].views.all[key].format;
-	},
-	addPager: (type, el) => {
-
-		if (!_Crud.page[type]) {
-			_Crud.page[type] = _Helpers.urlParam('page') ? _Helpers.urlParam('page') : (_Crud.defaultPage ? _Crud.defaultPage : 1);
-		}
-
-		if (!_Crud.pageSize[type]) {
-			_Crud.pageSize[type] = _Helpers.urlParam('pageSize') ? _Helpers.urlParam('pageSize') : (_Crud.defaultPageSize ? _Crud.defaultPageSize : 10);
-		}
-
-		el.insertAdjacentHTML('beforeend', `
-			<div class="flex items-center justify-between">
-
-				<div class="pager whitespace-nowrap flex items-center">
-					<button class="pageLeft flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
-						${_Icons.getSvgIcon(_Icons.iconChevronLeft)}
-					</button>
-					<span class="pageWrapper">
-						<input class="pageNo" type="text" size="3" value="${_Crud.page[type]}">
-						<span class="of">of</span>
-						<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${_Helpers.nvl(_Crud.pageCount, 0)}">
-					</span>
-					<button class="pageRight flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
-						${_Icons.getSvgIcon(_Icons.iconChevronRight)}
-					</button>
-					<span class="ml-2 mr-1">Page Size:</span>
-					<input class="pageSize" type="text" value="${_Crud.pageSize[type]}">
-					<span class="ml-2 mr-1">View:</span>
-					<select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${Object.keys(_Crud.types[type].views).map(view => `<option${(_Crud.view[type] === view) ? ' selected' : ''}>${view}</option>`).join('')}
-					</select>
-				</div>
-
-				<div class="resource-link mr-4 flex items-center">
-					<a target="_blank" href=""></a>
-				</div>
-			</div>
-		`);
-
-		_Helpers.appendInfoTextToElement({
-			element: el.querySelector('select.view'),
-			text: 'The attributes of the given view are fetched. Attributes can still be hidden using the "Configure columns" dialog. id and type are always shown first.',
-			insertAfter: true,
-			customToggleIconClasses: ['icon-blue', 'ml-1']
-		});
-
-		_Helpers.appendInfoTextToElement({
-			element: el.querySelector('.resource-link'),
-			text: "View the REST output in a new tab.",
-			customToggleIconClasses: ['icon-blue', 'ml-1'],
-			offsetY: 10
-		});
-
-		return $('.pager', el);
-	},
-	updateResourceLink: (type) => {
-
-		let resourceLink = document.querySelector('#crud-type-detail .resource-link a');
-		let endpointURL  = `${Structr.rootUrl}${type}/${_Crud.view[type]}?${Structr.getRequestParameterName('pageSize')}=${_Crud.pageSize[type]}&${Structr.getRequestParameterName('page')}=${_Crud.page[type]}`;
-
-		resourceLink.setAttribute('href', endpointURL);
-		resourceLink.textContent = endpointURL;
-	},
-	storeCurrentType: (type) => {
-		LSWrapper.setItem(_Crud.crudTypeKey, type);
-	},
-	storePagerData: () => {
-		let type      = _Crud.type;
-		let pagerData = `${_Crud.view[type]},${_Crud.sort[type]},${_Crud.order[type]},${_Crud.page[type]},${_Crud.pageSize[type]}`;
-		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
-	},
-	restorePagerData: (type) => {
-		let val  = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
-
-		if (val) {
-			let pagerData        = val.split(',');
-			_Crud.view[type]     = pagerData[0];
-			_Crud.sort[type]     = pagerData[1];
-			_Crud.order[type]    = pagerData[2];
-			_Crud.page[type]     = pagerData[3];
-			_Crud.pageSize[type] = pagerData[4];
-		}
-	},
-	determinePagerData: (type) => {
-
-		// Priority: JS vars -> Local Storage -> URL -> Default
-
-		if (!_Crud.view[type]) {
-			_Crud.view[type]     = _Helpers.urlParam('view');
-			_Crud.sort[type]     = _Helpers.urlParam('sort');
-			_Crud.order[type]    = _Helpers.urlParam('order');
-			_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
-			_Crud.page[type]     = _Helpers.urlParam('page');
-		}
-
-		if (!_Crud.view[type]) {
-			_Crud.restorePagerData(type);
-		}
-
-		if (!_Crud.view[type]) {
-			_Crud.view[type]     = _Crud.defaultView;
-			_Crud.sort[type]     = _Crud.defaultSort;
-			_Crud.order[type]    = _Crud.defaultOrder;
-			_Crud.pageSize[type] = _Crud.defaultPageSize;
-			_Crud.page[type]     = _Crud.defaultPage;
-		}
-	},
-	setCollectionPageSize: (type, key, value) => {
-		LSWrapper.setItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`, value);
-	},
-	getCollectionPageSize: (type, key) => {
-		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`);
-	},
-	getCollectionPage: (type, key) => {
-		return LSWrapper.getItem(`${_Crud.crudPagerDataKey}_collectionPage_${type}.${_Helpers.getCSSClassForKey(key)}`);
-	},
-	replaceSortHeader: (type) => {
-
-		let newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
-
-		for (let th of document.querySelectorAll('#crud-type-detail table th')) {
-
-			let key = th.dataset['key'];
-
-			if (key === "action_header") {
-
-				th.innerHTML = '<div class="flex items-center">Actions</div>';
-
-				let configIcon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2'])));
-
-				th.firstChild.appendChild(configIcon);
-
-				configIcon.addEventListener('click', (e) => {
-
-					let { dialogText } = _Dialogs.custom.openDialog(`Configure columns for type ${type}`);
-
-					let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
-					_Helpers.enableElement(saveAndCloseButton);
-
-					dialogText.insertAdjacentHTML('beforeend', _Crud.templates.configureColumns());
-					let columnSelect = dialogText.querySelector('#columns-select');
-
-					fetch(`${Structr.rootUrl}_schema/${type}/${_Crud.defaultView}`).then(async response => {
-
-						if (response.ok) {
-
-							let data = await response.json();
-
-							// no schema entry found?
-							if (!data || !data.result || data.result_count === 0) {
-
-								new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
-
-							} else {
-
-								let sortOrder    = _Crud.getSortOrderOfColumns(type);
-								let currentOrder = _Crud.filterKeys(type, Object.keys(_Crud.getCurrentProperties(type)));
-
-								if (sortOrder.length > 0) {
-									currentOrder = sortOrder;
-								}
-
-								let properties   = Object.fromEntries(data.result.map(prop => [prop.jsonName, prop]));
-								let hiddenKeys   = _Crud.getHiddenKeys(type).filter(attr => currentOrder.indexOf(attr) === -1);
-
-								let orderedColumnsSet = new Set(currentOrder);
-								for (let key of Object.keys(properties)) {
-									orderedColumnsSet.add(key);
-								}
-
-								let options = Array.from(orderedColumnsSet).map(key => {
-									let isHidden   = hiddenKeys.includes(key);
-									let isIdOrType = (key === 'id' || key === 'type');
-									let isSelected = ((!isHidden || isIdOrType) ? 'selected' : '');
-									let isDisabled = (isIdOrType ? 'disabled' : '');
-
-									return `<option value="${key}" ${isSelected} ${isDisabled}>${key}</option>`;
-								}).join('');
-								columnSelect.insertAdjacentHTML('beforeend', options);
-
-								let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
-								let jqSelect       = $(columnSelect);
-
-								jqSelect.select2({
-									search_contains: true,
-									width: '100%',
-									dropdownParent: dropdownParent,
-									dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-									containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-									closeOnSelect: false,
-									scrollAfterSelect: false
-								}).select2Sortable();
-
-								saveAndCloseButton.addEventListener('click', (e) => {
-									e.stopPropagation();
-
-									_Crud.saveSortOrderOfColumns(type, jqSelect.sortedValues());
-									_Crud.reloadList();
-
-									_Dialogs.custom.clickDialogCancelButton();
-								});
-
-								//console.log(jqSelect);
-							}
-						}
-					});
-				});
-
-			} else if (key !== 'Actions') {
-
-				let sortKey = key;
-				th.innerHTML = `
-					<a class="${((_Crud.sort[type] === key) ? 'column-sorted-active' : '')}" href="${_Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type])}#${type}">${key}</a>
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
-				`;
-
-				if (_Crud.isCollection(key, type)) {
-					_Crud.appendPerCollectionPager($(th), type, key);
-				}
-
-				$('a', th).on('click', function(event) {
-					event.preventDefault();
-					_Crud.sort[type] = key;
-					_Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
-					_Crud.refreshList(type);
-					return false;
-				});
-
-				$('svg', th).on('click', function(event) {
-					event.preventDefault();
-					_Crud.toggleColumn(type, key);
-					return false;
-				});
-			}
-		}
-	},
-	appendPerCollectionPager: (el, type, key, callback) => {
-		el.append(`<input type="text" class="collection-page-size" size="1" value="${_Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize}">`);
-
-		let update = (newPageSize) => {
-			if (newPageSize !== _Crud.getCollectionPageSize(type, key)) {
-				_Crud.setCollectionPageSize(type, key, newPageSize);
-				if (callback) {
-					callback();
-				} else {
-					_Crud.refreshList(type);
-				}
-			}
-		};
-
-		$('.collection-page-size', el).on('blur', function() {
-			update($(this).val());
-		});
-
-		$('.collection-page-size', el).on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				update($(this).val());
-			}
-		});
-	},
-	updateCellPager: (el, id, type, key, page, pageSize) => {
-
-		fetch(`${Structr.rootUrl}${type}/${id}/${key}/public?${Structr.getRequestParameterName('page')}=${page}&${Structr.getRequestParameterName('pageSize')}=${pageSize}`).then(async response => {
-
-			if (response.ok) {
-
-				let data = await response.json();
-
-				let softLimited = false;
-				let pageCount   = data.page_count;
-
-				// handle new soft-limited REST result without counts
-				if (data.result_count === undefined && data.page_count === undefined) {
-					pageCount = _Crud.getSoftLimitedPageCount(pageSize);
-					softLimited = true;
-				}
-
-				$('.cell-pager .collection-page', el).val(page);
-				$('.cell-pager .page-count', el).val(pageCount);
-
-				if (page > 1) {
-					$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
-				} else {
-					$('.cell-pager .prev', el).addClass('disabled').prop('disabled', 'disabled');
-				}
-				if (page < pageCount) {
-					$('.cell-pager .next', el).removeClass('disabled').prop('disabled', '');
-				} else {
-					$('.cell-pager .next', el).addClass('disabled').prop('disabled', 'disabled');
-				}
-
-				for (let child of el.children('.node')) {
-					_Helpers.fastRemoveElement(child);
-				}
-
-				for (let preloadedNode of data.result) {
-					_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
-				}
-
-				if (softLimited) {
-					_Crud.showSoftLimitAlert($('input.page-count'));
-				}
-			}
-		});
-
-	},
-	appendCellPager: (el, id, type, key) => {
-
-		let pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
-
-		// use public view for cell pager - we should not need more information than this!
-		fetch(`${Structr.rootUrl}${type}/${id}/${key}/public${_Crud.sortAndPagingParameters(null, null, null, pageSize, null)}`).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				let softLimited = false;
-				let resultCount = data.result_count;
-				let pageCount   = data.page_count;
-
-				if (data.result && data.result.length > 0) {
-					for (let preloadedNode of data.result) {
-						_Crud.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
-					}
-				}
-
-				let page = 1;
-
-				// handle new soft-limited REST result without counts
-				if (data.result_count === undefined && data.page_count === undefined) {
-					resultCount = _Crud.getSoftLimitedResultCount();
-					pageCount   = _Crud.getSoftLimitedPageCount(pageSize);
-					softLimited = true;
-				}
-
-				if (!resultCount || !pageCount || pageCount === 1) {
-					return;
-				}
-
-				el.prepend('<div class="cell-pager"></div>');
-
-				el[0].insertAdjacentHTML('afterbegin', `
-					<div class="cell-pager whitespace-nowrap flex items-center">
-						<button class="prev disabled flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
-							${_Icons.getSvgIcon(_Icons.iconChevronLeft)}
-						</button>
-						<span class="pageWrapper">
-							<input class="collection-page" type="text" size="1" value="${page}">
-							<span class="of">of</span>
-							<input readonly="readonly" class="readonly page-count" type="text" size="1" value="${pageCount}">
-						</span>
-						<button class="next disabled flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
-							${_Icons.getSvgIcon(_Icons.iconChevronRight)}
-						</button>
-					</div>
-				`);
-
-
-				if (page > 1) {
-					$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
-				}
-
-				$('.collection-page', $('.cell-pager', el)).on('blur', function() {
-					var newPage = $(this).val();
-					_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
-				});
-
-				$('.collection-page', $('.cell-pager', el)).on('keypress', function(e) {
-					if (e.keyCode === 13) {
-						var newPage = $(this).val();
-						_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
-					}
-				});
-
-				if (page < pageCount) {
-					$('.cell-pager .next', el).removeClass('disabled').prop('disabled', '');
-				}
-
-				$('.prev', el).on('click', function() {
-					let page    = $('.cell-pager .collection-page', el).val();
-					let newPage = Math.max(1, page - 1);
-					_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
-				});
-
-				$('.next', el).on('click', function() {
-					let page    = $('.cell-pager .collection-page', el).val();
-					let newPage = parseInt(page) + 1;
-					_Crud.updateCellPager(el, id, type, key, newPage, pageSize);
-				});
-
-				if (softLimited) {
-					_Crud.showSoftLimitAlert($('input.page-count'));
-				}
-			}
-		});
-
-	},
-	sortAndPagingParameters: (t, s, o, ps, p, exact = false) => {
-
-		let paramsArray = [];
-
-		if (s) {
-			paramsArray.push(Structr.getRequestParameterName('sort') + '=' + s);
-		}
-		if (o) {
-			paramsArray.push(Structr.getRequestParameterName('order') + '=' + o);
-		}
-		if (ps) {
-			paramsArray.push(Structr.getRequestParameterName('pageSize') + '=' + ps);
-		}
-		if (p) {
-			paramsArray.push(Structr.getRequestParameterName('page') + '=' + p);
-		}
-		if (exact === true) {
-			paramsArray.push('type=' + t);
-		}
-
-		return '?' + paramsArray.join('&');
-	},
-	refreshList: (type) => {
-		_Crud.clearList(type);
-		_Crud.activateList(type);
-	},
-	activateList: (type) => {
-		let url = Structr.rootUrl + type + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
-		_Crud.list(type, url);
-	},
-	clearList: () => {
-		let div = $('#crud-type-detail table tbody');
-		_Helpers.fastRemoveAllChildren(div[0]);
-	},
-	list: (type, url, isRetry) => {
-
-		_Crud.crudListFetchAbortMechanism.abortListFetch(type);
-
-		let properties = _Crud.getCurrentProperties(type);
-
-		_Crud.delayedMessage.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
-
-		let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(','));
-
-		let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
-
-		fetch (url, {
-			signal: signal,
-			headers: {
-				Range: _Crud.ranges(type),
-				Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
-			}
-		}).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				_Crud.delayedMessage.removeMessage();
-
-				if (!data || !Structr.isModuleActive(_Crud)) {
-					return;
-				}
-
-				_Crud.crudCache.clear();
-
-				for (let item of data.result) {
-					StructrModel.create(item);
-					_Crud.appendRow(type, properties, item);
-				}
-				_Crud.updatePager(type, data);
-				_Crud.replaceSortHeader(type);
-
-			} else {
-
-				if (response.status === 431) {
-					// Happens if headers grow too large (property list too long)
-
-					if (!isRetry) {
-						_Crud.list(type, url, true);
-					} else {
-						_Crud.delayedMessage.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
-					}
-
-				} else {
-					console.log(type, url);
-				}
-
-				_Crud.delayedMessage.removeMessage();
-			}
-		}).catch(e => {
-
-			//console.log(signal)
-			if (signal.aborted !== true) {
-				// is we did not abort the request, we should log the output (or show a notification popup?)
-				console.log(e);
-			}
-		});
-
-	},
-	ranges: (type) => {
-		let ranges = '';
-		let keys;
-		if (type && _Crud.types[type]?.views?.all) {
-			keys = Object.keys(_Crud.types[type]?.views?.all);
-		}
-		if (!keys) {
-			let typeDef = _Crud.type[type];
-			if (typeDef) {
-				keys = Object.keys(typeDef.views[_Crud.view[type]]);
-			}
-		}
-		if (keys) {
-			keys.forEach(function(key) {
-				if ( _Crud.isCollection(key, type)) {
-					let page = _Crud.getCollectionPage(type, key) || 1;
-					let pageSize = _Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize;
-					let start = (page-1)*pageSize;
-					let end = page*pageSize;
-					ranges += `${key}=${start}-${end};`;
-				}
-			});
-			return ranges;
-		}
-	},
-	crudExport: (type) => {
-
-		let { dialogText } = _Dialogs.custom.openDialog(`Export ${type} list as CSV`);
-
-		if (!Structr.activeModules.csv) {
-			dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
-			return;
-		}
-
-		let exportArea = _Helpers.createSingleDOMElementFromHTML('<textarea class="exportArea"></textarea>');
-		dialogText.appendChild(exportArea);
-
-		let copyBtn = _Dialogs.custom.appendCustomDialogButton('<button id="copyToClipboard" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy to Clipboard</button>');
-
-		copyBtn.addEventListener('click', async () => {
-			await navigator.clipboard.writeText(exportArea.value);
-
-			new SuccessMessage().text('Copied to clipboard').show();
-		});
-
-		let hiddenKeys             = _Crud.getHiddenKeys(type);
-		let acceptHeaderProperties = Object.keys(_Crud.types[type].views.all).filter(key => !hiddenKeys.includes(key)).join(',');
-
-		fetch(`${Structr.csvRootUrl}${type}/all${_Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type])}`, {
-			headers: {
-				Range: _Crud.ranges(type),
-				Accept: 'properties=' + acceptHeaderProperties
-			}
-		}).then(async response => {
-
-			let data = await response.text();
-			exportArea.value = data;
-		})
-	},
-	crudImport: (type) => {
-
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV data for type ${type}`);
-		_Dialogs.custom.showMeta();
-
-		if (!Structr.activeModules.csv) {
-			dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
-			return;
-		}
-
-		let importArea = _Helpers.createSingleDOMElementFromHTML('<textarea class="importArea"></textarea>');
-		dialogText.appendChild(importArea);
-
-		dialogMeta.insertAdjacentHTML('beforeend', `
-			<div class="flex gap-2 items-center">
-				<label>Field Separator: </label>
-				<select id="csv-import-field-separator" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<option selected="">;</option>
-					<option>,</option>
-				</select>
-				<label>Quote Character: </label>
-				<select id="csv-import-quote-character" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<option selected="">"</option>
-					<option>'</option>
-				</select>
-				<label>Periodic Commit?</label>
-				<input id="csv-import-periodic-commit" type="checkbox">
-				<div id="csv-import-commit-interval-container" style="display: none;">
-					(Interval: <input id="csv-import-commit-interval" type="text" value="1000" size="5"> lines)
-				</div>
-			</div>
-		`);
-
-		let separatorSelect                 = dialogMeta.querySelector('#csv-import-field-separator');
-		let quoteCharacterSelect            = dialogMeta.querySelector('#csv-import-quote-character');
-		let periodicCommitCheckbox          = dialogMeta.querySelector('#csv-import-periodic-commit');
-		let periodicCommitIntervalContainer = dialogMeta.querySelector('#csv-import-commit-interval-container');
-		let periodicCommitIntervalInput     = dialogMeta.querySelector('#csv-import-commit-interval');
-
-		periodicCommitCheckbox.addEventListener('change', () => {
-
-			if (periodicCommitCheckbox.checked) {
-				periodicCommitIntervalContainer.style.display = '';
-			} else {
-				periodicCommitIntervalContainer.style.display = 'none';
-			}
-		});
-
-		window.setTimeout(() => {
-			importArea.focus();
-		}, 200);
-
-		let startImportBtn = _Dialogs.custom.appendCustomDialogButton('<button class="action">Start Import</button>');
-
-		startImportBtn.addEventListener('click', async () => {
-
-			let maxImportCharacters = 100000;
-			let cleanedBody         = importArea.value.split('\n').map(l => l.trim()).filter(line => (line !== '')).join('\n');
-			let importLength        = cleanedBody.length;
-
-			if (importLength > maxImportCharacters) {
-
-				let importTooBig = `Not starting import because it contains too many characters (${importLength}). The limit is ${maxImportCharacters}.<br> Consider uploading the CSV file to the Structr filesystem and using the file-based CSV import which is more powerful than this import.<br><br>`;
-
-				new ErrorMessage().text(importTooBig).title('Too much import data').requiresConfirmation().show();
-				return;
-			}
-
-			if (cleanedBody.length === 0) {
-				new ErrorMessage().text("Unable to import empty CSV").requiresConfirmation().show();
-				return;
-			}
-
-			let url = Structr.csvRootUrl + type;
-
-			let response = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'X-CSV-Field-Separator': separatorSelect.value,
-					'X-CSV-Quote-Character': quoteCharacterSelect.value,
-					'X-CSV-Periodic-Commit': periodicCommitCheckbox.checked,
-					'X-CSV-Periodic-Commit-Interval': periodicCommitIntervalInput.value
-				},
-				body: cleanedBody
-			});
-
-			if (response.ok) {
-
-				_Crud.refreshList(type);
-
-			} else {
-
-				let data = await response.data;
-				if (data) {
-					Structr.errorFromResponse(data, url);
-				}
-			}
-		});
-	},
-	deleteAllNodesOfType: async (type, exact) => {
-
-		let url      = `${Structr.rootUrl}${type}${((exact === true) ? `?type=${type}` : '')}`;
-		let response = await fetch(url, { method: 'DELETE' });
-
-		if (response.ok) {
-
-			new SuccessMessage().text(`Deletion of all nodes of type '${type}' finished.`).show();
-			_Crud.typeList.typeSelected(type);
-
-		} else {
-
-			let data = await response.json();
-			Structr.errorFromResponse(data, url, { statusCode: 400, requiresConfirmation: true });
-		}
-	},
-	updatePager: (type, data) => {
-
-		let pageCount   = data.page_count;
-		let softLimited = false;
-		let typeNode = $('#crud-type-detail');
-		if (typeNode.length === 0) {
-			return;
-		}
-
-		$('.queryTime', typeNode).text(data.query_time);
-		$('.serTime', typeNode).text(data.serialization_time);
-		$('.pageSize', typeNode).val(data.page_size);
-
-		_Crud.page[type] = data.page;
-		$('.pageNo', typeNode).val(_Crud.page[type]);
-
-		if (pageCount === undefined) {
-			pageCount = _Crud.getSoftLimitedPageCount(data.page_size);
-			softLimited = true;
-		}
-
-		_Crud.pageCount = pageCount;
-		$('.pageCount', typeNode).val(_Crud.pageCount);
-
-		if (softLimited) {
-			_Crud.showSoftLimitAlert($('input.pageCount'));
-		} else {
-			_Crud.showActualResultCount($('input.pageCount'), data.result_count);
-		}
-
-		let pageLeft = $('.pageLeft', typeNode);
-		let pageRight = $('.pageRight', typeNode);
-
-		if (_Crud.page[type] < 2) {
-			pageLeft.attr('disabled', 'disabled').addClass('disabled');
-		} else {
-			pageLeft.removeAttr('disabled').removeClass('disabled');
-		}
-
-		if (!_Crud.pageCount || _Crud.pageCount === 0 || (_Crud.page[type] === _Crud.pageCount)) {
-			pageRight.attr('disabled', 'disabled').addClass('disabled');
-		} else {
-			pageRight.removeAttr('disabled').removeClass('disabled');
-		}
-
-		_Crud.updateUrl(type);
-	},
-	activatePagerElements: (type, pagerNode) => {
-
-		$('.pageNo', pagerNode).on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				_Crud.page[type] = $(this).val();
-				_Crud.refreshList(type);
-			}
-		});
-
-		$('.pageSize', pagerNode).on('keypress', function(e) {
-			if (e.keyCode === 13) {
-				// calculate which page we should be on after the pagesize changed
-				var oldFirstObject = ((_Crud.page[type] -1 ) * _Crud.pageSize[type]) + 1;
-				var newPage = Math.ceil(oldFirstObject / $(this).val());
-				_Crud.pageSize[type] = $(this).val();
-				_Crud.page[type] = newPage;
-				_Crud.refreshList(type);
-			}
-		});
-
-		$('select.view', pagerNode).on('change', function(e) {
-			_Crud.view[type] = $(this).val();
-			_Crud.updateCrudTableHeader(type);
-			_Crud.refreshList(type);
-		});
-
-		let pageLeft  = $('.pageLeft', pagerNode);
-		let pageRight = $('.pageRight', pagerNode);
-
-		pageLeft.on('click', function() {
-			pageRight.removeAttr('disabled').removeClass('disabled');
-			if (_Crud.page[type] > 1) {
-				_Crud.page[type]--;
-				_Crud.refreshList(type);
-			}
-		});
-
-		pageRight.on('click', function() {
-			pageLeft.removeAttr('disabled').removeClass('disabled');
-			if (_Crud.page[type] < _Crud.pageCount) {
-				_Crud.page[type]++;
-				_Crud.refreshList(type);
-			}
-		});
-
-	},
-	deActivatePagerElements: (pagerNode) => {
-
-		$('.pageNo', pagerNode).off('keypress');
-		$('.pageSize', pagerNode).off('keypress');
-		$('.pageLeft', pagerNode).off('click');
-		$('.pageRight', pagerNode).off('click');
-	},
-	crudRefresh: (id, key, oldValue) => {
-
-		fetch(`${Structr.rootUrl}${id}/all`, {
-			headers: {
-				Accept: `application/json; charset=utf-8; properties=id,type,${key}`
-			}
-		}).then(async response => {
-
-			if (response.ok) {
-
-				let data = await response.json();
-
-				if (data) {
-					if (key) {
-						_Crud.refreshCell(id, key, data.result[key], data.result.type, oldValue);
-					} else {
-						_Crud.refreshRow(id, data.result, data.result.type);
-					}
-				}
-			}
-		});
-	},
-	crudReset: (id, key) => {
-
-		fetch(`${Structr.rootUrl}${id}/all`, {
-			headers: {
-				Accept: `application/json; charset=utf-8; properties=id,type,${key}`
-			}
-		}).then(async response => {
-
-			if (response.ok) {
-
-				let data = await response.json();
-
-				if (data) {
-					_Crud.resetCell(id, key, data.result[key]);
-				}
-			}
-		});
-	},
-	crudUpdateObj: (id, json, onSuccess, onError) => {
-
-		let url = `${Structr.rootUrl}${id}`;
-
-		fetch(url, {
-			method: 'PUT',
-			body: json
-		}).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				if (typeof onSuccess === "function") {
-					onSuccess();
-				} else {
-					_Crud.crudRefresh(id);
-				}
-
-			} else {
-
-				Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-
-				if (typeof onError === "function") {
-					onError();
-				} else {
-					_Crud.crudReset(id);
-				}
-			}
-		});
-	},
-	crudUpdate: (id, key, newValue, oldValue, onSuccess, onError) => {
-
-		let url = `${Structr.rootUrl}${id}`;
-
-		let obj = {};
-		obj[key] = (newValue && newValue !== '') ? newValue : null;
-
-		fetch(url, {
-			method: 'PUT',
-			body: JSON.stringify(obj)
-		}).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-				if (typeof onSuccess === "function") {
-					onSuccess();
-				} else {
-					_Crud.crudRefresh(id, key, oldValue);
-				}
-			} else {
-				Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-
-				if (typeof onError === "function") {
-					onError();
-				} else {
-					_Crud.crudReset(id, key);
-				}
-			}
-		});
-	},
-	crudRemoveProperty: (id, key, onSuccess, onError) => {
-
-		let url = `${Structr.rootUrl}${id}`;
-		let obj = {};
-		obj[key] = null;
-
-		fetch(url, {
-			method: 'PUT',
-			body: JSON.stringify(obj)
-		}).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				if (typeof onSuccess === "function") {
-					onSuccess();
-				} else {
-					_Crud.crudRefresh(id, key);
-				}
-
-			} else {
-
-				Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-
-				if (typeof onError === "function") {
-					onError();
-				} else {
-					_Crud.crudReset(id, key);
-				}
-			}
-		});
-
-	},
-	crudDelete: (type, id) => {
-
-		let url = `${Structr.rootUrl}${type}/${id}`;
-
-		fetch(url, {
-			method: 'DELETE'
-		}).then(async response => {
-
-			let data = await response.json();
-
-			if (response.ok) {
-
-				let row = _Crud.row(id);
-				_Helpers.fastRemoveElement(row[0]);
-
-			} else {
-				Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-			}
-		});
-
-	},
-	cells: (id, key) => {
-
-		let row = _Crud.row(id);
-
-		let cellInMainTable    = $('.' + _Helpers.getCSSClassForKey(key), row);
-		let cellInDetailsTable = $('.' + _Helpers.getCSSClassForKey(key), $('#details_' + id));
-
-		let result = [];
-
-		if (cellInMainTable && cellInMainTable.length > 0) {
-			result.push(cellInMainTable);
-		}
-
-		if (cellInDetailsTable && cellInDetailsTable.length > 0) {
-			result.push(cellInDetailsTable);
-		}
-
-		return result;
-	},
-	resetCell: (id, key, oldValue) => {
-
-		let cells = _Crud.cells(id, key);
-
-		for (let cell of cells) {
-
-			_Helpers.fastRemoveAllChildren(cell[0]);
-			_Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-		}
-	},
-	refreshCell: (id, key, newValue, type, oldValue) => {
-
-		let cells = _Crud.cells(id, key);
-
-		for (let cell of cells) {
-
-			_Helpers.fastRemoveAllChildren(cell[0]);
-			_Crud.populateCell(id, key, type, newValue, cell);
-
-			if (newValue !== oldValue && !(!newValue && oldValue === '')) {
-				_Helpers.blinkGreen(cell);
-			}
-		}
-	},
-	refreshRow: (id, item, type) => {
-
-		let row = _Crud.row(id);
-		_Helpers.fastRemoveAllChildren(row[0]);
-		_Crud.populateRow(id, item, type, _Crud.types[type].views.all);
-
-	},
-	activateTextInputField: (el, id, key, propertyType) => {
-
-		var oldValue = el.text();
-		el.off('click');
-//		var w = el.width(), h = el.height();
-		var input;
-		if (propertyType === 'String') {
-			el.html(`<textarea name="${key}" class="__value"></textarea>`);
-			input = $('textarea', el);
-//			input.width(w);
-//			input.height(h);
-		} else {
-			el.html(`<input name="${key}" class="__value" type="text" size="10">`);
-			input = $('input', el);
-		}
-		input.val(oldValue);
-		input.off('click');
-		input.focus();
-		input.on('blur', function() {
-			var newValue = input.val();
-			if (id) {
-				_Crud.crudUpdate(id, key, newValue, oldValue);
-			}
-		});
-
-	},
-	row: (id) => {
-		return $('tr#id_' + id);
-	},
-	appendRow: (type, properties, item) => {
-
-		_Crud.getProperties(item.type, () => {
-
-			let id = item['id'];
-			let tbody = $('#crud-type-detail table tbody');
-			let row = _Crud.row(id);
-
-			if ( !(row && row.length) ) {
-				tbody.append(`<tr id="id_${id}"></tr>`);
-			}
-			_Crud.populateRow(id, item, type, properties);
-		});
-
-	},
-	populateRow: (id, item, type, properties) => {
-
-		let row = _Crud.row(id);
-		_Helpers.fastRemoveAllChildren(row[0]);
-
-		if (properties) {
-
-			let actions = $(`
-				<td class="actions">
-					${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'edit']))}
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Remove')}
-				</td>
-			`);
-
-			if (!(_Crud.types[type] && _Crud.isRelType(type))) {
-				_Entities.appendNewAccessControlIcon(actions, item, false);
-			}
-
-			row.append(actions);
-
-			let filterKeys = _Crud.filterKeys(type, Object.keys(properties));
-
-			for (let key of filterKeys) {
-
-				row.append(`<td class="value ${_Helpers.getCSSClassForKey(key)}"></td>`);
-				let cells = _Crud.cells(id, key);
-
-				for (let cell of cells) {
-					_Crud.populateCell(id, key, type, item[key], cell);
-				}
-			}
-
-			Structr.resize();
-
-			row[0].querySelector('.actions .edit').addEventListener('click', (e) => {
-				_Crud.showDetails(id, type);
-			});
-
-			row[0].querySelector('.actions .delete').addEventListener('click', async (e) => {
-				await _Crud.crudAskDelete(type, id);
-			});
-		}
-	},
-	crudAskDelete: async (type, id) => {
-		let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
-		if (confirm === true) {
-			_Crud.crudDelete(type, id);
-		}
-
-		return confirm;
-	},
-	populateCell: (id, key, type, value, cell) => {
-
-		let isRelType        = _Crud.isRelType(type);
-		let isCollection     = _Crud.isCollection(key, type);
-		let isEnum           = _Crud.isEnum(key, type);
-		let isCypher         = _Crud.isCypherProperty(key, type);
-		let relatedType      = _Crud.getRelatedTypeForAttribute(key, type);
-		let readOnly         = _Crud.readOnly(key, type);
-		let isSourceOrTarget = isRelType && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
-		let propertyType     = _Crud.types[type]?.views.all[key]?.type;
-
-		if (readOnly) {
-			cell.addClass('readonly');
-		}
-
-		let isRegularDirectAttribute = !isSourceOrTarget && !relatedType;
-
-		if (isRegularDirectAttribute) {
-
-			if (propertyType === 'Boolean') {
-
-				cell.addClass('boolean-attr');
-				cell.append(`<input name="${key}" ${readOnly ? 'class="readonly" readonly disabled ' : ''}type="checkbox" ${value ? 'checked="checked"' : ''}>`);
-
-				if (!readOnly) {
-					$('input', cell).on('change', function() {
-						if (id) {
-							let checked = $(this).prop('checked');
-							_Crud.crudUpdate(id, key, checked, undefined, () => {
-
-								_Crud.crudRefresh(id, key, !checked);
-
-								if (key === 'visibleToPublicUsers' || key === 'visibleToAuthenticatedUsers') {
-									StructrModel.updateKey(id, key, checked);
-									_Entities.updateNewAccessControlIconInElement(StructrModel.obj(id), Structr.node(id));
-								}
-							});
-						}
-					});
-				}
-
-			} else if (propertyType === 'Date') {
-
-				cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
-
-				if (!readOnly) {
-
-					let format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
-					let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
-
-					cell.on('click', function(event) {
-						event.preventDefault();
-						var self = $(this);
-						var oldValue = self.text().trim();
-						self.html(`<input name="${key}" class="__value" type="text" size="40">`);
-						var input = $('input', self);
-						input.val(oldValue);
-
-						if (dateTimePickerFormat.timeFormat) {
-							input.datetimepicker({
-								parse: 'loose',
-								dateFormat: dateTimePickerFormat.dateFormat,
-								timeFormat: dateTimePickerFormat.timeFormat,
-								separator: dateTimePickerFormat.separator,
-								onClose: function() {
-									var newValue = input.val();
-									if (id && newValue !== oldValue) {
-										_Crud.crudUpdate(id, key, newValue);
-									} else {
-										_Crud.resetCell(id, key, oldValue);
-									}
-								}
-							});
-							input.datetimepicker('show');
-						} else {
-							input.datepicker({
-								parse: 'loose',
-								dateFormat: dateTimePickerFormat.dateFormat,
-								onClose: function() {
-									var newValue = input.val();
-									if (id && newValue !== oldValue) {
-										_Crud.crudUpdate(id, key, newValue);
-									} else {
-										_Crud.resetCell(id, key, oldValue);
-									}
-								}
-							});
-							input.datepicker('show');
-						}
-						self.off('click');
-					});
-				}
-
-			} else if (propertyType === 'ZonedDateTime') {
-
-				cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
-
-				if (!readOnly) {
-
-					cell.on('click', function(event) {
-						event.preventDefault();
-						var self = $(this);
-						var oldValue = self.text().trim();
-						self.html(`<input name="${key}" class="__value" type="text" size="40">`);
-						var input = $('input', self);
-						input.val(oldValue);
-
-						// detect timezone id either from system or from old value
-						let timezoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-						let oldTzId = oldValue.match(/\[(.*)\]/);
-						if (oldTzId?.length > 0) {
-							timezoneId = oldTzId[1];
-						}
-
-						const getOffset = (timeZone = 'UTC', date = new Date()) => {
-							const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-							const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
-							return (tzDate.getTime() - utcDate.getTime()) / 6e4;
-						};
-
-						input.datetimepicker({
-							parse: (timeFormat, timeString, options) => {
-
-								let fakeOptions = Object.assign({}, options);
-								fakeOptions.parse = 'loose';
-
-								// remove timezone identifier from timeString
-								let pos    = timeString.indexOf('[');
-								if (pos > 0) {
-									timeString = timeString.slice(0, pos);
-								}
-
-								let innerData = $.datepicker.parseTime(timeFormat, timeString, fakeOptions);
-
-								// fake our timezone
-								innerData.timezone = oldTzId[0];
-
-								return innerData;
-							},
-							dateFormat: 'yy-mm-dd',
-							timeFormat: 'HH:mm:ssz',
-							separator: 'T',
-							timezone: '[' + timezoneId + ']',
-							timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
-							onClose: function() {
-								$('#ui-datepicker-div').removeClass('is-zoned');
-								var newValue = input.val();
-								if (id && newValue !== oldValue) {
-
-									// add timezone corresponding to timezone identifier
-									let offset = 0;
-									let newTzId = newValue.match(/\[(.*)\]/);
-									if (newTzId?.length > 0) {
-										offset = getOffset(newTzId[1]);
-									}
-
-									let offsetString = $.timepicker.timezoneOffsetString(offset, true);
-
-									newValue = newValue.replaceAll('[', offsetString + '[');
-
-									console.log('Setting:', newValue)
-
-									_Crud.crudUpdate(id, key, newValue);
-								} else {
-									_Crud.resetCell(id, key, oldValue);
-								}
-							}
-						});
-						input.datetimepicker('show');
-
-						if (oldValue) {
-							// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
-							let dateStringWithoutId = oldValue;
-							let pos = oldValue.indexOf('[');
-							if (pos > 0) {
-								dateStringWithoutId = oldValue.slice(0, pos);
-							}
-
-							let baseDate = new Date(dateStringWithoutId);
-
-							// baseDate is shifted by our offset to UTC and its own offset to UTC
-							let theirOffset = getOffset(timezoneId);
-							let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
-							let totalOffset = ouroffset - theirOffset;
-
-							// correct baseDate
-							baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
-
-							input.datetimepicker('setDate', baseDate);
-						}
-
-						$('#ui-datepicker-div').addClass('is-zoned');
-						self.off('click');
-					});
-				}
-
-			} else if (isEnum) {
-
-				let format = _Crud.getFormat(key, type);
-				cell.text(_Helpers.nvl(value, ''));
-				if (!readOnly) {
-					cell.on('click', function (event) {
-						event.preventDefault();
-						_Crud.appendEnumSelect(cell, id, key, format);
-					});
-					if (!id) { // create
-						_Crud.appendEnumSelect(cell, id, key, format);
-					}
-				}
-
-			} else if (isCypher) {
-
-				cell.text((value === undefined || value === null) ? '' : JSON.stringify(value));
-
-			} else if (isCollection) { // Array types
-
-				let values = value ?? [];
-				let typeInfo = _Crud.types[type].views.all;
-
-				if (!id) {
-					/**
-					 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
-					 */
-
-					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-					cell.find(`[name="${key}"]`).each(function (i, el) {
-						_Entities.activateInput(el, null, null, typeInfo, function () {
-						});
-					});
-
-				} else {
-
-					// existing object
-					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-					cell.find(`[name="${key}"]`).each(function (i, el) {
-						_Entities.activateInput(el, id, null, typeInfo, function () {
-							_Crud.crudRefresh(id, key);
-						});
-					});
-				}
-
-			} else {
-				// default: any other type of direct property
-
-				cell.text(_Helpers.nvl(value, ''));
-
-				if (!readOnly) {
-					cell.on('click', function(event) {
-						event.preventDefault();
-						var self = $(this);
-						_Crud.activateTextInputField(self, id, key, propertyType);
-					});
-					if (!id) { // create
-						_Crud.activateTextInputField(cell, id, key, propertyType);
-					}
-				}
-			}
-
-		} else {
-
-			// This attribute is a relationship attribute, either a collection or a single object
-			let simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
-
-			if (isCollection) {
-
-				cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
-
-				$('.add', cell).on('click', function() {
-
-					let { dialogText } = _Dialogs.custom.openDialog('Add ' + simpleType);
-					_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
-				});
-
-				if (_Crud.types[type].views.all[key] && _Crud.types[type].views.all[key].className.indexOf('CollectionIdProperty') === -1 && _Crud.types[type].views.all[key].className.indexOf("CollectionNotionProperty") === -1) {
-
-					_Crud.appendCellPager(cell, id, type, key);
-				}
-
-			} else {
-
-				if (value) {
-
-					_Crud.getAndAppendNode(type, id, key, value, cell);
-
-				} else {
-
-					// This branch is only run for the create node dialog.
-
-					if (simpleType) {
-
-						cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
-						$('.add', cell).on('click', function () {
-
-							if (!_Dialogs.custom.isDialogOpen() || isRelType == false) {
-
-								let {dialogText} = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
-								_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
-
-							} else {
-
-								let dialogText = $(_Dialogs.custom.getDialogTextElement());
-
-								let btn = $(this);
-								$('#entityForm').hide();
-								_Crud.search.displaySearchDialog(type, id, key, simpleType, dialogText, function (n) {
-
-									$('.searchBox', dialogText).remove();
-									btn.remove();
-
-									_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
-									_Crud.search.clearSearchResults(dialogText);
-									$('#entityForm').show();
-								});
-							}
-						});
-					}
-				}
-			}
-		}
-
-		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
-
-			cell.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
-
-			$('.crud-clear-value', cell).on('click', function(e) {
-				e.preventDefault();
-				_Crud.crudRemoveProperty(id, key);
-				return false;
-			});
-		}
-	},
-	appendEnumSelect: (cell, id, key, format) => {
-
-		cell.off('click');
-
-		let oldValue       = cell.text().trim();
-		console.log(oldValue);
-		let possibleValues = format.split(',').map(value => value.trim()).filter(value => value.length > 0);
-		possibleValues.unshift('');
-
-		_Helpers.fastRemoveAllChildren(cell[0]);
-
-		let select = _Helpers.createSingleDOMElementFromHTML(`
-			<select name="${key}">
-				${possibleValues.map(value => `<option ${value === oldValue ? 'selected="selected"' : ''}value="${value}">${value}</option>`).join()}
-			</select>
-		`);
-
-		cell[0].appendChild(select);
-		select.focus();
-
-		let blurHandler = (e) => {
-			_Crud.resetCell(id, key, oldValue);
-		};
-
-		select.addEventListener('change', function(e) {
-			let newValue = select.value;
-			if (id) {
-				select.removeEventListener('blur', blurHandler);
-				_Crud.crudUpdate(id, key, newValue, oldValue);
-			}
-		});
-
-		select.addEventListener('blur', blurHandler);
-	},
-	getAndAppendNode: (parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) => {
-
-		if (!obj) {
-			return;
-		}
-		let id, type;
-		if ((typeof obj) === 'object') {
-			id = obj.id;
-			type = obj.type;
-		} else if (_Helpers.isUUID(obj)) {
-			id = obj;
-		} else {
-			// search object by name
-			type = _Crud.types[parentType].views.all[key].relatedType.split('.').pop();
-
-			fetch(Structr.rootUrl + type + '?name=' + obj).then(async response => {
-
-				let data = await response.json();
-
-				if (response.ok) {
-					if (data.result.length > 0) {
-						_Crud.getAndAppendNode(parentType, parentId, key, data.result[0], cell);
-					}
-				}
-			});
-
-			return;
-		}
-
-		let nodeHandler = (node) => {
-
-			let displayName = _Crud.displayName(node);
-
-			cell.append(`<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${node.id}" class="node ${node.isImage ? 'image ' : ''} ${node.id}_ relative"><span class="name_ abbr-ellipsis abbr-100pc">${displayName}</span></div>`);
-			let nodeEl = $('#_' + node.id, cell);
-
-			let isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
-			if (!isSourceOrTarget) {
-				nodeEl.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])));
-			} else if (insertFakeInput) {
-				nodeEl.append(`<input type="hidden" name="${key}" value="${node.id}"></div>`);
-			}
-
-			if (node.isImage) {
-
-				if (node.isThumbnail) {
-					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-				} else if (node.tnSmall) {
-					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.tnSmall.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-				} else if (node.contentType === 'image/svg+xml') {
-					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-				}
-
-				if (node.tnMid || node.contentType === 'image/svg+xml') {
-					$('.thumbnail', nodeEl).on('mouseenter', function(e) {
-						e.stopPropagation();
-						$('.thumbnailZoom').remove();
-						nodeEl.parent().append(`<img class="thumbnailZoom" src="/${node.tnMid ? node.tnMid.id : node.id}">`);
-						var tnZoom = $($('.thumbnailZoom', nodeEl.parent())[0]);
-						tnZoom.css({
-							top: (nodeEl.position().top) + 'px',
-							left: (nodeEl.position().left - 42) + 'px'
-						});
-						tnZoom.on('mouseleave', function(e) {
-							e.stopPropagation();
-							$('.thumbnailZoom').remove();
-						});
-					});
-				}
-			}
-
-			$('.remove', nodeEl).on('click', function(e) {
-				e.preventDefault();
-				Command.get(parentId, 'id,type', (parentObj) => {
-					_Crud.removeRelatedObject(parentObj, key, obj);
-				});
-				return false;
-			});
-
-			nodeEl.on('click', function(e) {
-				e.preventDefault();
-				_Crud.showDetails(node.id, node.type);
-				return false;
-			});
-		};
-
-		if (preloadedNode) {
-			nodeHandler(preloadedNode);
-		} else {
-			_Crud.crudCache.registerCallback({ id: id, type: type }, id, nodeHandler);
-		}
-
-	},
-	displayName: (node) => {
-		let displayName;
-		if (node.isContent && node.content && !node.name) {
-			displayName = _Helpers.escapeTags(node.content.substring(0, 100));
-		} else {
-			displayName = node.name || node.id || node;
-		}
-		return displayName;
-	},
-	removeRelatedObject: (obj, key, relatedObj, callback) => {
-
-		let type = obj.type;
-
-		if (_Crud.isCollection(key, type)) {
-
-			fetch(Structr.rootUrl + type + '/' + obj.id + '/all').then(async response => {
-
-				if (response.ok) {
-
-					let data      = await response.json();
-					let relatedId = (typeof relatedObj === 'object' ? relatedObj.id : relatedObj);
-					let objects   = _Crud.extractIds(data.result[key]).filter(obj => (obj.id !== relatedId));
-
-					_Crud.updateRelatedCollection(obj.id, key, objects, callback);
-				}
-			});
-
-		} else {
-			_Crud.crudRemoveProperty(obj.id, key);
-		}
-	},
-	addRelatedObject: (type, id, key, relatedObj, callback) => {
-
-		if (_Crud.isCollection(key, type)) {
-
-			fetch(`${Structr.rootUrl}${type}/${id}/all`).then(async response => {
-
-				if (response.ok) {
-
-					let data    = await response.json();
-					let objects = _Crud.extractIds(data.result[key]);
-					if (!_Helpers.isIn(relatedObj.id, objects)) {
-						objects.push({'id': relatedObj.id});
-					}
-
-					_Crud.updateRelatedCollection(id, key, objects, callback);
-				}
-			});
-
-		} else {
-			let updateObj = {};
-			updateObj[key] = {
-				id: relatedObj.id
-			};
-
-			_Crud.crudUpdateObj(id, JSON.stringify(updateObj), () => {
-				_Crud.crudRefresh(id, key);
-				_Dialogs.custom.clickDialogCancelButton();
-			});
-		}
-
-	},
-	updateRelatedCollection: (id, key, objects, callback) => {
-
-		let updateObj = {};
-		updateObj[key] = objects;
-
-		_Crud.crudUpdateObj(id, JSON.stringify(updateObj), () => {
-			_Crud.crudRefresh(id, key);
-			callback?.();
-		});
-
-	},
-	extractIds: (result) => {
-
-		return result.map(obj => {
-			// value can be an ID string or an object
-			if (typeof obj === 'object') {
-				return { id: obj.id };
-			} else {
-				return obj;
-			}
-		});
-	},
-	resize: () => {},
-	showDetails: (id, type) => {
-
-		if (!type) {
-			new ErrorMessage().text('Missing type').requiresConfirmation().show();
-			return;
-		}
-
-		let typeDef = _Crud.types[type]?.views?.all;
-
-		if (!typeDef) {
-			_Crud.getProperties(type, () => {
-				_Crud.showDetails(id, type);
-			});
-			return;
-		}
-
-		let availableKeys = Object.keys(typeDef);
-		let visibleKeys   = _Crud.filterKeys(type, availableKeys);
-
-		if (_Dialogs.custom.isDialogOpen()) {
-			_Dialogs.custom.clickDialogCancelButton();
-		}
-
-		let view = _Crud.view[type] || 'ui';
-
-		fetch(`${Structr.rootUrl}${type}/${id}/${view}`, {
-			headers: {
-				Range: _Crud.ranges(type),
-				Accept: `application/json; charset=utf-8;properties=${visibleKeys.join(',')}`
-			}
-		}).then(async response => {
-
-			let data = await response.json();
-			if (!data)
-				return;
-
-			let node = data.result;
-
-			let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
-
-			let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
-				<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
-				</button>
-			`);
-
-			deleteBtn.addEventListener('click', async (e) => {
-				let deleted = await _Crud.crudAskDelete(type, id);
-
-				if (deleted) {
-					_Dialogs.custom.getCloseDialogButton().click();
-				}
-			});
-
-			dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
-
-			let table = dialogText.querySelector('table');
-
-			for (let key of visibleKeys) {
-
-				let cssClassForKey = _Helpers.getCSSClassForKey(key);
-
-				let row = _Helpers.createSingleDOMElementFromHTML(`
-					<tr>
-						<td class="key"><label for="${key}">${key}</label></td>
-						<td class="__value ${cssClassForKey}"></td>
-					</tr>
-				`);
-				table.appendChild(row);
-
-				let cell = $(`.${cssClassForKey}`, $(row));
-
-				if (_Crud.isCollection(key, type)) {
-					_Crud.appendPerCollectionPager(cell.prev('td'), type, key, () => {
-						_Crud.showDetails(node.id, type);
-					});
-				}
-
-				_Crud.populateCell(node.id, key, node.type, node[key], cell);
-			}
-
-			if (node && node.isImage) {
-				dialogText.insertAdjacentHTML('beforeend', `<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/${node.id}"></div></div>`);
-			}
-		});
-	},
-	getHiddenKeys: (type) => {
-
-		let hiddenKeysSource = LSWrapper.getItem(_Crud.crudHiddenColumnsKey + type);
-		let hiddenKeys = [];
-		if (hiddenKeysSource) {
-
-			hiddenKeys = JSON.parse(hiddenKeysSource);
-
-			if (!Array.isArray(hiddenKeys)) {
-				// migrate old format
-				let newKeys = [];
-
-				for (let key in hiddenKeys) {
-					newKeys.push(key);
-				}
-
-				hiddenKeys = newKeys;
-			}
-
-		} else {
-
-			// hide some keys depending on the type
-
-			if (_Crud.isPrincipalType(_Crud.types[type])) {
-
-				for (let key of _Crud.hiddenKeysForPrincipalTypes) {
-					if (hiddenKeys.indexOf(key) === -1) {
-						hiddenKeys.push(key);
-					}
-				}
-			}
-
-			if (_Crud.isImageType(_Crud.types[type])) {
-
-				for (let key of _Crud.hiddenKeysForImageTypes) {
-					if (hiddenKeys.indexOf(key) === -1) {
-						hiddenKeys.push(key);
-					}
-				}
-			}
-
-			if (_Crud.isFileType(_Crud.types[type])) {
-
-				for (let key of _Crud.hiddenKeysForFileTypes) {
-					if (hiddenKeys.indexOf(key) === -1) {
-						hiddenKeys.push(key);
-					}
-				}
-			}
-		}
-
-		// hidden keys for all types
-		for (let key of _Crud.hiddenKeysForAllTypes) {
-			if (hiddenKeys.indexOf(key) === -1) {
-				hiddenKeys.push(key);
-			}
-		}
-
-		return hiddenKeys;
-	},
-	getSortOrderOfColumns: (type) => {
-		let sortOrder = LSWrapper.getItem(_Crud.crudSortedColumnsKey + type, '[]');
-		return JSON.parse(sortOrder);
-	},
-	saveSortOrderOfColumns: (type, order) => {
-
-		_Crud.typeColumnSort[type] = order;
-
-		// this also updates hidden keys (inverted!)
-		let allPropertiesOfType = Object.keys(_Crud.getCurrentProperties(type));
-		let hiddenKeys          = allPropertiesOfType.filter(prop => !order.includes(prop));
-
-		LSWrapper.setItem(_Crud.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
-		LSWrapper.setItem(_Crud.crudSortedColumnsKey + type, JSON.stringify(order));
-	},
-	isPrincipalType: (typeDef) => {
-		let cls = Structr.getFQCNForDynamicTypeName('Principal');
-		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
-	},
-	isFileType: (typeDef) => {
-		let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
-		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
-	},
-	isImageType: (typeDef) => {
-		let cls = Structr.getFQCNForDynamicTypeName('Image');
-		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
-	},
-	inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
-
-		if (typeDef.extendsClass === ancestorFQCN) {
-
-			return true;
-
-		} else {
-
-			// search parent type
-			let parentType = Object.values(_Crud.types).filter(t => (t.className === typeDef.extendsClass));
-
-			if (parentType.length === 1) {
-				return _Crud.inheritsFromAncestorType(parentType[0], ancestorFQCN);
-			}
-		}
-
-		return false;
-	},
-	filterKeys: (type, sourceArray) => {
-
-		if (!sourceArray) {
-			return;
-		}
-
-		let sortOrder    = _Crud.getSortOrderOfColumns(type);
-		let hiddenKeys   = _Crud.getHiddenKeys(type);
-		let filteredKeys = sourceArray.filter(key => !(hiddenKeys.includes(key)));
-
-		if (sortOrder.length > 0) {
-			return sortOrder.filter(prop => sourceArray.includes(prop));
-		}
-
-		let idPos = filteredKeys.indexOf('id');
-		if (idPos !== -1) {
-			filteredKeys.splice(idPos, 1);
-		}
-		filteredKeys.unshift('id');
-
-		let typePos = filteredKeys.indexOf('type');
-		if (typePos !== -1) {
-			filteredKeys.splice(typePos, 1);
-		}
-		filteredKeys.unshift('type');
-
-		let namePos = filteredKeys.indexOf('name');
-		if (namePos !== -1) {
-			filteredKeys.splice(namePos, 1);
-		}
-		filteredKeys.unshift('name');
-
-		return filteredKeys;
-	},
-	toggleColumn: (type, key) => {
-
-		let hiddenKeys = _Crud.getHiddenKeys(type);
-
-		if (hiddenKeys.includes(key)) {
-
-			hiddenKeys.splice(hiddenKeys.indexOf(key), 1);
-
-		} else {
-
-			hiddenKeys.push(key);
-
-			let table = $('#crud-type-detail table');
-
-			// remove column(s) from table
-			$(`th.${_Helpers.getCSSClassForKey(key)}`, table).remove();
-			$(`td.${_Helpers.getCSSClassForKey(key)}`, table).each(function(i, t) {
-				t.remove();
-			});
-		}
-
-		LSWrapper.setItem(_Crud.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
-	},
-	serializeObject: function(obj) {
-		let o = {};
-		var a = obj.serializeArray();
-		$.each(a, function() {
-			if (this.value && this.value !== '') {
-				if (o[this.name]) {
-					if (!o[this.name].push) {
-						o[this.name] = [o[this.name]];
-					}
-					o[this.name].push(this.value || '');
-				} else {
-					o[this.name] = this.value || '';
-				}
-			}
-		});
-		return o;
-	},
-	getSoftLimitedPageCount: (pageSize) => Math.ceil(_Crud.getSoftLimitedResultCount() / pageSize),
-	getSoftLimitedResultCount: () => _Crud.resultCountSoftLimit,
-	getSoftLimitMessage: () => 'Result count exceeds soft limit (' + _Crud.resultCountSoftLimit + '). Page count may be higher than displayed.',
-	showSoftLimitAlert: (el) => {
-		el.attr('style', 'background-color: #fc0 !important;');
-		el.attr('title', _Crud.getSoftLimitMessage());
-	},
-	showActualResultCount: (el, pageSize) => {
-		el.attr('title', 'Result count = ' + pageSize);
-	},
-	createDialogWithErrorHandling: {
-		create: (type, nodeData = {}, onSuccess) => {
-
-			let url = Structr.rootUrl + type;
-
-			fetch(url, {
-				method: 'POST',
-				body: JSON.stringify(nodeData)
-			}).then(async response => {
-
-				let responseData = await response.json();
-
-				if (response.ok) {
-
-					onSuccess?.(type, responseData.result[0]);
-
-					if (_Dialogs.custom.isDialogOpen()) {
-						_Dialogs.custom.getCloseDialogButton().click();
-					}
-
-				} else {
-
-					if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
-						Structr.errorFromResponse(responseData, url, { statusCode: response.status, delayDuration: 5000 });
-					}
-
-					_Dialogs.custom.enableSaveButton();
-
-					_Crud.getTypeInfo(type, () => {
-
-						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
-					});
-				}
-			});
-		},
-		showCreateError: (type, nodeData, responseData, onSuccess) => {
-
-			let dialogText = _Dialogs.custom.getDialogTextElement();
-
-			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
-				dialogText = elements.dialogText;
-			}
-
-			// remove "invalid" highlight from elements
-			for (let el of dialogText.querySelectorAll('.props input, .props textarea, .props td.value')) {
-				el.classList.remove('form-input', 'input-invalid');
-			}
-
-			// delay only used to further highlight the input elements (slight blink)
-			window.setTimeout(() => {
-
-				for (let error of responseData.errors) {
-
-					let key      = error.property;
-					let errorMsg = error.token;
-
-					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
-					if (inputs.length > 0) {
-
-						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
-
-						if (error.detail) {
-							errorText += ` ${error.detail}`;
-						}
-
-						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
-
-
-						// add "invalid" highlight from elements
-						for (let input of inputs) {
-							input.classList.add('form-input', 'input-invalid');
-						}
-
-						inputs[0].focus();
-					}
-				}
-			}, 100);
-		},
-		showCreateDialog: (type, initialData = {}, onSuccess) => {
-
-			if (!type) {
-				Structr.error('Missing type');
-				return;
-			}
-
-			let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
-			_Dialogs.custom.noConfirmOnEscape();
-
-			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
-
-			let table = dialog.dialogText.querySelector('table');
-
-			let isRelType = _Crud.isRelType(type);
-
-			for (let key in _Crud.types[type].views.all) {
-
-				let isBuiltinBaseProperty              = _Crud.isBaseProperty(key, type);
-				let isBuiltinHiddenProperty            = _Crud.isHiddenProperty(key, type);
-				let readOnly                           = _Crud.readOnly(key, type);
-				let isCollection                       = _Crud.isCollection(key, type);
-				let isAllowedCollectionForCreateDialog = _Crud.isSupportedArrayType(key, type);
-				let relatedType                        = _Crud.getRelatedTypeForAttribute(key, type);
-				let isSourceOrTarget = isRelType && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
-
-				let showKey = !isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || isAllowedCollectionForCreateDialog) && (!relatedType || isRelType);
-
-				if (showKey) {
-
-					let cssClassForKey = _Helpers.getCSSClassForKey(key);
-
-					let row = _Helpers.createSingleDOMElementFromHTML(`
-						<tr>
-							<td class="key"><label for="${key}">${key}</label></td>
-							<td class="__value ${cssClassForKey}"></td>
-						</tr>
-					`);
-					table.appendChild(row);
-
-					let cell = row.querySelector(`.${cssClassForKey}`);
-
-					_Crud.populateCell(null, key, type, initialData[key], $(cell));
-				}
-			}
-
-			let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
-			_Helpers.enableElement(dialogSaveButton);
-
-			dialogSaveButton.addEventListener('click', () => {
-
-				_Helpers.disableElement(dialogSaveButton);
-				let nodeData = _Crud.serializeObject($('#entityForm'));
-				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
-			});
-
-			return dialog;
-		},
-		crudCreateSuccess: async (type, newNodeId) => {
-
-			let properties = _Crud.getCurrentProperties(type);
-
-			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',')
-				}
-			});
-
-			if (newNodeResponse.ok) {
-
-				let newNodeResult = await newNodeResponse.json();
-				let newNode       = newNodeResult.result;
-				_Crud.appendRow(type, properties, newNode);
-
-				_Helpers.blinkGreen(_Crud.row(newNode.id));
-
-			} else {
-
-				_Crud.refreshList(type);
-			}
-		},
-	},
-	search: {
-		searchField: undefined,
-		searchFieldClearIcon: undefined,
-		setupGlobalSearch: () => {
-
-			let crudMain = $('#crud-main');
-
-			_Crud.search.searchField          = document.getElementById('crud-search-box');
-			_Crud.search.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-			_Crud.search.focusSearchField();
-
-			_Helpers.appendInfoTextToElement({
-				element: _Crud.search.searchField,
-				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
-				insertAfter: true,
-				css: {
-					left: '-18px',
-					position: 'absolute'
-				},
-				helpElementCss: {
-					fontSize: '12px',
-					lineHeight: '1.1em'
-				}
-			});
-
-			_Crud.search.searchFieldClearIcon.addEventListener('click', (e) => {
-				_Crud.search.clearMainSearch(crudMain);
-				_Crud.search.focusSearchField();
-			});
-
-			_Crud.search.searchField.addEventListener('keyup', (e) => {
-
-				let searchString = _Crud.search.searchField.value;
-
-				if (searchString && searchString.length) {
-					_Crud.search.searchFieldClearIcon.style.display = 'block';
-				}
-
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					_Crud.search.doSearch(searchString, crudMain, null, (e, node) => {
-						e.preventDefault();
-						_Entities.showProperties(node, 'ui');
-						return false;
-					});
-
-					$('#crud-type-detail').hide();
-
-				} else if (e.keyCode === 27 || searchString === '') {
-
-					_Crud.search.clearMainSearch(crudMain);
-				}
-			});
-		},
-		/**
-		 * Conduct a search and append search results to 'el'.
-		 *
-		 * If an optional type is given, restrict search to this type.
-		 *
-		 * Get only the given properties from the backend, otherwise just id,type,name.
-		 */
-		doSearch: (searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = [], properties = 'id,type,name,path,isImage,width,height,isThumbnail,isFile,isFolder') => {
-
-			_Crud.search.clearSearchResults(el);
-
-			el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
-			let searchResults = $('.searchResults', el);
-
-			searchResults.append(`<span class="search-results-info">Showing the first ${optionalPageSize||1000} results. Use the input field to refine your search.</span>`);
-			Structr.resize();
-
-			let types;
-			let attr = 'name';
-			let posOfColon = searchString.indexOf(':');
-
-			if (posOfColon > -1) {
-
-				let typeAndValue = searchString.split(':');
-				let type = typeAndValue[0];
-				let posOfDot = type.indexOf('.');
-
-				if (posOfDot > -1) {
-					let typeAndAttr = type.split('.');
-					type = typeAndAttr[0];
-					attr = typeAndAttr[1];
-				}
-				types = [_Helpers.capitalize(type)];
-				searchString = typeAndValue[1];
-
-			} else {
-
-				if (type) {
-					types = type.split(',').filter(t => (t.trim() !== ''));
-				} else {
-					// only search in node types
-					types = Object.keys(_Crud.types).filter(t => !_Crud.types[t].isRel);
-				}
-				if (_Helpers.isUUID(searchString)) {
-					attr = 'uuid';
-					types = ['AbstractNode'];
-				}
-			}
-
-			for (let type of types) {
-
-				let url, searchPart;
-				if (attr === 'uuid') {
-
-					url = `${Structr.rootUrl}${type}/${searchString}`;
-
-				} else {
-
-					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
-					url = `${Structr.rootUrl}${type}${_Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
-				}
-
-				searchResults.append(`
-					<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}
-					</div>
-				`);
-
-				fetch(url, {
-					headers: {
-						Accept: 'application/json; properties=' + properties
-					}
-				}).then(async response => {
-
-					if (response.ok) {
-
-						let data = await response.json();
-
-						if (!data || !data.result) {
-							return;
-						}
-
-						let result = data.result;
-						_Helpers.fastRemoveElement(document.querySelector(`#placeholderFor${type}`));
-
-						if (result) {
-							if (Array.isArray(result)) {
-								if (result.length) {
-									for (let node of result) {
-										if (!blacklistedIds.includes(node.id)) {
-											_Crud.search.searchResult(searchResults, type, node, onClickCallback);
-										}
-									}
-								} else {
-									_Crud.search.noResults(searchResults, type);
-								}
-							} else if (result.id) {
-								_Crud.search.searchResult(searchResults, type, result, onClickCallback);
-							}
-						} else {
-							_Crud.search.noResults(searchResults, type);
-						}
-
-					} else {
-						_Helpers.fastRemoveElement(document.querySelector(`#placeholderFor${type}`));
-					}
-				});
-			}
-		},
-		clearSearchResults: (el) => {
-
-			let searchResults = $('.searchResults', el);
-			if (searchResults.length) {
-				_Helpers.fastRemoveElement(searchResults[0]);
-				return true;
-			}
-			return false;
-		},
-		clearMainSearch: (el) => {
-
-			_Crud.search.clearSearchResults(el);
-			_Crud.search.searchFieldClearIcon.style.display = 'none';
-			_Crud.search.searchField.value = '';
-			$('#crud-type-detail').show();
-		},
-		focusSearchField: () => {
-
-			// only auto-activate search field if no other input element is active
-			if ( !(document.activeElement instanceof HTMLInputElement) ) {
-				_Crud.search.searchField.focus();
-			}
-		},
-		noResults: (searchResults, type) => {
-
-			searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox">No results for ${type}</div>`);
-			window.setTimeout(() => {
-				$(`#resultsFor${type}`).fadeOut('fast');
-			}, 1000);
-
-		},
-		searchResult: (searchResults, type, node, onClickCallback) => {
-
-			if (!$(`#resultsFor${type}`, searchResults).length) {
-				searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox"><h3>${type}</h3></div>`);
-			}
-
-			let displayName = _Crud.displayName(node);
-			let title = `name: ${node.name}\nid: ${node.id}\ntype: ${node.type}`;
-			$('#resultsFor' + type, searchResults).append(`<div title="${_Helpers.escapeForHtmlAttributes(title)}" class="_${node.id} node"><span class="name_ abbr-ellipsis abbr-120">${displayName}</span></div>`);
-
-			let nodeEl = $(`#resultsFor${type} ._${node.id}`, searchResults);
-			if (node.isImage) {
-				nodeEl.append(`<div class="wrap"><img class="thumbnailZoom" src="/${node.id}" alt=""><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
-			}
-
-			nodeEl.on('click', function(e) {
-				onClickCallback(e, node);
-			});
-		},
-		displaySearchDialog: (parentType, id, key, type, el, callbackOverride) => {
-
-			el.append(`
-				<div class="searchBox searchBoxDialog flex justify-end">
-					<input class="search" name="search" size="20" placeholder="Search">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
-				</div>
-			`);
-			let searchBox = $('.searchBoxDialog', el);
-			let search    = $('.search', searchBox);
-
-			window.setTimeout(() => {
-				search.focus();
-			}, 250);
-
-			search.keyup(function(e) {
-				e.preventDefault();
-
-				let searchString = search.val();
-				if (e.keyCode === 13) {
-
-					$('.clearSearchIcon', searchBox).show().on('click', function() {
-						_Crud.search.clearSearchResults(el);
-						$('.clearSearchIcon').hide().off('click');
-						search.focus();
-						search.val('');
-					});
-
-					_Crud.search.doSearch(searchString, el, type, function(e, node) {
-						e.preventDefault();
-						if (typeof callbackOverride === "function") {
-							callbackOverride(node);
-						} else {
-							_Crud.addRelatedObject(parentType, id, key, node);
-						}
-						return false;
-					});
-
-				} else if (e.keyCode === 27) {
-
-					if (searchString.trim() === '') {
-						_Dialogs.custom.clickDialogCancelButton();
-					}
-
-					_Crud.search.clearSearchResults(el);
-					$('.clearSearchIcon').hide().off('click');
-					search.focus();
-					search.val('');
-				}
-
-				return false;
-			});
-
-			// display initial result list
-			_Crud.search.doSearch('*', el, type, (e, node) => {
-				e.preventDefault();
-				if (typeof callbackOverride === "function") {
-					callbackOverride(node);
-				} else {
-					_Crud.addRelatedObject(parentType, id, key, node, () => {});
-				}
-				return false;
-			}, 100);
-		}
-	},
-	delayedMessage: {
-		messageTimeout: undefined,
-		showLoadingMessageAfterDelay: (message, delay) => {
-
-			_Crud.delayedMessage.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
-		},
-		showMessageAfterDelay: (message, delay) => {
-
-			clearTimeout(_Crud.delayedMessage.messageTimeout);
-
-			_Crud.delayedMessage.messageTimeout = window.setTimeout(() => {
-
-				_Crud.delayedMessage.removeMessage();
-
-				let crudRight = $('#crud-type-detail');
-				crudRight.append(`
-					<div class="crud-message">
-						<div class="crud-centered flex items-center justify-center">${message}</div>
-					</div>
-				`);
-
-			}, delay);
-		},
-		removeMessage: () => {
-
-			clearTimeout(_Crud.delayedMessage.messageTimeout);
-			_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
-		},
-	},
 	typeList: {
+		lastUsedTypeKey: 'structrCrudType_' + location.port,
+		defaultType: 'Page',
 		addListeners: () => {
 
 			document.querySelector('#crud-left').addEventListener('click', (e) => {
@@ -2773,7 +126,7 @@ let _Crud = {
 			let typeListHtml = Object.keys(_Crud.types).sort().map(typeName => `<div class="crud-type truncate hidden" data-type="${typeName}">${typeName}</div>`).join('');
 			let typesListEl  = document.querySelector('#crud-types-list');
 
-			typesListEl.insertAdjacentHTML('beforeEnd', typeListHtml);
+			typesListEl.insertAdjacentHTML('beforeend', typeListHtml);
 		},
 		highlightCurrentType: (selectedType) => {
 
@@ -2788,11 +141,11 @@ let _Crud = {
 				let positionOfList    = $crudTypesList.position().top;
 				let scrollTopOfList   = $crudTypesList.scrollTop();
 				let positionOfElement = $selectedElementInTypeList.position().top;
-				$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+				$crudTypesList.animate({ scrollTop: positionOfElement + scrollTopOfList - positionOfList });
 
 			} else {
 
-				$crudTypesList.animate({scrollTop: 0});
+				$crudTypesList.animate({ scrollTop: 0 });
 			}
 		},
 		setCurrentTypeIfNotYetSet: () => {
@@ -2809,98 +162,27 @@ let _Crud = {
 			}
 
 			if (!_Crud.type) {
-				setCurrentTypeIfPossible(LSWrapper.getItem(_Crud.crudTypeKey));
+				setCurrentTypeIfPossible(LSWrapper.getItem(_Crud.typeList.lastUsedTypeKey));
 			}
 
 			if (!_Crud.type) {
-				setCurrentTypeIfPossible(_Crud.defaultType);
+				setCurrentTypeIfPossible(_Crud.typeList.defaultType);
 			}
+		},
+		storeCurrentType: (type) => {
+			LSWrapper.setItem(_Crud.typeList.lastUsedTypeKey, type);
 		},
 		typeSelected: (type) => {
 
-			_Crud.storeCurrentType(type);
+			_Crud.typeList.storeCurrentType(type);
 
 			_Crud.typeList.recents.update(type);
 			_Crud.typeList.highlightCurrentType(type);
 
-			let crudRight = document.querySelector('#crud-type-detail');
+			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
 
-			_Crud.delayedMessage.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
-
-			_Crud.getProperties(type, () => {
-
-				_Crud.delayedMessage.removeMessage();
-
-				_Helpers.fastRemoveAllChildren(crudRight);
-
-				let crudButtons = Structr.functionBar.querySelector('#crud-buttons');
-				_Helpers.setContainerHTML(crudButtons, _Crud.templates.typeButtons({ type: type }));
-
-				let exactTypeLabel = crudButtons.querySelector('.exact-type-checkbox-label');
-
-				_Helpers.appendInfoTextToElement({
-					element: exactTypeLabel,
-					text: 'This flag affects the list shown below and the delete function.<br><br>If active only nodes of the selected type ("' + type + '") are shown in the list and types inheriting from this type are excluded. If it is not active, nodes for the current type and nodes of all its subtypes are shown.<br><br>The same is true for the delete function. If active, only nodes with that exact type are deleted and nodes of inheriting types are not deleted. If it is not active, nodes for the active type and nodes of all its subtypes are deleted.',
-					insertAfter: true,
-					css: {
-						marginLeft: '4px',
-					},
-					helpElementCss: {
-						fontSize: '12px',
-						lineHeight: '1.1em'
-					}
-				});
-
-				_Crud.determinePagerData(type);
-
-				// fall back to public view if saved view does not exist (anymore)
-				if (!Object.keys(_Crud.types[type].views).includes(_Crud.view[type])) {
-					_Crud.view[type] = 'public';
-				}
-
-				let pagerNode = _Crud.addPager(type, crudRight);
-
-				crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
-
-				_Crud.updateCrudTableHeader(type);
-
-				document.querySelector('#create' + type).addEventListener('click', () => {
-					_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
-				});
-
-				document.querySelector('#export' + type).addEventListener('click', () => {
-					_Crud.crudExport(type);
-				});
-
-				document.querySelector('#import' + type).addEventListener('click', () => {
-					_Crud.crudImport(type);
-				});
-
-				let exactTypeCheckbox = document.querySelector('#exact_type_' + type);
-				exactTypeCheckbox.checked = _Crud.exact[type];
-
-				exactTypeCheckbox.addEventListener('change', () => {
-					_Crud.exact[type] = exactTypeCheckbox.checked;
-					LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
-					_Crud.refreshList(type);
-				});
-
-				document.querySelector('#delete' + type).addEventListener('click', async () => {
-
-					let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>WARNING: Really delete all objects of type '${type}'${((exactTypeCheckbox.checked === true) ? '' : ' and of inheriting types')}?</h3>
-					<p>This will delete all objects of the type (<b>${((exactTypeCheckbox.checked === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
-					<p>Depending on the amount of objects this can take a while.</p>
-				`);
-
-					if (confirm === true) {
-						await _Crud.deleteAllNodesOfType(type, exactTypeCheckbox.checked);
-					}
-				});
-
-				_Crud.deActivatePagerElements(pagerNode);
-				_Crud.activateList(type);
-				_Crud.activatePagerElements(type, pagerNode);
+			_Crud.helpers.ensurePropertiesForTypeAreLoaded(type, () => {
+				_Crud.objectList.initializeForType(type);
 			});
 		},
 		recents: {
@@ -3097,6 +379,2690 @@ let _Crud = {
 				filterInput: config => `<input placeholder="Filter types..." id="crudTypesSearch" autocomplete="off">`
 			}
 		},
+	},
+	objectList: {
+		crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + location.port,
+		crudSortedColumnsKey: 'structrCrudSortedColumns_' + location.port,
+		initializeForType: (type) => {
+
+			let crudRight = document.querySelector('#crud-type-detail');
+
+			_Crud.helpers.delayedMessage.removeMessage();
+
+			_Helpers.fastRemoveAllChildren(crudRight);
+
+			let crudButtons = Structr.functionBar.querySelector('#crud-buttons');
+			_Helpers.setContainerHTML(crudButtons, _Crud.templates.typeButtons({ type: type }));
+
+			let exactTypeLabel = crudButtons.querySelector('.exact-type-checkbox-label');
+
+			_Helpers.appendInfoTextToElement({
+				element: exactTypeLabel,
+				text: 'This flag affects the list shown below and the delete function.<br><br>If active only nodes of the selected type ("' + type + '") are shown in the list and types inheriting from this type are excluded. If it is not active, nodes for the current type and nodes of all its subtypes are shown.<br><br>The same is true for the delete function. If active, only nodes with that exact type are deleted and nodes of inheriting types are not deleted. If it is not active, nodes for the active type and nodes of all its subtypes are deleted.',
+				insertAfter: true,
+				css: {
+					marginLeft: '4px',
+				},
+				helpElementCss: {
+					fontSize: '12px',
+					lineHeight: '1.1em'
+				}
+			});
+
+			_Crud.objectList.pager.determinePagerData(type);
+
+			// fall back to public view if saved view does not exist (anymore)
+			if (!Object.keys(_Crud.types[type].views).includes(_Crud.view[type])) {
+				_Crud.view[type] = 'public';
+			}
+
+			let pagerNode = _Crud.objectList.pager.addPager(type, crudRight);
+
+			crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+
+			_Crud.objectList.updateCrudTableHeader(type);
+
+			document.querySelector('#create' + type).addEventListener('click', () => {
+				_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
+			});
+
+			document.querySelector('#export' + type).addEventListener('click', () => {
+				_Crud.objectList.showExportDialog(type);
+			});
+
+			document.querySelector('#import' + type).addEventListener('click', () => {
+				_Crud.objectList.showImportDialog(type);
+			});
+
+			let exactTypeCheckbox = document.querySelector('#exact_type_' + type);
+			exactTypeCheckbox.checked = _Crud.objectList.excludeInheritingTypes.shouldExclude(type);
+
+			exactTypeCheckbox.addEventListener('change', () => {
+				_Crud.objectList.excludeInheritingTypes.update(type, exactTypeCheckbox.checked)
+				_Crud.objectList.refreshList(type);
+			});
+
+			document.querySelector('#delete' + type).addEventListener('click', async () => {
+				await _Crud.objectList.askDeleteAllNodesOfType(type, exactTypeCheckbox.checked);
+			});
+
+			_Crud.objectList.pager.deActivatePagerElements(pagerNode);
+			_Crud.objectList.activateList(type);
+			_Crud.objectList.pager.activatePagerElements(type, pagerNode);
+		},
+		showExportDialog: (type) => {
+
+			let { dialogText } = _Dialogs.custom.openDialog(`Export ${type} list as CSV`);
+
+			if (!Structr.activeModules.csv) {
+				dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
+				return;
+			}
+
+			let exportArea = _Helpers.createSingleDOMElementFromHTML('<textarea class="exportArea"></textarea>');
+			dialogText.appendChild(exportArea);
+
+			let copyBtn = _Dialogs.custom.appendCustomDialogButton('<button id="copyToClipboard" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy to Clipboard</button>');
+
+			copyBtn.addEventListener('click', async () => {
+				await navigator.clipboard.writeText(exportArea.value);
+
+				new SuccessMessage().text('Copied to clipboard').show();
+			});
+
+			let hiddenKeys             = _Crud.objectList.getHiddenKeys(type);
+			let acceptHeaderProperties = Object.keys(_Crud.types[type].views.all).filter(key => !hiddenKeys.includes(key)).join(',');
+
+			fetch(`${Structr.csvRootUrl}${type}/all${_Crud.helpers.getSortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type])}`, {
+				headers: {
+					Range: _Crud.objectList.getRangeHeaderForType(type),
+					Accept: 'properties=' + acceptHeaderProperties
+				}
+			}).then(async response => {
+
+				let data = await response.text();
+				exportArea.value = data;
+			})
+		},
+		showImportDialog: (type) => {
+
+			let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV data for type ${type}`);
+			_Dialogs.custom.showMeta();
+
+			if (!Structr.activeModules.csv) {
+				dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
+				return;
+			}
+
+			let importArea = _Helpers.createSingleDOMElementFromHTML('<textarea class="importArea"></textarea>');
+			dialogText.appendChild(importArea);
+
+			dialogMeta.insertAdjacentHTML('beforeend', `
+			<div class="flex gap-2 items-center">
+				<label>Field Separator: </label>
+				<select id="csv-import-field-separator" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<option selected="">;</option>
+					<option>,</option>
+				</select>
+				<label>Quote Character: </label>
+				<select id="csv-import-quote-character" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<option selected="">"</option>
+					<option>'</option>
+				</select>
+				<label>Periodic Commit?</label>
+				<input id="csv-import-periodic-commit" type="checkbox">
+				<div id="csv-import-commit-interval-container" style="display: none;">
+					(Interval: <input id="csv-import-commit-interval" type="text" value="1000" size="5"> lines)
+				</div>
+			</div>
+		`);
+
+			let separatorSelect                 = dialogMeta.querySelector('#csv-import-field-separator');
+			let quoteCharacterSelect            = dialogMeta.querySelector('#csv-import-quote-character');
+			let periodicCommitCheckbox          = dialogMeta.querySelector('#csv-import-periodic-commit');
+			let periodicCommitIntervalContainer = dialogMeta.querySelector('#csv-import-commit-interval-container');
+			let periodicCommitIntervalInput     = dialogMeta.querySelector('#csv-import-commit-interval');
+
+			periodicCommitCheckbox.addEventListener('change', () => {
+
+				if (periodicCommitCheckbox.checked) {
+					periodicCommitIntervalContainer.style.display = '';
+				} else {
+					periodicCommitIntervalContainer.style.display = 'none';
+				}
+			});
+
+			window.setTimeout(() => {
+				importArea.focus();
+			}, 200);
+
+			let startImportBtn = _Dialogs.custom.appendCustomDialogButton('<button class="action">Start Import</button>');
+
+			startImportBtn.addEventListener('click', async () => {
+
+				let maxImportCharacters = 100000;
+				let cleanedBody         = importArea.value.split('\n').map(l => l.trim()).filter(line => (line !== '')).join('\n');
+				let importLength        = cleanedBody.length;
+
+				if (importLength > maxImportCharacters) {
+
+					let importTooBig = `Not starting import because it contains too many characters (${importLength}). The limit is ${maxImportCharacters}.<br> Consider uploading the CSV file to the Structr filesystem and using the file-based CSV import which is more powerful than this import.<br><br>`;
+
+					new ErrorMessage().text(importTooBig).title('Too much import data').requiresConfirmation().show();
+					return;
+				}
+
+				if (cleanedBody.length === 0) {
+					new ErrorMessage().text("Unable to import empty CSV").requiresConfirmation().show();
+					return;
+				}
+
+				let url = Structr.csvRootUrl + type;
+
+				let response = await fetch(url, {
+					method: 'POST',
+					headers: {
+						'X-CSV-Field-Separator': separatorSelect.value,
+						'X-CSV-Quote-Character': quoteCharacterSelect.value,
+						'X-CSV-Periodic-Commit': periodicCommitCheckbox.checked,
+						'X-CSV-Periodic-Commit-Interval': periodicCommitIntervalInput.value
+					},
+					body: cleanedBody
+				});
+
+				if (response.ok) {
+
+					_Crud.objectList.refreshList(type);
+
+				} else {
+
+					let data = await response.data;
+					if (data) {
+						Structr.errorFromResponse(data, url);
+					}
+				}
+			});
+		},
+		askDeleteAllNodesOfType: async (type, exact) => {
+
+			let confirm = await _Dialogs.confirmation.showPromise(`
+				<h3>WARNING: Really delete all objects of type '${type}'${((exact === true) ? '' : ' and of inheriting types')}?</h3>
+				<p>This will delete all objects of the type (<b>${((exact === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
+				<p>Depending on the amount of objects this can take a while.</p>
+			`);
+
+			if (confirm === true) {
+				let url      = `${Structr.rootUrl}${type}${((exact === true) ? `?type=${type}` : '')}`;
+				let response = await fetch(url, { method: 'DELETE' });
+
+				if (response.ok) {
+
+					new SuccessMessage().text(`Deletion of all nodes of type '${type}' finished.`).show();
+					_Crud.typeList.typeSelected(type);
+
+				} else {
+
+					let data = await response.json();
+					Structr.errorFromResponse(data, url, { statusCode: 400, requiresConfirmation: true });
+				}
+			}
+
+			return confirm;
+		},
+		updateCrudTableHeader: (type) => {
+
+			let properties     = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
+			let tableHeaderRow = document.querySelector('#crud-type-detail table thead tr');
+
+			_Helpers.fastRemoveAllChildren(tableHeaderRow);
+
+			let newHeaderHTML = `
+				<th class="___action_header" data-key="action_header">Actions</th>
+				${_Crud.objectList.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Helpers.getCSSClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
+			`;
+
+			tableHeaderRow.insertAdjacentHTML('beforeend', newHeaderHTML);
+		},
+		list: (type, url, isRetry) => {
+
+			_Crud.crudListFetchAbortMechanism.abortListFetch(type);
+
+			let properties = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
+
+			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
+
+			let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(','));
+
+			let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
+
+			fetch (url, {
+				signal: signal,
+				headers: {
+					Range: _Crud.objectList.getRangeHeaderForType(type),
+					Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
+				}
+			}).then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
+
+					_Crud.helpers.delayedMessage.removeMessage();
+
+					if (!data || !Structr.isModuleActive(_Crud)) {
+						return;
+					}
+
+					_Crud.crudCache.clear();
+
+					for (let item of data.result) {
+						StructrModel.create(item);
+						_Crud.objectList.appendRow(type, properties, item);
+					}
+					_Crud.objectList.pager.updatePager(type, data);
+					_Crud.objectList.replaceSortHeader(type);
+
+				} else {
+
+					if (response.status === 431) {
+						// Happens if headers grow too large (property list too long)
+
+						if (!isRetry) {
+							_Crud.objectList.list(type, url, true);
+						} else {
+							_Crud.helpers.delayedMessage.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
+						}
+
+					} else {
+						console.log(type, url);
+					}
+
+					_Crud.helpers.delayedMessage.removeMessage();
+				}
+			}).catch(e => {
+
+				//console.log(signal)
+				if (signal.aborted !== true) {
+					// is we did not abort the request, we should log the output (or show a notification popup?)
+					console.log(e);
+				}
+			});
+		},
+		refreshList: (type) => {
+			_Crud.objectList.clearList(type);
+			_Crud.objectList.activateList(type);
+		},
+		activateList: (type) => {
+			let url = Structr.rootUrl + type + '/' + _Crud.view[type] + _Crud.helpers.getSortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.objectList.excludeInheritingTypes.shouldExclude(type));
+			_Crud.objectList.list(type, url);
+		},
+		reloadCompleteObjectListUI: () => {
+			_Crud.objectList.initializeForType(_Crud.type);
+		},
+		clearList: () => {
+			_Helpers.fastRemoveAllChildren(document.querySelector('#crud-type-detail table tbody'));
+		},
+		replaceSortHeader: (type) => {
+
+			let newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+
+			for (let th of document.querySelectorAll('#crud-type-detail table th')) {
+
+				let key = th.dataset['key'];
+
+				if (key === "action_header") {
+
+					th.innerHTML = '<div class="flex items-center">Actions</div>';
+
+					let configIcon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2'])));
+
+					th.firstChild.appendChild(configIcon);
+
+					configIcon.addEventListener('click', (e) => {
+
+						let { dialogText } = _Dialogs.custom.openDialog(`Configure columns for type ${type}`);
+
+						let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
+						_Helpers.enableElement(saveAndCloseButton);
+
+						dialogText.insertAdjacentHTML('beforeend', _Crud.templates.configureColumns());
+						let columnSelect = dialogText.querySelector('#columns-select');
+
+						fetch(`${Structr.rootUrl}_schema/${type}/${_Crud.defaultView}`).then(async response => {
+
+							if (response.ok) {
+
+								let data = await response.json();
+
+								// no schema entry found?
+								if (!data || !data.result || data.result_count === 0) {
+
+									new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
+
+								} else {
+
+									let sortOrder    = _Crud.objectList.getSortOrderOfColumns(type);
+									let currentOrder = _Crud.objectList.filterKeys(type, Object.keys(_Crud.helpers.getPropertiesForTypeAndCurrentView(type)));
+
+									if (sortOrder.length > 0) {
+										currentOrder = sortOrder;
+									}
+
+									let properties = Object.fromEntries(data.result.map(prop => [prop.jsonName, prop]));
+									let hiddenKeys = _Crud.objectList.getHiddenKeys(type).filter(attr => currentOrder.indexOf(attr) === -1);
+
+									let orderedColumnsSet = new Set(currentOrder);
+									for (let key of Object.keys(properties)) {
+										orderedColumnsSet.add(key);
+									}
+
+									let optionsHTML = Array.from(orderedColumnsSet).map(key => {
+
+										let isHidden   = hiddenKeys.includes(key);
+										let isIdOrType = (key === 'id' || key === 'type');
+										let isSelected = ((!isHidden || isIdOrType) ? 'selected' : '');
+										let isDisabled = (isIdOrType ? 'disabled' : '');
+
+										return `<option value="${key}" ${isSelected} ${isDisabled}>${key}</option>`;
+									}).join('');
+
+									columnSelect.insertAdjacentHTML('beforeend', optionsHTML);
+
+									let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+									let jqSelect       = $(columnSelect);
+
+									jqSelect.select2({
+										search_contains: true,
+										width: '100%',
+										dropdownParent: dropdownParent,
+										dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+										containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+										closeOnSelect: false,
+										scrollAfterSelect: false
+									}).select2Sortable();
+
+									saveAndCloseButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+
+										_Crud.objectList.saveSortOrderOfColumns(type, jqSelect.sortedValues());
+										_Crud.objectList.reloadCompleteObjectListUI();
+
+										_Dialogs.custom.clickDialogCancelButton();
+									});
+								}
+							}
+						});
+					});
+
+				} else if (key !== 'Actions') {
+
+					let sortKey = key;
+					th.innerHTML = `
+						<a class="${((_Crud.sort[type] === key) ? 'column-sorted-active' : '')}" href="${_Crud.helpers.getSortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type])}#${type}">${key}</a>
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
+					`;
+
+					if (_Crud.helpers.isCollection(key, type)) {
+						_Crud.objectList.pager.addPageSizeConfigToColumn($(th), type, key);
+					}
+
+					$('a', th).on('click', function(event) {
+						event.preventDefault();
+						_Crud.sort[type] = key;
+						_Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+						_Crud.objectList.refreshList(type);
+						return false;
+					});
+
+					$('svg', th).on('click', function(e) {
+						e.preventDefault();
+						// toggle column
+						let hiddenKeys = _Crud.objectList.getHiddenKeys(type);
+
+						if (hiddenKeys.includes(key)) {
+
+							hiddenKeys.splice(hiddenKeys.indexOf(key), 1);
+
+						} else {
+
+							hiddenKeys.push(key);
+
+							let table = $('#crud-type-detail table');
+
+							// remove column(s) from table
+							$(`th.${_Helpers.getCSSClassForKey(key)}`, table).remove();
+							$(`td.${_Helpers.getCSSClassForKey(key)}`, table).each(function(i, t) {
+								t.remove();
+							});
+						}
+
+						LSWrapper.setItem(_Crud.objectList.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
+						return false;
+					});
+				}
+			}
+		},
+		getSortOrderOfColumns: (type) => {
+			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, '[]');
+			return JSON.parse(sortOrder);
+		},
+		saveSortOrderOfColumns: (type, order) => {
+
+			_Crud.typeColumnSort[type] = order;
+
+			// this also updates hidden keys (inverted!)
+			let allPropertiesOfType = Object.keys(_Crud.helpers.getPropertiesForTypeAndCurrentView(type));
+			let hiddenKeys          = allPropertiesOfType.filter(prop => !order.includes(prop));
+
+			LSWrapper.setItem(_Crud.objectList.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
+			LSWrapper.setItem(_Crud.objectList.crudSortedColumnsKey + type, JSON.stringify(order));
+		},		
+		getRow: (id) => {
+			return $('tr#id_' + id);
+		},
+		appendRow: (type, properties, item) => {
+
+			_Crud.helpers.ensurePropertiesForTypeAreLoaded(item.type, () => {
+
+				let id    = item['id'];
+				let row   = _Crud.objectList.getRow(id);
+
+				if ( !(row && row.length) ) {
+
+					document.querySelector('#crud-type-detail table tbody').insertAdjacentHTML('beforeend', `<tr id="id_${id}"></tr>`);
+				}
+
+				_Crud.objectList.populateRow(id, item, type, properties);
+			});
+		},
+		populateRow: (id, item, type, properties) => {
+
+			let row = _Crud.objectList.getRow(id);
+			_Helpers.fastRemoveAllChildren(row[0]);
+
+			if (properties) {
+
+				let actions = $(`
+					<td class="actions">
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'edit']))}
+						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Remove')}
+					</td>
+				`);
+
+				if (!(_Crud.types[type] && _Crud.helpers.isRelType(type))) {
+					_Entities.appendNewAccessControlIcon(actions, item, false);
+				}
+
+				row.append(actions);
+
+				let filterKeys = _Crud.objectList.filterKeys(type, Object.keys(properties));
+
+				for (let key of filterKeys) {
+
+					row.append(`<td class="value ${_Helpers.getCSSClassForKey(key)}"></td>`);
+					let cells = _Crud.objectList.getCellsForKeyInObject(id, key);
+
+					for (let cell of cells) {
+						_Crud.objectList.populateCell(id, key, type, item[key], cell);
+					}
+				}
+
+				Structr.resize();
+
+				row[0].querySelector('.actions .edit').addEventListener('click', (e) => {
+					_Crud.objectList.showDetails(id, type);
+				});
+
+				row[0].querySelector('.actions .delete').addEventListener('click', async (e) => {
+					await _Crud.helpers.crudAskDelete(type, id);
+				});
+			}
+		},
+		populateCell: (id, key, type, value, cell) => {
+
+			let isRelType        = _Crud.helpers.isRelType(type);
+			let isCollection     = _Crud.helpers.isCollection(key, type);
+			let isEnum           = _Crud.helpers.isEnum(key, type);
+			let isCypher         = _Crud.helpers.isCypherProperty(key, type);
+			let relatedType      = _Crud.helpers.getRelatedTypeForAttribute(key, type);
+			let readOnly         = _Crud.helpers.isReadOnly(key, type);
+			let isSourceOrTarget = isRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
+			let propertyType     = _Crud.types[type]?.views.all[key]?.type;
+
+			if (readOnly) {
+				cell.addClass('readonly');
+			}
+
+			let isRegularDirectAttribute = !isSourceOrTarget && !relatedType;
+
+			if (isRegularDirectAttribute) {
+
+				if (propertyType === 'Boolean') {
+
+					cell.addClass('boolean-attr');
+					cell.append(`<input name="${key}" ${readOnly ? 'class="readonly" readonly disabled ' : ''}type="checkbox" ${value ? 'checked="checked"' : ''}>`);
+
+					if (!readOnly) {
+						$('input', cell).on('change', function() {
+							if (id) {
+								let checked = $(this).prop('checked');
+								_Crud.objectList.crudUpdate(id, key, checked, undefined, () => {
+
+									_Crud.objectList.refreshObject(id, key, !checked);
+
+									if (key === 'visibleToPublicUsers' || key === 'visibleToAuthenticatedUsers') {
+										StructrModel.updateKey(id, key, checked);
+										_Entities.updateNewAccessControlIconInElement(StructrModel.obj(id), Structr.node(id));
+									}
+								});
+							}
+						});
+					}
+
+				} else if (propertyType === 'Date') {
+
+					cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+
+					if (!readOnly) {
+
+						let format = _Crud.helpers.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.helpers.getFormat(type, key);
+						let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+
+						cell.on('click', function(event) {
+							event.preventDefault();
+							var self = $(this);
+							var oldValue = self.text().trim();
+							self.html(`<input name="${key}" class="__value" type="text" size="40">`);
+							var input = $('input', self);
+							input.val(oldValue);
+
+							if (dateTimePickerFormat.timeFormat) {
+								input.datetimepicker({
+									parse: 'loose',
+									dateFormat: dateTimePickerFormat.dateFormat,
+									timeFormat: dateTimePickerFormat.timeFormat,
+									separator: dateTimePickerFormat.separator,
+									onClose: function() {
+										var newValue = input.val();
+										if (id && newValue !== oldValue) {
+											_Crud.objectList.crudUpdate(id, key, newValue);
+										} else {
+											_Crud.objectList.resetCellToOldValue(id, key, oldValue);
+										}
+									}
+								});
+								input.datetimepicker('show');
+							} else {
+								input.datepicker({
+									parse: 'loose',
+									dateFormat: dateTimePickerFormat.dateFormat,
+									onClose: function() {
+										var newValue = input.val();
+										if (id && newValue !== oldValue) {
+											_Crud.objectList.crudUpdate(id, key, newValue);
+										} else {
+											_Crud.objectList.resetCellToOldValue(id, key, oldValue);
+										}
+									}
+								});
+								input.datepicker('show');
+							}
+							self.off('click');
+						});
+					}
+
+				} else if (propertyType === 'ZonedDateTime') {
+
+					cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+
+					if (!readOnly) {
+
+						cell.on('click', function(event) {
+							event.preventDefault();
+							var self = $(this);
+							var oldValue = self.text().trim();
+							self.html(`<input name="${key}" class="__value" type="text" size="40">`);
+							var input = $('input', self);
+							input.val(oldValue);
+
+							// detect timezone id either from system or from old value
+							let timezoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+							let oldTzId = oldValue.match(/\[(.*)\]/);
+							if (oldTzId?.length > 0) {
+								timezoneId = oldTzId[1];
+							}
+
+							const getOffset = (timeZone = 'UTC', date = new Date()) => {
+								const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+								const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+								return (tzDate.getTime() - utcDate.getTime()) / 6e4;
+							};
+
+							input.datetimepicker({
+								parse: (timeFormat, timeString, options) => {
+
+									let fakeOptions = Object.assign({}, options);
+									fakeOptions.parse = 'loose';
+
+									// remove timezone identifier from timeString
+									let pos    = timeString.indexOf('[');
+									if (pos > 0) {
+										timeString = timeString.slice(0, pos);
+									}
+
+									let innerData = $.datepicker.parseTime(timeFormat, timeString, fakeOptions);
+
+									// fake our timezone
+									innerData.timezone = oldTzId[0];
+
+									return innerData;
+								},
+								dateFormat: 'yy-mm-dd',
+								timeFormat: 'HH:mm:ssz',
+								separator: 'T',
+								timezone: '[' + timezoneId + ']',
+								timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
+								onClose: function() {
+									$('#ui-datepicker-div').removeClass('is-zoned');
+									var newValue = input.val();
+									if (id && newValue !== oldValue) {
+
+										// add timezone corresponding to timezone identifier
+										let offset = 0;
+										let newTzId = newValue.match(/\[(.*)\]/);
+										if (newTzId?.length > 0) {
+											offset = getOffset(newTzId[1]);
+										}
+
+										let offsetString = $.timepicker.timezoneOffsetString(offset, true);
+
+										newValue = newValue.replaceAll('[', offsetString + '[');
+
+										console.log('Setting:', newValue)
+
+										_Crud.objectList.crudUpdate(id, key, newValue);
+									} else {
+										_Crud.objectList.resetCellToOldValue(id, key, oldValue);
+									}
+								}
+							});
+							input.datetimepicker('show');
+
+							if (oldValue) {
+								// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
+								let dateStringWithoutId = oldValue;
+								let pos = oldValue.indexOf('[');
+								if (pos > 0) {
+									dateStringWithoutId = oldValue.slice(0, pos);
+								}
+
+								let baseDate = new Date(dateStringWithoutId);
+
+								// baseDate is shifted by our offset to UTC and its own offset to UTC
+								let theirOffset = getOffset(timezoneId);
+								let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
+								let totalOffset = ouroffset - theirOffset;
+
+								// correct baseDate
+								baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
+
+								input.datetimepicker('setDate', baseDate);
+							}
+
+							$('#ui-datepicker-div').addClass('is-zoned');
+							self.off('click');
+						});
+					}
+
+				} else if (isEnum) {
+
+					let format = _Crud.helpers.getFormat(type, key);
+					cell.text(_Helpers.nvl(value, ''));
+					if (!readOnly) {
+						cell.on('click', function (event) {
+							event.preventDefault();
+							_Crud.objectList.appendEnumSelect(cell, id, key, format);
+						});
+						if (!id) {
+							// create dialog
+							_Crud.objectList.appendEnumSelect(cell, id, key, format);
+						}
+					}
+
+				} else if (isCypher) {
+
+					cell.text((value === undefined || value === null) ? '' : JSON.stringify(value));
+
+				} else if (isCollection) { // Array types
+
+					let values = value ?? [];
+					let typeInfo = _Crud.types[type].views.all;
+
+					if (!id) {
+						/**
+						 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
+						 */
+
+						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+						cell.find(`[name="${key}"]`).each(function (i, el) {
+							_Entities.activateInput(el, null, null, typeInfo, function () {
+							});
+						});
+
+					} else {
+
+						// existing object
+						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+						cell.find(`[name="${key}"]`).each(function (i, el) {
+							_Entities.activateInput(el, id, null, typeInfo, function () {
+								_Crud.objectList.refreshObject(id, key);
+							});
+						});
+					}
+
+				} else {
+					// default: any other type of direct property
+
+					cell.text(_Helpers.nvl(value, ''));
+
+					if (!readOnly) {
+						cell.on('click', function(event) {
+							event.preventDefault();
+							var self = $(this);
+							_Crud.objectList.activateTextInputField(self, id, key, propertyType);
+						});
+						if (!id) { // create
+							_Crud.objectList.activateTextInputField(cell, id, key, propertyType);
+						}
+					}
+				}
+
+			} else {
+
+				// This attribute is a relationship attribute, either a collection or a single object
+				let simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
+
+				if (isCollection) {
+
+					cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+
+					$('.add', cell).on('click', function() {
+
+						let { dialogText } = _Dialogs.custom.openDialog('Add ' + simpleType);
+						_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
+					});
+
+					if (_Crud.types[type].views.all[key] && _Crud.types[type].views.all[key].className.indexOf('CollectionIdProperty') === -1 && _Crud.types[type].views.all[key].className.indexOf("CollectionNotionProperty") === -1) {
+
+						_Crud.objectList.pager.cellPager.append(cell, id, type, key);
+					}
+
+				} else {
+
+					if (value) {
+
+						_Crud.objectList.getAndAppendNode(type, id, key, value, cell);
+
+					} else {
+
+						// This branch is only run for the create node dialog.
+
+						if (simpleType) {
+
+							cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+							$('.add', cell).on('click', function () {
+
+								if (!_Dialogs.custom.isDialogOpen() || isRelType == false) {
+
+									let {dialogText} = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
+									_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
+
+								} else {
+
+									let dialogText = $(_Dialogs.custom.getDialogTextElement());
+
+									let btn = $(this);
+									$('#entityForm').hide();
+									_Crud.search.displaySearchDialog(type, id, key, simpleType, dialogText, function (n) {
+
+										$('.searchBox', dialogText).remove();
+										btn.remove();
+
+										_Crud.objectList.getAndAppendNode(type, id, key, n, cell, n, true);
+										_Crud.search.clearSearchResults(dialogText);
+										$('#entityForm').show();
+									});
+								}
+							});
+						}
+					}
+				}
+			}
+
+			if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+
+				cell.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
+
+				$('.crud-clear-value', cell).on('click', function(e) {
+					e.preventDefault();
+					_Crud.objectList.crudEmptyKeyForObject(id, key);
+					return false;
+				});
+			}
+		},
+		activateTextInputField: (el, id, key, propertyType) => {
+
+			var oldValue = el.text();
+			el.off('click');
+//			var w = el.width(), h = el.height();
+			var input;
+			if (propertyType === 'String') {
+				el.html(`<textarea name="${key}" class="__value"></textarea>`);
+				input = $('textarea', el);
+//				input.width(w);
+//				input.height(h);
+			} else {
+				el.html(`<input name="${key}" class="__value" type="text" size="10">`);
+				input = $('input', el);
+			}
+			input.val(oldValue);
+			input.off('click');
+			input.focus();
+			input.on('blur', function() {
+				var newValue = input.val();
+				if (id) {
+					_Crud.objectList.crudUpdate(id, key, newValue, oldValue);
+				}
+			});
+
+		},
+		appendEnumSelect: (cell, id, key, format) => {
+
+			cell.off('click');
+
+			let oldValue       = cell.text().trim();
+			let possibleValues = format.split(',').map(value => value.trim()).filter(value => value.length > 0);
+			possibleValues.unshift('');
+
+			_Helpers.fastRemoveAllChildren(cell[0]);
+
+			let select = _Helpers.createSingleDOMElementFromHTML(`
+				<select name="${key}">
+					${possibleValues.map(value => `<option ${value === oldValue ? 'selected="selected"' : ''}value="${value}">${value}</option>`).join()}
+				</select>
+			`);
+
+			cell[0].appendChild(select);
+			select.focus();
+
+			// only attach handlers if we are editing an object
+			if (id) {
+
+				let blurHandler = (e) => {
+					_Crud.objectList.resetCellToOldValue(id, key, oldValue);
+				};
+
+				select.addEventListener('change', function(e) {
+					let newValue = select.value;
+					select.removeEventListener('blur', blurHandler);
+					_Crud.objectList.crudUpdate(id, key, newValue, oldValue);
+				});
+
+				select.addEventListener('blur', blurHandler);
+			}
+		},
+		getCellsForKeyInObject: (id, key) => {
+
+			let row = _Crud.objectList.getRow(id);
+
+			let cellInMainTable    = $('.' + _Helpers.getCSSClassForKey(key), row);
+			let cellInDetailsTable = $('.' + _Helpers.getCSSClassForKey(key), $('#details_' + id));
+
+			let result = [];
+
+			if (cellInMainTable && cellInMainTable.length > 0) {
+				result.push(cellInMainTable);
+			}
+
+			if (cellInDetailsTable && cellInDetailsTable.length > 0) {
+				result.push(cellInDetailsTable);
+			}
+
+			return result;
+		},
+		crudUpdate: (id, key, newValue, oldValue, onSuccess, onError) => {
+
+			let json = JSON.stringify({
+				[key]: (newValue && newValue !== '') ? newValue : null
+			});
+
+			onSuccess ??= () => {
+				_Crud.objectList.refreshObject(id, key, oldValue);
+			};
+
+			onError ??= () => {
+				_Crud.objectList.crudRefreshSingleKey(id, key);
+			};
+
+			_Crud.objectList.crudUpdateObj(id, key, json, onSuccess, onError);
+		},
+		crudUpdateObj: (id, key, json, onSuccess, onError) => {
+
+			let url = `${Structr.rootUrl}${id}`;
+
+			fetch(url, {
+				method: 'PUT',
+				body: json
+			}).then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
+
+					if (typeof onSuccess === "function") {
+						onSuccess();
+					} else {
+						_Crud.objectList.refreshObject(id);
+					}
+
+				} else {
+
+					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
+
+					if (typeof onError === "function") {
+						onError();
+					} else {
+						_Crud.objectList.crudRefreshSingleKey(id, key);
+					}
+				}
+			});
+		},
+		crudRefreshSingleKey: (id, key) => {
+
+			fetch(`${Structr.rootUrl}${id}/all`, {
+				headers: {
+					Accept: `application/json; charset=utf-8; properties=id,type,${key}`
+				}
+			}).then(async response => {
+
+				if (response.ok) {
+
+					let data = await response.json();
+
+					if (data) {
+						_Crud.objectList.resetCellToOldValue(id, key, data.result[key]);
+					}
+				}
+			});
+		},
+		crudEmptyKeyForObject: (id, key, onSuccess, onError) => {
+
+			let url = `${Structr.rootUrl}${id}`;
+			let obj = {
+				[key]: null
+			};
+
+			fetch(url, {
+				method: 'PUT',
+				body: JSON.stringify(obj)
+			}).then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
+
+					if (typeof onSuccess === "function") {
+						onSuccess();
+					} else {
+						_Crud.objectList.refreshObject(id, key);
+					}
+
+				} else {
+
+					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
+
+					if (typeof onError === "function") {
+						onError();
+					} else {
+						_Crud.objectList.crudRefreshSingleKey(id, key);
+					}
+				}
+			});
+		},
+		getAndAppendNode: (parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) => {
+
+			if (!obj) {
+				return;
+			}
+			let id, type;
+			if ((typeof obj) === 'object') {
+				id = obj.id;
+				type = obj.type;
+			} else if (_Helpers.isUUID(obj)) {
+				id = obj;
+			} else {
+				// search object by name
+				type = _Crud.types[parentType].views.all[key].relatedType.split('.').pop();
+
+				fetch(Structr.rootUrl + type + '?name=' + obj).then(async response => {
+
+					let data = await response.json();
+
+					if (response.ok) {
+						if (data.result.length > 0) {
+							_Crud.objectList.getAndAppendNode(parentType, parentId, key, data.result[0], cell);
+						}
+					}
+				});
+
+				return;
+			}
+
+			let nodeHandler = (node) => {
+
+				let parentIsRelType  = _Crud.helpers.isRelType(parentType);
+				let isSourceOrTarget = parentIsRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
+
+				let newElement = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node, null, !isSourceOrTarget));
+				let nodeEl = $(newElement);
+				cell.append(nodeEl);
+
+				if (isSourceOrTarget && insertFakeInput) {
+					nodeEl.append(`<input type="hidden" name="${key}" value="${node.id}"></div>`);
+				}
+
+				if (node.isImage) {
+
+					let nodeIDToShow = (node.tnSmall) ? node.tnSmall.id : node.id;
+					let resText      = `${node.width||'?'} x ${node.height||'?'}`;
+
+					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${nodeIDToShow}"><div class="image-info-overlay">${resText}</div></div>`);
+
+					$('.thumbnail', nodeEl).on('mouseenter', function(e) {
+						e.stopPropagation();
+						$('.thumbnailZoom').remove();
+
+						let tnZoom = $(_Helpers.createSingleDOMElementFromHTML(`<img class="thumbnailZoom" src="/${node.tnMid?.id ?? node.id}">`));
+						nodeEl.parent().append(tnZoom);
+
+						tnZoom.css({
+							top:  (nodeEl.position().top) + 'px',
+							left: (nodeEl.position().left - 42) + 'px'
+						});
+						tnZoom.on('mouseleave', function(e) {
+							e.stopPropagation();
+							_Helpers.fastRemoveElement(tnZoom[0])
+						});
+					});
+				}
+
+				$('.remove', nodeEl).on('click', function(e) {
+					e.preventDefault();
+
+					let parentObjStub = {
+						type: parentType,
+						id: parentId
+					};
+
+					_Crud.objectList.removeRelatedObject(parentObjStub, key, obj);
+					return false;
+				});
+
+				nodeEl.on('click', function(e) {
+					e.preventDefault();
+					_Crud.objectList.showDetails(node.id, node.type);
+					return false;
+				});
+			};
+
+			if (preloadedNode) {
+				nodeHandler(preloadedNode);
+			} else {
+				_Crud.crudCache.registerCallback({ id: id, type: type }, id, nodeHandler);
+			}
+		},
+		removeRelatedObject: (parentObj, key, relatedObj, callback) => {
+
+			let type = parentObj.type;
+
+			if (_Crud.helpers.isCollection(key, type)) {
+
+				fetch(Structr.rootUrl + type + '/' + parentObj.id + '/all').then(async response => {
+
+					if (response.ok) {
+
+						let data      = await response.json();
+						let relatedId = (typeof relatedObj === 'object' ? relatedObj.id : relatedObj);
+						let objects   = _Crud.helpers.extractIds(data.result[key]).filter(obj => (obj.id !== relatedId));
+
+						_Crud.objectList.updateRelatedCollection(parentObj.id, key, objects, callback);
+					}
+				});
+
+			} else {
+
+				_Crud.objectList.crudEmptyKeyForObject(parentObj.id, key);
+			}
+		},
+		addRelatedObject: (type, id, key, relatedObj, callback) => {
+
+			if (_Crud.helpers.isCollection(key, type)) {
+
+				fetch(`${Structr.rootUrl}${type}/${id}/all`).then(async response => {
+
+					if (response.ok) {
+
+						let data    = await response.json();
+						let objects = _Crud.helpers.extractIds(data.result[key]);
+						if (objects.includes(relatedObj.id) === false) {
+							objects.push({ id: relatedObj.id });
+						}
+
+						_Crud.objectList.updateRelatedCollection(id, key, objects, callback);
+					}
+				});
+
+			} else {
+
+				let updateObj = {
+					[key]: relatedObj.id
+				};
+
+				_Crud.objectList.crudUpdateObj(id, key, JSON.stringify(updateObj), () => {
+					_Crud.objectList.refreshObject(id, key);
+					_Dialogs.custom.clickDialogCancelButton();
+				});
+			}
+		},
+		updateRelatedCollection: (id, key, objects, callback) => {
+
+			let updateObj = {};
+			updateObj[key] = objects;
+
+			_Crud.objectList.crudUpdateObj(id, key, JSON.stringify(updateObj), () => {
+				_Crud.objectList.refreshObject(id, key);
+				callback?.();
+			});
+		},
+		refreshObject: (id, key, oldValue) => {
+
+			let fetchConfig = {};
+
+			if (key) {
+				fetchConfig.headers = {
+					Accept: `application/json; charset=utf-8; properties=id,type,${key}`
+				};
+			}
+
+			fetch(`${Structr.rootUrl}${id}/all`, fetchConfig).then(async response => {
+
+				if (response.ok) {
+
+					let data = await response.json();
+
+					if (data) {
+
+						if (key) {
+
+							// refresh cell(s) with new value
+							let newValue = data.result[key];
+
+							let cells = _Crud.objectList.getCellsForKeyInObject(id, key);
+
+							for (let cell of cells) {
+
+								_Helpers.fastRemoveAllChildren(cell[0]);
+								_Crud.objectList.populateCell(id, key, data.result.type, newValue, cell);
+
+								if (newValue !== oldValue && !(!newValue && oldValue === '')) {
+									_Helpers.blinkGreen(cell);
+								}
+							}
+
+							if (key === Structr.internalKeys.name) {
+
+								// if the name changed, update all occurrences as a related node
+								let otherDisplayedNodes = document.querySelectorAll('.related-node._' + id);
+								for (let other of otherDisplayedNodes) {
+									_Entities.updateRelatedNodeName(other, newValue);
+								}
+							}
+
+						} else {
+
+							// update complete row
+							let row = _Crud.objectList.getRow(id);
+							_Helpers.fastRemoveAllChildren(row[0]);
+
+							_Crud.objectList.populateRow(id, data.result, data.result.type, _Crud.types[type].views.all);
+						}
+					}
+				}
+			});
+		},
+		resetCellToOldValue: (id, key, oldValue) => {
+
+			let cells = _Crud.objectList.getCellsForKeyInObject(id, key);
+
+			for (let cell of cells) {
+
+				_Helpers.fastRemoveAllChildren(cell[0]);
+				_Crud.objectList.populateCell(id, key, _Crud.type, oldValue, cell);
+			}
+		},
+		updateResourceLink: (type) => {
+
+			let resourceLink = document.querySelector('#crud-type-detail .resource-link a');
+			let endpointURL  = `${Structr.rootUrl}${type}/${_Crud.view[type]}?${Structr.getRequestParameterName('pageSize')}=${_Crud.pageSize[type]}&${Structr.getRequestParameterName('page')}=${_Crud.page[type]}`;
+
+			resourceLink.setAttribute('href', endpointURL);
+			resourceLink.textContent = endpointURL;
+		},
+		showDetails: (id, type) => {
+
+			if (!type) {
+				new ErrorMessage().text('Missing type').requiresConfirmation().show();
+				return;
+			}
+
+			let typeDef = _Crud.types[type]?.views?.all;
+
+			if (!typeDef) {
+				_Crud.helpers.ensurePropertiesForTypeAreLoaded(type, () => {
+					_Crud.objectList.showDetails(id, type);
+				});
+				return;
+			}
+
+			let availableKeys = Object.keys(typeDef);
+			let visibleKeys   = _Crud.objectList.filterKeys(type, availableKeys);
+
+			if (_Dialogs.custom.isDialogOpen()) {
+				_Dialogs.custom.clickDialogCancelButton();
+			}
+
+			let view = _Crud.view[type] || 'ui';
+
+			fetch(`${Structr.rootUrl}${type}/${id}/${view}`, {
+				headers: {
+					Range: _Crud.objectList.getRangeHeaderForType(type),
+					Accept: `application/json; charset=utf-8;properties=${visibleKeys.join(',')}`
+				}
+			}).then(async response => {
+
+				let data = await response.json();
+				if (!data)
+					return;
+
+				let node = data.result;
+
+				let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
+
+				let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
+					<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+					</button>
+				`);
+
+				deleteBtn.addEventListener('click', async (e) => {
+
+					let deleted = await _Crud.helpers.crudAskDelete(type, id);
+
+					if (deleted) {
+						_Dialogs.custom.getCloseDialogButton().click();
+					}
+				});
+
+				dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
+
+				let table = dialogText.querySelector('table');
+
+				for (let key of visibleKeys) {
+
+					let cssClassForKey = _Helpers.getCSSClassForKey(key);
+
+					let row = _Helpers.createSingleDOMElementFromHTML(`
+						<tr>
+							<td class="key"><label for="${key}">${key}</label></td>
+							<td class="__value ${cssClassForKey}"></td>
+						</tr>
+					`);
+					table.appendChild(row);
+
+					let cell = $(`.${cssClassForKey}`, $(row));
+
+					if (_Crud.helpers.isCollection(key, type)) {
+						_Crud.objectList.pager.addPageSizeConfigToColumn(cell.prev('td'), type, key, () => {
+							_Crud.objectList.showDetails(node.id, type);
+						});
+					}
+
+					_Crud.objectList.populateCell(node.id, key, node.type, node[key], cell);
+				}
+
+				if (node && node.isImage) {
+					dialogText.insertAdjacentHTML('beforeend', `<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/${node.id}"></div></div>`);
+				}
+			});
+		},
+		getHiddenKeys: (type) => {
+
+			const hiddenKeysForAllTypes       = [ 'base', 'createdBy', 'lastModifiedBy', 'ownerId', 'hidden', 'internalEntityContextPath', 'grantees' ];
+			const hiddenKeysForFileTypes      = [ 'base64Data', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'relationshipId', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate', 'nextSiblingId' ];
+			const hiddenKeysForImageTypes     = [ 'base64Data', 'imageData', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
+			const hiddenKeysForPrincipalTypes = [ 'isUser', 'isAdmin', 'createdBy', 'sessionIds', 'publicKeys', 'sessionData', 'password', 'passwordChangeDate', 'salt', 'twoFactorSecret', 'twoFactorToken', 'isTwoFactorUser', 'twoFactorConfirmed', 'ownedNodes', 'localStorage' ];
+
+			let hiddenKeysSource = LSWrapper.getItem(_Crud.objectList.crudHiddenColumnsKey + type);
+			let hiddenKeys = [];
+			if (hiddenKeysSource) {
+
+				hiddenKeys = JSON.parse(hiddenKeysSource);
+
+				if (!Array.isArray(hiddenKeys)) {
+					// migrate old format
+					let newKeys = [];
+
+					for (let key in hiddenKeys) {
+						newKeys.push(key);
+					}
+
+					hiddenKeys = newKeys;
+				}
+
+			} else {
+
+				// hide some keys depending on the type
+
+				if (_Crud.helpers.isPrincipalType(_Crud.types[type])) {
+
+					for (let key of hiddenKeysForPrincipalTypes) {
+						if (hiddenKeys.indexOf(key) === -1) {
+							hiddenKeys.push(key);
+						}
+					}
+				}
+
+				if (_Crud.helpers.isImageType(_Crud.types[type])) {
+
+					for (let key of hiddenKeysForImageTypes) {
+						if (hiddenKeys.indexOf(key) === -1) {
+							hiddenKeys.push(key);
+						}
+					}
+				}
+
+				if (_Crud.helpers.isFileType(_Crud.types[type])) {
+
+					for (let key of hiddenKeysForFileTypes) {
+						if (hiddenKeys.indexOf(key) === -1) {
+							hiddenKeys.push(key);
+						}
+					}
+				}
+			}
+
+			// hidden keys for all types
+			for (let key of hiddenKeysForAllTypes) {
+				if (hiddenKeys.indexOf(key) === -1) {
+					hiddenKeys.push(key);
+				}
+			}
+
+			return hiddenKeys;
+		},
+		filterKeys: (type, sourceArray) => {
+
+			if (!sourceArray) {
+				return;
+			}
+
+			let sortOrder    = _Crud.objectList.getSortOrderOfColumns(type);
+			let hiddenKeys   = _Crud.objectList.getHiddenKeys(type);
+			let filteredKeys = sourceArray.filter(key => !(hiddenKeys.includes(key)));
+
+			if (sortOrder.length > 0) {
+				return sortOrder.filter(prop => sourceArray.includes(prop));
+			}
+
+			// always have id,type,name as the first elements of the array
+			let idTypeName = ['id', 'type', 'name'];
+
+			filteredKeys = filteredKeys.filter(key => {
+				return (idTypeName.includes(key) === false);
+			});
+
+			filteredKeys.unshift(...idTypeName)
+
+			return filteredKeys;
+		},
+		getRangeHeaderForType: (type) => {
+			let ranges = '';
+			let keys;
+			if (type && _Crud.types[type]?.views?.all) {
+				keys = Object.keys(_Crud.types[type]?.views?.all);
+			}
+
+			if (!keys) {
+				let typeDef = _Crud.type[type];
+				if (typeDef) {
+					keys = Object.keys(typeDef.views[_Crud.view[type]]);
+				}
+			}
+
+			if (keys) {
+
+				for (let key of keys) {
+
+					if (_Crud.helpers.isCollection(key, type)) {
+
+						let page     = _Crud.objectList.pager.getCollectionPage(type, key);
+						let pageSize = _Crud.objectList.pager.getCollectionPageSize(type, key);
+						let start    = (page-1)*pageSize;
+						let end      = page*pageSize;
+						ranges += `${key}=${start}-${end};`;
+					}
+				}
+
+				return ranges;
+			}
+		},
+		pager: {
+			defaultPage: 1,
+			defaultPageSize: 10,
+			defaultCollectionPageSize: 10,
+			crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
+			addPager: (type, el) => {
+
+				_Crud.page[type]     ??= _Helpers.urlParam('page') ?? (_Crud.objectList.pager.defaultPage ?? 1);
+				_Crud.pageSize[type] ??= _Helpers.urlParam('pageSize') ?? (_Crud.objectList.pager.defaultPageSize ?? 10);
+
+				el.insertAdjacentHTML('beforeend', _Crud.objectList.pager.templates.pagerHTML({ type }));
+
+				_Helpers.appendInfoTextToElement({
+					element: el.querySelector('select.view'),
+					text: 'The attributes of the given view are fetched. Attributes can still be hidden using the "Configure columns" dialog. id and type are always shown first.',
+					insertAfter: true,
+					customToggleIconClasses: ['icon-blue', 'ml-1']
+				});
+
+				_Helpers.appendInfoTextToElement({
+					element: el.querySelector('.resource-link'),
+					text: "View the REST output in a new tab.",
+					customToggleIconClasses: ['icon-blue', 'ml-1'],
+					offsetY: 10
+				});
+
+				return $('.pager', el);
+			},
+			activatePagerElements: (type, pagerNode) => {
+
+				$('.pageNo', pagerNode).on('keypress', function(e) {
+					if (e.keyCode === 13) {
+						_Crud.page[type] = $(this).val();
+						_Crud.objectList.refreshList(type);
+					}
+				});
+
+				$('.pageSize', pagerNode).on('keypress', function(e) {
+					if (e.keyCode === 13) {
+						// calculate which page we should be on after the pagesize changed
+						var oldFirstObject = ((_Crud.page[type] -1 ) * _Crud.pageSize[type]) + 1;
+						var newPage = Math.ceil(oldFirstObject / $(this).val());
+						_Crud.pageSize[type] = $(this).val();
+						_Crud.page[type] = newPage;
+						_Crud.objectList.refreshList(type);
+					}
+				});
+
+				$('select.view', pagerNode).on('change', function(e) {
+					_Crud.view[type] = $(this).val();
+					_Crud.objectList.updateCrudTableHeader(type);
+					_Crud.objectList.refreshList(type);
+				});
+
+				let pageLeft  = $('.pageLeft', pagerNode);
+				let pageRight = $('.pageRight', pagerNode);
+
+				pageLeft.on('click', function() {
+					pageRight.removeAttr('disabled').removeClass('disabled');
+					if (_Crud.page[type] > 1) {
+						_Crud.page[type]--;
+						_Crud.objectList.refreshList(type);
+					}
+				});
+
+				pageRight.on('click', function() {
+					pageLeft.removeAttr('disabled').removeClass('disabled');
+					if (_Crud.page[type] < _Crud.pageCount) {
+						_Crud.page[type]++;
+						_Crud.objectList.refreshList(type);
+					}
+				});
+
+			},
+			deActivatePagerElements: (pagerNode) => {
+
+				$('.pageNo', pagerNode).off('keypress');
+				$('.pageSize', pagerNode).off('keypress');
+				$('.pageLeft', pagerNode).off('click');
+				$('.pageRight', pagerNode).off('click');
+			},
+			updatePager: (type, data) => {
+
+				let pageCount   = data.page_count;
+				let softLimited = false;
+				let typeNode = $('#crud-type-detail');
+				if (typeNode.length === 0) {
+					return;
+				}
+
+				$('.queryTime', typeNode).text(data.query_time);
+				$('.serTime', typeNode).text(data.serialization_time);
+				$('.pageSize', typeNode).val(data.page_size);
+
+				_Crud.page[type] = data.page;
+				$('.pageNo', typeNode).val(_Crud.page[type]);
+
+				if (pageCount === undefined) {
+					pageCount = _Helpers.softlimit.getSoftLimitedPageCount(data.page_size);
+					softLimited = true;
+				}
+
+				_Crud.pageCount = pageCount;
+				let pageCountInput = $('.pageCount', typeNode);
+				pageCountInput.val(_Crud.pageCount);
+
+				if (softLimited) {
+					_Helpers.softlimit.showSoftLimitAlert(pageCountInput);
+				} else {
+					_Helpers.softlimit.showActualResultCount(pageCountInput, data.result_count);
+				}
+
+				let pageLeft = $('.pageLeft', typeNode);
+				let pageRight = $('.pageRight', typeNode);
+
+				if (_Crud.page[type] < 2) {
+					pageLeft.attr('disabled', 'disabled').addClass('disabled');
+				} else {
+					pageLeft.removeAttr('disabled').removeClass('disabled');
+				}
+
+				if (!_Crud.pageCount || _Crud.pageCount === 0 || (_Crud.page[type] === _Crud.pageCount)) {
+					pageRight.attr('disabled', 'disabled').addClass('disabled');
+				} else {
+					pageRight.removeAttr('disabled').removeClass('disabled');
+				}
+
+				_Crud.objectList.pager.updateUrl(type);
+			},
+			storePagerData: () => {
+				let type      = _Crud.type;
+				let pagerData = `${_Crud.view[type]},${_Crud.sort[type]},${_Crud.order[type]},${_Crud.page[type]},${_Crud.pageSize[type]}`;
+				LSWrapper.setItem(_Crud.objectList.pager.crudPagerDataKey + type, pagerData);
+			},
+			restorePagerData: (type) => {
+				let val  = LSWrapper.getItem(_Crud.objectList.pager.crudPagerDataKey + type);
+
+				if (val) {
+					let pagerData        = val.split(',');
+					_Crud.view[type]     = pagerData[0];
+					_Crud.sort[type]     = pagerData[1];
+					_Crud.order[type]    = pagerData[2];
+					_Crud.page[type]     = pagerData[3];
+					_Crud.pageSize[type] = pagerData[4];
+				}
+			},
+			determinePagerData: (type) => {
+
+				// Priority: JS vars -> Local Storage -> URL -> Default
+
+				if (!_Crud.view[type]) {
+					_Crud.view[type]     = _Helpers.urlParam('view');
+					_Crud.sort[type]     = _Helpers.urlParam('sort');
+					_Crud.order[type]    = _Helpers.urlParam('order');
+					_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
+					_Crud.page[type]     = _Helpers.urlParam('page');
+				}
+
+				if (!_Crud.view[type]) {
+					_Crud.objectList.pager.restorePagerData(type);
+				}
+
+				if (!_Crud.view[type]) {
+					_Crud.view[type]     = _Crud.defaultView;
+					_Crud.sort[type]     = _Crud.defaultSort;
+					_Crud.order[type]    = _Crud.defaultOrder;
+					_Crud.pageSize[type] = _Crud.objectList.pager.defaultPageSize;
+					_Crud.page[type]     = _Crud.objectList.pager.defaultPage;
+				}
+			},
+			updateUrl: (type) => {
+
+				if (type) {
+					_Crud.type = type;
+					_Crud.objectList.pager.storePagerData();
+					_Crud.objectList.updateResourceLink(type);
+				}
+
+				_Crud.search.focusSearchField();
+			},
+			addPageSizeConfigToColumn: (el, type, key, callback) => {
+
+				el.append(`<input type="text" class="collection-page-size" size="1" value="${_Crud.objectList.pager.getCollectionPageSize(type, key)}">`);
+
+				let update = (newPageSize) => {
+					if (newPageSize !== _Crud.objectList.pager.getCollectionPageSize(type, key)) {
+						_Crud.objectList.pager.setCollectionPageSize(type, key, newPageSize);
+						if (callback) {
+							callback();
+						} else {
+							_Crud.objectList.refreshList(type);
+						}
+					}
+				};
+
+				$('.collection-page-size', el).on('blur', function() {
+					update($(this).val());
+				});
+
+				$('.collection-page-size', el).on('keypress', function(e) {
+					if (e.keyCode === 13) {
+						update($(this).val());
+					}
+				});
+			},
+			setCollectionPageSize: (type, key, value) => {
+				LSWrapper.setItem(`${_Crud.objectList.pager.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`, value);
+			},
+			getCollectionPageSize: (type, key) => {
+
+				let localstorageKey = `${_Crud.objectList.pager.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`;
+				return LSWrapper.getItem(localstorageKey, _Crud.objectList.pager.defaultCollectionPageSize);
+			},
+			getCollectionPage: (type, key) => {
+				return LSWrapper.getItem(`${_Crud.objectList.pager.crudPagerDataKey}_collectionPage_${type}.${_Helpers.getCSSClassForKey(key)}`, 1);
+			},
+			cellPager: {
+				append: (el, id, type, key) => {
+
+					let pageSize = _Crud.objectList.pager.getCollectionPageSize(type, key);
+
+					// use public view for cell pager - we should not need more information than this!
+					fetch(`${Structr.rootUrl}${type}/${id}/${key}/public${_Crud.helpers.getSortAndPagingParameters(null, null, null, pageSize, null)}`).then(async response => {
+
+						let data = await response.json();
+
+						if (response.ok) {
+
+							let softLimited = false;
+							let resultCount = data.result_count;
+							let pageCount   = data.page_count;
+
+							if (data.result && data.result.length > 0) {
+								for (let preloadedNode of data.result) {
+									_Crud.objectList.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
+								}
+							}
+
+							let page = 1;
+
+							// handle new soft-limited REST result without counts
+							if (data.result_count === undefined && data.page_count === undefined) {
+								resultCount = _Helpers.softlimit.getSoftLimitedResultCount();
+								pageCount   = _Helpers.softlimit.getSoftLimitedPageCount(pageSize);
+								softLimited = true;
+							}
+
+							if (!resultCount || !pageCount || pageCount === 1) {
+								return;
+							}
+
+							el.prepend('<div class="cell-pager"></div>');
+
+							el[0].insertAdjacentHTML('afterbegin', _Crud.objectList.pager.templates.cellPagerHTML({ page, pageCount }))
+
+							if (page > 1) {
+								$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
+							}
+
+							$('.collection-page', $('.cell-pager', el)).on('blur', function() {
+								var newPage = $(this).val();
+								_Crud.objectList.pager.cellPager.update(el, id, type, key, newPage, pageSize);
+							});
+
+							$('.collection-page', $('.cell-pager', el)).on('keypress', function(e) {
+								if (e.keyCode === 13) {
+									var newPage = $(this).val();
+									_Crud.objectList.pager.cellPager.update(el, id, type, key, newPage, pageSize);
+								}
+							});
+
+							if (page < pageCount) {
+								$('.cell-pager .next', el).removeClass('disabled').prop('disabled', '');
+							}
+
+							$('.prev', el).on('click', function() {
+								let page    = $('.cell-pager .collection-page', el).val();
+								let newPage = Math.max(1, page - 1);
+								_Crud.objectList.pager.cellPager.update(el, id, type, key, newPage, pageSize);
+							});
+
+							$('.next', el).on('click', function() {
+								let page    = $('.cell-pager .collection-page', el).val();
+								let newPage = parseInt(page) + 1;
+								_Crud.objectList.pager.cellPager.update(el, id, type, key, newPage, pageSize);
+							});
+
+							if (softLimited) {
+								_Helpers.softlimit.showSoftLimitAlert($('input.page-count'));
+							}
+						}
+					});
+				},
+				update: (el, id, type, key, page, pageSize) => {
+
+					fetch(`${Structr.rootUrl}${type}/${id}/${key}/public?${Structr.getRequestParameterName('page')}=${page}&${Structr.getRequestParameterName('pageSize')}=${pageSize}`).then(async response => {
+
+						if (response.ok) {
+
+							let data = await response.json();
+
+							let softLimited = false;
+							let pageCount   = data.page_count;
+
+							// handle new soft-limited REST result without counts
+							if (data.result_count === undefined && data.page_count === undefined) {
+								pageCount = _Helpers.softlimit.getSoftLimitedPageCount(pageSize);
+								softLimited = true;
+							}
+
+							$('.cell-pager .collection-page', el).val(page);
+							$('.cell-pager .page-count', el).val(pageCount);
+
+							if (page > 1) {
+								$('.cell-pager .prev', el).removeClass('disabled').prop('disabled', '');
+							} else {
+								$('.cell-pager .prev', el).addClass('disabled').prop('disabled', 'disabled');
+							}
+							if (page < pageCount) {
+								$('.cell-pager .next', el).removeClass('disabled').prop('disabled', '');
+							} else {
+								$('.cell-pager .next', el).addClass('disabled').prop('disabled', 'disabled');
+							}
+
+							for (let child of el.children('.node')) {
+								_Helpers.fastRemoveElement(child);
+							}
+
+							for (let preloadedNode of data.result) {
+								_Crud.objectList.getAndAppendNode(type, id, key, preloadedNode.id, el, preloadedNode);
+							}
+
+							if (softLimited) {
+								_Helpers.softlimit.showSoftLimitAlert($('input.page-count'));
+							}
+						}
+					});
+				},
+			},
+			templates: {
+				pagerHTML: config => `
+					<div class="flex items-center justify-between">
+		
+						<div class="pager whitespace-nowrap flex items-center">
+							<button class="pageLeft flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
+								${_Icons.getSvgIcon(_Icons.iconChevronLeft)}
+							</button>
+							<span class="pageWrapper">
+								<input class="pageNo" type="text" size="3" value="${_Crud.page[config.type]}">
+								<span class="of">of</span>
+								<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${_Helpers.nvl(_Crud.pageCount, 0)}">
+							</span>
+							<button class="pageRight flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
+								${_Icons.getSvgIcon(_Icons.iconChevronRight)}
+							</button>
+							<span class="ml-2 mr-1">Page Size:</span>
+							<input class="pageSize" type="text" value="${_Crud.pageSize[config.type]}">
+							<span class="ml-2 mr-1">View:</span>
+							<select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${Object.keys(_Crud.types[config.type].views).map(view => `<option${(_Crud.view[config.type] === view) ? ' selected' : ''}>${view}</option>`).join('')}
+							</select>
+						</div>
+		
+						<div class="resource-link mr-4 flex items-center">
+							<a target="_blank" href=""></a>
+						</div>
+					</div>
+				`,
+				cellPagerHTML: config => `
+					<div class="cell-pager whitespace-nowrap flex items-center">
+						<button class="prev disabled flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
+							${_Icons.getSvgIcon(_Icons.iconChevronLeft)}
+						</button>
+						<span class="pageWrapper">
+							<input class="collection-page" type="text" size="1" value="${config.page}">
+							<span class="of">of</span>
+							<input readonly="readonly" class="readonly page-count" type="text" size="1" value="${config.pageCount}">
+						</span>
+						<button class="next disabled flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
+							${_Icons.getSvgIcon(_Icons.iconChevronRight)}
+						</button>
+					</div>
+				`
+			}
+		},
+		excludeInheritingTypes: {
+			lsKey: 'structrCrudExactType_' + location.port,
+			config: {},
+			restoreConfig: () => {
+				_Crud.objectList.excludeInheritingTypes.config = LSWrapper.getItem(_Crud.objectList.excludeInheritingTypes.lsKey, {});
+			},
+			update: (type, isExact) => {
+				_Crud.objectList.excludeInheritingTypes.config[type] = isExact;
+				LSWrapper.setItem(_Crud.objectList.excludeInheritingTypes.lsKey, _Crud.objectList.excludeInheritingTypes.config);
+			},
+			shouldExclude: (type) => {
+				return _Crud.objectList.excludeInheritingTypes.config[type];
+			}
+		},
+	},
+	search: {
+		searchField: undefined,
+		searchFieldClearIcon: undefined,
+		setupGlobalSearch: () => {
+
+			let crudMain = $('#crud-main');
+
+			_Crud.search.searchField          = document.getElementById('crud-search-box');
+			_Crud.search.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Crud.search.focusSearchField();
+
+			_Helpers.appendInfoTextToElement({
+				element: _Crud.search.searchField,
+				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+				insertAfter: true,
+				css: {
+					left: '-18px',
+					position: 'absolute'
+				},
+				helpElementCss: {
+					fontSize: '12px',
+					lineHeight: '1.1em'
+				}
+			});
+
+			_Crud.search.searchFieldClearIcon.addEventListener('click', (e) => {
+				_Crud.search.clearMainSearch(crudMain);
+				_Crud.search.focusSearchField();
+			});
+
+			_Crud.search.searchField.addEventListener('keyup', (e) => {
+
+				let searchString = _Crud.search.searchField.value;
+
+				if (searchString && searchString.length) {
+					_Crud.search.searchFieldClearIcon.style.display = 'block';
+				}
+
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					_Crud.search.doSearch(searchString, crudMain, null, (e, node) => {
+						e.preventDefault();
+						_Entities.showProperties(node, 'ui');
+						return false;
+					});
+
+					$('#crud-type-detail').hide();
+
+				} else if (e.keyCode === 27 || searchString === '') {
+
+					_Crud.search.clearMainSearch(crudMain);
+				}
+			});
+		},
+		/**
+		 * Conduct a search and append search results to 'el'.
+		 *
+		 * If an optional type is given, restrict search to this type.
+		 *
+		 * Get only the given properties from the backend, otherwise just id,type,name.
+		 */
+		doSearch: (searchString, el, type, onClickCallback, optionalPageSize = 1000, blacklistedIds = [], properties = 'id,type,name,path,isImage,width,height,isThumbnail,isFile,isFolder') => {
+
+			_Crud.search.clearSearchResults(el);
+
+			let searchResults = _Helpers.createSingleDOMElementFromHTML(`
+				<div class="searchResults">
+					<h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2>
+					<span class="search-results-info">Showing the first ${optionalPageSize} results. Use the input field to refine your search.</span>
+				</div>
+			`);
+
+			el[0].insertAdjacentElement('beforeend', searchResults);
+
+			Structr.resize();
+
+			let types;
+			let attr = 'name';
+			let posOfColon = searchString.indexOf(':');
+
+			if (posOfColon > -1) {
+
+				let typeAndValue = searchString.split(':');
+				let type = typeAndValue[0];
+				let posOfDot = type.indexOf('.');
+
+				if (posOfDot > -1) {
+					let typeAndAttr = type.split('.');
+					type = typeAndAttr[0];
+					attr = typeAndAttr[1];
+				}
+				types = [_Helpers.capitalize(type)];
+				searchString = typeAndValue[1];
+
+			} else {
+
+				if (type) {
+					types = type.split(',').filter(t => (t.trim() !== ''));
+				} else {
+					// only search in node types
+					types = Object.keys(_Crud.types).filter(t => !_Crud.types[t].isRel);
+				}
+				if (_Helpers.isUUID(searchString)) {
+					attr = 'uuid';
+					types = ['AbstractNode'];
+				}
+			}
+
+			for (let type of types) {
+
+				let url, searchPart;
+				if (attr === 'uuid') {
+
+					url = `${Structr.rootUrl}${type}/${searchString}`;
+
+				} else {
+
+					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
+					url = `${Structr.rootUrl}${type}${_Crud.helpers.getSortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
+				}
+
+				let resultsContainer = _Helpers.createSingleDOMElementFromHTML(`
+					<div id="results-for-${type}" class="searchResultGroup resourceBox">
+						<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}</span>
+					</div>
+				`);
+
+				searchResults.insertAdjacentElement('beforeend', resultsContainer);
+
+				fetch(url, {
+					headers: {
+						Accept: 'application/json; properties=' + properties
+					}
+				}).then(async response => {
+
+					if (response.ok) {
+
+						let data = await response.json();
+
+						let filteredResult = [];
+						let result         = data?.result ?? [];
+
+						if (Array.isArray(result)) {
+
+							filteredResult = result.filter(node => !blacklistedIds.includes(node.id));
+
+						} else if (result.id && !blacklistedIds.includes(result.id)) {
+
+							filteredResult.push(result);
+						}
+
+						_Helpers.fastRemoveAllChildren(resultsContainer);
+
+						if (filteredResult.length > 0) {
+
+							resultsContainer.insertAdjacentHTML('beforeend', `<h3>${type}</h3>`);
+
+							_Crud.search.listSearchResults(resultsContainer, type, filteredResult, onClickCallback);
+
+						} else {
+
+							_Crud.search.noResults(resultsContainer, type);
+						}
+
+					} else {
+
+						_Helpers.fastRemoveElement(resultsContainer);
+					}
+				});
+			}
+		},
+		clearSearchResults: (el) => {
+
+			let searchResults = $('.searchResults', el);
+			if (searchResults.length) {
+				_Helpers.fastRemoveElement(searchResults[0]);
+				return true;
+			}
+			return false;
+		},
+		clearMainSearch: (el) => {
+
+			_Crud.search.clearSearchResults(el);
+			_Crud.search.searchFieldClearIcon.style.display = 'none';
+			_Crud.search.searchField.value = '';
+			$('#crud-type-detail').show();
+		},
+		focusSearchField: () => {
+
+			// only auto-activate search field if no other input element is active
+			if ( !(document.activeElement instanceof HTMLInputElement) ) {
+				_Crud.search.searchField.focus();
+			}
+		},
+		noResults: (resultsContainer, type) => {
+
+			resultsContainer.insertAdjacentHTML('beforeend', `No results for ${type}`);
+			window.setTimeout(() => {
+				resultsContainer.remove();
+			}, 1000);
+
+		},
+		listSearchResults: (resultsContainer, type, nodes, onClickCallback) => {
+
+			for (let node of nodes) {
+
+				let newNode = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node, null, false));
+
+				resultsContainer.insertAdjacentElement('beforeend', newNode)
+
+
+				if (node.isImage) {
+					newNode.insertAdjacentHTML('beforeend', `<div class="wrap"><img class="thumbnailZoom" src="/${node.id}" alt=""><div class="image-info-overlay">${node.width || '?'} x ${node.height || '?'}</div></div>`);
+				}
+
+				$(newNode).on('click', function (e) {
+					onClickCallback(e, node);
+				});
+			}
+		},
+		displaySearchDialog: (parentType, id, key, type, el, callbackOverride) => {
+
+			el.append(`
+				<div class="searchBox searchBoxDialog flex justify-end">
+					<input class="search" name="search" size="20" placeholder="Search">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				</div>
+			`);
+			let searchBox = $('.searchBoxDialog', el);
+			let search    = $('.search', searchBox);
+
+			window.setTimeout(() => {
+				search.focus();
+			}, 250);
+
+			search.keyup(function(e) {
+				e.preventDefault();
+
+				let searchString = search.val();
+				if (e.keyCode === 13) {
+
+					$('.clearSearchIcon', searchBox).show().on('click', function() {
+						_Crud.search.clearSearchResults(el);
+						$('.clearSearchIcon').hide().off('click');
+						search.focus();
+						search.val('');
+					});
+
+					_Crud.search.doSearch(searchString, el, type, function(e, node) {
+						e.preventDefault();
+						if (typeof callbackOverride === "function") {
+							callbackOverride(node);
+						} else {
+							_Crud.objectList.addRelatedObject(parentType, id, key, node);
+						}
+						return false;
+					});
+
+				} else if (e.keyCode === 27) {
+
+					if (searchString.trim() === '') {
+						_Dialogs.custom.clickDialogCancelButton();
+					}
+
+					_Crud.search.clearSearchResults(el);
+					$('.clearSearchIcon').hide().off('click');
+					search.focus();
+					search.val('');
+				}
+
+				return false;
+			});
+
+			// display initial result list
+			_Crud.search.doSearch('*', el, type, (e, node) => {
+				e.preventDefault();
+				if (typeof callbackOverride === "function") {
+					callbackOverride(node);
+				} else {
+					_Crud.objectList.addRelatedObject(parentType, id, key, node, () => {});
+				}
+				return false;
+			}, 100);
+		},
+	},
+	helpers: {
+		getDisplayName: (node) => {
+			let displayName;
+			if (node.isContent && node.content && !node.name) {
+				displayName = _Helpers.escapeTags(node.content.substring(0, 100));
+			} else {
+				displayName = node.name || node.id || node;
+			}
+			return displayName;
+		},
+		// TODO: _Schema.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
+		ensureTypeInfoIsLoaded: (type, callback) => {
+
+			let url = `${Structr.rootUrl}_schema/${type}`;
+
+			fetch(url).then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
+
+					if (data && data.result && data.result[0]) {
+
+						_Crud.types[type] = data.result[0];
+
+						if (typeof callback === 'function') {
+							callback();
+						}
+
+					} else {
+
+						new ErrorMessage().text(`No type information found for type: ${type}`).delayDuration(5000).show();
+						_Crud.helpers.delayedMessage.showMessageAfterDelay(`<span class="mr-1">No type information found for type: </span><b>${type}</b>`, 500);
+					}
+
+				} else {
+					Structr.errorFromResponse(data, url);
+				}
+			})
+		},
+		ensurePropertiesForTypeAreLoaded: (type, callback) => {
+
+			if (type === null) {
+				return;
+			}
+
+			let properties = _Crud.types[type]?.views?.all;
+
+			if (properties) {
+
+				callback?.();
+
+			} else {
+
+				_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
+
+					properties = _Crud.types[type].views.all;
+
+					if (Object.keys(properties).length === 0) {
+
+						new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
+						_Crud.helpers.delayedMessage.showMessageAfterDelay(`Unable to find schema information for type '${type}'.<br>There might be database nodes with no type information or a type unknown to Structr in the database.`, 500);
+
+					} else {
+
+						callback?.();
+					}
+				});
+			}
+		},
+		getPropertiesForTypeAndCurrentView: (type) => {
+
+			let properties = _Crud.types[type].views.all;
+			let currentView = _Crud.view[type];
+
+			if (currentView !== 'all') {
+
+				properties = _Crud.types[type].views[currentView] ?? properties;
+			}
+
+			return properties;
+		},
+		getFormat: (type, key) => {
+			return _Crud.types[type].views.all[key].format;
+		},
+		isPrincipalType: (typeDef) => {
+			let cls = Structr.getFQCNForDynamicTypeName('Principal');
+			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
+		},
+		isFileType: (typeDef) => {
+			let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
+			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
+		},
+		isImageType: (typeDef) => {
+			let cls = Structr.getFQCNForDynamicTypeName('Image');
+			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
+		},
+		isRelType: (type) => {
+			return (_Crud.types[type]?.isRel === true);
+		},
+		/**
+		 * Return true if the combination of the given property key
+		 * and the given type is a collection
+		 */
+		isCollection: (key, type) => {
+			return (key && type && _Crud.types[type]?.views.all[key]?.isCollection === true);
+		},
+		/* returns if given type is supported (in create dialog) */
+		isSupportedArrayType: (key, type) => {
+			return (
+				_Crud.types[type]?.views.all[key]?.type === 'String[]' ||
+				_Crud.types[type]?.views.all[key]?.type === 'Integer[]' ||
+				_Crud.types[type]?.views.all[key]?.type === 'Long[]' ||
+				_Crud.types[type]?.views.all[key]?.type === 'Double[]'
+			);
+		},
+		isBaseProperty: (key, type) => {
+			return ('base' === _Crud.types[type]?.views.all[key]?.jsonName && 'GraphObject' === _Crud.types[type]?.views.all[key]?.declaringClass);
+		},
+		isHiddenProperty: (key, type) => {
+			return ('hidden' === _Crud.types[type]?.views.all[key]?.jsonName && 'NodeInterface' === _Crud.types[type]?.views.all[key]?.declaringClass);
+		},
+		isFunctionProperty: (key, type) => {
+			return ('org.structr.core.property.FunctionProperty' === _Crud.types[type]?.views.all[key]?.className);
+		},
+		isCypherProperty: (key, type) => {
+			return ('org.structr.core.property.CypherQueryProperty' === _Crud.types[type]?.views.all[key]?.className);
+		},
+		/**
+		 * Return true if the combination of the given property key
+		 * and the given type is an Enum
+		 */
+		isEnum: (key, type) => {
+			return (key && type && _Crud.types[type]?.views.all[key]?.className === 'org.structr.core.property.EnumProperty');
+		},
+		/**
+		 * Return true if the combination of the given property key
+		 * and the given type is a read-only property
+		 */
+		isReadOnly: (key, type) => {
+			return (key && type && (_Crud.types[type]?.views.all[key]?.readOnly === true || _Crud.helpers.isCypherProperty(key, type)));
+		},
+		/**
+		 * Return the related type of the given property key of the given type (or a comma-separated list of possible related types)
+		 */
+		getRelatedTypeForAttribute: (key, type) => {
+
+			if (key && type && _Crud.types[type] && _Crud.types[type].views.all[key]) {
+
+				let info;
+
+				let isRelType = _Crud.helpers.isRelType(type);
+				if (!isRelType) {
+
+					info = _Crud.types[type].views.all[key].relatedType;
+
+				} else {
+
+					// special handling for relationship types where we want to display the start and end node
+					if (key === 'sourceId' || key === 'sourceNode') {
+
+						info = _Crud.types[type].relInfo.possibleSourceTypes;
+
+					} else if (key === 'targetId' || key === 'targetNode') {
+
+						info = _Crud.types[type].relInfo.possibleTargetTypes;
+					}
+				}
+
+				return info;
+			}
+		},
+		inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
+
+			if (typeDef.extendsClass === ancestorFQCN) {
+
+				return true;
+
+			} else {
+
+				// search parent type
+				let parentType = Object.values(_Crud.types).filter(t => (t.className === typeDef.extendsClass));
+
+				if (parentType.length === 1) {
+					return _Crud.helpers.inheritsFromAncestorType(parentType[0], ancestorFQCN);
+				}
+			}
+
+			return false;
+		},
+		extractIds: (result) => {
+
+			return result.map(obj => {
+				// value can be an ID string or an object
+				if (typeof obj === 'object') {
+					return { id: obj.id };
+				} else {
+					return obj;
+				}
+			});
+		},
+		getSortAndPagingParameters: (type, sort, order, pageSize, page, exactType = false) => {
+
+			let paramsArray = [];
+
+			if (sort) {
+				paramsArray.push(Structr.getRequestParameterName('sort') + '=' + sort);
+			}
+			if (order) {
+				paramsArray.push(Structr.getRequestParameterName('order') + '=' + order);
+			}
+			if (pageSize) {
+				paramsArray.push(Structr.getRequestParameterName('pageSize') + '=' + pageSize);
+			}
+			if (page) {
+				paramsArray.push(Structr.getRequestParameterName('page') + '=' + page);
+			}
+			if (exactType === true) {
+				paramsArray.push('type=' + type);
+			}
+
+			return '?' + paramsArray.join('&');
+		},
+		serializeObject: (obj) => {
+
+			// TODO: replace with global helper for forms
+			let returnObject = {};
+			let formArray = obj.serializeArray();
+
+			for (let entry of formArray) {
+
+				if (entry.value && entry.value !== '') {
+
+					// key already exists - make it an array
+					if (returnObject[entry.name]) {
+
+						if (!returnObject[entry.name].push) {
+							returnObject[entry.name] = [returnObject[entry.name]];
+						}
+
+						returnObject[entry.name].push(entry.value);
+
+					} else {
+
+						returnObject[entry.name] = entry.value;
+					}
+				}
+			}
+
+			return returnObject;
+		},
+		crudAskDelete: async (type, id) => {
+
+			let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+			if (confirm === true) {
+				_Crud.helpers.crudDelete(type, id);
+			}
+
+			return confirm;
+		},
+		crudDelete: (type, id) => {
+
+			let url = `${Structr.rootUrl}${type}/${id}`;
+
+			fetch(url, {
+				method: 'DELETE'
+			}).then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
+
+					let row = _Crud.objectList.getRow(id);
+					_Helpers.fastRemoveElement(row[0]);
+
+				} else {
+					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
+				}
+			});
+		},
+		delayedMessage: {
+			messageTimeout: undefined,
+			showLoadingMessageAfterDelay: (message, delay) => {
+
+				_Crud.helpers.delayedMessage.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
+			},
+			showMessageAfterDelay: (message, delay) => {
+
+				clearTimeout(_Crud.helpers.delayedMessage.messageTimeout);
+
+				_Crud.helpers.delayedMessage.messageTimeout = window.setTimeout(() => {
+
+					_Crud.helpers.delayedMessage.removeMessage();
+
+					let crudRight = $('#crud-type-detail');
+					crudRight.append(`
+					<div class="crud-message">
+						<div class="crud-centered flex items-center justify-center">${message}</div>
+					</div>
+				`);
+
+				}, delay);
+			},
+			removeMessage: () => {
+
+				clearTimeout(_Crud.helpers.delayedMessage.messageTimeout);
+				_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
+			},
+		},
+	},	
+	createDialogWithErrorHandling: {
+		create: (type, nodeData = {}, onSuccess) => {
+
+			let url = Structr.rootUrl + type;
+
+			fetch(url, {
+				method: 'POST',
+				body: JSON.stringify(nodeData)
+			}).then(async response => {
+
+				let responseData = await response.json();
+
+				if (response.ok) {
+
+					onSuccess?.(type, responseData.result[0]);
+
+					if (_Dialogs.custom.isDialogOpen()) {
+						_Dialogs.custom.getCloseDialogButton().click();
+					}
+
+				} else {
+
+					if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
+						Structr.errorFromResponse(responseData, url, { statusCode: response.status, delayDuration: 5000 });
+					}
+
+					_Dialogs.custom.enableSaveButton();
+
+					_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
+
+						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
+					});
+				}
+			});
+		},
+		showCreateError: (type, nodeData, responseData, onSuccess) => {
+
+			let dialogText = _Dialogs.custom.getDialogTextElement();
+
+			if (!_Dialogs.custom.isDialogOpen()) {
+				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
+				dialogText = elements.dialogText;
+			}
+
+			// remove "invalid" highlight from elements
+			for (let el of dialogText.querySelectorAll('.props input, .props textarea, .props td.value')) {
+				el.classList.remove('form-input', 'input-invalid');
+			}
+
+			// delay only used to further highlight the input elements (slight blink)
+			window.setTimeout(() => {
+
+				for (let error of responseData.errors) {
+
+					let key      = error.property;
+					let errorMsg = error.token;
+
+					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (inputs.length > 0) {
+
+						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
+
+						if (error.detail) {
+							errorText += ` ${error.detail}`;
+						}
+
+						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
+
+
+						// add "invalid" highlight from elements
+						for (let input of inputs) {
+							input.classList.add('form-input', 'input-invalid');
+						}
+
+						inputs[0].focus();
+					}
+				}
+			}, 100);
+		},
+		showCreateDialog: (type, initialData = {}, onSuccess) => {
+
+			if (!type) {
+				Structr.error('Missing type');
+				return;
+			}
+
+			let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
+			_Dialogs.custom.noConfirmOnEscape();
+
+			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
+
+			let table = dialog.dialogText.querySelector('table');
+
+			let isRelType = _Crud.helpers.isRelType(type);
+
+			for (let key in _Crud.types[type].views.all) {
+
+				let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
+				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
+				let readOnly                           = _Crud.helpers.isReadOnly(key, type);
+				let isCollection                       = _Crud.helpers.isCollection(key, type);
+				let isAllowedCollectionForCreateDialog = _Crud.helpers.isSupportedArrayType(key, type);
+				let relatedType                        = _Crud.helpers.getRelatedTypeForAttribute(key, type);
+				let isSourceOrTargetNode               = isRelType && (key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
+				let isInternalTimestamp                = isRelType && (key === Structr.internalKeys.internalTimestamp);
+				let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
+
+				let showKey = !isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || isAllowedCollectionForCreateDialog) && (!relatedType || isRelType) && !isSourceOrTargetNode && !isInternalTimestamp && !isVisibilityFlagOnRelationship;
+
+				if (showKey) {
+
+					let cssClassForKey = _Helpers.getCSSClassForKey(key);
+
+					let row = _Helpers.createSingleDOMElementFromHTML(`
+						<tr>
+							<td class="key"><label for="${key}">${key}</label></td>
+							<td class="__value ${cssClassForKey}"></td>
+						</tr>
+					`);
+					table.appendChild(row);
+
+					let cell = row.querySelector(`.${cssClassForKey}`);
+
+					_Crud.objectList.populateCell(null, key, type, initialData[key], $(cell));
+				}
+			}
+
+			let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+			_Helpers.enableElement(dialogSaveButton);
+
+			dialogSaveButton.addEventListener('click', () => {
+
+				_Helpers.disableElement(dialogSaveButton);
+				let nodeData = _Crud.helpers.serializeObject($('#entityForm'));
+				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
+			});
+
+			return dialog;
+		},
+		crudCreateSuccess: async (type, newNodeId) => {
+
+			let properties = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
+
+			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
+				headers: {
+					Accept: 'application/json; charset=utf-8; properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(',')
+				}
+			});
+
+			if (newNodeResponse.ok) {
+
+				let newNodeResult = await newNodeResponse.json();
+				let newNode       = newNodeResult.result;
+				_Crud.objectList.appendRow(type, properties, newNode);
+
+				_Helpers.blinkGreen(_Crud.objectList.getRow(newNode.id));
+
+			} else {
+
+				_Crud.objectList.refreshList(type);
+			}
+		},
+	},
+	crudCache: new AsyncObjectCache(async (obj) => {
+
+		let response = await fetch(Structr.rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + _Crud.defaultView, {
+			headers: {
+				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
+			}
+		})
+
+		if (response.ok) {
+
+			let data = await response.json();
+
+			if (data && data.result) {
+				let node = data.result;
+				_Crud.crudCache.addObject(node, node.id);
+			}
+		}
+	}),
+	crudListFetchAbortMechanism: {
+		abortController: undefined,
+		lastType: null,
+		init: (type) => {
+			_Crud.crudListFetchAbortMechanism.lastType        = type;
+			_Crud.crudListFetchAbortMechanism.abortController = new AbortController();
+		},
+		abortListFetch: (type) => {
+
+			if (_Crud.crudListFetchAbortMechanism.abortController) {
+
+				_Crud.crudListFetchAbortMechanism.abortController.signal.onabort = () => {
+					_Crud.crudListFetchAbortMechanism.init(type);
+				};
+				_Crud.crudListFetchAbortMechanism.abortController.abort(`Loading of "${type}" aborted loading of "${_Crud.crudListFetchAbortMechanism.lastType}"`);
+
+			} else {
+
+				_Crud.crudListFetchAbortMechanism.init(type);
+			}
+		}
 	},
 	templates: {
 		main: config => `
