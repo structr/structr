@@ -143,6 +143,11 @@ public abstract class AbstractMethod {
 		};
 	}
 
+	public boolean shouldReturnRawResult() {
+
+		return false;
+	}
+
 	// ----- protected methods -----
 	protected Arguments checkAndConvertArguments(final SecurityContext securityContext, final Arguments arguments, final boolean ensureArgumentsArePresent) throws FrameworkException, IllegalArgumentTypeException {
 
