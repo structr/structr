@@ -192,8 +192,8 @@ public class SchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-			final JsonType contact  = sourceSchema.addType("Contact").setExtends(sourceSchema.getType("Principal"));
-			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
+			sourceSchema.addType("Contact").addTrait("Principal");
+			sourceSchema.addType("Customer").addTrait("Contact");
 
 			final String schema = sourceSchema.toString();
 
@@ -543,7 +543,7 @@ public class SchemaTest extends StructrTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			// make test type inherit from Favoritable (should add views)
+			/*
 			type.setImplements(StructrApp.getSchemaBaseURI().resolve("static/org.structr.core.entity.Favoritable"));
 
 			// ----- interface Favoritable -----
@@ -551,6 +551,7 @@ public class SchemaTest extends StructrTest {
 			type.overrideMethod("getFavoriteContent",         false, "return \"getFavoriteContent();\";");
 			type.overrideMethod("getFavoriteContentType",     false, "return \"getContentType();\";");
 			type.overrideMethod("getContext",                 false, "return \"getContext();\";");
+			*/
 
 			Settings.LogSchemaOutput.setValue(true);
 
@@ -663,7 +664,7 @@ public class SchemaTest extends StructrTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.setExtends(schema.getType("File"));
+			type.addTrait("File");
 
 			type.addViewProperty(PropertyView.Public, "children");
 
@@ -996,11 +997,11 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// relationship
 			base.relate(rel);
@@ -1090,11 +1091,11 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// relationship
 			base.relate(rel);
@@ -1193,11 +1194,11 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// methods
 			base.addMethod("doTest", "'BaseType'");

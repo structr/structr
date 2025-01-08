@@ -211,8 +211,14 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 	// ----- package methods -----
 	@Override
-	void deserialize(final Map<String, Object> source) {
-		super.deserialize(source);
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaNode schemaNode) {
+
+		// $extends
+		final Set<String> inheritedTraits = schemaNode.getInheritedTraits();
+		if (inheritedTraits != null) {
+
+			this.inheritedTraits.addAll(inheritedTraits);
+		}
 	}
 
 	@Override
@@ -227,7 +233,8 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 		final Traits traits = Traits.of("SchemaNode");
 
-		createProperties.put(traits.key("name"), name);
+		createProperties.put(traits.key("name"),            name);
+		createProperties.put(traits.key("inheritedTraits"), inheritedTraits.toArray(new String[0]));
 
 		final SchemaNode newNode = app.create("SchemaNode", createProperties).as(SchemaNode.class);
 

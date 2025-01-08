@@ -25,7 +25,6 @@ public interface PropertyDefinition extends CodeSource {
 
 	String getPropertyName();
 	Type getPropertyType();
-	String getRawSource();
 	String getSource();
 	String getDbName();
 	String getFormat();

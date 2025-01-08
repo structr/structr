@@ -18,9 +18,7 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.NodeTrait;
-import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.List;
 
@@ -36,11 +34,6 @@ public interface AbstractSchemaNode extends NodeTrait {
 	List<SchemaMethod> getSchemaMethodsByName(final String name);
 	SchemaProperty getSchemaProperty(final String name);
 	SchemaView getSchemaView(final String name);
-
-	SchemaNode getExtendsClass();
-
-	String getExtendsClassInternal();
-	String getImplementsInterfaces();
 
 	String getSummary();
 	String getIcon();
@@ -59,8 +52,4 @@ public interface AbstractSchemaNode extends NodeTrait {
 	boolean includeInOpenAPI();
 
 	String[] getTags();
-
-	void setExtendsClass(final SchemaNode schemaNode) throws FrameworkException;
-
-	TraitDefinition[] getTraitDefinitions();
 }

@@ -23,11 +23,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ElementCounter;
 import org.structr.schema.SchemaHelper.Type;
-
-import java.util.Map;
 
 /**
  *
@@ -67,7 +64,7 @@ public class CountPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
 		if (expression == null || expression.isEmpty()) {
 			throw new FrameworkException(422, "Invalid count property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_property_reference", "Empty property reference."));

@@ -21,14 +21,11 @@ package org.structr.core.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.wrappers.AbstractSchemaNodeTraitWrapper;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 

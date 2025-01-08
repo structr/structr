@@ -23,19 +23,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
+import java.lang.reflect.Constructor;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +65,7 @@ public abstract class PropertySourceGenerator {
 	public abstract String getValueType();
 	public abstract String getUnqualifiedValueType();
 	public abstract String getPropertyParameters();
-	public abstract void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, final String expression) throws FrameworkException;
+	public abstract void parseFormatString(final AbstractSchemaNode entity, final String expression) throws FrameworkException;
 
 	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
 		this.errorBuffer  = errorBuffer;
@@ -67,26 +73,54 @@ public abstract class PropertySourceGenerator {
 		this.source       = propertyDefinition;
 	}
 
-	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final SourceFile buf, final AbstractSchemaNode entity) throws FrameworkException {
+	public PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException {
 
-		parseFormatString(schemaNodes, entity, source.getFormat());
+		parseFormatString(entity, source.getFormat());
+
+		return createKey();
+	}
+
+	public IsValid getValidator(final AbstractSchemaNode entity) throws FrameworkException {
+
+		parseFormatString(entity, source.getFormat());
+
+		final PropertyKey key = entity.getTraits().key(source.getPropertyName());
 
 		if (source.isNotNull()) {
 
-			globalValidators.add(new Validator("isValidPropertyNotNull", className, source.getPropertyName()));
+			return new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					return ValidationHelper.isValidPropertyNotNull(obj, key, errorBuffer);
+				}
+			};
+
+			//globalValidators.add(new Validator("isValidPropertyNotNull", className, source.getPropertyName()));
 		}
 
 		if (source.isUnique()) {
 
-			globalValidators.add(new Validator("isValidUniqueProperty", className, source.getPropertyName()));
+			return new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					return ValidationHelper.isValidUniqueProperty(obj, key, errorBuffer);
+				}
+			};
+
+			//globalValidators.add(new Validator("isValidUniqueProperty", className, source.getPropertyName()));
 		}
 
 		if (source.isCompound()) {
 
-			compoundIndexKeys.add(SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property");
+			// fixme
+			//compoundIndexKeys.add(SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property");
 		}
 
-		getPropertySource(buf);
+		return null;
 	}
 
 	public String getClassName() {
@@ -286,5 +320,132 @@ public abstract class PropertySourceGenerator {
 		}
 
 		line.append(";");
+	}
+
+	protected PropertyKey createKey() {
+
+		Property propertyKey = null;
+
+		try {
+
+			final Class<Property> propertyClass     = (Class)Class.forName("org.structr.core.property." + getPropertyType());
+			final Constructor<Property> constructor = propertyClass.getDeclaredConstructor(String.class);
+
+			propertyKey = constructor.newInstance(source.getPropertyName());
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
+			return null;
+		}
+
+		/*
+		line.append(" Property<");
+		line.append(getValueType());
+		line.append("> ");
+		line.append(SchemaHelper.cleanPropertyName(source.getPropertyName()));
+		line.append("Property");
+		line.append(" = new ");
+		line.append(getPropertyType());
+		line.append("(");
+		line.quoted(source.getPropertyName());
+
+		if (StringUtils.isNotBlank(source.getDbName())) {
+			line.append(", ");
+			line.quoted(source.getDbName());
+		}
+
+		if (getPropertyParameters() != null) {
+			line.append(getPropertyParameters());
+		}
+
+		line.append(")");
+		*/
+
+		/* StringProperty only!
+		if (StringUtils.isNotBlank(source.getContentType())) {
+			propertyKey.
+			propertyKey.contentType(source.getContentType());
+		}
+		*/
+
+		propertyKey.dynamic();
+
+		if (StringUtils.isNotBlank(source.getDefaultValue())) {
+			propertyKey.defaultValue(getDefaultValue());
+		}
+
+		if (StringUtils.isNotBlank(source.getFormat())) {
+			propertyKey.format(source.getFormat());
+		}
+
+		if (StringUtils.isNotBlank(source.getReadFunction())) {
+			propertyKey.readFunction(source.getReadFunction());
+		}
+
+		if (StringUtils.isNotBlank(source.getWriteFunction())) {
+			propertyKey.writeFunction(source.getWriteFunction());
+		}
+
+		if (StringUtils.isNotBlank(source.getTypeHint())) {
+			propertyKey.typeHint(source.getTypeHint());
+		}
+
+		if (source.isUnique()) {
+			propertyKey.unique(true);
+		}
+
+		if (source.isCompound()) {
+			propertyKey.compound();
+		}
+
+		if (source.isNotNull()) {
+			propertyKey.notNull(true);
+		}
+
+		if (source.isCachingEnabled()) {
+			propertyKey.cachingEnabled(true);
+		}
+
+		if (source.isIndexed()) {
+
+			if (StringUtils.isNotBlank(source.getDefaultValue())) {
+
+				propertyKey.indexedWhenEmpty();
+
+			} else {
+
+				propertyKey.indexed();
+			}
+		}
+
+		if (source.isReadOnly()) {
+			propertyKey.readOnly();
+		}
+
+		/*
+		final String[] transformators = source.getTransformators();
+		if (transformators != null && transformators.length > 0) {
+
+			propertyKey.transformators(");
+			line.quoted(StringUtils.join(transformators, "\", \""));
+			line.append(")");
+		}
+		*/
+
+		if (source.isPartOfBuiltInSchema()) {
+			propertyKey.partOfBuiltInSchema();
+		}
+
+		if (StringUtils.isNotBlank(source.getHint())) {
+			propertyKey.hint(source.getHint());
+		}
+
+		if (StringUtils.isNotBlank(source.getCategory())) {
+			propertyKey.category(source.getCategory());
+		}
+
+		return propertyKey;
 	}
 }

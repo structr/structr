@@ -349,8 +349,8 @@ public class PermissionResolutionTest extends StructrTest {
 			final NodeInterface moo  = app.create("SchemaNode", "Moo");
 			final NodeInterface test = app.create("SchemaNode", "Test");
 
-			moo.setProperty(Traits.of("SchemaNode").key("extendsClass"), type);
-			test.setProperty(Traits.of("SchemaNode").key("extendsClass"), type);
+			moo.setProperty(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Project" });
+			test.setProperty(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Project" });
 
 			app.create("User", "tester");
 

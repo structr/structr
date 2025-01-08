@@ -18,8 +18,11 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.parser.*;
 
 import java.util.Map;
@@ -43,6 +46,9 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 	LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
 	DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes);
 	DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
+
+	PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException;
+	IsValid createValidators(final AbstractSchemaNode entity) throws FrameworkException;
 
 	static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
 

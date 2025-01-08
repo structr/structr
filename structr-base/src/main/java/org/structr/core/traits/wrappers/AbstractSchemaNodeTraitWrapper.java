@@ -19,13 +19,10 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
-import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,28 +151,6 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public SchemaNode getExtendsClass() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key("extendsClass"));
-		if (node != null) {
-
-			return node.as(SchemaNode.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public String getExtendsClassInternal() {
-		return wrappedObject.getProperty(traits.key("extendsClassInternal"));
-	}
-
-	@Override
-	public String getImplementsInterfaces() {
-		return wrappedObject.getProperty(traits.key("implementsInterfaces"));
-	}
-
-	@Override
 	public String getSummary() {
 		return wrappedObject.getProperty(traits.key("summary"));
 	}
@@ -197,7 +172,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 
 	@Override
 	public String getClassName() {
-		return wrappedObject.getProperty(traits.key("className"));
+		return getName();
 	}
 
 	@Override
@@ -248,22 +223,6 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	@Override
 	public String[] getTags() {
 		return wrappedObject.getProperty(traits.key("tags"));
-	}
-
-	@Override
-	public void setExtendsClass(final SchemaNode schemaNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("extendsClass"), schemaNode.getWrappedNode());
-	}
-
-	@Override
-	public TraitDefinition[] getTraitDefinitions() {
-
-		final List<TraitDefinition> definitions = new ArrayList<>();
-
-		definitions.add(new AbstractTraitDefinition(getName()) {
-		});
-
-		return definitions.toArray(new TraitDefinition[0]);
 	}
 
 	/*

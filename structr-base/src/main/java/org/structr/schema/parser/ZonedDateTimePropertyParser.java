@@ -22,16 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ZonedDateTimeProperty;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Map;
 
 public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 
@@ -67,7 +63,7 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
 		if (expression != null && !expression.isEmpty()) {
 

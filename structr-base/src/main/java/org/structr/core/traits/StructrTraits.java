@@ -58,6 +58,25 @@ public class StructrTraits {
 		}
 	}
 
+	public static void registerDynamicRelationshipType(final String typeName, final TraitDefinition... definitions) {
+
+		// do not overwrite types
+		if (Traits.getAllTypes(null).contains(typeName)) {
+			return;
+		}
+
+		final Traits traits = new Traits(typeName, false, false, true);
+
+		// Node types consist of at least the following traits
+		traits.registerImplementation(new PropertyContainerTraitDefinition());
+		traits.registerImplementation(new GraphObjectTraitDefinition());
+		traits.registerImplementation(new RelationshipInterfaceTraitDefinition());
+
+		for (final TraitDefinition definition : definitions) {
+			traits.registerImplementation(definition);
+		}
+	}
+
 	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
 		final Traits traits = new Traits(typeName, true, true, false);

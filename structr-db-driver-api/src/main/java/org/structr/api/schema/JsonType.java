@@ -63,6 +63,9 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonMethod addPropertyGetter(final String propertyName, final Class type);
 	JsonMethod addPropertySetter(final String propertyName, final Class type);
 
+	JsonType addTrait(final String name);
+
+	/*
 	JsonType setExtends(final JsonType superType);
 	JsonType setExtends(final URI externalReference);
 	JsonType setExtends(final Class staticType);
@@ -71,6 +74,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonType setImplements(final URI externalReference);
 	JsonType setImplements(final Class staticReference);
 	Set<URI> getImplements();
+	 */
 
 	Set<JsonProperty> getProperties();
 	Set<String> getRequiredProperties();
@@ -82,14 +86,14 @@ public interface JsonType extends Comparable<JsonType> {
 	Set<String> getTags();
 	void addTags(final String... tags);
 
-	public String getSummary();
-	public JsonType setSummary(final String summary);
+	String getSummary();
+	JsonType setSummary(final String summary);
 
-	public String getDescription();
-	public JsonType setDescription(final String description);
+	String getDescription();
+	JsonType setDescription(final String description);
 
-	public boolean includeInOpenAPI();
-	public JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI);
+	boolean includeInOpenAPI();
+	JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI);
 
 	JsonType addViewProperty(final String viewName, final String propertyName);
 

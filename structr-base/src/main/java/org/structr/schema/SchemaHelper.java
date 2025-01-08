@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.service.ServiceResult;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObjectMap;
@@ -1664,7 +1665,8 @@ public class SchemaHelper {
 	}
 
 	// ----- private methods -----
-	private static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
+	*/
+	public static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
 		final String propertyName                                  = propertyDefinition.getPropertyName();
 		final Type propertyType                                    = propertyDefinition.getPropertyType();
@@ -1678,10 +1680,11 @@ public class SchemaHelper {
 			logger.warn("Unable to instantiate parser for {}: {}", propertyName, t);
 		}
 
-		errorBuffer.add(new InvalidPropertySchemaToken(SchemaProperty.class.getSimpleName(), propertyName, propertyName, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(new InvalidPropertySchemaToken("SchemaProperty", propertyName, propertyName, "invalid_property_definition", "Unknow value type " + propertyType + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, "Invalid property definition for property ‛" + propertyDefinition.getPropertyName() + "‛", errorBuffer);
 	}
 
+	/*
 	private static boolean hasRestClasses() {
 
 		try {

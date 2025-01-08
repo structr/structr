@@ -18,6 +18,7 @@
  */
 package org.structr.schema.export;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;

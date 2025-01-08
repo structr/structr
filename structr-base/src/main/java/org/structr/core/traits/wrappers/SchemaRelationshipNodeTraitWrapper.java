@@ -30,6 +30,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.schema.DynamicTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SourceFile;
 
@@ -906,8 +908,13 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public String getName() {
-		return "";
+	public TraitDefinition[] getTraitDefinitions() {
+
+		final List<TraitDefinition> definitions = new ArrayList<>();
+
+		//definitions.add(new DynamicTraitDefinition(this));
+
+		return definitions.toArray(new TraitDefinition[0]);
 	}
 
 	/*

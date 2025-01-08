@@ -52,7 +52,7 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode node, String expression) throws FrameworkException {
+	public void parseFormatString(final AbstractSchemaNode node, String expression) throws FrameworkException {
 
 		boolean error = false;
 		final String rangeFormatErrorMessage = "Range expression must describe a (possibly open-ended) interval, e.g. [10,99] or ]9,100[ for all two-digit integers";
