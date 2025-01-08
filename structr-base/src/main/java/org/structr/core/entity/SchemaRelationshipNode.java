@@ -23,6 +23,7 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
@@ -153,4 +154,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		return propertyName;
 	}
+
+	TraitDefinition[] getTraitDefinitions();
 }

@@ -20,6 +20,8 @@ package org.structr.test.schema;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -29,6 +31,7 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
@@ -387,10 +390,12 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Item"),
-				new NodeAttribute<>(new StringProperty("_name"), "+String!")
-			);
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addStringProperty("name").setUnique(true).setRequired(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
@@ -479,7 +484,7 @@ public class ValidationTest extends StructrTest {
 
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ItemDerived"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), item)
+				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Item" })
 			);
 
 			tx.success();
@@ -912,10 +917,12 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
-				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
-			);
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addStringProperty("testUnique").setUnique(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 

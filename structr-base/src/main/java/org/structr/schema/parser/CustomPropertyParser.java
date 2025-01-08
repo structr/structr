@@ -23,14 +23,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.lang.reflect.Constructor;
-import java.util.Map;
 
 /**
  *
@@ -130,6 +126,6 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 	}
 }

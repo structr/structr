@@ -31,6 +31,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
@@ -54,7 +55,6 @@ public class SchemaService implements Service {
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
-	//private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
 	private static final AtomicBoolean schemaIsBeingReplaced      = new AtomicBoolean(false);
 	private static final Set<String> blacklist                    = new LinkedHashSet<>();
@@ -80,15 +80,8 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
-		//return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
-		return new ServiceResult(true);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 	}
-
-	/*
-	public static JsonSchema getDynamicSchema() {
-		return dynamicSchema;
-	}
-	*/
 
 	public static synchronized GraphQLSchema getGraphQLSchema() {
 		return graphQLSchema;
@@ -110,18 +103,24 @@ public class SchemaService implements Service {
 
 				tx.prefetchHint("Reload schema");
 
-				final List<SchemaNode> schemaNodes = new LinkedList<>();
-
-				// fetch all schema nodes
-				for (final NodeInterface node : app.nodeQuery("SchemaNode").getResultStream()) {
-
-					schemaNodes.add(node.as(SchemaNode.class));
-				}
-
 				Traits.removeDynamicTypes();
 
-				for (final SchemaNode schemaNode : schemaNodes) {
+				// fetch schema relationships
+				for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getResultStream()) {
 
+
+					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
+					final String name                      = schemaRel.getName();
+					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
+
+					StructrTraits.registerDynamicRelationshipType(name, definitions);
+				}
+
+				// fetch schema nodes
+				for (final NodeInterface node : app.nodeQuery("SchemaNode").getResultStream()) {
+
+
+					final SchemaNode schemaNode         = node.as(SchemaNode.class);
 					final String name                   = schemaNode.getName();
 					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
 
@@ -136,7 +135,7 @@ public class SchemaService implements Service {
 
 			} finally {
 
-				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
+				logger.info("Schema reload took a total of {} ms", System.currentTimeMillis() - t0);
 
 				schemaIsBeingReplaced.set(false);
 			}

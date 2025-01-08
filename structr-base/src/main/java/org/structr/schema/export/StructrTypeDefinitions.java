@@ -145,11 +145,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
-		// resolve inheritance relationships
-		for (final StructrTypeDefinition type : typeDefinitions) {
-			type.resolveInheritanceRelationships(schemaNodes);
-		}
-
 		// resolve schema relationships
 		for (final StructrRelationshipTypeDefinition rel : relationships) {
 
@@ -339,31 +334,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					map.put(typeName, typeMap);
 					typeMap.put("allOf", allOf);
 
-					// base type must be resolved and added as well, but only if base type isn't included in tag itself.
-					final URI baseTypeReference = type.getExtends();
-
-					if (StringUtils.isEmpty(view) && baseTypeReference != null && !StringUtils.equals(viewName, PropertyView.All)) {
-
-						final Object def = root.resolveURI(baseTypeReference);
-						if (def instanceof StructrTypeDefinition) {
-							final StructrTypeDefinition baseType = (StructrTypeDefinition) def;
-							if (!schemas.containsKey(baseType.getName()) && !baseType.includeInOpenAPI()) {
-								OpenAPIStructrTypeSchemaOutput openAPIStructrTypeSchemaOutput = new OpenAPIStructrTypeSchemaOutput(baseType, PropertyView.Public, 0);
-								schemas.put(baseType.getName(), openAPIStructrTypeSchemaOutput);
-							}
-						}
-					}
-
-					final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
-					if (StringUtils.isEmpty(view) && reference != null ) {
-
-						allOf.add(new OpenAPISchemaReference(reference, PropertyView.Public));
-
-					} else if (StringUtils.isEmpty(view)) {
-
-						// default base type AbstractNode
-						allOf.add(new OpenAPISchemaReference("#/components/schemas/AbstractNode", PropertyView.Public));
-					}
+					// default base type AbstractNode
+					allOf.add(new OpenAPISchemaReference("#/components/schemas/AbstractNode", PropertyView.Public));
 
 					// add actual type definition
 					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));

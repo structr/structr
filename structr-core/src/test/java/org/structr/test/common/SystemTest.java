@@ -1064,6 +1064,7 @@ public class SystemTest extends StructrTest {
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 			final JsonType contact        = sourceSchema.addType("Contact");
 
+			contact.addTrait("Principal");
 			//contact.setExtends(sourceSchema.getType("Principal"));
 			contact.addMethod("onModification", "log(baseUrl)");
 

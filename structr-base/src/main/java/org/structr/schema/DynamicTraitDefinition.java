@@ -16,20 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.schema;
 
-import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.entity.SchemaNode;
 
-import java.util.Set;
+public class DynamicTraitDefinition extends AbstractDynamicTraitDefinition<SchemaNode> {
 
-public interface SchemaNode extends AbstractSchemaNode {
-
-	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
-
-	Iterable<SchemaRelationshipNode> getRelatedTo();
-	Iterable<SchemaRelationshipNode> getRelatedFrom();
-
-	Set<String> getInheritedTraits();
-
-	TraitDefinition[] getTraitDefinitions();
+	public DynamicTraitDefinition(final SchemaNode schemaNode) {
+		super(schemaNode);
+	}
 }

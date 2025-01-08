@@ -25,6 +25,13 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.schema.DynamicTraitDefinition;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper implements SchemaNode {
 
@@ -38,18 +45,6 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaGrants");
 
 		 return Iterables.map(n -> n.as(SchemaGrant.class), wrappedObject.getProperty(key));
-	}
-
-	@Override
-	public SchemaNode getExtendsClass() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key("extendsClass"));
-		if (node != null) {
-
-			return node.as(SchemaNode.class);
-		}
-
-		return null;
 	}
 
 	@Override
@@ -126,5 +121,29 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("relatedFrom");
 
 		return Iterables.map(n -> n.as(SchemaRelationshipNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Set<String> getInheritedTraits() {
+
+		final Set<String> inheritedTraits = new TreeSet<>();
+		final PropertyKey<String[]> key   = traits.key("inheritedTraits");
+
+		for (final String trait : wrappedObject.getProperty(key)) {
+
+			inheritedTraits.add(trait);
+		}
+
+		return inheritedTraits;
+	}
+
+	@Override
+	public TraitDefinition[] getTraitDefinitions() {
+
+		final List<TraitDefinition> definitions = new ArrayList<>();
+
+		definitions.add(new DynamicTraitDefinition(this));
+
+		return definitions.toArray(new TraitDefinition[0]);
 	}
 }

@@ -27,6 +27,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SourceFile;
 import org.structr.schema.parser.*;
@@ -180,11 +181,6 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		}
 
 		return null;
-	}
-
-	@Override
-	public String getRawSource() {
-		return wrappedObject.getProperty(traits.key("rawSource"));
 	}
 
 	@Override
@@ -391,6 +387,26 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	@Override
 	public String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes) {
 		return getNotionPropertyParser(schemaNodes).getMultiplicity();
+	}
+
+	@Override
+	public PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException {
+
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
+
+		PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), this);
+
+		return parser.createKey(entity);
+	}
+
+	@Override
+	public IsValid createValidators(final AbstractSchemaNode entity) throws FrameworkException {
+
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
+
+		PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), this);
+
+		return parser.getValidator(entity);
 	}
 
 	public void setFqcn(final String value) throws FrameworkException {

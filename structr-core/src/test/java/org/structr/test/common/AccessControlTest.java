@@ -729,7 +729,7 @@ public class AccessControlTest extends StructrTest {
 			assertNotNull("Group should be readable for members", test);
 
 			testId = test.getProperty(Traits.of("NodeInterface").key("id"));
-			testType = test.getProperty(Traits.of("NodeInterface").key("typeHandler"));
+			testType = test.getProperty(Traits.of("NodeInterface").key("type"));
 
 			test.setProperty(Traits.of("TestOne").key("name"), "newname");
 
@@ -1144,7 +1144,7 @@ public class AccessControlTest extends StructrTest {
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
 
 			testId = testGroup.getProperty(Traits.of("NodeInterface").key("id"));
-			testType = testGroup.getProperty(Traits.of("NodeInterface").key("typeHandler"));
+			testType = testGroup.getProperty(Traits.of("NodeInterface").key("type"));
 
 			testGroup.setProperty(Traits.of("Group").key("name"), "dontchangeme");
 

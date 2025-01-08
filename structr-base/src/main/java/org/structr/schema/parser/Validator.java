@@ -18,6 +18,9 @@
  */
 package org.structr.schema.parser;
 
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.GraphObject;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
 
 /**

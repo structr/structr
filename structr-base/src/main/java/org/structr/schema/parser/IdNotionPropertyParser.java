@@ -27,14 +27,11 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,8 +39,6 @@ import java.util.Set;
  *
  */
 public class IdNotionPropertyParser extends PropertySourceGenerator {
-
-	private static final Logger logger = LoggerFactory.getLogger(IdNotionPropertyParser.class);
 
 	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;
@@ -83,7 +78,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
 		if (StringUtils.isBlank(expression)) {
 
