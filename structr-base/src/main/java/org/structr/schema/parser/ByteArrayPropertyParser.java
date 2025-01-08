@@ -18,28 +18,20 @@
  */
 package org.structr.schema.parser;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.ByteArrayProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.Date;
 
 /**
  *
  *
  */
-public class ByteArrayPropertyParser extends IntPropertyParser {
+public class ByteArrayPropertyParser extends PropertyGenerator<Byte[]> {
 
 	public ByteArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return ByteArrayProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -48,13 +40,8 @@ public class ByteArrayPropertyParser extends IntPropertyParser {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "ByteArray";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return "";
+	protected Property newInstance() throws FrameworkException {
+		return new ByteArrayProperty(source.getPropertyName());
 	}
 
 	@Override
@@ -63,8 +50,8 @@ public class ByteArrayPropertyParser extends IntPropertyParser {
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "\"".concat(getSourceDefaultValue()).concat("\"");
+	public Byte[] getDefaultValue() {
+		return null;
 	}
 
 }

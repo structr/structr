@@ -18,23 +18,27 @@
  */
 package org.structr.schema.parser;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.util.List;
 
 /**
  *
  *
  */
-public class DoubleArrayPropertyParser extends DoublePropertyParser {
+public class DoubleArrayPropertyParser extends NumericalArrayPropertyGenerator<Double> {
 
 	public DoubleArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return ArrayProperty.class.getSimpleName().concat("<Double>");
 	}
 
 	@Override
@@ -43,13 +47,23 @@ public class DoubleArrayPropertyParser extends DoublePropertyParser {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "DoubleArray";
+	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
+
+		try {
+			return Double.parseDouble(source);
+
+		} catch (Throwable t) {
+
+			reportError(new InvalidPropertySchemaToken("SchemaNode", propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
+		}
+
+		return null;
 	}
 
 	@Override
-	public String getPropertyParameters() {
-		return ", Double.class";
+	protected Property newInstance() throws FrameworkException {
+
+		return new ArrayProperty(source.getPropertyName(), Double.class);
 	}
 
 	@Override
@@ -58,7 +72,20 @@ public class DoubleArrayPropertyParser extends DoublePropertyParser {
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "\"".concat(getSourceDefaultValue()).concat("\"");
+	public Double[] getDefaultValue() {
+		return null;
+	}
+
+	@Override
+	public List<IsValid> getValidators(final PropertyKey<Double[]> key) throws FrameworkException {
+
+		final List<IsValid> validators = super.getValidators(key);
+
+		if (!error) {
+
+			validators.add((obj, errorBuffer) -> ValidationHelper.isValidDoubleArrayInRange(obj, key, source.getFormat(), errorBuffer));
+		}
+
+		return validators;
 	}
 }

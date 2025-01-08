@@ -654,12 +654,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			case Notion:
 			{
-				final String referenceName         = property.getNotionBaseProperty(schemaNodes);
+				final String referenceName         = property.getNotionBaseProperty();
 				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
-				final Set<String> notionProperties = property.getPropertiesForNotionProperty(schemaNodes);
+				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
 				final NotionReferenceProperty notionProperty;
 
-				if (property.getNotionMultiplicity(schemaNodes).startsWith("*")) {
+				if (property.getNotionMultiplicity().startsWith("*")) {
 
 					notionProperty = new NotionReferenceProperty(parent, name, reference, "array", referenceName);
 					notionProperty.setProperties(notionProperties.toArray(new String[0]));
@@ -677,12 +677,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			case IdNotion:
 			{
-				final String referenceName         = property.getNotionBaseProperty(schemaNodes);
+				final String referenceName         = property.getNotionBaseProperty();
 				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
-				final Set<String> notionProperties = property.getPropertiesForNotionProperty(schemaNodes);
+				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
 				final IdNotionReferenceProperty notionProperty;
 
-				final String multiplicity = property.getNotionMultiplicity(schemaNodes);
+				final String multiplicity = property.getNotionMultiplicity();
 				if (multiplicity != null) {
 
 					if (multiplicity.startsWith("*")) {

@@ -22,16 +22,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.property.EnumProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class EnumPropertyParser extends PropertySourceGenerator {
+public class EnumPropertyParser extends PropertyGenerator {
 
 	private String enumTypeName = "";
 	private String enumType     = "";
@@ -41,23 +40,8 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getPropertyType() {
-		return EnumProperty.class.getSimpleName();
-	}
-
-	@Override
 	public String getValueType() {
 		return enumTypeName;
-	}
-
-	@Override
-	public String getUnqualifiedValueType() {
-		return enumTypeName;
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return enumType;
 	}
 
 	@Override
@@ -66,7 +50,10 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public Property newInstance() throws FrameworkException {
+
+		final String expression = source.getFormat();
+		final String name       = source.getPropertyName();
 
 		if (StringUtils.isNotBlank(expression)) {
 

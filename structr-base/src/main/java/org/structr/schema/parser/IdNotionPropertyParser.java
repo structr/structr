@@ -19,16 +19,14 @@
 package org.structr.schema.parser;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.LinkedHashSet;
@@ -38,7 +36,7 @@ import java.util.Set;
  *
  *
  */
-public class IdNotionPropertyParser extends PropertySourceGenerator {
+public class IdNotionPropertyParser extends PropertyGenerator {
 
 	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;
@@ -78,8 +76,9 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public Property newInstance() throws FrameworkException {
 
+		final String expression = source.getFormat();
 		if (StringUtils.isBlank(expression)) {
 
 			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
@@ -93,7 +92,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 
 			boolean isBuiltinProperty           = false;
 			baseProperty                        = parts[0];
-			multiplicity                        = entity.as(SchemaRelationshipNode.class).getMultiplicity(schemaNodes, baseProperty);
+			multiplicity                        = entity.as(SchemaRelationshipNode.class).getMultiplicity(baseProperty);
 
 			if (multiplicity != null) {
 
@@ -124,7 +123,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 				}
 
 				buf.append(", ");
-				buf.append(entity.getClassName());
+				buf.append(source.getClassName());
 				buf.append(".");
 				buf.append(baseProperty);
 

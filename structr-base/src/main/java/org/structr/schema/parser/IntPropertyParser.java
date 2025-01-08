@@ -20,24 +20,23 @@ package org.structr.schema.parser;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.property.IntProperty;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.property.*;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.util.List;
 
 /**
  *
  *
  */
-public class IntPropertyParser extends NumericalPropertyParser {
+public class IntPropertyParser extends NumericalPropertyParser<Integer> {
 
 	public IntPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return IntProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -46,17 +45,12 @@ public class IntPropertyParser extends NumericalPropertyParser {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "Integer";
-	}
-
-	@Override
 	public Type getKey() {
 		return Type.Integer;
 	}
 
 	@Override
-	public Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which) {
+	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
 
 		try {
 
@@ -64,7 +58,37 @@ public class IntPropertyParser extends NumericalPropertyParser {
 
 		} catch (Throwable t) {
 
-			errorBuffer.add(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Integer."));
+			errorBuffer.add(new InvalidPropertySchemaToken("SchemaNode", propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Integer."));
+		}
+
+		return null;
+	}
+
+	@Override
+	protected Property<Integer> newInstance() throws FrameworkException {
+		return new IntProperty(source.getPropertyName(), source.getDbName());
+	}
+
+	@Override
+	public List<IsValid> getValidators(final PropertyKey<Integer> key) throws FrameworkException {
+
+		final List<IsValid> validators = super.getValidators(key);
+
+		if (!error) {
+
+			validators.add((obj, errorBuffer) -> ValidationHelper.isValidIntegerInRange(obj, key, source.getFormat(), errorBuffer));
+		}
+
+		return validators;
+	}
+
+	@Override
+	public Integer getDefaultValue() {
+
+		final String def = source.getDefaultValue();
+		if (def != null) {
+
+			return Integer.valueOf(def);
 		}
 
 		return null;

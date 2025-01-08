@@ -208,6 +208,21 @@ public class Traits {
 		// register trait
 		types.put(trait.getName(), trait);
 
+		// properties need to be registered first so the are available in lifecycle methods etc.
+		for (final PropertyKey key : trait.getPropertyKeys()) {
+
+			final String name = key.jsonName();
+
+			// register property key
+			propertyKeys.put(name, key);
+
+			// set declaring trait
+			key.setDeclaringTrait(trait);
+
+			// add key to "all" view
+			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+		}
+
 		// composable methods (like callbacks etc.)
 		for (final Map.Entry<Class, LifecycleMethod> entry : trait.getLifecycleMethods().entrySet()) {
 
@@ -233,21 +248,6 @@ public class Traits {
 		// dynamic methods
 		for (final AbstractMethod method : trait.getDynamicMethods()) {
 			this.dynamicMethods.put(method.getName(), method);
-		}
-
-		// properties
-		for (final PropertyKey key : trait.getPropertyKeys()) {
-
-			final String name = key.jsonName();
-
-			// register property key
-			propertyKeys.put(name, key);
-
-			// set declaring trait
-			key.setDeclaringTrait(trait);
-
-			// add key to "all" view
-			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
 		}
 
 		// views

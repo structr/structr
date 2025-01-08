@@ -28,9 +28,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
-
-
-
 public class StructrCountProperty extends StructrLongProperty implements JsonCountProperty {
 
 	public StructrCountProperty(StructrTypeDefinition parent, String name) {

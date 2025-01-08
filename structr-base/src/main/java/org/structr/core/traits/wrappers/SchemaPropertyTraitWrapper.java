@@ -29,10 +29,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.SourceFile;
 import org.structr.schema.parser.*;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,6 +58,11 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	@Override
 	public String getPropertyName() {
 		return getName();
+	}
+
+	@Override
+	public String getClassName() {
+		return getSchemaNode().getClassName();
 	}
 
 	@Override
@@ -343,21 +348,20 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return null;
 	}
 
-	public boolean isPropertySetNotion(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).isPropertySet();
+	public boolean isPropertySetNotion() {
+		return getNotionPropertyParser().isPropertySet();
 	}
 
-	public String getTypeReferenceForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).getValueType();
-
+	public String getTypeReferenceForNotionProperty() {
+		return getNotionPropertyParser().getValueType();
 	}
 
 	@Override
-	public Set<String> getPropertiesForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
+	public Set<String> getPropertiesForNotionProperty() {
 
 		final Set<String> properties = new LinkedHashSet<>();
 
-		for (final String property : getNotionPropertyParser(schemaNodes).getProperties()) {
+		for (final String property : getNotionPropertyParser().getProperties()) {
 
 			if (property.contains(".")) {
 
@@ -380,13 +384,13 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	}
 
 	@Override
-	public String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).getBaseProperty();
+	public String getNotionBaseProperty() {
+		return getNotionPropertyParser().getBaseProperty();
 	}
 
 	@Override
-	public String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes) {
-		return getNotionPropertyParser(schemaNodes).getMultiplicity();
+	public String getNotionMultiplicity() {
+		return getNotionPropertyParser().getMultiplicity();
 	}
 
 	@Override
@@ -394,19 +398,19 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
-		PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), this);
+		PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, entity, this);
 
-		return parser.createKey(entity);
+		return generator.createKey();
 	}
 
 	@Override
-	public IsValid createValidators(final AbstractSchemaNode entity) throws FrameworkException {
+	public List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException {
 
-		final ErrorBuffer errorBuffer = new ErrorBuffer();
+		final ErrorBuffer errorBuffer     = new ErrorBuffer();
+		final PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, entity, this);
+		final PropertyKey key             = generator.createKey();
 
-		PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), this);
-
-		return parser.getValidator(entity);
+		return generator.getValidators(key);
 	}
 
 	public void setFqcn(final String value) throws FrameworkException {
@@ -429,123 +433,48 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		return buf.toString();
 	}
 
-	public NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes) {
+	@Override
+	public NotionPropertyParser getNotionPropertyParser() {
 
 		if (notionPropertyParser == null) {
 
-			try {
-				notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				notionPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException ignore) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
+			notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return notionPropertyParser;
 	}
 
-	public IntPropertyParser getIntPropertyParser(final Map<String, SchemaNode> schemaNodes) {
+	@Override
+	public IntPropertyParser getIntPropertyParser() {
 
 		if (intPropertyParser == null) {
 
-			try {
-				intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				intPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
+			intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return intPropertyParser;
 	}
 
-	public IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (intArrayPropertyParser == null) {
-
-			try {
-				intArrayPropertyParser = new IntegerArrayPropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				intArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return intArrayPropertyParser;
-	}
-
-	public LongPropertyParser getLongPropertyParser(final Map<String, SchemaNode> schemaNodes) {
+	@Override
+	public LongPropertyParser getLongPropertyParser() {
 
 		if (longPropertyParser == null) {
 
-			try {
-				longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				longPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
+			longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return longPropertyParser;
 	}
 
-	public LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (longArrayPropertyParser == null) {
-
-			try {
-				longArrayPropertyParser = new LongArrayPropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				longArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return longArrayPropertyParser;
-	}
-
-	public DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes) {
+	@Override
+	public DoublePropertyParser getDoublePropertyParser() {
 
 		if (doublePropertyParser == null) {
 
-			try {
-				doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				doublePropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
+			doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return doublePropertyParser;
-	}
-
-	public DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
-
-		if (doubleArrayPropertyParser == null) {
-
-			try {
-				doubleArrayPropertyParser = new DoubleArrayPropertyParser(new ErrorBuffer(), getPropertyName(), this);
-				doubleArrayPropertyParser.getPropertySource(schemaNodes, new SourceFile(""), getSchemaNode());
-
-			} catch (FrameworkException fex) {
-				// ignore this error because we only need the property parser to extract
-				// some information, the generated code is not used at all
-			}
-		}
-
-		return doubleArrayPropertyParser;
 	}
 
 	// ----- private methods -----

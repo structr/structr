@@ -19,22 +19,19 @@
 package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.BooleanArrayProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class BooleanArrayPropertyParser extends IntPropertyParser {
+public class BooleanArrayPropertyParser extends PropertyGenerator<Boolean[]> {
 
 	public BooleanArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return BooleanArrayProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -43,13 +40,8 @@ public class BooleanArrayPropertyParser extends IntPropertyParser {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "BooleanArray";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return "";
+	protected Property newInstance() throws FrameworkException {
+		return new BooleanArrayProperty(source.getPropertyName());
 	}
 
 	@Override
@@ -58,7 +50,7 @@ public class BooleanArrayPropertyParser extends IntPropertyParser {
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "\"".concat(getSourceDefaultValue()).concat("\"");
+	public Boolean[] getDefaultValue() {
+		return null;
 	}
 }

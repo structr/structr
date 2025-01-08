@@ -29,6 +29,7 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
@@ -49,9 +50,10 @@ public class SchemaHelper {
 	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
 	private static final String WORD_SEPARATOR                         = "_";
 
-	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
-	public static final Map<Type, Integer> sortIndexMap                               = new LinkedHashMap<>();
-	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
+	public static final Map<Type, PropertyGeneratorFactory> generatorMap = new TreeMap<>(new ReverseTypeComparator());
+	public static final Map<Type, Integer> sortIndexMap                        = new LinkedHashMap<>();
+
+	private static final Set<String> basePropertyNames = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers",          // from GraphObject
 		"relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",                                              // from AbstractRelationship
 		"name", "hidden", "owner", "ownerId", "grantees"                                                                                                        // from NodeInterface
@@ -59,36 +61,32 @@ public class SchemaHelper {
 
 	static {
 
-		// IMPORTANT: parser map must be sorted by type name length
-		//            because we look up the parsers using "startsWith"!
-		parserMap.put(Type.BooleanArray, BooleanArrayPropertyParser.class);
-		parserMap.put(Type.IntegerArray, IntegerArrayPropertyParser.class);
-		parserMap.put(Type.DoubleArray, DoubleArrayPropertyParser.class);
-		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
-		parserMap.put(Type.Encrypted, EncryptedStringPropertySourceGenerator.class);
-		parserMap.put(Type.DateArray, DateArrayPropertyParser.class);
-		parserMap.put(Type.EnumArray, EnumArrayPropertyParser.class);
-		parserMap.put(Type.ByteArray, ByteArrayPropertyParser.class);
-		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
-		parserMap.put(Type.Function, FunctionPropertyParser.class);
-		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
-		parserMap.put(Type.IdNotion, IdNotionPropertyParser.class);
-		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
-		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.String, StringPropertySourceGenerator.class);
-		parserMap.put(Type.Double, DoublePropertyParser.class);
-		parserMap.put(Type.Custom, CustomPropertyParser.class);
-		parserMap.put(Type.Notion, NotionPropertyParser.class);
-		parserMap.put(Type.Cypher, CypherPropertyParser.class);
-		parserMap.put(Type.Long, LongPropertyParser.class);
-		parserMap.put(Type.Enum, EnumPropertyParser.class);
-		parserMap.put(Type.Date, DatePropertyParser.class);
-		parserMap.put(Type.ZonedDateTime, ZonedDateTimePropertyParser.class);
-		parserMap.put(Type.Count, CountPropertyParser.class);
-		parserMap.put(Type.Join, JoinPropertyParser.class);
+		generatorMap.put(Type.ZonedDateTime, (e, t, p) -> new ZonedDateTimePropertyParser(e, t, p));
+		generatorMap.put(Type.BooleanArray,  (e, t, p) -> new BooleanArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.IntegerArray,  (e, t, p) -> new IntegerArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.DoubleArray,   (e, t, p) -> new DoubleArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.StringArray,   (e, t, p) -> new StringArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.Encrypted,     (e, t, p) -> new EncryptedStringPropertySourceGenerator(e, t, p));
+		generatorMap.put(Type.DateArray,     (e, t, p) -> new DateArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.EnumArray,     (e, t, p) -> new EnumArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.ByteArray,     (e, t, p) -> new ByteArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.LongArray,     (e, t, p) -> new LongArrayPropertyParser(e, t, p));
+		generatorMap.put(Type.Function,      (e, t, p) -> new FunctionPropertyParser(e, t, p));
+		generatorMap.put(Type.Password,      (e, t, p) -> new PasswordPropertySourceGenerator(e, t, p));
+		generatorMap.put(Type.IdNotion,      (e, t, p) -> new IdNotionPropertyParser(e, t, p));
+		generatorMap.put(Type.Boolean,       (e, t, p) -> new BooleanPropertyParser(e, t, p));
+		generatorMap.put(Type.Integer,       (e, t, p) -> new IntPropertyParser(e, t, p));
+		generatorMap.put(Type.String,        (e, t, p) -> new StringPropertySourceGenerator(e, t, p));
+		generatorMap.put(Type.Double,        (e, t, p) -> new DoublePropertyParser(e, t, p));
+		generatorMap.put(Type.Custom,        (e, t, p) -> new CustomPropertyParser(e, t, p));
+		generatorMap.put(Type.Notion,        (e, t, p) -> new NotionPropertyParser(e, t, p));
+		generatorMap.put(Type.Cypher,        (e, t, p) -> new CypherPropertyParser(e, t, p));
+		generatorMap.put(Type.Long,          (e, t, p) -> new LongPropertyParser(e, t, p));
+		generatorMap.put(Type.Enum,          (e, t, p) -> new EnumPropertyParser(e, t, p));
+		generatorMap.put(Type.Date,          (e, t, p) -> new DatePropertyParser(e, t, p));
+		generatorMap.put(Type.Count,         (e, t, p) -> new CountPropertyParser(e, t, p));
+		generatorMap.put(Type.Join,          (e, t, p) -> new JoinPropertyParser(e, t, p));
 
-		// IMPORTANT: parser map must be sorted by type name length
-		//            because we look up the parsers using "startsWith"!
 		sortIndexMap.put(Type.ZonedDateTime,  0);
 		sortIndexMap.put(Type.BooleanArray,   1);
 		sortIndexMap.put(Type.IntegerArray,   2);
@@ -1666,18 +1664,15 @@ public class SchemaHelper {
 
 	// ----- private methods -----
 	*/
-	public static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
+	public static PropertyGenerator getPropertyGenerator(final ErrorBuffer errorBuffer, final AbstractSchemaNode entity, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
-		final String propertyName                                  = propertyDefinition.getPropertyName();
-		final Type propertyType                                    = propertyDefinition.getPropertyType();
-		final Class<? extends PropertySourceGenerator> parserClass = parserMap.get(propertyType);
+		final String propertyName              = propertyDefinition.getPropertyName();
+		final Type propertyType                = propertyDefinition.getPropertyType();
+		final PropertyGeneratorFactory factory = generatorMap.get(propertyType);
 
-		try {
+		if (factory != null) {
 
-			return parserClass.getConstructor(ErrorBuffer.class, String.class, PropertyDefinition.class).newInstance(errorBuffer, className, propertyDefinition);
-
-		} catch (Throwable t) {
-			logger.warn("Unable to instantiate parser for {}: {}", propertyName, t);
+			return factory.newInstance(errorBuffer, entity.getClassName(), propertyDefinition);
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken("SchemaProperty", propertyName, propertyName, "invalid_property_definition", "Unknow value type " + propertyType + ", options are " + Arrays.asList(Type.values()) + "."));

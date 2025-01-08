@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -31,7 +30,7 @@ import java.lang.reflect.Constructor;
 /**
  *
  */
-public class CustomPropertyParser extends PropertySourceGenerator {
+public class CustomPropertyParser extends PropertyGenerator {
 
 	private static final Logger logger = LoggerFactory.getLogger(CustomPropertyParser.class);
 
@@ -101,31 +100,22 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getPropertyType() {
-		return propertyType;
-	}
-
-	@Override
 	public String getValueType() {
 		return valueType;
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return unqualifiedValueType;
+	protected Object getDefaultValue() {
+		return null;
 	}
 
 	@Override
-	public String getPropertyParameters() {
-		return propertyParameters;
+	protected Property newInstance() throws FrameworkException {
+		return null;
 	}
 
 	@Override
 	public Type getKey() {
 		return Type.Custom;
-	}
-
-	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 	}
 }

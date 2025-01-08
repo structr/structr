@@ -22,24 +22,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.PasswordProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class PasswordPropertySourceGenerator extends PropertySourceGenerator {
+public class PasswordPropertySourceGenerator extends PropertyGenerator {
 
 	public PasswordPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return PasswordProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -48,36 +42,30 @@ public class PasswordPropertySourceGenerator extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "String";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return "";
-	}
-
-	@Override
 	public Type getKey() {
 		return Type.String;
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	public Property newInstance() throws FrameworkException {
+
+		final String expression = source.getFormat();
 
 		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return;
+			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			return null;
 		}
 
 		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
 
-			addGlobalValidator(new Validator("isValidStringMatchingRegex", className, source.getPropertyName(), expression));
+			addGlobalValidator(new Validator("isValidStringMatchingRegex", source.getClassName(), source.getPropertyName(), expression));
 		}
+
+		return new PasswordProperty(source.getPropertyName());
 	}
 
 	@Override
 	public String getDefaultValue() {
-		return "\"".concat(getSourceDefaultValue()).concat("\"");
+		return source.getDefaultValue();
 	}
 }

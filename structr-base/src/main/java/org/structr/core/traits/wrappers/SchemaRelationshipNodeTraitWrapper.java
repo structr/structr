@@ -31,7 +31,6 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
-import org.structr.schema.DynamicTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SourceFile;
 
@@ -117,12 +116,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck) {
+	public String getMultiplicity(final String propertyNameToCheck) {
 		return null;
 	}
 
 	@Override
-	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck) {
+	public String getRelatedType(final String propertyNameToCheck) {
 		return null;
 	}
 

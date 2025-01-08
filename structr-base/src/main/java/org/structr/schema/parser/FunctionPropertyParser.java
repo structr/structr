@@ -18,29 +18,20 @@
  */
 package org.structr.schema.parser;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.FunctionProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class FunctionPropertyParser extends PropertySourceGenerator {
-
-	private static final Logger logger = LoggerFactory.getLogger(FunctionPropertyParser.class.getName());
+public class FunctionPropertyParser extends PropertyGenerator {
 
 	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return FunctionProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -49,21 +40,17 @@ public class FunctionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "Object";
+	protected Object getDefaultValue() {
+		return null;
 	}
 
 	@Override
-	public String getPropertyParameters() {
-		return "";
+	protected Property newInstance() throws FrameworkException {
+		return new FunctionProperty(source.getPropertyName(), source.getDbName());
 	}
 
 	@Override
 	public Type getKey() {
 		return Type.Function;
-	}
-
-	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 	}
 }

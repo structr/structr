@@ -25,102 +25,114 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.EnumArrayProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.sql.Array;
+import java.util.ArrayList;
 
 /**
  *
- *
  */
-public class EnumArrayPropertyParser extends PropertySourceGenerator {
+public class EnumArrayPropertyParser extends PropertyGenerator<String[]> {
 
-    private String enumTypeName = "";
-    private String enumType     = "";
+	private String enumTypeName = "";
+	private String enumType = "";
 
-    public EnumArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
-        super(errorBuffer, className, params);
-    }
+	public EnumArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
+	}
 
-    @Override
-    public String getPropertyType() {
-        return EnumArrayProperty.class.getSimpleName();
-    }
+	@Override
+	public String getValueType() {
+		return enumTypeName;
+	}
 
-    @Override
-    public String getValueType() {
-        return enumTypeName;
-    }
+	@Override
+	protected Property newInstance() throws FrameworkException {
+		return new EnumArrayProperty(source.getPropertyName(), enumType);
+	}
 
-    @Override
-    public String getUnqualifiedValueType() {
-        return enumTypeName;
-    }
+	@Override
+	public Type getKey() {
+		return Type.EnumArray;
+	}
 
-    @Override
-    public String getPropertyParameters() {
-        return enumType;
-    }
+	@Override
+	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
 
-    @Override
-    public Type getKey() {
-        return Type.EnumArray;
-    }
+		if (StringUtils.isNotBlank(expression)) {
 
-    @Override
-    public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+			final String[] enumTypes = expression.split("[, ]+");
 
-        if (StringUtils.isNotBlank(expression)) {
+			enumTypeName = StringUtils.capitalize(getSourcePropertyName());
 
-            final String[] enumTypes = expression.split("[, ]+");
+			// create enum type
+			enumType = ", " + enumTypeName + ".class";
 
-            enumTypeName = StringUtils.capitalize(getSourcePropertyName());
+			// build enum type definition
 
-            // create enum type
-            enumType = ", " + enumTypeName + ".class";
+			final StringBuilder buf = new StringBuilder();
 
-            // build enum type definition
+			buf.append("\n\tpublic enum ").append(enumTypeName).append(" {\n\t\t");
+			for (int i = 0; i < enumTypes.length; i++) {
 
-            final StringBuilder buf = new StringBuilder();
+				final String element = enumTypes[i];
 
-            buf.append("\n\tpublic enum ").append(enumTypeName).append(" {\n\t\t");
-            for (int i=0; i<enumTypes.length; i++) {
+				if (element.matches("[a-zA-Z_]{1}[a-zA-Z0-9_]*")) {
 
-                final String element = enumTypes[i];
+					buf.append(element);
 
-                if (element.matches("[a-zA-Z_]{1}[a-zA-Z0-9_]*")) {
+					// comma separation
+					if (i < enumTypes.length - 1) {
+						buf.append(", ");
+					}
 
-                    buf.append(element);
+				} else {
 
-                    // comma separation
-                    if (i < enumTypes.length-1) {
-                        buf.append(", ");
-                    }
+					reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]{1}[a-zA-Z0-9_]*."));
 
-                } else {
+				}
+			}
+			buf.append("\n\t};");
 
-                    reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]{1}[a-zA-Z0-9_]*."));
+			addEnumDefinition(buf.toString());
 
-                }
-            }
-            buf.append("\n\t};");
+		} else if (source.getFqcn() != null) {
 
-            addEnumDefinition(buf.toString());
+			// no enum type definition, use external type
+			enumTypeName = source.getFqcn();
 
-        } else if (source.getFqcn() != null) {
+			// create enum type
+			enumType = ", " + enumTypeName + ".class";
 
-            // no enum type definition, use external type
-            enumTypeName = source.getFqcn();
+		} else {
 
-            // create enum type
-            enumType = ", " + enumTypeName + ".class";
+			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
+		}
+	}
 
-        } else {
+	@Override
+	public String[] getDefaultValue() {
 
-            reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
-        }
-    }
+		final String def = source.getDefaultValue();
+		if (StringUtils.isNotBlank(def)) {
 
-    @Override
-    public String getDefaultValue() {
-        return enumTypeName.concat(".").concat(getSourceDefaultValue());
-    }
+			final ArrayList<String> values = new ArrayList<>();
+			final String[] parts           = def.split("[,]+");
+
+			for (final String part : parts) {
+
+				final String trimmed = part.trim();
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					values.add(trimmed);
+				}
+			}
+
+			return values.toArray(new String[0]);
+		}
+
+		return null;
+	}
 }

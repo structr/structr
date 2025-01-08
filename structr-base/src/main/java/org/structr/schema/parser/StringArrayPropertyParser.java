@@ -21,24 +21,18 @@ package org.structr.schema.parser;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class StringArrayPropertyParser extends PropertySourceGenerator {
+public class StringArrayPropertyParser extends PropertyGenerator<String[]> {
 
-	public StringArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
-		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return ArrayProperty.class.getSimpleName().concat("<String>");
+	public StringArrayPropertyParser(final ErrorBuffer errorBuffer, final String entity, final PropertyDefinition params) {
+		super(errorBuffer, entity, params);
 	}
 
 	@Override
@@ -47,31 +41,24 @@ public class StringArrayPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "String[]";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return ", String.class";
-	}
-
-	@Override
 	public Type getKey() {
 		return Type.StringArray;
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	protected Property newInstance() throws FrameworkException {
 
+		final String expression = source.getFormat();
 		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return;
+			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			return null;
 		}
+
+		return new ArrayProperty(source.getPropertyName(), String.class);
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "\"".concat(getSourceDefaultValue()).concat("\"");
+	public String[] getDefaultValue() {
+		return null;
 	}
 }
