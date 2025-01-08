@@ -850,7 +850,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {
