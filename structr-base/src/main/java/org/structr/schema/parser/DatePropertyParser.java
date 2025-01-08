@@ -21,8 +21,8 @@ package org.structr.schema.parser;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.DateProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.text.ParseException;
@@ -35,7 +35,7 @@ import java.util.Date;
  *
  *
  */
-public class DatePropertyParser extends PropertySourceGenerator {
+public class DatePropertyParser extends PropertyGenerator<Date> {
 
 	private String pattern = null;
 
@@ -44,23 +44,8 @@ public class DatePropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getPropertyType() {
-		return DateProperty.class.getSimpleName();
-	}
-
-	@Override
 	public String getValueType() {
 		return Date.class.getName();
-	}
-
-	@Override
-	public String getUnqualifiedValueType() {
-		return "Date";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return "";
 	}
 
 	@Override
@@ -69,17 +54,16 @@ public class DatePropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
-
-		if (expression != null && !expression.isEmpty()) {
-
-			pattern = expression;
-		}
+	protected Property newInstance() throws FrameworkException {
+		return new DateProperty(source.getPropertyName());
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "DatePropertyParser.parse(\"" + getSourceDefaultValue() + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
+	public Date getDefaultValue() {
+
+		final String pattern = source.getFormat();
+
+		return DatePropertyParser.parse(source.getDefaultValue(), pattern != null ? pattern  : null);
 	}
 
 	/**

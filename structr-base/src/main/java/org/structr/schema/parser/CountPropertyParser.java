@@ -21,26 +21,20 @@ package org.structr.schema.parser;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ElementCounter;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class CountPropertyParser extends PropertySourceGenerator {
-
-	private String auxType = "";
+public class CountPropertyParser extends PropertyGenerator {
 
 	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return ElementCounter.class.getSimpleName();
 	}
 
 	@Override
@@ -49,13 +43,8 @@ public class CountPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "Integer";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return auxType;
+	protected Object getDefaultValue() {
+		return null;
 	}
 
 	@Override
@@ -64,12 +53,19 @@ public class CountPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	protected Property newInstance() throws FrameworkException {
 
+		final String expression = source.getFormat();
 		if (expression == null || expression.isEmpty()) {
 			throw new FrameworkException(422, "Invalid count property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_property_reference", "Empty property reference."));
 		}
 
-		auxType = ", " + expression + "Property";
+		//auxType = ", " + expression + "Property";
+
+		final Property<Iterable<NodeInterface>> collectionProperty = null;
+
+		// fixme
+
+		return new ElementCounter(source.getPropertyName(), collectionProperty);
 	}
 }

@@ -20,23 +20,18 @@ package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
-public class BooleanPropertyParser extends PropertySourceGenerator {
+public class BooleanPropertyParser extends PropertyGenerator<Boolean> {
 
 	public BooleanPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return BooleanProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -45,13 +40,8 @@ public class BooleanPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "Boolean";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return "";
+	protected Boolean getDefaultValue() {
+		return Boolean.valueOf(source.getDefaultValue());
 	}
 
 	@Override
@@ -60,6 +50,7 @@ public class BooleanPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+	protected Property newInstance() throws FrameworkException {
+		return new BooleanProperty(source.getPropertyName(), source.getDbName());
 	}
 }

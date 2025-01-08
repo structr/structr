@@ -19,38 +19,10 @@
 package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.CypherQueryProperty;
-import org.structr.core.property.Property;
-import org.structr.schema.SchemaHelper.Type;
 
-/**
- *
- *
- */
-public class CypherPropertyParser extends PropertyGenerator {
+public abstract class NumericalArrayPropertyGenerator<T> extends NumericalPropertyParser<T[]> {
 
-	public CypherPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public NumericalArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getValueType() {
-		return "Iterable<GraphObject>";
-	}
-
-	@Override
-	protected Object getDefaultValue() {
-		return null;
-	}
-
-	@Override
-	protected Property newInstance() throws FrameworkException {
-		return new CypherQueryProperty(source.getPropertyName(), source.getFormat());
-	}
-
-	@Override
-	public Type getKey() {
-		return Type.Cypher;
 	}
 }

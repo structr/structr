@@ -22,10 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EntityNotionProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
@@ -37,7 +37,7 @@ import java.util.Set;
  *
  *
  */
-public class NotionPropertyParser extends PropertySourceGenerator {
+public class NotionPropertyParser extends PropertyGenerator {
 
 	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;
@@ -78,12 +78,15 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final AbstractSchemaNode node, String expression) throws FrameworkException {
+	protected Property newInstance() throws FrameworkException {
+
+		final String name       = source.getPropertyName();
+		final String expression = source.getFormat();
 
 		if (StringUtils.isBlank(expression)) {
 
 			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
-			throw new FrameworkException(422, "Empty notion property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(node.getName(), source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression for property " + source.getPropertyName() + "."));
+			throw new FrameworkException(422, "Empty notion property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(className, source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression for property " + source.getPropertyName() + "."));
 		}
 
 		final StringBuilder buf = new StringBuilder();
@@ -94,12 +97,12 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 			final SchemaRelationshipNode entity = node.as(SchemaRelationshipNode.class);
 			boolean isBuiltinProperty           = false;
 			baseProperty                        = parts[0];
-			multiplicity                        = entity.getMultiplicity(schemaNodes, baseProperty);
+			multiplicity                        = entity.getMultiplicity(baseProperty);
 
 			if (multiplicity != null) {
 
 				// determine related type from relationship
-				relatedType  = entity.getRelatedType(schemaNodes, baseProperty);
+				relatedType  = entity.getRelatedType(baseProperty);
 
 				switch (multiplicity) {
 
@@ -193,8 +196,9 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 			}
 		}
 
-
 		parameters = buf.toString();
+
+		return null;
 	}
 
 	private String extendPropertyName(final String propertyName, final Boolean isBoolean) throws FrameworkException {

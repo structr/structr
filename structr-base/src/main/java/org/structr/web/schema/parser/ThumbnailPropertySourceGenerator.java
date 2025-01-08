@@ -24,7 +24,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.PropertyDefinition;
-import org.structr.schema.parser.PropertySourceGenerator;
+import org.structr.schema.parser.PropertyGenerator;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
 
@@ -32,11 +32,11 @@ import org.structr.web.property.ThumbnailProperty;
  *
  *
  */
-public class ThumbnailPropertySourceGenerator extends PropertySourceGenerator {
+public class ThumbnailPropertySourceGenerator extends PropertyGenerator {
 
 	static {
 
-		SchemaHelper.parserMap.put(Type.Thumbnail, ThumbnailPropertySourceGenerator.class);
+		SchemaHelper.generatorMap.put(Type.Thumbnail, (e, t, p) -> new ThumbnailPropertySourceGenerator(e, t, p));
 	}
 
 	public ThumbnailPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {

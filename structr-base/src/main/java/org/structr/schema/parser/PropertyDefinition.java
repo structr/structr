@@ -23,6 +23,7 @@ import org.structr.schema.SchemaHelper.Type;
 
 public interface PropertyDefinition extends CodeSource {
 
+	String getClassName();
 	String getPropertyName();
 	Type getPropertyType();
 	String getSource();

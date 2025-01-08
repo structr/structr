@@ -165,7 +165,7 @@ public class StructrIntegerProperty extends StructrPropertyDefinition implements
 
 		super.deserialize(schemaNodes, property);
 
-		final IntPropertyParser intPropertyParser = property.getIntPropertyParser(schemaNodes);
+		final IntPropertyParser intPropertyParser = property.getIntPropertyParser();
 		if (intPropertyParser != null) {
 
 			this.exclusiveMinimum = intPropertyParser.isLowerExclusive();

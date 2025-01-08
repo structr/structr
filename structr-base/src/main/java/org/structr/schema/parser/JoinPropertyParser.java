@@ -22,8 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.property.JoinProperty;
+import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -35,7 +34,7 @@ import java.io.StringReader;
  *
  *
  */
-public class JoinPropertyParser extends PropertySourceGenerator {
+public class JoinPropertyParser extends PropertyGenerator {
 
 	private static final Logger logger = LoggerFactory.getLogger(JoinPropertyParser.class.getName());
 
@@ -51,28 +50,19 @@ public class JoinPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getPropertyType() {
-		return JoinProperty.class.getSimpleName();
-	}
-
-	@Override
 	public String getValueType() {
 		return String.class.getSimpleName();
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return getValueType();
+	protected Object getDefaultValue() {
+		return null;
 	}
 
 	@Override
-	public String getPropertyParameters() {
-		return parameters;
-	}
+	public Property newInstance() throws FrameworkException {
 
-	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
-
+		final String expression         = source.getFormat();
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expression));
 		final StringBuilder buf         = new StringBuilder();
 
@@ -125,5 +115,8 @@ public class JoinPropertyParser extends PropertySourceGenerator {
 		}
 
 		parameters = buf.toString();
+
+
+		return null;
 	}
 }

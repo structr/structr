@@ -386,12 +386,13 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testConcurrentValidation() {
 
-		final int count = 100;
+		final String typeName = "Item";
+		final int count       = 100;
 
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
+			final JsonObjectType type = schema.addType(typeName);
 
 			type.addStringProperty("name").setUnique(true).setRequired(true);
 
@@ -405,12 +406,7 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-
-		final String type = "Item";
-		assertNotNull(type);
-
-
-		final PropertyKey name = Traits.of(type).key("name");
+		final PropertyKey name = Traits.of(typeName).key("name");
 		assertNotNull(name);
 
 		final Runnable tester = new Runnable() {
@@ -423,7 +419,7 @@ public class ValidationTest extends StructrTest {
 					// testing must be done in an isolated transaction
 					try (final Tx tx = app.tx()) {
 
-						app.create(type, "Item" + i);
+						app.create(typeName, "Item" + i);
 
 						tx.success();
 
@@ -451,7 +447,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			result = app.nodeQuery(type).getAsList();
+			result = app.nodeQuery(typeName).getAsList();
 
 
 			tx.success();
@@ -477,6 +473,18 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type1 = schema.addType("Item");
+			final JsonObjectType type2 = schema.addType("ItemDerived");
+
+			type2.addTrait("Item");
+
+			type1.addStringProperty("name").setUnique(true).setRequired(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			final NodeInterface item = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Item"),
 				new NodeAttribute<>(new StringProperty("_name"), "+String!")
@@ -486,6 +494,7 @@ public class ValidationTest extends StructrTest {
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ItemDerived"),
 				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Item" })
 			);
+			*/
 
 			tx.success();
 
@@ -575,10 +584,20 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type1 = schema.addType("Item");
+
+			type1.addStringProperty("testXYZ").setUnique(true).setRequired(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Item"),
 				new NodeAttribute<>(new StringProperty("_testXYZ"), "+String!")
 			);
+			*/
 
 			tx.success();
 
@@ -690,10 +709,20 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type1 = schema.addType("Test");
+
+			type1.addStringProperty("testUnique").setUnique(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
+			*/
 
 			tx.success();
 
@@ -746,10 +775,20 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type1 = schema.addType("Test");
+
+			type1.addStringProperty("testUnique").setUnique(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
+			*/
 
 			tx.success();
 
@@ -792,10 +831,20 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type1 = schema.addType("Test");
+
+			type1.addStringProperty("testUnique").setUnique(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
 			);
+			*/
 
 			tx.success();
 
@@ -852,6 +901,18 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type1 = schema.addType("Test");
+			final JsonObjectType type2 = schema.addType("TestDerived");
+
+			type2.addTrait("Test");
+
+			type1.addStringProperty("testUnique").setUnique(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			final NodeInterface testType = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
@@ -861,6 +922,7 @@ public class ValidationTest extends StructrTest {
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "TestDerived"),
 				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), testType)
 			);
+			*/
 
 			tx.success();
 
@@ -985,10 +1047,19 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addStringProperty("nonempty").setRequired(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
 				new NodeAttribute<>(new StringProperty("_nonempty"), "+String")
 			);
+			*/
 
 			tx.success();
 
@@ -1029,7 +1100,7 @@ public class ValidationTest extends StructrTest {
 	public void testStringPropertyRegexMatch() {
 
 		final String keyName  = "regex";
-		final String testType  = createTypeWithProperty("Test", keyName, "String([a-zA-Z0-9]+)");
+		final String testType  = createTypeWithProperty("Test", keyName, "String", false, false, "[a-zA-Z0-9]+");
 		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
@@ -1060,7 +1131,7 @@ public class ValidationTest extends StructrTest {
 	public void testArrayPropertyNotNullValidation() {
 
 		final String keyName  = "stringArray";
-		final String testType  = createTypeWithProperty("Test", keyName, "+String[]");
+		final String testType  = createTypeWithProperty("Test", keyName, "StringArray", false, true, null);
 		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
@@ -1087,11 +1158,11 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testArrayPropertyUniquenessValidation() {
 
-		final String keyName                = "stringArray";
-		final String testType = createTypeWithProperty("Test", keyName, "String[]!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
-		String uuid1                        = null;
-		String uuid2                        = null;
+		final String keyName   = "stringArray";
+		final String testType  = createTypeWithProperty("Test", keyName, "StringArray", true, false, null);
+		final PropertyKey key  = Traits.of(testType).key(keyName);
+		String uuid1           = null;
+		String uuid2           = null;
 
 		if (key != null) {
 
@@ -1143,9 +1214,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testBooleanPropertyNotNullValidation() {
 
-		final String keyName                = "notNull";
-		final String testType = createTypeWithProperty("Test", keyName, "+Boolean");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "notNull";
+		final String testType = createTypeWithProperty("Test", keyName, "Boolean", false, true, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1173,9 +1244,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testBooleanPropertyUniquenessValidation() {
 
-		final String keyName                = "unique";
-		final String testType = createTypeWithProperty("Test", keyName, "Boolean!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "unique";
+		final String testType = createTypeWithProperty("Test", keyName, "Boolean", true, false, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1214,11 +1285,11 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDatePropertyUniquenessValidation() {
 
-		final String keyName                = "unique";
-		final String testType = createTypeWithProperty("Test", keyName, "Date!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
-		final Date date                     = new Date();
-		String uuid                         = null;
+		final String keyName  = "unique";
+		final String testType = createTypeWithProperty("Test", keyName, "Date", true, false, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
+		final Date date       = new Date();
+		String uuid           = null;
 
 		if (key != null) {
 
@@ -1254,9 +1325,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDatePropertyNotNullValidation() {
 
-		final String keyName                = "notnull";
-		final String testType = createTypeWithProperty("Test", keyName, "+Date");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "notnull";
+		final String testType = createTypeWithProperty("Test", keyName, "Date", false, true, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1287,9 +1358,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyUniquenessValidation() {
 
-		final String keyName                = "unique";
-		final String testType = createTypeWithProperty("Test", keyName, "Double!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "unique";
+		final String testType = createTypeWithProperty("Test", keyName, "Double", true, false, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1326,9 +1397,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyNotNullValidation() {
 
-		final String keyName                = "notnull";
-		final String testType = createTypeWithProperty("Test", keyName, "+Double");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "notnull";
+		final String testType = createTypeWithProperty("Test", keyName, "Double", false, true, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1358,8 +1429,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation1() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Double([1,5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Double", false, true, "[1,5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1.0);
 		checkRangeSuccess(testType, range1, 1.00001);
@@ -1380,8 +1451,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation2() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Double", false ,true, "[0.0,0.5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0.0);
 		checkRangeSuccess(testType, range1, 0.0);
@@ -1402,8 +1473,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation3() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5[)");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Double", false, true, "[0.0,0.5[");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0.0);
 		checkRangeSuccess(testType, range1, 0.0);
@@ -1424,8 +1495,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation4() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Double", false, true, "]0.0,0.5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 0.00001);
 		checkRangeSuccess(testType, range1, 0.1);
@@ -1446,8 +1517,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation5() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5[)");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Double", false ,true, "]0.0,0.5[");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 0.00001);
 		checkRangeSuccess(testType, range1, 0.1);
@@ -1468,10 +1539,10 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testEnumPropertyUniquenessValidation() {
 
-		final String keyName                = "unique";
-		final String testType = createTypeWithProperty("Test", keyName, "Enum(one, two, three)!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
-		String uuid                         = null;
+		final String keyName  = "unique";
+		final String testType = createTypeWithProperty("Test", keyName, "Enum", true, false, "one, two, three");
+		final PropertyKey key = Traits.of(testType).key(keyName);
+		String uuid           = null;
 
 		if (key != null) {
 
@@ -1509,9 +1580,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testEnumPropertyNotNullValidation() {
 
-		final String keyName                = "notnull";
-		final String testType = createTypeWithProperty("Test", keyName, "+Enum(one, two, three)");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "notnull";
+		final String testType = createTypeWithProperty("Test", keyName, "Enum", false, true, "one, two, three");
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		// test failure
 		try (final Tx tx = app.tx()) {
@@ -1539,10 +1610,10 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyUniquenessValidation() {
 
-		final String keyName                = "unique";
-		final String testType = createTypeWithProperty("Test", keyName, "Integer!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
-		String uuid                         = null;
+		final String keyName  = "unique";
+		final String testType = createTypeWithProperty("Test", keyName, "Integer", true, false, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
+		String uuid           = null;
 
 		if (key != null) {
 
@@ -1578,9 +1649,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyNotNullValidation() {
 
-		final String keyName                = "notnull";
-		final String testType = createTypeWithProperty("Test", keyName, "+Integer");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "notnull";
+		final String testType = createTypeWithProperty("Test", keyName, "Integer", false, true, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1610,8 +1681,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation1() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Integer([1,5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Integer", false, true, "[1,5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1628,8 +1699,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation3() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Integer([0,5[)");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Integer", false, true, "[0,5[");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0);
 		checkRangeSuccess(testType, range1, 0);
@@ -1646,8 +1717,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation4() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Integer", false, true, "]0,5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1662,8 +1733,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation5() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5[)");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Integer", false, true, "]0,5[");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1679,10 +1750,10 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyUniquenessValidation() {
 
-		final String keyName                = "unique";
-		final String testType = createTypeWithProperty("Test", keyName, "Long!");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
-		String uuid                         = null;
+		final String keyName  = "unique";
+		final String testType = createTypeWithProperty("Test", keyName, "Long", true, false, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
+		String uuid           = null;
 
 		if (key != null) {
 
@@ -1718,9 +1789,9 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyNotNullValidation() {
 
-		final String keyName                = "notnull";
-		final String testType = createTypeWithProperty("Test", keyName, "+Long");
-		final PropertyKey key               = Traits.of(testType).key(keyName);
+		final String keyName  = "notnull";
+		final String testType = createTypeWithProperty("Test", keyName, "Long", false, true, null);
+		final PropertyKey key = Traits.of(testType).key(keyName);
 
 		if (key != null) {
 
@@ -1750,8 +1821,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation1() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Long([1,5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Long", false, true, "[1,5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1L);
 		checkRangeSuccess(testType, range1, 2L);
@@ -1768,7 +1839,7 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation3() {
 
-		final String testType    = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
+		final String testType    = createTypeWithProperty("Test", "range1", "Long", false, true, "[0,5[");
 		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, -0L);
@@ -1786,8 +1857,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation4() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Long(]0,5])");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Long", false, true, "]0,5]");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1L);
 		checkRangeSuccess(testType, range1, 2L);
@@ -1802,8 +1873,8 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation5() {
 
-		final String testType = createTypeWithProperty("Test", "range1", "+Long(]0,5[)");
-		final PropertyKey range1            = Traits.of(testType).key("range1");
+		final String testType    = createTypeWithProperty("Test", "range1", "Long", false, true, "]0,5[");
+		final PropertyKey range1 = Traits.of(testType).key("range1");
 
 		checkRangeSuccess(testType, range1, 1L);
 		checkRangeSuccess(testType, range1, 2L);
@@ -2291,14 +2362,33 @@ public class ValidationTest extends StructrTest {
 
 	}
 
-	private String createTypeWithProperty(final String typeName, final String keyName, final String keyType) {
+	private String createTypeWithProperty(final String typeName, final String keyName, final String keyType, final boolean unique, final boolean required, final String format) {
 
 		try (final Tx tx = app.tx()) {
 
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType(typeName);
+
+			switch (keyType) {
+
+				case "Boolean"      -> type.addBooleanProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "BooleanArray" -> type.addBooleanArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "Date"         -> type.addDateProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "DateArray"    -> type.addDateArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "Integer"      -> type.addIntegerProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "IntegerArray" -> type.addIntegerArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "String"       -> type.addStringProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "StringArray"  -> type.addStringArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+			}
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			/*
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), typeName),
 				new NodeAttribute<>(new StringProperty("_" + keyName), keyType)
 			);
+			*/
 
 			tx.success();
 

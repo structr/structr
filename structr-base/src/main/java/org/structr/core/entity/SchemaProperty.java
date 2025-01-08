@@ -25,7 +25,7 @@ import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.parser.*;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 public interface SchemaProperty extends PropertyDefinition, NodeTrait {
@@ -33,22 +33,19 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 	AbstractSchemaNode getSchemaNode();
 	String getSourceContentType();
 
-	String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes);
-	Set<String> getPropertiesForNotionProperty(final Map<String, SchemaNode> schemaNodes);
-	String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes);
+	String getNotionBaseProperty();
+	Set<String> getPropertiesForNotionProperty();
+	String getNotionMultiplicity();
 
 	Set<String> getEnumDefinitions();
 
-	NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes);
-	IntPropertyParser getIntPropertyParser(final Map<String, SchemaNode> schemaNodes);
-	IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
-	LongPropertyParser getLongPropertyParser(final Map<String, SchemaNode> schemaNodes);
-	LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
-	DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes);
-	DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes);
+	NotionPropertyParser getNotionPropertyParser();
+	IntPropertyParser getIntPropertyParser();
+	LongPropertyParser getLongPropertyParser();
+	DoublePropertyParser getDoublePropertyParser();
 
 	PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException;
-	IsValid createValidators(final AbstractSchemaNode entity) throws FrameworkException;
+	List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException;
 
 	static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
 

@@ -19,7 +19,9 @@
 package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.DateArrayProperty;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Date;
@@ -28,15 +30,10 @@ import java.util.Date;
  *
  *
  */
-public class DateArrayPropertyParser extends IntPropertyParser {
+public class DateArrayPropertyParser extends PropertyGenerator<Date[]> {
 
 	public DateArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return DateArrayProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -45,13 +42,8 @@ public class DateArrayPropertyParser extends IntPropertyParser {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "DateArray";
-	}
-
-	@Override
-	public String getPropertyParameters() {
-		return "";
+	protected Property newInstance() throws FrameworkException {
+		return new DateArrayProperty(source.getPropertyName());
 	}
 
 	@Override
@@ -60,7 +52,22 @@ public class DateArrayPropertyParser extends IntPropertyParser {
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "\"".concat(getSourceDefaultValue()).concat("\"");
+	public Date[] getDefaultValue() {
+		return null;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

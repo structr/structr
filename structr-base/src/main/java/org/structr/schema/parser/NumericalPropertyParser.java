@@ -20,54 +20,47 @@ package org.structr.schema.parser;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.Schema;
-
-import java.util.Map;
 
 /**
  *
  *
  */
-public abstract class NumericalPropertyParser extends PropertySourceGenerator {
+public abstract class NumericalPropertyParser<T> extends PropertyGenerator<T> {
 
-	private Number lowerBound = null;
-	private Number upperBound = null;
+	private Number lowerBound      = null;
+	private Number upperBound      = null;
 	private boolean lowerExclusive = false;
 	private boolean upperExclusive = false;
+	protected boolean error        = false;
 
 	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
+
+		initialize();
 	}
 
-	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);
+	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which);
 
-	@Override
-	public String getPropertyParameters() {
-		return "";
-	}
+	private void initialize() {
 
-	@Override
-	public void parseFormatString(final AbstractSchemaNode node, String expression) throws FrameworkException {
-
-		boolean error = false;
 		final String rangeFormatErrorMessage = "Range expression must describe a (possibly open-ended) interval, e.g. [10,99] or ]9,100[ for all two-digit integers";
+		final String name                    = source.getPropertyName();
+		final String expression              = source.getFormat();
 
 		if (StringUtils.isNotBlank(expression)) {
 
 			if ((expression.startsWith("[") || expression.startsWith("]")) && (expression.endsWith("[") || expression.endsWith("]"))) {
 
-				final String range      = expression.substring(1, expression.length()-1);
-				final String[] parts    = range.split(",+");
+				final String range = expression.substring(1, expression.length() - 1);
+				final String[] parts = range.split(",+");
 
 				if (parts.length == 2) {
 
-					lowerBound = parseNumber(getErrorBuffer(), parts[0].trim(), "lower");
-					upperBound = parseNumber(getErrorBuffer(), parts[1].trim(), "upper");
+					lowerBound = parseNumber(getErrorBuffer(), name, parts[0].trim(), "lower");
+					upperBound = parseNumber(getErrorBuffer(), name, parts[1].trim(), "upper");
 
 					if (lowerBound == null || upperBound == null) {
 						error = true;
@@ -77,21 +70,18 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 					upperExclusive = expression.endsWith("[");
 
 				} else {
+
 					error = true;
 				}
 
-				if (!error) {
-
-					addGlobalValidator(new Validator("isValid" + getUnqualifiedValueType() + "InRange", getClassName(), getSourcePropertyName(), expression));
-				}
-
 			} else {
+
 				error = true;
 			}
-
 		}
 
 		if (error) {
+
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_range_expression", rangeFormatErrorMessage));
 		}
 	}

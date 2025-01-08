@@ -166,7 +166,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 
 		super.deserialize(schemaNodes, property);
 
-		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser(schemaNodes);
+		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser();
 		if (doublePropertyParser != null) {
 
 			this.exclusiveMinimum = doublePropertyParser.isLowerExclusive();

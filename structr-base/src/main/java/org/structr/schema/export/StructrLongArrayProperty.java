@@ -30,6 +30,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.LongArrayPropertyParser;
+import org.structr.schema.parser.LongPropertyParser;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -176,7 +177,7 @@ public class StructrLongArrayProperty extends StructrPropertyDefinition implemen
 
 		super.deserialize(schemaNodes, property);
 
-		final LongArrayPropertyParser longPropertyParser = property.getLongArrayPropertyParser(schemaNodes);
+		final LongPropertyParser longPropertyParser = property.getLongPropertyParser();
 		if (longPropertyParser != null) {
 
 			this.exclusiveMinimum = longPropertyParser.isLowerExclusive();

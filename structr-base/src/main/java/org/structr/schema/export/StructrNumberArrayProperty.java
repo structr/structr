@@ -30,6 +30,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
+import org.structr.schema.parser.DoublePropertyParser;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -176,7 +177,7 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 
 		super.deserialize(schemaNodes, property);
 
-		final DoubleArrayPropertyParser doublePropertyParser = property.getDoubleArrayPropertyParser(schemaNodes);
+		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser();
 		if (doublePropertyParser != null) {
 
 			this.exclusiveMinimum = doublePropertyParser.isLowerExclusive();

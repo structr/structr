@@ -58,7 +58,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 			try {
 
-				validator.addValidatorOrNull(property.createValidators(schemaNode));
+				validator.addValidatorsOrNull(property.createValidators(schemaNode));
 
 			} catch (FrameworkException e) {
 				e.printStackTrace();
@@ -174,10 +174,16 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 			return isValid;
 		}
 
-		public void addValidatorOrNull(final IsValid validator) {
+		public void addValidatorsOrNull(final List<IsValid> validators) {
 
-			if (validator != null) {
-				validators.add(validator);
+			if (validators != null) {
+
+				for (final IsValid v : validators) {
+
+					if (v != null) {
+						validators.add(v);
+					}
+				}
 			}
 		}
 	}

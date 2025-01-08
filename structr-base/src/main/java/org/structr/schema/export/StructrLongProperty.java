@@ -165,7 +165,7 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 
 		super.deserialize(schemaNodes, property);
 
-		final LongPropertyParser longPropertyParser = property.getLongPropertyParser(schemaNodes);
+		final LongPropertyParser longPropertyParser = property.getLongPropertyParser();
 		if (longPropertyParser != null) {
 
 			this.exclusiveMinimum = longPropertyParser.isLowerExclusive();

@@ -21,7 +21,7 @@ package org.structr.schema.parser;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.property.Property;
 import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.schema.SchemaHelper;
 
@@ -29,7 +29,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
+public class ZonedDateTimePropertyParser extends PropertyGenerator {
 
 	private String pattern = null;
 
@@ -43,32 +43,22 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getPropertyType() {
-		return ZonedDateTimeProperty.class.getSimpleName();
-	}
-
-	@Override
 	public String getValueType() {
 		return ZonedDateTime.class.getName();
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "ZonedDateTime";
-	}
+	protected Property newInstance() throws FrameworkException {
 
-	@Override
-	public String getPropertyParameters() {
-		return "";
-	}
-
-	@Override
-	public void parseFormatString(final AbstractSchemaNode entity, String expression) throws FrameworkException {
+		final String name       = source.getPropertyName();
+		final String expression = source.getFormat();
 
 		if (expression != null && !expression.isEmpty()) {
 
 			pattern = expression;
 		}
+
+		return new ZonedDateTimeProperty(name, source.getDbName());
 	}
 
 	@Override
@@ -83,7 +73,7 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 	 * @param pattern optional SimpleDateFormat pattern
 	 * @return
 	 */
-	public static ZonedDateTime parse(String source, final String pattern) throws FrameworkException {
+	public static ZonedDateTime parse(final String source, final String pattern) throws FrameworkException {
 
 		if (StringUtils.isBlank(pattern)) {
 
@@ -124,7 +114,7 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 
 	}
 
-	public static ZonedDateTime parse(String source) throws FrameworkException {
+	public static ZonedDateTime parse(final String source) throws FrameworkException {
 		return parse(source, null);
 	}
 
