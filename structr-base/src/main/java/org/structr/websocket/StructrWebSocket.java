@@ -409,8 +409,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-
 			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 			} else if (t.getCause() instanceof TimeoutException) {
