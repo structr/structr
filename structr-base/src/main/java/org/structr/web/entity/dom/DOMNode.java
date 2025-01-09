@@ -113,16 +113,16 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public static final Property<Page> ownerDocumentProperty = new EndNode<>("ownerDocument", DOMNodePAGEPage.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
 
-	public static final Property<Iterable<ActionMapping>> reloadingActionsProperty           = new EndNodes<>("reloadingActions", DOMNodeSUCCESS_TARGETActionMapping.class).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> failureActionsProperty             = new EndNodes<>("failureActions", DOMNodeFAILURE_TARGETActionMapping.class).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> successNotificationActionsProperty = new EndNodes<>("successNotificationActions", DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping.class).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> failureNotificationActionsProperty = new EndNodes<>("failureNotificationActions", DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> reloadingActionsProperty           = new EndNodes<>("reloadingActions", DOMNodeSUCCESS_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> failureActionsProperty             = new EndNodes<>("failureActions", DOMNodeFAILURE_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> successNotificationActionsProperty = new EndNodes<>("successNotificationActions", DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> failureNotificationActionsProperty = new EndNodes<>("failureNotificationActions", DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
 
 	public static final Property<java.lang.Object> sortedChildrenProperty = new MethodProperty("sortedChildren").format("org.structr.web.entity.dom.DOMNode, getChildNodes").typeHint("DOMNode[]").partOfBuiltInSchema();
-	public static final Property<String> childrenIdsProperty              = new CollectionIdProperty("childrenIds", childrenProperty).format("children, {},").partOfBuiltInSchema().category("Page Structure").partOfBuiltInSchema();
-	public static final Property<String> nextSiblingIdProperty            = new EntityIdProperty("nextSiblingId", nextSiblingProperty).format("nextSibling, {},").partOfBuiltInSchema().category("Page Structure").partOfBuiltInSchema();
-	public static final Property<String> pageIdProperty                   = new EntityIdProperty("pageId", ownerDocumentProperty).format("ownerDocument, {},").partOfBuiltInSchema().category("Page Structure").partOfBuiltInSchema();
-	public static final Property<String> parentIdProperty                 = new EntityIdProperty("parentId", parentProperty).format("parent, {},").partOfBuiltInSchema().category("Page Structure").partOfBuiltInSchema();
+	public static final Property<String> childrenIdsProperty              = new CollectionIdProperty("childrenIds", childrenProperty).format("children, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
+	public static final Property<String> nextSiblingIdProperty            = new EntityIdProperty("nextSiblingId", nextSiblingProperty).format("nextSibling, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
+	public static final Property<String> pageIdProperty                   = new EntityIdProperty("pageId", ownerDocumentProperty).format("ownerDocument, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
+	public static final Property<String> parentIdProperty                 = new EntityIdProperty("parentId", parentProperty).format("parent, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String> sharedComponentIdProperty        = new EntityIdProperty("sharedComponentId", sharedComponentProperty).format("sharedComponent, {},").partOfBuiltInSchema();
 	public static final Property<String> syncedNodesIdsProperty           = new CollectionIdProperty("syncedNodesIds", syncedNodesProperty).format("syncedNodes, {},").partOfBuiltInSchema();
 
