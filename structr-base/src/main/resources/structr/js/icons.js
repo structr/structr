@@ -470,6 +470,11 @@ let _Icons = {
 
 			case "IntegerArray":
 			case "StringArray":
+			case "DateArray":
+			case "EnumArray":
+			case "LongArray":
+			case "BooleanArray":
+			case "DoubleArray":
 				return _Icons.iconSchemaPropertyArray;
 
 			case 'Integer':

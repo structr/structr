@@ -802,7 +802,9 @@ let _Crud = {
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
 					`;
 
-					if (_Crud.helpers.isCollection(key, type)) {
+					let isCollection            = _Crud.helpers.isCollection(key, type);
+					let isRelationshipAttribute = _Crud.helpers.getRelatedTypeForAttribute(key, type) !== undefined;
+					if (isCollection && isRelationshipAttribute) {
 						_Crud.objectList.pager.addPageSizeConfigToColumn($(th), type, key);
 					}
 
@@ -961,163 +963,145 @@ let _Crud = {
 
 				} else if (propertyType === 'Date') {
 
-					cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="flex items-center relative">
+							<input name="${key}" class="__value pl-9 mr-3 ${readOnly ? 'readonly' : ''}" type="text" size="26" autocomplete="one-time-code" ${readOnly ? 'readonly' : ''}>
+							${_Crud.helpers.getDateTimeIconHTML()}
+						</div>
+					`);
+					cell[0].appendChild(cellContent);
+
+					let input = cellContent.querySelector('input');
+					input.value = value ?? '';
 
 					if (!readOnly) {
 
-						let format = _Crud.helpers.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.helpers.getFormat(type, key);
-						let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+						let oldValue = input.value;
 
-						cell.on('click', function(event) {
-							event.preventDefault();
-							var self = $(this);
-							var oldValue = self.text().trim();
-							self.html(`<input name="${key}" class="__value" type="text" size="40">`);
-							var input = $('input', self);
-							input.val(oldValue);
+						_Entities.addDatePicker(input, key, type, () => {
 
-							if (dateTimePickerFormat.timeFormat) {
-								input.datetimepicker({
-									parse: 'loose',
-									dateFormat: dateTimePickerFormat.dateFormat,
-									timeFormat: dateTimePickerFormat.timeFormat,
-									separator: dateTimePickerFormat.separator,
-									onClose: function() {
-										var newValue = input.val();
-										if (id && newValue !== oldValue) {
-											_Crud.objectList.crudUpdate(id, key, newValue);
-										} else {
-											_Crud.objectList.resetCellToOldValue(id, key, oldValue);
-										}
-									}
-								});
-								input.datetimepicker('show');
+							let newValue = input.value;
+
+							if (id && newValue !== oldValue) {
+								_Crud.objectList.crudUpdate(id, key, newValue);
 							} else {
-								input.datepicker({
-									parse: 'loose',
-									dateFormat: dateTimePickerFormat.dateFormat,
-									onClose: function() {
-										var newValue = input.val();
-										if (id && newValue !== oldValue) {
-											_Crud.objectList.crudUpdate(id, key, newValue);
-										} else {
-											_Crud.objectList.resetCellToOldValue(id, key, oldValue);
-										}
-									}
-								});
-								input.datepicker('show');
+								_Crud.objectList.resetCellToOldValue(id, key, oldValue);
 							}
-							self.off('click');
 						});
 					}
 
 				} else if (propertyType === 'ZonedDateTime') {
 
-					cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="flex items-center relative">
+							<input name="${key}" class="__value pl-9" type="text" size="36" autocomplete="one-time-code">
+							${_Crud.helpers.getDateTimeIconHTML()}
+						</div>
+					`);
+					cell[0].appendChild(cellContent);
+
+					let input = cellContent.querySelector('input');
+					input.value = value ?? '';
 
 					if (!readOnly) {
 
-						cell.on('click', function(event) {
-							event.preventDefault();
-							var self = $(this);
-							var oldValue = self.text().trim();
-							self.html(`<input name="${key}" class="__value" type="text" size="40">`);
-							var input = $('input', self);
-							input.val(oldValue);
+						let oldValue = input.value;
 
-							// detect timezone id either from system or from old value
-							let timezoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-							let oldTzId = oldValue.match(/\[(.*)\]/);
-							if (oldTzId?.length > 0) {
-								timezoneId = oldTzId[1];
-							}
+						// detect timezone id either from system or from old value
+						let timezoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+						let oldTzId = oldValue.match(/\[(.*)\]/);
+						if (oldTzId?.length > 0) {
+							timezoneId = oldTzId[1];
+						}
 
-							const getOffset = (timeZone = 'UTC', date = new Date()) => {
-								const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-								const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
-								return (tzDate.getTime() - utcDate.getTime()) / 6e4;
-							};
+						const getOffset = (timeZone = 'UTC', date = new Date()) => {
+							const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+							const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+							return (tzDate.getTime() - utcDate.getTime()) / 6e4;
+						};
 
-							input.datetimepicker({
-								parse: (timeFormat, timeString, options) => {
+						$(input).datetimepicker({
+							parse: (timeFormat, timeString, options) => {
 
-									let fakeOptions = Object.assign({}, options);
-									fakeOptions.parse = 'loose';
+								let fakeOptions = Object.assign({}, options);
+								fakeOptions.parse = 'loose';
 
-									// remove timezone identifier from timeString
-									let pos    = timeString.indexOf('[');
-									if (pos > 0) {
-										timeString = timeString.slice(0, pos);
-									}
-
-									let innerData = $.datepicker.parseTime(timeFormat, timeString, fakeOptions);
-
-									// fake our timezone
-									innerData.timezone = oldTzId[0];
-
-									return innerData;
-								},
-								dateFormat: 'yy-mm-dd',
-								timeFormat: 'HH:mm:ssz',
-								separator: 'T',
-								timezone: '[' + timezoneId + ']',
-								timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
-								onClose: function() {
-									$('#ui-datepicker-div').removeClass('is-zoned');
-									var newValue = input.val();
-									if (id && newValue !== oldValue) {
-
-										// add timezone corresponding to timezone identifier
-										let offset = 0;
-										let newTzId = newValue.match(/\[(.*)\]/);
-										if (newTzId?.length > 0) {
-											offset = getOffset(newTzId[1]);
-										}
-
-										let offsetString = $.timepicker.timezoneOffsetString(offset, true);
-
-										newValue = newValue.replaceAll('[', offsetString + '[');
-
-										console.log('Setting:', newValue)
-
-										_Crud.objectList.crudUpdate(id, key, newValue);
-									} else {
-										_Crud.objectList.resetCellToOldValue(id, key, oldValue);
-									}
-								}
-							});
-							input.datetimepicker('show');
-
-							if (oldValue) {
-								// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
-								let dateStringWithoutId = oldValue;
-								let pos = oldValue.indexOf('[');
+								// remove timezone identifier from timeString
+								let pos    = timeString.indexOf('[');
 								if (pos > 0) {
-									dateStringWithoutId = oldValue.slice(0, pos);
+									timeString = timeString.slice(0, pos);
 								}
 
-								let baseDate = new Date(dateStringWithoutId);
+								let innerData = $.datepicker.parseTime(timeFormat, timeString, fakeOptions);
 
-								// baseDate is shifted by our offset to UTC and its own offset to UTC
-								let theirOffset = getOffset(timezoneId);
-								let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
-								let totalOffset = ouroffset - theirOffset;
+								// fake our timezone
+								innerData.timezone = oldTzId[0];
 
-								// correct baseDate
-								baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
+								return innerData;
+							},
+							dateFormat: 'yy-mm-dd',
+							timeFormat: 'HH:mm:ssz',
+							separator: 'T',
+							timezone: '[' + timezoneId + ']',
+							timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
+							onClose: function() {
+								$('#ui-datepicker-div').removeClass('is-zoned');
+								let newValue = input.value;
 
-								input.datetimepicker('setDate', baseDate);
+								// add timezone corresponding to timezone identifier
+								let offset = 0;
+								let newTzId = newValue.match(/\[(.*)\]/);
+								if (newTzId?.length > 0) {
+									offset = getOffset(newTzId[1]);
+								}
+
+								let offsetString = $.timepicker.timezoneOffsetString(offset, true);
+
+								newValue = newValue.replaceAll('[', offsetString + '[');
+
+								if (id && newValue !== oldValue) {
+
+									_Crud.objectList.crudUpdate(id, key, newValue);
+
+								} else {
+
+									input.value = newValue;
+								}
+							}
+						});
+
+						input.addEventListener('focus', (e) => {
+							$(input).datetimepicker('show');
+						});
+
+						if (oldValue) {
+							// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
+							let dateStringWithoutId = oldValue;
+							let pos = oldValue.indexOf('[');
+							if (pos > 0) {
+								dateStringWithoutId = oldValue.slice(0, pos);
 							}
 
-							$('#ui-datepicker-div').addClass('is-zoned');
-							self.off('click');
-						});
+							let baseDate = new Date(dateStringWithoutId);
+
+							// baseDate is shifted by our offset to UTC and its own offset to UTC
+							let theirOffset = getOffset(timezoneId);
+							let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
+							let totalOffset = ouroffset - theirOffset;
+
+							// correct baseDate
+							baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
+
+							$(input).datetimepicker('setDate', baseDate);
+						}
+
+						$('#ui-datepicker-div').addClass('is-zoned');
 					}
 
 				} else if (isEnum) {
 
 					let format = _Crud.helpers.getFormat(type, key);
-					cell.text(_Helpers.nvl(value, ''));
+					cell.text(value ?? '');
 					if (!readOnly) {
 						cell.on('click', function (event) {
 							event.preventDefault();
@@ -1135,35 +1119,22 @@ let _Crud = {
 
 				} else if (isCollection) { // Array types
 
-					let values = value ?? [];
+					let values   = value ?? [];
 					let typeInfo = _Crud.types[type].views.all;
 
-					if (!id) {
-						/**
-						 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
-						 */
-
-						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, null, null, typeInfo, function () {
-							});
-						});
-
-					} else {
-
-						// existing object
-						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, id, null, typeInfo, function () {
+					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo[key]));
+					cell.find(`[name="${key}"]`).each(function (i, el) {
+						_Entities.activateInput(el, id, null, type, typeInfo, () => {
+							if (id) {
 								_Crud.objectList.refreshObject(id, key);
-							});
+							}
 						});
-					}
+					});
 
 				} else {
 					// default: any other type of direct property
 
-					cell.text(_Helpers.nvl(value, ''));
+					cell.text(value ?? '');
 
 					if (!readOnly) {
 						cell.on('click', function(event) {
@@ -1731,7 +1702,9 @@ let _Crud = {
 
 					let cell = $(`.${cssClassForKey}`, $(row));
 
-					if (_Crud.helpers.isCollection(key, type)) {
+					let isCollection            = _Crud.helpers.isCollection(key, type);
+					let isRelationshipAttribute = _Crud.helpers.getRelatedTypeForAttribute(key, type) !== undefined;
+					if (isCollection && isRelationshipAttribute) {
 						_Crud.objectList.pager.addPageSizeConfigToColumn(cell.prev('td'), type, key, () => {
 							_Crud.objectList.showDetails(node.id, type);
 						});
@@ -2216,7 +2189,7 @@ let _Crud = {
 							<span class="pageWrapper">
 								<input class="pageNo" type="text" size="3" value="${_Crud.page[config.type]}">
 								<span class="of">of</span>
-								<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${_Helpers.nvl(_Crud.pageCount, 0)}">
+								<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${_Crud.pageCount ?? 0}">
 							</span>
 							<button class="pageRight flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
 								${_Icons.getSvgIcon(_Icons.iconChevronRight)}
@@ -2774,28 +2747,32 @@ let _Crud = {
 
 			return '?' + paramsArray.join('&');
 		},
-		serializeObject: (obj) => {
+		getDataFromForm: (elem) => {
 
-			// TODO: replace with global helper for forms
-			let returnObject = {};
-			let formArray = obj.serializeArray();
+			let namedElements = elem.querySelectorAll('[name]');
+			let returnObject  = {};
 
-			for (let entry of formArray) {
+			for (let i of namedElements) {
 
-				if (entry.value && entry.value !== '') {
+				let key       = i.name;
+				let isNew     = (i.dataset['isNew'] === 'true');
+				let isChanged = (i.dataset['changed'] === 'true');
 
-					// key already exists - make it an array
-					if (returnObject[entry.name]) {
+				if (!isNew || isChanged) {
 
-						if (!returnObject[entry.name].push) {
-							returnObject[entry.name] = [returnObject[entry.name]];
+					let val = _Entities.basicTab.getValueFromFormElement(i);
+
+					if (returnObject[key]) {
+
+						if (!returnObject[key].push) {
+							returnObject[key] = [returnObject[key]];
 						}
 
-						returnObject[entry.name].push(entry.value);
+						returnObject[key].push(val);
 
 					} else {
 
-						returnObject[entry.name] = entry.value;
+						returnObject[key] = val;
 					}
 				}
 			}
@@ -2860,6 +2837,9 @@ let _Crud = {
 				_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
 			},
 		},
+		getDateTimeIconHTML: () => {
+			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime']));
+		}
 	},	
 	createDialogWithErrorHandling: {
 		create: (type, nodeData = {}, onSuccess) => {
@@ -2962,13 +2942,12 @@ let _Crud = {
 				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
 				let readOnly                           = _Crud.helpers.isReadOnly(key, type);
 				let isCollection                       = _Crud.helpers.isCollection(key, type);
-				let isAllowedCollectionForCreateDialog = _Crud.helpers.isSupportedArrayType(key, type);
 				let relatedType                        = _Crud.helpers.getRelatedTypeForAttribute(key, type);
 				let isSourceOrTargetNode               = isRelType && (key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
 				let isInternalTimestamp                = isRelType && (key === Structr.internalKeys.internalTimestamp);
 				let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
 
-				let showKey = !isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || isAllowedCollectionForCreateDialog) && (!relatedType || isRelType) && !isSourceOrTargetNode && !isInternalTimestamp && !isVisibilityFlagOnRelationship;
+				let showKey = !isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || !relatedType) && (!relatedType || isRelType) && !isSourceOrTargetNode && !isInternalTimestamp && !isVisibilityFlagOnRelationship;
 
 				if (showKey) {
 
@@ -2994,7 +2973,7 @@ let _Crud = {
 			dialogSaveButton.addEventListener('click', () => {
 
 				_Helpers.disableElement(dialogSaveButton);
-				let nodeData = _Crud.helpers.serializeObject($('#entityForm'));
+				let nodeData = _Crud.helpers.getDataFromForm(document.querySelector('#entityForm'));
 				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
 			});
 

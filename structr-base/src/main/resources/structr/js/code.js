@@ -184,13 +184,13 @@ let _Code = {
 			let code    = event.code;
 
 			// ctrl-s / cmd-s
-			if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+			if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 				event.preventDefault();
 				_Code.runCurrentEntitySaveAction();
 			}
 
 			// ctrl-r / cmd-r
-			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+			if ((code === 'KeyR' || keyCode === 82) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 
 				// allow browser hard-reload with CMD/CTRL+SHIFT+R
 				if (!event.shiftKey) {

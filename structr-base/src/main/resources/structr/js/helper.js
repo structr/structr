@@ -137,20 +137,11 @@ let _Helpers = {
 	},
 	uuidRegexp: new RegExp('^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$'),
 	isUUID: (str) => _Helpers.uuidRegexp.test(str),
-	nvl: (value, defaultValue) => {
-		let returnValue;
-		if (value === false) {
-			returnValue = 'false';
-		} else if (value === 0) {
-			returnValue = '0';
-		} else if (!value) {
-			returnValue = defaultValue;
-		} else {
-			returnValue = value;
-		}
-		return returnValue;
-	},
-	formatValueInputField: (key, obj, isPassword, isReadOnly, isMultiline) => {
+	formatValueInputField: (key, obj, propertyInfo) => {
+
+		let isPassword  = (propertyInfo.className === 'org.structr.core.property.PasswordProperty');
+		let isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (propertyInfo.readOnly);
+		let isMultiline = (propertyInfo.format === 'multi-line');
 
 		if (obj === undefined || obj === null) {
 
@@ -162,39 +153,74 @@ let _Helpers = {
 
 		} else if (obj.constructor === Array) {
 
-			return _Helpers.formatArrayValueField(key, obj, isMultiline, isReadOnly, isPassword);
+			return _Helpers.formatArrayValueField(key, obj, propertyInfo);
 
 		} else {
 
 			return _Helpers.formatRegularValueField(key, _Helpers.escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
 		}
 	},
-	formatArrayValueField: (key, values, isMultiline, isReadOnly, isPassword) => {
+	formatArrayValueField: (key, values, propertyInfo) => {
+
+		let isPassword  = (propertyInfo.className === 'org.structr.core.property.PasswordProperty');
+		let isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (propertyInfo.readOnly);
+		let isMultiline = (propertyInfo.format === 'multi-line');
+		let isBoolean   = (propertyInfo.type === 'Boolean[]');
+		let isDate      = (propertyInfo.type === 'Date[]');
 
 		let html           = '';
-		let readonlyHTML   = (isReadOnly ? ' readonly class="readonly"' : '');
-		let inputTypeHTML  = (isPassword ? 'password' : 'text');
+		let readonlyHTML   = (isReadOnly ? 'readonly' : '');
+		let inputTypeHTML  = (isPassword ? 'password' : (isBoolean ? 'checkbox' : 'text'));
 		let removeIconHTML = _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
+
+		let classes = [];
+
+		if (isReadOnly) {
+			classes.push('readonly');
+		}
+		if (isDate) {
+			classes.push('input-datetime', 'pl-9');
+		}
 
 		for (let value of values) {
 
 			if (isMultiline) {
 
-				html += `<div class="array-attr relative"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password">${value}</textarea>${removeIconHTML}</div>`;
+				html += `<div class="array-attr"><textarea class="${classes.join(' ')}" rows="4" name="${key}" ${readonlyHTML} autocomplete="one-time-code">${value}</textarea>${removeIconHTML}</div>`;
 
 			} else {
 
-				html += `<div class="array-attr relative"><input name="${key}" type="${inputTypeHTML}" value="${value}"${readonlyHTML} autocomplete="new-password">${removeIconHTML}</div>`;
+				if (isDate) {
+
+					html += `<div class="array-attr relative"><input name="${key}" class="${classes.join(' ')}" type="text" size="26" value="${value}" autocomplete="one-time-code">${_Crud.helpers.getDateTimeIconHTML()}${removeIconHTML}</div>`;
+
+				} else {
+
+					let valueHTML = (isBoolean) ? ((value === true || value === 'true') ? ' checked' : '') : `value="${value}"`;
+
+					html += `<div class="array-attr"><input type="${inputTypeHTML}" name="${key}" ${valueHTML} ${readonlyHTML} autocomplete="one-time-code">${removeIconHTML}</div>`;
+				}
 			}
 		}
 
+		let spacerHTML = '<div style="width:10px;"></div>';
+
 		if (isMultiline) {
 
-			html += `<div class="array-attr"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password"></textarea></div>`;
+			html += `<div class="array-attr"><textarea rows="4" name="${key}" ${readonlyHTML} autocomplete="one-time-code" data-is-new="true"></textarea>${spacerHTML}</div>`;
 
 		} else {
 
-			html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" value=""${readonlyHTML} autocomplete="new-password"></div>`;
+			if (isDate) {
+
+				html += `<div class="array-attr relative"><input name="${key}" class="${classes.join(' ')}" type="text" size="26" autocomplete="one-time-code" data-is-new="true">${_Crud.helpers.getDateTimeIconHTML()}${spacerHTML}</div>`;
+
+			} else {
+
+				let valueHTML = (isBoolean) ? '' : 'value=""';
+
+				html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" ${valueHTML} ${readonlyHTML} autocomplete="one-time-code" data-is-new="true">${spacerHTML}</div>`;
+			}
 		}
 
 		return html;
@@ -203,11 +229,11 @@ let _Helpers = {
 
 		if (isMultiline) {
 
-			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="new-password">${value}</textarea>`;
+			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="one-time-code">${value}</textarea>`;
 
 		} else {
 
-			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="new-password">`;
+			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="one-time-code">`;
 		}
 	},
 	getHTMLTreeElementDisplayName: (entity) => {
@@ -659,7 +685,8 @@ let _Helpers = {
 		showActualResultCount: (el, pageSize) => {
 			el.attr('title', 'Result count = ' + pageSize);
 		},
-	}
+	},
+	isMac: () => (navigator.platform === 'MacIntel')
 };
 
 /**

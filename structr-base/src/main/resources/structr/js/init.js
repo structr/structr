@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		let code    = event.code;
 
 		// ctrl-s / cmd-s
-		if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+		if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 			event.preventDefault();
 			_Dialogs.custom.clickSaveButton();
 		}
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		// ctrl-u / cmd-u: show generated source in schema or code area
-		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+		if ((code === 'KeyU' || keyCode === 85) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 
 			let sourceCodeTab = document.querySelector('li#tab-source-code');
 
