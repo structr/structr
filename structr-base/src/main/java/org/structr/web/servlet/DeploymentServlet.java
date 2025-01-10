@@ -341,7 +341,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployAppFile(response, file, fileName, directoryPath, zipContentPath, securityContext);
+						deployAppFile(response, file, directoryPath, zipContentPath, securityContext);
 
 					} else if ("data".equals(mode)) {
 
@@ -527,17 +527,28 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	/**
 	 *
 	 * @param file
-	 * @param fileName
 	 * @param directoryPath
 	 * @param securityContext
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployAppFile(final HttpServletResponse response, final File file, final String fileName, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private void deployAppFile(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
-		String webappPathInZip = directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, ".");
+		String webappPathInZip = null;
+		String[] fileNamesInZip = new File(directoryPath).list();
+
+		if (fileNamesInZip == null){
+			throw new IOException("Error. List of filenames in zip returned null");
+		}
+
+        webappPathInZip = switch (fileNamesInZip.length) {
+            case 1 -> directoryPath + "/" + fileNamesInZip[0];
+            case 0 -> throw new IOException("Error. Zip is empty. It should have only 1 folder");
+            default -> throw new IOException("Error. Zip has multiple files. It should have only 1 folder");
+        };
+
 		if (StringUtils.isNotBlank(zipContentPath)) {
 			webappPathInZip = directoryPath  + "/" + zipContentPath;
 		}
