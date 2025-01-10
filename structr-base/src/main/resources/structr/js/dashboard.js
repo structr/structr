@@ -354,9 +354,9 @@ let _Dashboard = {
 				_Dashboard.tabs.deployment.wizard.init();
 
 				// App Import
-				let deploymentFileInput          = document.getElementById('deployment-file-input');
-				let deploymentUrlInput           = document.getElementById('deployment-url-input');
-				let deploymentZipConentPathInput = document.getElementById('deployment-zip-content');
+				let deploymentFileInput           = document.getElementById('deployment-file-input');
+				let deploymentUrlInput            = document.getElementById('deployment-url-input');
+				let deploymentZipContentPathInput = document.getElementById('deployment-zip-content');
 
 				deploymentFileInput.addEventListener('input', () => {
 					deploymentUrlInput.value = '';
@@ -374,7 +374,7 @@ let _Dashboard = {
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
 
-				    let zipContentPath = deploymentZipConentPathInput?.value ?? null;
+				    let zipContentPath = deploymentZipContentPathInput?.value ?? null;
 
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 
@@ -402,8 +402,9 @@ let _Dashboard = {
 				});
 
 				// Data Import
-				let dataDeploymentFileInput            = document.getElementById('data-deployment-file-input');
-				let dataDeploymentUrlInput             = document.getElementById('data-deployment-url-input');
+				let dataDeploymentFileInput             = document.getElementById('data-deployment-file-input');
+				let dataDeploymentUrlInput              = document.getElementById('data-deployment-url-input');
+				let dataDeploymentZipContentPathInput   = document.getElementById('data-deployment-zip-content');
 
 				dataDeploymentFileInput.addEventListener('input', () => {
 					dataDeploymentUrlInput.value = '';
@@ -419,9 +420,11 @@ let _Dashboard = {
 
 				document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
 
+					let zipContentPath = dataDeploymentZipContentPathInput?.value ?? null;
+
 					if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
 
-						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput);
+						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput, zipContentPath);
 
 					} else {
 
@@ -433,7 +436,7 @@ let _Dashboard = {
 
 						} else {
 
-							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl);
+							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl, zipContentPath);
 						}
 					}
 				});
@@ -706,9 +709,10 @@ let _Dashboard = {
 					},
 					deployDataFromZIPURL: {
 						containerId: '#dropdown-deployment-import-data-url',
-						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl, 'Path': entry.zipContentPath }),
 						apply: entry => {
-							document.querySelector('#data-deployment-url-input').value = entry.downloadUrl;
+							document.querySelector('#data-deployment-url-input').value   = entry.downloadUrl;
+							document.querySelector('#data-deployment-zip-content').value = entry.zipContentPath;
 						}
 					},
 					export: {
@@ -1061,8 +1065,8 @@ let _Dashboard = {
 								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
 								<div>
 									<div class="flex flex-col">
-										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 										<input class="mt-1 mb-4 flex-grow" type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 									</div>
 									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
@@ -1124,7 +1128,8 @@ let _Dashboard = {
 								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
 								<div>
 									<div class="flex flex-col">
-										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-zip-content" placeholder="Path to the data folder inside the ZIP file, leave blank for default" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 										<input class="mt-1 mb-4 flex-grow" type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 									</div>
 									<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>

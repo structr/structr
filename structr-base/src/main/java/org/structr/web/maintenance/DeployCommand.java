@@ -2610,7 +2610,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	void deleteRecursively(final Path path) throws IOException {
+	public void deleteRecursively(final Path path) throws IOException {
 
 		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
 

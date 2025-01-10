@@ -26,6 +26,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -58,7 +60,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.structr.common.helper.PathHelper;
 
 /**
  * Servlet to handle upload and download of application and data deployment files.
@@ -142,13 +143,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			} catch (final AuthenticationException ae) {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
 			if (!securityContext.isSuperUser()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Download of export ZIP file only allowed for admins.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (401): Download of export ZIP file only allowed for admins.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -175,7 +176,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				logger.error(message);
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write(message.getBytes("UTF-8"));
+				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 				return;
 			}
@@ -195,7 +196,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				logger.error(message);
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write(message.getBytes("UTF-8"));
+				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 				return;
 			}
@@ -218,8 +219,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			if (request.getParts().size() <= 0) {
+
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -230,13 +232,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			} catch (AuthenticationException ae) {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
 			if (securityContext.getUser(false) == null && !Settings.DeploymentAllowAnonymousUploads.getValue()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -267,16 +269,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			response.setContentType("text/html");
 
-
-
-			final String directoryPath                 = Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString()).toString();
-			final String filePath                      = directoryPath + ".zip";
-			final File file                            = new File(filePath);
-
-			String downloadUrl        = null;
-			String fileName           = null;
-			String mode               = null;
-			String zipContentPath     = null;
+			final String directoryPath   = Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString()).toString();
+			final String filePath        = directoryPath + ".zip";
+			final File file              = new File(filePath);
+			String downloadUrl           = null;
+			String mode                  = null;
+			String zipContentPath        = null;
 
 			for (final Part p : request.getParts()) {
 
@@ -304,7 +302,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					try (final InputStream is = p.getInputStream()) {
 
 						Files.write(file.toPath(), IOUtils.toByteArray(is));
-						fileName = p.getSubmittedFileName();
 					}
 				}
 			}
@@ -314,14 +311,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				try {
 
 					HttpHelper.streamURLToFile(downloadUrl, file);
-					fileName = PathHelper.getName(downloadUrl);
 
 				} catch (final Throwable t) {
 
 					final String message = "ERROR (400): Unable to download from URL.\n" + t.getMessage() + "\n";
 
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					response.getOutputStream().write(message.getBytes("UTF-8"));
+					response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 					return;
 				}
@@ -329,7 +325,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				if (!(file.exists() && file.length() > 0L)) {
 
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					response.getOutputStream().write("ERROR: Unable to process downloaded file.\n".getBytes("UTF-8"));
+					response.getOutputStream().write("ERROR: Unable to process downloaded file.\n".getBytes(StandardCharsets.UTF_8));
 
 					return;
 				}
@@ -341,11 +337,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployAppFile(response, file, directoryPath, zipContentPath, securityContext);
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployCommand.class));
 
 					} else if ("data".equals(mode)) {
 
-						deployDataFile(response, file, fileName, directoryPath, securityContext);
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployDataCommand.class));
 
 					} else {
 
@@ -353,7 +349,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 						logger.error(message);
 
 						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-						response.getOutputStream().write(message.getBytes("UTF-8"));
+						response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 						return;
 					}
@@ -363,7 +359,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					final String message = "ERROR (400): Unable to deploy file.\n" + t.getMessage() + "\n";
 
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					response.getOutputStream().write(message.getBytes("UTF-8"));
+					response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 					return;
 				}
@@ -371,7 +367,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			} else {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR: Unable to process uploaded file.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR: Unable to process uploaded file.\n".getBytes(StandardCharsets.UTF_8));
 
 				return;
 			}
@@ -400,15 +396,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				UiAuthenticator.writeInternalServerError(response);
 			}
 		}
-
 	}
 
-	/**
-	 *
-	 * @param response
-	 * @param securityContext
-	 * @param name
-	 */
 	private void handleAppDownloadAsZip(final HttpServletResponse response, final SecurityContext securityContext, final String name) {
 
 		logger.info("Preparing deployment export for download as zip");
@@ -425,7 +414,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				logger.error(message);
 
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.getOutputStream().write(message.getBytes("UTF-8"));
+				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 				return;
 			}
@@ -462,13 +451,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		}
 	}
 
-	/**
-	 *
-	 * @param response
-	 * @param securityContext
-	 * @param name
-	 * @param types
-	 */
 	private void handleDataDownloadAsZip(final HttpServletResponse response, final SecurityContext securityContext, final String name, final String types) {
 
 		logger.info("Preparing data deployment export for download as zip");
@@ -485,18 +467,16 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				logger.error(message);
 
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.getOutputStream().write(message.getBytes("UTF-8"));
+				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
 				return;
 			}
 
-			final Map<String, Object> attributes = new HashMap<>();
-
-			attributes.put("mode", "export");
-			attributes.put("target", exportTargetFolder);
-			attributes.put("types", types);
-
-			deployDataCommand.execute(attributes);
+			deployDataCommand.execute(Map.of(
+					"mode", "export",
+					"target", exportTargetFolder,
+					"types", types
+			));
 
 			logger.info("Creating zip");
 
@@ -521,88 +501,53 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			logger.error("Exception while processing request", ex);
 		}
-
 	}
 
-	/**
-	 *
-	 * @param file
-	 * @param directoryPath
-	 * @param securityContext
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	private void deployAppFile(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final DeployCommand deployCommand) throws FrameworkException, IOException {
 
-		unzip(file, directoryPath);
+		try {
 
-		String webappPathInZip = null;
-		String[] fileNamesInZip = new File(directoryPath).list();
+			unzip(file, directoryPath);
 
-		if (fileNamesInZip == null){
-			throw new IOException("Error. List of filenames in zip returned null");
-		}
+			String deploymentFolderSourcePath = null;
 
-        webappPathInZip = switch (fileNamesInZip.length) {
-            case 1 -> directoryPath + "/" + fileNamesInZip[0];
-            case 0 -> throw new IOException("Error. Zip is empty. It should have only 1 folder");
-            default -> throw new IOException("Error. Zip has multiple files. It should have only 1 folder");
-        };
+			final List<String> folderNamesInZip = Files.list(Paths.get(directoryPath)).filter(p -> p.toFile().isDirectory()).map(p -> p.toFile().getName()).collect(Collectors.toList());
 
-		if (StringUtils.isNotBlank(zipContentPath)) {
-			webappPathInZip = directoryPath  + "/" + zipContentPath;
-		}
+			if (StringUtils.isNotBlank(zipContentPath)) {
 
-		final DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+				if (!folderNamesInZip.contains(zipContentPath)) {
 
-		final Map<String, Object> attributes = new HashMap<>();
+					throw new FrameworkException(422, "Given folder does not exist in provided zip file!");
+				}
 
-		attributes.put("mode", "import");
-		attributes.put("source", webappPathInZip);
+				deploymentFolderSourcePath = directoryPath  + "/" + zipContentPath;
 
-		deployCommand.execute(attributes);
+			} else {
 
-		file.delete();
-		final File dir = new File(directoryPath);
-		dir.delete();
+				deploymentFolderSourcePath = switch (folderNamesInZip.size()) {
+					case 1 -> directoryPath + "/" + folderNamesInZip.get(0);
+					case 0 -> throw new IOException("Zip is empty. It should contain exactly one folder (unless folder name is explicitly specified).");
+					default -> throw new IOException("Zip has multiple folders. It should contain exactly one folder (unless folder name is explicitly specified).");
+				};
+			}
 
-		response.setStatus(deployCommand.getCommandStatusCode());
+			deployCommand.execute(Map.of(
+					"mode", "import",
+					"source", deploymentFolderSourcePath
+			));
 
-		if (deployCommand.getCommandStatusCode() == 422) {
-			response.getOutputStream().write(RestMethodResult.jsonError(422, deployCommand.getCommandResult().toString()).getBytes(StandardCharsets.UTF_8));
-		}
-	}
+			response.setStatus(deployCommand.getCommandStatusCode());
 
-	/**
-	 *
-	 * @param file
-	 * @param fileName
-	 * @param directoryPath
-	 * @param securityContext
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	private void deployDataFile(final HttpServletResponse response, final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+			if (deployCommand.getCommandStatusCode() == 422) {
 
-		unzip(file, directoryPath);
+				response.getOutputStream().write(RestMethodResult.jsonError(422, deployCommand.getCommandResult().toString()).getBytes(StandardCharsets.UTF_8));
+			}
 
-		final DeployDataCommand deployDataCommand = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
+		} finally {
 
-		final Map<String, Object> attributes = new HashMap<>();
+			file.delete();
 
-		attributes.put("mode", "import");
-		attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
-
-		deployDataCommand.execute(attributes);
-
-		file.delete();
-		final File dir = new File(directoryPath);
-		dir.delete();
-
-		response.setStatus(deployDataCommand.getCommandStatusCode());
-
-		if (deployDataCommand.getCommandStatusCode() == 422) {
-			response.getOutputStream().write(RestMethodResult.jsonError(422, deployDataCommand.getCommandResult().toString()).getBytes(StandardCharsets.UTF_8));
+			deployCommand.deleteRecursively(Paths.get(directoryPath));
 		}
 	}
 
@@ -651,14 +596,14 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
 				logger.warn("Unable to send response", ioex);
 			}
-
 		}
 	}
 }
