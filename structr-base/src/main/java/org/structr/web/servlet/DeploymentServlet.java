@@ -183,12 +183,20 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			if ("app".equals(mode)) {
 
-				handleAppDownloadAsZip(response, securityContext, name);
+				logger.info("Preparing application deployment export for download as zip");
+
+				final DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+
+				handleDownloadAsZipUsingCommand(response, name, null, deployCommand);
 
 			} else if ("data".equals(mode)) {
 
+				final DeployDataCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
+
+				logger.info("Preparing data deployment export for download as zip");
+
 				final String types = request.getParameter(TYPES_PARAMETER);
-				handleDataDownloadAsZip(response, securityContext, name, types);
+				handleDownloadAsZipUsingCommand(response, name, types, deployCommand);
 
 			} else {
 
@@ -398,17 +406,16 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		}
 	}
 
-	private void handleAppDownloadAsZip(final HttpServletResponse response, final SecurityContext securityContext, final String name) {
+	private void handleDownloadAsZipUsingCommand(final HttpServletResponse response, final String name, final String types, final DeployCommand deployCommand) throws IOException {
 
-		logger.info("Preparing deployment export for download as zip");
+		final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), Long.toString(System.currentTimeMillis()));
 
 		try {
 
-			DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
-			final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), Long.toString(System.currentTimeMillis()), name);
-			final String exportTargetFolder = tmpDir.toString();
+			final Path outputDir            = tmpDir.resolve(name);
+			final String exportTargetFolder = outputDir.toString();
 
-			if (!exportTargetFolder.equals(tmpDir.normalize().toString())) {
+			if (!exportTargetFolder.equals(outputDir.normalize().toString())) {
 
 				final String message = "ERROR (403): Path traversal not allowed - not serving deployment zip!\n";
 				logger.error(message);
@@ -420,9 +427,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			final Map<String, Object> attributes = new HashMap<>();
-
 			attributes.put("mode", "export");
 			attributes.put("target", exportTargetFolder);
+
+			if (types != null) {
+				attributes.put("types", types);
+			}
 
 			deployCommand.execute(attributes);
 
@@ -448,58 +458,10 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		} catch (final Exception ex) {
 
 			logger.error("Exception while processing request", ex);
-		}
-	}
 
-	private void handleDataDownloadAsZip(final HttpServletResponse response, final SecurityContext securityContext, final String name, final String types) {
+		} finally {
 
-		logger.info("Preparing data deployment export for download as zip");
-
-		try {
-
-			DeployDataCommand deployDataCommand = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
-			final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), Long.toString(System.currentTimeMillis()), name);
-			final String exportTargetFolder = tmpDir.toString();
-
-			if (!exportTargetFolder.equals(tmpDir.normalize().toString())) {
-
-				final String message = "ERROR (403): Path traversal not allowed - not serving deployment zip!\n";
-				logger.error(message);
-
-				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
-
-				return;
-			}
-
-			deployDataCommand.execute(Map.of(
-					"mode", "export",
-					"target", exportTargetFolder,
-					"types", types
-			));
-
-			logger.info("Creating zip");
-
-			final File file = zip(exportTargetFolder);
-
-			response.setContentType("application/zip");
-			response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
-
-			final FileInputStream     in  = new FileInputStream(file);
-			final ServletOutputStream out = response.getOutputStream();
-
-			final long fileSize = IOUtils.copyLarge(in, out);
-			final int status    = response.getStatus();
-
-			response.addHeader("Content-Length", Long.toString(fileSize));
-			response.setStatus(status);
-
-			out.flush();
-			out.close();
-
-		} catch (final Exception ex) {
-
-			logger.error("Exception while processing request", ex);
+			deployCommand.deleteRecursively(tmpDir);
 		}
 	}
 
