@@ -826,7 +826,7 @@ public class Settings {
 			final boolean isFileCreation = !config.getFile().exists();
 
 			if(config.getFile().getFreeSpace() < 1024 * 1024){
-				logger.error("Unable to store configuration. Drive has less than 1MB space.");
+				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
