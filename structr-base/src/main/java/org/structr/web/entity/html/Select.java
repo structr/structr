@@ -28,14 +28,14 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Select extends DOMElement {
 
 	/*
-	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name").partOfBuiltInSchema();
-	public static final Property<String> htmlDisabledProperty  = new StringProperty("_html_disabled").partOfBuiltInSchema();
-	public static final Property<String> htmlAcceptProperty    = new StringProperty("_html_accept").partOfBuiltInSchema();
-	public static final Property<String> htmlFormProperty      = new StringProperty("_html_form").partOfBuiltInSchema();
-	public static final Property<String> htmlSizeProperty      = new StringProperty("_html_size").partOfBuiltInSchema();
-	public static final Property<String> htmlMultipleProperty  = new StringProperty("_html_multiple").partOfBuiltInSchema();
-	public static final Property<String> htmlAutofocusProperty = new StringProperty("_html_autofocus").partOfBuiltInSchema();
-	public static final Property<String> htmlRequiredProperty  = new StringProperty("_html_required").partOfBuiltInSchema();
+	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name");
+	public static final Property<String> htmlDisabledProperty  = new StringProperty("_html_disabled");
+	public static final Property<String> htmlAcceptProperty    = new StringProperty("_html_accept");
+	public static final Property<String> htmlFormProperty      = new StringProperty("_html_form");
+	public static final Property<String> htmlSizeProperty      = new StringProperty("_html_size");
+	public static final Property<String> htmlMultipleProperty  = new StringProperty("_html_multiple");
+	public static final Property<String> htmlAutofocusProperty = new StringProperty("_html_autofocus");
+	public static final Property<String> htmlRequiredProperty  = new StringProperty("_html_required");
 
 	public static final View htmlView = new View(Select.class, PropertyView.Html,
 		htmlNameProperty, htmlDisabledProperty, htmlAcceptProperty, htmlFormProperty, htmlSizeProperty,

@@ -23,8 +23,8 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Optgroup extends DOMElement {
 
 	/*
-	public static final Property<String> _disabled	= new HtmlProperty("disabled").partOfBuiltInSchema();
-	public static final Property<String> _label	= new HtmlProperty("label").partOfBuiltInSchema();
+	public static final Property<String> _disabled	= new HtmlProperty("disabled");
+	public static final Property<String> _label	= new HtmlProperty("label");
 
 	public static final View htmlView = new View(Optgroup.class, PropertyView.Html,
 

@@ -29,8 +29,15 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.PropertyNotion;
+import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.schema.DynamicNodeTraitDefinition;
+import org.structr.schema.DynamicRelationshipTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SourceFile;
 
@@ -176,7 +183,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 					line.append(".setSourceUuid(\"");
 					line.append(getUuid());
 					line.append("\")");
-					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(partOfBuiltInSchema ? "" : "");
 					line.append(";");
 				}
 
@@ -209,7 +216,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 					line.append(").dynamic()");
 					line.append(".setSourceUuid(\"");
 					line.append(getUuid()).append("\")");
-					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(partOfBuiltInSchema ? "" : "");
 					line.append(";");
 				}
 			}
@@ -246,7 +253,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 					line.append(".setSourceUuid(\"");
 					line.append(getUuid());
 					line.append("\")");
-					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(partOfBuiltInSchema ? "" : "");
 					line.append(";");
 				}
 
@@ -279,7 +286,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 					line.append(").dynamic()");
 					line.append(".setSourceUuid(\"");
 					line.append(getUuid()).append("\")");
-					line.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					line.append(partOfBuiltInSchema ? "" : "");
 					line.append(";");
 				}
 			}
@@ -428,8 +435,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		SchemaHelper.extractMethods(schemaNodes, this, actions);
 
 		// source and target id properties
-		src.line(this, "public static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();");
-		src.line(this, "public static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();");
+		src.line(this, "public static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\");");
+		src.line(this, "public static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\");");
 
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "sourceId", viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "targetId", viewProperties);
@@ -485,11 +492,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		src.end();
 	}
 	*/
-
-	@Override
-	public PropagationDirection getPermissionPropagation() {
-		return null;
-	}
 
 	// ----- public methods -----
 	@Override public String getSchemaNodeSourceType() {
@@ -556,7 +558,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return relType;
 	}
 
-	private String getNotion(final String _className, final String notionSource) {
+	private Notion getNotion(final String _className, final String notionSource) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -576,10 +578,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 					if (ValidKeyPattern.matcher(key).matches()) {
 
-						buf.append(", new PropertyNotion(");
-						buf.append(getNotionKey(_className, key));
-						buf.append(", ").append(create);
-						buf.append(")");
+						return new PropertyNotion(getNotionKey(_className, key), create);
 
 					} else {
 
@@ -588,28 +587,24 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 				} else {
 
-					buf.append(", new PropertySetNotion(");
+					final Set<PropertyKey> keySet = new LinkedHashSet<>();
 
 					// use only matching keys
 					for (final Iterator<String> it = Iterables.filter(new KeyMatcher(), keys).iterator(); it.hasNext();) {
 
 						buf.append(getNotionKey(_className, it.next()));
-
-						if (it.hasNext()) {
-							buf.append(", ");
-						}
 					}
 
-					buf.append(")");
+					return new PropertySetNotion<>(keySet);
 				}
 			}
 		}
 
-		return buf.toString();
+		return null;
 	}
 
-	private String getNotionKey(final String _className, final String key) {
-		return _className + "." + key;
+	private PropertyKey getNotionKey(final String _className, final String key) {
+		return Traits.of(_className).key(key);
 	}
 
 	private String getBaseType() {
@@ -776,11 +771,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public boolean isPartOfBuiltInSchema() {
-		return false;
-	}
-
-	@Override
 	public Iterable<SchemaGrant> getSchemaGrants() {
 		return Collections.emptyList();
 	}
@@ -791,23 +781,63 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
+	public PropagationDirection getPermissionPropagation() {
+
+		final String value = wrappedObject.getProperty(traits.key("permissionPropagation"));
+		if (value != null) {
+
+			return PropagationDirection.valueOf(value);
+		}
+
+		return null;
+	}
+
+	@Override
 	public PropagationMode getReadPropagation() {
-		return wrappedObject.getProperty(traits.key("readPropagation"));
+
+		final String value = wrappedObject.getProperty(traits.key("readPropagation"));
+		if (value != null) {
+
+			return PropagationMode.valueOf(value);
+		}
+
+		return null;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
-		return wrappedObject.getProperty(traits.key("writePropagation"));
+
+		final String value = wrappedObject.getProperty(traits.key("writePropagation"));
+		if (value != null) {
+
+			return PropagationMode.valueOf(value);
+		}
+
+		return null;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
-		return wrappedObject.getProperty(traits.key("deletePropagation"));
+
+		final String value = wrappedObject.getProperty(traits.key("deletePropagation"));
+		if (value != null) {
+
+			return PropagationMode.valueOf(value);
+		}
+
+		return null;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
-		return wrappedObject.getProperty(traits.key("accessControlPropagation"));
+
+		final String value = wrappedObject.getProperty(traits.key("accessControlPropagation"));
+		if (value != null) {
+
+			return PropagationMode.valueOf(value);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -838,6 +868,57 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public String getPreviousTargetJsonName() {
 		return wrappedObject.getProperty(traits.key("oldTargetJsonName"));
+	}
+
+	@Override
+	public TraitDefinition[] getTraitDefinitions() {
+
+		final List<TraitDefinition> definitions = new ArrayList<>();
+
+		definitions.add(new DynamicRelationshipTraitDefinition(this));
+
+		return definitions.toArray(new TraitDefinition[0]);
+	}
+
+	@Override
+	public PropertyKey createKey(final SchemaNode entity, final boolean outgoing) throws FrameworkException {
+
+		final String _sourceMultiplicity  = getMultiplicity(false);
+		final String _targetMultiplicity  = getMultiplicity(true);
+		final String _sourceNotion        = getSourceNotion();
+		final String _targetNotion        = getTargetNotion();
+		final String _sourceType          = getSchemaNodeSourceType();
+		final String _targetType          = getSchemaNodeTargetType();
+		final String _className           = getClassName();
+		final String _propertyName        = SchemaHelper.cleanPropertyName(getPropertyName(entity.getName(), new LinkedHashSet<>(), outgoing));
+
+		if (outgoing) {
+
+			if ("1".equals(_targetMultiplicity)) {
+
+				return new EndNode(_propertyName, _className, getNotion(_sourceType, _targetNotion)).dynamic();
+
+			} else {
+
+				return new EndNodes(_propertyName, _className, getNotion(_sourceType, _targetNotion)).dynamic();
+			}
+
+		} else {
+
+			if ("1".equals(_sourceMultiplicity)) {
+
+				return new StartNode(_propertyName, _className, getNotion(_targetType, _sourceNotion)).dynamic();
+
+			} else {
+
+				return new StartNodes(_propertyName, _className, getNotion(_targetType, _sourceNotion)).dynamic();
+			}
+		}
+	}
+
+	@Override
+	public List<IsValid> createValidators(SchemaNode entity) throws FrameworkException {
+		return List.of();
 	}
 
 	// ----- private methods -----
@@ -904,16 +985,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 			src.end();
 		}
-	}
-
-	@Override
-	public TraitDefinition[] getTraitDefinitions() {
-
-		final List<TraitDefinition> definitions = new ArrayList<>();
-
-		//definitions.add(new DynamicTraitDefinition(this));
-
-		return definitions.toArray(new TraitDefinition[0]);
 	}
 
 	/*

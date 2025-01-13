@@ -28,7 +28,7 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Param extends DOMElement {
 
 	/*
-	public static final Property<String> htmlValueProperty = new StringProperty("_html_value").partOfBuiltInSchema();
+	public static final Property<String> htmlValueProperty = new StringProperty("_html_value");
 
 	public static final View htmlView = new View(Param.class, PropertyView.Html, htmlValueProperty);
 

@@ -56,14 +56,9 @@ public interface SchemaMethod extends NodeTrait {
 	boolean isPrivateMethod();
 	boolean returnRawResult();
 
-	HttpVerb getHttpVerb();
+	String getHttpVerb();
 
 	SchemaMethodParameter getSchemaMethodParameter(final String name);
-
-
-	enum HttpVerb {
-		GET, PUT, POST, PATCH, DELETE
-	}
 
 	/*
 	default void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {

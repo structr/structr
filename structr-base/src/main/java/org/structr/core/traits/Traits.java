@@ -98,6 +98,10 @@ public class Traits {
 		throw new RuntimeException("Missing property key " + name + " of type " + typeName);
 	}
 
+	public boolean hasKey(final String name) {
+		return propertyKeys.containsKey(name);
+	}
+
 	public String getName() {
 		return typeName;
 	}
@@ -208,7 +212,19 @@ public class Traits {
 		// register trait
 		types.put(trait.getName(), trait);
 
-		// properties need to be registered first so the are available in lifecycle methods etc.
+		// relation (for relationship types)
+		final Relation r = trait.getRelation();
+		if (r != null) {
+
+			if (this.relation != null) {
+
+				throw new RuntimeException("Duplicate Relation specification!");
+			}
+
+			this.relation = r;
+		}
+
+		// properties need to be registered first so they are available in lifecycle methods etc.
 		for (final PropertyKey key : trait.getPropertyKeys()) {
 
 			final String name = key.jsonName();
@@ -262,25 +278,13 @@ public class Traits {
 		// trait implementations
 		this.nodeTraitFactories.putAll(trait.getNodeTraitFactories());
 		this.relationshipTraitFactories.putAll(trait.getRelationshipTraitFactories());
-
-		// relation (for relationship types)
-		final Relation r = trait.getRelation();
-		if (r != null) {
-
-			if (this.relation != null) {
-
-				throw new RuntimeException("Duplicate Relation specification!");
-			}
-
-			this.relation = r;
-		}
 	}
 
 	public Relation getRelation() {
 		return relation;
 	}
 
-	public Set<TraitDefinition> getTraits() {
+	public Set<TraitDefinition> getTraitDefinitions() {
 		return Collections.unmodifiableSet(new LinkedHashSet<>(types.values()));
 	}
 
@@ -310,6 +314,10 @@ public class Traits {
 		}
 
 		throw new RuntimeException("Missing trait definition for " + name + ".");
+	}
+
+	public static boolean exists(final String name) {
+		return globalTraitMap.containsKey(name);
 	}
 
 	public static Set<String> getAllTypes(final Predicate<Traits> filter) {

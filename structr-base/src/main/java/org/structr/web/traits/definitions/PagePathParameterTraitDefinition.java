@@ -77,11 +77,11 @@ public class PagePathParameterTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> pathProperty  = new StartNode("path", "PagePathHAS_PARAMETERPagePathParameter").partOfBuiltInSchema();
-		final Property<Integer> positionProperty    = new IntProperty("position").indexed().partOfBuiltInSchema();
-		final Property<String> valueTypeProperty    = new StringProperty("valueType").partOfBuiltInSchema();
-		final Property<String> defaultValueProperty = new StringProperty("defaultValue").partOfBuiltInSchema();
-		final Property<Boolean> isOptionalProperty  = new BooleanProperty("isOptional").partOfBuiltInSchema();
+		final Property<NodeInterface> pathProperty  = new StartNode("path", "PagePathHAS_PARAMETERPagePathParameter");
+		final Property<Integer> positionProperty    = new IntProperty("position").indexed();
+		final Property<String> valueTypeProperty    = new StringProperty("valueType");
+		final Property<String> defaultValueProperty = new StringProperty("defaultValue");
+		final Property<Boolean> isOptionalProperty  = new BooleanProperty("isOptional");
 
 		return Set.of(
 			pathProperty,

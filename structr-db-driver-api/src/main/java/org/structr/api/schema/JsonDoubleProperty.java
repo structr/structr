@@ -22,5 +22,19 @@ package org.structr.api.schema;
  *
  *
  */
-public interface JsonNumberArrayProperty extends JsonNumberProperty {
+public interface JsonDoubleProperty extends JsonProperty {
+
+	public Double getMinimum();
+	public Double getMaximum();
+
+	public boolean isExclusiveMinimum();
+	public boolean isExclusiveMaximum();
+
+	public JsonDoubleProperty setExclusiveMinimum(final boolean exclusiveMinimum);
+	public JsonDoubleProperty setExclusiveMaximum(final boolean exclusiveMaximum);
+
+	public JsonDoubleProperty setMinimum(final double minimum);
+	public JsonDoubleProperty setMinimum(final double minimum, final boolean exclusive);
+	public JsonDoubleProperty setMaximum(final double maximum);
+	public JsonDoubleProperty setMaximum(final double maximum, final boolean exclusive);
 }

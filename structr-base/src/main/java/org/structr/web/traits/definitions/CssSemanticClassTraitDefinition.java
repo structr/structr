@@ -72,7 +72,7 @@ public class CssSemanticClassTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes("selectors", "CssSemanticClassMAPS_TOCssSelector").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes("selectors", "CssSemanticClassMAPS_TOCssSelector");
 
 		return Set.of(
 			selectorsProperty

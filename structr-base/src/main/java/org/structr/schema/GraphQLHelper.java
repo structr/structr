@@ -22,14 +22,11 @@ import graphql.Scalars;
 import graphql.schema.*;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
@@ -577,7 +574,7 @@ public class GraphQLHelper {
 	}
 
 	private List<String> getInterfaceClasses(final String type) {
-		return Traits.of(type).getTraits().stream().filter(t -> t.isInterface()).map(t -> t.getName()).toList();
+		return Traits.of(type).getTraitDefinitions().stream().filter(t -> t.isInterface()).map(t -> t.getName()).toList();
 	}
 
 	private List<Property> getNonRelationshipProperties(final String graphObjectClass) throws IllegalAccessException {

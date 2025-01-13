@@ -61,31 +61,31 @@ public class SchemaHelper {
 
 	static {
 
-		generatorMap.put(Type.ZonedDateTime, (e, t, p) -> new ZonedDateTimePropertyParser(e, t, p));
-		generatorMap.put(Type.BooleanArray,  (e, t, p) -> new BooleanArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.IntegerArray,  (e, t, p) -> new IntegerArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.DoubleArray,   (e, t, p) -> new DoubleArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.StringArray,   (e, t, p) -> new StringArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.Encrypted,     (e, t, p) -> new EncryptedStringPropertySourceGenerator(e, t, p));
-		generatorMap.put(Type.DateArray,     (e, t, p) -> new DateArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.EnumArray,     (e, t, p) -> new EnumArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.ByteArray,     (e, t, p) -> new ByteArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.LongArray,     (e, t, p) -> new LongArrayPropertyParser(e, t, p));
-		generatorMap.put(Type.Function,      (e, t, p) -> new FunctionPropertyParser(e, t, p));
-		generatorMap.put(Type.Password,      (e, t, p) -> new PasswordPropertySourceGenerator(e, t, p));
-		generatorMap.put(Type.IdNotion,      (e, t, p) -> new IdNotionPropertyParser(e, t, p));
-		generatorMap.put(Type.Boolean,       (e, t, p) -> new BooleanPropertyParser(e, t, p));
-		generatorMap.put(Type.Integer,       (e, t, p) -> new IntPropertyParser(e, t, p));
-		generatorMap.put(Type.String,        (e, t, p) -> new StringPropertySourceGenerator(e, t, p));
-		generatorMap.put(Type.Double,        (e, t, p) -> new DoublePropertyParser(e, t, p));
-		generatorMap.put(Type.Custom,        (e, t, p) -> new CustomPropertyParser(e, t, p));
-		generatorMap.put(Type.Notion,        (e, t, p) -> new NotionPropertyParser(e, t, p));
-		generatorMap.put(Type.Cypher,        (e, t, p) -> new CypherPropertyParser(e, t, p));
-		generatorMap.put(Type.Long,          (e, t, p) -> new LongPropertyParser(e, t, p));
-		generatorMap.put(Type.Enum,          (e, t, p) -> new EnumPropertyParser(e, t, p));
-		generatorMap.put(Type.Date,          (e, t, p) -> new DatePropertyParser(e, t, p));
-		generatorMap.put(Type.Count,         (e, t, p) -> new CountPropertyParser(e, t, p));
-		generatorMap.put(Type.Join,          (e, t, p) -> new JoinPropertyParser(e, t, p));
+		generatorMap.put(Type.ZonedDateTime, (e, t, p) -> new ZonedDateTimePropertyGenerator(e, t, p));
+		generatorMap.put(Type.BooleanArray,  (e, t, p) -> new BooleanArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.IntegerArray,  (e, t, p) -> new IntegerArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.DoubleArray,   (e, t, p) -> new DoubleArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.StringArray,   (e, t, p) -> new StringArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Encrypted,     (e, t, p) -> new EncryptedStringPropertyGenerator(e, t, p));
+		generatorMap.put(Type.DateArray,     (e, t, p) -> new DateArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.EnumArray,     (e, t, p) -> new EnumArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.ByteArray,     (e, t, p) -> new ByteArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.LongArray,     (e, t, p) -> new LongArrayPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Function,      (e, t, p) -> new FunctionPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Password,      (e, t, p) -> new PasswordPropertyGenerator(e, t, p));
+		generatorMap.put(Type.IdNotion,      (e, t, p) -> new IdNotionPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Boolean,       (e, t, p) -> new BooleanPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Integer,       (e, t, p) -> new IntegerPropertyGenerator(e, t, p));
+		generatorMap.put(Type.String,        (e, t, p) -> new StringPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Double,        (e, t, p) -> new DoublePropertyGenerator(e, t, p));
+		generatorMap.put(Type.Custom,        (e, t, p) -> new CustomPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Notion,        (e, t, p) -> new NotionPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Cypher,        (e, t, p) -> new CypherPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Long,          (e, t, p) -> new LongPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Enum,          (e, t, p) -> new EnumPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Date,          (e, t, p) -> new DatePropertyGenerator(e, t, p));
+		generatorMap.put(Type.Count,         (e, t, p) -> new CountPropertyGenerator(e, t, p));
+		generatorMap.put(Type.Join,          (e, t, p) -> new JoinPropertyGenerator(e, t, p));
 
 		sortIndexMap.put(Type.ZonedDateTime,  0);
 		sortIndexMap.put(Type.BooleanArray,   1);
@@ -296,7 +296,6 @@ public class SchemaHelper {
 		map.put("notNull", property.isNotNull());
 		map.put("dynamic", property.isDynamic());
 		map.put("category", property.category());
-		map.put("builtin", property.isPartOfBuiltInSchema());
 
 		final String relatedType = property.relatedType();
 		if (relatedType != null) {

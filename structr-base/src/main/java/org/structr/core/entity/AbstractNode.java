@@ -306,8 +306,9 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 			default:
 
 				// evaluate object value or return default
-				final PropertyKey propertyKey = typeHandler.key(key);
-				if (propertyKey != null) {
+				if (typeHandler.hasKey(key)) {
+
+					final PropertyKey propertyKey = typeHandler.key(key);
 
 					hints.reportExistingKey(key);
 

@@ -21,7 +21,9 @@ package org.structr.schema.parser;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.property.ArrayProperty;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.ElementCounter;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -29,36 +31,41 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class StringArrayPropertyParser extends PropertyGenerator<String[]> {
+public class CountPropertyGenerator extends PropertyGenerator {
 
-	public StringArrayPropertyParser(final ErrorBuffer errorBuffer, final String entity, final PropertyDefinition params) {
-		super(errorBuffer, entity, params);
+	public CountPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
-		return String[].class.getSimpleName();
+		return Integer.class.getName();
 	}
 
 	@Override
-	public Type getKey() {
-		return Type.StringArray;
+	protected Object getDefaultValue() {
+		return null;
+	}
+
+	@Override
+	public Type getPropertyType() {
+		return Type.Count;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
 
 		final String expression = source.getFormat();
-		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return null;
+		if (expression == null || expression.isEmpty()) {
+			throw new FrameworkException(422, "Invalid count property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_property_reference", "Empty property reference."));
 		}
 
-		return new ArrayProperty(source.getPropertyName(), String.class);
-	}
+		//auxType = ", " + expression + "Property";
 
-	@Override
-	public String[] getDefaultValue() {
-		return null;
+		final Property<Iterable<NodeInterface>> collectionProperty = null;
+
+		// fixme
+
+		return new ElementCounter(source.getPropertyName(), collectionProperty);
 	}
 }

@@ -26,10 +26,10 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Embed extends DOMElement {
 
 	/*
-	public static final Property<String> _src		= new HtmlProperty("src").partOfBuiltInSchema();
-	public static final Property<String> _type		= new HtmlProperty("type").partOfBuiltInSchema();
-	public static final Property<String> _width		= new HtmlProperty("width").partOfBuiltInSchema();
-	public static final Property<String> _height		= new HtmlProperty("height").partOfBuiltInSchema();
+	public static final Property<String> _src		= new HtmlProperty("src");
+	public static final Property<String> _type		= new HtmlProperty("type");
+	public static final Property<String> _width		= new HtmlProperty("width");
+	public static final Property<String> _height		= new HtmlProperty("height");
 
 	public static final org.structr.common.View htmlView	= new org.structr.common.View(Embed.class, PropertyView.Html,
 		_src, _type, _width, _height

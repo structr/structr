@@ -60,24 +60,24 @@ public class PersonTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> salutationProperty          = new StringProperty("salutation").partOfBuiltInSchema();
-		final Property<String> firstNameProperty           = new StringProperty("firstName").partOfBuiltInSchema();
-		final Property<String> middleNameOrInitialProperty = new StringProperty("middleNameOrInitial").partOfBuiltInSchema();
-		final Property<String> lastNameProperty            = new StringProperty("lastName").partOfBuiltInSchema();
-		final Property<String> eMailProperty               = new StringProperty("eMail").partOfBuiltInSchema();
-		final Property<String> eMail2Property              = new StringProperty("eMail2").partOfBuiltInSchema();
-		final Property<String> phoneNumber1Property        = new StringProperty("phoneNumber1").partOfBuiltInSchema();
-		final Property<String> phoneNumber2Property        = new StringProperty("phoneNumber2").partOfBuiltInSchema();
-		final Property<String> faxNumber1Property          = new StringProperty("faxNumber1").partOfBuiltInSchema();
-		final Property<String> faxNumber2Property          = new StringProperty("faxNumber2").partOfBuiltInSchema();
-		final Property<String> countryProperty             = new StringProperty("country").partOfBuiltInSchema();
-		final Property<String> streetProperty              = new StringProperty("street").partOfBuiltInSchema();
-		final Property<String> zipCodeProperty             = new StringProperty("zipCode").partOfBuiltInSchema();
-		final Property<String> cityProperty                = new StringProperty("city").partOfBuiltInSchema();
-		final Property<String> stateProperty               = new StringProperty("state").partOfBuiltInSchema();
-		final Property<Date> birthdayProperty              = new DateProperty("birthday").partOfBuiltInSchema();
-		final Property<String> genderProperty              = new StringProperty("gender").partOfBuiltInSchema();
-		final Property<Boolean> newsletterProperty         = new BooleanProperty("newsletter").partOfBuiltInSchema();
+		final Property<String> salutationProperty          = new StringProperty("salutation");
+		final Property<String> firstNameProperty           = new StringProperty("firstName");
+		final Property<String> middleNameOrInitialProperty = new StringProperty("middleNameOrInitial");
+		final Property<String> lastNameProperty            = new StringProperty("lastName");
+		final Property<String> eMailProperty               = new StringProperty("eMail");
+		final Property<String> eMail2Property              = new StringProperty("eMail2");
+		final Property<String> phoneNumber1Property        = new StringProperty("phoneNumber1");
+		final Property<String> phoneNumber2Property        = new StringProperty("phoneNumber2");
+		final Property<String> faxNumber1Property          = new StringProperty("faxNumber1");
+		final Property<String> faxNumber2Property          = new StringProperty("faxNumber2");
+		final Property<String> countryProperty             = new StringProperty("country");
+		final Property<String> streetProperty              = new StringProperty("street");
+		final Property<String> zipCodeProperty             = new StringProperty("zipCode");
+		final Property<String> cityProperty                = new StringProperty("city");
+		final Property<String> stateProperty               = new StringProperty("state");
+		final Property<Date> birthdayProperty              = new DateProperty("birthday");
+		final Property<String> genderProperty              = new StringProperty("gender");
+		final Property<Boolean> newsletterProperty         = new BooleanProperty("newsletter");
 
 		return Set.of(
 			salutationProperty,

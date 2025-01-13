@@ -40,14 +40,11 @@ import java.util.Set;
  */
 public abstract class PropertyGenerator<T> {
 
-	private final Set<String> compoundIndexKeys   = new LinkedHashSet<>();
-	private final Set<Validator> globalValidators = new LinkedHashSet<>();
-	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
-	protected PropertyDefinition source             = null;
-	private ErrorBuffer errorBuffer               = null;
-	private String className                      = null;
+	protected PropertyDefinition source = null;
+	private ErrorBuffer errorBuffer     = null;
+	private String className            = null;
 
-	public abstract Type getKey();
+	public abstract Type getPropertyType();
 	public abstract String getValueType();
 	protected abstract T getDefaultValue();
 	protected abstract Property<T> newInstance() throws FrameworkException;
@@ -89,37 +86,11 @@ public abstract class PropertyGenerator<T> {
 			});
 		}
 
-		if (source.isCompound()) {
-
-			// fixme
-			//compoundIndexKeys.add(SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property");
-		}
-
 		return validators;
 	}
 
 	public String getClassName() {
 		return className;
-	}
-
-	public Set<String> getCompoundIndexKeys() {
-		return compoundIndexKeys;
-	}
-
-	public Set<Validator> getGlobalValidators() {
-		return globalValidators;
-	}
-
-	public void addGlobalValidator(final Validator validator) {
-		globalValidators.add(validator);
-	}
-
-	public Set<String> getEnumDefinitions() {
-		return enumDefinitions;
-	}
-
-	public String getSourcePropertyName() {
-		return source.getPropertyName();
 	}
 
 	public void reportError(final ErrorToken error) {
@@ -128,10 +99,6 @@ public abstract class PropertyGenerator<T> {
 
 	public ErrorBuffer getErrorBuffer() {
 		return errorBuffer;
-	}
-
-	public void addEnumDefinition(final String item) {
-		enumDefinitions.add(item);
 	}
 
 	public PropertyKey createKey() {
@@ -230,10 +197,6 @@ public abstract class PropertyGenerator<T> {
 			line.append(")");
 		}
 		*/
-
-		if (source.isPartOfBuiltInSchema()) {
-			propertyKey.partOfBuiltInSchema();
-		}
 
 		if (StringUtils.isNotBlank(source.getHint())) {
 			propertyKey.hint(source.getHint());

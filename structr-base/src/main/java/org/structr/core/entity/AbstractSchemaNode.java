@@ -45,7 +45,6 @@ public interface AbstractSchemaNode extends NodeTrait {
 
 	boolean isInterface();
 	boolean isAbstract();
-	boolean isBuiltinType();
 	boolean changelogDisabled();
 	boolean defaultVisibleToPublic();
 	boolean defaultVisibleToAuth();

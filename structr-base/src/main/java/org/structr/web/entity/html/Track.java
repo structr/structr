@@ -28,11 +28,11 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Track extends DOMElement {
 
 	/*
-	public static final Property<String> htmlKindProperty = new StringProperty("_html_kind").partOfBuiltInSchema();
-	public static final Property<String> htmlSrcProperty = new StringProperty("_html_src").partOfBuiltInSchema();
-	public static final Property<String> htmlSrcLangProperty = new StringProperty("_html_srclang").partOfBuiltInSchema();
-	public static final Property<String> htmlLabelProperty = new StringProperty("_html_label").partOfBuiltInSchema();
-	public static final Property<String> htmlDefaultProperty = new StringProperty("_html_default").partOfBuiltInSchema();
+	public static final Property<String> htmlKindProperty = new StringProperty("_html_kind");
+	public static final Property<String> htmlSrcProperty = new StringProperty("_html_src");
+	public static final Property<String> htmlSrcLangProperty = new StringProperty("_html_srclang");
+	public static final Property<String> htmlLabelProperty = new StringProperty("_html_label");
+	public static final Property<String> htmlDefaultProperty = new StringProperty("_html_default");
 
 	public static final View htmlView = new View(Track.class, PropertyView.Html,
 		htmlKindProperty, htmlSrcLangProperty, htmlSrcProperty, htmlLabelProperty, htmlDefaultProperty

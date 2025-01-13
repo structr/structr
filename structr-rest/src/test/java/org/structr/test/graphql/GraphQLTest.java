@@ -1432,7 +1432,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			project.addBooleanProperty("testBoolean").setIndexed(true);
 			project.addLongProperty("testLong").setIndexed(true);
-			project.addNumberProperty("testDouble").setIndexed(true);
+			project.addDoubleProperty("testDouble").setIndexed(true);
 			project.addIntegerProperty("testInt").setIndexed(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -1548,7 +1548,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			task.addBooleanProperty("testBoolean").setIndexed(true);
 			task.addLongProperty("testLong").setIndexed(true);
-			task.addNumberProperty("testDouble").setIndexed(true);
+			task.addDoubleProperty("testDouble").setIndexed(true);
 			task.addIntegerProperty("testInt").setIndexed(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);

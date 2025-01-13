@@ -103,7 +103,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonDateProperty addDateProperty(final String name, final String... views);
 	JsonIntegerProperty addIntegerProperty(final String name, final String... views);
 	JsonLongProperty addLongProperty(final String name, final String... views);
-	JsonNumberProperty addNumberProperty(final String name, final String... views);
+	JsonDoubleProperty addDoubleProperty(final String name, final String... views);
 	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
 	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
@@ -114,7 +114,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonDateArrayProperty addDateArrayProperty(final String name, final String... views);
 	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
 	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
-	JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
+	JsonDoubleArrayProperty addDoubleArrayProperty(final String name, final String... views);
 	JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
 	JsonByteArrayProperty addByteArrayProperty(final String name, final String... views);
 

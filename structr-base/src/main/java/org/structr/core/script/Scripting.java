@@ -43,7 +43,7 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -536,7 +536,7 @@ public class Scripting {
 
 		} else if (value instanceof Date) {
 
-			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			return DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else if (value instanceof Iterable) {
 
@@ -557,7 +557,7 @@ public class Scripting {
 
 		} else if (value instanceof Date) {
 
-			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			return DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else if (value instanceof Iterable) {
 

@@ -238,17 +238,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> partOfBuiltInSchema() {
-		this.isPartOfBuiltInSchema = true;
-		return this;
-	}
-
-	@Override
-	public boolean isPartOfBuiltInSchema() {
-		return this.isPartOfBuiltInSchema;
-	}
-
-	@Override
 	public boolean requiresSynchronization() {
 		return requiresSynchronization;
 	}

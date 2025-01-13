@@ -23,23 +23,19 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.*;
 import org.structr.core.property.Property;
 
-public abstract class RelationshipBaseTraitDefinition extends AbstractTraitDefinition {
+public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
-	protected abstract String getSourceType();
-	protected abstract String getTargetType();
-	protected abstract String getRelationshipType();
-	protected abstract Relation.Multiplicity getSourceMultiplicity();
-	protected abstract Relation.Multiplicity getTargetMultiplicity();
-	protected abstract int getCascadingDeleteFlag();
-	protected abstract int getAutocreationFlag();
-	protected abstract boolean isInternal();
-
-	public RelationshipBaseTraitDefinition(final String name) {
-		super(name);
-	}
+	String getSourceType();
+	String getTargetType();
+	String getRelationshipType();
+	Relation.Multiplicity getSourceMultiplicity();
+	Relation.Multiplicity getTargetMultiplicity();
+	int getCascadingDeleteFlag();
+	int getAutocreationFlag();
+	boolean isInternal();
 
 	@Override
-	public Relation getRelation() {
+	default Relation getRelation() {
 
 		int which = 0;
 
@@ -350,27 +346,27 @@ public abstract class RelationshipBaseTraitDefinition extends AbstractTraitDefin
 		return null;
 	}
 
-	protected PropagationDirection getPropagationDirection() {
+	default PropagationDirection getPropagationDirection() {
 		return PropagationDirection.None;
 	}
 
-	protected PropagationMode getReadPropagation() {
+	default PropagationMode getReadPropagation() {
 		return null;
 	}
 
-	protected PropagationMode getWritePropagation() {
+	default PropagationMode getWritePropagation() {
 		return null;
 	}
 
-	protected PropagationMode getDeletePropagation() {
+	default PropagationMode getDeletePropagation() {
 		return null;
 	}
 
-	protected PropagationMode getAccessControlPropagation() {
+	default PropagationMode getAccessControlPropagation() {
 		return null;
 	}
 
-	protected String getDeltaProperties() {
+	default String getDeltaProperties() {
 		return null;
 	}
 }

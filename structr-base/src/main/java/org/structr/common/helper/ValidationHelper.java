@@ -37,6 +37,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -627,26 +628,24 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static synchronized boolean areValidCompoundUniqueProperties(final GraphObject object, final ErrorBuffer errorBuffer, final PropertyKey... keys) {
+	public static synchronized boolean areValidCompoundUniqueProperties(final GraphObject object, final ErrorBuffer errorBuffer, final Set<PropertyKey> keys) {
 
-		if (keys != null && keys.length > 0) {
+		if (keys != null && !keys.isEmpty()) {
 
 			final PropertyMap properties       = new PropertyMap();
 			List<? extends GraphObject> result = null;
 			String type                        = null;
 
-			/* fixme: is this necessary?
 			for (final PropertyKey key : keys) {
 
 				properties.put(key, object.getProperty(key));
 
-				if (type != null) {
+				if (type == null) {
 
 					// set type on first iteration
-					type = key.getDeclaringClass();
+					type = key.getDeclaringTrait().getName();
 				}
 			}
-			*/
 
 			if (type == null) {
 

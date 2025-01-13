@@ -54,7 +54,6 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.core.traits.definitions.TestOneTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -453,7 +452,7 @@ public class SearchAndSortingTest extends StructrTest {
 				new NodeAttribute(Traits.of("TestOne").key("aDate"), date),
 				new NodeAttribute(Traits.of("TestOne").key("aDouble"), 1.234),
 				new NodeAttribute(Traits.of("TestOne").key("aLong"), 12345L),
-				new NodeAttribute(Traits.of("TestOne").key("anEnum"), TestOneTraitDefinition.Status.One),
+				new NodeAttribute(Traits.of("TestOne").key("anEnum"), "One"),
 				new NodeAttribute(Traits.of("TestOne").key("anInt"), 123)
 			);
 
@@ -464,7 +463,7 @@ public class SearchAndSortingTest extends StructrTest {
 				assertEquals("Invalid inexact search result for type Date",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDate"),    date,     false).getFirst());
 				assertEquals("Invalid inexact search result for type Double",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDouble"),  1.234,    false).getFirst());
 				assertEquals("Invalid inexact search result for type Long",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aLong"),    12345L,   false).getFirst());
-				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anEnum"),   TestOneTraitDefinition.Status.One, false).getFirst());
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anEnum"),   "One", false).getFirst());
 				assertEquals("Invalid inexact search result for type Enum",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anInt"),    123,      false).getFirst());
 
 				tx.success();
@@ -1219,7 +1218,7 @@ public class SearchAndSortingTest extends StructrTest {
 			final PropertyKey lat   = Traits.of("TestSeven").key("latitude");
 			final PropertyKey lon   = Traits.of("TestSeven").key("longitude");
 
-			props.put(Traits.of("NodeInterface").key("typeHandler"), type);
+			props.put(Traits.of("NodeInterface").key("type"), type);
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
 			props.put(Traits.of("NodeInterface").key("name"), "TestSeven-0");
@@ -1737,12 +1736,12 @@ public class SearchAndSortingTest extends StructrTest {
 
 					if (rand < 0.3) {
 
-						node.setProperty(Traits.of("NodeInterface").key("owner"), tester1);
+						node.setProperty(Traits.of("NodeInterface").key("owner"), tester1.getWrappedNode());
 						tester1Nodes.add(node);
 
 					} else if (rand < 0.6) {
 
-						node.setProperty(Traits.of("NodeInterface").key("owner"), tester2);
+						node.setProperty(Traits.of("NodeInterface").key("owner"), tester2.getWrappedNode());
 						tester2Nodes.add(node);
 					}
 
@@ -1873,7 +1872,7 @@ public class SearchAndSortingTest extends StructrTest {
 	public void testManyToManyReverseNodeSearch() {
 
 		final String groupType                           = "Group";
-		final PropertyKey<Iterable<Principal>> groupsKey = Traits.of("groupType").key("groups");
+		final PropertyKey<Iterable<Principal>> groupsKey = Traits.of(groupType).key("groups");
 		final List<Group> groups                         = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
@@ -2392,7 +2391,7 @@ public class SearchAndSortingTest extends StructrTest {
 			center.addStringProperty("string").setIndexed(true);
 			center.addIntegerProperty("integer").setIndexed(true);
 			center.addLongProperty("long").setIndexed(true);
-			center.addNumberProperty("double").setIndexed(true);
+			center.addDoubleProperty("double").setIndexed(true);
 			center.addDateProperty("date").setIndexed(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -2559,11 +2558,11 @@ public class SearchAndSortingTest extends StructrTest {
 			final Principal ownerA = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "A")).as(Principal.class);
 			final Principal ownerE = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "E")).as(Principal.class);
 
-			createTestNode("Group", new NodeAttribute<>(Traits.of("Traits").key("of"), "zzz"));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaa"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerA));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ttt"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerE));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "xxx"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerC));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbb"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerD));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "zzz"));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaa"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerA.getWrappedNode()));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ttt"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerE.getWrappedNode()));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "xxx"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerC.getWrappedNode()));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbb"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerD.getWrappedNode()));
 
 			tx.success();
 

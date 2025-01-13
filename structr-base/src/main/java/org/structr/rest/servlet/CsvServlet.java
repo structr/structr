@@ -46,11 +46,10 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.service.HttpServiceServlet;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -63,7 +62,6 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
@@ -539,7 +537,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			final ArrayList<String> dateStrings = new ArrayList();
 			for (final Date d : Arrays.asList((Date[])value)) {
-				dateStrings.add("\\" + quoteChar + DatePropertyParser.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
+				dateStrings.add("\\" + quoteChar + DatePropertyGenerator.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
 			}
 
 			result = dateStrings.toString();
@@ -566,7 +564,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		} else if (value instanceof Date) {
 
-			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			result = DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else {
 

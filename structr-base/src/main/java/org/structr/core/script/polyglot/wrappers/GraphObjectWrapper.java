@@ -206,9 +206,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				}
 
 				final Traits traits       = node.getTraits();
-				final PropertyKey propKey = traits.key(key);
+				final boolean hasProperty = traits.hasKey(key);
 
-				return Methods.resolveMethod(traits, key) != null || (propKey != null && !(propKey instanceof GenericProperty<?>));
+				return hasProperty || Methods.resolveMethod(traits, key) != null;
 
 			} else {
 

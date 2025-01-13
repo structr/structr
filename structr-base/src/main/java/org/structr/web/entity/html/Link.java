@@ -24,12 +24,12 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Link extends DOMElement, LinkSource {
 
 	/*
-	public static final Property<String> _href     = new HtmlProperty("href").partOfBuiltInSchema();
-	public static final Property<String> _rel      = new HtmlProperty("rel").partOfBuiltInSchema();
-	public static final Property<String> _media    = new HtmlProperty("media").partOfBuiltInSchema();
-	public static final Property<String> _hreflang = new HtmlProperty("hreflang").partOfBuiltInSchema();
-	public static final Property<String> _type     = new HtmlProperty("type").partOfBuiltInSchema();
-	public static final Property<String> _sizes    = new HtmlProperty("sizes").partOfBuiltInSchema();
+	public static final Property<String> _href     = new HtmlProperty("href");
+	public static final Property<String> _rel      = new HtmlProperty("rel");
+	public static final Property<String> _media    = new HtmlProperty("media");
+	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
+	public static final Property<String> _type     = new HtmlProperty("type");
+	public static final Property<String> _sizes    = new HtmlProperty("sizes");
 
 	public static final View htmlView = new View(Link.class, PropertyView.Html,
 		_href, _rel, _media, _hreflang, _type, _sizes

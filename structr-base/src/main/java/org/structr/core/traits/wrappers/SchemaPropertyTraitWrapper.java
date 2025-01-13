@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -33,18 +32,17 @@ import org.structr.schema.parser.*;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SchemaProperty {
 
-	private NotionPropertyParser notionPropertyParser           = null;
-	private DoublePropertyParser doublePropertyParser           = null;
-	private LongPropertyParser longPropertyParser               = null;
-	private IntPropertyParser intPropertyParser                 = null;
-	private DoubleArrayPropertyParser doubleArrayPropertyParser = null;
-	private LongArrayPropertyParser longArrayPropertyParser     = null;
-	private IntegerArrayPropertyParser intArrayPropertyParser   = null;
+	private NotionPropertyGenerator notionPropertyParser           = null;
+	private DoublePropertyGenerator doublePropertyParser           = null;
+	private LongPropertyGenerator longPropertyParser               = null;
+	private IntegerPropertyGenerator intPropertyParser             = null;
+	private DoubleArrayPropertyGenerator doubleArrayPropertyParser = null;
+	private LongArrayPropertyGenerator longArrayPropertyParser     = null;
+	private IntegerArrayPropertyGenerator intArrayPropertyParser   = null;
 
 	public SchemaPropertyTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -145,18 +143,6 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 
 		final Boolean isReadOnly = wrappedObject.getProperty(traits.key("readOnly"));
 		if (isReadOnly != null && isReadOnly) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean isPartOfBuiltInSchema() {
-
-		final Boolean _isPartOfBuiltInSchema = wrappedObject.getProperty(traits.key("isPartOfBuiltInSchema"));
-		if (_isPartOfBuiltInSchema != null && _isPartOfBuiltInSchema) {
 
 			return true;
 		}
@@ -434,44 +420,44 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 	}
 
 	@Override
-	public NotionPropertyParser getNotionPropertyParser() {
+	public NotionPropertyGenerator getNotionPropertyParser() {
 
 		if (notionPropertyParser == null) {
 
-			notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getPropertyName(), this);
+			notionPropertyParser = new NotionPropertyGenerator(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return notionPropertyParser;
 	}
 
 	@Override
-	public IntPropertyParser getIntPropertyParser() {
+	public IntegerPropertyGenerator getIntPropertyParser() {
 
 		if (intPropertyParser == null) {
 
-			intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getPropertyName(), this);
+			intPropertyParser = new IntegerPropertyGenerator(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return intPropertyParser;
 	}
 
 	@Override
-	public LongPropertyParser getLongPropertyParser() {
+	public LongPropertyGenerator getLongPropertyParser() {
 
 		if (longPropertyParser == null) {
 
-			longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getPropertyName(), this);
+			longPropertyParser = new LongPropertyGenerator(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return longPropertyParser;
 	}
 
 	@Override
-	public DoublePropertyParser getDoublePropertyParser() {
+	public DoublePropertyGenerator getDoublePropertyParser() {
 
 		if (doublePropertyParser == null) {
 
-			doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getPropertyName(), this);
+			doublePropertyParser = new DoublePropertyGenerator(new ErrorBuffer(), getPropertyName(), this);
 		}
 
 		return doublePropertyParser;

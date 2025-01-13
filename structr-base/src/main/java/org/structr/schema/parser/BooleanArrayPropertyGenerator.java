@@ -18,11 +18,9 @@
  */
 package org.structr.schema.parser;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.BooleanArrayProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -30,42 +28,29 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class EncryptedStringPropertySourceGenerator extends PropertyGenerator<String> {
+public class BooleanArrayPropertyGenerator extends PropertyGenerator<Boolean[]> {
 
-	public EncryptedStringPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public BooleanArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
-		return String.class.getName();
+		return Boolean[].class.getSimpleName();
 	}
 
 	@Override
-	public Type getKey() {
-		return Type.Encrypted;
+	protected Property newInstance() throws FrameworkException {
+		return new BooleanArrayProperty(source.getPropertyName());
 	}
 
 	@Override
-	public Property newInstance() throws FrameworkException {
+	public Type getPropertyType() {
+		return Type.BooleanArray;
+	}
 
-		final String expression = source.getFormat();
-
-		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return null;
-		}
-
-		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
-
-			addGlobalValidator(new Validator("isValidStringMatchingRegex", source.getClassName(), source.getPropertyName(), expression));
-		}
-
+	@Override
+	public Boolean[] getDefaultValue() {
 		return null;
-	}
-
-	@Override
-	public String getDefaultValue() {
-		return source.getDefaultValue();
 	}
 }

@@ -74,8 +74,8 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractTra
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> configTypeProperty = new StringProperty("configType").indexed().partOfBuiltInSchema();
-		final Property<String> contentProperty    = new StringProperty("content").partOfBuiltInSchema();
+		final Property<String> configTypeProperty = new StringProperty("configType").indexed();
+		final Property<String> contentProperty    = new StringProperty("content");
 
 		return Set.of(
 			configTypeProperty,

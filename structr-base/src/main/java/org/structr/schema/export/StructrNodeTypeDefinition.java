@@ -213,6 +213,8 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaNode schemaNode) {
 
+		super.deserialize(schemaNodes, schemaNode);
+
 		// $extends
 		final Set<String> inheritedTraits = schemaNode.getInheritedTraits();
 		if (inheritedTraits != null) {

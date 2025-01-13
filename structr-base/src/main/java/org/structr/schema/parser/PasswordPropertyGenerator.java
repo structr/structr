@@ -16,50 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.schema.parser;
+package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
-import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.parser.PropertyDefinition;
-import org.structr.schema.parser.PropertyGenerator;
-import org.structr.web.entity.Image;
 
 /**
  *
  *
  */
-public class ThumbnailPropertySourceGenerator extends PropertyGenerator {
+public class PasswordPropertyGenerator extends StringPropertyGenerator {
 
-	static {
-
-		SchemaHelper.generatorMap.put(Type.Thumbnail, (e, t, p) -> new ThumbnailPropertySourceGenerator(e, t, p));
-	}
-
-	public ThumbnailPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public PasswordPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
-	public String getValueType() {
-		return Image.class.getName();
-	}
+	public Property newInstance() throws FrameworkException {
 
-	@Override
-	protected Object getDefaultValue() {
-		return null;
-	}
+		final String expression = source.getFormat();
 
-	@Override
-	protected Property newInstance() throws FrameworkException {
-		return null;
-	}
+		if ("[]".equals(expression)) {
+			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			return null;
+		}
 
-	@Override
-	public Type getPropertyType() {
-		return Type.Thumbnail;
+		return new PasswordProperty(source.getPropertyName());
 	}
 }

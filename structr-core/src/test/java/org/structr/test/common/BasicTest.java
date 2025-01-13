@@ -177,7 +177,7 @@ public class BasicTest extends StructrTest {
 			NodeInterface node      = null;
 			String uuid             = null;
 
-			props.put(Traits.of("NodeInterface").key("typeHandler"), type);
+			props.put(Traits.of("NodeInterface").key("type"), type);
 			props.put(Traits.of("NodeInterface").key("name"), name);
 
 			try (final Tx tx = app.tx()) {
@@ -1033,8 +1033,13 @@ public class BasicTest extends StructrTest {
 				tx.success();
 			}
 
-			assertTrue(node != null);
-			assertEquals("TestOne", node.getType());
+			try (final Tx tx = app.tx()) {
+
+				assertTrue(node != null);
+				assertEquals("TestOne", node.getType());
+
+				tx.success();
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -1327,7 +1332,7 @@ public class BasicTest extends StructrTest {
 
 			NodeInterface node      = null;
 
-			props.put(Traits.of("NodeInterface").key("typeHandler"), type);
+			props.put(Traits.of("NodeInterface").key("type"), type);
 			props.put(Traits.of("NodeInterface").key("name"), name);
 
 			try (final Tx tx = app.tx()) {

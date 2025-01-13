@@ -25,6 +25,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
+import java.util.Set;
+
 /**
  * Serializes a {@link GraphObject} using a set of properties.
  *
@@ -32,19 +34,19 @@ import org.structr.core.property.RelationProperty;
  */
 public class PropertySetSerializationStrategy implements SerializationStrategy {
 
-	private PropertyKey[] propertyKeys = null;
+	private final Set<PropertyKey> propertyKeys;
 
-	public PropertySetSerializationStrategy(PropertyKey... propertyKeys) {
+	public PropertySetSerializationStrategy(final Set<PropertyKey> propertyKeys) {
 
 		this.propertyKeys = propertyKeys;
 
-		if (propertyKeys == null || propertyKeys.length == 0) {
+		if (propertyKeys == null || propertyKeys.isEmpty()) {
 			throw new IllegalStateException("PropertySetDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 	}
 
 	@Override
@@ -52,7 +54,8 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 
 		if (source != null) {
 
-			PropertyMap propertyMap = new PropertyMap();
+			final PropertyMap propertyMap = new PropertyMap();
+
 			for (PropertyKey key : propertyKeys) {
 				propertyMap.put(key, source.getProperty(key));
 			}

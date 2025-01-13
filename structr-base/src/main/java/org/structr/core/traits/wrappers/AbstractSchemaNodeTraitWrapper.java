@@ -196,11 +196,6 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public boolean isBuiltinType() {
-		return wrappedObject.getProperty(traits.key("isBuiltinType"));
-	}
-
-	@Override
 	public boolean changelogDisabled() {
 		return wrappedObject.getProperty(traits.key("changelogDisabled"));
 	}

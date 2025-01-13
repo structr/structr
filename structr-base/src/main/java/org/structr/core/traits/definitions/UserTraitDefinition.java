@@ -45,13 +45,13 @@ public final class UserTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", "UserHOME_DIRFolder").partOfBuiltInSchema();
-		final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", "UserWORKING_DIRFolder").partOfBuiltInSchema();
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", "UserHOME_DIRFolder");
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", "UserWORKING_DIRFolder");
 		final Property<NodeInterface> imgProperty                 = new StartNode("img", "ImagePICTURE_OFUser");
-		final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed().partOfBuiltInSchema();
-		final Property<String> localStorageProperty               = new StringProperty("localStorage").partOfBuiltInSchema();
-		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed().partOfBuiltInSchema();
-		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true).partOfBuiltInSchema();
+		final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed();
+		final Property<String> localStorageProperty               = new StringProperty("localStorage");
+		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed();
+		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true);
 
 		return Set.of(
 			homeDirectoryProperty,

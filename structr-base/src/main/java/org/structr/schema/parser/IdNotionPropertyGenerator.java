@@ -18,14 +18,8 @@
  */
 package org.structr.schema.parser;
 
-import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.property.CollectionIdProperty;
-import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -36,7 +30,7 @@ import java.util.Set;
  *
  *
  */
-public class IdNotionPropertyParser extends PropertyGenerator {
+public class IdNotionPropertyGenerator extends PropertyGenerator {
 
 	private final Set<String> properties = new LinkedHashSet<>();
 	private boolean isPropertySet  = false;
@@ -46,13 +40,8 @@ public class IdNotionPropertyParser extends PropertyGenerator {
 	private String baseProperty    = null;
 	private String multiplicity    = null;
 
-	public IdNotionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public IdNotionPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return propertyType;
 	}
 
 	@Override
@@ -61,23 +50,19 @@ public class IdNotionPropertyParser extends PropertyGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return String.class.getSimpleName();
+	protected Object getDefaultValue() {
+		return null;
 	}
 
 	@Override
-	public String getPropertyParameters() {
-		return parameters;
-	}
-
-	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.IdNotion;
 	}
 
 	@Override
 	public Property newInstance() throws FrameworkException {
 
+		/*
 		final String expression = source.getFormat();
 		if (StringUtils.isBlank(expression)) {
 
@@ -147,6 +132,9 @@ public class IdNotionPropertyParser extends PropertyGenerator {
 
 
 		parameters = buf.toString();
+		*/
+
+		return null;
 	}
 
 	public boolean isPropertySet() {

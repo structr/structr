@@ -20,7 +20,9 @@ package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.CypherQueryProperty;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.EncryptedStringProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -28,29 +30,27 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class CypherPropertyParser extends PropertyGenerator {
+public class EncryptedStringPropertyGenerator extends StringPropertyGenerator {
 
-	public CypherPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public EncryptedStringPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
-	public String getValueType() {
-		return "Iterable<GraphObject>";
+	public Type getPropertyType() {
+		return Type.Encrypted;
 	}
 
 	@Override
-	protected Object getDefaultValue() {
-		return null;
-	}
+	public Property newInstance() throws FrameworkException {
 
-	@Override
-	protected Property newInstance() throws FrameworkException {
-		return new CypherQueryProperty(source.getPropertyName(), source.getFormat());
-	}
+		final String expression = source.getFormat();
 
-	@Override
-	public Type getKey() {
-		return Type.Cypher;
+		if ("[]".equals(expression)) {
+			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			return null;
+		}
+
+		return new EncryptedStringProperty(source.getPropertyName());
 	}
 }

@@ -77,7 +77,7 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 					final PropertyKey schemaNode           = traits.key("schemaNode");
 					final PropertyKey staticSchemaNodeName = traits.key("staticSchemaNodeName");
 
-					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, principal, schemaNode, staticSchemaNodeName);
+					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, Set.of(principal, schemaNode, staticSchemaNodeName));
 				}
 			}
 		);
@@ -94,13 +94,13 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>  principal    = new StartNode("principal", "PrincipalSchemaGrantRelationship").partOfBuiltInSchema();
-		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", "SchemaGrantSchemaNodeRelationship").partOfBuiltInSchema();
-		final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
-		final Property<Boolean> allowRead           = new BooleanProperty("allowRead").partOfBuiltInSchema();
-		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite").partOfBuiltInSchema();
-		final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete").partOfBuiltInSchema();
-		final Property<Boolean> allowAccessControl  = new BooleanProperty("allowAccessControl").partOfBuiltInSchema();
+		final Property<NodeInterface>  principal    = new StartNode("principal", "PrincipalSchemaGrantRelationship");
+		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", "SchemaGrantSchemaNodeRelationship");
+		final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
+		final Property<Boolean> allowRead           = new BooleanProperty("allowRead");
+		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite");
+		final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete");
+		final Property<Boolean> allowAccessControl  = new BooleanProperty("allowAccessControl");
 
 		return Set.of(
 			principal,

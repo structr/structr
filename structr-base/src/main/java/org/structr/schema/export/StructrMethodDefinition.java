@@ -389,7 +389,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(traits.key("isStatic"),              isStatic());
 		updateProperties.put(traits.key("isPrivate"),             isPrivate());
 		updateProperties.put(traits.key("returnRawResult"),       returnRawResult());
-		updateProperties.put(traits.key("httpVerb"),              SchemaMethod.HttpVerb.valueOf(getHttpVerb()));
+		updateProperties.put(traits.key("httpVerb"),              getHttpVerb());
 		updateProperties.put(traits.key("includeInOpenAPI"),      includeInOpenAPI());
 		updateProperties.put(traits.key("openAPIReturnType"),     getOpenAPIReturnType());
 
@@ -566,7 +566,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setIsStatic(method.isStaticMethod());
 		setIsPrivate(method.isPrivateMethod());
 		setReturnRawResult(method.returnRawResult());
-		setHttpVerb(method.getHttpVerb().name());
+		setHttpVerb(method.getHttpVerb());
 		setOverridesExisting(method.overridesExisting());
 		setDoExport(method.doExport());
 		setIncludeInOpenAPI(method.includeInOpenAPI());

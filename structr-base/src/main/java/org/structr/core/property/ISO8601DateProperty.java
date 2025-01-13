@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.time.Instant;
 import java.util.Date;
@@ -99,11 +99,11 @@ public class ISO8601DateProperty extends DateProperty {
 					return convertedDate;
 				} else if (source instanceof Long l) {
 
-					return DatePropertyParser.parseISO8601DateString(Date.from(Instant.ofEpochMilli(l)).toString());
+					return DatePropertyGenerator.parseISO8601DateString(Date.from(Instant.ofEpochMilli(l)).toString());
 				} else if (source instanceof String sourceString) {
 					if (StringUtils.isNotBlank(sourceString)) {
 
-						Date result = DatePropertyParser.parseISO8601DateString(sourceString);
+						Date result = DatePropertyGenerator.parseISO8601DateString(sourceString);
 						if (result != null) {
 
 							return result;
@@ -125,7 +125,7 @@ public class ISO8601DateProperty extends DateProperty {
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
-			return DatePropertyParser.format(source, null);
+			return DatePropertyGenerator.format(source, null);
 		}
 	}
 }

@@ -236,12 +236,12 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 	public Set<PropertyKey> getPropertyKeys() {
 
 		// properties
-		final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed().partOfBuiltInSchema();
-		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
-		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode").partOfBuiltInSchema();
-		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty).partOfBuiltInSchema();
-		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship").partOfBuiltInSchema();
-		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
+		final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed();
+		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed();
+		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode");
+		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty);
+		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship");
+		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath");
 
 		return Set.of(
 			nameProperty,

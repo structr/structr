@@ -27,7 +27,7 @@ import org.structr.core.entity.SchemaNode;
  *
  *
  */
-public abstract class NumericalPropertyParser<T> extends PropertyGenerator<T> {
+public abstract class NumericalPropertyGenerator<T> extends PropertyGenerator<T> {
 
 	private Number lowerBound      = null;
 	private Number upperBound      = null;
@@ -35,7 +35,7 @@ public abstract class NumericalPropertyParser<T> extends PropertyGenerator<T> {
 	private boolean upperExclusive = false;
 	protected boolean error        = false;
 
-	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public NumericalPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 
 		super(errorBuffer, className, params);
 

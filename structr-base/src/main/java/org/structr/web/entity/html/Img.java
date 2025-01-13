@@ -24,13 +24,13 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Img extends DOMElement, LinkSource {
 
 	/*
-	public static final Property<String> htmlAltProperty         = new StringProperty("_html_alt").partOfBuiltInSchema();
-	public static final Property<String> htmlSrcProperty         = new StringProperty("_html_src").partOfBuiltInSchema();
-	public static final Property<String> htmlCrossoriginProperty = new StringProperty("_html_crossorigin").partOfBuiltInSchema();
-	public static final Property<String> htmlUsemapProperty      = new StringProperty("_html_usemap").partOfBuiltInSchema();
-	public static final Property<String> htmlIsmapProperty       = new StringProperty("_html_ismap").partOfBuiltInSchema();
-	public static final Property<String> htmlWidthProperty       = new StringProperty("_html_width").partOfBuiltInSchema();
-	public static final Property<String> htmlHeightProperty      = new StringProperty("_html_height").partOfBuiltInSchema();
+	public static final Property<String> htmlAltProperty         = new StringProperty("_html_alt");
+	public static final Property<String> htmlSrcProperty         = new StringProperty("_html_src");
+	public static final Property<String> htmlCrossoriginProperty = new StringProperty("_html_crossorigin");
+	public static final Property<String> htmlUsemapProperty      = new StringProperty("_html_usemap");
+	public static final Property<String> htmlIsmapProperty       = new StringProperty("_html_ismap");
+	public static final Property<String> htmlWidthProperty       = new StringProperty("_html_width");
+	public static final Property<String> htmlHeightProperty      = new StringProperty("_html_height");
 
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 		htmlAltProperty, htmlSrcProperty, htmlCrossoriginProperty, htmlUsemapProperty, htmlIsmapProperty, htmlWidthProperty, htmlHeightProperty

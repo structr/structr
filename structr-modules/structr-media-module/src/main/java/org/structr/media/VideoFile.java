@@ -74,8 +74,8 @@ public interface VideoFile extends File {
 		type.addStringProperty("audioCodecName", PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("audioCodec",     PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("audioChannels", PropertyView.Public, PropertyView.Ui);
-		type.addNumberProperty("sampleRate",     PropertyView.Public, PropertyView.Ui);
-		type.addNumberProperty("duration",       PropertyView.Public, PropertyView.Ui);
+		type.addDoubleProperty("sampleRate",     PropertyView.Public, PropertyView.Ui);
+		type.addDoubleProperty("duration",       PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui);
 		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui);
 

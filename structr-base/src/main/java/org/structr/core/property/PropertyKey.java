@@ -308,13 +308,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	boolean isDynamic();
 
-	/**
-	 * Indicates whether this property is a part of the internal Structr schema.
-	 *
-	 * @return whether this property is a part of the internal Structr schema
-	 */
-	boolean isPartOfBuiltInSchema();
-
 	boolean isArray();
 
 	/**
@@ -361,7 +354,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> unique(final boolean unique);
 	PropertyKey<T> format(final String format);
 	PropertyKey<T> typeHint(final String typeHint);
-	PropertyKey<T> partOfBuiltInSchema();
 	PropertyKey<T> dynamic();
 	PropertyKey<T> readFunction(final String readFunction);
 	PropertyKey<T> writeFunction(final String writeFunction);

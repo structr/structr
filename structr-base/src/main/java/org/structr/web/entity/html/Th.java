@@ -23,11 +23,11 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Th extends DOMElement {
 
 	/*
-	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan").partOfBuiltInSchema();
-	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan").partOfBuiltInSchema();
-	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers").partOfBuiltInSchema();
-	public static final Property<String> htmlScopeProperty   = new StringProperty("_html_scope").partOfBuiltInSchema();
-	public static final Property<String> htmlAbbrProperty    = new StringProperty("_html_abbr").partOfBuiltInSchema();
+	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan");
+	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan");
+	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers");
+	public static final Property<String> htmlScopeProperty   = new StringProperty("_html_scope");
+	public static final Property<String> htmlAbbrProperty    = new StringProperty("_html_abbr");
 
 	public static final View htmlView = new View(Th.class, PropertyView.Html,
 		htmlColspanProperty, htmlRowspanProperty, htmlHeadersProperty, htmlScopeProperty, htmlAbbrProperty

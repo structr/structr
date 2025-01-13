@@ -163,21 +163,21 @@ public class PageTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", "DOMNodePAGEPage").category(PAGE_CATEGORY).partOfBuiltInSchema();
-		final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", "PageHAS_PATHPagePath").partOfBuiltInSchema();
-		final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", "SiteCONTAINSPage").partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", "DOMNodePAGEPage").category(PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", "PageHAS_PATHPagePath");
+		final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", "SiteCONTAINSPage");
 
-		final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true).partOfBuiltInSchema();
-		final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false).partOfBuiltInSchema();
+		final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true);
+		final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false);
 
-		final Property<Integer> versionProperty         = new IntProperty("version").indexed().readOnly().defaultValue(0).partOfBuiltInSchema();
-		final Property<Integer> positionProperty        = new IntProperty("position").indexed().partOfBuiltInSchema();
-		final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds").partOfBuiltInSchema();
+		final Property<Integer> versionProperty         = new IntProperty("version").indexed().readOnly().defaultValue(0);
+		final Property<Integer> positionProperty        = new IntProperty("position").indexed();
+		final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
 
-		final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
-		final Property<String> showOnErrorCodesProperty = new StringProperty("showOnErrorCodes").indexed().partOfBuiltInSchema();
-		final Property<String> contentTypeProperty      = new StringProperty("contentType").indexed().partOfBuiltInSchema();
-		final Property<String> categoryProperty         = new StringProperty("category").indexed().partOfBuiltInSchema();
+		final Property<String> pathProperty             = new StringProperty("path").indexed();
+		final Property<String> showOnErrorCodesProperty = new StringProperty("showOnErrorCodes").indexed();
+		final Property<String> contentTypeProperty      = new StringProperty("contentType").indexed();
+		final Property<String> categoryProperty         = new StringProperty("category").indexed();
 
 		return Set.of(
 			elementsProperty,

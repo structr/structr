@@ -87,9 +87,9 @@ public class SiteTraitDefinition extends AbstractTraitDefinition {
 	2. implement SiteTraitWrapper extends AbstractTraitWrapper
 	*/
 
-		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", "SiteCONTAINSPage").partOfBuiltInSchema();
-		final Property<String> hostnameProperty               = new StringProperty("hostname").indexed().partOfBuiltInSchema();
-		final Property<Integer> portProperty                  = new IntProperty("port").indexed().partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", "SiteCONTAINSPage");
+		final Property<String> hostnameProperty               = new StringProperty("hostname").indexed();
+		final Property<Integer> portProperty                  = new IntProperty("port").indexed();
 
 		return Set.of(
 			pagesProperty,

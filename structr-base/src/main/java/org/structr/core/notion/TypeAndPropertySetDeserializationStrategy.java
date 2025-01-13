@@ -37,6 +37,7 @@ import org.structr.core.traits.Traits;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -48,25 +49,25 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 
 	protected RelationProperty relationProperty = null;
-	protected PropertyKey[] propertyKeys        = null;
-	protected boolean createIfNotExisting       = false;
+	protected final Set<PropertyKey> propertyKeys;
+	protected final boolean createIfNotExisting;
 
-	public TypeAndPropertySetDeserializationStrategy(final PropertyKey... propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(final Set<PropertyKey> propertyKeys) {
 		this(false, propertyKeys);
 	}
 
-	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, PropertyKey... propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, Set<PropertyKey> propertyKeys) {
 
 		this.createIfNotExisting = createIfNotExisting;
-		this.propertyKeys = propertyKeys;
+		this.propertyKeys        = propertyKeys;
 
-		if (propertyKeys == null || propertyKeys.length == 0) {
+		if (propertyKeys == null || propertyKeys.isEmpty()) {
 			throw new IllegalStateException("TypeAndPropertySetDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 

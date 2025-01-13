@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -30,22 +31,19 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class EnumPropertyParser extends PropertyGenerator {
+public class EnumPropertyGenerator extends PropertyGenerator<String> {
 
-	private String enumTypeName = "";
-	private String enumType     = "";
-
-	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public EnumPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
-		return enumTypeName;
+		return String.class.getName();
 	}
 
 	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.Enum;
 	}
 
@@ -57,57 +55,23 @@ public class EnumPropertyParser extends PropertyGenerator {
 
 		if (StringUtils.isNotBlank(expression)) {
 
-			final String[] enumTypes = expression.split("[, ]+");
-
-			enumTypeName = StringUtils.capitalize(getSourcePropertyName());
-
-			// create enum type
-			enumType = ", " + enumTypeName + ".class";
-
-			// build enum type definition
-
-			final StringBuilder buf = new StringBuilder();
-
-			buf.append("\n\tpublic enum ").append(enumTypeName).append(" {\n\t\t");
-			for (int i=0; i<enumTypes.length; i++) {
-
-				final String element = enumTypes[i];
-
-				if (element.matches("[a-zA-Z_]{1}[a-zA-Z0-9_]*")) {
-
-					buf.append(element);
-
-					// comma separation
-					if (i < enumTypes.length-1) {
-						buf.append(", ");
-					}
-
-				} else {
-
-					reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid enum value '" + element + "', must match [a-zA-Z_]{1}[a-zA-Z0-9_]*."));
-
-				}
-			}
-			buf.append("\n\t};");
-
-			addEnumDefinition(buf.toString());
+			return new EnumProperty(name, expression.split("[, ]+"));
 
 		} else if (source.getFqcn() != null) {
 
-			// no enum type definition, use external type
-			enumTypeName = source.getFqcn();
-
-			// create enum type
-			enumType = ", " + enumTypeName + ".class";
+			// not supported!
+			throw new FrameworkException(422, "Enum type definitions based on fully-qualified class names are not supported any more.");
 
 		} else {
 
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
 		}
+
+		return null;
 	}
 
 	@Override
 	public String getDefaultValue() {
-		return enumTypeName.concat(".").concat(getSourceDefaultValue());
+		return source.getDefaultValue();
 	}
 }

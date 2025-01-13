@@ -32,7 +32,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
@@ -72,9 +71,9 @@ public class SchemaTest extends StructrTest {
 			customer.addStringProperty("street", "public", "ui");
 			customer.addStringProperty("city", "public", "ui");
 			customer.addDateProperty("birthday", "public", "ui");
-			customer.addEnumProperty("status", "public", "ui").setEnums("active", "retired", "none").setDefaultValue("active");
+			customer.addEnumProperty("status", "public", "ui").setFormat("active,retired,none").setDefaultValue("active");
 			customer.addIntegerProperty("count", "public", "ui").setMinimum(1).setMaximum(10, true).setDefaultValue("5");
-			customer.addNumberProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true).setDefaultValue("3.0");
+			customer.addDoubleProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true).setDefaultValue("3.0");
 			customer.addLongProperty("loong", "public", "ui").setMinimum(20, true).setMaximum(50);
 			customer.addBooleanProperty("isCustomer", "public", "ui");
 			customer.addFunctionProperty("displayName", "public", "ui").setReadFunction("concat(this.name, '.', this.id)");
@@ -200,10 +199,10 @@ public class SchemaTest extends StructrTest {
 			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
 
 			mapPathValue(map, "definitions.Contact.type",        "object");
-			mapPathValue(map, "definitions.Contact.$extends.0",  "#/definitions/Principal");
+			mapPathValue(map, "definitions.Contact.traits.0",  "Principal");
 
 			mapPathValue(map, "definitions.Customer.type",       "object");
-			mapPathValue(map, "definitions.Customer.$extends.0", "#/definitions/Contact");
+			mapPathValue(map, "definitions.Customer.traits.0", "Contact");
 
 
 			// advanced: test schema roundtrip
@@ -292,10 +291,8 @@ public class SchemaTest extends StructrTest {
 			project.getViewPropertyNames("public").add("tasks");
 			task.getViewPropertyNames("public").add("project");
 
-
 			// test enums
-			project.addEnumProperty("status", "ui").setEnums("active", "planned", "finished");
-
+			project.addEnumProperty("status", "ui").setFormat("active,planned,finished");
 
 			// a worker
 			final JsonObjectType worker = sourceSchema.addType("Worker");
@@ -569,53 +566,6 @@ public class SchemaTest extends StructrTest {
 		final Set<String> views = Traits.of(testType).getViewNames();
 
 		assertTrue("Property view is not inherited correctly", views.contains("fav"));
-	}
-
-	@Test
-	public void testBuiltinTypeFlag() {
-
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
-
-			// add new type
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-
-		try (final Tx tx = app.tx()) {
-
-			// verify that all schema nodes have isBuiltinType set to true
-			// except "Test"
-			for (final NodeInterface node : app.nodeQuery("SchemaNode").getAsList()) {
-
-				final SchemaNode schemaNode = node.as(SchemaNode.class);
-				final String name           = schemaNode.getName();
-				final boolean flag          = schemaNode.isBuiltinType();
-
-				if (name.equals("Test")) {
-
-					assertFalse("Non-builtin type Test has isBuiltinType flag set", flag);
-
-				} else {
-
-					assertTrue("Builtin type " + name + " is missing isBuiltinType flag", flag);
-				}
-			}
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
 	}
 
 	@Test

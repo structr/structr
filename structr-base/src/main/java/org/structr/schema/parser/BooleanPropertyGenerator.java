@@ -20,7 +20,7 @@ package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.FunctionProperty;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -28,29 +28,29 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class FunctionPropertyParser extends PropertyGenerator {
+public class BooleanPropertyGenerator extends PropertyGenerator<Boolean> {
 
-	public FunctionPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public BooleanPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
-		return Object.class.getName();
+		return Boolean.class.getName();
 	}
 
 	@Override
-	protected Object getDefaultValue() {
-		return null;
+	protected Boolean getDefaultValue() {
+		return Boolean.valueOf(source.getDefaultValue());
+	}
+
+	@Override
+	public Type getPropertyType() {
+		return Type.Boolean;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
-		return new FunctionProperty(source.getPropertyName(), source.getDbName());
-	}
-
-	@Override
-	public Type getKey() {
-		return Type.Function;
+		return new BooleanProperty(source.getPropertyName());
 	}
 }

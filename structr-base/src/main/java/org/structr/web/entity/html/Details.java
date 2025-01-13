@@ -23,7 +23,7 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Details extends DOMElement {
 
 	/*
-	public static final Property<String> htmlOpenProperty = new StringProperty("_html_open").partOfBuiltInSchema();
+	public static final Property<String> htmlOpenProperty = new StringProperty("_html_open");
 	public static final View htmlView = new View(Details.class, PropertyView.Html, htmlOpenProperty);
 	*/
 }

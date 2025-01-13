@@ -20,7 +20,8 @@ package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.BooleanProperty;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -28,29 +29,36 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class BooleanPropertyParser extends PropertyGenerator<Boolean> {
+public class StringArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
-	public BooleanPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
-		super(errorBuffer, className, params);
+	public StringArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String entity, final PropertyDefinition params) {
+		super(errorBuffer, entity, params);
 	}
 
 	@Override
 	public String getValueType() {
-		return Boolean.class.getName();
+		return String[].class.getSimpleName();
 	}
 
 	@Override
-	protected Boolean getDefaultValue() {
-		return Boolean.valueOf(source.getDefaultValue());
-	}
-
-	@Override
-	public Type getKey() {
-		return Type.Boolean;
+	public Type getPropertyType() {
+		return Type.StringArray;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
-		return new BooleanProperty(source.getPropertyName(), source.getDbName());
+
+		final String expression = source.getFormat();
+		if ("[]".equals(expression)) {
+			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			return null;
+		}
+
+		return new ArrayProperty(source.getPropertyName(), String.class);
+	}
+
+	@Override
+	public String[] getDefaultValue() {
+		return null;
 	}
 }

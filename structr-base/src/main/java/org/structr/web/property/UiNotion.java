@@ -21,6 +21,8 @@ package org.structr.web.property;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.traits.Traits;
 
+import java.util.Set;
+
 /**
  * Convenience wrapper for (id, name) tuple.
  * 
@@ -29,6 +31,6 @@ import org.structr.core.traits.Traits;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(Traits.idProperty(), Traits.nameProperty());
+		super(Set.of(Traits.idProperty(), Traits.nameProperty()));
 	}
 }

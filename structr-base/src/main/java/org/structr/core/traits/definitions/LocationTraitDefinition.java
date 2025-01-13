@@ -56,16 +56,16 @@ public final class LocationTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Double> latitudeProperty      = new DoubleProperty("latitude").indexed().partOfBuiltInSchema();
-		final Property<Double> longitudeProperty     = new DoubleProperty("longitude").indexed().partOfBuiltInSchema();
-		final Property<Double> altitudeProperty      = new DoubleProperty("altitude").indexed().partOfBuiltInSchema();
-		final Property<String> countryProperty       = new StringProperty("country").indexed().partOfBuiltInSchema();
-		final Property<String> postalCodeProperty    = new StringProperty("postalCode").indexed().partOfBuiltInSchema();
-		final Property<String> cityProperty          = new StringProperty("city").indexed().partOfBuiltInSchema();
-		final Property<String> streetProperty        = new StringProperty("street").indexed().partOfBuiltInSchema();
-		final Property<String> houseNumberProperty   = new StringProperty("houseNumber").indexed().partOfBuiltInSchema();
-		final Property<String> stateProperty         = new StringProperty("state").indexed().partOfBuiltInSchema();
-		final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed().partOfBuiltInSchema();
+		final Property<Double> latitudeProperty      = new DoubleProperty("latitude").indexed();
+		final Property<Double> longitudeProperty     = new DoubleProperty("longitude").indexed();
+		final Property<Double> altitudeProperty      = new DoubleProperty("altitude").indexed();
+		final Property<String> countryProperty       = new StringProperty("country").indexed();
+		final Property<String> postalCodeProperty    = new StringProperty("postalCode").indexed();
+		final Property<String> cityProperty          = new StringProperty("city").indexed();
+		final Property<String> streetProperty        = new StringProperty("street").indexed();
+		final Property<String> houseNumberProperty   = new StringProperty("houseNumber").indexed();
+		final Property<String> stateProperty         = new StringProperty("state").indexed();
+		final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed();
 
 		return Set.of(
 			latitudeProperty,

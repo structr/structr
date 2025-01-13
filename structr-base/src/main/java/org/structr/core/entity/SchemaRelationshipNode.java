@@ -23,8 +23,11 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.operations.graphobject.IsValid;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,7 +69,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	Long getAutocreationFlag();
 	Long getCascadingDeleteFlag();
 
-	boolean isPartOfBuiltInSchema();
 	Iterable<SchemaGrant> getSchemaGrants();
 
 	// permission propagation
@@ -81,6 +83,11 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	void setTargetNode(final SchemaNode targetSchemaNode) throws FrameworkException;
 	void setSourceType(final String substring) throws FrameworkException;
 	void setTargetType(final String substring) throws FrameworkException;
+
+	TraitDefinition[] getTraitDefinitions();
+
+	PropertyKey createKey(final SchemaNode entity, final boolean outgoing) throws FrameworkException;
+	List<IsValid> createValidators(final SchemaNode entity) throws FrameworkException;
 
 	// ----- public static methods -----
 	static String getDefaultRelationshipType(final SchemaRelationshipNode rel) {
@@ -154,6 +161,4 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		return propertyName;
 	}
-
-	TraitDefinition[] getTraitDefinitions();
 }

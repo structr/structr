@@ -136,7 +136,6 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 		final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
 		final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty("defaultVisibleToPublic").readOnly().indexed();
 		final Property<Boolean>                          defaultVisibleToAuth   = new BooleanProperty("defaultVisibleToAuth").readOnly().indexed();
-		final Property<Boolean>                          isBuiltinType          = new BooleanProperty("isBuiltinType").readOnly().indexed();
 		final Property<Integer>                          hierarchyLevel         = new IntProperty("hierarchyLevel").indexed();
 		final Property<Integer>                          relCount               = new IntProperty("relCount").indexed();
 		final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
@@ -153,7 +152,6 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 			defaultSortOrder,
 			defaultVisibleToPublic,
 			defaultVisibleToAuth,
-			isBuiltinType,
 			hierarchyLevel,
 			relCount,
 			isInterface,
@@ -169,16 +167,16 @@ public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of("id", "type", "name", "inheritedTraits", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth"),
+			Set.of("id", "type", "name", "inheritedTraits", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth"),
 
 			PropertyView.Ui,
-			Set.of("id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI"),
+			Set.of("id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI"),
 
 			"schema",
-			Set.of("id", "type", "name", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "schemaGrants", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI"),
+			Set.of("id", "type", "name", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "schemaGrants", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI"),
 
 			"export",
-			Set.of("id", "type", "name", "defaultSortKey", "defaultSortOrder", "isBuiltinType", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth")
+			Set.of("id", "type", "name", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth")
 		);
 	}
 

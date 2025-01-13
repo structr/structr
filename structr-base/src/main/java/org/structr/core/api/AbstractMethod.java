@@ -32,7 +32,6 @@ import org.structr.common.error.NumericalMethodInputParsingException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments.Argument;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
@@ -40,7 +39,7 @@ import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 /**
  *
@@ -61,7 +60,7 @@ public abstract class AbstractMethod {
 	public abstract boolean isStatic();
 	public abstract boolean isPrivate();
 	public abstract Snippet getSnippet();
-	public abstract SchemaMethod.HttpVerb getHttpVerb();
+	public abstract String getHttpVerb();
 	public abstract Parameters getParameters();
 	public abstract String getFullMethodName();
 	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
@@ -324,7 +323,7 @@ public abstract class AbstractMethod {
 
 		if ("Date".equals(targetType) && input instanceof String stringInput) {
 
-			final Date date = DatePropertyParser.parseISO8601DateString(stringInput);
+			final Date date = DatePropertyGenerator.parseISO8601DateString(stringInput);
 			if (date != null) {
 
 				return date;

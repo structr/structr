@@ -34,7 +34,7 @@ public class SchemaViewTraitWrapper extends AbstractTraitWrapper<NodeInterface> 
 	@Override
 	public Iterable<SchemaProperty> getSchemaProperties() {
 
-		final PropertyKey<Iterable<SchemaProperty>> key = traits.key("schemaProperties");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaProperties");
 
 		return Iterables.map(n -> n.as(SchemaProperty.class), wrappedObject.getProperty(key));
 	}

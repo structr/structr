@@ -39,10 +39,10 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 
 	Set<String> getEnumDefinitions();
 
-	NotionPropertyParser getNotionPropertyParser();
-	IntPropertyParser getIntPropertyParser();
-	LongPropertyParser getLongPropertyParser();
-	DoublePropertyParser getDoublePropertyParser();
+	NotionPropertyGenerator getNotionPropertyParser();
+	IntegerPropertyGenerator getIntPropertyParser();
+	LongPropertyGenerator getLongPropertyParser();
+	DoublePropertyGenerator getDoublePropertyParser();
 
 	PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException;
 	List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException;

@@ -29,16 +29,16 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-public class ZonedDateTimePropertyParser extends PropertyGenerator {
+public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateTime> {
 
 	private String pattern = null;
 
-	public ZonedDateTimePropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
+	public ZonedDateTimePropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
 		super(errorBuffer, className, propertyDefinition);
 	}
 
 	@Override
-	public SchemaHelper.Type getKey() {
+	public SchemaHelper.Type getPropertyType() {
 		return SchemaHelper.Type.ZonedDateTime;
 	}
 
@@ -58,12 +58,24 @@ public class ZonedDateTimePropertyParser extends PropertyGenerator {
 			pattern = expression;
 		}
 
-		return new ZonedDateTimeProperty(name, source.getDbName());
+		return new ZonedDateTimeProperty(name);
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return "ZonedDateTimeParser.parse(\"" + getSourceDefaultValue() + "\", " + (pattern != null ? "\"" + pattern + "\"" : "null") + ")";
+	public ZonedDateTime getDefaultValue() {
+
+		final String pattern      = source.getFormat();
+		final String defaultValue = source.getDefaultValue();
+
+		try {
+
+			return ZonedDateTimePropertyGenerator.parse(defaultValue, (pattern != null ? pattern : null));
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return null;
 	}
 
 	/**

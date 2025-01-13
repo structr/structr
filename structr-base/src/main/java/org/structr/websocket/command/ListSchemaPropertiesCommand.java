@@ -108,7 +108,6 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 								property.put(schemaPropertyTraits.key("propertyType"),          valueTypeName);
 								property.put(schemaPropertyTraits.key("notNull"),               key.isNotNull());
 								property.put(schemaPropertyTraits.key("unique"),                key.isUnique());
-								property.put(schemaPropertyTraits.key("isPartOfBuiltInSchema"), key.isPartOfBuiltInSchema());
 								property.put(schemaPropertyTraits.key("isDynamic"),             key.isDynamic());
 								property.put(schemaPropertyTraits.key("declaringClass"),        declaringClass);
 								property.put(schemaPropertyTraits.key("declaringUuid"),         declaringUuid);

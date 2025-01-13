@@ -30,7 +30,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -56,7 +55,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-		if (HttpVerb.GET.equals(method.getHttpVerb())) {
+		if ("GET".equals(method.getHttpVerb())) {
 
 			final GraphObject entity      = getEntity(securityContext, typeName, uuid);
 			final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
@@ -72,7 +71,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.POST.equals(method.getHttpVerb())) {
+		if ("POST".equals(method.getHttpVerb())) {
 
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
@@ -87,7 +86,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PUT.equals(method.getHttpVerb())) {
+		if ("PUT".equals(method.getHttpVerb())) {
 
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
@@ -102,7 +101,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
+		if ("PATCH".equals(method.getHttpVerb())) {
 
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
@@ -120,18 +119,18 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (!HttpVerb.DELETE.equals(method.getHttpVerb())) {
+			if ("DELETE".equals(method.getHttpVerb())) {
 
-				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
-
-			} else {
-
-				final GraphObject entity      = getEntity(securityContext, typeName, uuid);
+				final GraphObject entity = getEntity(securityContext, typeName, uuid);
 				final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
 
 				tx.success();
 
 				return result;
+
+			} else {
+
+				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 			}
 		}
 	}
@@ -155,6 +154,6 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
-		return Set.of(method.getHttpVerb().name());
+		return Set.of(method.getHttpVerb());
 	}
 }

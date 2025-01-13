@@ -21,6 +21,7 @@ package org.structr.schema;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.ScriptMethod;
@@ -28,6 +29,7 @@ import org.structr.core.entity.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -45,13 +47,14 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 	@Override
 	public String getName() {
-		return schemaNode.getName();
+		return schemaNode.getClassName();
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
-		final Validator validator = new Validator();
+		final Set<String> compoundKeys = new LinkedHashSet<>();
+		final Validator validator      = new Validator();
 
 		// collect validators
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
@@ -60,9 +63,34 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 				validator.addValidatorsOrNull(property.createValidators(schemaNode));
 
+				if (property.isCompound()) {
+					compoundKeys.add(property.getName());
+				}
+
 			} catch (FrameworkException e) {
 				e.printStackTrace();
 			}
+		}
+
+		if (!compoundKeys.isEmpty()) {
+
+			validator.addValidatorsOrNull(List.of(
+
+				new IsValid() {
+					@Override
+					public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+						final Traits traits         = obj.getTraits();
+						final Set<PropertyKey> keys = new LinkedHashSet<>();
+
+						for (final String compoundKey : compoundKeys) {
+							keys.add(traits.key(compoundKey));
+						}
+
+						return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, keys);
+					}
+				}
+			));
 		}
 
 		return Map.of(
@@ -174,14 +202,15 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 			return isValid;
 		}
 
-		public void addValidatorsOrNull(final List<IsValid> validators) {
+		public void addValidatorsOrNull(final List<IsValid> input) {
 
-			if (validators != null) {
+			if (input != null) {
 
-				for (final IsValid v : validators) {
+				for (final IsValid v : input) {
 
 					if (v != null) {
-						validators.add(v);
+
+						this.validators.add(v);
 					}
 				}
 			}

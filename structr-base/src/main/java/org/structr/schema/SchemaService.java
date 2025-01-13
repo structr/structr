@@ -110,7 +110,7 @@ public class SchemaService implements Service {
 
 
 					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
-					final String name                      = schemaRel.getName();
+					final String name                      = schemaRel.getClassName();
 					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
 
 					StructrTraits.registerDynamicRelationshipType(name, definitions);
@@ -121,7 +121,7 @@ public class SchemaService implements Service {
 
 
 					final SchemaNode schemaNode         = node.as(SchemaNode.class);
-					final String name                   = schemaNode.getName();
+					final String name                   = schemaNode.getClassName();
 					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
 
 					StructrTraits.registerDynamicNodeType(name, definitions);
@@ -529,12 +529,6 @@ public class SchemaService implements Service {
 	public static Set<String> getBlacklist() {
 		return SchemaService.blacklist;
 	}
-
-	/*
-	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
-		StructrSchema.extendDatabaseSchema(app, dynamicSchema);
-	}
-	*/
 
 	@Override
 	public boolean isVital() {

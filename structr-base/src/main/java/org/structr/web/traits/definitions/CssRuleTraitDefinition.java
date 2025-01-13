@@ -70,11 +70,11 @@ public class CssRuleTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes("childRules", "CssRuleCONTAINSCssRule").partOfBuiltInSchema();
-		final Property<NodeInterface> parentRuleProperty           = new StartNode("parentRule", "CssRuleCONTAINSCssRule").partOfBuiltInSchema();
-		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes("selectors", "CssRuleHAS_SELECTORCssSelector").partOfBuiltInSchema();
-		final Property<String> cssTextProperty                     = new StringProperty("cssText").indexed().partOfBuiltInSchema();
-		final Property<Integer>  ruleTypeProperty                  = new IntProperty("ruleType").indexed().partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes("childRules", "CssRuleCONTAINSCssRule");
+		final Property<NodeInterface> parentRuleProperty           = new StartNode("parentRule", "CssRuleCONTAINSCssRule");
+		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes("selectors", "CssRuleHAS_SELECTORCssSelector");
+		final Property<String> cssTextProperty                     = new StringProperty("cssText").indexed();
+		final Property<Integer>  ruleTypeProperty                  = new IntProperty("ruleType").indexed();
 
 		return Set.of(
 			childRulesProperty,

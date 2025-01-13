@@ -19,6 +19,8 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -26,7 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
-import org.structr.schema.DynamicTraitDefinition;
+import org.structr.schema.DynamicNodeTraitDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,11 +80,6 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	@Override
-	public boolean isBuiltinType() {
-		return wrappedObject.getProperty(traits.key("isBuiltinType"));
-	}
-
-	@Override
 	public boolean changelogDisabled() {
 		return wrappedObject.getProperty(traits.key("changelogDisabled"));
 	}
@@ -128,10 +125,14 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 		final Set<String> inheritedTraits = new TreeSet<>();
 		final PropertyKey<String[]> key   = traits.key("inheritedTraits");
+		final String[] value              = wrappedObject.getProperty(key);
 
-		for (final String trait : wrappedObject.getProperty(key)) {
+		if (value != null) {
 
-			inheritedTraits.add(trait);
+			for (final String trait : value) {
+
+				inheritedTraits.add(trait);
+			}
 		}
 
 		return inheritedTraits;
@@ -142,7 +143,34 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 		final List<TraitDefinition> definitions = new ArrayList<>();
 
-		definitions.add(new DynamicTraitDefinition(this));
+		for (final String inheritedTrait : getInheritedTraits()) {
+
+			try {
+
+				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery("SchemaNode").andName(inheritedTrait).getFirst();
+				if (inheritedSchemaNode != null) {
+
+					definitions.add(new DynamicNodeTraitDefinition(inheritedSchemaNode.as(SchemaNode.class)));
+
+				} else {
+
+					// try to find internal trait
+					if (Traits.exists(inheritedTrait)) {
+
+						final Traits traits = Traits.of(inheritedTrait);
+
+						definitions.addAll(traits.getTraitDefinitions());
+
+					}
+				}
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+		}
+
+		// add actual type last
+		definitions.add(new DynamicNodeTraitDefinition(this));
 
 		return definitions.toArray(new TraitDefinition[0]);
 	}

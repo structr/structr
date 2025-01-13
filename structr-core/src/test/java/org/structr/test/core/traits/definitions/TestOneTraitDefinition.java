@@ -30,10 +30,6 @@ import java.util.Set;
 
 public class TestOneTraitDefinition extends AbstractTraitDefinition {
 
-	public enum Status {
-		One, Two, Three, Four
-	}
-
 	public TestOneTraitDefinition() {
 		super("TestOne");
 	}
@@ -45,7 +41,7 @@ public class TestOneTraitDefinition extends AbstractTraitDefinition {
 		final PropertyKey<Long>                    aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();
 		final PropertyKey<Double>                  aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 		final PropertyKey<Date>                    aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
-		final PropertyKey<Status>                  anEnum             = new EnumProperty<>("anEnum", Status.class).indexed();
+		final PropertyKey<String>                  anEnum             = new EnumProperty("anEnum", new String[] { "One", "Two", "Three", "Four" }).indexed();
 		final PropertyKey<String>                  aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final PropertyKey<Boolean>                 aBoolean           = new BooleanProperty("aBoolean").indexed();
 		final PropertyKey<String>                  testString         = new StringProperty("testString");

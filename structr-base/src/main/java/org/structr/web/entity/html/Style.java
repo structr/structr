@@ -28,9 +28,9 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Style extends DOMElement {
 
 	/*
-	public static final Property<String> htmlMediaProperty = new StringProperty("_html_media").partOfBuiltInSchema();
-	public static final Property<String> htmlTypeProperty = new StringProperty("_html_type").partOfBuiltInSchema();
-	public static final Property<String> htmlScopedProperty = new StringProperty("_html_scoped").partOfBuiltInSchema();
+	public static final Property<String> htmlMediaProperty = new StringProperty("_html_media");
+	public static final Property<String> htmlTypeProperty = new StringProperty("_html_type");
+	public static final Property<String> htmlScopedProperty = new StringProperty("_html_scoped");
 
 	public static final View htmlView = new View(Style.class, PropertyView.Html,
 		htmlMediaProperty, htmlTypeProperty, htmlScopedProperty

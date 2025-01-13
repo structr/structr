@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Combines a {@link PropertySetSerializationStrategy} and a {@link TypeAndPropertySetDeserializationStrategy}
@@ -32,11 +33,11 @@ import java.util.Map;
  */
 public class PropertySetNotion<S extends NodeInterface> extends Notion<S, Map<String, Object>> {
 
-	public PropertySetNotion(final PropertyKey... propertyKeys) {
+	public PropertySetNotion(final Set<PropertyKey> propertyKeys) {
 		this(false, propertyKeys);
 	}
 	
-	public PropertySetNotion(final boolean createIfNotExisting, final PropertyKey... propertyKeys) {
+	public PropertySetNotion(final boolean createIfNotExisting, final Set<PropertyKey> propertyKeys) {
 		this(
 			new PropertySetSerializationStrategy(propertyKeys),
 			new TypeAndPropertySetDeserializationStrategy(createIfNotExisting, propertyKeys)

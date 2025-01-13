@@ -22,17 +22,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.property.PasswordProperty;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 /**
  *
  *
  */
-public class PasswordPropertySourceGenerator extends PropertyGenerator {
+public class EnumArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
-	public PasswordPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public EnumArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
@@ -42,30 +46,43 @@ public class PasswordPropertySourceGenerator extends PropertyGenerator {
 	}
 
 	@Override
-	public Type getKey() {
-		return Type.String;
+	public Type getPropertyType() {
+		return Type.EnumArray;
 	}
 
 	@Override
 	public Property newInstance() throws FrameworkException {
 
 		final String expression = source.getFormat();
+		final String name       = source.getPropertyName();
 
-		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
-			return null;
+		if (StringUtils.isNotBlank(expression)) {
+
+			return new EnumProperty(name, expression.split("[, ]+"));
+
+		} else if (source.getFqcn() != null) {
+
+			// not supported!
+			throw new FrameworkException(422, "Enum type definitions based on fully-qualified class names are not supported any more.");
+
+		} else {
+
+			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
 		}
 
-		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
-
-			addGlobalValidator(new Validator("isValidStringMatchingRegex", source.getClassName(), source.getPropertyName(), expression));
-		}
-
-		return new PasswordProperty(source.getPropertyName());
+		return null;
 	}
 
 	@Override
-	public String getDefaultValue() {
-		return source.getDefaultValue();
+	public String[] getDefaultValue() {
+
+		final String val = source.getDefaultValue();
+
+		if (StringUtils.isNotBlank(val)) {
+
+			return val.split("[, ]+");
+		}
+
+		return null;
 	}
 }

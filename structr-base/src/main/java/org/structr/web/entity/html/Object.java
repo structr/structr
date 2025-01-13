@@ -27,12 +27,12 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Object extends DOMElement {
 
 	/*
-	public static final Property<String> htmlTypeProperty          = new StringProperty("_html_type").partOfBuiltInSchema();
-	public static final Property<String> htmlTypeMustMatchProperty = new StringProperty("_html_typemustmatch").partOfBuiltInSchema();
-	public static final Property<String> htmlUsemapProperty        = new StringProperty("_html_usemap").partOfBuiltInSchema();
-	public static final Property<String> htmlFormProperty          = new StringProperty("_html_form").partOfBuiltInSchema();
-	public static final Property<String> htmlWidthProperty         = new StringProperty("_html_width").partOfBuiltInSchema();
-	public static final Property<String> htmlHeightProperty        = new StringProperty("_html_height").partOfBuiltInSchema();
+	public static final Property<String> htmlTypeProperty          = new StringProperty("_html_type");
+	public static final Property<String> htmlTypeMustMatchProperty = new StringProperty("_html_typemustmatch");
+	public static final Property<String> htmlUsemapProperty        = new StringProperty("_html_usemap");
+	public static final Property<String> htmlFormProperty          = new StringProperty("_html_form");
+	public static final Property<String> htmlWidthProperty         = new StringProperty("_html_width");
+	public static final Property<String> htmlHeightProperty        = new StringProperty("_html_height");
 
 	public static final View htmlView = new View(Object.class, PropertyView.Html,
 		htmlTypeProperty, htmlTypeMustMatchProperty, htmlUsemapProperty, htmlFormProperty, htmlWidthProperty, htmlHeightProperty

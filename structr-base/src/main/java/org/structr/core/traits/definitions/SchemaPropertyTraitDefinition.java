@@ -89,9 +89,9 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType")));
-		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
-		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty()));
+		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
 
 		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 		final Property<String>             declaringClass        = new StringProperty("declaringClass");

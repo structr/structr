@@ -225,24 +225,24 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> fileParentProperty = new StartNode("fileParent", "FolderCONTAINSFile").partOfBuiltInSchema();
-		final Property<String> contentTypeProperty       = new StringProperty("contentType").partOfBuiltInSchema();
-		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false).partOfBuiltInSchema().dynamic();
-		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed").partOfBuiltInSchema().dynamic();
-		final Property<Boolean> isFileProperty            = new BooleanProperty("isFile").readOnly().transformators("org.structr.common.ConstantBooleanTrue").partOfBuiltInSchema().dynamic();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate").partOfBuiltInSchema().dynamic();
-		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds").partOfBuiltInSchema().dynamic();
-		final Property<Integer> positionProperty          = new IntProperty("position").indexed().partOfBuiltInSchema().dynamic();
-		final Property<Integer> versionProperty           = new IntProperty("version").indexed().partOfBuiltInSchema().dynamic();
-		final Property<String> md5Property                = new StringProperty("md5").partOfBuiltInSchema().dynamic();
-		final Property<String> sha1Property               = new StringProperty("sha1").partOfBuiltInSchema().dynamic();
-		final Property<String> sha512Property             = new StringProperty("sha512").partOfBuiltInSchema().dynamic();
-		final Property<String> urlProperty                = new StringProperty("url").partOfBuiltInSchema().dynamic();
-		final Property<Long> checksumProperty             = new LongProperty("checksum").indexed().partOfBuiltInSchema().dynamic();
-		final Property<Long> crc32Property                = new LongProperty("crc32").indexed().partOfBuiltInSchema().dynamic();
-		final Property<Long> fileModificationDateProperty = new LongProperty("fileModificationDate").partOfBuiltInSchema().dynamic();
-		final Property<Long> sizeProperty                 = new LongProperty("size").indexed().partOfBuiltInSchema().dynamic();
-		final Property<String> base64DataProperty         = new FileDataProperty("base64Data").typeHint("String").partOfBuiltInSchema().dynamic();
+		final Property<NodeInterface> fileParentProperty = new StartNode("fileParent", "FolderCONTAINSFile");
+		final Property<String> contentTypeProperty       = new StringProperty("contentType");
+		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false).dynamic();
+		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed").dynamic();
+		final Property<Boolean> isFileProperty            = new BooleanProperty("isFile").readOnly().transformators("org.structr.common.ConstantBooleanTrue").dynamic();
+		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate").dynamic();
+		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds").dynamic();
+		final Property<Integer> positionProperty          = new IntProperty("position").indexed().dynamic();
+		final Property<Integer> versionProperty           = new IntProperty("version").indexed().dynamic();
+		final Property<String> md5Property                = new StringProperty("md5").dynamic();
+		final Property<String> sha1Property               = new StringProperty("sha1").dynamic();
+		final Property<String> sha512Property             = new StringProperty("sha512").dynamic();
+		final Property<String> urlProperty                = new StringProperty("url").dynamic();
+		final Property<Long> checksumProperty             = new LongProperty("checksum").indexed().dynamic();
+		final Property<Long> crc32Property                = new LongProperty("crc32").indexed().dynamic();
+		final Property<Long> fileModificationDateProperty = new LongProperty("fileModificationDate").dynamic();
+		final Property<Long> sizeProperty                 = new LongProperty("size").indexed().dynamic();
+		final Property<String> base64DataProperty         = new FileDataProperty("base64Data").typeHint("String").dynamic();
 
 		return Set.of(
 			fileParentProperty,

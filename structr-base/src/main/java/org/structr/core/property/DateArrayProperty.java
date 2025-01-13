@@ -32,7 +32,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -143,7 +143,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 			final ArrayList<String> result = new ArrayList<>();
 			for (final Date o : source) {
-				result.add(DatePropertyParser.format(o, format));
+				result.add(DatePropertyGenerator.format(o, format));
 			}
 
 			return result;
@@ -179,7 +179,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 			}
 
-			return (Date[])new Date[] { DatePropertyParser.parse(source.toString(), format) };
+			return (Date[])new Date[] { DatePropertyGenerator.parse(source.toString(), format) };
 		}
 
 	}
@@ -249,7 +249,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 			} else if (o != null) {
 
-				result.add(DatePropertyParser.parse(o.toString(), format));
+				result.add(DatePropertyGenerator.parse(o.toString(), format));
 
 			} else {
 
