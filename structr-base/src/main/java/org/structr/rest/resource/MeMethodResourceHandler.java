@@ -30,7 +30,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTMethodCallHandler;
@@ -48,7 +47,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-		if (HttpVerb.GET.equals(method.getHttpVerb())) {
+		if ("GET".equals(method.getHttpVerb())) {
 
 			final Principal entity        = securityContext.getUser(false);
 			final RestMethodResult result = executeMethod(securityContext, entity.getWrappedNode(), Arguments.fromPath(call.getPathParameters()));
@@ -64,7 +63,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.POST.equals(method.getHttpVerb())) {
+		if ("POST".equals(method.getHttpVerb())) {
 
 			final Principal entity = securityContext.getUser(false);
 
@@ -79,7 +78,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PUT.equals(method.getHttpVerb())) {
+		if ("PUT".equals(method.getHttpVerb())) {
 
 			final Principal entity = securityContext.getUser(false);
 
@@ -94,7 +93,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
+		if ("PATCH".equals(method.getHttpVerb())) {
 
 			final Principal entity = securityContext.getUser(false);
 
@@ -110,7 +109,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
 
-		if (HttpVerb.DELETE.equals(method.getHttpVerb())) {
+		if ("DELETE".equals(method.getHttpVerb())) {
 
 			final Principal entity = securityContext.getUser(false);
 
@@ -141,6 +140,6 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
-		return Set.of(method.getHttpVerb().name());
+		return Set.of(method.getHttpVerb());
 	}
 }

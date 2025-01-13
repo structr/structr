@@ -154,7 +154,7 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
-	public HttpVerb getHttpVerb() {
+	public String getHttpVerb() {
 		return wrappedObject.getProperty(traits.key("httpVerb"));
 	}
 

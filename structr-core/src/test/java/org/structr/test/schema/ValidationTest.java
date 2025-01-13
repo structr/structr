@@ -29,16 +29,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -912,18 +908,6 @@ public class ValidationTest extends StructrTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			/*
-			final NodeInterface testType = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Test"),
-				new NodeAttribute<>(new StringProperty("_testUnique"), "String!")
-			);
-
-			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "TestDerived"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), testType)
-			);
-			*/
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1205,6 +1189,7 @@ public class ValidationTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
+				fex.printStackTrace();
 				fail("Array property validation error!");
 			}
 		}
@@ -1549,7 +1534,7 @@ public class ValidationTest extends StructrTest {
 			// test failure
 			try (final Tx tx = app.tx()) {
 
-				final Object value = ((EnumProperty)key).getEnumType().getEnumConstants()[0];
+				final Object value = ((EnumProperty)key).getEnumConstants().toArray()[0];
 
 				uuid = app.create(testType, new NodeAttribute<>(key, value)).getUuid();
 
@@ -2117,11 +2102,27 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("Traits").key("of"), "TestType"),
-				new NodeAttribute<>(new StringProperty("_key1"), "String!!"),
-				new NodeAttribute<>(new StringProperty("_key2"), "String!!"),
-				new NodeAttribute<>(new StringProperty("_key3"), "String!!")
+			final NodeInterface typeNode = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
+
+			app.create("SchemaProperty",
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "key1"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), typeNode),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("compound"), true)
+			);
+
+			app.create("SchemaProperty",
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "key2"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), typeNode),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("compound"), true)
+			);
+
+			app.create("SchemaProperty",
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "key3"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), typeNode),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("compound"), true)
 			);
 
 			tx.success();
@@ -2130,11 +2131,11 @@ public class ValidationTest extends StructrTest {
 			fex.printStackTrace();
 		}
 
-		final String type        = "TestType";
-		final PropertyKey key1   = Traits.of(type).key("key1");
-		final PropertyKey key2   = Traits.of(type).key("key2");
-		final PropertyKey key3   = Traits.of(type).key("key3");
-		final PropertyKey[] keys = new PropertyKey[] { key1, key2, key3 };
+		final String type           = "TestType";
+		final PropertyKey key1      = Traits.of(type).key("key1");
+		final PropertyKey key2      = Traits.of(type).key("key2");
+		final PropertyKey key3      = Traits.of(type).key("key3");
+		final Set<PropertyKey> keys = Set.of(key1, key2, key3);
 
 		// test success
 		try (final Tx tx = app.tx()) {
@@ -2216,7 +2217,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid validation error token", "already_taken", token.getToken());
 			assertEquals("Invalid validation error type", "TestType",       token.getType());
 			assertEquals("Invalid validation error UUID", uuid,             token.getDetail());
-			assertTrue("Invalid validation error type", Arrays.equals(keys, (PropertyKey[])token.getValue()));
+			assertEquals("Invalid validation error type", keys,             token.getValue());
 
 		}
 	}
@@ -2377,8 +2378,15 @@ public class ValidationTest extends StructrTest {
 				case "DateArray"    -> type.addDateArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
 				case "Integer"      -> type.addIntegerProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
 				case "IntegerArray" -> type.addIntegerArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "Long"         -> type.addLongProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "LongArray"    -> type.addLongArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "Double"       -> type.addDoubleProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "DoubleArray"  -> type.addDoubleArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
 				case "String"       -> type.addStringProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
 				case "StringArray"  -> type.addStringArrayProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+				case "Enum"         -> type.addEnumProperty(keyName).setUnique(unique).setRequired(required).setFormat(format);
+
+				default -> throw new RuntimeException("Unknown key type " + keyType);
 			}
 
 			StructrSchema.extendDatabaseSchema(app, schema);

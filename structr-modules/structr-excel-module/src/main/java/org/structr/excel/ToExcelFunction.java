@@ -36,7 +36,7 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -309,7 +309,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		} else if (value instanceof Date) {
 
-			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			result = DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else {
 

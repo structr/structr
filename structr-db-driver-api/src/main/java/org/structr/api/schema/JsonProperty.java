@@ -27,37 +27,37 @@ import java.util.Set;
  */
 public interface JsonProperty extends Comparable<JsonProperty> {
 
-	public URI getId();
+	URI getId();
 
-	public JsonType getParent();
+	JsonType getParent();
 
-	public String getName();
-	public String getType();
-	public String getFormat();
-	public String getHint();
-	public String getCategory();
+	String getName();
+	String getType();
+	String getFormat();
+	String getHint();
+	String getCategory();
 
-	public String getDefaultValue();
+	String getDefaultValue();
 
-	public boolean isCompoundUnique();
-	public boolean isRequired();
-	public boolean isUnique();
-	public boolean isIndexed();
-	public boolean isReadOnly();
-	public Set<String> getTransformators();
-	public Set<String> getValidators();
+	boolean isCompoundUnique();
+	boolean isRequired();
+	boolean isUnique();
+	boolean isIndexed();
+	boolean isReadOnly();
+	Set<String> getTransformators();
+	Set<String> getValidators();
 
-	public JsonProperty setHint(final String hint);
-	public JsonProperty setCategory(final String category);
-	public JsonProperty setFormat(final String format);
-	public JsonProperty setName(final String name);
-	public JsonProperty setRequired(final boolean isRequired);
-	public JsonProperty setCompound(final boolean isCompoundUnique);
-	public JsonProperty setUnique(final boolean isUnique);
-	public JsonProperty setIndexed(final boolean isIndexed);
-	public JsonProperty setReadOnly(final boolean isReadOnly);
-	public JsonProperty setDefaultValue(final String defaultValue);
+	JsonProperty setHint(final String hint);
+	JsonProperty setCategory(final String category);
+	JsonProperty setFormat(final String format);
+	JsonProperty setName(final String name);
+	JsonProperty setRequired(final boolean isRequired);
+	JsonProperty setCompound(final boolean isCompoundUnique);
+	JsonProperty setUnique(final boolean isUnique);
+	JsonProperty setIndexed(final boolean isIndexed);
+	JsonProperty setReadOnly(final boolean isReadOnly);
+	JsonProperty setDefaultValue(final String defaultValue);
 
-	public JsonProperty addValidator(final String fqcn);
-	public JsonProperty addTransformer(final String fqcn);
+	JsonProperty addValidator(final String fqcn);
+	JsonProperty addTransformer(final String fqcn);
 }

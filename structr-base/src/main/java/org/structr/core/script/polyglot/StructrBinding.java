@@ -164,11 +164,8 @@ public class StructrBinding implements ProxyObject {
 				}
 
 				// static type?
-				final Traits nodeType = Traits.of(name);
-
-				if (nodeType != null) {
-
-					return new StaticTypeWrapper(actionContext, nodeType);
+				if (Traits.exists(name)) {
+					return new StaticTypeWrapper(actionContext, Traits.of(name));
 				}
 
 				// look for user-defined function with the given name

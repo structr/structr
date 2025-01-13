@@ -32,8 +32,8 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Html extends DOMElement {
 
 	/*
-	public static final Property<String> _manifest         = (new HtmlProperty("manifest")).partOfBuiltInSchema();
-	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag").partOfBuiltInSchema();
+	public static final Property<String> _manifest         = (new HtmlProperty("manifest"));
+	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag");
 
 	/** If set, the custom opening tag is rendered instead of just <html> to allow things like IE conditional comments:
 	 *

@@ -34,7 +34,7 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractTraitDef
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+		final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().category(SYSTEM_CATEGORY);
 		final Property<String>        relType            = new RelationshipTypeProperty();
 		final SourceId                sourceId           = new SourceId("sourceId");
 		final TargetId                targetId           = new TargetId("targetId");

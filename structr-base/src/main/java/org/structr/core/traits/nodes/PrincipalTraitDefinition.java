@@ -128,8 +128,8 @@ public class PrincipalTraitDefinition extends AbstractTraitDefinition {
 
 		return Set.of(
 			new StartNodes("groups", "GroupCONTAINSPrincipal"),
-			new EndNodes("ownedNodes", "PrincipalOwnsNode").partOfBuiltInSchema(),
-			new EndNodes("grantedNodes", "SecurityRelationship").partOfBuiltInSchema(),
+			new EndNodes("ownedNodes", "PrincipalOwnsNode"),
+			new EndNodes("grantedNodes", "SecurityRelationship"),
 			new BooleanProperty("isAdmin").indexed().readOnly(),
 			new BooleanProperty("blocked"),
 			new ArrayProperty("sessionIds", String.class).indexed(),

@@ -29,7 +29,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.parser.IntPropertyParser;
+import org.structr.schema.parser.IntegerPropertyGenerator;
 
 import java.util.Map;
 
@@ -165,7 +165,7 @@ public class StructrIntegerProperty extends StructrPropertyDefinition implements
 
 		super.deserialize(schemaNodes, property);
 
-		final IntPropertyParser intPropertyParser = property.getIntPropertyParser();
+		final IntegerPropertyGenerator intPropertyParser = property.getIntPropertyParser();
 		if (intPropertyParser != null) {
 
 			this.exclusiveMinimum = intPropertyParser.isLowerExclusive();

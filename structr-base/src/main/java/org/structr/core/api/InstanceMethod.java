@@ -18,13 +18,13 @@
  */
 package org.structr.core.api;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Map;
 
 public abstract class InstanceMethod extends AbstractMethod {
 
@@ -57,8 +57,8 @@ public abstract class InstanceMethod extends AbstractMethod {
 	}
 
 	@Override
-	public SchemaMethod.HttpVerb getHttpVerb() {
-		return SchemaMethod.HttpVerb.POST;
+	public String getHttpVerb() {
+		return "POST";
 	}
 
 	@Override

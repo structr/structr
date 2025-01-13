@@ -507,7 +507,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final String key : typesOnlyInDatabase) {
 
 			final StructrTypeDefinition type = databaseTypes.get(key);
-			if (type.isBuiltinType() || toMigrate.contains(key)) {
+			if (toMigrate.contains(key)) {
 
 				handleRemovedBuiltInType(type);
 

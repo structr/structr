@@ -18,7 +18,7 @@
  */
 package org.structr.schema.export;
 
-import org.structr.api.schema.JsonNumberProperty;
+import org.structr.api.schema.JsonDoubleProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -29,7 +29,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.parser.DoublePropertyParser;
+import org.structr.schema.parser.DoublePropertyGenerator;
 
 import java.util.Map;
 
@@ -37,7 +37,7 @@ import java.util.Map;
  *
  *
  */
-public class StructrNumberProperty extends StructrPropertyDefinition implements JsonNumberProperty {
+public class StructrNumberProperty extends StructrPropertyDefinition implements JsonDoubleProperty {
 
 	private boolean exclusiveMinimum = false;
 	private boolean exclusiveMaximum = false;
@@ -54,7 +54,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonNumberProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
+	public JsonDoubleProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
 
 		this.exclusiveMinimum = exclusiveMinimum;
 		return this;
@@ -66,7 +66,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonNumberProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
+	public JsonDoubleProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
 
 		this.exclusiveMaximum = exclusiveMaximum;
 		return this;
@@ -78,12 +78,12 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonNumberProperty setMinimum(final double minimum) {
+	public JsonDoubleProperty setMinimum(final double minimum) {
 		return setMinimum(minimum, false);
 	}
 
 	@Override
-	public JsonNumberProperty setMinimum(final double minimum, final boolean exclusive) {
+	public JsonDoubleProperty setMinimum(final double minimum, final boolean exclusive) {
 
 		this.exclusiveMinimum = exclusive;
 		this.minimum          = minimum;
@@ -97,12 +97,12 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public JsonNumberProperty setMaximum(final double maximum) {
+	public JsonDoubleProperty setMaximum(final double maximum) {
 		return this.setMaximum(maximum, false);
 	}
 
 	@Override
-	public JsonNumberProperty setMaximum(final double maximum, final boolean exclusive) {
+	public JsonDoubleProperty setMaximum(final double maximum, final boolean exclusive) {
 
 		this.exclusiveMaximum = exclusive;
 		this.maximum          = maximum;
@@ -166,7 +166,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 
 		super.deserialize(schemaNodes, property);
 
-		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser();
+		final DoublePropertyGenerator doublePropertyParser = property.getDoublePropertyParser();
 		if (doublePropertyParser != null) {
 
 			this.exclusiveMinimum = doublePropertyParser.isLowerExclusive();

@@ -24,11 +24,11 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Script extends DOMElement, LinkSource {
 
 	/*
-	public static final Property<String> htmlSrcProperty     = new StringProperty("_html_src").partOfBuiltInSchema();
-	public static final Property<String> htmlAsyncProperty   = new StringProperty("_html_async").partOfBuiltInSchema();
-	public static final Property<String> htmlDeferProperty   = new StringProperty("_html_defer").partOfBuiltInSchema();
-	public static final Property<String> htmlTypeProperty    = new StringProperty("_html_type").partOfBuiltInSchema();
-	public static final Property<String> htmlCharsetProperty = new StringProperty("_html_charset").partOfBuiltInSchema();
+	public static final Property<String> htmlSrcProperty     = new StringProperty("_html_src");
+	public static final Property<String> htmlAsyncProperty   = new StringProperty("_html_async");
+	public static final Property<String> htmlDeferProperty   = new StringProperty("_html_defer");
+	public static final Property<String> htmlTypeProperty    = new StringProperty("_html_type");
+	public static final Property<String> htmlCharsetProperty = new StringProperty("_html_charset");
 
 	public static final View htmlView = new View(Script.class, PropertyView.Html,
 		htmlSrcProperty, htmlAsyncProperty, htmlDeferProperty, htmlTypeProperty, htmlCharsetProperty

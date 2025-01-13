@@ -38,7 +38,6 @@ public interface PropertyDefinition extends CodeSource {
 	boolean isUnique();
 	boolean isIndexed();
 	boolean isReadOnly();
-	boolean isPartOfBuiltInSchema();
 	boolean isCachingEnabled();
 	String getDefaultValue();
 	String getContentType();

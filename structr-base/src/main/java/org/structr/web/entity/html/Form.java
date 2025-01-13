@@ -28,14 +28,14 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Form extends DOMElement {
 
 	/*
-	public static final Property<String> htmlAcceptCharsetProperty = new StringProperty("_html_accept-charset").partOfBuiltInSchema();
-	public static final Property<String> htmlActionProperty        = new StringProperty("_html_action").partOfBuiltInSchema();
-	public static final Property<String> htmlAutocompleteProperty  = new StringProperty("_html_autocomplete").partOfBuiltInSchema();
-	public static final Property<String> htmlEnctypeProperty       = new StringProperty("_html_enctype").partOfBuiltInSchema();
-	public static final Property<String> htmlMethodProperty        = new StringProperty("_html_method").partOfBuiltInSchema();
-	public static final Property<String> htmlNameProperty          = new StringProperty("_html_name").partOfBuiltInSchema();
-	public static final Property<String> htmlNovalidateProperty    = new StringProperty("_html_novalidate").partOfBuiltInSchema();
-	public static final Property<String> htmlTargetProperty        = new StringProperty("_html_target").partOfBuiltInSchema();
+	public static final Property<String> htmlAcceptCharsetProperty = new StringProperty("_html_accept-charset");
+	public static final Property<String> htmlActionProperty        = new StringProperty("_html_action");
+	public static final Property<String> htmlAutocompleteProperty  = new StringProperty("_html_autocomplete");
+	public static final Property<String> htmlEnctypeProperty       = new StringProperty("_html_enctype");
+	public static final Property<String> htmlMethodProperty        = new StringProperty("_html_method");
+	public static final Property<String> htmlNameProperty          = new StringProperty("_html_name");
+	public static final Property<String> htmlNovalidateProperty    = new StringProperty("_html_novalidate");
+	public static final Property<String> htmlTargetProperty        = new StringProperty("_html_target");
 
 	public static final View htmlView = new View(Form.class, PropertyView.Html,
 		htmlAcceptCharsetProperty, htmlActionProperty, htmlAutocompleteProperty, htmlEnctypeProperty, htmlMethodProperty, htmlNameProperty, htmlNovalidateProperty, htmlTargetProperty

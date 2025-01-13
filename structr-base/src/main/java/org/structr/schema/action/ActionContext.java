@@ -40,10 +40,9 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
-import org.structr.core.app.StructrApp;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -453,7 +452,7 @@ public class ActionContext {
 
 						case "now":
 							hints.reportExistingKey(key);
-							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyParser.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
+							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyGenerator.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
 							hints.reportExistingKey(key);

@@ -16,13 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema;
+package org.structr.api.schema;
 
-import org.structr.core.entity.SchemaNode;
-
-public class DynamicTraitDefinition extends AbstractDynamicTraitDefinition<SchemaNode> {
-
-	public DynamicTraitDefinition(final SchemaNode schemaNode) {
-		super(schemaNode);
-	}
+/**
+ *
+ *
+ */
+public interface JsonDoubleArrayProperty extends JsonDoubleProperty {
 }

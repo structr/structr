@@ -28,8 +28,8 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Label extends DOMElement {
 
 	/*
-	public static final Property<String> htmlForProperty  = new StringProperty("_html_for").partOfBuiltInSchema();
-	public static final Property<String> htmlFormProperty = new StringProperty("_html_form").partOfBuiltInSchema();
+	public static final Property<String> htmlForProperty  = new StringProperty("_html_for");
+	public static final Property<String> htmlFormProperty = new StringProperty("_html_form");
 
 	public static final View htmlView = new View(Label.class, PropertyView.Html,
 		htmlForProperty, htmlFormProperty

@@ -84,8 +84,8 @@ public class ComponentTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> kindProperty      = new StringProperty("kind").partOfBuiltInSchema();
-		final Property<Integer> positionProperty = new IntProperty("position").partOfBuiltInSchema();
+		final Property<String> kindProperty      = new StringProperty("kind");
+		final Property<Integer> positionProperty = new IntProperty("position");
 
 		return Set.of(
 			kindProperty,

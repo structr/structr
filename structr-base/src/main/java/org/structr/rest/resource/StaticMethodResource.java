@@ -18,29 +18,27 @@
  */
 package org.structr.rest.resource;
 
-import java.util.List;
 import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.Traits;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
-
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.traits.Traits;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.schema.SchemaHelper;
+import org.structr.rest.exception.IllegalMethodException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -86,7 +84,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			if (HttpVerb.GET.equals(method.getHttpVerb())) {
+			if ("GET".equals(method.getHttpVerb())) {
 
 				final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
@@ -101,7 +99,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (HttpVerb.POST.equals(method.getHttpVerb())) {
+			if ("POST".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
@@ -114,7 +112,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (HttpVerb.PUT.equals(method.getHttpVerb())) {
+			if ("PUT".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
@@ -127,7 +125,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-			if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
+			if ("PATCH".equals(method.getHttpVerb())) {
 
 				// FIXME, only the first property set is used, we need to test this
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet.get(0)));
@@ -141,7 +139,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
 
-			if (HttpVerb.DELETE.equals(method.getHttpVerb())) {
+			if ("DELETE".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
@@ -163,7 +161,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
-			return Set.of(method.getHttpVerb().name());
+			return Set.of(method.getHttpVerb());
 		}
 	}
 }

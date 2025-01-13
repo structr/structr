@@ -28,8 +28,8 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Ol extends DOMElement {
 
 	/*
-	public static final Property<String> htmlReversedProperty = new StringProperty("_html_reversed").partOfBuiltInSchema();
-	public static final Property<String> htmlStartProperty    = new StringProperty("_html_start").partOfBuiltInSchema();
+	public static final Property<String> htmlReversedProperty = new StringProperty("_html_reversed");
+	public static final Property<String> htmlStartProperty    = new StringProperty("_html_start");
 
 	public static final View htmlView = new View(Ol.class, PropertyView.Html,
 		htmlReversedProperty, htmlStartProperty

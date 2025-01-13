@@ -35,11 +35,11 @@ import java.util.Date;
  *
  *
  */
-public class DatePropertyParser extends PropertyGenerator<Date> {
+public class DatePropertyGenerator extends PropertyGenerator<Date> {
 
 	private String pattern = null;
 
-	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public DatePropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
@@ -49,7 +49,7 @@ public class DatePropertyParser extends PropertyGenerator<Date> {
 	}
 
 	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.Date;
 	}
 
@@ -63,7 +63,7 @@ public class DatePropertyParser extends PropertyGenerator<Date> {
 
 		final String pattern = source.getFormat();
 
-		return DatePropertyParser.parse(source.getDefaultValue(), pattern != null ? pattern  : null);
+		return DatePropertyGenerator.parse(source.getDefaultValue(), pattern != null ? pattern  : null);
 	}
 
 	/**

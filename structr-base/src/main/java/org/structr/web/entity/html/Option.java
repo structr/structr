@@ -47,11 +47,11 @@ public interface Option extends DOMElement {
 	static final GenericProperty valueKey = new GenericProperty("value");
 	static final EqualFunction EqualFunction = new EqualFunction();
 
-	public static final Property<String> selectedValuesProperty = new StringProperty("selectedValues").partOfBuiltInSchema();
-	public static final Property<String> htmlValueProperty      = new StringProperty("_html_value").partOfBuiltInSchema();
-	public static final Property<String> htmlDisabledProperty   = new StringProperty("_html_disabled").partOfBuiltInSchema();
-	public static final Property<String> htmlSelectedProperty   = new StringProperty("_html_selected").partOfBuiltInSchema();
-	public static final Property<String> htmlLabelProperty      = new StringProperty("_html_label").partOfBuiltInSchema();
+	public static final Property<String> selectedValuesProperty = new StringProperty("selectedValues");
+	public static final Property<String> htmlValueProperty      = new StringProperty("_html_value");
+	public static final Property<String> htmlDisabledProperty   = new StringProperty("_html_disabled");
+	public static final Property<String> htmlSelectedProperty   = new StringProperty("_html_selected");
+	public static final Property<String> htmlLabelProperty      = new StringProperty("_html_label");
 
 	public static final View uiView = new View(Option.class, PropertyView.Ui,
 		selectedValuesProperty

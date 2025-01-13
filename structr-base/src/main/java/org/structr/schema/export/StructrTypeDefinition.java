@@ -58,7 +58,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
-	protected final Set<String> inheritedTraits = new TreeSet<>();
+	protected final Set<String> inheritedTraits                   = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
@@ -69,7 +69,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected boolean includeInOpenAPI                            = false;
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
-	protected boolean isBuiltinType                               = false;
 	protected boolean changelogDisabled                           = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected String description                                  = null;
@@ -531,7 +530,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonNumberProperty addNumberProperty(final String name, final String... views) {
+	public JsonDoubleProperty addDoubleProperty(final String name, final String... views) {
 
 		final StructrNumberProperty numberProperty = new StructrNumberProperty(this, name);
 
@@ -543,7 +542,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views) {
+	public JsonDoubleArrayProperty addDoubleArrayProperty(final String name, final String... views) {
 
 		final StructrNumberArrayProperty numberArrayProperty = new StructrNumberArrayProperty(this, name);
 
@@ -802,10 +801,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED, true);
 		}
 
-		if (getClass().equals(StructrNodeTypeDefinition.class)) {
-			serializedForm.put(JsonSchema.KEY_IS_BUILTIN_TYPE, isBuiltinType);
-		}
-
 		// properties
 		if (!serializedProperties.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_PROPERTIES, serializedProperties);
@@ -835,7 +830,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		if (inheritedTraits != null) {
-
 			serializedForm.put(JsonSchema.KEY_TRAITS, inheritedTraits);
 		}
 
@@ -870,10 +864,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_IS_INTERFACE)) {
 			this.isInterface = (Boolean)source.get(JsonSchema.KEY_IS_INTERFACE);
-		}
-
-		if (source.containsKey(JsonSchema.KEY_IS_BUILTIN_TYPE)) {
-			this.isBuiltinType = (Boolean)source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_CHANGELOG_DISABLED)) {
@@ -976,7 +966,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		this.isInterface                 = schemaNode.isInterface();
 		this.isAbstract                  = schemaNode.isAbstract();
-		this.isBuiltinType               = schemaNode.isBuiltinType();
 		this.changelogDisabled           = schemaNode.changelogDisabled();
 		this.visibleToPublicUsers        = schemaNode.defaultVisibleToPublic();
 		this.visibleToAuthenticatedUsers = schemaNode.defaultVisibleToAuth();
@@ -1017,7 +1006,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(schemaNodeTraits.key("isInterface"),            isInterface);
 		createProperties.put(schemaNodeTraits.key("isAbstract"),             isAbstract);
 		createProperties.put(schemaNodeTraits.key("category"),               category);
-		createProperties.put(schemaNodeTraits.key("isBuiltinType"),          isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 		createProperties.put(schemaNodeTraits.key("changelogDisabled"),      changelogDisabled);
 		createProperties.put(schemaNodeTraits.key("defaultVisibleToPublic"), visibleToPublicUsers);
 		createProperties.put(schemaNodeTraits.key("defaultVisibleToAuth"),   visibleToAuthenticatedUsers);
@@ -1104,6 +1092,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			nodeProperties.put(schemaNodeTraits.key("tags"), listToArray(mergedTags));
 		}
 
+		nodeProperties.put(schemaNodeTraits.key("inheritedTraits"),   getInheritedTraits().toArray(new String[0]));
 		nodeProperties.put(schemaNodeTraits.key("includeInOpenAPI"),  includeInOpenAPI());
 		nodeProperties.put(schemaNodeTraits.key("summary"),           getSummary());
 		nodeProperties.put(schemaNodeTraits.key("description"),       getDescription());
@@ -1112,6 +1101,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		newSchemaNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
 		return newSchemaNode;
+	}
+
+	private Set<String> getInheritedTraits() {
+		return inheritedTraits;
 	}
 
 	T getSchemaNode() {
@@ -1128,14 +1121,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	Map<String, String> getViewOrder() {
 		return viewOrder;
-	}
-
-	public boolean isBuiltinType() {
-		return isBuiltinType;
-	}
-
-	public void setIsBuiltinType() {
-		this.isBuiltinType = true;
 	}
 
 	void initializeReferenceProperties() {
@@ -1357,12 +1342,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isInterfaceValue != null && Boolean.TRUE.equals(isInterfaceValue)) {
 
 			typeDefinition.setIsInterface();
-		}
-
-		final Object isBuiltinType = source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
-		if (isBuiltinType != null && Boolean.TRUE.equals(isBuiltinType)) {
-
-			typeDefinition.setIsBuiltinType();
 		}
 
 		final Object isChangelogDisabled = source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
@@ -1671,9 +1650,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		boolean selected       = tag == null || tags.contains(tag);
 
 		// don't show types without tags
-		if (tags.isEmpty() && !isBuiltinType()) {
+		if (tags.isEmpty()) {
+
 			return true;
+
 		} else if (tags.isEmpty()) {
+
 			return false;
 		}
 

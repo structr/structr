@@ -144,9 +144,9 @@ public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>               signature          = new StringProperty("signature").indexed().partOfBuiltInSchema();
-		final Property<Long>                 flags              = new LongProperty("flags").indexed().partOfBuiltInSchema();
-		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true).partOfBuiltInSchema();
+		final Property<String>               signature          = new StringProperty("signature").indexed();
+		final Property<Long>                 flags              = new LongProperty("flags").indexed();
+		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
 
 		return Set.of(
 			signature,

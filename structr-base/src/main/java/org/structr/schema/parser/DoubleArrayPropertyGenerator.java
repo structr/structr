@@ -35,26 +35,26 @@ import java.util.List;
  *
  *
  */
-public class LongArrayPropertyParser extends NumericalArrayPropertyGenerator<Long> {
+public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerator<Double> {
 
-	public LongArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public DoubleArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
-		return Long[].class.getSimpleName();
+		return Double[].class.getSimpleName();
 	}
 
 	@Override
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
 
 		try {
-			return Long.parseLong(source);
+			return Double.parseDouble(source);
 
 		} catch (Throwable t) {
 
-			errorBuffer.add(new InvalidPropertySchemaToken("SchemaNode", propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Long."));
+			reportError(new InvalidPropertySchemaToken("SchemaNode", propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
 		}
 
 		return null;
@@ -62,29 +62,31 @@ public class LongArrayPropertyParser extends NumericalArrayPropertyGenerator<Lon
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
-		return new ArrayProperty(source.getPropertyName(), Long.class);
+
+		return new ArrayProperty(source.getPropertyName(), Double.class);
 	}
 
 	@Override
-	public List<IsValid> getValidators(final PropertyKey<Long[]> key) throws FrameworkException {
+	public Type getPropertyType() {
+		return Type.DoubleArray;
+	}
+
+	@Override
+	public Double[] getDefaultValue() {
+		return null;
+	}
+
+	@Override
+	public List<IsValid> getValidators(final PropertyKey<Double[]> key) throws FrameworkException {
 
 		final List<IsValid> validators = super.getValidators(key);
+		final String format            = source.getFormat();
 
-		if (!error) {
+		if (format != null && !error) {
 
-			validators.add((obj, errorBuffer) -> ValidationHelper.isValidLongArrayInRange(obj, key, source.getFormat(), errorBuffer));
+			validators.add((obj, errorBuffer) -> ValidationHelper.isValidDoubleArrayInRange(obj, key, format, errorBuffer));
 		}
 
 		return validators;
-	}
-
-	@Override
-	public Type getKey() {
-		return Type.LongArray;
-	}
-
-	@Override
-	public Long[] getDefaultValue() {
-		return null;
 	}
 }

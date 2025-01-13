@@ -62,7 +62,6 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private PropagationMode deletePropagation          = PropagationMode.Remove;
 	private PropagationMode accessControlPropagation   = PropagationMode.Remove;
 	private String aclHiddenProperties                 = null;
-	private boolean isPartOfBuiltInSchema              = false;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -442,7 +441,6 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		this.deletePropagation         = schemaNode.getDeletePropagation();
 		this.accessControlPropagation  = schemaNode.getAccessControlPropagation();
 		this.aclHiddenProperties       = schemaNode.getPropertyMask();
-		this.isPartOfBuiltInSchema     = schemaNode.isPartOfBuiltInSchema();
 
 		if (sourcePropertyName == null) {
 			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), false);
@@ -512,51 +510,32 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		properties.put(traits.key("autocreationFlag"),    getCascadingFlag(cascadingCreate));
 
 		if (permissionPropagation != null) {
-			properties.put(traits.key("permissionPropagation"), permissionPropagation);
+			properties.put(traits.key("permissionPropagation"), permissionPropagation.name());
 		}
 
 		if (readPropagation != null) {
-			properties.put(traits.key("readPropagation"), readPropagation);
+			properties.put(traits.key("readPropagation"), readPropagation.name());
 		}
 
 		if (writePropagation != null) {
-			properties.put(traits.key("writePropagation"), writePropagation);
+			properties.put(traits.key("writePropagation"), writePropagation.name());
 		}
 
 		if (deletePropagation != null) {
-			properties.put(traits.key("deletePropagation"), deletePropagation);
+			properties.put(traits.key("deletePropagation"), deletePropagation.name());
 		}
 
 		if (accessControlPropagation != null)  {
-			properties.put(traits.key("accessControlPropagation"), accessControlPropagation);
+			properties.put(traits.key("accessControlPropagation"), accessControlPropagation.name());
 		}
 
 		if (aclHiddenProperties != null) {
 			properties.put(traits.key("propertyMask"), aclHiddenProperties);
 		}
 
-		if (root != null) {
-
-			if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
-
-				this.isPartOfBuiltInSchema = true;
-				properties.put(traits.key("isPartOfBuiltInSchema"), true);
-			}
-		}
-
 		_schemaNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return _schemaNode;
-	}
-
-	@Override
-	public boolean isBuiltinType() {
-		return isPartOfBuiltInSchema;
-	}
-
-	@Override
-	public void setIsBuiltinType() {
-		this.isPartOfBuiltInSchema = true;
 	}
 
 	@Override

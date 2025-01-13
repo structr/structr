@@ -28,17 +28,17 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Video extends DOMElement {
 
 	/*
-	public static final Property<String> htmlSrcProperty            = new StringProperty("_html_src").partOfBuiltInSchema();
-	public static final Property<String> htmlCrossoriginProperty    = new StringProperty("_html_crossorigin").partOfBuiltInSchema();
-	public static final Property<String> htmlPosterProperty         = new StringProperty("_html_poster").partOfBuiltInSchema();
-	public static final Property<String> htmlPreloadProperty        = new StringProperty("_html_preload").partOfBuiltInSchema();
-	public static final Property<String> htmlAutoplayProperty       = new StringProperty("_html_autoplay").partOfBuiltInSchema();
-	public static final Property<String> htmlPlaysInlineProperty    = new StringProperty("_html_playsinline").partOfBuiltInSchema();
-	public static final Property<String> htmlLoopProperty           = new StringProperty("_html_loop").partOfBuiltInSchema();
-	public static final Property<String> htmlMutedProperty          = new StringProperty("_html_muted").partOfBuiltInSchema();
-	public static final Property<String> htmlControlsProperty       = new StringProperty("_html_controls").partOfBuiltInSchema();
-	public static final Property<String> htmlWidthProperty          = new StringProperty("_html_width").partOfBuiltInSchema();
-	public static final Property<String> htmlHeightProperty         = new StringProperty("_html_height").partOfBuiltInSchema();
+	public static final Property<String> htmlSrcProperty            = new StringProperty("_html_src");
+	public static final Property<String> htmlCrossoriginProperty    = new StringProperty("_html_crossorigin");
+	public static final Property<String> htmlPosterProperty         = new StringProperty("_html_poster");
+	public static final Property<String> htmlPreloadProperty        = new StringProperty("_html_preload");
+	public static final Property<String> htmlAutoplayProperty       = new StringProperty("_html_autoplay");
+	public static final Property<String> htmlPlaysInlineProperty    = new StringProperty("_html_playsinline");
+	public static final Property<String> htmlLoopProperty           = new StringProperty("_html_loop");
+	public static final Property<String> htmlMutedProperty          = new StringProperty("_html_muted");
+	public static final Property<String> htmlControlsProperty       = new StringProperty("_html_controls");
+	public static final Property<String> htmlWidthProperty          = new StringProperty("_html_width");
+	public static final Property<String> htmlHeightProperty         = new StringProperty("_html_height");
 
 	public static final View htmlView = new View(Video.class, PropertyView.Html,
 		htmlSrcProperty, htmlCrossoriginProperty, htmlPosterProperty, htmlPreloadProperty, htmlAutoplayProperty, htmlPlaysInlineProperty, htmlLoopProperty,

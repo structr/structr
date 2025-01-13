@@ -16,25 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.schema;
+package org.structr.schema;
 
-/**
- *
- *
- */
-public interface JsonNumberProperty extends JsonProperty {
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaRelationshipNode;
 
-	public Double getMinimum();
-	public Double getMaximum();
+public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> {
 
-	public boolean isExclusiveMinimum();
-	public boolean isExclusiveMaximum();
+	public DynamicRelationshipTraitDefinition(final SchemaRelationshipNode schemaNode) {
+		super(schemaNode);
+	}
 
-	public JsonNumberProperty setExclusiveMinimum(final boolean exclusiveMinimum);
-	public JsonNumberProperty setExclusiveMaximum(final boolean exclusiveMaximum);
+	@Override
+	public Relation getRelation() {
 
-	public JsonNumberProperty setMinimum(final double minimum);
-	public JsonNumberProperty setMinimum(final double minimum, final boolean exclusive);
-	public JsonNumberProperty setMaximum(final double maximum);
-	public JsonNumberProperty setMaximum(final double maximum, final boolean exclusive);
+
+	}
 }

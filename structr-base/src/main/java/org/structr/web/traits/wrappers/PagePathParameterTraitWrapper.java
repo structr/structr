@@ -23,7 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractTraitWrapper;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.web.entity.path.PagePathParameter;
 
 /**
@@ -90,7 +90,7 @@ public class PagePathParameterTraitWrapper extends AbstractTraitWrapper<NodeInte
 						return Boolean.valueOf(src);
 
 					case "Date":
-						return DatePropertyParser.parseISO8601DateString(src);
+						return DatePropertyGenerator.parseISO8601DateString(src);
 
 					default:
 						LoggerFactory.getLogger(PagePathParameter.class).warn("Unknown valueType '{}', NOT converting input for PagePathParameter with path {}.", valueType, getName());

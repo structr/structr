@@ -30,9 +30,9 @@ import java.util.Date;
  *
  *
  */
-public class DateArrayPropertyParser extends PropertyGenerator<Date[]> {
+public class DateArrayPropertyGenerator extends PropertyGenerator<Date[]> {
 
-	public DateArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public DateArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
@@ -47,7 +47,7 @@ public class DateArrayPropertyParser extends PropertyGenerator<Date[]> {
 	}
 
 	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.DateArray;
 	}
 

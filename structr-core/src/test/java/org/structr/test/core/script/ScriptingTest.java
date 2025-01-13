@@ -46,7 +46,6 @@ import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.EnumProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -59,7 +58,6 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.traits.definitions.TestOneTraitDefinition;
 import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -95,7 +93,7 @@ public class ScriptingTest extends StructrTest {
 		String sourceType               = null;
 		String targetType               = null;
 		PropertyKey targetsProperty     = null;
-		EnumProperty testEnumProperty   = null;
+		PropertyKey testEnumProperty    = null;
 		PropertyKey testBooleanProperty = null;
 		PropertyKey testIntegerProperty = null;
 		PropertyKey testStringProperty  = null;
@@ -160,11 +158,7 @@ public class ScriptingTest extends StructrTest {
 			sourceType          = "TestSource";
 			targetType          = "TestTarget";
 			targetsProperty     = Traits.of(sourceType).key("testtargets");
-
-			// we need to cast to EnumProperty in order to obtain the dynamic enum type
-			testEnumProperty    = (EnumProperty)Traits.of(sourceType).key("testEnum");
-			testEnumType        = testEnumProperty.getEnumType();
-
+			testEnumProperty    = Traits.of(sourceType).key("testEnum");
 			testBooleanProperty = Traits.of(sourceType).key("testBoolean");
 			testIntegerProperty = Traits.of(sourceType).key("testInteger");
 			testStringProperty  = Traits.of(sourceType).key("testString");
@@ -331,7 +325,9 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		// first test without grant, expect no test object to be found using the user context
-		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 1, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
+		try (final Tx tx = userApp.tx()) {
+
+			assertEquals("Invalid grant() scripting result", 1, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
@@ -377,7 +373,7 @@ public class ScriptingTest extends StructrTest {
 			testOne1.setProperty(Traits.of("TestOne").key("aLong")             , long1);
 			testOne1.setProperty(Traits.of("TestOne").key("aDouble")           , double1);
 			testOne1.setProperty(Traits.of("TestOne").key("aDate")             , date1);
-			testOne1.setProperty(Traits.of("TestOne").key("anEnum")            , TestOneTraitDefinition.Status.One);
+			testOne1.setProperty(Traits.of("TestOne").key("anEnum")            , "One");
 			testOne1.setProperty(Traits.of("TestOne").key("aString")           , "aString1");
 			testOne1.setProperty(Traits.of("TestOne").key("aBoolean")          , true);
 			testOne1.setProperty(Traits.of("TestOne").key("testTwo")           , testTwo1);
@@ -389,7 +385,7 @@ public class ScriptingTest extends StructrTest {
 			testOne2.setProperty(Traits.of("TestOne").key("aLong")             , long2);
 			testOne2.setProperty(Traits.of("TestOne").key("aDouble")           , double2);
 			testOne2.setProperty(Traits.of("TestOne").key("aDate")             , date2);
-			testOne2.setProperty(Traits.of("TestOne").key("anEnum")            , TestOneTraitDefinition.Status.Two);
+			testOne2.setProperty(Traits.of("TestOne").key("anEnum")            , "Two");
 			testOne2.setProperty(Traits.of("TestOne").key("aString")           , "aString2");
 			testOne2.setProperty(Traits.of("TestOne").key("aBoolean")          , false);
 			testOne2.setProperty(Traits.of("TestOne").key("testTwo")           , testTwo2);
@@ -486,11 +482,11 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final PropertyKey<Iterable<Principal>> members = Traits.of("Group").key("members");
-		Group group                                    = null;
-		Principal user1                                = null;
-		Principal user2                                = null;
-		NodeInterface testOne                          = null;
+		final PropertyKey<Iterable<NodeInterface>> members = Traits.of("Group").key("members");
+		Group group                                        = null;
+		Principal user1                                    = null;
+		Principal user2                                    = null;
+		NodeInterface testOne                              = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
@@ -499,7 +495,7 @@ public class ScriptingTest extends StructrTest {
 			user1  = app.create("User", "Tester1").as(Principal.class);
 			user2  = app.create("User", "Tester2").as(Principal.class);
 
-			group.setProperty(members, List.of(user1));
+			group.setProperty(members, List.of(user1.getWrappedNode()));
 
 
 			testOne = app.create("TestOne");
@@ -524,14 +520,14 @@ public class ScriptingTest extends StructrTest {
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite", 1, Iterables.count(group.getProperty(members)));
-			assertEquals("Invalid prerequisite", user2, result1);
+			assertEquals("Invalid prerequisite", user2.getWrappedNode(), result1);
 
 			// test scripting association
 			Scripting.evaluate(actionContext, group.getWrappedNode(), "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
-			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, List.of(user1.getWrappedNode()));
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
@@ -587,13 +583,13 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid scripted property conversion result", "12", testOne.getProperty(Traits.of("TestOne").key("aString")));
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.anInt = '12'; }}", "test");
-			assertEquals("Invalid scripted property conversion result", 12L, (long)testOne.getProperty(Traits.of("TestOne").key("anInt")));
+			assertEquals("Invalid scripted property conversion result", (int)12, (int)testOne.getProperty(Traits.of("TestOne").key("anInt")));
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = '12.2342'; }}", "test");
-			assertEquals("Invalid scripted property conversion result", 12.2342, (double)testOne.getProperty(Traits.of("TestOne").key("aDouble")), 0.0);
+			assertEquals("Invalid scripted property conversion result", 12.2342, testOne.getProperty(Traits.of("TestOne").key("aDouble")), 0.0);
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aDouble = 2; }}", "test");
-			assertEquals("Invalid scripted property conversion result", 2.0, (double)testOne.getProperty(Traits.of("TestOne").key("aDouble")), 0.0);
+			assertEquals("Invalid scripted property conversion result", 2.0, testOne.getProperty(Traits.of("TestOne").key("aDouble")), 0.0);
 
 			Scripting.evaluate(actionContext, testOne, "${{ var e = Structr.get('this'); e.aLong = 2352343457252; }}", "test");
 			assertEquals("Invalid scripted property conversion result", 2352343457252L, (long)testOne.getProperty(Traits.of("TestOne").key("aLong")));
@@ -709,7 +705,7 @@ public class ScriptingTest extends StructrTest {
 			testOne.setProperty(Traits.of("TestOne").key("aLong"), 235242522552L);
 			testOne.setProperty(Traits.of("TestOne").key("aDouble"), 2.234);
 			testOne.setProperty(Traits.of("TestOne").key("aDate"), now);
-			testOne.setProperty(Traits.of("TestOne").key("anEnum"), TestOneTraitDefinition.Status.One);
+			testOne.setProperty(Traits.of("TestOne").key("anEnum"), "One");
 			testOne.setProperty(Traits.of("TestOne").key("aBoolean"), true);
 			testOne.setProperty(Traits.of("TestOne").key("testTwo"), testTwo);
 			testOne.setProperty(Traits.of("TestOne").key("testThree"), testThree);

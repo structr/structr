@@ -28,9 +28,9 @@ import org.structr.schema.SchemaHelper.Type;
  *
  *
  */
-public class ByteArrayPropertyParser extends PropertyGenerator<Byte[]> {
+public class ByteArrayPropertyGenerator extends PropertyGenerator<Byte[]> {
 
-	public ByteArrayPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public ByteArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
@@ -45,7 +45,7 @@ public class ByteArrayPropertyParser extends PropertyGenerator<Byte[]> {
 	}
 
 	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.ByteArray;
 	}
 

@@ -28,14 +28,14 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Iframe extends DOMElement {
 
 	/*
-	public static final Property<String> htmlNameProperty            = new StringProperty("_html_name").partOfBuiltInSchema();
-	public static final Property<String> htmlSrcProperty             = new StringProperty("_html_src").partOfBuiltInSchema();
-	public static final Property<String> htmlSrcDocProperty          = new StringProperty("_html_srcdoc").partOfBuiltInSchema();
-	public static final Property<String> htmlSandboxProperty         = new StringProperty("_html_sandbox").partOfBuiltInSchema();
-	public static final Property<String> htmlSeamlessProperty        = new StringProperty("_html_seamless").partOfBuiltInSchema();
-	public static final Property<String> htmlAllowfullscreenProperty = new StringProperty("_html_allowfullscreen").partOfBuiltInSchema();
-	public static final Property<String> htmlWidthProperty           = new StringProperty("_html_width").partOfBuiltInSchema();
-	public static final Property<String> htmlHeightProperty          = new StringProperty("_html_height").partOfBuiltInSchema();
+	public static final Property<String> htmlNameProperty            = new StringProperty("_html_name");
+	public static final Property<String> htmlSrcProperty             = new StringProperty("_html_src");
+	public static final Property<String> htmlSrcDocProperty          = new StringProperty("_html_srcdoc");
+	public static final Property<String> htmlSandboxProperty         = new StringProperty("_html_sandbox");
+	public static final Property<String> htmlSeamlessProperty        = new StringProperty("_html_seamless");
+	public static final Property<String> htmlAllowfullscreenProperty = new StringProperty("_html_allowfullscreen");
+	public static final Property<String> htmlWidthProperty           = new StringProperty("_html_width");
+	public static final Property<String> htmlHeightProperty          = new StringProperty("_html_height");
 
 	public static final View htmlView = new View(Iframe.class, PropertyView.Html,
 		htmlNameProperty, htmlSrcProperty, htmlSrcDocProperty, htmlSandboxProperty, htmlSeamlessProperty, htmlAllowfullscreenProperty, htmlWidthProperty, htmlHeightProperty

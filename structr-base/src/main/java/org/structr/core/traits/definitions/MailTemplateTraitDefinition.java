@@ -59,8 +59,8 @@ public final class MailTemplateTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> textProperty = new StringProperty("text").partOfBuiltInSchema();
-		final Property<String> localeProperty = new StringProperty("locale").indexed().partOfBuiltInSchema();
+		final Property<String> textProperty = new StringProperty("text");
+		final Property<String> localeProperty = new StringProperty("locale").indexed();
 
 		return Set.of(
 			textProperty,

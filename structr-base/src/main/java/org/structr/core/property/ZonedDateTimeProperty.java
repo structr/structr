@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ZonedDateTimeFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.schema.parser.ZonedDateTimePropertyParser;
+import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -78,7 +78,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 				if (value instanceof String) {
 
-					return ZonedDateTimePropertyParser.parse(value.toString(), format);
+					return ZonedDateTimePropertyGenerator.parse(value.toString(), format);
 				} else if (value instanceof ZonedDateTime) {
 
 					return value;
@@ -154,7 +154,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 					if (StringUtils.isNotBlank(sourceString)) {
 
-						return ZonedDateTimePropertyParser.parse(sourceString);
+						return ZonedDateTimePropertyGenerator.parse(sourceString);
 
 					}
 

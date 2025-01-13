@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
@@ -337,11 +336,11 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	private String getWriteFunction() throws FrameworkException {
-		return getCachedSourceCode(Traits.of("SchemaProprty").key("writeFunction"), this.writeFunction);
+		return getCachedSourceCode(Traits.of("SchemaProperty").key("writeFunction"), this.writeFunction);
 	}
 
 	private String getOpenAPIReturnType() throws FrameworkException {
-		return getCachedSourceCode(Traits.of("SchemaProprty").key("openAPIReturnType"), this.openAPIReturnType);
+		return getCachedSourceCode(Traits.of("SchemaProperty").key("openAPIReturnType"), this.openAPIReturnType);
 	}
 
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {

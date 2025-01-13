@@ -28,9 +28,9 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Td extends DOMElement {
 
 	/*
-	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan").partOfBuiltInSchema();
-	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan").partOfBuiltInSchema();
-	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers").partOfBuiltInSchema();
+	public static final Property<String> htmlColspanProperty = new StringProperty("_html_colspan");
+	public static final Property<String> htmlRowspanProperty = new StringProperty("_html_rowspan");
+	public static final Property<String> htmlHeadersProperty = new StringProperty("_html_headers");
 
 	public static final View htmlView = new View(Td.class, PropertyView.Html,
 		htmlColspanProperty, htmlRowspanProperty, htmlHeadersProperty

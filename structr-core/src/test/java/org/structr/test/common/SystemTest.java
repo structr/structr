@@ -396,17 +396,18 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits traits = Traits.of("SchemaNode");
+			final Traits nodeTraits     = Traits.of("SchemaNode");
+			final Traits propertyTraits = Traits.of("SchemaNode");
 
 			app.create("SchemaNode",
-				new NodeAttribute(traits.key("name"), "Item"),
-				new NodeAttribute(traits.key("schemaProperties"),
+				new NodeAttribute(nodeTraits.key("name"), "Item"),
+				new NodeAttribute(nodeTraits.key("schemaProperties"),
 					Arrays.asList(app.create(
 						"SchemaProperty",
-						new NodeAttribute(traits.key("name"), "name"),
-						new NodeAttribute(traits.key("propertyType"), "String"),
-						new NodeAttribute(traits.key("unique"), true),
-						new NodeAttribute(traits.key("indexed"), true)
+						new NodeAttribute(propertyTraits.key("name"), "name"),
+						new NodeAttribute(propertyTraits.key("propertyType"), "String"),
+						new NodeAttribute(propertyTraits.key("unique"), true),
+						new NodeAttribute(propertyTraits.key("indexed"), true)
 					)
 				))
 			);
@@ -1434,7 +1435,7 @@ public class SystemTest extends StructrTest {
 			// create grant
 			app.create("SchemaGrant",
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1.getWrappedNode()),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           true),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          true),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         true),

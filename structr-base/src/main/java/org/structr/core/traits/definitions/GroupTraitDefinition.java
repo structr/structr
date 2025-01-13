@@ -89,10 +89,10 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", "GroupCONTAINSPrincipal").partOfBuiltInSchema();
-		final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique().partOfBuiltInSchema();
-		final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique().partOfBuiltInSchema();
-		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true).partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", "GroupCONTAINSPrincipal");
+		final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique();
+		final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique();
+		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true);
 
 		return Set.of(
 			membersProperty,

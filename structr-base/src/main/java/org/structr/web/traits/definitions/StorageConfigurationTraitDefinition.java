@@ -102,10 +102,10 @@ public class StorageConfigurationTraitDefinition extends AbstractTraitDefinition
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry").partOfBuiltInSchema();
-		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", "AbstractFileCONFIGURED_BYStorageConfiguration").partOfBuiltInSchema();
-		final Property<String> nameProperty                     = new StringProperty("name").indexed().unique().notNull().partOfBuiltInSchema();
-		final Property<String> providerProperty                 = new StringProperty("provider").indexed().notNull().partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
+		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", "AbstractFileCONFIGURED_BYStorageConfiguration");
+		final Property<String> nameProperty                     = new StringProperty("name").indexed().unique().notNull();
+		final Property<String> providerProperty                 = new StringProperty("provider").indexed().notNull();
 
 		return Set.of(
 			entriesProperty,

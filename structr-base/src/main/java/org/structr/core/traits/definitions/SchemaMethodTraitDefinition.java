@@ -73,28 +73,28 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters").partOfBuiltInSchema();
-		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Traits.idProperty(), Traits.nameProperty(), Traits.of("SchemaNode").key("isBuiltinType"))).partOfBuiltInSchema();
-		final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName").partOfBuiltInSchema();
-		final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
-		final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
-		final Property<String>             returnType              = new StringProperty("returnType").indexed().partOfBuiltInSchema();
-		final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed().partOfBuiltInSchema();
-		final Property<String>             source                  = new StringProperty("source").partOfBuiltInSchema();
-		final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed().partOfBuiltInSchema();
-		final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed().partOfBuiltInSchema();
-		final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed().partOfBuiltInSchema();
-		final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed().partOfBuiltInSchema();
-		final Property<String>             codeType                = new StringProperty("codeType").indexed().partOfBuiltInSchema();
-		final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed().partOfBuiltInSchema();
-		final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed().partOfBuiltInSchema();
-		final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed().partOfBuiltInSchema();
-		final Property<String>             summary                 = new StringProperty("summary").partOfBuiltInSchema();
-		final Property<String>             description             = new StringProperty("description").partOfBuiltInSchema();
-		final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false).partOfBuiltInSchema();
-		final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty().partOfBuiltInSchema();
-		final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false).partOfBuiltInSchema();
-		final Property<SchemaMethod.HttpVerb> httpVerb             = new EnumProperty<>("httpVerb", SchemaMethod.HttpVerb.class).defaultValue(SchemaMethod.HttpVerb.POST).partOfBuiltInSchema();
+		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters");
+		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
+		final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName");
+		final Property<String>             signature               = new StringProperty("signature").indexed();
+		final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
+		final Property<String>             returnType              = new StringProperty("returnType").indexed();
+		final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
+		final Property<String>             source                  = new StringProperty("source");
+		final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
+		final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
+		final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
+		final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
+		final Property<String>             codeType                = new StringProperty("codeType").indexed();
+		final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
+		final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
+		final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
+		final Property<String>             summary                 = new StringProperty("summary");
+		final Property<String>             description             = new StringProperty("description");
+		final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);
+		final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty();
+		final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false);
+		final Property<String>             httpVerb                = new EnumProperty("httpVerb", new String[] { "GET", "PUT", "POST", "PATCH", "DELETE" }).defaultValue("POST");
 		final Property<Boolean>            deleteMethod            = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 		return Set.of(

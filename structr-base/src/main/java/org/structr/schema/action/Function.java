@@ -32,11 +32,9 @@ import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
-import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -237,7 +235,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			} else {
 
-				Date date = DatePropertyParser.parseISO8601DateString(obj.toString());
+				Date date = DatePropertyGenerator.parseISO8601DateString(obj.toString());
 
 				if (date != null) {
 
@@ -832,7 +830,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	private int compareDateString(final Object o1, final Object o2) {
 
-		final String value1 = DatePropertyParser.format((Date)o1, Settings.DefaultDateFormat.getValue());
+		final String value1 = DatePropertyGenerator.format((Date)o1, Settings.DefaultDateFormat.getValue());
 		final String value2 = (String)o2;
 
 		return value1.compareTo(value2);
@@ -841,7 +839,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	private int compareStringDate(final Object o1, final Object o2) {
 
 		final String value1 = (String)o1;
-		final String value2 = DatePropertyParser.format((Date)o2, Settings.DefaultDateFormat.getValue());
+		final String value2 = DatePropertyGenerator.format((Date)o2, Settings.DefaultDateFormat.getValue());
 
 		return value1.compareTo(value2);
 	}

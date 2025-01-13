@@ -20,14 +20,14 @@ package org.structr.common.error;
 
 import org.structr.core.property.PropertyKey;
 
+import java.util.Set;
+
 /**
  * Indicates that a specific property value already exists in the database.
- *
- *
  */
 public class CompoundToken extends ErrorToken {
 
-	public CompoundToken(final String type, final PropertyKey[] keys, final String uuid) {
+	public CompoundToken(final String type, final Set<PropertyKey> keys, final String uuid) {
 
 		super("already_taken");
 

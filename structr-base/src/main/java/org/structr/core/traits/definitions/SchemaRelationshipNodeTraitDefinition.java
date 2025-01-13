@@ -94,12 +94,12 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 		final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
 
 		// permission propagation via domain relationships
-		final Property<PropagationDirection> permissionPropagation    = new EnumProperty("permissionPropagation", PropagationDirection.class, PropagationDirection.None);
-		final Property<PropagationMode>      readPropagation          = new EnumProperty<>("readPropagation", PropagationMode.class, PropagationMode.Remove);
-		final Property<PropagationMode>      writePropagation         = new EnumProperty<>("writePropagation", PropagationMode.class, PropagationMode.Remove);
-		final Property<PropagationMode>      deletePropagation        = new EnumProperty<>("deletePropagation", PropagationMode.class, PropagationMode.Remove);
-		final Property<PropagationMode>      accessControlPropagation = new EnumProperty<>("accessControlPropagation", PropagationMode.class, PropagationMode.Remove);
-		final Property<String>               propertyMask             = new StringProperty("propertyMask");
+		final Property<String> permissionPropagation    = new EnumProperty("permissionPropagation",    PropagationDirection.class).defaultValue("None");
+		final Property<String> readPropagation          = new EnumProperty("readPropagation",          PropagationMode.class).defaultValue("Remove");
+		final Property<String> writePropagation         = new EnumProperty("writePropagation",         PropagationMode.class).defaultValue("Remove");
+		final Property<String> deletePropagation        = new EnumProperty("deletePropagation",        PropagationMode.class).defaultValue("Remove");
+		final Property<String> accessControlPropagation = new EnumProperty("accessControlPropagation", PropagationMode.class).defaultValue("Remove");
+		final Property<String> propertyMask             = new StringProperty("propertyMask");
 
 		return Set.of(
 			sourceNode,

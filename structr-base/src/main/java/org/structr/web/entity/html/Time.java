@@ -27,7 +27,7 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Time extends DOMElement {
 
 	/*
-	public static final Property<String> htmlDateTimeProperty = new StringProperty("_html_datetime").partOfBuiltInSchema();
+	public static final Property<String> htmlDateTimeProperty = new StringProperty("_html_datetime");
 
 	public static final View htmlView = new View(Time.class, PropertyView.Html, htmlDateTimeProperty);
 

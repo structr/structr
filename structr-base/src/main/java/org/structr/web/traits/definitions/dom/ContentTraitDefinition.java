@@ -324,9 +324,9 @@ public class ContentTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> contentProperty     = new StringProperty("content").indexed().partOfBuiltInSchema();
-		final Property<String> contentTypeProperty = new StringProperty("contentType").indexed().partOfBuiltInSchema();
-		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true).partOfBuiltInSchema();
+		final Property<String> contentProperty     = new StringProperty("content").indexed();
+		final Property<String> contentTypeProperty = new StringProperty("contentType").indexed();
+		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true);
 
 		return Set.of(
 			contentProperty,

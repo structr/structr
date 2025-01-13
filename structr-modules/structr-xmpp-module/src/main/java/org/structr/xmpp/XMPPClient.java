@@ -55,7 +55,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 	public static final Property<String> xmppServiceProperty                    = new StringProperty("xmppService");
 	public static final Property<String> xmppHostProperty                       = new StringProperty("xmppHost");
 	public static final Property<Integer> xmppPortProperty                      = new IntProperty("xmppPort");
-	public static final Property<Mode> presenceModeProperty                     = new EnumProperty("presenceMode", Mode.class);
+	public static final Property<String> presenceModeProperty                   = new EnumProperty("presenceMode", Mode.class);
 	public static final Property<Boolean> isEnabledProperty                     = new BooleanProperty("isEnabled");
 	public static final Property<Boolean> isConnectedProperty                   = new BooleanProperty("isConnected");
 

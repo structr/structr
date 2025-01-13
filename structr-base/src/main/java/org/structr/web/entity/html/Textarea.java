@@ -28,18 +28,18 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Textarea extends DOMElement {
 
 	/*
-	public static final Property<String> htmlNameProperty        = new StringProperty("_html_name").partOfBuiltInSchema();
-	public static final Property<String> htmlDisabledProperty    = new StringProperty("_html_disabled").partOfBuiltInSchema();
-	public static final Property<String> htmlFormProperty        = new StringProperty("_html_form").partOfBuiltInSchema();
-	public static final Property<String> htmlReadonlyProperty    = new StringProperty("_html_readonly").partOfBuiltInSchema();
-	public static final Property<String> htmlMaxlengthProperty   = new StringProperty("_html_maxlenght").partOfBuiltInSchema();
-	public static final Property<String> htmlAutofocusProperty   = new StringProperty("_html_autofocus").partOfBuiltInSchema();
-	public static final Property<String> htmlRequiredProperty    = new StringProperty("_html_required").partOfBuiltInSchema();
-	public static final Property<String> htmlPlaceholderProperty = new StringProperty("_html_placeholder").partOfBuiltInSchema();
-	public static final Property<String> htmlDirnameProperty     = new StringProperty("_html_dirname").partOfBuiltInSchema();
-	public static final Property<String> htmlRowsProperty        = new StringProperty("_html_rows").partOfBuiltInSchema();
-	public static final Property<String> htmlWrapProperty        = new StringProperty("_html_wrap").partOfBuiltInSchema();
-	public static final Property<String> htmlColsProperty        = new StringProperty("_html_cols").partOfBuiltInSchema();
+	public static final Property<String> htmlNameProperty        = new StringProperty("_html_name");
+	public static final Property<String> htmlDisabledProperty    = new StringProperty("_html_disabled");
+	public static final Property<String> htmlFormProperty        = new StringProperty("_html_form");
+	public static final Property<String> htmlReadonlyProperty    = new StringProperty("_html_readonly");
+	public static final Property<String> htmlMaxlengthProperty   = new StringProperty("_html_maxlenght");
+	public static final Property<String> htmlAutofocusProperty   = new StringProperty("_html_autofocus");
+	public static final Property<String> htmlRequiredProperty    = new StringProperty("_html_required");
+	public static final Property<String> htmlPlaceholderProperty = new StringProperty("_html_placeholder");
+	public static final Property<String> htmlDirnameProperty     = new StringProperty("_html_dirname");
+	public static final Property<String> htmlRowsProperty        = new StringProperty("_html_rows");
+	public static final Property<String> htmlWrapProperty        = new StringProperty("_html_wrap");
+	public static final Property<String> htmlColsProperty        = new StringProperty("_html_cols");
 
 	public static final View htmlView = new View(Textarea.class, PropertyView.Html,
 		htmlNameProperty, htmlDisabledProperty, htmlFormProperty, htmlReadonlyProperty, htmlMaxlengthProperty, htmlAutofocusProperty,

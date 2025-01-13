@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -117,7 +117,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			try {
 
-				return DatePropertyParser.parse(value.toString(), format).getTime();
+				return DatePropertyGenerator.parse(value.toString(), format).getTime();
 
 			} catch (Throwable t) {
 			}
@@ -184,7 +184,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 					if (StringUtils.isNotBlank((String)source)) {
 
-						Date result = DatePropertyParser.parse((String)source, format);
+						Date result = DatePropertyGenerator.parse((String)source, format);
 
 						if (result != null) {
 							return result;
@@ -210,7 +210,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
-			return DatePropertyParser.format(source, format);
+			return DatePropertyGenerator.format(source, format);
 		}
 
 	}

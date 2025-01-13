@@ -23,8 +23,8 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Canvas extends DOMElement {
 
 	/*
-	public static final Property<String> _width       = new HtmlProperty("width").partOfBuiltInSchema();
-	public static final Property<String> _height      = new HtmlProperty("height").partOfBuiltInSchema();
+	public static final Property<String> _width       = new HtmlProperty("width");
+	public static final Property<String> _height      = new HtmlProperty("height");
 
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _width, _height

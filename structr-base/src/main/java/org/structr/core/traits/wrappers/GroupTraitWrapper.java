@@ -37,7 +37,10 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 
 	@Override
 	public Iterable<Principal> getMembers() {
-		return wrappedObject.getProperty(traits.key("members"));
+
+		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
+
+		return Iterables.map(n -> n.as(Principal.class), wrappedObject.getProperty(members));
 	}
 
 	@Override

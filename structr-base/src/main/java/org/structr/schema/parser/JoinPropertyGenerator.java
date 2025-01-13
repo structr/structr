@@ -34,18 +34,18 @@ import java.io.StringReader;
  *
  *
  */
-public class JoinPropertyParser extends PropertyGenerator {
+public class JoinPropertyGenerator extends PropertyGenerator {
 
-	private static final Logger logger = LoggerFactory.getLogger(JoinPropertyParser.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(JoinPropertyGenerator.class.getName());
 
 	private String parameters   = "";
 
-	public JoinPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public JoinPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 	}
 
 	@Override
-	public SchemaHelper.Type getKey() {
+	public SchemaHelper.Type getPropertyType() {
 		return Type.Join;
 	}
 

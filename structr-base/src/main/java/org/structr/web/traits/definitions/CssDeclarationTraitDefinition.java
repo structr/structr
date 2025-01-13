@@ -72,7 +72,7 @@ public class CssDeclarationTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> ruleProperty = new StartNode("rule", "CssRuleHAS_DECLARATIONCssDeclaration").partOfBuiltInSchema();
+		final Property<NodeInterface> ruleProperty = new StartNode("rule", "CssRuleHAS_DECLARATIONCssDeclaration");
 
 		return Set.of(
 			ruleProperty

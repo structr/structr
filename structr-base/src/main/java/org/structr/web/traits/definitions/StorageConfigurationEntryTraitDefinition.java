@@ -75,9 +75,9 @@ public class StorageConfigurationEntryTraitDefinition  extends AbstractTraitDefi
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> configurationProperty = new StartNode("configuration", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry").partOfBuiltInSchema();
-		final Property<String> nameProperty                 = new StringProperty("name").partOfBuiltInSchema();
-		final Property<String> valueProperty                = new EncryptedStringProperty("value").partOfBuiltInSchema();
+		final Property<NodeInterface> configurationProperty = new StartNode("configuration", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
+		final Property<String> nameProperty                 = new StringProperty("name");
+		final Property<String> valueProperty                = new EncryptedStringProperty("value");
 
 		return Set.of(
 			configurationProperty,

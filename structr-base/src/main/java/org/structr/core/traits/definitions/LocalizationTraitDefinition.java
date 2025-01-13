@@ -119,10 +119,10 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> localizedNameProperty = new StringProperty("localizedName").indexed().partOfBuiltInSchema();
-		final Property<String> domainProperty        = new StringProperty("domain").indexed().partOfBuiltInSchema();
-		final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed().partOfBuiltInSchema();
-		final Property<Boolean> importedProperty     = new BooleanProperty("imported").partOfBuiltInSchema();
+		final Property<String> localizedNameProperty = new StringProperty("localizedName").indexed();
+		final Property<String> domainProperty        = new StringProperty("domain").indexed();
+		final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed();
+		final Property<Boolean> importedProperty     = new BooleanProperty("imported");
 
 		return Set.of(
 			localizedNameProperty,

@@ -28,36 +28,36 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Input extends DOMElement {
 
 	/*
-	public static final Property<String> _accept         = new HtmlProperty("accept").partOfBuiltInSchema();
-	public static final Property<String> _alt            = new HtmlProperty("alt").partOfBuiltInSchema();
-	public static final Property<String> _autocomplete   = new HtmlProperty("autocomplete").partOfBuiltInSchema();
-	public static final Property<String> _autofocus      = new HtmlProperty("autofocus").partOfBuiltInSchema();
-	public static final Property<String> _checked        = new HtmlProperty("checked").partOfBuiltInSchema();
-	public static final Property<String> _dirname        = new HtmlProperty("dirname").partOfBuiltInSchema();
-	public static final Property<String> _disabled       = new HtmlProperty("disabled").partOfBuiltInSchema();
-	public static final Property<String> _form           = new HtmlProperty("form").partOfBuiltInSchema();
-	public static final Property<String> _formaction     = new HtmlProperty("formaction").partOfBuiltInSchema();
-	public static final Property<String> _formenctype    = new HtmlProperty("formenctype").partOfBuiltInSchema();
-	public static final Property<String> _formmethod     = new HtmlProperty("formmethod").partOfBuiltInSchema();
-	public static final Property<String> _formnovalidate = new HtmlProperty("formnovalidate").partOfBuiltInSchema();
-	public static final Property<String> _formtarget     = new HtmlProperty("formtarget").partOfBuiltInSchema();
-	public static final Property<String> _height         = new HtmlProperty("height").partOfBuiltInSchema();
-	public static final Property<String> _list           = new HtmlProperty("list").partOfBuiltInSchema();
-	public static final Property<String> _max            = new HtmlProperty("max").partOfBuiltInSchema();
-	public static final Property<String> _maxlength      = new HtmlProperty("maxlength").partOfBuiltInSchema();
-	public static final Property<String> _min            = new HtmlProperty("min").partOfBuiltInSchema();
-	public static final Property<String> _multiple       = new HtmlProperty("multiple").partOfBuiltInSchema();
-	public static final Property<String> _name           = new HtmlProperty("name").partOfBuiltInSchema();
-	public static final Property<String> _pattern        = new HtmlProperty("pattern").partOfBuiltInSchema();
-	public static final Property<String> _placeholder    = new HtmlProperty("placeholder").partOfBuiltInSchema();
-	public static final Property<String> _readonly       = new HtmlProperty("readonly").partOfBuiltInSchema();
-	public static final Property<String> _required       = new HtmlProperty("required").partOfBuiltInSchema();
-	public static final Property<String> _size           = new HtmlProperty("size").partOfBuiltInSchema();
-	public static final Property<String> _src            = new HtmlProperty("src").partOfBuiltInSchema();
-	public static final Property<String> _step           = new HtmlProperty("step").partOfBuiltInSchema();
-	public static final Property<String> _type           = new HtmlProperty("type").partOfBuiltInSchema();
-	public static final Property<String> _value          = new HtmlProperty("value").partOfBuiltInSchema();
-	public static final Property<String> _width          = new HtmlProperty("width").partOfBuiltInSchema();
+	public static final Property<String> _accept         = new HtmlProperty("accept");
+	public static final Property<String> _alt            = new HtmlProperty("alt");
+	public static final Property<String> _autocomplete   = new HtmlProperty("autocomplete");
+	public static final Property<String> _autofocus      = new HtmlProperty("autofocus");
+	public static final Property<String> _checked        = new HtmlProperty("checked");
+	public static final Property<String> _dirname        = new HtmlProperty("dirname");
+	public static final Property<String> _disabled       = new HtmlProperty("disabled");
+	public static final Property<String> _form           = new HtmlProperty("form");
+	public static final Property<String> _formaction     = new HtmlProperty("formaction");
+	public static final Property<String> _formenctype    = new HtmlProperty("formenctype");
+	public static final Property<String> _formmethod     = new HtmlProperty("formmethod");
+	public static final Property<String> _formnovalidate = new HtmlProperty("formnovalidate");
+	public static final Property<String> _formtarget     = new HtmlProperty("formtarget");
+	public static final Property<String> _height         = new HtmlProperty("height");
+	public static final Property<String> _list           = new HtmlProperty("list");
+	public static final Property<String> _max            = new HtmlProperty("max");
+	public static final Property<String> _maxlength      = new HtmlProperty("maxlength");
+	public static final Property<String> _min            = new HtmlProperty("min");
+	public static final Property<String> _multiple       = new HtmlProperty("multiple");
+	public static final Property<String> _name           = new HtmlProperty("name");
+	public static final Property<String> _pattern        = new HtmlProperty("pattern");
+	public static final Property<String> _placeholder    = new HtmlProperty("placeholder");
+	public static final Property<String> _readonly       = new HtmlProperty("readonly");
+	public static final Property<String> _required       = new HtmlProperty("required");
+	public static final Property<String> _size           = new HtmlProperty("size");
+	public static final Property<String> _src            = new HtmlProperty("src");
+	public static final Property<String> _step           = new HtmlProperty("step");
+	public static final Property<String> _type           = new HtmlProperty("type");
+	public static final Property<String> _value          = new HtmlProperty("value");
+	public static final Property<String> _width          = new HtmlProperty("width");
 
 	public static final View htmlView = new View(Input.class, PropertyView.Html,
 

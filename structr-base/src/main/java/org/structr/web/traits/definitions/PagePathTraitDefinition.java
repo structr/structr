@@ -93,10 +93,10 @@ public class PagePathTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> pageProperty                 = new StartNode("page", "PageHAS_PATHPagePath").partOfBuiltInSchema();
-		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", "PagePathHAS_PARAMETERPagePathParameter").partOfBuiltInSchema();
-		final Property<String> nameProperty                        = new StringProperty("name").notNull().partOfBuiltInSchema();
-		final Property<Integer> priorityProperty                   = new IntProperty("priority").partOfBuiltInSchema();
+		final Property<NodeInterface> pageProperty                 = new StartNode("page", "PageHAS_PATHPagePath");
+		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", "PagePathHAS_PARAMETERPagePathParameter");
+		final Property<String> nameProperty                        = new StringProperty("name").notNull();
+		final Property<Integer> priorityProperty                   = new IntProperty("priority");
 
 		return Set.of(
 			pageProperty,

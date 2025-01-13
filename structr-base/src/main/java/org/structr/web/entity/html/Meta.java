@@ -28,10 +28,10 @@ import org.structr.web.entity.dom.DOMElement;
 public interface Meta extends DOMElement {
 
 	/*
-	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name").partOfBuiltInSchema();
-	public static final Property<String> htmlHttpEquivProperty = new StringProperty("_html_http-equiv").partOfBuiltInSchema();
-	public static final Property<String> htmlContentProperty   = new StringProperty("_html_content").partOfBuiltInSchema();
-	public static final Property<String> htmlCharsetProperty   = new StringProperty("_html_charset").partOfBuiltInSchema();
+	public static final Property<String> htmlNameProperty      = new StringProperty("_html_name");
+	public static final Property<String> htmlHttpEquivProperty = new StringProperty("_html_http-equiv");
+	public static final Property<String> htmlContentProperty   = new StringProperty("_html_content");
+	public static final Property<String> htmlCharsetProperty   = new StringProperty("_html_charset");
 
 	public static final View htmlView = new View(Meta.class, PropertyView.Html,
 		htmlNameProperty, htmlHttpEquivProperty, htmlContentProperty, htmlCharsetProperty

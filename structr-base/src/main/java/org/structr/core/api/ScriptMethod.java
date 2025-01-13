@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.Actions;
@@ -42,7 +41,7 @@ public class ScriptMethod extends AbstractMethod {
 	private boolean isPrivateMethod = false;
 	private boolean isStaticMethod  = false;
 	private boolean returnRawResult = false;
-	private HttpVerb httpVerb       = null;
+	private String httpVerb         = null;
 
 	public ScriptMethod(final SchemaMethod method) {
 
@@ -107,7 +106,7 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
-	public HttpVerb getHttpVerb() {
+	public String getHttpVerb() {
 		return httpVerb;
 	}
 

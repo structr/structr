@@ -25,8 +25,5 @@ import java.util.Set;
  *
  */
 public interface JsonEnumProperty extends JsonStringProperty {
-
-	public JsonEnumProperty setEnumType(final Class type);
-	public JsonEnumProperty setEnums(final String... values);
-	public Set<String> getEnums();
+	Set<String> getEnums();
 }

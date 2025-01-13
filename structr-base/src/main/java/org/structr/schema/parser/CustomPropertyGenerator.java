@@ -30,16 +30,16 @@ import java.lang.reflect.Constructor;
 /**
  *
  */
-public class CustomPropertyParser extends PropertyGenerator {
+public class CustomPropertyGenerator extends PropertyGenerator {
 
-	private static final Logger logger = LoggerFactory.getLogger(CustomPropertyParser.class);
+	private static final Logger logger = LoggerFactory.getLogger(CustomPropertyGenerator.class);
 
 	private String propertyType         = null;
 	private String valueType            = null;
 	private String unqualifiedValueType = null;
 	private String propertyParameters   = null;
 
-	public CustomPropertyParser(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+	public CustomPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
 
 		final String fqcn = params.getFqcn();
@@ -115,7 +115,7 @@ public class CustomPropertyParser extends PropertyGenerator {
 	}
 
 	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.Custom;
 	}
 }
