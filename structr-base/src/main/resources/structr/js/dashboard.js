@@ -1609,6 +1609,8 @@ let _Dashboard = {
 				}
 
 				settingsContainer.appendChild(offCanvasDummy);
+
+				_Helpers.activateCommentsInElement(settingsContainer);
 			},
 
 			handleResetConfiguration: (userId) => {

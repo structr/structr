@@ -2713,15 +2713,46 @@ class ErrorMessage extends MessageBuilder {
 
 let UISettings = {
 	getValueForSetting: (setting) => {
+
 		return LSWrapper.getItem(setting.storageKey, setting.defaultValue);
 	},
-	setValueForSetting: (setting, value, container) => {
-		LSWrapper.setItem(setting.storageKey, value);
+	setValueForSetting: (setting, input, value, container) => {
 
-		if (container) {
-			_Helpers.blinkGreen(container);
-			setting.onUpdate?.();
+		let changed = (UISettings.getValueForSetting(setting) !== value);
+
+		if (changed) {
+
+			let isValid = UISettings.validateValueForSetting(setting, value);
+
+			if (!isValid) {
+				// attempt to fix once
+				value = setting.fixValue?.(input, value);
+
+				isValid = UISettings.validateValueForSetting(setting, value);
+			}
+
+			if (isValid) {
+
+				LSWrapper.setItem(setting.storageKey, value);
+
+				if (container) {
+
+					_Helpers.blinkGreen(container);
+				}
+
+				setting.onUpdate?.();
+
+			} else {
+
+				_Helpers.blinkRed(container);
+			}
 		}
+	},
+	validateValueForSetting: (setting, value) => {
+
+		let allow = setting.isValid?.(value) ?? true;
+
+		return allow;
 	},
 	getSettings: (section) => {
 
@@ -2783,13 +2814,41 @@ let UISettings = {
 
 			case 'checkbox': {
 
-				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>`);
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>
+					</div>
+				`);
 
 				let input = settingDOM.querySelector('input');
 				input.checked = UISettings.getValueForSetting(setting);
 
 				input.addEventListener('change', () => {
-					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+					UISettings.setValueForSetting(setting, input, input.checked, input.parentElement);
+				});
+
+				if (setting.infoText) {
+					settingDOM.dataset['comment'] = setting.infoText;
+				}
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			case 'input': {
+
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1"><input type="${setting.inputType ?? 'text'}" class="mr-2 px-2 py-1 ${setting.cssClass ?? ''}" size="${setting.size ?? 5}">${setting.text}</label>
+					</div>
+				`);
+
+				let input = settingDOM.querySelector('input');
+				input.value = UISettings.getValueForSetting(setting);
+
+				input.addEventListener('blur', () => {
+					UISettings.setValueForSetting(setting, input, input.value, input.parentElement);
 				});
 
 				if (setting.infoText) {
@@ -2963,6 +3022,37 @@ let UISettings = {
 						if (Structr.isModuleActive(_Code)) {
 							_Code.recentElements.updateVisibility();
 						}
+					}
+				}
+			}
+		},
+		crud: {
+			title: 'Data',
+			settings: {
+				hideLargeArrayElements: {
+					text: 'Only show array contents if below this number',
+					infoText: 'Array elements with more elements than this will be hidden and the user can click to reveal the contents. This can be disabled by setting this to -1.',
+					storageKey: 'hideLargeArrayElementsInData_' + location.port,
+					defaultValue: 10,
+					type: 'input',
+					inputType: 'number',
+					cssClass: 'w-12',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Crud)) {
+						}
+					},
+					isValid: (value) => (parseInt(value) == value),
+					fixValue: (input, value) => {
+
+						let fixedValue = parseInt(value);
+
+						if (isNaN(fixedValue)) {
+							fixedValue = 0;
+						}
+
+						input.value = fixedValue;
+
+						return fixedValue;
 					}
 				}
 			}

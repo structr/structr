@@ -55,7 +55,7 @@ let _Crud = {
 		Structr.setMainContainerHTML(_Crud.templates.main());
 		Structr.setFunctionBarHTML(_Crud.templates.functions());
 
-		// UISettings.showSettingsForCurrentModule();
+		UISettings.showSettingsForCurrentModule();
 
 		_Crud.moveResizer();
 
@@ -1122,14 +1122,46 @@ let _Crud = {
 					let values   = value ?? [];
 					let typeInfo = _Crud.types[type].views.all;
 
-					cell.append(_Helpers.formatArrayValueField(key, values, typeInfo[key]));
-					cell.find(`[name="${key}"]`).each(function (i, el) {
-						_Entities.activateInput(el, id, null, type, typeInfo, () => {
-							if (id) {
-								_Crud.objectList.refreshObject(id, key);
-							}
+					let displayArrayField = () => {
+
+						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo[key]));
+
+						cell.find(`[name="${key}"]`).each(function (i, el) {
+							_Entities.activateInput(el, id, null, type, typeInfo, () => {
+								if (id) {
+									_Crud.objectList.refreshObject(id, key);
+								}
+							});
 						});
-					});
+					};
+
+					let threshold = UISettings.getValueForSetting(UISettings.settingGroups.crud.settings.hideLargeArrayElements);
+					let showLargeArrayContentsClass = 'show-large-array';
+					let largeArrayInfoElementClass  = 'array-attribute-very-big-info';
+
+					if (values.length > threshold && !cell[0].classList.contains(showLargeArrayContentsClass)) {
+
+						let cellContent = _Helpers.createSingleDOMElementFromHTML(`<span class="${largeArrayInfoElementClass}"></span>`);
+						cell[0].appendChild(cellContent);
+
+						_Helpers.appendInfoTextToElement({
+							element: cellContent,
+							text: `Attribute contains more than ${threshold} elements (${values.length}). As configured, it is not shown to preserve legibility. To show the contents, click this icon. You can adjust this threshold in the UI settings.`,
+						});
+
+						cellContent.addEventListener('click', (e) => {
+
+							let warningElement = e.target.closest('.' + largeArrayInfoElementClass);
+							warningElement.parentNode.classList.add(showLargeArrayContentsClass);
+							warningElement.remove();
+
+							displayArrayField();
+						});
+
+					} else {
+
+						displayArrayField();
+					}
 
 				} else {
 					// default: any other type of direct property
@@ -3082,7 +3114,7 @@ let _Crud = {
 		functions: config => `
 			<div id="crud-buttons" class="flex-grow"></div>
 
-			<div class="searchBox">
+			<div class="searchBox mr-6">
 				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search">
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
