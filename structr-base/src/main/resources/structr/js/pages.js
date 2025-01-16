@@ -829,6 +829,7 @@ let _Pages = {
 		});
 
 		// Display 'Create Page' dialog
+		let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 		let createPageButton = document.querySelector('#create_page');
 		createPageButton.addEventListener('click', async (e) => {
 
@@ -850,7 +851,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {

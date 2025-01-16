@@ -2084,6 +2084,10 @@ th.center {
 	background-image: url('https://apps.structr.com/assets/images/frame.svg');
 }
 
+.app-thumbnail-frame img {
+	max-height: 69px;
+}
+
 .app-tile h4 {
 	margin: 1rem;
 	font-weight: 600;
