@@ -136,8 +136,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because the resolution direction is wrong.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), PropagationDirection.In);
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), PropagationMode.Add);
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "In");
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -163,8 +163,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because the resolution direction is correct
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), PropagationDirection.Out);
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), PropagationMode.Add);
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "Out");
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -190,8 +190,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because both resolution directions are enabled
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), PropagationDirection.Both);
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), PropagationMode.Add);
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "Both");
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -217,8 +217,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// object invisible again.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), PropagationDirection.None);
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), PropagationMode.Add);
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "None");
+			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -306,22 +306,22 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[]{false, false, false, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, false, false, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, true, false, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, true, true, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, true, true, true});
 
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, true, true, true});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, false, true, true});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, false, false, true});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, false, false, false});
 	}
 
@@ -398,22 +398,22 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation,        "), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation,        "), "Add");
 		testGranted(projectType, new boolean[] { true, false, false, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation,       "), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation,       "), "Add");
 		testGranted(projectType, new boolean[] { true, true, false, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation,      "), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation,      "), "Add");
 		testGranted(projectType, new boolean[] { true, true, true, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), PropagationMode.Add);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Add");
 		testGranted(projectType, new boolean[] { true, true, true, true });
 
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation,        "), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation,        "), "Remove");
 		testGranted(projectType, new boolean[] { false, true, true, true });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation,       "), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation,       "), "Remove");
 		testGranted(projectType, new boolean[] { false, false, true, true });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation,      "), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation,      "), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, true });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), PropagationMode.Remove);
+		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 

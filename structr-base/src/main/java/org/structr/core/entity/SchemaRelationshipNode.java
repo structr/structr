@@ -40,8 +40,7 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	String getRelatedType(final String propertyNameToCheck);
 	String getSourceNotion();
 	String getTargetNotion();
-	String getMultiplicity(final boolean outgoing);
-	String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing);
+	String getPropertyName(final Set<String> existingPropertyNames, final boolean outgoing);
 
 	String getSourceMultiplicity();
 	String getTargetMultiplicity();
@@ -102,7 +101,42 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 		return sourceType + "_" + targetType;
 	}
 
-	static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
+	static String getPropertyName(final SchemaRelationshipNode node, final Set<String> existingPropertyNames, final boolean outgoing) {
+
+		final String relationshipTypeName = node.getRelationshipType().toLowerCase();
+		final String _sourceType          = node.getSchemaNodeSourceType();
+		final String _targetType          = node.getSchemaNodeTargetType();
+		final String _targetJsonName      = node.getTargetJsonName();
+		final String _targetMultiplicity  = node.getTargetMultiplicity();
+		final String _sourceJsonName      = node.getSourceJsonName();
+		final String _sourceMultiplicity  = node.getSourceMultiplicity();
+
+		final String propertyName = SchemaRelationshipNode.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
+
+		try {
+			if (outgoing) {
+
+				if (_targetJsonName == null) {
+
+					node.setPreviousTargetJsonName(propertyName);
+				}
+
+			} else {
+
+				if (_sourceJsonName == null) {
+
+					node.setPreviousSourceJsonName(propertyName);
+				}
+			}
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return propertyName;
+	}
+
+	static String getPropertyName(final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
 
 		String propertyName = "";
 

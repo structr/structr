@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
@@ -94,7 +95,7 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 		final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);
 		final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty();
 		final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false);
-		final Property<String>             httpVerb                = new EnumProperty("httpVerb", new String[] { "GET", "PUT", "POST", "PATCH", "DELETE" }).defaultValue("POST");
+		final Property<String>             httpVerb                = new EnumProperty("httpVerb", Set.of("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
 		final Property<Boolean>            deleteMethod            = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 		return Set.of(
@@ -122,6 +123,11 @@ public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
 			httpVerb,
 			deleteMethod
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	/*

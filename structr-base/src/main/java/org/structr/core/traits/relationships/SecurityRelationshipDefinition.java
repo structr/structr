@@ -24,6 +24,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
@@ -39,7 +40,7 @@ import java.util.Set;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SecurityRelationshipDefinition extends RelationshipBaseTraitDefinition {
+public class SecurityRelationshipDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SecurityRelationshipDefinition() {
 		super("SecurityRelationship");
@@ -111,37 +112,37 @@ public class SecurityRelationshipDefinition extends RelationshipBaseTraitDefinit
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "Principal";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "NodeInterface";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "SECURITY";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 

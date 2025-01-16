@@ -21,6 +21,7 @@ package org.structr.test.core.traits.definitions;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -77,5 +78,10 @@ public class TestTwoTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -172,7 +172,7 @@ public class BasicTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			final String type       = "GenericNode";
+			final String type       = "TestOne";
 			final String name       = "GenericNode-name";
 			NodeInterface node      = null;
 			String uuid             = null;
@@ -182,7 +182,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				node = app.create("GenericNode", props);
+				node = app.create(type, props);
 				tx.success();
 			}
 
@@ -190,6 +190,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 				uuid = node.getUuid();
+				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
@@ -204,7 +205,8 @@ public class BasicTest extends StructrTest {
 
 				assertEquals("Node should have been deleted", 0, result.size());
 
-			} catch (FrameworkException fe) {}
+				tx.success();
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -952,12 +954,12 @@ public class BasicTest extends StructrTest {
 				for (final NodeInterface node : rootNodes) {
 
 					final List<NodeInterface> children = createTestNodes("TestTen", 3);
-					node.setProperty(Traits.of("TestTen").key("tenTenChildren"), children);
+					node.setProperty(Traits.of("TestTen").key("testTenChildren"), children);
 
 					for (final NodeInterface child : children) {
 
 						final List<NodeInterface> grandChildren = createTestNodes("TestTen", 3);
-						child.setProperty(Traits.of("TestTen").key("tenTenChildren"), grandChildren);
+						child.setProperty(Traits.of("TestTen").key("testTenChildren"), grandChildren);
 
 						allGrandChildren.addAll(grandChildren);
 					}
@@ -1162,41 +1164,6 @@ public class BasicTest extends StructrTest {
 	}
 
 	@Test
-	public void test03CreateRelationship() {
-
-		try {
-
-			final List<NodeInterface> nodes = createTestNodes("GenericNode", 2);
-			final NodeInterface startNode   = nodes.get(0);
-			final NodeInterface endNode     = nodes.get(1);
-			RelationshipInterface rel       = null;
-
-			assertTrue(startNode != null);
-			assertTrue(endNode != null);
-
-			try (final Tx tx = app.tx()) {
-
-				rel = app.create(startNode, endNode, "GenericRelationship");
-				tx.success();
-			}
-
-			try (final Tx tx = app.tx()) {
-
-				assertEquals(startNode.getUuid(), rel.getSourceNodeId());
-				assertEquals(endNode.getUuid(), rel.getTargetNodeId());
-				assertEquals("GENERIC", rel.getType());
-				//assertEquals(GenericRelationship.class, rel.getClass());
-			}
-
-		} catch (FrameworkException ex) {
-
-			logger.error(ex.toString());
-			fail("Unexpected exception");
-
-		}
-	}
-
-	@Test
 	public void test06DuplicateRelationshipsOneToOne() {
 
 		// Creating duplicate one-to-one relationships
@@ -1327,7 +1294,7 @@ public class BasicTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			final String type       = "UnknownTestType";
+			final String type       = "TestOne";
 			final String name       = "GenericNode-name";
 
 			NodeInterface node      = null;
@@ -1337,18 +1304,20 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				node = app.create("GenericNode", props);
+				node = app.create(type, props);
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
 				// Check defaults
-				assertEquals("GenericNode", node.getType());
+				assertEquals(type, node.getType());
 				assertTrue(node.getProperty(Traits.of("NodeInterface").key("name")).equals(name));
 				assertFalse(node.getProperty(Traits.of("NodeInterface").key("hidden")));
 				assertFalse(node.getProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
 				assertFalse(node.getProperty(Traits.of("NodeInterface").key("visibleToPublicUsers")));
+
+				tx.success();
 			}
 
 			final String name2 = "GenericNode-name-äöüß";
@@ -1370,6 +1339,8 @@ public class BasicTest extends StructrTest {
 				assertTrue(node.getProperty(Traits.of("NodeInterface").key("hidden")));
 				assertTrue(node.getProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
 				assertTrue(node.getProperty(Traits.of("NodeInterface").key("visibleToPublicUsers")));
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {
@@ -1389,7 +1360,7 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			final RelationshipInterface rel = (createTestRelationships("GenericRelationship", 1)).get(0);
+			final RelationshipInterface rel = (createTestRelationships("TestOne", "TestTwo", "OneTwoOneToOne", 1)).get(0);
 			final PropertyKey key1          = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			final String val1               = "54354354546806849870";
 
@@ -1833,18 +1804,21 @@ public class BasicTest extends StructrTest {
 
 			final List<RelationshipInterface> rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
 			final Set<String> classes1              = rels1.stream().map(r -> r.getType()).collect(Collectors.toSet());
+
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
 			assertTrue("Invalid relationship type after object creation", classes1.contains("SecurityRelationship"));
 			assertTrue("Invalid relationship type after object creation", classes1.contains("PrincipalOwnsNode"));
 
-			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(traits.key("targetId"), test.getUuid()).getAsList();
-			final List<Class> classes2                        = rels2.stream().map(r -> r.getClass()).collect(Collectors.toList());
+			final List<RelationshipInterface> rels2 = app.relationshipQuery().and(traits.key("targetId"), test.getUuid()).getAsList();
+			final List<String> classes2             = rels2.stream().map(r -> r.getType()).collect(Collectors.toList());
+
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
 			assertTrue("Invalid relationship type after object creation", classes2.contains("SecurityRelationship"));
 			assertTrue("Invalid relationship type after object creation", classes2.contains("PrincipalOwnsNode"));
 
 			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
-			final List<Class> classes3                        = rels3.stream().map(r -> r.getClass()).collect(Collectors.toList());
+			final List<String> classes3                       = rels3.stream().map(r -> r.getType()).collect(Collectors.toList());
+
 			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());
 			assertTrue("Invalid relationship type after object creation", classes3.contains("SecurityRelationship"));
 			assertTrue("Invalid relationship type after object creation", classes3.contains("PrincipalOwnsNode"));

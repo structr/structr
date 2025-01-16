@@ -19,6 +19,7 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.core.entity.Person;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.wrappers.PersonTraitWrapper;
@@ -99,5 +100,10 @@ public class PersonTraitDefinition extends AbstractTraitDefinition {
 			genderProperty,
 			newsletterProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

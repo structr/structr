@@ -19,49 +19,50 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 import static org.structr.core.entity.Relation.Multiplicity.One;
 
-public class SchemaNodeExtendsSchemaNodeDefinition extends RelationshipBaseTraitDefinition {
+public class SchemaNodeExtendsSchemaNodeDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaNodeExtendsSchemaNodeDefinition() {
 		super("SchemaNodeExtendsSchemaNode");
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "SchemaNode";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "SchemaNode";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "EXTENDS";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return One;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 

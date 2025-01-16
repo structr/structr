@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
@@ -82,6 +83,11 @@ public class SchemaViewTraitDefinition extends AbstractTraitDefinition {
 			nonGraphProperties,
 			sortOrder
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	/*

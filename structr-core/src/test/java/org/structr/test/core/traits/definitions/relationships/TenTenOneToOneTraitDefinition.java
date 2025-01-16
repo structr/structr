@@ -19,51 +19,52 @@
 package org.structr.test.core.traits.definitions.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class TenTenOneToOneTraitDefinition extends RelationshipBaseTraitDefinition {
+public class TenTenOneToOneTraitDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public TenTenOneToOneTraitDefinition() {
 		super("TenTenOneToOne");
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "TestTen";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "TestTen";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "CASCADE";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 }

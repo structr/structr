@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
@@ -156,6 +157,11 @@ public class TestFiveTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	// ----- private methods -----

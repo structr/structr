@@ -2030,7 +2030,7 @@ public class ValidationTest extends StructrTest {
 
 			app.create("SchemaRelationshipNode",
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceType"), "org.structr.core.entity.Group"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceType"), "Group"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), null)
 			);
 
@@ -2066,7 +2066,7 @@ public class ValidationTest extends StructrTest {
 			app.create("SchemaRelationshipNode",
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), null),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetType"), "org.structr.core.entity.Group")
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetType"), "Group")
 			);
 
 			tx.success();
@@ -2255,12 +2255,14 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaGrant validation result",   1, tokens.size());
 			assertEquals("Invalid SchemaGrant validation result", 422, fex.getStatus());
 
-			final ErrorToken token = tokens.get(0);
+			final ErrorToken token       = tokens.get(0);
+			final List<PropertyKey> keys = new LinkedList<>((Set)token.getValue());
 
 			assertEquals("Invalid SchemaGrant validation result", "SchemaGrant",          token.getType());
 			assertEquals("Invalid SchemaGrant validation result", "already_taken",        token.getToken());
-			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("principal"),  ((PropertyKey[])token.getValue())[0]);
-			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("schemaNode"), ((PropertyKey[])token.getValue())[1]);
+			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("principal"),            keys.get(0));
+			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("schemaNode"),           keys.get(1));
+			assertEquals("Invalid SchemaGrant validation result", Traits.of("SchemaGrant").key("staticSchemaNodeName"), keys.get(2));
 		}
 
 		// test that tho Group objects with the same name throw an error

@@ -19,9 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMElementTRIGGERED_BYActionMapping extends RelationshipBaseTraitDefinition {
+public class DOMElementTRIGGERED_BYActionMapping extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementTRIGGERED_BYActionMapping() {
 		super("DOMElementTRIGGERED_BYActionMapping");
@@ -43,27 +44,27 @@ public class DOMElementTRIGGERED_BYActionMapping extends RelationshipBaseTraitDe
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 }

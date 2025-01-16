@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Comparator;
@@ -143,10 +144,14 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 			final TraitDefinition declaringTrait = key.getDeclaringTrait();
 
-			// fixme
-			if (declaringTrait != null && !"GraphObject".equals(declaringTrait.getName()) && !"RelationshipInterface".equals(declaringTrait.getName())) {
+			if (declaringTrait != null && !(declaringTrait instanceof RelationshipBaseTraitDefinition)) {
 
-				return declaringTrait.getName();
+				final String name = declaringTrait.getName();
+
+				if (!"GraphObject".equals(name)) {
+
+					return name;
+				}
 			}
 		}
 

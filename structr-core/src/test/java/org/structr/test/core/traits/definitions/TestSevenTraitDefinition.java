@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -84,5 +85,10 @@ public class TestSevenTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

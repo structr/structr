@@ -22,11 +22,12 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import java.util.Set;
 
-public class DOMNodeCONTAINSDOMNode extends RelationshipBaseTraitDefinition {
+public class DOMNodeCONTAINSDOMNode extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	private static final Property<Integer> position  = new IntProperty("position");
 
@@ -50,27 +51,27 @@ public class DOMNodeCONTAINSDOMNode extends RelationshipBaseTraitDefinition {
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 

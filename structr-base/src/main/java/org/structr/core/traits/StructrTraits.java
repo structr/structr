@@ -31,11 +31,20 @@ public class StructrTraits {
 
 	public static void registerNodeInterface() {
 
-		final Traits traits = new Traits("NodeInterface", true, false, false);
+		final Traits traits = new Traits("NodeInterface", true, true, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
 		traits.registerImplementation(new GraphObjectTraitDefinition());
 		traits.registerImplementation(new NodeInterfaceTraitDefinition());
+	}
+
+	public static void registerRelationshipInterface() {
+
+		final Traits traits = new Traits("RelationshipInterface", true, false, true);
+
+		traits.registerImplementation(new PropertyContainerTraitDefinition());
+		traits.registerImplementation(new GraphObjectTraitDefinition());
+		traits.registerImplementation(new RelationshipInterfaceTraitDefinition());
 	}
 
 	public static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {

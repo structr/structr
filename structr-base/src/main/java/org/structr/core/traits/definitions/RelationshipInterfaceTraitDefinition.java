@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
@@ -49,5 +50,10 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractTraitDef
 			sourceNode,
 			targetNode
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

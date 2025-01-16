@@ -165,7 +165,7 @@ public class Traits {
 		return Set.of();
 	}
 
-	public <T> Set<T> getMethods(final Class<T> type) {
+	public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
 
 		final Set<T> methods = composableMethods.get(type);
 		if (methods != null) {
@@ -261,6 +261,8 @@ public class Traits {
 			}
 		}
 
+		// FIXME: dynamic methods can be lifecycle methods.....
+
 		// dynamic methods
 		for (final AbstractMethod method : trait.getDynamicMethods()) {
 			this.dynamicMethods.put(method.getName(), method);
@@ -318,6 +320,10 @@ public class Traits {
 
 	public static boolean exists(final String name) {
 		return globalTraitMap.containsKey(name);
+	}
+
+	public static Set<String> getAllTypes() {
+		return Traits.getAllTypes(null);
 	}
 
 	public static Set<String> getAllTypes(final Predicate<Traits> filter) {

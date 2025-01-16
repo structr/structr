@@ -18,12 +18,16 @@
  */
 package org.structr.test.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
@@ -33,6 +37,7 @@ import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.traits.wrappers.TestEightTraitWrapper;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -116,10 +121,33 @@ public class TestEightTraitDefinition extends AbstractTraitDefinition {
 	}
 
 	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		return Set.of(
+			new IntProperty("testProperty")
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			Set.of("testProperty")
+		);
+	}
+
+	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
 			TestEight.class, (traits, node) -> new TestEightTraitWrapper(traits, node)
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

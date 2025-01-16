@@ -18,7 +18,9 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -34,55 +36,44 @@ public class SchemaGrantTraitWrapper extends AbstractTraitWrapper<NodeInterface>
 	}
 
 	@Override
-	public String getPrincipalId() {
+	public String getPrincipalName() {
 
-		final PropertyKey<NodeInterface> key = traits.key("principal");
-		final NodeInterface principal        = wrappedObject.getProperty(key);
+		final Principal principal = getPrincipal();
+		if (principal != null) {
 
-		return principal.getUuid();
-
-		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
-		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
-		// that filter removes GenericNode instances, so we must use the unfiltered relationship
-		// collection and check manually.
-
-		/*
-		for (final RelationshipInterface rel : wrappedObject.getIncomingRelationships()) {
-
-			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
-
-				return rel.getSourceNodeId();
-			}
+			return principal.getName();
 		}
-		*/
+
+		return null;
 	}
 
 	@Override
-	public String getPrincipalName() {
+	public Principal getPrincipal() {
 
-		final PropertyKey<NodeInterface> key = traits.key("principal");
-		final NodeInterface principal        = wrappedObject.getProperty(key);
+		final NodeInterface node = wrappedObject.getProperty(traits.key("principal"));
+		if (node != null) {
 
-		return principal.getName();
-
-		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
-		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
-		// that filter removes GenericNode instances, so we must use the unfiltered relationship
-		// collection and check manually.
-
-		/*
-		for (final RelationshipInterface rel : wrappedObject.getIncomingRelationships()) {
-
-			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
-
-				final NodeInterface _principal = rel.getSourceNode();
-				if (_principal != null) {
-
-					return _principal.getProperty(AbstractNode.name);
-				}
-			}
+			return node.as(Principal.class);
 		}
-		*/
+
+		return null;
+	}
+
+	@Override
+	public SchemaNode getSchemaNode() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("schemaNode"));
+		if (node != null) {
+
+			return node.as(SchemaNode.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getStaticSchemaNodeName() {
+		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
 	}
 
 	@Override

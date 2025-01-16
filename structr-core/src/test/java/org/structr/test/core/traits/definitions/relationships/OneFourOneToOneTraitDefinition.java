@@ -21,55 +21,55 @@ package org.structr.test.core.traits.definitions.relationships;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
-import org.structr.test.core.entity.TestEnum;
 
 import java.util.Map;
 import java.util.Set;
 
-public class OneFourOneToOneTraitDefinition extends RelationshipBaseTraitDefinition {
+public class OneFourOneToOneTraitDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public OneFourOneToOneTraitDefinition() {
 		super("OneFourOneToOne");
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "TestOne";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "TestFour";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "IS_AT";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 
@@ -96,7 +96,7 @@ public class OneFourOneToOneTraitDefinition extends RelationshipBaseTraitDefinit
 		final Property<Integer>  integerProperty     = new IntProperty("integerProperty").indexed();
 		final Property<Long>     longProperty        = new LongProperty("longProperty").indexed();
 		final Property<String>   stringProperty      = new StringProperty("stringProperty").indexed();
-		final Property<String> enumProperty          = new EnumProperty("enumProperty", TestEnum.class).indexed();
+		final Property<String> enumProperty          = new EnumProperty("enumProperty", Set.of("Status1", "Status2", "Status3", "Status4")).indexed();
 
 		return Set.of(
 			startNodeId,

@@ -18,20 +18,43 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.*;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnDeletion;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaRelationshipNodeTraitWrapper;
+import org.structr.schema.ReloadSchema;
+import org.structr.schema.SchemaHelper;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefinition {
+
+	private static final Logger logger                           = LoggerFactory.getLogger(SchemaRelationshipNodeTraitDefinition.class);
+	private static final String SchemaRemoteAttributeNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	/*
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
@@ -61,6 +84,135 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 
 	public SchemaRelationshipNodeTraitDefinition() {
 		super("SchemaRelationshipNode");
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					final Traits traits                         = obj.getTraits();
+					final PropertyKey<NodeInterface> sourceNode = traits.key("sourceNode");
+					final PropertyKey<NodeInterface> targetNode = traits.key("targetNode");
+					final PropertyKey<String> sourceType        = traits.key("sourceType");
+					final PropertyKey<String> targetType        = traits.key("targetType");
+					final PropertyKey<String> sourceJsonName    = traits.key("sourceJsonName");
+					final PropertyKey<String> targetJsonName    = traits.key("targetJsonName");
+					final PropertyKey<String> relationshipType  = traits.key("relationshipType");
+					boolean valid                               = true;
+
+					valid &= (obj.getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern, errorBuffer));
+					valid &= (obj.getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern, errorBuffer));
+					valid &= ValidationHelper.isValidStringNotBlank(obj, relationshipType, errorBuffer);
+
+					// source and target node can be type names
+					valid &= (ValidationHelper.isValidPropertyNotNull(obj, sourceNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(obj, sourceType, errorBuffer));
+					valid &= (ValidationHelper.isValidPropertyNotNull(obj, targetNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(obj, targetType, errorBuffer));
+
+					if (valid) {
+
+						// clear error buffer so the schema build doesn't fail because of the above check
+						errorBuffer.getErrorTokens().clear();
+
+						// only if we are valid up to here, test for relationship uniqueness
+						valid &= isRelationshipDefinitionUnique(obj.as(SchemaRelationshipNode.class), errorBuffer);
+					}
+
+					return valid;
+				}
+			},
+
+			OnCreation.class,
+			new OnCreation() {
+				@Override
+				public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					final Traits traits                              = obj.getTraits();
+					final PropertyKey<String> previousSourceJsonName = traits.key("oldSourceJsonName");
+					final PropertyKey<String> previousTargetJsonName = traits.key("oldTargetJsonName");
+					final PropertyKey<String> sourceJsonName         = traits.key("sourceJsonName");
+					final PropertyKey<String> targetJsonName         = traits.key("targetJsonName");
+					final PropertyMap map                            = new PropertyMap();
+
+					// store old property names
+					map.put(previousSourceJsonName, obj.getProperty(sourceJsonName));
+					map.put(previousTargetJsonName, obj.getProperty(targetJsonName));
+
+					obj.setProperties(securityContext, map);
+
+					// register transaction postprocessing that recreates the schema information
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					final SchemaRelationshipNode node                = obj.as(SchemaRelationshipNode.class);
+					final Traits traits                              = obj.getTraits();
+					final PropertyKey<String> previousSourceJsonName = traits.key("oldSourceJsonName");
+					final PropertyKey<String> previousTargetJsonName = traits.key("oldTargetJsonName");
+					final PropertyKey<String> sourceJsonName         = traits.key("sourceJsonName");
+					final PropertyKey<String> targetJsonName         = traits.key("targetJsonName");
+					final PropertyMap map                            = new PropertyMap();
+
+					checkClassName(node);
+					checkAndRenameSourceAndTargetJsonNames(node);
+
+					// store old property names
+					map.put(previousSourceJsonName, obj.getProperty(sourceJsonName));
+					map.put(previousTargetJsonName, obj.getProperty(targetJsonName));
+
+					obj.setProperties(securityContext, map);
+
+					// register transaction postprocessing that recreates the schema information
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
+				}
+			},
+
+			OnDeletion.class,
+			new OnDeletion() {
+
+				@Override
+				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+					// register transaction postprocessing that recreates the schema information
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
+				}
+			},
+
+			OnNodeDeletion.class,
+			new OnNodeDeletion() {
+
+				@Override
+				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
+					try {
+
+						removeSourceAndTargetJsonNames(nodeInterface.as(SchemaRelationshipNode.class));
+
+					} catch (Throwable t) {
+
+						// this method must not prevent
+						// the deletion of a node
+						logger.warn("", t);
+					}
+				}
+			}
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return Map.of();
 	}
 
 	@Override
@@ -130,6 +282,187 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 		);
 	}
 
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
+
+	// ----- private methods -----
+	private boolean isRelationshipDefinitionUnique(final SchemaRelationshipNode node, final ErrorBuffer errorBuffer) {
+
+		final Traits traits                         = node.getTraits();
+		final PropertyKey<NodeInterface> sourceNode = traits.key("sourceNode");
+		final PropertyKey<NodeInterface> targetNode = traits.key("targetNode");
+		final PropertyKey<String> relationshipType  = traits.key("relationshipType");
+		boolean allow                               = true;
+
+		try {
+
+			final List<NodeInterface> existingRelationships = StructrApp.getInstance()
+				.nodeQuery("SchemaRelationshipNode")
+				.and(relationshipType, node.getRelationshipType(), true)
+				.and(sourceNode, node.getSourceNode().getWrappedNode())
+				.and(targetNode, node.getTargetNode().getWrappedNode()).getAsList();
+
+			for (final NodeInterface exRel : existingRelationships) {
+				if (!exRel.getUuid().equals(node.getUuid())) {
+					allow = false;
+				}
+			}
+
+			if (!allow) {
+
+				errorBuffer.add(new SemanticErrorToken(node.getType(), "relationshipType", "duplicate_relationship_definition")
+					.withDetail("Schema Relationship with same name between source and target node already exists. This is not allowed.")
+				);
+			}
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		return allow;
+	}
+
+	private void checkClassName(final SchemaRelationshipNode node) throws FrameworkException {
+
+		final String className             = node.getClassName();
+		final String potentialNewClassName = assembleNewClassName(node);
+
+		if (!className.equals(potentialNewClassName)) {
+
+			try {
+				node.setProperty(Traits.nameProperty(), potentialNewClassName);
+
+			} catch (FrameworkException fex) {
+				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);
+			}
+		}
+	}
+
+	private String assembleNewClassName(final SchemaRelationshipNode node) {
+
+		final String _sourceType = node.getSchemaNodeSourceType();
+		final String _targetType = node.getSchemaNodeTargetType();
+		final String _relType    = SchemaHelper.cleanPropertyName(node.getRelationshipType());
+
+		return _sourceType + _relType + _targetType;
+	}
+
+	private void checkAndRenameSourceAndTargetJsonNames(final SchemaRelationshipNode node) throws FrameworkException {
+
+		final Map<String, NodeInterface> schemaNodes = new LinkedHashMap<>();
+		final String _previousSourceJsonName         = node.getPreviousSourceJsonName();
+		final String _previousTargetJsonName         = node.getPreviousTargetJsonName();
+		final String _currentSourceJsonName          = ((node.getSourceJsonName() != null) ? node.getSourceJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), false));
+		final String _currentTargetJsonName          = ((node.getTargetJsonName() != null) ? node.getTargetJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), true));
+		final SchemaNode _sourceNode                 = node.getSourceNode();
+		final SchemaNode _targetNode                 = node.getTargetNode();
+
+		// build schema node map
+		StructrApp.getInstance().nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
+
+			renameNameInNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
+
+			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousSourceJsonName, _currentSourceJsonName);
+			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousSourceJsonName, _currentSourceJsonName);
+		}
+
+		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
+
+			renameNameInNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+
+			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousTargetJsonName, _currentTargetJsonName);
+		}
+	}
+
+	private void removeSourceAndTargetJsonNames(final SchemaRelationshipNode node) throws FrameworkException {
+
+		final SchemaNode _sourceNode        = node.getSourceNode();
+		final SchemaNode _targetNode        = node.getTargetNode();
+		final String _currentSourceJsonName = ((node.getSourceJsonName() != null) ? node.getSourceJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), false));
+		final String _currentTargetJsonName = ((node.getTargetJsonName() != null) ? node.getTargetJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), true));
+
+		if (_sourceNode != null) {
+
+			removeNameFromNonGraphProperties(_sourceNode, _currentSourceJsonName);
+			removeNameFromNonGraphProperties(_sourceNode, _currentTargetJsonName);
+
+		}
+
+		if (_targetNode != null) {
+
+			removeNameFromNonGraphProperties(_targetNode, _currentSourceJsonName);
+			removeNameFromNonGraphProperties(_targetNode, _currentTargetJsonName);
+
+		}
+
+	}
+
+	private void renameNotionPropertyReferences(final Map<String, NodeInterface> schemaNodes, final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {
+
+		final PropertyKey<String> formatKey = Traits.of("SchemaProperty").key("format");
+
+		// examine properties of other node
+		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+			if (SchemaHelper.Type.Notion.equals(property.getPropertyType()) || SchemaHelper.Type.IdNotion.equals(property.getPropertyType())) {
+
+				// try to rename
+				final String basePropertyName = property.getNotionBaseProperty();
+				if (basePropertyName.equals(previousValue)) {
+
+					property.setProperty(formatKey, property.getFormat().replace(previousValue, currentValue));
+				}
+			}
+		}
+	}
+
+	private void renameNameInNonGraphProperties(final SchemaNode schemaNode, final String toRemove, final String newValue) throws FrameworkException {
+
+		final PropertyKey<String> nonGraphPropertiesKey = schemaNode.getTraits().key("nonGraphProperties");
+
+		// examine all views
+		for (final SchemaView view : schemaNode.getSchemaViews()) {
+
+			final String nonGraphProperties = view.getProperty(nonGraphPropertiesKey);
+			if (nonGraphProperties != null) {
+
+				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+
+				final int pos = properties.indexOf(toRemove);
+				if (pos != -1) {
+					properties.set(pos, newValue);
+				}
+
+				view.setProperty(nonGraphPropertiesKey, StringUtils.join(properties, ", "));
+			}
+		}
+	}
+
+	private void removeNameFromNonGraphProperties(final SchemaNode schemaNode, final String toRemove) throws FrameworkException {
+
+		final PropertyKey<String> nonGraphPropertiesKey = schemaNode.getTraits().key("nonGraphProperties");
+
+		// examine all views
+		for (final SchemaView view : schemaNode.getSchemaViews()) {
+
+			final String nonGraphProperties = view.getProperty(nonGraphPropertiesKey);
+			if (nonGraphProperties != null) {
+
+				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+
+				properties.remove(toRemove);
+
+				view.setProperty(nonGraphPropertiesKey, StringUtils.join(properties, ", "));
+			}
+		}
+	}
+
 	/*
 	public static void registerPropagatingRelationshipType(final Class type, final boolean isDynamic) {
 
@@ -166,93 +499,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 		}
 
 		return propertyKeys;
-	}
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= (getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, sourceJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
-		valid &= (getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(this, targetJsonName, schemaRemoteAttributeNamePattern, errorBuffer));
-		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
-
-		// source and target node can be type names
-		valid &= (ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(this, sourceType, errorBuffer));
-		valid &= (ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(this, targetType, errorBuffer));
-
-		if (valid) {
-
-			// clear error buffer so the schema build doesn't fail because of the above check
-			errorBuffer.getErrorTokens().clear();
-
-			// only if we are valid up to here, test for relationship uniqueness
-			valid &= isRelationshipDefinitionUnique(errorBuffer);
-		}
-
-		return valid;
-	}
-
-	@Override
-	public void onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		final PropertyMap map = new PropertyMap();
-
-		// store old property names
-		map.put(previousSourceJsonName, getProperty(sourceJsonName));
-		map.put(previousTargetJsonName, getProperty(targetJsonName));
-
-		setProperties(securityContext, map);
-
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-
-		checkClassName();
-
-		checkAndRenameSourceAndTargetJsonNames();
-
-		final PropertyMap map = new PropertyMap();
-
-		// store old property names
-		map.put(previousSourceJsonName, getProperty(sourceJsonName));
-		map.put(previousTargetJsonName, getProperty(targetJsonName));
-
-		setProperties(securityContext, map);
-
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
-	}
-
-	@Override
-	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
-
-		try {
-
-			removeSourceAndTargetJsonNames();
-
-		} catch (Throwable t) {
-
-			// this method must not prevent
-			// the deletion of a node
-			logger.warn("", t);
-		}
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
-		super.onDeletion(securityContext, errorBuffer, properties);
-
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 	}
 
 	// ----- nested classes -----

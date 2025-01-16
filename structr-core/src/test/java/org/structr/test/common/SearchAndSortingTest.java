@@ -1123,9 +1123,9 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try {
 
-			final RelationshipInterface rel = createTestRelationships("GenericRelationship", 1).get(0);
+			final RelationshipInterface rel = createTestRelationships("TestOne", "TestTwo", "OneTwoOneToOne", 1).get(0);
 			final PropertyKey key1          = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
-			final String type               = "GenericRelationship";
+			final String type               = "OneTwoOneToOne";
 			final String val1               = "54354354546806849870";
 
 			final List<RelationshipInterface> result;
@@ -1162,9 +1162,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}

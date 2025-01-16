@@ -19,9 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMElementINPUT_ELEMENTParameterMapping extends RelationshipBaseTraitDefinition {
+public class DOMElementINPUT_ELEMENTParameterMapping extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementINPUT_ELEMENTParameterMapping() {
 		super("DOMElementINPUT_ELEMENTParameterMapping");
@@ -43,27 +44,27 @@ public class DOMElementINPUT_ELEMENTParameterMapping extends RelationshipBaseTra
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return 0;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return 0;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 }

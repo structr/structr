@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -50,8 +51,8 @@ public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);
 	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("test");
-	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(10);
-	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
+	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(2);
+	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(5);
 
 	@Test
 	public void testIndexCreationAndRemovalForNodePropertyWithIndexedFlag() {

@@ -19,6 +19,7 @@
 package org.structr.test.core.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -41,7 +42,7 @@ public class TestOneTraitDefinition extends AbstractTraitDefinition {
 		final PropertyKey<Long>                    aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();
 		final PropertyKey<Double>                  aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 		final PropertyKey<Date>                    aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
-		final PropertyKey<String>                  anEnum             = new EnumProperty("anEnum", new String[] { "One", "Two", "Three", "Four" }).indexed();
+		final PropertyKey<String>                  anEnum             = new EnumProperty("anEnum", Set.of("One", "Two", "Three", "Four")).indexed();
 		final PropertyKey<String>                  aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final PropertyKey<Boolean>                 aBoolean           = new BooleanProperty("aBoolean").indexed();
 		final PropertyKey<String>                  testString         = new StringProperty("testString");
@@ -114,5 +115,10 @@ public class TestOneTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -47,7 +47,7 @@ public interface SchemaProperty extends PropertyDefinition, NodeTrait {
 	PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException;
 	List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException;
 
-	static String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
+	static String getPropertyName(final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
 
 		String propertyName = "";
 

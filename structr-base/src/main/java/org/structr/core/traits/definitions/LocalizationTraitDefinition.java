@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Localization;
+import org.structr.core.entity.Relation;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
@@ -130,5 +131,10 @@ public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
 			localeProperty,
 			importedProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.test.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -35,17 +36,26 @@ public class TestTenTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> tenTenParent             = new StartNode("testTenParent", "TenTenOneToMany");
-		final Property<Iterable<NodeInterface>> tenTenChildren = new EndNodes("testTenChildren", "TenTenOneToMany");
-		final Property<NodeInterface> testParent               = new StartNode("testParent", "TenTenOneToOne");
-		final Property<NodeInterface> testChild                = new EndNode("testChild", "TenTenOneToOne");
+		final Property<NodeInterface> testTenParent             = new StartNode("testTenParent", "TenTenOneToMany");
+		final Property<Iterable<NodeInterface>> testTenChildren = new EndNodes("testTenChildren", "TenTenOneToMany");
+		final Property<NodeInterface> testParent                = new StartNode("testParent", "TenTenOneToOne");
+		final Property<NodeInterface> testChild                 = new EndNode("testChild", "TenTenOneToOne");
 
 		return Set.of(
+			testTenParent,
+			testTenChildren,
+			testParent,
+			testChild
 		);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

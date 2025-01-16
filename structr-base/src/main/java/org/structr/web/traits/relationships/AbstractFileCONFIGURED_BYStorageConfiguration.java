@@ -21,9 +21,10 @@ package org.structr.web.traits.relationships;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class AbstractFileCONFIGURED_BYStorageConfiguration extends RelationshipBaseTraitDefinition {
+public class AbstractFileCONFIGURED_BYStorageConfiguration extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public AbstractFileCONFIGURED_BYStorageConfiguration() {
 		super("AbstractFileCONFIGURED_BYStorageConfiguration");
@@ -45,17 +46,17 @@ public class AbstractFileCONFIGURED_BYStorageConfiguration extends RelationshipB
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
@@ -65,7 +66,7 @@ public class AbstractFileCONFIGURED_BYStorageConfiguration extends RelationshipB
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
@@ -156,6 +157,11 @@ public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
 			validators,
 			transformers
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	/*

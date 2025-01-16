@@ -18,26 +18,42 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Node;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaGrant;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaGrantTraitWrapper;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  *
  *
  */
 public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
 
 	/*
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
@@ -72,14 +88,20 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final Traits traits                    = obj.getTraits();
-					final PropertyKey principal            = traits.key("principal");
-					final PropertyKey schemaNode           = traits.key("schemaNode");
-					final PropertyKey staticSchemaNodeName = traits.key("staticSchemaNodeName");
+					final Set<PropertyKey> keys = new LinkedHashSet<>();
+					final Traits traits         = obj.getTraits();
 
-					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, Set.of(principal, schemaNode, staticSchemaNodeName));
+					// preserve order (for testing)
+					keys.add(traits.key("principal"));
+					keys.add(traits.key("schemaNode"));
+					keys.add(traits.key("staticSchemaNodeName"));
+
+					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, keys);
 				}
-			}
+			},
+
+			OnCreation.class, (OnCreation) (graphObject, securityContext, errorBuffer) -> checkRelationshipsAndDeleteSelf(graphObject.as(SchemaGrant.class), true),
+			OnModification.class, (OnModification) (graphObject, securityContext, errorBuffer, modificationQueue) -> checkRelationshipsAndDeleteSelf(graphObject.as(SchemaGrant.class), false)
 		);
 	}
 
@@ -113,108 +135,45 @@ public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
 		);
 	}
 
-	/*
 	@Override
-	public String getPrincipalId() {
-
-		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
-		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
-		// that filter removes GenericNode instances, so we must use the unfiltered relationship
-		// collection and check manually.
-
-		for (final RelationshipInterface rel : getIncomingRelationships()) {
-
-			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
-
-				return rel.getSourceNodeId();
-			}
-		}
-
+	public Relation getRelation() {
 		return null;
-	}
-
-	@Override
-	public String getPrincipalName() {
-
-		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
-		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
-		// that filter removes GenericNode instances, so we must use the unfiltered relationship
-		// collection and check manually.
-
-		for (final RelationshipInterface rel : getIncomingRelationships()) {
-
-			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
-
-				final NodeInterface _principal = rel.getSourceNode();
-				if (_principal != null) {
-
-					return _principal.getProperty(AbstractNode.name);
-				}
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		createDynamicTypeOrDeleteSelf(true);
-	}
-
-	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-
-		createDynamicTypeOrDeleteSelf(false);
 	}
 
 	// ----- private methods -----
-	default void createDynamicTypeOrDeleteSelf(boolean allowAllFalse) throws FrameworkException {
+	private void checkRelationshipsAndDeleteSelf(final SchemaGrant grant, final boolean isCreation) throws FrameworkException {
 
-		final Node dbNode = getNode();
-		final Principal p = getProperty(SchemaGrantTraitDefinition.principal);
-		if (p == null) {
+		final NodeInterface node = grant.getWrappedNode();
+		final Node dbNode        = node.getNode();
+		final Principal p        = grant.getPrincipal();
 
-			// no principal => delete
-			SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", getUuid());
-			StructrApp.getInstance().delete(this);
-		}
+		if (!TransactionCommand.isDeleted(dbNode)) {
 
+			if (p == null) {
 
-		// silently delete this node if all settings are set to false
-		if (!TransactionCommand.isDeleted(dbNode) && (!getProperty(allowRead) && !getProperty(allowWrite) && !getProperty(allowDelete) && !getProperty(allowAccessControl))) {
+				// no principal => delete
+				SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", grant.getUuid());
+				StructrApp.getInstance().delete(node);
+			}
 
-			if (!allowAllFalse) {
+			// silently delete this node if all settings are set to false
+			if (!isCreation && !grant.allowRead() && !grant.allowWrite() && !grant.allowDelete() && !grant.allowAccessControl()) {
 
-				StructrApp.getInstance().delete(this);
+				SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it doesn't allow anything.", grant.getUuid());
+				StructrApp.getInstance().delete(node);
+			}
 
-			} else {
+			// delete this node if schema node is missing
+			if (grant.getSchemaNode() == null) {
 
-				// delete this node if principal or schema node are missing
-				if (!TransactionCommand.isDeleted(dbNode) && getProperty(SchemaGrantTraitDefinition.schemaNode) == null) {
+				// schema grant can be associated with a static type as well
+				final String fqcn = grant.getStaticSchemaNodeName();
+				if (fqcn == null) {
 
-					// schema grant can be associated with a static type as well
-					if (getProperty(SchemaGrantTraitDefinition.staticSchemaNodeName) != null) {
-
-						final String fqcn = getProperty(SchemaGrant.staticSchemaNodeName);
-						if (fqcn != null) {
-
-							SchemaGrantTraitDefinition.logger.info("Creating dynamic schema node for {}", fqcn);
-							setProperty(SchemaGrant.schemaNode, SchemaHelper.getOrCreateDynamicSchemaNodeForFQCN(fqcn));
-						}
-
-					} else {
-
-						SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
-						StructrApp.getInstance().delete(this);
-					}
+					SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", node.getUuid());
+					StructrApp.getInstance().delete(node);
 				}
 			}
 		}
 	}
-	*/
 }

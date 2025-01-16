@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
@@ -168,6 +169,11 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 			PropertyView.Ui,
 			Set.of("id", "type", "createdBy", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers")
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	// ----- private methods -----

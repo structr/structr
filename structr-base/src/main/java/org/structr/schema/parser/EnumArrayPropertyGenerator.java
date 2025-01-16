@@ -58,7 +58,7 @@ public class EnumArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
 		if (StringUtils.isNotBlank(expression)) {
 
-			return new EnumProperty(name, expression.split("[, ]+"));
+			return new EnumProperty(name, EnumProperty.trimAndFilterEmptyStrings(expression.split("[, ]+")));
 
 		} else if (source.getFqcn() != null) {
 

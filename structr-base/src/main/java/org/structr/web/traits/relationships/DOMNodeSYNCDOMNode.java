@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -29,7 +30,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import java.util.Map;
 import java.util.Set;
 
-public class DOMNodeSYNCDOMNode extends RelationshipBaseTraitDefinition {
+public class DOMNodeSYNCDOMNode extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeSYNCDOMNode() {
 		super("DOMNodeSYNCDOMNode");
@@ -51,27 +52,27 @@ public class DOMNodeSYNCDOMNode extends RelationshipBaseTraitDefinition {
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 

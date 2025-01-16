@@ -82,7 +82,7 @@ public class StructrApp implements App {
 	// ----- public methods -----
 	@Override
 	public NodeInterface create(final String type, final String name) throws FrameworkException {
-		return create(type, new NodeAttribute(Traits.nameProperty(), name));
+		return create(type, new NodeAttribute(Traits.of(type).key("name"), name));
 	}
 
 	@Override

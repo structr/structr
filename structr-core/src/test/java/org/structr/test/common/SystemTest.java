@@ -68,7 +68,7 @@ import static org.testng.AssertJUnit.*;
  */
 public class SystemTest extends StructrTest {
 
-	private static final Logger logger         = LoggerFactory.getLogger(SystemTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(SystemTest.class);
 
 	@Test
 	public void testCallbacksWithSuperUserContext() {
@@ -256,13 +256,14 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testFlawedParallelInstantiation() {
 
-		final int nodeCount       = 1000;
-		NodeInterface createTestType = null;
+		final int nodeCount    = 1000;
+		String testTypeName    = "CreateTest";
+		NodeInterface testType = null;
 
 		// setup: create dynamic type with onCreate() method
 		try (final Tx tx = app.tx()) {
 
-			createTestType = createTestNode("SchemaNode", "CreateTest");
+			testType = createTestNode("SchemaNode", testTypeName);
 
 			tx.success();
 
@@ -272,14 +273,13 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		String testType = "CreateTest";
 
 		assertNotNull("Type CreateTest should have been created", testType);
 
 		// second step: create 1000 test nodes
 		try (final Tx tx = app.tx()) {
 
-			createTestNodes(testType, nodeCount);
+			createTestNodes(testTypeName, nodeCount);
 
 			tx.success();
 
@@ -291,8 +291,20 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestType.setProperty(new StringProperty("_testCount"), "Integer");
-			createTestType.setProperty(new StringProperty("___onCreate"), "set(this, 'testCount', size(find('CreateTest')))");
+			final Traits propertyTraits = Traits.of("SchemaProperty");
+			final Traits methodTraits   = Traits.of("SchemaMethod");
+
+			app.create("SchemaProperty",
+				new NodeAttribute<>(propertyTraits.key("schemaNode"),   testType),
+				new NodeAttribute<>(propertyTraits.key("name"),         "testCount"),
+				new NodeAttribute<>(propertyTraits.key("propertyType"), "Integer")
+			);
+
+			app.create("SchemaMethod",
+				new NodeAttribute<>(methodTraits.key("schemaNode"),   testType),
+				new NodeAttribute<>(methodTraits.key("name"),         "onCreate"),
+				new NodeAttribute<>(methodTraits.key("source"),       "set(this, 'testCount', size(find('CreateTest')))")
+			);
 
 			tx.success();
 
@@ -302,13 +314,12 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		testType = "CreateTest";
 		NodeInterface node = null;
 
 		// third step: create a single node in a separate transaction
 		try (final Tx tx = app.tx()) {
 
-			node = createTestNode(testType, "Tester");
+			node = createTestNode(testTypeName, "Tester");
 
 			tx.success();
 
@@ -321,7 +332,7 @@ public class SystemTest extends StructrTest {
 		// fourth step: check property value
 		try (final Tx tx = app.tx()) {
 
-			final Integer testCount = node.getProperty(new IntProperty("testCount"));
+			final Integer testCount = node.getProperty(Traits.of(testTypeName).key("testCount"));
 
 			assertEquals("Invalid node count, check parallel instantiation!", (int)nodeCount+1, (int)testCount);
 
@@ -397,7 +408,7 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Traits nodeTraits     = Traits.of("SchemaNode");
-			final Traits propertyTraits = Traits.of("SchemaNode");
+			final Traits propertyTraits = Traits.of("SchemaProperty");
 
 			app.create("SchemaNode",
 				new NodeAttribute(nodeTraits.key("name"), "Item"),
@@ -911,7 +922,7 @@ public class SystemTest extends StructrTest {
 
 			app.create("User",
 				new NodeAttribute<>(Traits.of("Principal").key("name"), "tester"),
-				new NodeAttribute<>(Traits.of("Principal").key("passwordProperty"), "password")
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "password")
 			);
 
 			tx.success();

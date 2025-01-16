@@ -518,7 +518,7 @@ public class SchemaTest extends StructrTest {
 			final String source = "";
 
 			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("staticSchemaNodeName"), "org.structr.core.entity.Group"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("staticSchemaNodeName"), "Group"),
 				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),                 "testJavaMethod"),
 				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),               source),
 				new NodeAttribute<>(Traits.of("SchemaMethod").key("codeType"),             "java")

@@ -313,6 +313,11 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 		);
 	}
 
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
 	public static void clearCaches() {
 		globalPermissionResolutionCache.clear();
 		isGrantedResultCache.clear();

@@ -113,4 +113,9 @@ public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
 			versionProperty
 		);
 	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
 }

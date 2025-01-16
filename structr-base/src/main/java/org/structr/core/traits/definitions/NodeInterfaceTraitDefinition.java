@@ -265,4 +265,9 @@ public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition 
 			Set.of("name", "owner", "hidden")
 		);
 	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
 }

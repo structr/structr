@@ -19,6 +19,7 @@
 package org.structr.schema;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;
@@ -60,5 +61,10 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 		}
 
 		return keys;
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

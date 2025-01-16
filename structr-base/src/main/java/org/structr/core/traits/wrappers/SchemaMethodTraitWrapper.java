@@ -20,6 +20,7 @@ package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
@@ -27,10 +28,14 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.LifecycleMethodAdapter;
+import org.structr.core.traits.operations.graphobject.*;
+import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
 import org.structr.schema.action.ActionEntry;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SchemaMethod {
 
@@ -134,11 +139,6 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
-	public ActionEntry getActionEntry(Map<String, SchemaNode> schemaNodes, AbstractSchemaNode schemaEntity) throws FrameworkException {
-		return null;
-	}
-
-	@Override
 	public boolean isStaticMethod() {
 		return wrappedObject.getProperty(traits.key("isStatic"));
 	}
@@ -176,7 +176,24 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 	}
 
 	@Override
+	public LifecycleMethod asLifecycleMethod() {
+
+		final Class<LifecycleMethod> type = getMethodType();
+		if (type != null) {
+
+			return new LifecycleMethodAdapter(getSource());
+		}
+
+		return null;
+	}
+
+	@Override
 	public boolean isLifecycleMethod() {
+		return getMethodType() != null;
+	}
+
+	@Override
+	public Class<LifecycleMethod> getMethodType() {
 
 		final AbstractSchemaNode parent = getSchemaNode();
 		final boolean hasParent         = (parent != null);
@@ -184,14 +201,26 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 
 		if (hasParent) {
 
-			final List<String> typeBasedLifecycleMethods = List.of("onNodeCreation", "onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
-			final List<String> fileLifecycleMethods      = List.of("onUpload", "onDownload");
-			final List<String> userLifecycleMethods      = List.of("onOAuthLogin");
+			final Map<String, Class<? extends LifecycleMethod>> typeBasedLifecycleMethods = Map.of(
+				"onNodeCreation", OnNodeCreation.class,
+				"onCreate",       OnCreation.class,
+				"afterCreate",    AfterCreation.class,
+				"onSave",         OnModification.class,
+				"afterSave",      AfterModification.class,
+				"onDelete",       OnDeletion.class,
+				"afterDelete",    AfterDeletion.class
+			);
 
-			for (final String lifecycleMethodPrefix : typeBasedLifecycleMethods) {
+			final Set<String> fileLifecycleMethods                              = Set.of("onUpload", "onDownload");
+			final Set<String> userLifecycleMethods                              = Set.of("onOAuthLogin");
+
+			for (final Map.Entry<String, Class<? extends LifecycleMethod>> entry : typeBasedLifecycleMethods.entrySet()) {
+
+				final String lifecycleMethodPrefix = entry.getKey();
 
 				if (methodName.startsWith(lifecycleMethodPrefix)) {
-					return true;
+					// type cast to get rid of
+					return (Class)entry.getValue();
 				}
 			}
 
@@ -207,37 +236,34 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 
 			if (inheritsFromFile) {
 
-				for (final String lifecycleMethodName : fileLifecycleMethods) {
-
-					if (methodName.equals(lifecycleMethodName)) {
-						return true;
-					}
+				if (fileLifecycleMethods.contains(methodName)) {
+					// FIXME
+					return null;
+					//return OnUpload.class;
 				}
 			}
 
 			if (inheritsFromUser) {
 
-				for (final String lifecycleMethodName : userLifecycleMethods) {
-
-					if (methodName.equals(lifecycleMethodName)) {
-						return true;
-					}
+				if (userLifecycleMethods.contains(methodName)) {
+					// FIXME
+					return null;
+					//return true;
 				}
 			}
 
 		} else {
 
-			final List<String> globalLifecycleMethods = List.of("onStructrLogin", "onStructrLogout", "onAcmeChallenge");
+			final Set<String> globalLifecycleMethods = Set.of("onStructrLogin", "onStructrLogout", "onAcmeChallenge");
 
-			for (final String lifecycleMethodName : globalLifecycleMethods) {
-
-				if (methodName.equals(lifecycleMethodName)) {
-					return true;
-				}
+			if (globalLifecycleMethods.contains(methodName)) {
+				// FIXME
+				return null;
+				//return true;
 			}
 
 		}
 
-		return false;
+		return null;
 	}
 }
