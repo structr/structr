@@ -174,15 +174,22 @@ let _Crud = {
 		},
 		typeSelected: (type) => {
 
-			_Crud.typeList.storeCurrentType(type);
-
-			_Crud.typeList.recents.update(type);
-			_Crud.typeList.highlightCurrentType(type);
-
 			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
 
 			_Crud.helpers.ensurePropertiesForTypeAreLoaded(type, () => {
+
+				_Crud.typeList.storeCurrentType(type);
+
+				_Crud.typeList.recents.update(type);
+				_Crud.typeList.highlightCurrentType(type);
+
 				_Crud.objectList.initializeForType(type);
+
+			}, () => {
+
+				_Crud.typeList.recents.remove(document.querySelector(`#crud-left .crud-type[data-type="${type}"]`));
+
+				_Crud.helpers.delayedMessage.removeMessage();
 			});
 		},
 		recents: {
@@ -219,16 +226,19 @@ let _Crud = {
 			},
 			remove: (recentTypeElement) => {
 
-				let typeToRemove = recentTypeElement.dataset['type'];
-				let recentTypes  = LSWrapper.getItem(_Crud.typeList.recents.crudRecentTypesKey);
+				if (recentTypeElement) {
 
-				if (recentTypes) {
-					recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
+					let typeToRemove = recentTypeElement.dataset['type'];
+					let recentTypes  = LSWrapper.getItem(_Crud.typeList.recents.crudRecentTypesKey);
+
+					if (recentTypes) {
+						recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
+					}
+
+					LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
+
+					_Helpers.fastRemoveElement(recentTypeElement);
 				}
-
-				LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
-
-				_Helpers.fastRemoveElement(recentTypeElement);
 			},
 		},
 		filtering: {
@@ -1001,7 +1011,7 @@ let _Crud = {
 
 					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="flex items-center relative">
-							<input name="${key}" class="__value pl-9" type="text" size="36" autocomplete="one-time-code">
+							<input name="${key}" class="__value pl-9 mr-3" type="text" size="36" autocomplete="one-time-code">
 							${_Crud.helpers.getDateTimeIconHTML()}
 						</div>
 					`);
@@ -2574,7 +2584,7 @@ let _Crud = {
 			return displayName;
 		},
 		// TODO: _Schema.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
-		ensureTypeInfoIsLoaded: (type, callback) => {
+		ensureTypeInfoIsLoaded: (type, successCallback, failureCallback) => {
 
 			let url = `${Structr.rootUrl}_schema/${type}`;
 
@@ -2588,9 +2598,7 @@ let _Crud = {
 
 						_Crud.types[type] = data.result[0];
 
-						if (typeof callback === 'function') {
-							callback();
-						}
+						successCallback?.();
 
 					} else {
 
@@ -2599,11 +2607,14 @@ let _Crud = {
 					}
 
 				} else {
+
 					Structr.errorFromResponse(data, url);
+
+					failureCallback?.();
 				}
 			})
 		},
-		ensurePropertiesForTypeAreLoaded: (type, callback) => {
+		ensurePropertiesForTypeAreLoaded: (type, successCallback, failureCallback) => {
 
 			if (type === null) {
 				return;
@@ -2613,7 +2624,7 @@ let _Crud = {
 
 			if (properties) {
 
-				callback?.();
+				successCallback?.();
 
 			} else {
 
@@ -2628,9 +2639,9 @@ let _Crud = {
 
 					} else {
 
-						callback?.();
+						successCallback?.();
 					}
-				});
+				}, failureCallback);
 			}
 		},
 		getPropertiesForTypeAndCurrentView: (type) => {
