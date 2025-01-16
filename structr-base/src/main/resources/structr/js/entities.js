@@ -1308,6 +1308,7 @@ let _Entities = {
 	// 	return dateField;
 	// },
 	activateDatePicker: (input, format) => {
+
 		if (!format) {
 			format = input.data('dateFormat');
 		}
@@ -1428,32 +1429,33 @@ let _Entities = {
 	},
 	addDatePicker: (input, key, type, onCloseCallback) => {
 
-		let format = _Crud.helpers.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.helpers.getFormat(type, key);
+		let defaultFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
+		let format = _Crud.helpers.isFunctionProperty(key, type) ? defaultFormat : _Crud.helpers.getFormat(type, key);
 		let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
 
-			let pickerConfig = {
-				parse: 'loose',
-				dateFormat: dateTimePickerFormat.dateFormat,
-				onClose: onCloseCallback
-			};
+		let pickerConfig = {
+			parse: 'loose',
+			dateFormat: dateTimePickerFormat.dateFormat,
+			onClose: onCloseCallback
+		};
 
-			if (dateTimePickerFormat.timeFormat) {
+		if (dateTimePickerFormat.timeFormat) {
 
-				pickerConfig.timeFormat = dateTimePickerFormat.timeFormat;
-				pickerConfig.separator  = dateTimePickerFormat.separator;
+			pickerConfig.timeFormat = dateTimePickerFormat.timeFormat;
+			pickerConfig.separator  = dateTimePickerFormat.separator;
 
-				$(input).datetimepicker(pickerConfig);
-				input.addEventListener('focus', (e) => {
-					$(input).datetimepicker('show');
-				});
+			$(input).datetimepicker(pickerConfig);
+			input.addEventListener('focus', (e) => {
+				$(input).datetimepicker('show');
+			});
 
-			} else {
+		} else {
 
-				$(input).datepicker(pickerConfig);
-				input.addEventListener('focus', (e) => {
-					$(input).datepicker('show');
-				});
-			}
+			$(input).datepicker(pickerConfig);
+			input.addEventListener('focus', (e) => {
+				$(input).datepicker('show');
+			});
+		}
 	},
 	saveArrayValue: (cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
 

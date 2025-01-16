@@ -982,7 +982,7 @@ let _Crud = {
 
 							let newValue = input.value;
 
-							if (id && newValue !== oldValue) {
+							if (id && (new Date(newValue).getTime() !== new Date(oldValue).getTime())) {
 								_Crud.objectList.crudUpdate(id, key, newValue);
 							} else {
 								_Crud.objectList.resetCellToOldValue(id, key, oldValue);
