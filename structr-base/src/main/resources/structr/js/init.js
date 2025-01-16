@@ -2840,7 +2840,7 @@ let UISettings = {
 
 				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
 					<div class="flex items-center">
-						<label class="flex items-center p-1"><input type="${setting.inputType ?? 'text'}" class="mr-2 px-2 py-1 ${setting.cssClass ?? ''}" size="${setting.size ?? 5}">${setting.text}</label>
+						<label class="flex items-center p-1"><input type="${setting.inputType ?? 'text'}" class="mr-2 px-2 py-1 ${setting.inputCssClass ?? ''}" size="${setting.size ?? 5}">${setting.text}</label>
 					</div>
 				`);
 
@@ -3030,13 +3030,13 @@ let UISettings = {
 			title: 'Data',
 			settings: {
 				hideLargeArrayElements: {
-					text: 'Only show array contents if below this number',
-					infoText: 'Array elements with more elements than this will be hidden and the user can click to reveal the contents. This can be disabled by setting this to -1.',
+					text: 'Only show array attributes contents if less than this',
+					infoText: 'The contents of array attributes with more elements will be hidden. The user can click to reveal the contents. This can be disabled by setting this to -1.',
 					storageKey: 'hideLargeArrayElementsInData_' + location.port,
 					defaultValue: 10,
 					type: 'input',
 					inputType: 'number',
-					cssClass: 'w-12',
+					inputCssClass: 'w-12',
 					onUpdate: () => {
 						if (Structr.isModuleActive(_Crud)) {
 						}
