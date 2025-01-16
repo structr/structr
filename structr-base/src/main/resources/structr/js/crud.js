@@ -977,12 +977,19 @@ let _Crud = {
 					if (!readOnly) {
 
 						let oldValue = input.value;
+						let wasEmpty = (oldValue === '');
 
 						_Entities.addDatePicker(input, key, type, () => {
 
 							let newValue = input.value;
+							let isEmpty  = (newValue === '');
 
-							if (id && (new Date(newValue).getTime() !== new Date(oldValue).getTime())) {
+							let isFirstValue = (wasEmpty && !isEmpty);
+							let valueRemoved = (!wasEmpty && isEmpty);
+							let valueChanged = (!wasEmpty && !isEmpty && (new Date(newValue).getTime() !== new Date(oldValue).getTime()));
+							let shouldSave   = (isFirstValue || valueRemoved || valueChanged);
+
+							if (id && shouldSave) {
 								_Crud.objectList.crudUpdate(id, key, newValue);
 							} else {
 								_Crud.objectList.resetCellToOldValue(id, key, oldValue);
@@ -2856,10 +2863,10 @@ let _Crud = {
 
 					let crudRight = $('#crud-type-detail');
 					crudRight.append(`
-					<div class="crud-message">
-						<div class="crud-centered flex items-center justify-center">${message}</div>
-					</div>
-				`);
+						<div class="crud-message">
+							<div class="crud-centered flex items-center justify-center">${message}</div>
+						</div>
+					`);
 
 				}, delay);
 			},
@@ -2870,7 +2877,7 @@ let _Crud = {
 			},
 		},
 		getDateTimeIconHTML: () => {
-			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime']));
+			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime', 'pointer-events-none']));
 		}
 	},	
 	createDialogWithErrorHandling: {
