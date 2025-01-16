@@ -54,7 +54,7 @@ public class TypeProperty extends StringProperty {
 
 		if (obj instanceof NodeInterface node) {
 
-			final Traits traits = node.getTraits();
+			final Traits traits = Traits.of(value);
 
 			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), node, traits, true);
 		}

@@ -39,28 +39,26 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 	private final Set<String> enumConstants = new LinkedHashSet<>();
 
 	public EnumProperty(final String name, final Class<? extends Enum> enumType) {
-		this(name, EnumProperty.extractConstants(enumType), null);
+		this(name, trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
 	}
 
-	public EnumProperty(final String name, final String[] constants) {
+	public EnumProperty(final String name, final Set<String> constants) {
 		this(name, constants, null);
 	}
 
-	public EnumProperty(final String jsonName, final String dbName, final String[] constants) {
+	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants) {
 		this(jsonName, dbName, constants, null);
 	}
 
-	public EnumProperty(final String name, final String[] constants, final String defaultValue) {
+	public EnumProperty(final String name, final Set<String> constants, final String defaultValue) {
 		this(name, name, constants, defaultValue);
 	}
 
-	public EnumProperty(final String jsonName, final String dbName, final String[] constants, final String defaultValue) {
+	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants, final String defaultValue) {
 
 		super(jsonName, dbName, defaultValue);
 
-		this.enumConstants.addAll(trimAndFilterEmptyStrings(constants));
-
-		//addEnumValuesToFormat();
+		this.enumConstants.addAll(constants);
 	}
 
 	public Set<String> getEnumConstants() {

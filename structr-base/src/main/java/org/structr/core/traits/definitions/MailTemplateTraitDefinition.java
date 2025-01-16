@@ -19,6 +19,7 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -66,5 +67,10 @@ public final class MailTemplateTraitDefinition extends AbstractTraitDefinition {
 			textProperty,
 			localeProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

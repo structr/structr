@@ -24,6 +24,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.CorsSetting;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
@@ -103,5 +104,10 @@ public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
 			exposeHeaders,
 			isCorsSetting
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -79,5 +80,10 @@ public final class LocationTraitDefinition extends AbstractTraitDefinition {
 			stateProperty,
 			stateDistrictProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

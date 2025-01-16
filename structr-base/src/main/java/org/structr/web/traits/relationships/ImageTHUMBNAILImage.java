@@ -22,11 +22,12 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import java.util.Set;
 
-public class ImageTHUMBNAILImage extends RelationshipBaseTraitDefinition {
+public class ImageTHUMBNAILImage extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	private static final PropertyKey<Integer> checksum   = new IntProperty("checksum");
 	private static final PropertyKey<Integer> maxWidth   = new IntProperty("maxWidth");
@@ -53,12 +54,12 @@ public class ImageTHUMBNAILImage extends RelationshipBaseTraitDefinition {
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
@@ -68,12 +69,12 @@ public class ImageTHUMBNAILImage extends RelationshipBaseTraitDefinition {
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 

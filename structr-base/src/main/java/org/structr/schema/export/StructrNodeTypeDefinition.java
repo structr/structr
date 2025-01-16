@@ -248,8 +248,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	// ----- private methods -----
 	private String getPropertyName(final String targetTypeName, final boolean outgoing, final String relationshipTypeName, final Cardinality cardinality) {
 
-		final String sourceTypeName   = getName();
-		final String relatedClassName = outgoing ? targetTypeName : sourceTypeName;
+		final String sourceTypeName = getName();
 
 		String _sourceMultiplicity = null;
 		String _targetMultiplicity = null;
@@ -277,6 +276,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 				break;
 		}
 
-		return SchemaRelationshipNode.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
+		return SchemaRelationshipNode.getPropertyName(root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
 	}
 }

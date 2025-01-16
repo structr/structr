@@ -18,6 +18,7 @@
  */
 package org.structr.test.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -54,5 +55,10 @@ public class TestThreeTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -21,6 +21,7 @@ package org.structr.core.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -122,6 +123,11 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefini
 			"export",
 			Set.of("changelogDisabled", "tags", "summary", "description")
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	/*

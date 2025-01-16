@@ -201,7 +201,12 @@ public class SchemaHelper {
 	}
 
 	public static String cleanPropertyName(final String propertyName) {
-		return propertyName.replaceAll("[^\\w]+", "");
+
+		if (propertyName != null) {
+			return propertyName.replaceAll("[^\\w]+", "");
+		}
+
+		return null;
 	}
 
 	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String type, final String propertyView) throws FrameworkException {

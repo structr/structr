@@ -18,11 +18,11 @@
  */
 package org.structr.test.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
-import org.structr.test.core.entity.TestEnum;
 
 import java.util.Date;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class TestFourTraitDefinition extends AbstractTraitDefinition {
 		final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
 		final Property<Date>          dateProperty        = new DateProperty("dateProperty").indexed();
 		final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
-		final Property<String>        enumProperty        = new EnumProperty("enumProperty", TestEnum.class).indexed();
+		final Property<String>        enumProperty        = new EnumProperty("enumProperty", Set.of("Status1", "Status2", "Status3", "Status4")).indexed();
 		final Property<Date[]>        dateArrayProperty   = new DateArrayProperty("dateArrayProperty").indexed();
 
 		return Set.of(
@@ -65,5 +65,10 @@ public class TestFourTraitDefinition extends AbstractTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -20,13 +20,14 @@ package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import java.util.Map;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SchemaViewPropertyDefinition extends RelationshipBaseTraitDefinition {
+public class SchemaViewPropertyDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaViewPropertyDefinition() {
 		super("SchemaViewProperty");
@@ -38,37 +39,37 @@ public class SchemaViewPropertyDefinition extends RelationshipBaseTraitDefinitio
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "SchemaView";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "SchemaProperty";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "HAS_VIEW_PROPERTY";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 

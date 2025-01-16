@@ -30,16 +30,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.notion.ObjectNotion;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.graphobject.IsValid;
-import org.structr.schema.DynamicNodeTraitDefinition;
 import org.structr.schema.DynamicRelationshipTraitDefinition;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.SourceFile;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -88,7 +87,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 			final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
 			final StringBuilder buf  = new StringBuilder();
 
-			if (_sourceType.contains(".")) {
+			if (_sourceType != null &&_sourceType.contains(".")) {
 
 				// remove FQCN from class name (if present)
 				buf.append(StringUtils.substringAfterLast(_sourceType, "."));
@@ -100,7 +99,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 			buf.append(_relType);
 
-			if (_targetType.contains(".")) {
+			if (_targetType != null && _targetType.contains(".")) {
 
 				// remove FQCN from class name (if present)
 				buf.append(StringUtils.substringAfterLast(_targetType, "."));
@@ -296,29 +295,16 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getSourceNotion() {
-		return null;
+		return wrappedObject.getProperty(traits.key("sourceNotion"));
 	}
 
 	@Override
 	public String getTargetNotion() {
-		return null;
+		return wrappedObject.getProperty(traits.key("targetNotion"));
 	}
 
 	@Override
-	public String getMultiplicity(final boolean outgoing) {
-
-		if (outgoing) {
-
-			return getTargetMultiplicity();
-
-		} else {
-
-			return getSourceMultiplicity();
-		}
-	}
-
-	@Override
-	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
+	public String getPropertyName(final Set<String> existingPropertyNames, final boolean outgoing) {
 
 		final String relationshipTypeName = getRelationshipType().toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
@@ -328,7 +314,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		final String _sourceJsonName      = getSourceJsonName();
 		final String _sourceMultiplicity  = getSourceMultiplicity();
 
-		final String propertyName = SchemaProperty.getPropertyName(relatedClassName, existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
+		final String propertyName = SchemaProperty.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 
 		try {
 			if (outgoing) {
@@ -376,12 +362,22 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getSourceJsonName() {
-		return wrappedObject.getProperty(traits.key("targetJsonName"));
+		return wrappedObject.getProperty(traits.key("sourceJsonName"));
 	}
 
 	@Override
 	public String getTargetJsonName() {
 		return wrappedObject.getProperty(traits.key("targetJsonName"));
+	}
+
+	@Override
+	public String getSourceType() {
+		return wrappedObject.getProperty(traits.key("sourceType"));
+	}
+
+	@Override
+	public String getTargetType() {
+		return wrappedObject.getProperty(traits.key("targetType"));
 	}
 
 	/*
@@ -505,16 +501,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return getSourceType();
 	}
 
-	@Override
-	public String getSourceType() {
-		return null;
-	}
-
-	@Override
-	public String getTargetType() {
-		return null;
-	}
-
 	@Override public String getSchemaNodeTargetType() {
 
 		final SchemaNode targetNode = getTargetNode();
@@ -549,10 +535,13 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		String relType = wrappedObject.getProperty(traits.key("relationshipType"));
 		if (relType == null) {
 
-			final String _sourceType = getSchemaNodeSourceType().toUpperCase();
-			final String _targetType = getSchemaNodeTargetType().toUpperCase();
+			final String _sourceType = getSchemaNodeSourceType();
+			final String _targetType = getSchemaNodeTargetType();
 
-			relType = _sourceType + "_" + _targetType;
+			if (_sourceType != null && _targetType != null) {
+
+				relType = _sourceType.toUpperCase() + "_" + _targetType.toUpperCase();
+			}
 		}
 
 		return relType;
@@ -600,7 +589,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 			}
 		}
 
-		return null;
+		return new ObjectNotion();
 	}
 
 	private PropertyKey getNotionKey(final String _className, final String key) {
@@ -762,22 +751,22 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public Long getAutocreationFlag() {
-		return null;
+		return wrappedObject.getProperty(traits.key("autocreationFlag"));
 	}
 
 	@Override
 	public Long getCascadingDeleteFlag() {
-		return null;
-	}
-
-	@Override
-	public Iterable<SchemaGrant> getSchemaGrants() {
-		return Collections.emptyList();
+		return wrappedObject.getProperty(traits.key("cascadingDeleteFlag"));
 	}
 
 	@Override
 	public String getPreviousSourceJsonName() {
 		return wrappedObject.getProperty(traits.key("oldSourceJsonName"));
+	}
+
+	@Override
+	public String getPreviousTargetJsonName() {
+		return wrappedObject.getProperty(traits.key("oldTargetJsonName"));
 	}
 
 	@Override
@@ -866,11 +855,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public String getPreviousTargetJsonName() {
-		return wrappedObject.getProperty(traits.key("oldTargetJsonName"));
-	}
-
-	@Override
 	public TraitDefinition[] getTraitDefinitions() {
 
 		final List<TraitDefinition> definitions = new ArrayList<>();
@@ -883,14 +867,14 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public PropertyKey createKey(final SchemaNode entity, final boolean outgoing) throws FrameworkException {
 
-		final String _sourceMultiplicity  = getMultiplicity(false);
-		final String _targetMultiplicity  = getMultiplicity(true);
+		final String _sourceMultiplicity  = getSourceMultiplicity();
+		final String _targetMultiplicity  = getTargetMultiplicity();
 		final String _sourceNotion        = getSourceNotion();
 		final String _targetNotion        = getTargetNotion();
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
 		final String _className           = getClassName();
-		final String _propertyName        = SchemaHelper.cleanPropertyName(getPropertyName(entity.getName(), new LinkedHashSet<>(), outgoing));
+		final String _propertyName        = SchemaHelper.cleanPropertyName(getPropertyName(new LinkedHashSet<>(), outgoing));
 
 		if (outgoing) {
 
@@ -922,71 +906,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	// ----- private methods -----
-	private void formatRelationshipFlags(final SourceFile src) {
-
-		Long cascadingDelete = getCascadingDeleteFlag();
-		if (cascadingDelete != null) {
-
-			src.line(this, "@Override");
-			src.begin(this, "public int getCascadingDeleteFlag() {");
-
-			switch (cascadingDelete.intValue()) {
-
-				case Relation.ALWAYS :
-					src.line(this, "return Relation.ALWAYS;");
-					break;
-
-				case Relation.CONSTRAINT_BASED :
-					src.line(this, "return Relation.CONSTRAINT_BASED;");
-					break;
-
-				case Relation.SOURCE_TO_TARGET :
-					src.line(this, "return Relation.SOURCE_TO_TARGET;");
-					break;
-
-				case Relation.TARGET_TO_SOURCE :
-					src.line(this, "return Relation.TARGET_TO_SOURCE;");
-					break;
-
-				case Relation.NONE :
-
-				default :
-					src.line(this, "return Relation.NONE;");
-
-			}
-
-			src.end();
-		}
-
-		Long autocreate = getAutocreationFlag();
-		if (autocreate != null) {
-
-			src.line(this, "@Override");
-			src.begin(this, "public int getAutocreationFlag() {");
-
-			switch (autocreate.intValue()) {
-
-				case Relation.ALWAYS :
-					src.line(this, "return Relation.ALWAYS;");
-					break;
-
-				case Relation.SOURCE_TO_TARGET :
-					src.line(this, "return Relation.SOURCE_TO_TARGET;");
-					break;
-
-				case Relation.TARGET_TO_SOURCE :
-					src.line(this, "return Relation.TARGET_TO_SOURCE;");
-					break;
-
-				default :
-					src.line(this, "return Relation.NONE;");
-
-			}
-
-			src.end();
-		}
-	}
-
 	/*
 	private void formatPermissionPropagation(final SourceFile buf) {
 
@@ -1036,174 +955,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 			buf.end();
 		}
-	}
-
-	private void checkClassName() throws FrameworkException {
-
-		final String className = getClassName();
-		final String potentialNewClassName = assembleNewClassName();
-
-		if (!className.equals(potentialNewClassName)) {
-
-			try {
-				wrappedObject.setProperty(Traits.nameProperty(), potentialNewClassName);
-
-			} catch (FrameworkException fex) {
-				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);
-			}
-		}
-	}
-
-	private String assembleNewClassName() {
-
-		final String _sourceType = getSchemaNodeSourceType();
-		final String _targetType = getSchemaNodeTargetType();
-		final String _relType    = SchemaHelper.cleanPropertyName(getRelationshipType());
-
-		return _sourceType + _relType + _targetType;
-	}
-
-	private void checkAndRenameSourceAndTargetJsonNames() throws FrameworkException {
-
-		final Map<String, NodeInterface> schemaNodes = new LinkedHashMap<>();
-		final String _previousSourceJsonName         = getPreviousSourceJsonName();
-		final String _previousTargetJsonName         = getPreviousTargetJsonName();
-		final String _currentSourceJsonName          = ((getSourceJsonName() != null) ? getSourceJsonName() : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
-		final String _currentTargetJsonName          = ((getTargetJsonName() != null) ? getTargetJsonName() : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
-		final NodeInterface _sourceNode              = getSourceNode();
-		final NodeInterface _targetNode              = getTargetNode();
-
-		// build schema node map
-		StructrApp.getInstance().nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
-
-		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
-
-			renameNameInNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
-
-			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousSourceJsonName, _currentSourceJsonName);
-			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousSourceJsonName, _currentSourceJsonName);
-		}
-
-		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
-
-			renameNameInNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
-
-			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousTargetJsonName, _currentTargetJsonName);
-			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousTargetJsonName, _currentTargetJsonName);
-		}
-	}
-
-	private void removeSourceAndTargetJsonNames() throws FrameworkException {
-
-		final NodeInterface _sourceNode      = getSourceNode();
-		final NodeInterface _targetNode      = getTargetNode();
-		final String _currentSourceJsonName  = ((getSourceJsonName() != null) ? getSourceJsonName() : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
-		final String _currentTargetJsonName  = ((getTargetJsonName() != null) ? getTargetJsonName() : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
-
-		if (_sourceNode != null) {
-
-			removeNameFromNonGraphProperties(_sourceNode, _currentSourceJsonName);
-			removeNameFromNonGraphProperties(_sourceNode, _currentTargetJsonName);
-
-		}
-
-		if (_targetNode != null) {
-
-			removeNameFromNonGraphProperties(_targetNode, _currentSourceJsonName);
-			removeNameFromNonGraphProperties(_targetNode, _currentTargetJsonName);
-
-		}
-
-	}
-
-	private void renameNotionPropertyReferences(final Map<String, NodeInterface> schemaNodes, final NodeInterface node, final String previousValue, final String currentValue) throws FrameworkException {
-
-		final SchemaNode schemaNode = node.as(SchemaNode.class);
-
-		// examine properties of other node
-		for (final NodeInterface property : schemaNode.getSchemaProperties()) {
-
-			if (SchemaHelper.Type.Notion.equals(property.getPropertyType()) || SchemaHelper.Type.IdNotion.equals(property.getPropertyType())) {
-
-				// try to rename
-				final String basePropertyName = property.getNotionBaseProperty(schemaNodes);
-				if (basePropertyName.equals(previousValue)) {
-
-					property.setProperty(SchemaProperty.format, property.getFormat().replace(previousValue, currentValue));
-				}
-			}
-
-		}
-
-	}
-
-	private void renameNameInNonGraphProperties(final NodeInterface node, final String toRemove, final String newValue) throws FrameworkException {
-
-		final SchemaNode schemaNode = node.as(SchemaNode.class);
-
-		// examine all views
-		for (final NodeInterface view : schemaNode.getSchemaViews()) {
-
-			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
-			if (nonGraphProperties != null) {
-
-				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
-
-				final int pos = properties.indexOf(toRemove);
-				if (pos != -1) {
-					properties.set(pos, newValue);
-				}
-
-				view.setProperty(SchemaView.nonGraphProperties, StringUtils.join(properties, ", "));
-			}
-		}
-	}
-
-	private void removeNameFromNonGraphProperties(final NodeInterface schemaNode, final String toRemove) throws FrameworkException {
-
-		// examine all views
-		for (final NodeInterface view : schemaNode.getSchemaViews()) {
-
-			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
-			if (nonGraphProperties != null) {
-
-				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
-
-				properties.remove(toRemove);
-
-				view.setProperty(SchemaView.nonGraphProperties, StringUtils.join(properties, ", "));
-			}
-		}
-
-	}
-
-	private boolean isRelationshipDefinitionUnique(final ErrorBuffer errorBuffer) {
-
-		boolean allow = true;
-
-		try {
-
-			final List<SchemaRelationshipNode> existingRelationships = StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").and(relationshipType, this.getRelationshipType(), true).and(sourceNode, this.getSourceNode()).and(targetNode, this.getTargetNode()).getAsList();
-
-			for (final SchemaRelationshipNode exRel : existingRelationships) {
-				if (!exRel.getUuid().equals(this.getUuid())) {
-					allow = false;
-				}
-			}
-
-			if (!allow) {
-
-				errorBuffer.add(new SemanticErrorToken(this.getType(), relationshipType.jsonName(), "duplicate_relationship_definition")
-					.withDetail("Schema Relationship with same name between source and target node already exists. This is not allowed.")
-				);
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-		}
-
-		return allow;
 	}
 	*/
 

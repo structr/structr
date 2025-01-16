@@ -43,22 +43,57 @@ public class TestEightTraitWrapper extends AbstractTraitWrapper<NodeInterface> i
 	}
 
 	public long getOnCreationTimestamp() {
-		return (Long)wrappedObject.getTemporaryStorage().get("onCreationTimestamp");
+
+		final Object t = wrappedObject.getTemporaryStorage().get("onCreationTimestamp");
+		if (t != null && t instanceof Long l) {
+
+			return l;
+		}
+
+		return 0L;
 	}
 
 	public long getOnModificationTimestamp() {
-		return (Long)wrappedObject.getTemporaryStorage().get("onModificationTimestamp");
+
+		final Object t = wrappedObject.getTemporaryStorage().get("onModificationTimestamp");
+		if (t != null && t instanceof Long l) {
+
+			return l;
+		}
+
+		return 0L;
 	}
 
 	public long getOnDeletionTimestamp() {
-		return (Long)wrappedObject.getTemporaryStorage().get("onDeletionTimestamp");
+
+		final Object t = wrappedObject.getTemporaryStorage().get("onDeletionTimestamp");
+		if (t != null && t instanceof Long l) {
+
+			return l;
+		}
+
+		return 0L;
 	}
 
 	public long getAfterCreationTimestamp() {
-		return (Long)wrappedObject.getTemporaryStorage().get("afterCreationTimestamp");
+
+		final Object t = wrappedObject.getTemporaryStorage().get("afterCreationTimestamp");
+		if (t != null && t instanceof Long l) {
+
+			return l;
+		}
+
+		return 0L;
 	}
 
 	public long getAfterModificationTimestamp() {
-		return (Long)wrappedObject.getTemporaryStorage().get("afterModificationTimestamp");
+
+		final Object t = wrappedObject.getTemporaryStorage().get("afterModificationTimestamp");
+		if (t != null && t instanceof Long l) {
+
+			return l;
+		}
+
+		return 0L;
 	}
 }

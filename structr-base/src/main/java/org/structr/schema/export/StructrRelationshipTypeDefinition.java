@@ -443,11 +443,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		this.aclHiddenProperties       = schemaNode.getPropertyMask();
 
 		if (sourcePropertyName == null) {
-			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), false);
+			sourcePropertyName = schemaNode.getPropertyName(root.getExistingPropertyNames(), false);
 		}
 
 		if (targetPropertyName == null) {
-			targetPropertyName = schemaNode.getPropertyName(targetNodeType, root.getExistingPropertyNames(), true);
+			targetPropertyName = schemaNode.getPropertyName(root.getExistingPropertyNames(), true);
 		}
 
 

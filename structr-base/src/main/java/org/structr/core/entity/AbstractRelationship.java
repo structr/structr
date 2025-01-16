@@ -188,7 +188,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 
 	@Override
 	public String getType() {
-		return getRelType().name();
+		return getProperty(typeHandler.key("type"));
 	}
 
 	@Override

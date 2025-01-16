@@ -22,14 +22,17 @@ import graphql.schema.GraphQLSchema;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
+import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NodeIndexConfig;
+import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.service.*;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.ErrorToken;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSchemaToken;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
@@ -44,6 +47,7 @@ import org.structr.schema.compiler.*;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -126,6 +130,8 @@ public class SchemaService implements Service {
 
 					StructrTraits.registerDynamicNodeType(name, definitions);
 				}
+
+				updateIndexConfiguration(Map.of());
 
 				tx.success();
 
@@ -563,8 +569,6 @@ public class SchemaService implements Service {
 	// ----- private methods -----
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
-		/*
-
 		if (Services.overrideIndexManagement()) {
 
 			if (Services.skipIndexConfiguration()) {
@@ -595,52 +599,50 @@ public class SchemaService implements Service {
 						return;
 					}
 
-					final Set<Class> whitelist    = new LinkedHashSet<>(Set.of(GraphObject.class, NodeInterface.class));
+					final Set<String> whitelist   = new LinkedHashSet<>(Set.of("GraphObject", "NodeInterface"));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();
 					final Map<String, Map<String, IndexConfig>> removedClassesConfig = new HashMap();
 
-					for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
+					for (final String type : Traits.getAllTypes()) {
 
-						final Class type = getType(entry.getKey());
-						if (type != null) {
+						final Traits traits                 = Traits.of(type);
+						final String typeName               = getIndexingTypeName(type);
+						Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
+						final boolean isRelationship        = traits.isRelationshipType();
 
-							final String typeName               = getIndexingTypeName(type);
-							Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
-							final boolean isRelationship        = Relation.class.isAssignableFrom(type);
+						if (typeConfig == null) {
 
-							if (typeConfig == null) {
-
-								typeConfig = new LinkedHashMap<>();
-								schemaIndexConfig.put(typeName, typeConfig);
-							}
+							typeConfig = new LinkedHashMap<>();
+							schemaIndexConfig.put(typeName, typeConfig);
+						}
 
 
-							for (final PropertyKey key : entry.getValue().values()) {
+						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-								boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
-								final Class declaringClass = key.getDeclaringTrait();
+							boolean createIndex         = key.isIndexed() || key.isIndexedWhenEmpty();
+							final TraitDefinition trait = key.getDeclaringTrait();
 
-								if (isRelationship) {
+							if (isRelationship) {
 
-									// prevent creation of node property indexes on relationships
-									if (!key.isNodeIndexOnly()) {
+								// prevent creation of node property indexes on relationships
+								if (!key.isNodeIndexOnly()) {
 
-										typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
-									}
-
-								} else {
-
-									createIndex &= (declaringClass == null || whitelist.contains(type) || type.equals(declaringClass));
-									createIndex &= (!NonIndexed.class.isAssignableFrom(type));
-
-									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
+									typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
 								}
+
+							} else {
+
+								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getName()));
+								//createIndex &= (!NonIndexed.class.isAssignableFrom(type));
+
+								typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
 							}
 						}
 					}
 
+					/*
 					for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
 
 						final String key       = entry.getKey();
@@ -676,6 +678,7 @@ public class SchemaService implements Service {
 							}
 						}
 					}
+					*/
 
 					graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, false);
 
@@ -693,7 +696,6 @@ public class SchemaService implements Service {
 		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
-		*/
 	}
 
 	private static Class getType(final String name) {
@@ -718,6 +720,7 @@ public class SchemaService implements Service {
 		return null;
 	}
 
+	/*
 	private static Map<String, Map<String, PropertyKey>> translateRelationshipClassesToRelTypes(final Map<String, Map<String, PropertyKey>> source) {
 
 		// we need to replace all relationship type classes with their respective relationship type
@@ -761,26 +764,13 @@ public class SchemaService implements Service {
 		}
 
 	}
+	*/
 
-	private static String getIndexingTypeName(final Class type) {
-
-		final String typeName = type.getSimpleName();
+	private static String getIndexingTypeName(final String typeName) {
 
 		if ("GraphObject".equals(typeName)) {
 			return "NodeInterface";
 		}
-
-		/*
-		// new: return relationship type for rels
-		if (Relation.class.isAssignableFrom(type)) {
-
-			final Relation rel = AbstractNode.getRelationForType(type);
-			if (rel != null) {
-
-				return rel.name();
-			}
-		}
-		*/
 
 		return typeName;
 	}

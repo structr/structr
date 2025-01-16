@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -87,5 +88,10 @@ public class ATraitDefinition extends AbstractTraitDefinition {
 			htmlHrefLangProperty,
 			htmlTypeProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

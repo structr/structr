@@ -19,48 +19,49 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SchemaExcludedViewPropertyDefinition extends RelationshipBaseTraitDefinition {
+public class SchemaExcludedViewPropertyDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaExcludedViewPropertyDefinition() {
 		super("SchemaExcludedViewProperty");
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "SchemaView";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "SchemaProperty";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "IS_EXCLUDED_FROM_VIEW";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 

@@ -295,15 +295,14 @@ public class StructrTest {
 
 	}
 
-	protected List<RelationshipInterface> createTestRelationships(final String relType, final int number) throws FrameworkException {
+	protected List<RelationshipInterface> createTestRelationships(final String type1, final String type2, final String relType, final int number) {
 
-		List<NodeInterface> nodes     = createTestNodes("GenericNode", 2);
-		final NodeInterface startNode = nodes.get(0);
-		final NodeInterface endNode   = nodes.get(1);
+		List<RelationshipInterface> rels = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			List<RelationshipInterface> rels = new LinkedList<>();
+			final NodeInterface startNode    = createTestNode(type1);
+			final NodeInterface endNode      = createTestNode(type2);
 
 			for (int i = 0; i < number; i++) {
 
@@ -312,9 +311,11 @@ public class StructrTest {
 
 			tx.success();
 
-			return rels;
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
+		return rels;
 	}
 
 	protected RelationshipInterface createTestRelationship(final NodeInterface startNode, final NodeInterface endNode, final String relType) throws FrameworkException {

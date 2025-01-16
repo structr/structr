@@ -19,9 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping extends RelationshipBaseTraitDefinition {
+public class DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping() {
 		super("DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping");
@@ -43,27 +44,27 @@ public class DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping extends Relationsh
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 }

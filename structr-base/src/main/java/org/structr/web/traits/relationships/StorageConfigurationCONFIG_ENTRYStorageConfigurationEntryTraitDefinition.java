@@ -21,9 +21,10 @@ package org.structr.web.traits.relationships;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends RelationshipBaseTraitDefinition {
+public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition() {
 		super("StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
@@ -45,12 +46,12 @@ public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefin
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
@@ -65,7 +66,7 @@ public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefin
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 

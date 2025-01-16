@@ -19,9 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMNodeSUCCESS_TARGETActionMapping extends RelationshipBaseTraitDefinition {
+public class DOMNodeSUCCESS_TARGETActionMapping extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeSUCCESS_TARGETActionMapping() {
 		super("DOMNodeSUCCESS_TARGETActionMapping");
@@ -43,27 +44,27 @@ public class DOMNodeSUCCESS_TARGETActionMapping extends RelationshipBaseTraitDef
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.NONE;
 	}
 
 	@Override
-	protected boolean isInternal() {
+	public boolean isInternal() {
 		return false;
 	}
 }

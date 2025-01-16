@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -60,5 +61,10 @@ public class SchemaMethodParameterTraitDefinition extends AbstractTraitDefinitio
 			description,
 			exampleValue
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

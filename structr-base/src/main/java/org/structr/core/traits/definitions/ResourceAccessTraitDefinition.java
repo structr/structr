@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -153,5 +154,10 @@ public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
 			flags,
 			isResourceAccess
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

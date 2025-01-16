@@ -183,7 +183,8 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final void addToIndex() {
 
-		for (final AddToIndex callback : typeHandler.getMethods(AddToIndex.class)) {
+		final AddToIndex callback = typeHandler.getMethod(AddToIndex.class);
+		if (callback != null) {
 			callback.addToIndex(this);
 		}
 	}
@@ -191,7 +192,9 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final void indexPassiveProperties() {
 
-		for (final IndexPassiveProperties callback : typeHandler.getMethods(IndexPassiveProperties.class)) {
+		final IndexPassiveProperties callback = typeHandler.getMethod(IndexPassiveProperties.class);
+		if (callback != null) {
+
 			callback.indexPassiveProperties(this);
 		}
 	}

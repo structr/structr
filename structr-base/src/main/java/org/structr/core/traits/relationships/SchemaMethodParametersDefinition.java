@@ -19,49 +19,50 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 import static org.structr.core.entity.Relation.Multiplicity.One;
 
-public class SchemaMethodParametersDefinition extends RelationshipBaseTraitDefinition {
+public class SchemaMethodParametersDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaMethodParametersDefinition() {
 		super("SchemaMethodParameters");
 	}
 
 	@Override
-	protected String getSourceType() {
+	public String getSourceType() {
 		return "SchemaMethod";
 	}
 
 	@Override
-	protected String getTargetType() {
+	public String getTargetType() {
 		return "SchemaMethodParameter";
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "HAS_PARAMETER";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
-	protected int getAutocreationFlag() {
+	public int getAutocreationFlag() {
 		return Relation.SOURCE_TO_TARGET;
 	}
 

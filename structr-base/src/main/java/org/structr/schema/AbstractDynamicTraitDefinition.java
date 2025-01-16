@@ -39,22 +39,27 @@ import java.util.*;
 
 public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNode> implements TraitDefinition {
 
+	protected final String name;
 	protected final T schemaNode;
 
 	public AbstractDynamicTraitDefinition(final T schemaNode) {
+
+		this.name = schemaNode.getClassName();
+
 		this.schemaNode = schemaNode;
 	}
 
 	@Override
 	public String getName() {
-		return schemaNode.getClassName();
+		return name;
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
-		final Set<String> compoundKeys = new LinkedHashSet<>();
-		final Validator validator      = new Validator();
+		final Map<Class, LifecycleMethod> methods = new LinkedHashMap<>();
+		final Set<String> compoundKeys            = new LinkedHashSet<>();
+		final Validator validator                 = new Validator();
 
 		// collect validators
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
@@ -93,9 +98,24 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 			));
 		}
 
-		return Map.of(
-			IsValid.class, validator
-		);
+		if (validator.hasValidators()) {
+			methods.put(IsValid.class, validator);
+		}
+
+		// collect methods
+		for (final SchemaMethod method : schemaNode.getSchemaMethods()) {
+
+			if (method.isLifecycleMethod()) {
+
+				final Class<LifecycleMethod> type = method.getMethodType();
+				if (type != null) {
+
+					methods.put(type, method.asLifecycleMethod());
+				}
+			}
+		}
+
+		return methods;
 	}
 
 	@Override
@@ -120,7 +140,11 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 		for (final SchemaMethod method : schemaNode.getSchemaMethods()) {
 
-			methods.add(new ScriptMethod(method));
+			// dynamic methods can be lifecycle methods which are handled elsewhere
+			if (!method.isLifecycleMethod()) {
+
+				methods.add(new ScriptMethod(method));
+			}
 		}
 
 		return methods;
@@ -179,15 +203,14 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 		return keys;
 	}
 
-	@Override
-	public Relation getRelation() {
-		return null;
-	}
-
 	// ----- static classes -----
 	private static class Validator implements IsValid {
 
 		private final List<IsValid> validators = new LinkedList<>();
+
+		public boolean hasValidators() {
+			return !validators.isEmpty();
+		}
 
 		@Override
 		public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {

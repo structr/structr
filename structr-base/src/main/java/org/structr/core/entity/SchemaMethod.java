@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.NodeTrait;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.schema.action.ActionEntry;
 
 import java.util.Map;
@@ -50,7 +51,8 @@ public interface SchemaMethod extends NodeTrait {
 	boolean isLifecycleMethod();
 	boolean isJava();
 
-	ActionEntry getActionEntry(Map<String, SchemaNode> schemaNodes, AbstractSchemaNode schemaEntity) throws FrameworkException;
+	Class<LifecycleMethod> getMethodType();
+	LifecycleMethod asLifecycleMethod();
 
 	boolean isStaticMethod();
 	boolean isPrivateMethod();

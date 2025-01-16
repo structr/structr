@@ -18,18 +18,123 @@
  */
 package org.structr.schema;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> {
+public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> implements RelationshipBaseTraitDefinition {
 
 	public DynamicRelationshipTraitDefinition(final SchemaRelationshipNode schemaNode) {
 		super(schemaNode);
 	}
 
 	@Override
-	public Relation getRelation() {
+	public String getSourceType() {
+		return schemaNode.getSchemaNodeSourceType();
+	}
 
+	@Override
+	public String getTargetType() {
+		return schemaNode.getSchemaNodeTargetType();
+	}
 
+	@Override
+	public String getRelationshipType() {
+		return schemaNode.getRelationshipType();
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		final String multiplicity = schemaNode.getSourceMultiplicity();
+		if (multiplicity != null) {
+
+			switch (multiplicity) {
+
+				case "1" -> {
+					return Relation.Multiplicity.One;
+				}
+				case "*" -> {
+					return Relation.Multiplicity.Many;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		final String multiplicity = schemaNode.getTargetMultiplicity();
+		if (multiplicity != null) {
+
+			switch (multiplicity) {
+
+				case "1" -> {
+					return Relation.Multiplicity.One;
+				}
+				case "*" -> {
+					return Relation.Multiplicity.Many;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		final Long flag = schemaNode.getCascadingDeleteFlag();
+		if (flag != null) {
+
+			return flag.intValue();
+		}
+
+		return 0;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		final Long flag = schemaNode.getAutocreationFlag();
+		if (flag != null) {
+
+			return flag.intValue();
+		}
+
+		return 0;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
+	}
+
+	public PropagationDirection getPropagationDirection() {
+		return schemaNode.getPermissionPropagation();
+	}
+
+	public PropagationMode getReadPropagation() {
+		return schemaNode.getReadPropagation();
+	}
+
+	public PropagationMode getWritePropagation() {
+		return schemaNode.getWritePropagation();
+	}
+
+	public PropagationMode getDeletePropagation() {
+		return schemaNode.getDeletePropagation();
+	}
+
+	public PropagationMode getAccessControlPropagation() {
+		return schemaNode.getAccessControlPropagation();
+	}
+
+	public String getDeltaProperties() {
+		return schemaNode.getPropertyMask();
 	}
 }

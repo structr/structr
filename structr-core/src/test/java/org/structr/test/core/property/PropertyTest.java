@@ -18,8 +18,6 @@
  */
 package org.structr.test.core.property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
@@ -39,10 +37,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.entity.TestEnum;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -55,15 +51,13 @@ import static org.testng.AssertJUnit.*;
  */
 public class PropertyTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(PropertyTest.class);
-
 	@Test
 	public void testStringArrayProperty() {
 
 		try {
 
 			final PropertyKey<String[]> instance = Traits.of("TestFour").key("stringArrayProperty");
-			final NodeInterface testEntity    = createTestNode("TestFour");
+			final NodeInterface testEntity       = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -85,7 +79,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -156,7 +151,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -168,7 +164,7 @@ public class PropertyTest extends StructrTest {
 
 
 			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
-			final NodeInterface testEntity        = createTestNode("TestFour");
+			final NodeInterface testEntity = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -189,7 +185,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -198,7 +195,7 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties  = new PropertyMap();
+			final PropertyMap properties   = new PropertyMap();
 			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
 
 			properties.put(key, true);
@@ -220,7 +217,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -258,9 +256,10 @@ public class PropertyTest extends StructrTest {
 				assertEquals(testEntity, result.get(0));
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			fail("Unable to store array");
+			t.printStackTrace();
+			fail(t.getMessage());
 		}
 	}
 
@@ -487,7 +486,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -519,6 +519,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Unable to store date array");
 		}
 	}
@@ -551,7 +552,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -598,7 +600,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -610,7 +613,7 @@ public class PropertyTest extends StructrTest {
 		try {
 
 			final PropertyKey<Double> instance = Traits.of("TestFour").key("doubleProperty");
-			final NodeInterface testEntity        = createTestNode("TestFour");
+			final NodeInterface testEntity     = createTestNode("TestFour");
 
 			assertNotNull(testEntity);
 
@@ -631,7 +634,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -662,7 +666,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 	*/
@@ -694,7 +699,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -726,7 +732,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -759,7 +766,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -791,7 +799,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -831,7 +840,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -840,8 +850,10 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties = new PropertyMap();
-			final PropertyKey<Double> key   =Traits.of("OneFourOneToOne").key("doubleProperty");
+			Settings.CypherDebugLogging.setValue(true);
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<Double> key = Traits.of("TestFour").key("doubleProperty");
 
 			properties.put(key, 123456.2);
 
@@ -852,9 +864,10 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
-				assertEquals((Double)123456.2, testEntity.getProperty(key));
+				assertEquals(123456.2, testEntity.getProperty(key));
 
 				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455.1, 123457.6).getAsList();
+
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -873,9 +886,11 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	// ----- entity property tests -----
@@ -899,8 +914,7 @@ public class PropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
+				fex.printStackTrace();
 				fail("Unable to create test nodes");
 			}
 
@@ -927,8 +941,7 @@ public class PropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
+				fex.printStackTrace();
 				fail("Unable to link test nodes");
 			}
 
@@ -949,8 +962,7 @@ public class PropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
+				fex.printStackTrace();
 				fail("Unable to link test nodes");
 			}
 
@@ -990,8 +1002,7 @@ public class PropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
+				fex.printStackTrace();
 				fail("Unable to create test nodes");
 			}
 
@@ -1016,8 +1027,7 @@ public class PropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
+				fex.printStackTrace();
 				fail("Unable to link test nodes");
 			}
 
@@ -1040,8 +1050,7 @@ public class PropertyTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
-
+				fex.printStackTrace();
 				fail("Unable to link test nodes");
 			}
 
@@ -1129,7 +1138,7 @@ public class PropertyTest extends StructrTest {
 
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(Traits.of("TestFour").key("enumProperty"), TestEnum.Status1);
+			properties.put(Traits.of("TestFour").key("enumProperty"), "Status1");
 
 			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
@@ -1138,12 +1147,13 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
-				assertEquals(TestEnum.Status1, testEntity.getProperty(Traits.of("TestFour").key("enumProperty")));
+				assertEquals("Status1", testEntity.getProperty(Traits.of("TestFour").key("enumProperty")));
 			}
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -1152,21 +1162,21 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final PropertyMap properties    = new PropertyMap();
-			final PropertyKey<TestEnum> key = Traits.of("TestFour").key("enumProperty");
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = Traits.of("TestFour").key("enumProperty");
 
-			properties.put(key, TestEnum.Status1);
+			properties.put(key, "Status1");
 
-			final NodeInterface testEntity     = createTestNode("TestFour", properties);
+			final NodeInterface testEntity = createTestNode("TestFour", properties);
 
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
-				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
+				assertEquals("Status1", testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, TestEnum.Status1).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "Status1").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1174,7 +1184,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -1184,9 +1195,9 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final NodeInterface testOne     = createTestNode("TestOne");
-			final NodeInterface testFour    = createTestNode("TestFour");
-			final PropertyKey<TestEnum> key = Traits.of("OneFourOneToOne").key("enumProperty");
+			final NodeInterface testOne   = createTestNode("TestOne");
+			final NodeInterface testFour  = createTestNode("TestFour");
+			final PropertyKey<String> key = Traits.of("OneFourOneToOne").key("enumProperty");
 
 			assertNotNull(testOne);
 			assertNotNull(testFour);
@@ -1197,16 +1208,16 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				testEntity.setProperty(key, TestEnum.Status1);
+				testEntity.setProperty(key, "Status1");
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
-				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
+				assertEquals("Status1", testEntity.getProperty(key));
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, TestEnum.Status1).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, "Status1").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1214,7 +1225,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -1229,15 +1241,18 @@ public class PropertyTest extends StructrTest {
 			final PropertyMap properties = new PropertyMap();
 
 			properties.put(Traits.of("NodeInterface").key("name"), "Test");
-			properties.put(new StringProperty("_functionTest"), "Function({ // \"})");
+			properties.put(new StringProperty("_functionTest"), "Function()");
 
-			app.create("SchemaNode", properties);
+			final NodeInterface type = app.create("SchemaNode", "Test");
+			final NodeInterface prop = app.create("SchemaProperty", "functionTest");
+
+			prop.setProperty(Traits.of("SchemaProperty").key("schemaNode"),   type);
+			prop.setProperty(Traits.of("SchemaProperty").key("readFunction"), "{ // \"}");
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
-			logger.error(fex.getMessage());
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1268,11 +1283,13 @@ public class PropertyTest extends StructrTest {
 
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -1303,7 +1320,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -1343,7 +1361,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -1385,7 +1404,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -1418,7 +1438,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -1449,7 +1470,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -1489,7 +1511,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
@@ -1531,7 +1554,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 	}
@@ -1564,6 +1588,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 	}
@@ -1595,6 +1620,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1627,6 +1653,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1658,6 +1685,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1691,6 +1719,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1724,6 +1753,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1757,6 +1787,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1790,6 +1821,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 
@@ -1830,6 +1862,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("Error in test");
 		}
 	}
@@ -1875,7 +1908,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -1893,7 +1926,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -1901,10 +1934,10 @@ public class PropertyTest extends StructrTest {
 	// ----- function property tests -----
 
 	/** This test creates a new typeProperty "Test" and links it to
- the built-in typeProperty "Group". It then creates a function
- property that references the nameProperty of the related group
- and assumes that a test entity is found by its related
- group nameProperty.
+	 * the built-in typeProperty "Group". It then creates a function
+	 * property that references the nameProperty of the related group
+	 * and assumes that a test entity is found by its related
+	 * group nameProperty.
 	 */
 	@Test
 	public void testFunctionPropertyIndexing() {
@@ -1913,15 +1946,24 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test  = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test"),
-				new NodeAttribute<>(new StringProperty("_testFunction"), "Function(this.group.name)")
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test")
+			);
+
+			final NodeInterface func = app.create("SchemaProperty",
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   test),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "testFunction"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Function"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("readFunction"), "this.group.name"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("indexed"),      true),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("typeHint"),     "String")
 			);
 
 			assertNotNull("Invalid schema setup result", test);
+			assertNotNull("Invalid schema setup result", func);
 
 			app.create("SchemaRelationshipNode",
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetType"), "org.structr.core.entity.Group"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetType"), "Group"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "*"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "tests"),
@@ -1933,7 +1975,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -1949,14 +1991,12 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		// entity setup
 		try (final Tx tx = app.tx()) {
-
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 
 			final String testType   = "Test";
 			final String groupType  = "Group";
@@ -1970,7 +2010,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -1991,7 +2031,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -2057,7 +2097,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -2097,7 +2137,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -2163,7 +2203,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -2209,7 +2249,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -2261,7 +2301,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -2283,7 +2323,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (Throwable fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 

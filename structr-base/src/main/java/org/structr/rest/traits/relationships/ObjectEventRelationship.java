@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -33,7 +34,7 @@ import java.util.Set;
  *
  *
  */
-public class ObjectEventRelationship extends RelationshipBaseTraitDefinition {
+public class ObjectEventRelationship extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ObjectEventRelationship() {
 		super("ObjectEventRelationship");
@@ -55,17 +56,17 @@ public class ObjectEventRelationship extends RelationshipBaseTraitDefinition {
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 

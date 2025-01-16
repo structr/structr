@@ -78,11 +78,6 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 		return Map.of();
 	}
 
-	@Override
-	public Relation getRelation() {
-		return null;
-	}
-
 	protected Relation getRelationForType(final String type) {
 
 		final Traits traits = Traits.of(type);

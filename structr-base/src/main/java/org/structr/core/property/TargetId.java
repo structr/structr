@@ -43,6 +43,7 @@ public class TargetId extends Property<String> {
 
 	public TargetId(final String name) {
 		super(name);
+		passivelyIndexed();
 	}
 
 	@Override
@@ -67,21 +68,6 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public boolean isCollection() {
-		return false;
-	}
-
-	@Override
-	public boolean isArray() {
-		return false;
-	}
-
-	@Override
-	public SortType getSortType() {
-		return SortType.Default;
-	}
-
-	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
 
 		if (obj instanceof RelationshipInterface) {
@@ -100,10 +86,25 @@ public class TargetId extends Property<String> {
 
 		} else if (obj instanceof CreationContainer) {
 
-			((CreationContainer)obj).setProperty(this, value);
+			((CreationContainer)obj).setProperty(jsonName, value);
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public SortType getSortType() {
+		return SortType.Default;
 	}
 
 	@Override

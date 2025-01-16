@@ -22,6 +22,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -66,7 +67,7 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 
 					final Traits traits                       = obj.getTraits();
 					final PropertyKey nameProperty            = traits.key("name");
-					final PropertyKey jwksReferenceIdProperty = traits.key("name");
+					final PropertyKey jwksReferenceIdProperty = traits.key("jwksReferenceId");
 
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);
 					valid &= ValidationHelper.isValidUniqueProperty(obj,  nameProperty, errorBuffer);
@@ -100,6 +101,11 @@ public final class GroupTraitDefinition extends AbstractTraitDefinition {
 			nameProperty,
 			isGroupProperty
 		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 
 	/*

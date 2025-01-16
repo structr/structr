@@ -22,8 +22,11 @@ import org.structr.core.traits.NodeTrait;
 
 public interface SchemaGrant extends NodeTrait {
 
-	String getPrincipalId();
 	String getPrincipalName();
+	Principal getPrincipal();
+	SchemaNode getSchemaNode();
+
+	String getStaticSchemaNodeName();
 
 	boolean allowRead();
 	boolean allowWrite();
