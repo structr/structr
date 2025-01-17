@@ -670,9 +670,6 @@ let _Helpers = {
 		});
 	},
 	createRandomName: (type = 'object') => `New ${type} ${Math.floor(Math.random() * (999999 - 1))}`,
-	getCSSClassForKey: (key) => {
-		return '___' + key.replace(/\s/g, '_whitespace_');
-	},
 	softlimit: {
 		resultCountSoftLimit: 10000,
 		getSoftLimitedPageCount: (pageSize) => Math.ceil(_Helpers.softlimit.getSoftLimitedResultCount() / pageSize),
