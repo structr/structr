@@ -41,7 +41,8 @@ public interface RestWriter {
 	public RestWriter beginArray() throws IOException;
 	public RestWriter endArray() throws IOException;
 	public RestWriter beginObject() throws IOException;
-	public RestWriter beginObject(final GraphObject graphObject) throws IOException;
+	public RestWriter beginObject(final boolean fix) throws IOException;
+	public RestWriter beginObject(final GraphObject graphObject, final boolean fix) throws IOException;
 	public RestWriter endObject() throws IOException;
 	public RestWriter endObject(final GraphObject graphObject) throws IOException;
 	public RestWriter name(final String name) throws IOException;

@@ -304,7 +304,7 @@ public class GraphQLWriter {
 				hashCode = source.hashCode();
 				visitedObjects.add(hashCode);
 
-				writer.beginObject(source);
+				writer.beginObject(source, true);
 
 				// property keys
 				for (final PropertyKey key : propertyConfig.getPropertyKeys()) {

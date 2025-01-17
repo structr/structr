@@ -168,11 +168,16 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter beginObject() throws IOException {
-		return beginObject(null);
+		return beginObject(null, true);
 	}
 
 	@Override
-	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
+	public RestWriter beginObject(final boolean fix) throws IOException {
+		return beginObject(null, fix);
+	}
+
+	@Override
+	public RestWriter beginObject(final GraphObject graphObject, final boolean fix) throws IOException {
 
 		increaseSerializationDepth();
 

@@ -222,7 +222,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 			final Writer writer = response.getWriter();
 
-			htmlStreamer.stream(securityContext, writer, result, baseUrl);
+			htmlStreamer.stream(securityContext, writer, result, baseUrl, false, true);
 			writer.append("\n");    // useful newline
 
 			tx.success();
@@ -239,7 +239,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 		final Writer writer = response.getWriter();
 
-		jsonStreamer.stream(securityContext, writer, result, baseUrl);
+		jsonStreamer.stream(securityContext, writer, result, baseUrl, false, true);
 		writer.write(10);    // useful newline
 		writer.flush();
 	}
