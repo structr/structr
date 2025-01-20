@@ -18,12 +18,19 @@
  */
 package org.structr.schema;
 
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
+import org.structr.core.traits.operations.propertycontainer.GetVisibilityFlags;
 
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<SchemaNode> {
@@ -33,9 +40,85 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 	}
 
 	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		final Map<Class, FrameworkMethod> methods  = super.getFrameworkMethods();
+		final Set<String> readPermissions          = new LinkedHashSet<>();
+		final Set<String> writePermissions         = new LinkedHashSet<>();
+		final Set<String> deletePermissions        = new LinkedHashSet<>();
+		final Set<String> accessControlPermissions = new LinkedHashSet<>();
+		final boolean visibleToPublic              = schemaNode.defaultVisibleToPublic();
+		final boolean visibleToAuth                = schemaNode.defaultVisibleToAuth();
+		boolean hasGrants                          = false;
+
+		if (visibleToPublic || visibleToAuth) {
+
+			methods.put(GetVisibilityFlags.class, new GetVisibilityFlags() {
+
+				@Override
+				public boolean isVisibleToPublicUsers(final GraphObject obj) {
+					return visibleToPublic;
+				}
+
+				@Override
+				public boolean isVisibleToAuthenticatedUsers(final GraphObject obj) {
+					return visibleToAuth;
+				}
+			});
+		}
+
+		for (final SchemaGrant grant : schemaNode.getSchemaGrants()) {
+
+			final String principalId = grant.getPrincipal().getUuid();
+
+			if (grant.allowRead()) {
+				readPermissions.add(principalId);
+			}
+
+			if (grant.allowWrite()) {
+				writePermissions.add(principalId);
+			}
+
+			if (grant.allowDelete()) {
+				deletePermissions.add(principalId);
+			}
+
+			if (grant.allowAccessControl()) {
+				accessControlPermissions.add(principalId);
+			}
+
+			hasGrants = true;
+		}
+
+		if (hasGrants) {
+
+			methods.put(AllowedBySchema.class, new AllowedBySchema() {
+
+				@Override
+				public boolean allowedBySchema(final NodeInterface node, final Principal principal, final Permission permission) {
+
+					final Set<String> ids = principal.getOwnAndRecursiveParentsUuids();
+
+					switch (permission.name()) {
+
+						case "read":          return !org.apache.commons.collections4.SetUtils.intersection(readPermissions, ids).isEmpty();
+						case "write":         return !org.apache.commons.collections4.SetUtils.intersection(writePermissions, ids).isEmpty();
+						case "delete":        return !org.apache.commons.collections4.SetUtils.intersection(deletePermissions, ids).isEmpty();
+						case "accessControl": return !org.apache.commons.collections4.SetUtils.intersection(accessControlPermissions, ids).isEmpty();
+					}
+
+					return getSuper().allowedBySchema(node, principal, permission);
+				}
+			});
+		}
+
+		return methods;
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Set<PropertyKey> keys = super.getPropertyKeys();
+		final Set<PropertyKey> keys = new LinkedHashSet<>();
 
 		// linked properties
 		for (final SchemaRelationshipNode outRel : schemaNode.getRelatedTo()) {
@@ -60,11 +143,24 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 			}
 		}
 
+		// add normal keys after relationship keys
+		keys.addAll(super.getPropertyKeys());
+
 		return keys;
 	}
 
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public int compareTo(final TraitDefinition o) {
+		return getName().compareTo(o.getName());
 	}
 }

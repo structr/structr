@@ -30,7 +30,7 @@ import java.util.Set;
 
 /**
  */
-public class PersonTraitDefinition extends AbstractTraitDefinition {
+public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(Person.class, PropertyView.Public,

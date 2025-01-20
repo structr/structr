@@ -18,83 +18,14 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.entity.Relation;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.LifecycleMethod;
+public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
-import java.util.Map;
-import java.util.Set;
-
-public final class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
-
-	public AbstractNodeTraitDefinition() {
-		super("AbstractNode");
+	public AbstractNodeTraitDefinition(final String name) {
+		super(name);
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
+	public boolean isRelationship() {
+		return false;
 	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return null;
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
-	}
-
-	@Override
-	public Relation getRelation() {
-		return null;
-	}
-
-	// ----- private methods -----
-	private void clearCaches() {
-
-	}
-
-
-	/*
-	@Override
-	public void ownerModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {
-		clearCaches();
-	}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {
-		clearCaches();
-	}
-	*/
 }

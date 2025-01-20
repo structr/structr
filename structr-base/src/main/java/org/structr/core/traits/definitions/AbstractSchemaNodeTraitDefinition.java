@@ -34,7 +34,7 @@ import java.util.Set;
  *
  *
  */
-public final class AbstractSchemaNodeTraitDefinition extends AbstractTraitDefinition {
+public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,

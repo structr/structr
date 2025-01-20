@@ -24,13 +24,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
 import java.util.Map;
 
-public class TestTwelveTraitDefinition extends AbstractTraitDefinition {
+public class TestTwelveTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTwelveTraitDefinition() {
 		super("TestTwelve");

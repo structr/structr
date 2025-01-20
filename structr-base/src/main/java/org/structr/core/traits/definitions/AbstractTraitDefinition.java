@@ -38,6 +38,13 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 		this.name = name;
 	}
 
+	public abstract boolean isRelationship();
+
+	@Override
+	public int compareTo(final TraitDefinition o) {
+		return getName().compareTo(o.getName());
+	}
+
 	@Override
 	public String getName() {
 		return name;

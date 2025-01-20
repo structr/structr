@@ -764,7 +764,7 @@ public class SystemTest extends StructrTest {
 
 			for (final RelationshipInterface rel : rels) {
 
-				if ("NEXT".equals(rel.getType())) {
+				if ("ItemNEXTItem".equals(rel.getType())) {
 					filtered.add(rel);
 				}
 			}

@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping() {
 		super("DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping");

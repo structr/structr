@@ -26,7 +26,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.LinkSource;
@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
-public class LinkSourceTraitDefinition extends AbstractTraitDefinition {
+public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,

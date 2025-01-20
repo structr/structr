@@ -24,15 +24,14 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper.Type;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -40,9 +39,10 @@ import java.util.Set;
  */
 public abstract class PropertyGenerator<T> {
 
-	protected PropertyDefinition source = null;
-	private ErrorBuffer errorBuffer     = null;
-	private String className            = null;
+	protected AbstractSchemaNode schemaNode = null;
+	protected PropertyDefinition source     = null;
+	private ErrorBuffer errorBuffer         = null;
+	private String className                = null;
 
 	public abstract Type getPropertyType();
 	public abstract String getValueType();
@@ -54,6 +54,10 @@ public abstract class PropertyGenerator<T> {
 		this.errorBuffer = errorBuffer;
 		this.className   = className;
 		this.source      = propertyDefinition;
+	}
+
+	public void setSchemaNode(final AbstractSchemaNode schemaNode) {
+		this.schemaNode = schemaNode;
 	}
 
 	public IsValid getValidator() {
@@ -111,28 +115,9 @@ public abstract class PropertyGenerator<T> {
 			throw new RuntimeException(e);
 		}
 
-		/*
-		line.append(" Property<");
-		line.append(getValueType());
-		line.append("> ");
-		line.append(SchemaHelper.cleanPropertyName(source.getPropertyName()));
-		line.append("Property");
-		line.append(" = new ");
-		line.append(getPropertyType());
-		line.append("(");
-		line.quoted(source.getPropertyName());
-
 		if (StringUtils.isNotBlank(source.getDbName())) {
-			line.append(", ");
-			line.quoted(source.getDbName());
+			propertyKey.dbName(source.getDbName());
 		}
-
-		if (getPropertyParameters() != null) {
-			line.append(getPropertyParameters());
-		}
-
-		line.append(")");
-		*/
 
 		propertyKey.dynamic();
 

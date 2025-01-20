@@ -25,7 +25,10 @@ import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.ScriptMethod;
-import org.structr.core.entity.*;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
@@ -120,7 +123,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	@Override

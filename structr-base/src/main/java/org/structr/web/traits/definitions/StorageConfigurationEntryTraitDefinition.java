@@ -23,7 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.StorageConfigurationEntry;
@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * Storage object for mount configuration data.
  */
-public class StorageConfigurationEntryTraitDefinition  extends AbstractTraitDefinition {
+public class StorageConfigurationEntryTraitDefinition  extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View uiView = new View(StorageConfigurationEntry.class, PropertyView.Ui,

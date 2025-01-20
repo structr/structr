@@ -51,7 +51,7 @@ import java.util.SortedSet;
  *
  *
  */
-public final class SchemaGrantTraitDefinition extends AbstractTraitDefinition {
+public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
 

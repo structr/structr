@@ -20,14 +20,14 @@ package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import java.util.Map;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SchemaViewPropertyDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class SchemaViewPropertyDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaViewPropertyDefinition() {
 		super("SchemaViewProperty");

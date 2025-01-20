@@ -22,12 +22,12 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
 
-public class TestTenTraitDefinition extends AbstractTraitDefinition {
+public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTenTraitDefinition() {
 		super("TestTen");

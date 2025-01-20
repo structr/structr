@@ -32,6 +32,7 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -1869,9 +1870,9 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testManyToManyReverseNodeSearch() {
 
-		final String groupType                           = "Group";
-		final PropertyKey<Iterable<Principal>> groupsKey = Traits.of(groupType).key("groups");
-		final List<Group> groups                         = new LinkedList<>();
+		final String groupType                               = "Group";
+		final PropertyKey<Iterable<NodeInterface>> groupsKey = Traits.of(groupType).key("groups");
+		final List<Group> groups                             = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1904,11 +1905,11 @@ public class SearchAndSortingTest extends StructrTest {
 			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent
-			final List<NodeInterface> result2 = app.nodeQuery("Group").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<NodeInterface> result2 = app.nodeQuery("Group").and(groupsKey, Arrays.asList(groups.get(1).getWrappedNode())).getAsList();
 			assertEquals("Invalid search result", 2, result2.size());
 
 			// search for a group with group2 as a parent and a given name
-			final List<NodeInterface> result3 = app.nodeQuery("Group").andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<NodeInterface> result3 = app.nodeQuery("Group").andName("Group3").and(groupsKey, Arrays.asList(groups.get(1).getWrappedNode())).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
 			tx.success();
@@ -1943,7 +1944,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> list = (List<NodeInterface>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
+				final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group:" + randomTenantId + ") RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
 
 				assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
 				assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
@@ -2133,7 +2134,7 @@ public class SearchAndSortingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result2.get(7).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
 
-			final List<NodeInterface> result3 = app.nodeQuery("TestOne").sort(aLongKey).sort(nameKey).getAsList();
+			final List<NodeInterface> result3 = app.nodeQuery("TestOne").sort(aLongKey).sort(nameKey, true).getAsList();
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());

@@ -21,10 +21,10 @@ package org.structr.web.traits.relationships;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition() {
 		super("StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");

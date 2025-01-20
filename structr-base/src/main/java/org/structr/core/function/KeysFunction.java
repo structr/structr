@@ -24,10 +24,10 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class KeysFunction extends CoreFunction {
 
@@ -55,7 +55,7 @@ public class KeysFunction extends CoreFunction {
 
 			if (sources.length == 2 && sources[0] != null && sources[0] instanceof GraphObject && sources[1] != null) {
 
-				final Set<String> keys = new LinkedHashSet<>();
+				final Set<String> keys = new TreeSet<>();
 				final GraphObject source = (GraphObject) sources[0];
 
 				for (final PropertyKey key : source.getPropertyKeys(sources[1].toString())) {

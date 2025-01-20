@@ -42,7 +42,7 @@ import java.util.Set;
  * Storage object for session data.
  */
 
-public class SessionDataNodeTraitDefinition extends AbstractTraitDefinition {
+public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SessionDataNodeTraitDefinition() {
 		super("SessionDataNode");

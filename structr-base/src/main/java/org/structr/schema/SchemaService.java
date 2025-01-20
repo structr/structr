@@ -19,6 +19,7 @@
 package org.structr.schema;
 
 import graphql.schema.GraphQLSchema;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
@@ -107,7 +109,7 @@ public class SchemaService implements Service {
 
 				tx.prefetchHint("Reload schema");
 
-				Traits.removeDynamicTypes();
+				final Map<String, Map<String, PropertyKey>> removedTypes = Traits.removeDynamicTypes();
 
 				// fetch schema relationships
 				for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getResultStream()) {
@@ -118,6 +120,9 @@ public class SchemaService implements Service {
 					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
 
 					StructrTraits.registerDynamicRelationshipType(name, definitions);
+
+					// type still exists, was not removed, so we remove it from the map of removed types
+					removedTypes.remove(name);
 				}
 
 				// fetch schema nodes
@@ -129,9 +134,12 @@ public class SchemaService implements Service {
 					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
 
 					StructrTraits.registerDynamicNodeType(name, definitions);
+
+					// type still exists, was not removed, so we remove it from the map of removed types
+					removedTypes.remove(name);
 				}
 
-				updateIndexConfiguration(Map.of());
+				updateIndexConfiguration(removedTypes);
 
 				tx.success();
 
@@ -567,7 +575,7 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
+	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedTypes) {
 
 		if (Services.overrideIndexManagement()) {
 
@@ -603,7 +611,7 @@ public class SchemaService implements Service {
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();
-					final Map<String, Map<String, IndexConfig>> removedClassesConfig = new HashMap();
+					final Map<String, Map<String, IndexConfig>> removedTypesConfig = new HashMap();
 
 					for (final String type : Traits.getAllTypes()) {
 
@@ -642,22 +650,20 @@ public class SchemaService implements Service {
 						}
 					}
 
-					/*
-					for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
+					for (final Map.Entry<String, Map<String, PropertyKey>> entry : removedTypes.entrySet()) {
 
-						final String key       = entry.getKey();
+						String typeName        = entry.getKey();
 						boolean isRelationship = true;
-						String typeName        = key;
 
 						// remove fqcn parts if present (relationships dont have it)
-						if (key.contains(".")) {
+						if (typeName.contains(".")) {
 
-							typeName = StringUtils.substringAfterLast(entry.getKey(), ".");
+							typeName = StringUtils.substringAfterLast(typeName, ".");
 							isRelationship = false;
 						}
 
 						final Map<String, IndexConfig> typeConfig = new HashMap();
-						removedClassesConfig.put(typeName, typeConfig);
+						removedTypesConfig.put(typeName, typeConfig);
 
 						for (final PropertyKey propertyKey : entry.getValue().values()) {
 
@@ -678,20 +684,19 @@ public class SchemaService implements Service {
 							}
 						}
 					}
-					*/
 
-					graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, false);
+					graphDb.updateIndexConfiguration(schemaIndexConfig, removedTypesConfig, false);
 
-				} catch (InterruptedException iex) {
+				} catch (Throwable t) {
 
-					iex.printStackTrace();
+					t.printStackTrace();
 
 				} finally {
 
 					IndexUpdateSemaphore.release();
 				}
 			}
-		});
+		}, "Structr Index Updater");
 
 		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
@@ -770,6 +775,16 @@ public class SchemaService implements Service {
 
 		if ("GraphObject".equals(typeName)) {
 			return "NodeInterface";
+		}
+
+		final Traits traits = Traits.of(typeName);
+		if (traits.isRelationshipType()) {
+
+			final Relation relation = traits.getRelation();
+			if (relation != null) {
+
+				return relation.name();
+			}
 		}
 
 		return typeName;

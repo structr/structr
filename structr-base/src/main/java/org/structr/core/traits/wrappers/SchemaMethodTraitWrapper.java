@@ -19,12 +19,9 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -32,8 +29,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.LifecycleMethodAdapter;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
-import org.structr.schema.action.ActionEntry;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -201,15 +198,19 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 
 		if (hasParent) {
 
-			final Map<String, Class<? extends LifecycleMethod>> typeBasedLifecycleMethods = Map.of(
-				"onNodeCreation", OnNodeCreation.class,
-				"onCreate",       OnCreation.class,
-				"afterCreate",    AfterCreation.class,
-				"onSave",         OnModification.class,
-				"afterSave",      AfterModification.class,
-				"onDelete",       OnDeletion.class,
-				"afterDelete",    AfterDeletion.class
-			);
+			final Map<String, Class<? extends LifecycleMethod>> typeBasedLifecycleMethods = new LinkedHashMap<>();
+
+			typeBasedLifecycleMethods.put("onNodeCreation",    OnNodeCreation.class);
+			typeBasedLifecycleMethods.put("onCreate",          OnCreation.class);
+			typeBasedLifecycleMethods.put("onCreation",        OnCreation.class);
+			typeBasedLifecycleMethods.put("afterCreate",       AfterCreation.class);
+			typeBasedLifecycleMethods.put("afterCreation",     AfterCreation.class);
+			typeBasedLifecycleMethods.put("onSave",            OnModification.class);
+			typeBasedLifecycleMethods.put("onModification",    OnModification.class);
+			typeBasedLifecycleMethods.put("afterSave",         AfterModification.class);
+			typeBasedLifecycleMethods.put("afterModification", AfterModification.class);
+			typeBasedLifecycleMethods.put("onDelete",          OnDeletion.class);
+			typeBasedLifecycleMethods.put("afterDelete",       AfterDeletion.class);
 
 			final Set<String> fileLifecycleMethods                              = Set.of("onUpload", "onDownload");
 			final Set<String> userLifecycleMethods                              = Set.of("onOAuthLogin");

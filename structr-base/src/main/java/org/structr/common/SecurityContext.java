@@ -34,14 +34,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.JavaScriptSource;
 import org.structr.core.traits.Traits;
+import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.File;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -607,10 +606,12 @@ public class SecurityContext {
 
 		if (user != null) {
 
-			final Principal owner = node.as(AccessControllable.class).getOwnerNode();
+			final Principal owner         = node.as(AccessControllable.class).getOwnerNode();
+			final NodeInterface ownerNode = owner != null ? owner.getWrappedNode() : null;
+			final NodeInterface userNode  = user.getWrappedNode();
 
 			// owner is always allowed to do anything with its nodes
-			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
+			if (userNode.equals(node) || userNode.equals(ownerNode) || Iterables.toList(user.getParents()).contains(owner)) {
 
 				return true;
 			}
@@ -964,9 +965,9 @@ public class SecurityContext {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<NodeInterface> jsFiles = app.nodeQuery("JavaScriptSource")
-							.and(Traits.key("JavaScriptSource", "name"), fileName)
-							.and(Traits.key("JavaScriptSource", "useAsJavascriptLibrary"), true)
+					final List<NodeInterface> jsFiles = app.nodeQuery("File")
+							.and(Traits.key("File", "name"), fileName)
+							.and(Traits.key("File", "useAsJavascriptLibrary"), true)
 							.getAsList();
 
 					if (jsFiles.isEmpty()) {
@@ -980,8 +981,8 @@ public class SecurityContext {
 
 					for (final NodeInterface node : jsFiles) {
 
-						final JavaScriptSource jsLibraryFile = node.as(JavaScriptSource.class);
-						final String contentType             = jsLibraryFile.getContentType();
+						final File jsLibraryFile = node.as(File.class);
+						final String contentType = jsLibraryFile.getContentType();
 
 						if (contentType != null) {
 

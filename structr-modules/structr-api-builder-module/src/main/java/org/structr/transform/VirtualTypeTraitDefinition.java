@@ -33,7 +33,7 @@ import java.util.Set;
 /**
  *
  */
-public class VirtualTypeTraitDefinition extends AbstractTraitDefinition {
+public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Property<Iterable<NodeInterface>> propertiesProperty = new EndNodes("properties", "VirtualTypevirtualPropertyVirtualProperty");
 	private static final Property<String> filterExpressionProperty            = new StringProperty("filterExpression");

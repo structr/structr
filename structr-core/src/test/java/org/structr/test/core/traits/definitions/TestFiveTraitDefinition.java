@@ -32,7 +32,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.AfterModification;
@@ -42,7 +42,7 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import java.util.Map;
 import java.util.Set;
 
-public class TestFiveTraitDefinition extends AbstractTraitDefinition {
+public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestFiveTraitDefinition() {
 		super("TestFive");

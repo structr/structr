@@ -369,4 +369,8 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 	default String getDeltaProperties() {
 		return null;
 	}
+
+	default boolean isRelationship() {
+		return true;
+	}
 }

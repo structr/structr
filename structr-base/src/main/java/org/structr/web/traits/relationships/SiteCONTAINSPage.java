@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class SiteCONTAINSPage extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class SiteCONTAINSPage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SiteCONTAINSPage() {
 		super("SiteCONTAINSPage");

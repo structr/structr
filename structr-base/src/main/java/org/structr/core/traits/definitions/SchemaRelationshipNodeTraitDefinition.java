@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
@@ -51,7 +52,7 @@ import org.structr.schema.SchemaHelper;
 
 import java.util.*;
 
-public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefinition {
+public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger                           = LoggerFactory.getLogger(SchemaRelationshipNodeTraitDefinition.class);
 	private static final String SchemaRemoteAttributeNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
@@ -291,22 +292,29 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 	// ----- private methods -----
 	private boolean isRelationshipDefinitionUnique(final SchemaRelationshipNode node, final ErrorBuffer errorBuffer) {
 
-		final Traits traits                         = node.getTraits();
-		final PropertyKey<NodeInterface> sourceNode = traits.key("sourceNode");
-		final PropertyKey<NodeInterface> targetNode = traits.key("targetNode");
-		final PropertyKey<String> relationshipType  = traits.key("relationshipType");
-		boolean allow                               = true;
+		final Traits traits                            = node.getTraits();
+		final PropertyKey<NodeInterface> sourceNodeKey = traits.key("sourceNode");
+		final PropertyKey<NodeInterface> targetNodeKey = traits.key("targetNode");
+		final PropertyKey<String> sourceTypeKey        = traits.key("sourceType");
+		final PropertyKey<String> targetTypeKey        = traits.key("targetType");
+		final PropertyKey<String> relTypeKey           = traits.key("relationshipType");
+		boolean allow                                  = true;
 
 		try {
 
-			final List<NodeInterface> existingRelationships = StructrApp.getInstance()
-				.nodeQuery("SchemaRelationshipNode")
-				.and(relationshipType, node.getRelationshipType(), true)
-				.and(sourceNode, node.getSourceNode().getWrappedNode())
-				.and(targetNode, node.getTargetNode().getWrappedNode()).getAsList();
+			final SchemaNode sourceNode = node.getSourceNode();
+			final SchemaNode targetNode = node.getTargetNode();
 
-			for (final NodeInterface exRel : existingRelationships) {
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").and(relTypeKey, node.getRelationshipType(), true);
+
+			// source node or static type (string-based)
+			if (sourceNode != null) query.and(sourceNodeKey, sourceNode.getWrappedNode()); else query.and(sourceTypeKey, node.getSourceType());
+			if (targetNode != null) query.and(targetNodeKey, targetNode.getWrappedNode()); else query.and(targetTypeKey, node.getTargetType());
+
+			for (final NodeInterface exRel : query.getResultStream()) {
+
 				if (!exRel.getUuid().equals(node.getUuid())) {
+
 					allow = false;
 				}
 			}
@@ -424,41 +432,47 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractTraitDefiniti
 
 	private void renameNameInNonGraphProperties(final SchemaNode schemaNode, final String toRemove, final String newValue) throws FrameworkException {
 
-		final PropertyKey<String> nonGraphPropertiesKey = schemaNode.getTraits().key("nonGraphProperties");
+		if (schemaNode.getTraits().hasKey("nonGraphProperties")) {
 
-		// examine all views
-		for (final SchemaView view : schemaNode.getSchemaViews()) {
+			final PropertyKey<String> nonGraphPropertiesKey = schemaNode.getTraits().key("nonGraphProperties");
 
-			final String nonGraphProperties = view.getProperty(nonGraphPropertiesKey);
-			if (nonGraphProperties != null) {
+			// examine all views
+			for (final SchemaView view : schemaNode.getSchemaViews()) {
 
-				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+				final String nonGraphProperties = view.getProperty(nonGraphPropertiesKey);
+				if (nonGraphProperties != null) {
 
-				final int pos = properties.indexOf(toRemove);
-				if (pos != -1) {
-					properties.set(pos, newValue);
+					final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+
+					final int pos = properties.indexOf(toRemove);
+					if (pos != -1) {
+						properties.set(pos, newValue);
+					}
+
+					view.setProperty(nonGraphPropertiesKey, StringUtils.join(properties, ", "));
 				}
-
-				view.setProperty(nonGraphPropertiesKey, StringUtils.join(properties, ", "));
 			}
 		}
 	}
 
 	private void removeNameFromNonGraphProperties(final SchemaNode schemaNode, final String toRemove) throws FrameworkException {
 
-		final PropertyKey<String> nonGraphPropertiesKey = schemaNode.getTraits().key("nonGraphProperties");
+		if (schemaNode.getTraits().hasKey("nonGraphProperties")) {
 
-		// examine all views
-		for (final SchemaView view : schemaNode.getSchemaViews()) {
+			final PropertyKey<String> nonGraphPropertiesKey = schemaNode.getTraits().key("nonGraphProperties");
 
-			final String nonGraphProperties = view.getProperty(nonGraphPropertiesKey);
-			if (nonGraphProperties != null) {
+			// examine all views
+			for (final SchemaView view : schemaNode.getSchemaViews()) {
 
-				final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
+				final String nonGraphProperties = view.getProperty(nonGraphPropertiesKey);
+				if (nonGraphProperties != null) {
 
-				properties.remove(toRemove);
+					final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
 
-				view.setProperty(nonGraphPropertiesKey, StringUtils.join(properties, ", "));
+					properties.remove(toRemove);
+
+					view.setProperty(nonGraphPropertiesKey, StringUtils.join(properties, ", "));
+				}
 			}
 		}
 	}

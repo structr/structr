@@ -297,7 +297,14 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 			case "owner":
 				hints.reportExistingKey(key);
-				return as(AccessControllable.class).getOwnerNode();
+
+				final Principal owner = as(AccessControllable.class).getOwnerNode();
+				if (owner != null) {
+
+					return owner.getWrappedNode();
+				}
+
+				return null;
 
 			case "_path":
 				hints.reportExistingKey(key);

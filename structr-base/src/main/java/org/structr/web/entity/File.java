@@ -67,6 +67,8 @@ public interface File extends AbstractFile, DataSource {
 
 	// ----- interface JavaScriptSource -----
 	String getJavascriptLibraryCode();
+	String getContentType();
+	boolean useAsJavascriptLibrary();
 
 	boolean isImmutable();
 

@@ -22,7 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -37,7 +37,7 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
  *
  *
  */
-public class SubjectEventRelationship extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class SubjectEventRelationship extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SubjectEventRelationship() {
 		super("SubjectEventRelationship");

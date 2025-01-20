@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;

@@ -29,7 +29,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
@@ -74,11 +73,10 @@ public class CreateRelationshipFunction extends CoreFunction {
 				return "Error: entities are not nodes.";
 			}
 
-			final String relationshipTypeName = sourceNode.getType() + relType + targetNode.getType();
-			final Traits traits               = Traits.of(relationshipTypeName);
+			final Traits traits = Traits.ofRelationship(sourceNode.getType(), relType, targetNode.getType());
+			if (traits != null) {
 
-			if (relationshipTypeName != null) {
-
+				final String relationshipTypeName     = traits.getName();
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				PropertyMap propertyMap;
 

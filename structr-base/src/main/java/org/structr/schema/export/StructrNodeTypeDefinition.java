@@ -25,6 +25,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
@@ -215,11 +216,28 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 		super.deserialize(schemaNodes, schemaNode);
 
+		// moved from abstract schema node
+		this.isInterface                 = schemaNode.isInterface();
+		this.isAbstract                  = schemaNode.isAbstract();
+		this.includeInOpenAPI            = schemaNode.includeInOpenAPI();
+		this.visibleToPublicUsers        = schemaNode.defaultVisibleToPublic();
+		this.visibleToAuthenticatedUsers = schemaNode.defaultVisibleToAuth();
+		this.category                    = schemaNode.getCategory();
+
 		// $extends
 		final Set<String> inheritedTraits = schemaNode.getInheritedTraits();
 		if (inheritedTraits != null) {
 
 			this.inheritedTraits.addAll(inheritedTraits);
+		}
+
+		for (final SchemaGrant grant : schemaNode.getSchemaGrants()) {
+
+			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
+			if (newGrant != null) {
+
+				grants.add(newGrant);
+			}
 		}
 	}
 

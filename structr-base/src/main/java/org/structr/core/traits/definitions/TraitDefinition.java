@@ -23,8 +23,8 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +33,7 @@ import java.util.Set;
  * A named collection of properties and methods with a
  * factory that can instantiate implementations.
  */
-public interface TraitDefinition {
+public interface TraitDefinition extends Comparable<TraitDefinition> {
 
 	String getName();
 
@@ -43,9 +43,7 @@ public interface TraitDefinition {
 	Map<Class, NodeTraitFactory> getNodeTraitFactories();
 	Set<AbstractMethod> getDynamicMethods();
 	Map<String, Set<String>> getViews();
-
-	// FIXME
-	//Set<String> requiredTraits();
+	boolean isRelationship();
 
 	Set<PropertyKey> getPropertyKeys();
 
@@ -58,5 +56,4 @@ public interface TraitDefinition {
 	default boolean isInterface() {
 		return false;
 	}
-
 }

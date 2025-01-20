@@ -22,7 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.Widget;
@@ -35,7 +35,7 @@ import java.util.Set;
  *
  *
  */
-public class WidgetTraitDefinition extends AbstractTraitDefinition {
+public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(Widget.class, PropertyView.Public,

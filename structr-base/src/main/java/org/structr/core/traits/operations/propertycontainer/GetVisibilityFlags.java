@@ -16,27 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.action;
+package org.structr.core.traits.operations.propertycontainer;
 
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.GraphObject;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-/**
- *
- */
-public interface JavaScriptSource extends NodeTrait {
+public abstract class GetVisibilityFlags extends FrameworkMethod<GetVisibilityFlags> {
 
-	Property<Boolean> useAsJavascriptLibrary = new BooleanProperty("useAsJavascriptLibrary").indexed();
-
-	/*
-	View uiView = new View(JavaScriptSource.class, PropertyView.Ui,
-		useAsJavascriptLibrary
-	);
-	*/
-
-	String getJavascriptLibraryCode();
-	String getContentType();
-
-	boolean useAsJavascriptLibrary();
+	public abstract boolean isVisibleToPublicUsers(final GraphObject obj);
+	public abstract boolean isVisibleToAuthenticatedUsers(final GraphObject obj);
 }

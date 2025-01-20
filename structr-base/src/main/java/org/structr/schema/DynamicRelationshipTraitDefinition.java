@@ -23,26 +23,36 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> implements RelationshipBaseTraitDefinition {
 
+	final String relationshipType;
+	final String sourceType;
+	final String targetType;
+
 	public DynamicRelationshipTraitDefinition(final SchemaRelationshipNode schemaNode) {
+
 		super(schemaNode);
+
+		this.relationshipType = schemaNode.getRelationshipType();
+		this.sourceType       = schemaNode.getSchemaNodeSourceType();
+		this.targetType       = schemaNode.getSchemaNodeTargetType();
 	}
 
 	@Override
 	public String getSourceType() {
-		return schemaNode.getSchemaNodeSourceType();
+		return sourceType;
 	}
 
 	@Override
 	public String getTargetType() {
-		return schemaNode.getSchemaNodeTargetType();
+		return targetType;
 	}
 
 	@Override
 	public String getRelationshipType() {
-		return schemaNode.getRelationshipType();
+		return relationshipType;
 	}
 
 	@Override
@@ -112,6 +122,16 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 	@Override
 	public boolean isInternal() {
 		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public int compareTo(final TraitDefinition o) {
+		return getName().compareTo(o.getName());
 	}
 
 	public PropagationDirection getPropagationDirection() {

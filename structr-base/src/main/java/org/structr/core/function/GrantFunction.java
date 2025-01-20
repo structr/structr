@@ -55,7 +55,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof Principal)) {
+			if (sources[0] instanceof NodeInterface n && !n.is("Principal")) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -73,7 +73,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Principal principal         = (Principal) sources[0];
+				final Principal principal         = ((NodeInterface)sources[0]).as(Principal.class);
 				final NodeInterface node          = (NodeInterface) sources[1];
 				final Set<Permission> permissions = new HashSet();
 				final String[] parts              = ((String)sources[2]).split("[,]+");

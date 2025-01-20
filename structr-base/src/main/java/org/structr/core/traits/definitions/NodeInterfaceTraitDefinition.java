@@ -39,7 +39,7 @@ import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
 import java.util.Map;
 import java.util.Set;
 
-public final class NodeInterfaceTraitDefinition extends AbstractTraitDefinition {
+public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public NodeInterfaceTraitDefinition() {
 		super("NodeInterface");

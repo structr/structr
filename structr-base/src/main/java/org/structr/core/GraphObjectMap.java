@@ -24,6 +24,8 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -33,6 +35,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -58,7 +63,132 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public Traits getTraits() {
-		return null;
+
+		return new Traits() {
+
+			@Override
+			public Set<String> getLabels() {
+				return Set.of("GraphObjectMap");
+			}
+
+			@Override
+			public boolean contains(final String type) {
+				return false;
+			}
+
+			@Override
+			public TraitDefinition get(final String type) {
+				return null;
+			}
+
+			@Override
+			public <T> PropertyKey<T> key(final String name) {
+
+				for (final PropertyKey key : properties.keySet()) {
+
+					if (key.jsonName().equals(name)) {
+
+						return key;
+					}
+				}
+
+				return null;
+			}
+
+			@Override
+			public boolean hasKey(final String name) {
+				return key(name) != null;
+			}
+
+			@Override
+			public String getName() {
+				return "GraphObjectMap";
+			}
+
+			@Override
+			public boolean isNodeType() {
+				return false;
+			}
+
+			@Override
+			public boolean isRelationshipType() {
+				return false;
+			}
+
+			@Override
+			public Set<PropertyKey> getDefaultKeys() {
+				return Set.of();
+			}
+
+			@Override
+			public Set<PropertyKey> getAllPropertyKeys() {
+				return properties.keySet();
+			}
+
+			@Override
+			public Set<PropertyKey> getPropertyKeysForView(final String propertyView) {
+				return Set.of();
+			}
+
+			@Override
+			public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
+				return Set.of();
+			}
+
+			@Override
+			public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
+				return null;
+			}
+
+			@Override
+			public Map<String, AbstractMethod> getDynamicMethods() {
+				return Map.of();
+			}
+
+			@Override
+			public <T> T as(final Class<T> type, final GraphObject obj) {
+				return null;
+			}
+
+			@Override
+			public void registerImplementation(final TraitDefinition trait) {
+			}
+
+			@Override
+			public Relation getRelation() {
+				return null;
+			}
+
+			@Override
+			public Set<TraitDefinition> getTraitDefinitions() {
+				return Set.of();
+			}
+
+			@Override
+			public boolean isInterface() {
+				return false;
+			}
+
+			@Override
+			public boolean isAbstract() {
+				return false;
+			}
+
+			@Override
+			public boolean isBuiltInType() {
+				return true;
+			}
+
+			@Override
+			public Set<String> getViewNames() {
+				return Set.of();
+			}
+
+			@Override
+			public Set<String> getAllTraits() {
+				return Set.of();
+			}
+		};
 	}
 
 	@Override

@@ -27,9 +27,7 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.Traits;
@@ -50,9 +48,9 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 	protected RelationProperty relationProperty = null;
 	protected boolean createIfNotExisting       = false;
-	protected PropertyKey propertyKey           = null;
+	protected String propertyKey                = null;
 
-	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public TypeAndValueDeserializationStrategy(final String propertyKey, final boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKey         = propertyKey;
@@ -75,23 +73,23 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 		// default to UUID
 		if (propertyKey == null) {
-			propertyKey = Traits.idProperty();
+			propertyKey = "id";
 		}
 
 		// create and fill input map with source object
 		Map<String, Object> sourceMap = new LinkedHashMap<>();
-		sourceMap.put(propertyKey.jsonName(), source);
+		sourceMap.put(propertyKey, source);
 
 		// try to convert input type to java type in order to create object correctly
 		PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
-		Object convertedSource = convertedSourceMap.get(propertyKey);
+		Object convertedSource         = convertedSourceMap.get(propertyKey);
 
 		if (convertedSource != null) {
 
 			// FIXME: use uuid only here?
 			if (convertedSource instanceof Map) {
 
-				Object value = ((Map<String, Object>)convertedSource).get(propertyKey.jsonName());
+				Object value = ((Map<String, Object>)convertedSource).get(propertyKey);
 				if (value != null) {
 
 					result.addAll(app.nodeQuery(type).and(propertyKey, value.toString()).getAsList());
@@ -127,7 +125,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 				} else {
 
-					logger.debug("Unable to create node of type {} for property {}", new Object[] { type, propertyKey.jsonName() });
+					logger.debug("Unable to create node of type {} for property {}", type, propertyKey);
 				}
 
 				break;
@@ -137,7 +135,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 				T obj = result.get(0);
 
 				if (!obj.getTraits().contains(type)) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKey.jsonName(), type));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKey, type));
 				}
 
 				if (!convertedSourceMap.isEmpty()) {

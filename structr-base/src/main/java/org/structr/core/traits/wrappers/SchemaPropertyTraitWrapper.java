@@ -347,23 +347,9 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 
 		final Set<String> properties = new LinkedHashSet<>();
 
-		for (final String property : getNotionPropertyParser().getProperties()) {
+		for (final PropertyKey key : getNotionPropertyParser().getProperties()) {
 
-			if (property.contains(".")) {
-
-				final String[] parts = property.split("[.]+");
-				if (parts.length > 1) {
-
-					final String type = parts[0];
-					final String name = parts[1];
-
-					properties.add(name);
-				}
-
-			} else {
-
-				properties.add(property);
-			}
+			properties.add(key.jsonName());
 		}
 
 		return properties;

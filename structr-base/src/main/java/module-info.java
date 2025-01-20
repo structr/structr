@@ -218,7 +218,6 @@ module structr.base {
     exports org.structr.core.traits.operations;
     exports org.structr.core.traits.operations.graphobject;
     exports org.structr.core.traits.relationships;
-    exports org.structr.core.traits.nodes;
     exports org.structr.core.traits.wrappers;
     exports org.structr.core.traits.definitions;
     exports org.structr.rest.traits.relationships;

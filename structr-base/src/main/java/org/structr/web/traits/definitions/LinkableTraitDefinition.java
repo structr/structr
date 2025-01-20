@@ -24,7 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.Linkable;
@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  *
  */
-public class LinkableTraitDefinition extends AbstractTraitDefinition {
+public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public LinkableTraitDefinition() {
 		super("Linkable");

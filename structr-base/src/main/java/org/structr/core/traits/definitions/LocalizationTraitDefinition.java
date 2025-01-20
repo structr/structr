@@ -40,7 +40,7 @@ import org.structr.core.traits.wrappers.LocalizationTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public final class LocalizationTraitDefinition extends AbstractTraitDefinition {
+public final class LocalizationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(Localization.class, PropertyView.Public,

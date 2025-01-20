@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.ServiceResult;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.CaseHelper;
-import org.structr.common.SecurityContext;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -1676,7 +1676,13 @@ public class SchemaHelper {
 
 		if (factory != null) {
 
-			return factory.newInstance(errorBuffer, entity.getClassName(), propertyDefinition);
+			final PropertyGenerator generator = factory.newInstance(errorBuffer, entity.getClassName(), propertyDefinition);
+			if (generator != null) {
+
+				generator.setSchemaNode(entity);
+
+				return generator;
+			}
 		}
 
 		errorBuffer.add(new InvalidPropertySchemaToken("SchemaProperty", propertyName, propertyName, "invalid_property_definition", "Unknow value type " + propertyType + ", options are " + Arrays.asList(Type.values()) + "."));

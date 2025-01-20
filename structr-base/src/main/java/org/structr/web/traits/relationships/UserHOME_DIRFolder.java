@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class UserHOME_DIRFolder extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class UserHOME_DIRFolder extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public UserHOME_DIRFolder() {
 		super("UserHOME_DIRFolder");

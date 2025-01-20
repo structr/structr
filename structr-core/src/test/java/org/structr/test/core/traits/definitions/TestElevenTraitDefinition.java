@@ -20,11 +20,11 @@ package org.structr.test.core.traits.definitions;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 
-public class TestElevenTraitDefinition extends AbstractTraitDefinition {
+public class TestElevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestElevenTraitDefinition() {
 		super("TestElevent");

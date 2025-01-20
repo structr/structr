@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits.nodes;
+package org.structr.core.traits.definitions;
 
 import org.structr.api.Predicate;
 import org.structr.common.EMailValidator;
@@ -32,7 +32,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -43,7 +42,7 @@ import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class PrincipalTraitDefinition extends AbstractTraitDefinition {
+public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public PrincipalTraitDefinition() {
 		super("Principal");

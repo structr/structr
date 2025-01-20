@@ -28,13 +28,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class PropertyNotion extends Notion {
 
-	private PropertyKey propertyKey = null;
+	private String propertyKey = null;
 	
-	public PropertyNotion(final PropertyKey propertyKey) {
+	public PropertyNotion(final String propertyKey) {
 		this(propertyKey, false);
 	}
 	
-	public PropertyNotion(final PropertyKey propertyKey, final boolean createIfNotExisting) {
+	public PropertyNotion(final String propertyKey, final boolean createIfNotExisting) {
 
 		super(
 			new PropertySerializationStrategy(propertyKey),

@@ -30,7 +30,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.test.core.entity.TestEight;
@@ -43,7 +43,7 @@ import java.util.Set;
  *
  *
  */
-public class TestEightTraitDefinition extends AbstractTraitDefinition {
+public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestEightTraitDefinition() {
 		super("TestEight");

@@ -37,7 +37,7 @@ import org.structr.core.traits.wrappers.SchemaPropertyTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class SchemaPropertyTraitDefinition extends AbstractTraitDefinition {
+public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
 

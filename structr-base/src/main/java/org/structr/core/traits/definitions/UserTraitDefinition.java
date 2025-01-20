@@ -29,7 +29,7 @@ import org.structr.web.entity.User;
 import java.util.Map;
 import java.util.Set;
 
-public final class UserTraitDefinition extends AbstractTraitDefinition {
+public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public UserTraitDefinition() {
 		super("User");

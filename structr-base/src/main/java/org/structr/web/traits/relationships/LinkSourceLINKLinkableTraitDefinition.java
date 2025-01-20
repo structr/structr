@@ -22,7 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -30,7 +30,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import java.util.Map;
 import java.util.Set;
 
-public class LinkSourceLINKLinkableTraitDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class LinkSourceLINKLinkableTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public LinkSourceLINKLinkableTraitDefinition() {
 		super("LinkSourceLINKLinkable");

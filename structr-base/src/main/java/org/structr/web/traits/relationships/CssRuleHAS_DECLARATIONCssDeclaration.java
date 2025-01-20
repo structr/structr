@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class CssRuleHAS_DECLARATIONCssDeclaration extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class CssRuleHAS_DECLARATIONCssDeclaration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssRuleHAS_DECLARATIONCssDeclaration() {
 		super("CssRuleHAS_DECLARATIONCssDeclaration");

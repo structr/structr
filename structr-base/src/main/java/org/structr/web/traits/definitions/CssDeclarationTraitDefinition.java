@@ -25,7 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.css.CssDeclaration;
@@ -34,7 +34,7 @@ import org.structr.web.traits.wrappers.CssDeclarationTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class CssDeclarationTraitDefinition extends AbstractTraitDefinition {
+public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View uiView = new View(CssRule.class, PropertyView.Ui,

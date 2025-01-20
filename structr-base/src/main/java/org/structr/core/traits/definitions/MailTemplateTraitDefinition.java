@@ -33,7 +33,7 @@ import java.util.Set;
  *
  */
 
-public final class MailTemplateTraitDefinition extends AbstractTraitDefinition {
+public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public MailTemplateTraitDefinition() {
 		super("MailTemplate");

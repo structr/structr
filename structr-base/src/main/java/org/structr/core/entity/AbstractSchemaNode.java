@@ -46,8 +46,6 @@ public interface AbstractSchemaNode extends NodeTrait {
 	boolean isInterface();
 	boolean isAbstract();
 	boolean changelogDisabled();
-	boolean defaultVisibleToPublic();
-	boolean defaultVisibleToAuth();
 	boolean includeInOpenAPI();
 
 	String[] getTags();

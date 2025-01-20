@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class FolderCONTAINSImage extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class FolderCONTAINSImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FolderCONTAINSImage() {
 		super("FolderCONTAINSImage");

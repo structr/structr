@@ -21,6 +21,8 @@ package org.structr.core.property;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
@@ -52,6 +54,20 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 
 	public EnumProperty(final String name, final Set<String> constants, final String defaultValue) {
 		this(name, name, constants, defaultValue);
+	}
+
+	@Override
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
+
+		if (StringUtils.isNotBlank(value)) {
+
+			if (!enumConstants.contains(value)) {
+
+				throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getName(), jsonName(), enumConstants));
+			}
+		}
+
+		return super.setProperty(securityContext, obj, value);
 	}
 
 	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants, final String defaultValue) {

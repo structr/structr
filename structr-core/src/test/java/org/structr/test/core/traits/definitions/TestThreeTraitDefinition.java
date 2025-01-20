@@ -20,15 +20,18 @@ package org.structr.test.core.traits.definitions;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-public class TestThreeTraitDefinition extends AbstractTraitDefinition {
+public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestThreeTraitDefinition() {
 		super("TestThree");

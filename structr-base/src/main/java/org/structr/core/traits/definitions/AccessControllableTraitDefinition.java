@@ -35,7 +35,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
@@ -48,7 +47,7 @@ import org.structr.core.traits.wrappers.AccessControllableTraitWrapper;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class AccessControllableTraitDefinition extends AbstractTraitDefinition {
+public final class AccessControllableTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AccessControllableTraitDefinition.class);
 	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
@@ -524,33 +523,26 @@ public final class AccessControllableTraitDefinition extends AbstractTraitDefini
 
 						for (final RelationshipInterface source : list) {
 
-							if (source instanceof PermissionPropagation perm) {
+							// check propagation direction vs. evaluation direction
+							if (propagationAllowed(node, source, relation.getPropagationDirection(), doLog)) {
 
-								if (doLog) {
-									logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), node.getUuid(), permission.name(), level, source.getRelType().name(), principal != null ? principal.getName() : null);
-								}
+								applyCurrentStep(relation, mask);
 
-								// check propagation direction vs. evaluation direction
-								if (propagationAllowed(node, source, perm.getPropagationDirection(), doLog)) {
+								if (mask.allowsPermission(permission)) {
 
-									applyCurrentStep(perm, mask);
+									final NodeInterface otherNode = source.getOtherNode(node);
 
-									if (mask.allowsPermission(permission)) {
+									if (isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-										final NodeInterface otherNode = (NodeInterface) source.getOtherNode(node);
+										storePermissionResolutionResult(otherNode, principal.getUuid(), permission, true);
 
-										if (isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
+										// break early
+										return true;
 
-											storePermissionResolutionResult(otherNode, principal.getUuid(), permission, true);
+									} else {
 
-											// break early
-											return true;
-
-										} else {
-
-											// add node to BFS queue
-											bfsNodes.add(new BFSInfo(parent, otherNode));
-										}
+										// add node to BFS queue
+										bfsNodes.add(new BFSInfo(parent, otherNode));
 									}
 								}
 							}

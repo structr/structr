@@ -34,7 +34,7 @@ import org.structr.schema.ReloadSchema;
 
 import java.util.Map;
 
-public class SchemaReloadingNodeTraitDefinition extends AbstractTraitDefinition {
+public class SchemaReloadingNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SchemaReloadingNodeTraitDefinition() {
 		super("SchemaReloadingNode");

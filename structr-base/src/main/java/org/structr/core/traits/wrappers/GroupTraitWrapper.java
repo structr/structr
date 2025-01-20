@@ -68,7 +68,7 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
 		final List<NodeInterface> _users = Iterables.toList(wrappedObject.getProperty(members));
 
-		_users.remove(member);
+		_users.remove(member.getWrappedNode());
 
 		wrappedObject.setProperty(members, _users);
 	}

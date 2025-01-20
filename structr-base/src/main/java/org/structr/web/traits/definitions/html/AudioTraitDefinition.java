@@ -18,8 +18,6 @@
  */
 package org.structr.web.traits.definitions.html;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.Property;
@@ -27,18 +25,16 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.html.Address;
 import org.structr.web.entity.html.Audio;
-import org.structr.web.traits.wrappers.html.AddressTraitWrapper;
 import org.structr.web.traits.wrappers.html.AudioTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-public class AudioTraitDefinition extends AbstractTraitDefinition {
+public class AudioTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View htmlView = new View(Audio.class, PropertyView.Html,

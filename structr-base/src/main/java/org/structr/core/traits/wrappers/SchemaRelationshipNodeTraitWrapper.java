@@ -27,7 +27,10 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
@@ -119,16 +122,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		}
 
 		return name;
-	}
-
-	@Override
-	public String getMultiplicity(final String propertyNameToCheck) {
-		return null;
-	}
-
-	@Override
-	public String getRelatedType(final String propertyNameToCheck) {
-		return null;
 	}
 
 	/*

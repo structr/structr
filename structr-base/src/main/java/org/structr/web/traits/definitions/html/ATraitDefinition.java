@@ -23,7 +23,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.entity.html.A;
 import org.structr.web.traits.operations.AvoidWhitespace;
@@ -32,7 +32,7 @@ import org.structr.web.traits.wrappers.html.ATraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class ATraitDefinition extends AbstractTraitDefinition {
+public class ATraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View htmlView = new View(A.class, PropertyView.Html,

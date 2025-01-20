@@ -30,7 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -43,7 +43,7 @@ import org.structr.web.traits.wrappers.FolderTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class FolderTraitDefinition extends AbstractTraitDefinition {
+public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 		type.addBooleanProperty("isFolder", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());

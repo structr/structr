@@ -23,12 +23,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.*;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
@@ -40,7 +43,7 @@ import java.util.Set;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SecurityRelationshipDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SecurityRelationshipDefinition() {
 		super("SecurityRelationship");

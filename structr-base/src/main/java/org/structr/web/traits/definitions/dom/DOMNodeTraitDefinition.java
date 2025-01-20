@@ -38,7 +38,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -59,7 +59,7 @@ import java.util.*;
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
  */
-public class DOMNodeTraitDefinition extends AbstractTraitDefinition {
+public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final String[] rawProps = new String[] {
 		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"

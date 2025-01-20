@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * The typed parameter of a schema method.
  */
-public class SchemaMethodParameterTraitDefinition extends AbstractTraitDefinition {
+public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SchemaMethodParameterTraitDefinition() {
 		super("SchemaMethodParameter");

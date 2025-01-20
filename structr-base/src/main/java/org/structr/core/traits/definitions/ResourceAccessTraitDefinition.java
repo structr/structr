@@ -68,7 +68,7 @@ import java.util.Set;
  *
  *
  */
-public class ResourceAccessTraitDefinition extends AbstractTraitDefinition {
+public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
