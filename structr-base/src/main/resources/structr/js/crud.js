@@ -848,7 +848,7 @@ let _Crud = {
 			}
 		},
 		getSavedSortOrderOfColumns: (type) => {
-			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, []);
+			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, '[]');
 			return JSON.parse(sortOrder);
 		},
 		saveSortOrderOfColumns: (type, order) => {
