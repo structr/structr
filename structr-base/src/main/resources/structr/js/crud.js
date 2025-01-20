@@ -848,8 +848,23 @@ let _Crud = {
 			}
 		},
 		getSavedSortOrderOfColumns: (type) => {
-			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, '[]');
-			return JSON.parse(sortOrder);
+
+			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, undefined);
+
+			if (sortOrder) {
+
+				try {
+
+					let restoredSortOrder = JSON.parse(sortOrder);
+					return restoredSortOrder;
+
+				} catch (e) {
+
+				}
+			}
+
+			// if we do not have a sort order, simply use default sorting (use all view to get a global sorting for all views)
+			return Object.keys(_Crud.types[type].views.all);
 		},
 		saveSortOrderOfColumns: (type, order) => {
 
