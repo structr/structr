@@ -26,6 +26,12 @@ public interface SchemaNode extends AbstractSchemaNode {
 
 	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
 
+	String getMultiplicity(final String propertyNameToCheck);
+	String getRelatedType(final String propertyNameToCheck);
+
+	boolean defaultVisibleToPublic();
+	boolean defaultVisibleToAuth();
+
 	Iterable<SchemaRelationshipNode> getRelatedTo();
 	Iterable<SchemaRelationshipNode> getRelatedFrom();
 

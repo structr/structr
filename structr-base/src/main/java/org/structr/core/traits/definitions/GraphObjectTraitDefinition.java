@@ -38,10 +38,11 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AddToIndex;
 import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.propertycontainer.GetVisibilityFlags;
 
 import java.util.*;
 
-public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
+public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public GraphObjectTraitDefinition() {
 		super("GraphObject");
@@ -122,6 +123,26 @@ public final class GraphObjectTraitDefinition extends AbstractTraitDefinition {
 					}
 
 					GraphObjectTraitDefinition.this.addToIndex(graphObject, passiveIndexingKeys);
+				}
+			},
+
+			GetVisibilityFlags.class,
+			new GetVisibilityFlags() {
+
+				@Override
+				public boolean isVisibleToPublicUsers(final GraphObject obj) {
+
+					final Traits traits = obj.getTraits();
+
+					return obj.getProperty(traits.key("visibleToPublicUsers"));
+				}
+
+				@Override
+				public boolean isVisibleToAuthenticatedUsers(final GraphObject obj) {
+
+					final Traits traits = obj.getTraits();
+
+					return obj.getProperty(traits.key("visibleToAuthenticatedUsers"));
 				}
 			}
 		);

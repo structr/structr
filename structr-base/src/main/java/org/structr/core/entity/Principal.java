@@ -76,11 +76,11 @@ public interface Principal extends NodeTrait {
 	String getProxyPassword();
 	void onAuthenticate();
 
-	default Set<String> getOwnAndRecursiveParentsUuids(final Principal principal) {
+	default Set<String> getOwnAndRecursiveParentsUuids() {
 
 		final Set<String> uuids = new LinkedHashSet<>();
 
-		recursiveCollectParentUuids(principal.getWrappedNode(), uuids);
+		recursiveCollectParentUuids(getWrappedNode(), uuids);
 
 		return uuids;
 	}

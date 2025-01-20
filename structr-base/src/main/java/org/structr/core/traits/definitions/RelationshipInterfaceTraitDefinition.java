@@ -26,10 +26,15 @@ import java.util.Set;
 
 import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
-public final class RelationshipInterfaceTraitDefinition extends AbstractTraitDefinition {
+public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public RelationshipInterfaceTraitDefinition() {
 		super("RelationshipInterface");
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
 	}
 
 	@Override

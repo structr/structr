@@ -21,10 +21,7 @@ package org.structr.web.traits.definitions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.*;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -33,12 +30,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
@@ -47,17 +43,15 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.operations.propertycontainer.SetProperties;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
-import org.structr.schema.SchemaService;
-import org.structr.schema.action.JavaScriptSource;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.*;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.property.FileDataProperty;
 import org.structr.web.traits.wrappers.FileTraitWrapper;
 
-import java.io.*;
-import java.net.URI;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,7 +59,7 @@ import java.util.Set;
  *
  *
  */
-public class FileTraitDefinition extends AbstractTraitDefinition {
+public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 		// view configuration
@@ -231,6 +225,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed").dynamic();
 		final Property<Boolean> isFileProperty            = new BooleanProperty("isFile").readOnly().transformators("org.structr.common.ConstantBooleanTrue").dynamic();
 		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate").dynamic();
+		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty("useAsJavascriptLibrary").indexed();
 		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds").dynamic();
 		final Property<Integer> positionProperty          = new IntProperty("position").indexed().dynamic();
 		final Property<Integer> versionProperty           = new IntProperty("version").indexed().dynamic();
@@ -251,6 +246,7 @@ public class FileTraitDefinition extends AbstractTraitDefinition {
 			indexedProperty,
 			isFileProperty,
 			isTemplateProperty,
+			useAsJavascriptLibrary,
 			cacheForSecondsProperty,
 			positionProperty,
 			versionProperty,

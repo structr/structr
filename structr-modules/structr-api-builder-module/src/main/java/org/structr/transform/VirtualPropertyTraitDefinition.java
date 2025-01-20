@@ -37,7 +37,7 @@ import java.util.Set;
 /**
  *
  */
-public class VirtualPropertyTraitDefinition extends AbstractTraitDefinition {
+public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final Property<NodeInterface> virtualType = new StartNode("virtualType", "VirtualTypevirtualPropertyVirtualProperty");
 	public static final Property<Integer> position          = new IntProperty("position").indexed();

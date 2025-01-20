@@ -19,8 +19,16 @@
 package org.structr.schema.parser;
 
 import org.apache.commons.lang.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.PropertyNotion;
+import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.CollectionNotionProperty;
+import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -35,14 +43,12 @@ import java.util.Set;
  */
 public class NotionPropertyGenerator extends PropertyGenerator {
 
-	private final Set<String> properties = new LinkedHashSet<>();
-	private boolean isPropertySet  = false;
-	private boolean isAutocreate   = false;
-	private String parameters      = "";
-	private String propertyType    = null;
-	private String relatedType     = null;
-	private String baseProperty    = null;
-	private String multiplicity    = null;
+	private final Set<PropertyKey> properties = new LinkedHashSet<>();
+	private boolean isPropertySet             = false;
+	private boolean isAutocreate              = false;
+	private String relatedType                = null;
+	private String baseProperty               = null;
+	private String multiplicity               = null;
 
 	public NotionPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
@@ -66,8 +72,6 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 	@Override
 	protected Property newInstance() throws FrameworkException {
 
-		/*
-
 		final String className  = source.getClassName();
 		final String name       = source.getPropertyName();
 		final String expression = source.getFormat();
@@ -78,73 +82,26 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 			throw new FrameworkException(422, "Empty notion property expression for property ‛" + name + "‛", new InvalidPropertySchemaToken(className, source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression for property " + source.getPropertyName() + "."));
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String[] parts    = expression.split("[, ]+");
+		final String[] parts = expression.split("[, ]+");
+		Property property    = null;
 
-		if (parts.length > 0) {
+		if (parts.length > 0 && schemaNode instanceof SchemaNode entity) {
 
-			final SchemaRelationshipNode entity = node.as(SchemaRelationshipNode.class);
-			boolean isBuiltinProperty           = false;
-			baseProperty                        = parts[0];
-			multiplicity                        = entity.getMultiplicity(baseProperty);
+			baseProperty = parts[0];
+			multiplicity = entity.getMultiplicity(baseProperty);
 
 			if (multiplicity != null) {
 
 				// determine related type from relationship
 				relatedType  = entity.getRelatedType(baseProperty);
 
-				switch (multiplicity) {
-
-					case "1X":
-						// this line exists because when a NotionProperty is set up for a builtin propery
-						// (like for example "owner", there must not be the string "Property" appended
-						// to the property name, and the SchemaNode returns the above "extended" multiplicity
-						// string when it has detected a fallback property name like "owner" from NodeInterface.
-						isBuiltinProperty = true; // no break!
-					case "1":
-						propertyType = EntityNotionProperty.class.getSimpleName();
-						break;
-
-					case "*X":
-						// this line exists because when a NotionProperty is set up for a builtin propery
-						// (like for example "owner", there must not be the string "Property" appended
-						// to the property name, and the SchemaNode returns the above "extended" multiplicity
-						// string when it has detected a fallback property name like "owner" from NodeInterface.
-						isBuiltinProperty = true; // no break!
-					case "*":
-						propertyType = CollectionNotionProperty.class.getSimpleName();
-						break;
-
-					default:
-						break;
-				}
-
-				buf.append(", ");
-				buf.append(entity.getClassName());
-				buf.append(".");
-				buf.append(baseProperty);
-
-				// append "Property" only if it is NOT a builtin property!
-				if (!isBuiltinProperty) {
-					buf.append("Property");
-				}
-
-				buf.append(",");
-
+				final PropertyKey base  = Traits.of(entity.getClassName()).key(baseProperty);
 				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase()) || "false".equals(parts[2].toLowerCase())));
+				Notion notion           = null;
 				isAutocreate            = isBoolean;
 
 				// use PropertyNotion when only a single element is given
-				if (parts.length == 2 || isBoolean) {
-
-					buf.append(" new PropertyNotion(");
-					isPropertySet = false;
-
-				} else {
-
-					buf.append(" new PropertySetNotion(");
-					isPropertySet = true;
-				}
+				isPropertySet = (parts.length == 2 || isBoolean);
 
 				for (int i=1; i<parts.length; i++) {
 
@@ -154,12 +111,10 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 					if (!isFlag && !propertyName.contains(".")) {
 
-						buf.append(relatedType);
-						buf.append(".");
-
-						fullPropertyName = relatedType + "." + fullPropertyName;
+						properties.add(Traits.of(relatedType).key(fullPropertyName));
 					}
 
+					/*
 					fullPropertyName = extendPropertyName(fullPropertyName, isFlag);
 
 					properties.add(fullPropertyName);
@@ -171,9 +126,35 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 					if (i < parts.length-1) {
 						buf.append(", ");
 					}
+					*/
 				}
 
-				buf.append(")");
+				if (isPropertySet) {
+
+					notion = new PropertySetNotion(isAutocreate, properties);
+
+				} else {
+
+					final PropertyKey p = Iterables.first(properties);
+
+					notion = new PropertyNotion(p, isAutocreate);
+				}
+
+				switch (multiplicity) {
+
+					case "1X":
+					case "1":
+						property = new EntityNotionProperty(name, (Property)base, notion);
+						break;
+
+					case "*X":
+					case "*":
+						property = new CollectionNotionProperty(name, (Property)base, notion);
+						break;
+
+					default:
+						break;
+				}
 
 			} else {
 
@@ -185,10 +166,9 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 			}
 		}
 
-		parameters = buf.toString();
-		*/
+		// FIXME: this is really ugly, can't we find a better way to create the notion?
 
-		return null;
+		return property;
 	}
 
 	private String extendPropertyName(final String propertyName, final Boolean isBoolean) throws FrameworkException {
@@ -229,7 +209,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 		return isPropertySet;
 	}
 
-	public Set<String> getProperties() {
+	public Set<PropertyKey> getProperties() {
 		return properties;
 	}
 

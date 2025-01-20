@@ -34,7 +34,7 @@ import java.util.Set;
  *
  *
  */
-public final class SchemaMethodTraitDefinition extends AbstractTraitDefinition {
+public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefinition {
 
 
 	/*

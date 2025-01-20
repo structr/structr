@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * The Location entity.
  */
-public final class LocationTraitDefinition extends AbstractTraitDefinition {
+public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public LocationTraitDefinition() {
 		super("Location");

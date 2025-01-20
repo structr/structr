@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
@@ -241,7 +240,9 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringTrait.getName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
+					//throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringTrait.getName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
+
+					// FIXME
 				}
 			}
 

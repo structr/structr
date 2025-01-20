@@ -27,19 +27,20 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.traits.wrappers.PagePathTraitWrapper;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
  */
-public class PagePathTraitDefinition extends AbstractTraitDefinition {
+public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(PagePath.class, PropertyView.Public,

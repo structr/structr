@@ -52,8 +52,8 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.*;
 import org.structr.web.entity.File;
+import org.structr.web.entity.*;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
@@ -291,6 +291,11 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getContentType() {
 		return wrappedObject.getProperty(traits.key("contentType"));
+	}
+
+	@Override
+	public boolean useAsJavascriptLibrary() {
+		return wrappedObject.getProperty(traits.key("useAsJavascriptLibrary"));
 	}
 
 	@Override

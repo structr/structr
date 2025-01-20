@@ -24,14 +24,14 @@ public class StructrTraits {
 
 	public static void registerBaseType(final TraitDefinition definition) {
 
-		final Traits traits = new Traits(definition.getName(), true, false, false);
+		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false);
 
 		traits.registerImplementation(definition);
 	}
 
 	public static void registerNodeInterface() {
 
-		final Traits traits = new Traits("NodeInterface", true, true, false);
+		final Traits traits = new TraitsImplementation("NodeInterface", true, true, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
 		traits.registerImplementation(new GraphObjectTraitDefinition());
@@ -40,7 +40,7 @@ public class StructrTraits {
 
 	public static void registerRelationshipInterface() {
 
-		final Traits traits = new Traits("RelationshipInterface", true, false, true);
+		final Traits traits = new TraitsImplementation("RelationshipInterface", true, false, true);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
 		traits.registerImplementation(new GraphObjectTraitDefinition());
@@ -54,7 +54,7 @@ public class StructrTraits {
 			return;
 		}
 
-		final Traits traits = new Traits(typeName, false, true, false);
+		final Traits traits = new TraitsImplementation(typeName, false, true, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -74,7 +74,7 @@ public class StructrTraits {
 			return;
 		}
 
-		final Traits traits = new Traits(typeName, false, false, true);
+		final Traits traits = new TraitsImplementation(typeName, false, false, true);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -88,7 +88,7 @@ public class StructrTraits {
 
 	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new Traits(typeName, true, true, false);
+		final Traits traits = new TraitsImplementation(typeName, true, true, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -103,7 +103,7 @@ public class StructrTraits {
 
 	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new Traits(typeName, true, false, true);
+		final Traits traits = new TraitsImplementation(typeName, true, false, true);
 
 		// Relationship types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());

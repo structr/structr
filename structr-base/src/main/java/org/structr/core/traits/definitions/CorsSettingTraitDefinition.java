@@ -40,7 +40,7 @@ import java.util.Set;
  *
  * These settings overwrite the system default and the settings defined in {@see Settings.java}.
  */
-public final class CorsSettingTraitDefinition extends AbstractTraitDefinition {
+public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CorsSettingTraitDefinition() {
 		super("CorsSetting");

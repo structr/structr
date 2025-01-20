@@ -22,7 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.css.CssSelector;
@@ -31,7 +31,7 @@ import org.structr.web.traits.wrappers.CssSelectorTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class CssSelectorTraitDefinition extends AbstractTraitDefinition {
+public class CssSelectorTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CssSelectorTraitDefinition() {
 		super("CssSelector");

@@ -18,7 +18,6 @@
  */
 package org.structr.test.common;
 
-import net.openhft.hashing.Access;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
@@ -187,7 +186,7 @@ public class AccessControlTest extends StructrTest {
 
 			final List<NodeInterface> users = createTestNodes("User", 2);
 			NodeInterface user1             = users.get(0);
-			NodeInterface user2             =  users.get(1);
+			NodeInterface user2             = users.get(1);
 
 			PropertyMap props = new PropertyMap();
 			props.put(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
@@ -202,12 +201,16 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
 			// Let another user search
-			SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
+			final SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
+			final App app2                     = StructrApp.getInstance(user2Context);
 
-			try (final Tx tx = app.tx()) {
-				List<NodeInterface> result = StructrApp.getInstance(user2Context).nodeQuery(type).getAsList();
+			try (final Tx tx = app2.tx()) {
+
+				List<NodeInterface> result = app2.nodeQuery(type).getAsList();
 
 				assertEquals(2, result.size());
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {

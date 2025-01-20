@@ -201,16 +201,6 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInt
 	}
 
 	@Override
-	public boolean defaultVisibleToPublic() {
-		return wrappedObject.getProperty(traits.key("defaultVisibleToPublic"));
-	}
-
-	@Override
-	public boolean defaultVisibleToAuth() {
-		return wrappedObject.getProperty(traits.key("defaultVisibleToAuth"));
-	}
-
-	@Override
 	public boolean includeInOpenAPI() {
 		return wrappedObject.getProperty(traits.key("includeInOpenAPI"));
 	}

@@ -35,6 +35,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AccessControllableTraitDefinition;
 import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.propertycontainer.*;
@@ -107,11 +108,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public void clearCaches() {
-
-		for (final ClearCaches clearCaches : typeHandler.getMethods(ClearCaches.class)) {
-
-			clearCaches.clearCaches();
-		}
+		AccessControllableTraitDefinition.clearCaches();
 	}
 
 	@Override
@@ -313,7 +310,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 * @return whether this node is visible to public users
 	 */
 	public boolean isVisibleToPublicUsers() {
-		return getProperty(typeHandler.key("visibleToPublicUsers"));
+		return typeHandler.getMethod(GetVisibilityFlags.class).isVisibleToPublicUsers(this);
 	}
 
 	/**
@@ -322,7 +319,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 * @return whether this node is visible to authenticated users
 	 */
 	public boolean isVisibleToAuthenticatedUsers() {
-		return getProperty(typeHandler.key("visibleToPublicUsers"));
+		return typeHandler.getMethod(GetVisibilityFlags.class).isVisibleToAuthenticatedUsers(this);
 	}
 
 	/**

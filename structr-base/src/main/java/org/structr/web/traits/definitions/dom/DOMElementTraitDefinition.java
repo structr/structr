@@ -49,6 +49,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -87,7 +88,7 @@ import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
 import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
-public class DOMElementTraitDefinition extends AbstractTraitDefinition {
+public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 

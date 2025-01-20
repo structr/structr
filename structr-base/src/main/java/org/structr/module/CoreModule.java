@@ -23,7 +23,6 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.*;
-import org.structr.core.traits.nodes.PrincipalTraitDefinition;
 import org.structr.core.traits.relationships.*;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;

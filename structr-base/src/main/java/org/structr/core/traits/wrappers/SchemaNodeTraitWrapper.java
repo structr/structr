@@ -30,10 +30,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper implements SchemaNode {
 
@@ -85,16 +82,6 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	@Override
-	public boolean defaultVisibleToPublic() {
-		return wrappedObject.getProperty(traits.key("defaultVisibleToPublic"));
-	}
-
-	@Override
-	public boolean defaultVisibleToAuth() {
-		return wrappedObject.getProperty(traits.key("defaultVisibleToAuth"));
-	}
-
-	@Override
 	public boolean includeInOpenAPI() {
 		return wrappedObject.getProperty(traits.key("includeInOpenAPI"));
 	}
@@ -102,6 +89,16 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	@Override
 	public String[] getTags() {
 		return wrappedObject.getProperty(traits.key("tags"));
+	}
+
+	@Override
+	public boolean defaultVisibleToPublic() {
+		return wrappedObject.getProperty(traits.key("defaultVisibleToPublic"));
+	}
+
+	@Override
+	public boolean defaultVisibleToAuth() {
+		return wrappedObject.getProperty(traits.key("defaultVisibleToAuth"));
 	}
 
 	@Override
@@ -118,6 +115,52 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("relatedFrom");
 
 		return Iterables.map(n -> n.as(SchemaRelationshipNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public String getMultiplicity(final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+
+		for (final SchemaRelationshipNode outRel : getRelatedTo()) {
+
+			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(outRel, existingPropertyNames, true))) {
+				return outRel.getTargetMultiplicity();
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode inRel : getRelatedFrom()) {
+
+			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(inRel, existingPropertyNames, false))) {
+				return inRel.getSourceMultiplicity();
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRelatedType(final String propertyNameToCheck) {
+
+		final Set<String> existingPropertyNames = new LinkedHashSet<>();
+
+		for (final SchemaRelationshipNode outRel : getRelatedTo()) {
+
+			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(outRel, existingPropertyNames, true))) {
+				return outRel.getSchemaNodeTargetType();
+			}
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode inRel : getRelatedFrom()) {
+
+			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(inRel, existingPropertyNames, false))) {
+				return inRel.getSchemaNodeSourceType();
+			}
+		}
+
+		return null;
 	}
 
 	@Override

@@ -19,12 +19,12 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 
-public class SchemaExcludedViewPropertyDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class SchemaExcludedViewPropertyDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaExcludedViewPropertyDefinition() {
 		super("SchemaExcludedViewProperty");

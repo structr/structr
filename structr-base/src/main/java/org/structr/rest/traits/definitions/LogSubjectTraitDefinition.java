@@ -25,7 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.rest.entity.LogSubject;
@@ -38,7 +38,7 @@ import java.util.Set;
  *
  *
  */
-public class LogSubjectTraitDefinition extends AbstractTraitDefinition {
+public class LogSubjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public LogSubjectTraitDefinition() {
 		super("LogSubject");

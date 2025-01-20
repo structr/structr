@@ -31,10 +31,14 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Localization;
+import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.*;
 import org.structr.core.property.CypherProperty;
 import org.structr.core.property.FunctionProperty;
@@ -43,8 +47,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.*;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
@@ -55,7 +59,6 @@ import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
-import org.structr.web.entity.ApplicationConfigurationDataNode;
 import org.structr.web.maintenance.deploy.*;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -70,8 +73,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
-import org.structr.common.helper.VersionHelper;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -1306,13 +1307,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "contentType",             file.getContentType());
 			putData(config, "cacheForSeconds",         file.getCacheForSeconds());
 			putData(config, "includeInFrontendExport", file.includeInFrontendExport());
+			putData(config, "useAsJavascriptLibrary",  file.useAsJavascriptLibrary());
 		}
-
-		if (abstractFile.is("JavaScriptSource")) {
-
-			putData(config, "useAsJavascriptLibrary", abstractFile.as(JavaScriptSource.class).useAsJavascriptLibrary());
-		}
-
 
 		if (abstractFile.is("Linkable")) {
 

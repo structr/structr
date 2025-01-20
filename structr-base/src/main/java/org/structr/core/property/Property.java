@@ -321,7 +321,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	@Override
 	public Property<T> unique(final boolean unique) {
+
 		this.unique = unique;
+
+		if (unique) {
+			this.requiresSynchronization = true;
+		}
+
 		return this;
 	}
 

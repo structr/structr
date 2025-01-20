@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class PageHAS_PATHPagePath extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class PageHAS_PATHPagePath extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PageHAS_PATHPagePath() {
 		super("PageHAS_PATHPagePath");

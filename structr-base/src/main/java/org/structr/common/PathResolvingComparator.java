@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
@@ -101,10 +102,9 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 	// ----- private methods -----
 	private Comparable resolve(final GraphObject obj, final String path) {
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final String[] parts               = path.split("[\\.]+");
-		GraphObject current                = obj;
-		int pos                            = 0;
+		final String[] parts = path.split("[\\.]+");
+		GraphObject current  = obj;
+		int pos              = 0;
 
 		for (final String part : parts) {
 
@@ -124,18 +124,22 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 					// last part of path?
 					if (++pos == parts.length) {
 
-						if (value instanceof Comparable) {
+						if (value instanceof Comparable c) {
 
-							return (Comparable)value;
+							return c;
 						}
 
 						logger.warn("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", part, value.getClass().getSimpleName(), path);
 						return null;
 					}
 
-					if (value instanceof GraphObject) {
+					if (value instanceof GraphObject o) {
 
-						current = (GraphObject)value;
+						current = o;
+
+					} else if (value instanceof NodeTrait t) {
+
+						current = t.getWrappedNode();
 
 					} else {
 

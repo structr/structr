@@ -50,7 +50,7 @@ import java.util.Set;
  *
  *
  */
-public class SchemaNodeTraitDefinition extends AbstractTraitDefinition {
+public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation", "Property"

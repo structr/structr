@@ -31,7 +31,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -49,7 +49,7 @@ import java.util.Set;
 /**
  * An image whose binary data will be stored on disk.
  */
-public class ImageTraitDefinition extends AbstractTraitDefinition {
+public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	View publicView = new View(Image.class, PropertyView.Public, parentProperty);

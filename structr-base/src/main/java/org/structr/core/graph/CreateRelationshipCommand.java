@@ -22,7 +22,6 @@ import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
@@ -45,7 +44,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 	private final PropertyKey<Date> createdDateKey                    = Traits.key("GraphObject", "createdDate");
 	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key("GraphObject", "lastModifiedDate");
 	private final PropertyKey<String> createdByKey                    = Traits.key("GraphObject", "createdBy");
-	private final PropertyKey<String> lastModifiedByKey               = Traits.key("GraphObject", "lastModifiedBy");
 	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
 	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
 

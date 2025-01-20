@@ -370,7 +370,7 @@ public class ActionContext {
 
 							case "me":
 								hints.reportExistingKey(key);
-								return securityContext.getUser(false);
+								return securityContext.getUser(false).getWrappedNode();
 
 							case "depth":
 								hints.reportExistingKey(key);

@@ -144,7 +144,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 			final TraitDefinition declaringTrait = key.getDeclaringTrait();
 
-			if (declaringTrait != null && !(declaringTrait instanceof RelationshipBaseTraitDefinition)) {
+			if (declaringTrait != null && !declaringTrait.isRelationship()) {
 
 				final String name = declaringTrait.getName();
 

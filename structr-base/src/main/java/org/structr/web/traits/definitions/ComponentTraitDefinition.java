@@ -18,8 +18,6 @@
  */
 package org.structr.web.traits.definitions;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.IntProperty;
@@ -28,11 +26,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.Component;
-import org.structr.web.entity.dom.DOMElement;
 
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +36,7 @@ import java.util.Set;
 /**
  * Represents a component. A component is an assembly of elements
  */
-public class ComponentTraitDefinition extends AbstractTraitDefinition {
+public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(Component.class,PropertyView.Public,

@@ -25,11 +25,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.*;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.operations.CheckHierarchy;
 import org.structr.web.traits.operations.HandleNewChild;
 import org.structr.web.traits.operations.Render;
@@ -42,7 +43,7 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 /**
  * Represents a page resource.
  */
-public class PageTraitDefinition extends AbstractTraitDefinition {
+public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(Page.class, PropertyView.Public,

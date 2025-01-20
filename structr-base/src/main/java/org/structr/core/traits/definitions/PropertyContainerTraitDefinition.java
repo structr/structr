@@ -51,7 +51,7 @@ import org.structr.core.traits.operations.propertycontainer.*;
 
 import java.util.*;
 
-public final class PropertyContainerTraitDefinition extends AbstractTraitDefinition {
+public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitDefinition.class);
 

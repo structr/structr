@@ -19,8 +19,6 @@
 package org.structr.web.traits.definitions;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -33,27 +31,23 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
 import org.structr.web.traits.wrappers.AbstractFileTraitWrapper;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Base class for filesystem objects in structr.
  */
-public class AbstractFileTraitDefinition extends AbstractTraitDefinition {
+public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public AbstractFileTraitDefinition() {
 		super("AbstractFile");

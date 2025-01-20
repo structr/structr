@@ -34,7 +34,7 @@ import java.util.Set;
  *
  *
  */
-public class SchemaViewTraitDefinition extends AbstractTraitDefinition {
+public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 

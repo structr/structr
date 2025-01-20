@@ -16,11 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits.operations.graphobject;
+package org.structr.core.traits.definitions;
 
-import org.structr.core.traits.operations.LifecycleMethod;
+/**
+ * Abstract base class for non-dynamic relationship types. We need this
+ * class to identify relationship traits (which are handled differently
+ * in some places).
+ */
+public abstract class AbstractRelationshipTraitDefinition extends AbstractNodeTraitDefinition {
 
-public interface ClearCaches extends LifecycleMethod {
+	public AbstractRelationshipTraitDefinition(final String name) {
+		super(name);
+	}
 
-	void clearCaches();
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
 }

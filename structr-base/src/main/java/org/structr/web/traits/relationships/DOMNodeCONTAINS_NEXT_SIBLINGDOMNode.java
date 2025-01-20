@@ -19,10 +19,10 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMNodeCONTAINS_NEXT_SIBLINGDOMNode extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class DOMNodeCONTAINS_NEXT_SIBLINGDOMNode extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeCONTAINS_NEXT_SIBLINGDOMNode() {
 		super("DOMNodeCONTAINS_NEXT_SIBLINGDOMNode");

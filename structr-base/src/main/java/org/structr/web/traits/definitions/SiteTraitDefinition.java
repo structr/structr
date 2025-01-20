@@ -18,19 +18,12 @@
  */
 package org.structr.web.traits.definitions;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.Site;
@@ -39,7 +32,7 @@ import org.structr.web.traits.wrappers.SiteTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-public class SiteTraitDefinition extends AbstractTraitDefinition {
+public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View defaultView = new View(Site.class, PropertyView.Public,

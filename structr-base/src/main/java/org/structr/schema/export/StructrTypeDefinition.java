@@ -955,25 +955,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		for (final SchemaGrant grant : schemaNode.getSchemaGrants()) {
-
-			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
-			if (newGrant != null) {
-
-				grants.add(newGrant);
-			}
-		}
-
-		this.isInterface                 = schemaNode.isInterface();
-		this.isAbstract                  = schemaNode.isAbstract();
 		this.changelogDisabled           = schemaNode.changelogDisabled();
-		this.visibleToPublicUsers        = schemaNode.defaultVisibleToPublic();
-		this.visibleToAuthenticatedUsers = schemaNode.defaultVisibleToAuth();
-		this.includeInOpenAPI            = schemaNode.includeInOpenAPI();
 		this.summary                     = schemaNode.getSummary();
 		this.icon                        = schemaNode.getIcon();
 		this.description                 = schemaNode.getDescription();
-		this.category                    = schemaNode.getCategory();
 		this.schemaNode                  = schemaNode;
 
 		/*

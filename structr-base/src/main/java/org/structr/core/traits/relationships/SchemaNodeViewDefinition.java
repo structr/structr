@@ -19,13 +19,13 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import static org.structr.core.entity.Relation.Multiplicity.Many;
 import static org.structr.core.entity.Relation.Multiplicity.One;
 
-public class SchemaNodeViewDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class SchemaNodeViewDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaNodeViewDefinition() {
 		super("SchemaNodeView");

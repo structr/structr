@@ -254,6 +254,8 @@ public class PropertyTest extends StructrTest {
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
+
+				tx.success();
 			}
 
 		} catch (Throwable t) {

@@ -22,12 +22,12 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import java.util.Set;
 
-public class ImageTHUMBNAILImage extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	private static final PropertyKey<Integer> checksum   = new IntProperty("checksum");
 	private static final PropertyKey<Integer> maxWidth   = new IntProperty("maxWidth");

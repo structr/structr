@@ -23,16 +23,19 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.operations.graphobject.*;
+import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
+import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.schema.action.Actions;
 
-public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDeletion, AfterCreation, AfterModification, AfterDeletion {
+public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDeletion, AfterCreation, AfterModification, AfterDeletion, OnNodeCreation, OnNodeDeletion {
 
 	private final String source;
 
-	public LifecycleMethodAdapter(final String source) {
-		this.source = source;
+	public LifecycleMethodAdapter(final String input) {
+		this.source = input.trim();
 	}
 
 	@Override
@@ -41,15 +44,19 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 	}
 
 	@Override
-	public void afterCreation(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
+	public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 		Actions.execute(securityContext, graphObject, "${" + source + "}", "afterCreate");
 	}
 
 	@Override
-	public void afterDeletion(GraphObject graphObject, SecurityContext securityContext, PropertyMap properties) {
+	public void afterDeletion(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) {
 
 		try {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", "afterDelete");
+
+			securityContext.getContextStore().setConstant("data", properties.getAsMap());
+
+			// entity is null because it is deleted, properties are available via "data" keyword
+			Actions.execute(securityContext, null, "${" + source + "}",  "afterDelete");
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
@@ -57,17 +64,27 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 	}
 
 	@Override
-	public void afterModification(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
+	public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 		Actions.execute(securityContext, graphObject, "${" + source + "}", "afterSave");
 	}
 
 	@Override
-	public void onDeletion(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 		Actions.execute(securityContext, graphObject, "${" + source + "}", "onDelete");
 	}
 
 	@Override
-	public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-		Actions.execute(securityContext, graphObject, "${" + source + "}", "onSave");
+	public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		Actions.execute(securityContext, graphObject, "${" + source + "}", "onSave", modificationQueue, null);
+	}
+
+	@Override
+	public void onNodeCreation(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+		Actions.execute(securityContext, nodeInterface, "${" + source + "}", "onNodeCreation");
+	}
+
+	@Override
+	public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+		Actions.execute(securityContext, nodeInterface, "${" + source + "}", "onNodeDeletion");
 	}
 }

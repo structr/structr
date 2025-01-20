@@ -19,10 +19,10 @@
 package org.structr.test.core.traits.definitions.relationships;
 
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class TwoOneOneToOneTraitDefinition extends AbstractTraitDefinition implements RelationshipBaseTraitDefinition {
+public class TwoOneOneToOneTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public TwoOneOneToOneTraitDefinition() {
 		super("TwoOneOneToOne");

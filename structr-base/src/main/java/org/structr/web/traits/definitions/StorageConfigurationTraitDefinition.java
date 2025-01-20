@@ -27,7 +27,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -41,7 +41,7 @@ import java.util.Set;
  * Storage container for mount configuration entries.
  */
 
-public class StorageConfigurationTraitDefinition extends AbstractTraitDefinition {
+public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View uiView = new View(StorageConfiguration.class, PropertyView.Ui,
