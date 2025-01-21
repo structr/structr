@@ -123,8 +123,12 @@ public abstract class StreamingWriter {
 		setReduceNestedObjectsInRestrictedViewsDepth(securityContext);
 
 		writer.beginDocument(null, view);
-		root.serialize(writer, obj, view, 0, visitedObjects, true);
+		root.serialize(writer, obj, view, 0, visitedObjects);
 		writer.endDocument();
+	}
+
+	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
+		stream(securityContext, output, result, baseUrl, true, true);
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean fix) throws IOException {
@@ -157,7 +161,7 @@ public abstract class StreamingWriter {
 
 		if (securityContext.returnRawResult()) {
 
-			root.serializeRoot(rootWriter, result, view, 0, visitedObjects, true);
+			root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
 		} else {
 			if(fix){
@@ -172,7 +176,7 @@ public abstract class StreamingWriter {
 				}
 
 
-				actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects, true);
+				actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
 				rootWriter.flush();
 			}
@@ -372,16 +376,16 @@ public abstract class StreamingWriter {
 	// ----- nested classes -----
 	public abstract class Serializer<T> {
 
-		public abstract long serialize(final RestWriter writer, final T value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects, final boolean fix) throws IOException;
+		public abstract long serialize(final RestWriter writer, final T value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException;
 
-		public long serializeRoot(final RestWriter writer, final Object value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects, final boolean fix) throws IOException {
+		public long serializeRoot(final RestWriter writer, final Object value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
 			if (value != null) {
 
 				Serializer serializer = getSerializerForType(value.getClass());
 				if (serializer != null) {
 
-					return serializer.serialize(writer, value, localPropertyView, depth, visitedObjects, fix);
+					return serializer.serialize(writer, value, localPropertyView, depth, visitedObjects);
 				}
 			}
 
@@ -401,11 +405,11 @@ public abstract class StreamingWriter {
 					// ignore conversion errors
 					try { convertedValue = converter.revert(value); } catch (Throwable t) {}
 
-					return serializeRoot(writer, convertedValue, localPropertyView, depth, visitedObjects, true);
+					return serializeRoot(writer, convertedValue, localPropertyView, depth, visitedObjects);
 
 				} else {
 
-					return serializeRoot(writer, value, localPropertyView, depth, visitedObjects, true);
+					return serializeRoot(writer, value, localPropertyView, depth, visitedObjects);
 				}
 
 			} catch(Throwable t) {
@@ -433,7 +437,7 @@ public abstract class StreamingWriter {
 	public class RootSerializer extends Serializer<GraphObject> {
 
 		@Override
-		public long serialize(final RestWriter writer, final GraphObject source, final String localPropertyView, final int depth, final Set<Integer> visitedObjects, final boolean fix) throws IOException {
+		public long serialize(final RestWriter writer, final GraphObject source, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
 			int hashCode = -1;
 
@@ -508,9 +512,7 @@ public abstract class StreamingWriter {
 					}
 				}
 
-				if(fix){
-					writer.endObject(source);
-				}
+				writer.endObject(source);
 
 				// unmark (visiting only counts for children)
 				visitedObjects.remove(hashCode);
@@ -523,7 +525,7 @@ public abstract class StreamingWriter {
 	public class IterableSerializer extends Serializer<Iterable> {
 
 		@Override
-		public long serialize(final RestWriter parentWriter, final Iterable value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects, final boolean fix) throws IOException {
+		public long serialize(final RestWriter parentWriter, final Iterable value, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
 			final SecurityContext securityContext = parentWriter.getSecurityContext();
 			final int pageSize                    = parentWriter.getPageSize();
@@ -538,7 +540,7 @@ public abstract class StreamingWriter {
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
 
-					serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects, true);
+					serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 				}
 
 			} else {
@@ -550,20 +552,20 @@ public abstract class StreamingWriter {
 
 					// first value?
 					if (firstValue != null) {
-						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects, true);
+						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 					}
 
 					// second value?
 					if (secondValue != null) {
 
-						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects, true);
+						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 
 						// more values?
 						while (iterator.hasNext()) {
 
-							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth, visitedObjects, true);
+							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth, visitedObjects);
 
 							actualResultCount++;
 
@@ -584,7 +586,7 @@ public abstract class StreamingWriter {
 	public class MapSerializer extends Serializer<Map<String, Object>> {
 
 		@Override
-		public long serialize(final RestWriter writer, final Map<String, Object> source, final String localPropertyView, final int depth, final Set<Integer> visitedObjects, final boolean fix) throws IOException {
+		public long serialize(final RestWriter writer, final Map<String, Object> source, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
 			long count = 0L;
 
@@ -599,13 +601,13 @@ public abstract class StreamingWriter {
 					Object value = entry.getValue();
 
 					writer.name(key);
-					count = serializeRoot(writer, value, localPropertyView, depth+1, visitedObjects, true);
+					count = serializeRoot(writer, value, localPropertyView, depth+1, visitedObjects);
 				}
 			}
 
-			if(fix){
-				writer.endObject();
-			}
+
+			writer.endObject();
+
 
 
 			return count;
@@ -617,7 +619,7 @@ public abstract class StreamingWriter {
 		public PropertyMapSerializer() {}
 
 		@Override
-		public long serialize(final RestWriter writer, final PropertyMap source, final String localPropertyView, final int depth, final Set<Integer> visitedObjects, final boolean fix) throws IOException {
+		public long serialize(final RestWriter writer, final PropertyMap source, final String localPropertyView, final int depth, final Set<Integer> visitedObjects) throws IOException {
 
 			long count = 0;
 
@@ -639,9 +641,8 @@ public abstract class StreamingWriter {
 				}
 			}
 
-			if(fix){
-				writer.endObject();
-			}
+
+			writer.endObject();
 
 
 			return count;

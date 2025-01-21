@@ -171,7 +171,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		return beginObject(null);
 	}
 
-
 	@Override
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 

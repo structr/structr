@@ -162,7 +162,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			final Writer writer = response.getWriter();
 
-			flowStreamer.stream(securityContext, writer, result, baseUrl, false, true);
+			flowStreamer.stream(securityContext, writer, result, baseUrl);
 			writer.append("\n");    // useful newline
 
 			tx.success();
