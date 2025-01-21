@@ -85,7 +85,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true, serializeNulls);
 					final Iterable list                    = (Iterable)obj;
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false, false );
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false );
 
 				} else if (obj instanceof Map) {
 
@@ -94,7 +94,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false, false);
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false);
 				}
 
 				return writer.getBuffer().toString();

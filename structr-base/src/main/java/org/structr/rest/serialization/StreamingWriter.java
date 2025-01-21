@@ -128,14 +128,10 @@ public abstract class StreamingWriter {
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
-		stream(securityContext, output, result, baseUrl, true, true);
+		stream(securityContext, output, result, baseUrl, true);
 	}
 
-	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean fix) throws IOException {
-		stream(securityContext, output, result, baseUrl, true, fix);
-	}
-
-	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean includeMetadata, final boolean fix) throws IOException {
+	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean includeMetadata) throws IOException {
 
 		long t0 = System.nanoTime();
 
@@ -164,14 +160,14 @@ public abstract class StreamingWriter {
 			root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
 		} else {
-			if(fix){
+			if(this.indent){
 				rootWriter.beginObject();
 			}
 
 
 			if (result != null) {
 
-				if(fix){
+				if(this.indent){
 					rootWriter.name(resultKeyName);
 				}
 
@@ -254,7 +250,7 @@ public abstract class StreamingWriter {
 			}
 
 			// finished
-			if(fix){
+			if(this.indent){
 				rootWriter.endObject();
 			}
 		}
@@ -605,10 +601,7 @@ public abstract class StreamingWriter {
 				}
 			}
 
-
 			writer.endObject();
-
-
 
 			return count;
 		}
@@ -641,9 +634,7 @@ public abstract class StreamingWriter {
 				}
 			}
 
-
 			writer.endObject();
-
 
 			return count;
 		}
