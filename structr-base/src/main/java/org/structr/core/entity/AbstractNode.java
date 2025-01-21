@@ -60,8 +60,8 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 	private Identity rawPathSegmentId = null;
 
-	public AbstractNode(final SecurityContext securityContext, final PropertyContainer propertyContainer, final String entityType, final long sourceTransactionId) {
-		super(securityContext, propertyContainer, entityType, sourceTransactionId);
+	public AbstractNode(final SecurityContext securityContext, final PropertyContainer propertyContainer, final long sourceTransactionId) {
+		super(securityContext, propertyContainer, sourceTransactionId);
 	}
 
 	@Override

@@ -21,7 +21,6 @@ package org.structr.core.traits.definitions;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.*;
-import org.structr.core.property.Property;
 
 public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
@@ -52,15 +51,11 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 			which += 2;
 		}
 
-		// FIXME
-		final Property<String> sourceId = null;
-		final Property<String> targetId = null;
-
 		switch (which) {
 
 			case 0 -> {
 
-				return new OneToOne(sourceId, targetId) {
+				return new OneToOne() {
 
 					@Override
 					public String name() {
@@ -131,7 +126,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 			case 1 -> {
 
-				return new ManyToOne(sourceId, targetId) {
+				return new ManyToOne() {
 
 					@Override
 					public String name() {
@@ -202,7 +197,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 			case 2 -> {
 
-				return new OneToMany(sourceId, targetId) {
+				return new OneToMany() {
 
 					@Override
 					public String name() {
@@ -273,7 +268,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 			case 3 -> {
 
-				return new ManyToMany(sourceId, targetId) {
+				return new ManyToMany() {
 
 					@Override
 					public String name() {

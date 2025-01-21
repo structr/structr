@@ -53,8 +53,8 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	private PropertyKey sourceProperty         = null;
 	private PropertyKey targetProperty         = null;
 
-	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final String entityType, final long transactionId) {
-		super(securityContext, dbRel, entityType, transactionId);
+	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final long transactionId) {
+		super(securityContext, dbRel, transactionId);
 	}
 
 	@Override

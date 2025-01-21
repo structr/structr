@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
@@ -34,7 +32,6 @@ import java.util.function.Function;
 
 public abstract class Factory<S extends PropertyContainer, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
-	private static final Logger logger          = LoggerFactory.getLogger(Factory.class.getName());
 	public static final ExecutorService service = Executors.newCachedThreadPool();
 	public static final int DEFAULT_PAGE_SIZE   = Integer.MAX_VALUE;
 	public static final int DEFAULT_PAGE        = 1;
@@ -68,9 +65,7 @@ public abstract class Factory<S extends PropertyContainer, T extends GraphObject
 		this.page            = page;
 	}
 
-	public abstract T instantiateWithType(final S obj, final String type, final Identity pathSegmentId, boolean isCreation);
-
-	protected abstract String determineActualType(final S obj);
+	public abstract T instantiateWithType(final S obj, final Identity pathSegmentId, boolean isCreation);
 
 	public T instantiate(final S node) {
 		return instantiate(node, null);
@@ -82,7 +77,7 @@ public abstract class Factory<S extends PropertyContainer, T extends GraphObject
 			return null;
 		}
 
-		return instantiateWithType(node, determineActualType(node), pathSegmentId, false);
+		return instantiateWithType(node, pathSegmentId, false);
 	}
 
 	public T instantiate(final S node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {

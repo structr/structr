@@ -146,6 +146,11 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 		// add normal keys after relationship keys
 		keys.addAll(super.getPropertyKeys());
 
+		// register declaring trait
+		for (final PropertyKey key : keys) {
+			key.setDeclaringTrait(this);
+		}
+
 		return keys;
 	}
 

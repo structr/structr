@@ -18,22 +18,14 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Defines constants for structr's relationship entities.
@@ -112,8 +104,8 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 
 	void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 
-	Property<String> getSourceIdProperty();
-	Property<String> getTargetIdProperty();
+	PropertyKey<String> getSourceIdProperty();
+	PropertyKey<String> getTargetIdProperty();
 
 	void setSourceProperty(final PropertyKey source);
 	void setTargetProperty(final PropertyKey target);

@@ -23,12 +23,10 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.LinkedList;
-
-import org.structr.api.util.Iterables;
 
 /**
  *
@@ -118,15 +116,16 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
-	public void addLabel(final String label) {
+	public void addLabels(final Set<String> input) {
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifier(db);
+		final String labels           = StringUtils.join(input, ":");
 
 		map.put("id", id);
 
-		tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", label, " RETURN n"), map));
+		tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", labels, " RETURN n"), map));
 	}
 
 	@Override

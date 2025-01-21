@@ -77,7 +77,7 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable");
-		final Property<String> linkableIdProperty      = new EntityIdProperty("linkableId", linkableProperty);
+		final Property<String> linkableIdProperty      = new EntityIdProperty("linkableId", "LinkSource", "linkable", "Linkable");
 
 		return Set.of(
 			linkableProperty,

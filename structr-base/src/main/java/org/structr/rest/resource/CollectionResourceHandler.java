@@ -36,7 +36,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
@@ -197,9 +196,9 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	// ----- private methods -----
 	private NodeInterface identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
-		final Property<String> sourceIdProperty = template.getSourceIdProperty();
-		final String sourceType                 = template.getSourceType();
-		final Notion notion                     = template.getStartNodeNotion();
+		final PropertyKey<String> sourceIdProperty = template.getSourceIdProperty();
+		final String sourceType                    = template.getSourceType();
+		final Notion notion                        = template.getStartNodeNotion();
 
 		notion.setType(sourceType);
 
@@ -220,9 +219,9 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	private NodeInterface identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
-		final Property<String> targetIdProperty = template.getTargetIdProperty();
-		final String targetType                 = template.getTargetType();
-		final Notion notion                     = template.getEndNodeNotion();
+		final PropertyKey<String> targetIdProperty = template.getTargetIdProperty();
+		final String targetType                    = template.getTargetType();
+		final Notion notion                        = template.getEndNodeNotion();
 
 		notion.setType(targetType);
 

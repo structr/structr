@@ -24,14 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,13 +61,12 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			throw new FrameworkException(422, "Type must not be empty");
 		}
 
-		final App app      = StructrApp.getInstance();
-		final Traits traits = Traits.of(type);
-
-		if (traits == null) {
+		if (!Traits.exists(type)) {
 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
+
+		final App app = StructrApp.getInstance();
 
 		// remove "type" so it won't be set later
 		properties.remove("type");

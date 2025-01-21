@@ -18,7 +18,6 @@
  */
 package org.structr.memory;
 
-import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.ChangeAwareMap;
@@ -117,14 +116,14 @@ public abstract class MemoryEntity implements PropertyContainer {
 		return false;
 	}
 
-	public void addLabel(final String label) {
-		addLabel(label, true);
+	public void addLabels(final Set<String> labels) {
+		addLabels(labels, true);
 	}
 
-	void addLabel(final String label, final boolean updateCache) {
+	void addLabels(final Set<String> labels, final boolean updateCache) {
 
 		lock();
-		labels.add(label);
+		this.labels.addAll(labels);
 
 		if (updateCache) {
 			updateCache();

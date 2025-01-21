@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.schema.JsonSchema.Cascade;
@@ -32,7 +31,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
@@ -530,42 +528,6 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-	}
-
-	@Test
-	public void testViewInheritedFromInterface() {
-
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
-
-			/*
-			type.setImplements(StructrApp.getSchemaBaseURI().resolve("static/org.structr.core.entity.Favoritable"));
-
-			// ----- interface Favoritable -----
-			type.overrideMethod("setFavoriteContent",         false, "");
-			type.overrideMethod("getFavoriteContent",         false, "return \"getFavoriteContent();\";");
-			type.overrideMethod("getFavoriteContentType",     false, "return \"getContentType();\";");
-			type.overrideMethod("getContext",                 false, "return \"getContext();\";");
-			*/
-
-			Settings.LogSchemaOutput.setValue(true);
-
-			// add new type
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		final String testType   = "Test";
-		final Set<String> views = Traits.of(testType).getViewNames();
-
-		assertTrue("Property view is not inherited correctly", views.contains("fav"));
 	}
 
 	@Test

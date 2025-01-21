@@ -27,7 +27,7 @@ import java.util.Map;
 public class TestElevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestElevenTraitDefinition() {
-		super("TestElevent");
+		super("TestEleven");
 	}
 
 	@Override

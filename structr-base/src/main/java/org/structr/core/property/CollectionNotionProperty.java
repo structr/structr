@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -51,17 +52,21 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	private static final Logger logger = LoggerFactory.getLogger(CollectionIdProperty.class.getName());
 
-	private Property<Iterable<S>> collectionProperty = null;
-	private Notion<S, T> notion                      = null;
+	private final String baseType;
+	private final String relatedType;
+	private final String basePropertyName;
+	private final Notion<S, T> notion;
 
-	public CollectionNotionProperty(String name, Property<Iterable<S>> base, Notion<S, T> notion) {
+	public CollectionNotionProperty(String name, final String baseType, final String basePropertyName, final String relatedType, Notion<S, T> notion) {
 
 		super(name);
 
-		this.notion             = notion;
-		this.collectionProperty = base;
+		this.notion           = notion;
+		this.baseType         = baseType;
+		this.relatedType      = relatedType;
+		this.basePropertyName = basePropertyName;
 
-		notion.setType(base.relatedType());
+		notion.setType(relatedType);
 	}
 
 	@Override
@@ -114,6 +119,8 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		try {
 
+			final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
+
 			return (notion.getCollectionAdapterForGetter(securityContext).adapt(collectionProperty.getProperty(securityContext, obj, applyConverter, predicate)));
 
 		} catch (FrameworkException fex) {
@@ -127,6 +134,8 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> value) throws FrameworkException {
 
+		final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
+
 		if (value != null) {
 
 			return collectionProperty.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
@@ -139,7 +148,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public String relatedType() {
-		return collectionProperty.relatedType();
+		return relatedType;
 	}
 
 	@Override
@@ -187,6 +196,9 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValueIterable, boolean exactMatch, final Query query) {
+
+		final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
+
 		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), collectionProperty, searchValueIterable, occur, exactMatch);
 	}
 

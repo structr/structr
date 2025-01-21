@@ -179,7 +179,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				}
 			}
 
-			node = nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), typeName, null, isCreation);
+			node = nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -239,7 +239,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
 		final Map<String, Object> ownsProperties                  = new HashMap<>();
 		final Map<String, Object> securityProperties              = new HashMap<>();
-		final String newUuid                                      = (String)properties.get(idKey);
+		final String newUuid                                      = (String)properties.get("id");
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
@@ -248,8 +248,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final PropertyKey<String> sourceIdKey             = securityTraits.key("sourceId");
 			final PropertyKey<String> targetIdKey             = securityTraits.key("targetId");
 			final PropertyKey<String> relTypeKey              = securityTraits.key("relType");
-			final PropertyKey<String> principalIdKey          = securityTraits.key("allowed");
-			final PropertyKey<String> accessControllableIdKey = securityTraits.key("allowed");
+			final PropertyKey<String> principalIdKey          = securityTraits.key("principalId");
+			final PropertyKey<String> accessControllableIdKey = securityTraits.key("accessControllableId");
 			final PropertyKey<String[]> allowedKey            = securityTraits.key("allowed");
 			final String userId                               = user.getUuid();
 

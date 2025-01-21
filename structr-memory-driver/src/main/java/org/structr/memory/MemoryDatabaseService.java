@@ -30,6 +30,7 @@ import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -89,27 +90,31 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	@Override
 	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id    = new MemoryIdentity(true, type);
-		final MemoryNode newNode   = new MemoryNode(this, id);
-		final String tenantId      = getTenantIdentifier();
+		final MemoryTransaction tx  = getCurrentTransaction();
+		final MemoryIdentity id     = new MemoryIdentity(true, type);
+		final MemoryNode newNode    = new MemoryNode(this, id);
+		final String tenantId       = getTenantIdentifier();
+		final Set<String> allLabels = new LinkedHashSet<>();
 
 		// base type is always a label
-		newNode.addLabel(type, false);
+		allLabels.add(type);
+		//newNode.addLabel(type, false);
 
 		// add tenant identifier here
 		if (tenantId != null) {
 
-			newNode.addLabel(tenantId, false);
+			allLabels.add(tenantId);
+			//newNode.addLabel(tenantId, false);
 		}
 
 		// add labels
 		if (labels != null) {
 
-			for (final String label : labels) {
-				newNode.addLabel(label, false);
-			}
+			allLabels.addAll(labels);
 		}
+
+		// bulk add labels
+		newNode.addLabels(allLabels, false);
 
 		tx.create(newNode);
 
@@ -323,7 +328,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		final MemoryRelationship newRelationship = new MemoryRelationship(this, id, relType, (MemoryIdentity)sourceNode.getId(), (MemoryIdentity)targetNode.getId());
 
 		// base type is always a label
-		newRelationship.addLabel(relType.name());
+		newRelationship.addLabels(Set.of(relType.name()));
 
 		tx.create(newRelationship);
 

@@ -20,8 +20,10 @@ package org.structr.core.entity;
 
 import org.structr.api.graph.Direction;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.Property;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 
 /**
@@ -29,26 +31,13 @@ import org.structr.core.property.PropertyKey;
  */
 public abstract class AbstractRelation {
 
-	private final Property<String> sourceId;
-	private final Property<String> targetId;
-	private PropertyKey sourceProperty = null;
-	private PropertyKey targetProperty = null;
+
+	private final Notion startNodeNotion = new RelationshipNotion("sourceId");
+	private final Notion endNodeNotion   = new RelationshipNotion("targetId");
+	private PropertyKey sourceProperty   = null;
+	private PropertyKey targetProperty   = null;
 
 	protected SecurityContext securityContext  = null;
-
-	public AbstractRelation(final Property<String> sourceId, final Property<String> targetId) {
-
-		this.sourceId = sourceId;
-		this.targetId = targetId;
-	}
-
-	public Property<String> getSourceIdProperty() {
-		return sourceId;
-	}
-
-	public Property<String> getTargetIdProperty() {
-		return targetId;
-	}
 
 	public void setSourceProperty(final PropertyKey source) {
 		this.sourceProperty = source;
@@ -64,6 +53,22 @@ public abstract class AbstractRelation {
 
 	public PropertyKey getTargetProperty() {
 		return targetProperty;
+	}
+
+	public Notion getEndNodeNotion() {
+		return endNodeNotion;
+	}
+
+	public Notion getStartNodeNotion() {
+		return startNodeNotion;
+	}
+
+	public PropertyKey<String> getSourceIdProperty() {
+		return Traits.of("RelationshipInterface").key("sourceId");
+	}
+
+	public PropertyKey<String> getTargetIdProperty() {
+		return Traits.of("RelationshipInterface").key("targetId");
 	}
 
 	public final Direction getDirectionForType(final String sourceType, final String targetType, final String type) {

@@ -46,14 +46,14 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 	}
 
 	@Override
-	public NodeInterface instantiateWithType(final Node node, final String nodeClass, final Identity pathSegmentId, boolean isCreation) {
+	public NodeInterface instantiateWithType(final Node node, final Identity pathSegmentId, boolean isCreation) {
 
-		// cannot instantiate node without type
-		if (nodeClass == null) {
+		// check deletion first
+		if (TransactionCommand.isDeleted(node)) {
 			return null;
 		}
 
-		final AbstractNode newNode = new AbstractNode(securityContext, node, nodeClass, TransactionCommand.getCurrentTransactionId());
+		final AbstractNode newNode = new AbstractNode(securityContext, node, TransactionCommand.getCurrentTransactionId());
 
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
@@ -62,27 +62,6 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 		if (isCreation || securityContext.isReadable(newNode, includeHidden, publicOnly)) {
 
 			return newNode;
-		}
-
-		return null;
-	}
-
-	// ----- protected methods -----
-	@Override
-	protected String determineActualType(final Node node) {
-
-		// check deletion first
-		if (TransactionCommand.isDeleted(node)) {
-			return null;
-		}
-
-		if (node.hasProperty("type")) {
-
-			final Object obj =  node.getProperty("type");
-			if (obj != null) {
-
-				return obj.toString();
-			}
 		}
 
 		return null;

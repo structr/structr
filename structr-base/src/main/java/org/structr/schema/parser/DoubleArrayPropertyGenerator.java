@@ -25,7 +25,6 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -77,14 +76,14 @@ public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerato
 	}
 
 	@Override
-	public List<IsValid> getValidators(final PropertyKey<Double[]> key) throws FrameworkException {
+	public List<IsValid> getValidators(final String key) throws FrameworkException {
 
 		final List<IsValid> validators = super.getValidators(key);
 		final String format            = source.getFormat();
 
 		if (format != null && !error) {
 
-			validators.add((obj, errorBuffer) -> ValidationHelper.isValidDoubleArrayInRange(obj, key, format, errorBuffer));
+			validators.add((obj, errorBuffer) -> ValidationHelper.isValidDoubleArrayInRange(obj, obj.getTraits().key(key), format, errorBuffer));
 		}
 
 		return validators;

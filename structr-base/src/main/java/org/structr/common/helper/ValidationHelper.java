@@ -26,7 +26,6 @@ import org.structr.api.graph.Identity;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -34,6 +33,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.List;
 import java.util.Map;
@@ -550,22 +550,25 @@ public class ValidationHelper {
 
 		if (key != null) {
 
+			// validation will only be executed for non-null values
 			final Object value = object.getProperty(key);
 			if (value != null) {
 
-				// validation will only be executed for non-null values
+				String type = object.getTraits().getName();
 				List<GraphObject> result = null;
-				String type = object.getType();
 
-				/* fixme?
 				// use declaring class for inheritance-aware uniqueness
-				String type = key.getDeclaringTrait().getName();
-				if (type == null || (AbstractNode.name.equals(key) && NodeInterface.class.equals(type))) {
+				final TraitDefinition trait = key.getDeclaringTrait();
+				if (trait == null || "NodeInterface".equals(trait.getName())) {
 
 					// fallback: object type
 					type = object.getTraits().getName();
+
+				} else {
+
+					// use declaring trait for inheritance-aware queries
+					type = trait.getName();
 				}
-				*/
 
 				try {
 

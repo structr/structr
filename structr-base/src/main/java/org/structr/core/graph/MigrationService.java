@@ -28,19 +28,14 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.StorageConfiguration;
-import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.event.ActionMapping;
-import org.structr.web.entity.event.ParameterMapping;
 
 import java.util.*;
 
@@ -71,7 +66,7 @@ public class MigrationService {
 			logger.info("Checking if principal nodes need migration..");
 
 			for (final NodeInterface p : app.nodeQuery("Principal").getResultStream()) {
-				p.getNode().addLabel(Principal.class.getSimpleName());
+				p.getNode().addLabels(Set.of("Principal"));
 			}
 
 			tx.success();

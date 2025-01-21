@@ -239,7 +239,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed();
 		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed();
 		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode");
-		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", ownerProperty);
+		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", "NodeInterface", "owner", "Principal");
 		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship");
 		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath");
 

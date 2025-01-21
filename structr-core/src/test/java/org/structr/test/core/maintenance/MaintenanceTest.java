@@ -163,7 +163,7 @@ public class MaintenanceTest extends StructrTest {
 			// create test nodes
 			final List<NodeInterface> testNodes = createTestNodes("TestEleven", 10);
 			final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
-			int labelCount                   = 5;
+			int labelCount                   = Traits.of("TestEleven").getLabels().size();
 
 			// one additional label
 			if (tenantIdentifier != null) {
@@ -184,7 +184,8 @@ public class MaintenanceTest extends StructrTest {
 					System.out.println();
 
 					assertEquals("Number of labels must be " + labelCount, labelCount,      labels.size());
-					assertTrue("Set of labels must contain AbstractNode",       labels.contains("AbstractNode"));
+					assertTrue("Set of labels must contain PropertyContainer",  labels.contains("PropertyContainer"));
+					assertTrue("Set of labels must contain GraphObject",        labels.contains("GraphObject"));
 					assertTrue("Set of labels must contain NodeInterface",      labels.contains("NodeInterface"));
 					assertTrue("Set of labels must contain AccessControllable", labels.contains("AccessControllable"));
 					assertTrue("Set of labels must contain TestOne",            labels.contains("TestOne"));
@@ -224,11 +225,12 @@ public class MaintenanceTest extends StructrTest {
 
 					assertEquals(labelCount, set.size());
 
-					assertTrue("First label has to be AbstractNode",       set.contains("AbstractNode"));
-					assertTrue("Second label has to be NodeInterface",     set.contains("NodeInterface"));
-					assertTrue("Third label has to be AccessControllable", set.contains("AccessControllable"));
-					assertTrue("Fourth label has to be TestEleven",        set.contains("TestEleven"));
-					assertTrue("Fifth label has to be TestOne",            set.contains("TestOne"));
+					assertTrue("Set of labels must contain PropertyContainer",  set.contains("PropertyContainer"));
+					assertTrue("Set of labels must contain GraphObject",        set.contains("GraphObject"));
+					assertTrue("Set of labels must contain NodeInterface",      set.contains("NodeInterface"));
+					assertTrue("Set of labels must contain AccessControllable", set.contains("AccessControllable"));
+					assertTrue("Set of labels must contain TestEleven",         set.contains("TestEleven"));
+					assertTrue("Set of labels must contain TestOne",            set.contains("TestOne"));
 
 					if (tenantIdentifier != null) {
 						assertTrue("Set of labels must contain custom tenant identifier if set", set.contains(tenantIdentifier));
@@ -260,7 +262,8 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add("Principal");
 			expectedLabels.add("Group");
 			expectedLabels.add("AccessControllable");
-			expectedLabels.add("AbstractNode");
+			expectedLabels.add("GraphObject");
+			expectedLabels.add("PropertyContainer");
 			expectedLabels.add("NodeInterface");
 
 			if (graphDb.getTenantIdentifier() != null) {
@@ -316,12 +319,12 @@ public class MaintenanceTest extends StructrTest {
 			final DatabaseService graphDb    = app.getDatabaseService();
 			final Set<String> expectedLabels = new TreeSet<>();
 
-			expectedLabels.add("AbstractNode");
-			expectedLabels.add("AccessControllable");
-			expectedLabels.add("Group");
-			expectedLabels.add("Principal");
-			expectedLabels.add("PrincipalInterface");
+			expectedLabels.add("PropertyContainer");
+			expectedLabels.add("GraphObject");
 			expectedLabels.add("NodeInterface");
+			expectedLabels.add("AccessControllable");
+			expectedLabels.add("Principal");
+			expectedLabels.add("Group");
 
 			if (graphDb.getTenantIdentifier() != null) {
 				expectedLabels.add(graphDb.getTenantIdentifier());
