@@ -3047,7 +3047,7 @@ let _Crud = {
 				return;
 			}
 
-			let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
+			let dialog = _Dialogs.custom.openDialog(`Create ${type}`);
 			_Dialogs.custom.noConfirmOnEscape();
 
 			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
@@ -3207,7 +3207,7 @@ let _Crud = {
 		typeButtons: config => `
 			<div id="crud-buttons" class="flex items-center">
 				<button class="action inline-flex items-center" id="create${config.type}">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create new ${config.type}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create ${config.type}
 				</button>
 				<button id="export${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon(_Icons.iconExportAsCSV, 16, 16, ['mr-2', 'icon-grey'])} Export as CSV

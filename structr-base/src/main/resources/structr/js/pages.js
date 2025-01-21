@@ -657,7 +657,7 @@ let _Pages = {
 
 				_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 3rem)`;
 
-				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 2rem)`;
+				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 7rem)`;
 
 			} else {
 
@@ -711,7 +711,7 @@ let _Pages = {
 
 		_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		Structr.setFunctionBarHTML(_Pages.templates.functions());
+		Structr.setFunctionBarHTML(_Pages.templates.pagesActions() + _Pages.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -1754,7 +1754,7 @@ let _Pages = {
 
 					// show dialog
 					{
-						if(dialogTypeSelect.value !== 'none') {
+						if (dialogTypeSelect.value !== 'none') {
 							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
 								dialogInput.classList.remove('hidden');
 							}
@@ -2672,8 +2672,8 @@ let _Pages = {
 								let idString    = el.id ? ('#' + el.id) : '';
 								let classString = Array.from(el.classList).filter(c => c !== 'design-tools-locked').map(t => t.length > 1 ? '.' + t : null).join(' ');
 								childTemplateNameInput.value = tagString + ((el.id || classString) ? ' (' : '')
-										+ idString + ((el.id && classString) ? ' ' : '')
-										+ classString
+									+ idString + ((el.id && classString) ? ' ' : '')
+									+ classString
 									+ ((el.id || classString) ? ')' : '');
 
 							});
@@ -3899,6 +3899,29 @@ let _Pages = {
 		});
 	},
 	templates: {
+		pagesActions: config => `
+					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+						<button class="action button btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Page
+						</button>
+						<div class="dropdown-menu-container">
+
+							<div class="flex flex-col divide-x-0 divide-y">
+								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
+								</a>
+
+								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
+								</a>
+
+								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
+								</a-->
+							</div>
+						</div>
+					</div>
+		`,
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
 
@@ -3919,28 +3942,6 @@ let _Pages = {
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
 					<div id="pagesPager"></div>
-
-					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])}
-						</button>
-						<div class="dropdown-menu-container">
-
-							<div class="flex flex-col divide-x-0 divide-y">
-								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
-								</a>
-
-								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
-								</a>
-
-								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
-								</a-->
-							</div>
-						</div>
-					</div>
 				</div>
 				<div id="pagesTree"></div>
 			</div>
@@ -4279,7 +4280,7 @@ let _Pages = {
 
 						</div>
 
-						<!--div class="hidden options-prev-page options-next-page				em-action-element em-action-next-page em-action-prev-page">
+						<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
 							<div>
 								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
 								<input type="text" id="pagination-name-input">
@@ -4299,7 +4300,7 @@ let _Pages = {
 
 						<div class="hidden options-method em-action-element em-action-method">
 							<div>
-								<label class="block mb-2" for="method-name-input" data-comment="Enter name of an User-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
+								<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
 								<input type="text" id="method-name-input">
 							</div>
 						</div>
@@ -4836,39 +4837,39 @@ TopLevelObject.DOMPresentationUtils._cssPathStep = function(node, optimized, isT
 	var elementIndex = -1;
 	var siblings = parent.children;
 	for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
-	var sibling = siblings[i];
-	if (sibling.nodeType !== Node.ELEMENT_NODE)
-		continue;
-	elementIndex += 1;
-	if (sibling === node) {
-		ownIndex = elementIndex;
-		continue;
-	}
-	if (needsNthChild)
-		continue;
-	if (sibling.tagName.toLowerCase() !== nodeName)
-		continue;
-	needsClassNames = true;
-	var ownClassNames = prefixedOwnClassNamesArray.values();
-	var ownClassNameCount = 0;
-	for (var name in ownClassNames)
-		++ownClassNameCount;
-	if (ownClassNameCount === 0) {
-		needsNthChild = true;
-		continue;
-	}
-	var siblingClassNamesArray = prefixedElementClassNames(sibling);
-	for (var j = 0; j < siblingClassNamesArray.length; ++j) {
-		var siblingClass = siblingClassNamesArray[j];
-		if (!ownClassNames.hasOwnProperty(siblingClass))
+		var sibling = siblings[i];
+		if (sibling.nodeType !== Node.ELEMENT_NODE)
 			continue;
-		delete ownClassNames[siblingClass];
-		if (!-ownClassNameCount) {
+		elementIndex += 1;
+		if (sibling === node) {
+			ownIndex = elementIndex;
+			continue;
+		}
+		if (needsNthChild)
+			continue;
+		if (sibling.tagName.toLowerCase() !== nodeName)
+			continue;
+		needsClassNames = true;
+		var ownClassNames = prefixedOwnClassNamesArray.values();
+		var ownClassNameCount = 0;
+		for (var name in ownClassNames)
+			++ownClassNameCount;
+		if (ownClassNameCount === 0) {
 			needsNthChild = true;
-			break;
+			continue;
+		}
+		var siblingClassNamesArray = prefixedElementClassNames(sibling);
+		for (var j = 0; j < siblingClassNamesArray.length; ++j) {
+			var siblingClass = siblingClassNamesArray[j];
+			if (!ownClassNames.hasOwnProperty(siblingClass))
+				continue;
+			delete ownClassNames[siblingClass];
+			if (!-ownClassNameCount) {
+				needsNthChild = true;
+				break;
+			}
 		}
 	}
-}
 	var result = nodeName;
 	if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
 		result += "[type=\"" + node.getAttribute("type") + "\"]";

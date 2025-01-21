@@ -734,7 +734,7 @@ let _Localization = {
 					<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" name="locale">
 
 					<button type="submit" form="create-localization-form" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-white', 'mr-2'])} Create new localization key
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-white', 'mr-2'])} Create Localization
 					</button>
 				</div>
 			</form>

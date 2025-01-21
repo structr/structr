@@ -529,7 +529,7 @@ let _VirtualTypes = {
 						</table>
 
 						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green inline-flex items-center">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2', 'icon-green'])} New Virtual Property
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2', 'icon-green'])} Create Virtual Property
 						</button>
 					</div>
 				</div>
@@ -542,7 +542,7 @@ let _VirtualTypes = {
 				<input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required class="mr-2">
 
 				<button type="submit" form="create-virtual-type-form" class="btn action inline-flex items-center" id="create-virtual-type">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Virtual Type
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Virtual Type
 				</button>
 
 			</form>

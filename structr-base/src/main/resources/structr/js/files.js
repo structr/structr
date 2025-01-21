@@ -1901,24 +1901,24 @@ let _Files = {
 
 				<div class="inline-flex">
 
-					<select class="select-create-type mr-2" id="folder-type">
+					<select class="select-create-type combined-select-create" id="folder-type">
 						<option value="Folder">Folder</option>
 						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
-					<button class="action button inline-flex items-center" id="add-folder-button">
+					<button class="action button inline-flex items-center combined-select-create" id="add-folder-button">
 						${_Icons.getSvgIcon(_Icons.iconCreateFolder, 16, 16, ['mr-2'])}
-						<span>Add</span>
+						<span>Create</span>
 					</button>
 
-					<select class="select-create-type mr-2" id="file-type">
+					<select class="select-create-type combined-select-create" id="file-type">
 						<option value="File">File</option>
 						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
-					<button class="action button inline-flex items-center" id="add-file-button">
+					<button class="action button inline-flex items-center combined-select-create" id="add-file-button">
 						${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, ['mr-2'])}
-						<span>Add</span>
+						<span>Create</span>
 					</button>
 
 					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">
