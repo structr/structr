@@ -81,20 +81,13 @@ public class StructrJsonWriter implements RestWriter {
 
 	@Override
 	public RestWriter beginObject() throws IOException {
-		return beginObject(null, true);
+		return beginObject(null);
 	}
 
 	@Override
-	public RestWriter beginObject(final boolean fix) throws IOException {
-		return beginObject(null, fix);
-	}
-
-	@Override
-	public RestWriter beginObject(final GraphObject graphObject, final boolean fix) throws IOException {
+	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 		increaseSerializationDepth();
-		if(fix) {
-			writer.beginObject();
-		}
+		writer.beginObject();
 		return this;
 	}
 

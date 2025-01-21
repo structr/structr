@@ -160,14 +160,19 @@ public abstract class StreamingWriter {
 			root.serializeRoot(rootWriter, result, view, 0, visitedObjects, true);
 
 		} else {
+			if(fix){
+				rootWriter.beginObject();
+			}
 
-			rootWriter.beginObject(fix);
 
 			if (result != null) {
 
-				rootWriter.name(resultKeyName);
+				if(fix){
+					rootWriter.name(resultKeyName);
+				}
 
-				actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects, false);
+
+				actualResultCount = root.serializeRoot(rootWriter, result, view, 0, visitedObjects, true);
 
 				rootWriter.flush();
 			}
@@ -443,7 +448,7 @@ public abstract class StreamingWriter {
 					return 1;
 				}
 
-				writer.beginObject(source, fix);
+				writer.beginObject(source);
 
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
@@ -583,7 +588,7 @@ public abstract class StreamingWriter {
 
 			long count = 0L;
 
-			writer.beginObject(fix);
+			writer.beginObject();
 
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
@@ -616,7 +621,7 @@ public abstract class StreamingWriter {
 
 			long count = 0;
 
-			writer.beginObject(fix);
+			writer.beginObject();
 
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
