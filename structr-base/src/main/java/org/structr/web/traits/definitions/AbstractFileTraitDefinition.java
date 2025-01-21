@@ -150,7 +150,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration");
 		final Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").updateCallback(AbstractFileTraitDefinition::updateHasParent);
-		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", parentProperty).format("parent, {},");
+		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", "AbstractFile", "parent", "Folder");
 		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed().dynamic();
 		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed().dynamic();
 		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed().dynamic();

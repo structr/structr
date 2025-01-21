@@ -228,8 +228,8 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 		final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", "SchemaRelationshipSourceNode");
 		final Property<NodeInterface> targetNode          = new EndNode("targetNode", "SchemaRelationshipTargetNode");
-		final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", sourceNode, new PropertyNotion(Traits.idProperty()));
-		final Property<String>     targetId               = new EntityNotionProperty<>("targetId", targetNode, new PropertyNotion(Traits.idProperty()));
+		final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", "SchemaRelationshipNode", "sourceNode", "SchemaNode", new PropertyNotion("id"));
+		final Property<String>     targetId               = new EntityNotionProperty<>("targetId", "SchemaRelationshipNode", "targetNode", "SchemaNode", new PropertyNotion("id"));
 		final Property<String>     sourceType             = new StringProperty("sourceType");
 		final Property<String>     targetType             = new StringProperty("targetType");
 		final Property<String>     name                   = new StringProperty("name").indexed();

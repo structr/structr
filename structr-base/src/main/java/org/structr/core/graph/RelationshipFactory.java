@@ -19,14 +19,9 @@
 package org.structr.core.graph;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 
 /**
@@ -35,8 +30,6 @@ import org.structr.core.entity.AbstractRelationship;
  * used operation.
  */
 public class RelationshipFactory extends Factory<Relationship, RelationshipInterface> {
-
-	private static final Logger logger = LoggerFactory.getLogger(RelationshipFactory.class.getName());
 
 	public RelationshipFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -55,31 +48,7 @@ public class RelationshipFactory extends Factory<Relationship, RelationshipInter
 	}
 
 	@Override
-	public RelationshipInterface instantiateWithType(final Relationship relationship, final String relClass, final Identity pathSegmentId, final boolean isCreation) {
-
-		// cannot instantiate relationship without type
-		if (relClass == null) {
-			return null;
-		}
-
-		logger.debug("Instantiate relationship with type {}", relClass);
-
-		return new AbstractRelationship(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
-	}
-
-	// ----- protected methods -----
-	@Override
-	protected String determineActualType(final Relationship relationship) {
-
-		if (relationship.hasProperty("type")) {
-
-			final Object obj =  relationship.getProperty("type");
-			if (obj != null) {
-
-				return obj.toString();
-			}
-		}
-
-		return null;
+	public RelationshipInterface instantiateWithType(final Relationship relationship, final Identity pathSegmentId, final boolean isCreation) {
+		return new AbstractRelationship(securityContext, relationship, TransactionCommand.getCurrentTransactionId());
 	}
 }

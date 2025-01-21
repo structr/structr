@@ -64,7 +64,7 @@ public abstract class PropertyGenerator<T> {
 		return null;
 	}
 
-	public List<IsValid> getValidators(final PropertyKey<T> key) throws FrameworkException {
+	public List<IsValid> getValidators(final String key) throws FrameworkException {
 
 		final List<IsValid> validators = new LinkedList<>();
 
@@ -74,7 +74,7 @@ public abstract class PropertyGenerator<T> {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidPropertyNotNull(obj, key, errorBuffer);
+					return ValidationHelper.isValidPropertyNotNull(obj, obj.getTraits().key(key), errorBuffer);
 				}
 			});
 		}
@@ -85,7 +85,7 @@ public abstract class PropertyGenerator<T> {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidUniqueProperty(obj, key, errorBuffer);
+					return ValidationHelper.isValidUniqueProperty(obj, obj.getTraits().key(key), errorBuffer);
 				}
 			});
 		}

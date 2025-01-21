@@ -23,19 +23,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
-import org.structr.core.property.Property;
 
 /**
  *
  *
  */
 public abstract class ManyToMany extends AbstractRelation implements Relation<ManyStartpoint, ManyEndpoint> {
-
-	public ManyToMany(final Property<String> sourceId, final Property<String> targetId) {
-		super(sourceId, targetId);
-	}
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -72,17 +65,6 @@ public abstract class ManyToMany extends AbstractRelation implements Relation<Ma
 				message
 			));
 		}
-	}
-
-	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
-	}
-
-	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
 	}
 
 	@Override

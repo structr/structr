@@ -115,7 +115,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final Node startNode               = fromNode.getNode();
 		final Node endNode                 = toNode.getNode();
 		final Relationship rel             = startNode.createRelationshipTo(endNode, relation, tmp.getData());
-		final RelationshipInterface newRel = factory.instantiateWithType(rel, entityType, null, true);
+		final RelationshipInterface newRel = factory.instantiateWithType(rel, null, true);
 
 		if (newRel != null) {
 

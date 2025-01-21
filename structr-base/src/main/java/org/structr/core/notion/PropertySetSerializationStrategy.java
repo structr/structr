@@ -24,6 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 
 import java.util.Set;
 
@@ -34,9 +35,9 @@ import java.util.Set;
  */
 public class PropertySetSerializationStrategy implements SerializationStrategy {
 
-	private final Set<PropertyKey> propertyKeys;
+	private final Set<String> propertyKeys;
 
-	public PropertySetSerializationStrategy(final Set<PropertyKey> propertyKeys) {
+	public PropertySetSerializationStrategy(final Set<String> propertyKeys) {
 
 		this.propertyKeys = propertyKeys;
 
@@ -55,8 +56,12 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 		if (source != null) {
 
 			final PropertyMap propertyMap = new PropertyMap();
+			final Traits traits           = Traits.of(type);
 
-			for (PropertyKey key : propertyKeys) {
+			for (String name : propertyKeys) {
+
+				final PropertyKey key = traits.key(name);
+
 				propertyMap.put(key, source.getProperty(key));
 			}
 

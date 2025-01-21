@@ -27,7 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -69,6 +68,7 @@ public class TypeProperty extends StringProperty {
 		final Set<String> toAdd        = new LinkedHashSet<>();
 		final Node dbNode              = node.getNode();
 		final List<String> labels      = Iterables.toList(dbNode.getLabels());
+		Traits typeCandidate           = inputType;
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
@@ -82,9 +82,10 @@ public class TypeProperty extends StringProperty {
 		if (node instanceof AbstractNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
 			final String singleLabelTypeName = labels.get(0);
-			final Traits typeCandidate       = Traits.of(singleLabelTypeName);
 
-			if (typeCandidate != null) {
+			if (Traits.exists(singleLabelTypeName)) {
+
+				typeCandidate = Traits.of(singleLabelTypeName);
 
 				dbNode.setProperty("type", singleLabelTypeName);
 			}
@@ -96,7 +97,7 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// collect new labels
-		toAdd.addAll(inputType.getLabels());
+		toAdd.addAll(typeCandidate.getLabels());
 
 		// calculate intersection
 		intersection.addAll(toAdd);
@@ -115,9 +116,7 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// add difference
-		for (final String add : toAdd) {
-			dbNode.addLabel(add);
-		}
+		dbNode.addLabels(toAdd);
 	}
 
 	// ----- OpenAPI -----

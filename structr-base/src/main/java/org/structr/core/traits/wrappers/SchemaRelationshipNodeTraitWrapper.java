@@ -25,7 +25,6 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
@@ -560,7 +559,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 					if (ValidKeyPattern.matcher(key).matches()) {
 
-						return new PropertyNotion(getNotionKey(_className, key), create);
+						return new PropertyNotion(key, create);
 
 					} else {
 
@@ -569,24 +568,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 				} else {
 
-					final Set<PropertyKey> keySet = new LinkedHashSet<>();
-
-					// use only matching keys
-					for (final Iterator<String> it = Iterables.filter(new KeyMatcher(), keys).iterator(); it.hasNext();) {
-
-						buf.append(getNotionKey(_className, it.next()));
-					}
-
-					return new PropertySetNotion<>(keySet);
+					return new PropertySetNotion<>(keys);
 				}
 			}
 		}
 
 		return new ObjectNotion();
-	}
-
-	private PropertyKey getNotionKey(final String _className, final String key) {
-		return Traits.of(_className).key(key);
 	}
 
 	private String getBaseType() {

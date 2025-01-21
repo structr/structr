@@ -43,12 +43,12 @@ import java.util.Set;
  */
 public class NotionPropertyGenerator extends PropertyGenerator {
 
-	private final Set<PropertyKey> properties = new LinkedHashSet<>();
-	private boolean isPropertySet             = false;
-	private boolean isAutocreate              = false;
-	private String relatedType                = null;
-	private String baseProperty               = null;
-	private String multiplicity               = null;
+	private final Set<String> properties = new LinkedHashSet<>();
+	private boolean isPropertySet        = false;
+	private boolean isAutocreate         = false;
+	private String relatedType           = null;
+	private String baseProperty          = null;
+	private String multiplicity          = null;
 
 	public NotionPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
@@ -87,6 +87,8 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 		if (parts.length > 0 && schemaNode instanceof SchemaNode entity) {
 
+			final String baseType = entity.getClassName();
+
 			baseProperty = parts[0];
 			multiplicity = entity.getMultiplicity(baseProperty);
 
@@ -95,7 +97,6 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 				// determine related type from relationship
 				relatedType  = entity.getRelatedType(baseProperty);
 
-				final PropertyKey base  = Traits.of(entity.getClassName()).key(baseProperty);
 				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase()) || "false".equals(parts[2].toLowerCase())));
 				Notion notion           = null;
 				isAutocreate            = isBoolean;
@@ -111,7 +112,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 					if (!isFlag && !propertyName.contains(".")) {
 
-						properties.add(Traits.of(relatedType).key(fullPropertyName));
+						properties.add(fullPropertyName);
 					}
 
 					/*
@@ -135,7 +136,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 				} else {
 
-					final PropertyKey p = Iterables.first(properties);
+					final String p = Iterables.first(properties);
 
 					notion = new PropertyNotion(p, isAutocreate);
 				}
@@ -144,12 +145,12 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 					case "1X":
 					case "1":
-						property = new EntityNotionProperty(name, (Property)base, notion);
+						property = new EntityNotionProperty(name, baseType, baseProperty, relatedType, notion);
 						break;
 
 					case "*X":
 					case "*":
-						property = new CollectionNotionProperty(name, (Property)base, notion);
+						property = new CollectionNotionProperty(name, baseType, baseProperty, relatedType, notion);
 						break;
 
 					default:
@@ -209,7 +210,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 		return isPropertySet;
 	}
 
-	public Set<PropertyKey> getProperties() {
+	public Set<String> getProperties() {
 		return properties;
 	}
 

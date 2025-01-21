@@ -22,9 +22,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AddLabelsFunction extends ManageLabelsFunction {
+
 	@Override
 	public String getName() {
 		return "add_labels";
@@ -41,11 +44,10 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 		validateArguments(ctx, caller, sources);
 
 		final NodeInterface node = (NodeInterface)sources[0];
-		final List<String> list  = (List)sources[1];
+		final Set<String> set    = new LinkedHashSet<>((List)sources[1]);
 
-		for (final String label : list) {
-			node.getNode().addLabel(label);
-		}
+		node.getNode().addLabels(set);
+
 		return null;
 	}
 

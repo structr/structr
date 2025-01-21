@@ -25,9 +25,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
-import org.structr.core.property.Property;
 import org.structr.core.traits.Traits;
 
 /**
@@ -35,10 +32,6 @@ import org.structr.core.traits.Traits;
  *
  */
 public abstract class OneToOne extends AbstractRelation implements Relation<OneStartpoint, OneEndpoint> {
-
-	public OneToOne(final Property<String> sourceId, final Property<String> targetId) {
-		super(sourceId, targetId);
-	}
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -100,17 +93,6 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 				}
 			}
 		}
-	}
-
-	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
-	}
-
-	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
 	}
 
 	@Override

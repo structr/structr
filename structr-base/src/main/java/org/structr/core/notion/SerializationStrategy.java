@@ -29,7 +29,6 @@ import org.structr.core.property.RelationProperty;
  */
 public interface SerializationStrategy<S extends GraphObject, T> {
 
-	public T serialize(SecurityContext securityContext, String type, S source) throws FrameworkException;
-
-	public void setRelationProperty(final RelationProperty parentProperty);
+	T serialize(SecurityContext securityContext, String type, S source) throws FrameworkException;
+	void setRelationProperty(final RelationProperty parentProperty);
 }

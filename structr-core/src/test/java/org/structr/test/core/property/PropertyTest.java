@@ -852,8 +852,6 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Double> key = Traits.of("TestFour").key("doubleProperty");
 
@@ -891,8 +889,6 @@ public class PropertyTest extends StructrTest {
 			fex.printStackTrace();
 			fail(fex.getMessage());
 		}
-
-		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	// ----- entity property tests -----

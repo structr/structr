@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 
 /**
  * Serializes a {@link GraphObject} using a property value.
@@ -30,13 +31,13 @@ import org.structr.core.property.RelationProperty;
  */
 public class PropertySerializationStrategy implements SerializationStrategy {
 
-	private String propertyKey = null;
+	private String propertyKeyName = null;
 
-	public PropertySerializationStrategy(final String propertyKey) {
+	public PropertySerializationStrategy(final String propertyKeyName) {
 
-		this.propertyKey = propertyKey;
+		this.propertyKeyName = propertyKeyName;
 
-		if (propertyKey == null) {
+		if (propertyKeyName == null) {
 			throw new IllegalStateException("PropertySerializationStrategy must contain at least one property.");
 		}
 	}
@@ -49,7 +50,8 @@ public class PropertySerializationStrategy implements SerializationStrategy {
 	public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) throws FrameworkException {
 
 		if(source != null) {
-			return source.getProperty(propertyKey);
+
+			return source.getProperty(Traits.of(type).key(propertyKeyName));
 		}
 
 		return null;

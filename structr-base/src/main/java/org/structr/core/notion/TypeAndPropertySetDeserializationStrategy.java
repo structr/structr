@@ -49,14 +49,14 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 
 	protected RelationProperty relationProperty = null;
-	protected final Set<PropertyKey> propertyKeys;
+	protected final Set<String> propertyKeys;
 	protected final boolean createIfNotExisting;
 
-	public TypeAndPropertySetDeserializationStrategy(final Set<PropertyKey> propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(final Set<String> propertyKeys) {
 		this(false, propertyKeys);
 	}
 
-	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, Set<PropertyKey> propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, Set<String> propertyKeys) {
 
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKeys        = propertyKeys;
@@ -112,8 +112,8 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 				boolean attributesComplete = true;
 
 				// Check if all property keys of the PropertySetNotion are present
-				for (PropertyKey key : propertyKeys) {
-					attributesComplete &= attributes.containsKey(key);
+				for (String key : propertyKeys) {
+					attributesComplete &= attributes.containsKey(Traits.of(type).key(key));
 				}
 
 				if (attributesComplete) {

@@ -2623,16 +2623,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				try {
-					Settings.CypherDebugLogging.setValue(true);
-
-					assertEquals(4, app.nodeQuery(type).matches(Traits.of("NodeInterface").key("name"), "(?i).*one.*").getAsList().size());
-					assertEquals(1, app.nodeQuery(type).matches(Traits.of("NodeInterface").key("name"), ".*One\\-11").getAsList().size());
-
-				} finally {
-
-					Settings.CypherDebugLogging.setValue(false);
-				}
+				assertEquals(4, app.nodeQuery(type).matches(Traits.of("NodeInterface").key("name"), "(?i).*one.*").getAsList().size());
+				assertEquals(1, app.nodeQuery(type).matches(Traits.of("NodeInterface").key("name"), ".*One\\-11").getAsList().size());
 
 				tx.success();
 			}

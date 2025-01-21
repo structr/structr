@@ -260,6 +260,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	@Override
 	public void registrationCallback(final TraitDefinition trait) {
+		this.declaringTrait = trait;
 	}
 
 	@Override

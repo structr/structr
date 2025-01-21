@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.Traits;
@@ -48,40 +49,41 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 	protected RelationProperty relationProperty = null;
 	protected boolean createIfNotExisting       = false;
-	protected String propertyKey                = null;
+	protected String propertyKeyName            = null;
 
-	public TypeAndValueDeserializationStrategy(final String propertyKey, final boolean createIfNotExisting) {
+	public TypeAndValueDeserializationStrategy(final String propertyKeyName, final boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
-		this.propertyKey         = propertyKey;
+		this.propertyKeyName     = propertyKeyName;
 
-		if (propertyKey == null) {
+		if (propertyKeyName == null) {
 			throw new IllegalStateException("TypeAndValueDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, String type, S source, final Object context) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		final App app        = StructrApp.getInstance(securityContext);
 		final List<T> result = new LinkedList<>();
 
 		// default to UUID
-		if (propertyKey == null) {
-			propertyKey = "id";
+		if (propertyKeyName == null) {
+			propertyKeyName = "id";
 		}
 
 		// create and fill input map with source object
 		Map<String, Object> sourceMap = new LinkedHashMap<>();
-		sourceMap.put(propertyKey, source);
+		sourceMap.put(propertyKeyName, source);
 
 		// try to convert input type to java type in order to create object correctly
-		PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
+		final PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
+		final PropertyKey propertyKey        = Traits.of(type).key(propertyKeyName);
 		Object convertedSource         = convertedSourceMap.get(propertyKey);
 
 		if (convertedSource != null) {
@@ -89,7 +91,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 			// FIXME: use uuid only here?
 			if (convertedSource instanceof Map) {
 
-				Object value = ((Map<String, Object>)convertedSource).get(propertyKey);
+				Object value = ((Map<String, Object>)convertedSource).get(propertyKeyName);
 				if (value != null) {
 
 					result.addAll(app.nodeQuery(type).and(propertyKey, value.toString()).getAsList());
@@ -125,7 +127,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 				} else {
 
-					logger.debug("Unable to create node of type {} for property {}", type, propertyKey);
+					logger.debug("Unable to create node of type {} for property {}", type, propertyKeyName);
 				}
 
 				break;
@@ -135,7 +137,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 				T obj = result.get(0);
 
 				if (!obj.getTraits().contains(type)) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKey, type));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKeyName, type));
 				}
 
 				if (!convertedSourceMap.isEmpty()) {

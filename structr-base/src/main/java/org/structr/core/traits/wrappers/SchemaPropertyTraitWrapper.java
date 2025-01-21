@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -344,15 +345,7 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 
 	@Override
 	public Set<String> getPropertiesForNotionProperty() {
-
-		final Set<String> properties = new LinkedHashSet<>();
-
-		for (final PropertyKey key : getNotionPropertyParser().getProperties()) {
-
-			properties.add(key.jsonName());
-		}
-
-		return properties;
+		return getNotionPropertyParser().getProperties();
 	}
 
 	@Override
@@ -380,9 +373,8 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 
 		final ErrorBuffer errorBuffer     = new ErrorBuffer();
 		final PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, entity, this);
-		final PropertyKey key             = generator.createKey();
 
-		return generator.getValidators(key);
+		return generator.getValidators(getPropertyName());
 	}
 
 	public void setFqcn(final String value) throws FrameworkException {
@@ -411,6 +403,10 @@ public class SchemaPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterfa
 		if (notionPropertyParser == null) {
 
 			notionPropertyParser = new NotionPropertyGenerator(new ErrorBuffer(), getPropertyName(), this);
+
+			// we need to initialize the parser
+			notionPropertyParser.setSchemaNode(getSchemaNode().as(SchemaNode.class));
+			notionPropertyParser.createKey();
 		}
 
 		return notionPropertyParser;

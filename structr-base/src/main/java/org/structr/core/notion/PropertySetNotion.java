@@ -33,11 +33,11 @@ import java.util.Set;
  */
 public class PropertySetNotion<S extends NodeInterface> extends Notion<S, Map<String, Object>> {
 
-	public PropertySetNotion(final Set<PropertyKey> propertyKeys) {
+	public PropertySetNotion(final Set<String> propertyKeys) {
 		this(false, propertyKeys);
 	}
 	
-	public PropertySetNotion(final boolean createIfNotExisting, final Set<PropertyKey> propertyKeys) {
+	public PropertySetNotion(final boolean createIfNotExisting, final Set<String> propertyKeys) {
 		this(
 			new PropertySetSerializationStrategy(propertyKeys),
 			new TypeAndPropertySetDeserializationStrategy(createIfNotExisting, propertyKeys)
