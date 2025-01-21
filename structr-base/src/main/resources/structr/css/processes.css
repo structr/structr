@@ -1,0 +1,138 @@
+/**
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+.process-arrow-up,
+.process-arrow-down,
+.process-arrow-right,
+.process-arrow-left {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid #666;
+    border-left: 2px solid #666;
+}
+.process-arrow-up {
+    transform: rotate(45deg);
+}
+.process-arrow-down {
+    transform: rotate(-135deg);
+}
+.process-arrow-right {
+    transform: rotate(135deg);
+}
+.process-arrow-left {
+    transform: rotate(-45deg);
+}
+.process-arrow-up::after,
+.process-arrow-down::after,
+.process-arrow-right::after,
+.process-arrow-left::after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 45px;
+    background-color: #666;
+    transform: rotate(-45deg) translate(15px, 4px);
+    left: 0;
+    top: 0;
+}
+.process-long-arrow-up,
+.process-long-arrow-down,
+.process-long-arrow-right,
+.process-long-arrow-left {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid #666;
+    border-left: 2px solid #666;
+}
+.process-long-arrow-up::after,
+.process-long-arrow-down::after,
+.process-long-arrow-right::after,
+.process-long-arrow-left::after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 87px;
+    background-color: #666;
+    transform: rotate(-45deg) translate(30px, 12px);
+    left: 0;
+    top: 0;
+}
+
+.process-line-up,
+.process-line-down,
+.process-line-right,
+.process-line-left {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    border: none;
+}
+.process-line-up {
+    transform: rotate(45deg);
+}
+.process-line-down {
+    transform: rotate(-135deg);
+}
+.process-line-right {
+    transform: rotate(135deg);
+}
+.process-line-left {
+    transform: rotate(-45deg);
+}
+.process-line-up::after,
+.process-line-down::after,
+.process-line-right::after,
+.process-line-left::after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 45px;
+    background-color: #666;
+    transform: rotate(-45deg) translate(15px, 4px);
+    left: 0;
+    top: 0;
+}
+.process-long-line-up,
+.process-long-line-down,
+.process-long-line-right,
+.process-long-line-left {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    border: none;
+}
+.process-long-line-up::after,
+.process-long-line-down::after,
+.process-long-line-right::after,
+.process-long-line-left::after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 137px;
+    background-color: #666;
+    transform: rotate(-45deg) translate(49px, 27px);
+    left: 0;
+    top: 0;
+}

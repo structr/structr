@@ -22,6 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
+import org.structr.process.entity.Process;
+import org.structr.process.entity.ProcessStep;
+import org.structr.process.entity.relationship.*;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.relationship.*;
@@ -34,10 +37,17 @@ public class ActionMapping extends AbstractNode {
 	public static final Property<Iterable<ParameterMapping>> parameterMappings   = new EndNodes<>("parameterMappings", ActionMappingPARAMETERParameterMapping.class).partOfBuiltInSchema();
 	public static final Property<Iterable<DOMNode>> successNotificationElements  = new StartNodes<>("successNotificationElements", DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping.class).partOfBuiltInSchema();
 	public static final Property<Iterable<DOMNode>> failureNotificationElements  = new StartNodes<>("failureNotificationElements", DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Process>                               process  = new EndNode<>("process", ActionMappingCONTROLSProcess.class).partOfBuiltInSchema();
+	public static final Property<ProcessStep>                       processStep  = new EndNode<>("processStep", ActionMappingTRIGGERSProcessStep.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> processSuccessShowElements   = new StartNodes<>("processSuccessShowElements", DOMNodePROCESS_SHOW_ELEMENT_ON_SUCCESSActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> processSuccessHideElements   = new StartNodes<>("processSuccessHideElements", DOMNodePROCESS_HIDE_ELEMENT_ON_SUCCESSActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> processFailureShowElements   = new StartNodes<>("processFailureShowElements", DOMNodePROCESS_SHOW_ELEMENT_ON_FAILUREActionMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMNode>> processFailureHideElements   = new StartNodes<>("processFailureHideElements", DOMNodePROCESS_HIDE_ELEMENT_ON_FAILUREActionMapping.class).partOfBuiltInSchema();
 
 	public static final Property<String> eventProperty        = new StringProperty("event").hint("DOM event which triggers the action").partOfBuiltInSchema();
 	public static final Property<String> actionProperty       = new StringProperty("action").hint("Action which will be triggered").partOfBuiltInSchema();
 	public static final Property<String> methodProperty       = new StringProperty("method").hint("Name of method to execute when triggered action is 'method'").partOfBuiltInSchema();
+	public static final Property<String> flowProperty         = new StringProperty("flow").hint("Name of flow to execute when triggered action is 'flow'").partOfBuiltInSchema();
 	public static final Property<String> dataTypeProperty     = new StringProperty("dataType").hint("Data type for create action").partOfBuiltInSchema();
 	public static final Property<String> idExpressionProperty = new StringProperty("idExpression").hint("Script expression that evaluates to the id of the object the method should be executed on").partOfBuiltInSchema();
 	public static final Property<String> optionsProperty      = new StringProperty("options").hint("JSON string with that contains configuration options for this action mapping").partOfBuiltInSchema();
@@ -67,12 +77,11 @@ public class ActionMapping extends AbstractNode {
 	public static final Property<String> failureEventProperty     = new StringProperty("failureEvent").hint("Event to raise on failure").partOfBuiltInSchema();
 
 	public static final View uiView = new View(ActionMapping.class, PropertyView.Ui,
-		eventProperty, actionProperty, methodProperty, dataTypeProperty, idExpressionProperty, optionsProperty, dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
+		eventProperty, actionProperty, methodProperty, flowProperty, dataTypeProperty, idExpressionProperty, optionsProperty, dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
 		successNotificationsProperty, successNotificationsPartialProperty, successNotificationsEventProperty,
 		failureNotificationsProperty, failureNotificationsPartialProperty, failureNotificationsEventProperty,
 		successBehaviourProperty, successPartialProperty, successURLProperty, successEventProperty, successNotificationsDelayProperty,
 		failureBehaviourProperty, failurePartialProperty, failureURLProperty, failureEventProperty, failureNotificationsDelayProperty,
-
-		triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings
+		triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings, process, processStep, processSuccessShowElements, processSuccessHideElements
 	);
 }

@@ -941,7 +941,7 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
-		defaultMainMenuItems: ['Dashboard', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data'],
+		defaultMainMenuItems: ['Dashboard', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data', 'Processes'],
 		getSavedMenuConfig: () => {
 
 			return LSWrapper.getItem(Structr.keyMenuConfig, {
@@ -1930,6 +1930,7 @@ let Structr = {
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
+								<li data-name="Processes"><a id="processes_" href="#processes" data-activate-module="processes">Processes</a></li>
 								<li data-name="Flows" class="module-dependent" data-structr-module="api-builder"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
@@ -2950,7 +2951,7 @@ let UISettings = {
 					}
 				},
 				showVisibilityFlagsInPermissionsTableKey: {
-					text: 'Show visibility flags in Resource Access table',
+					text: 'Show visibility flags in Resource Permissions table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',

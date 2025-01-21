@@ -1408,7 +1408,17 @@ let _Pages = {
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
 		let dataTypeInput                    = container.querySelector('#data-type-input');
+
 		let methodNameInput                  = container.querySelector('#method-name-input');
+		let flowNameInput                    = container.querySelector('#flow-name-input');
+
+		let processSelect                    = container.querySelector('#process-select');
+		let processSelectUl                  = processSelect.parentNode.querySelector('ul');
+		let processInput                     = container.querySelector('#process-input');
+
+		let processStepSelect                = container.querySelector('#process-step-select');
+		let processStepSelectUl              = processStepSelect.parentNode.querySelector('ul');
+		let processStepInput                 = container.querySelector('#process-step-input');
 
 		let idExpressionInput                = container.querySelector('#id-expression-input');
 
@@ -1449,12 +1459,19 @@ let _Pages = {
 			dataTypeSelectUl.insertAdjacentHTML('beforeend', result.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
 		});
 
+		// Populate process select options
+		Command.getByType('Process', 1000, 1, 'name', 'asc', 'id,name', false, result => {
+			processSelect.insertAdjacentHTML('beforeend', result.map(typeObj => `<option value="${typeObj.id}">${typeObj.name}</option>`).join(''));
+			processSelectUl.insertAdjacentHTML('beforeend', result.map(typeObj => `<li data-value="${typeObj.id}">${typeObj.name}</li>`).join(''));
+		});
+
+
 		if (entity.triggeredActions && entity.triggeredActions.length) {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
-				console.log('Using first object for event action mapping:', result);
+			Command.get(actionMapping.id, 'event,action,method,flow,process,processStep,processSuccessShowElements,processSuccessHideElements,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
 		}
@@ -1593,6 +1610,151 @@ let _Pages = {
 			});
 		}
 
+		// combined process select and input
+		{
+			let showProcessList = () => { processSelectUl.classList.remove('hidden'); };
+			let hideProcessList = () => { processSelectUl.classList.add('hidden'); };
+
+			let updateProcessStepList = () => {
+				_Helpers.fastRemoveAllChildren(processStepSelect);
+				_Helpers.fastRemoveAllChildren(processStepSelectUl);
+				processStepSelect.value = '';
+				processStepInput.value = '';
+
+				if (processSelect.value) {
+					Command.get(processSelect.value, 'id,name,steps', process => {
+						//console.log(process);
+						process.steps.forEach(step => {
+							processStepSelect.insertAdjacentHTML('beforeend', `<option value="${step.id}">${step.name}</option>`);
+							processStepSelectUl.insertAdjacentHTML('beforeend', `<li data-value="${step.id}">${step.name}</li>`);
+						});
+					});
+				}
+			};
+
+			processSelect.addEventListener('change', e => {
+				processInput.value = processSelect.options[processSelect.selectedIndex].text;
+				//console.log('processSelect => change: Display process steps of process', processInput.value);
+				updateProcessStepList();
+
+			});
+
+			processSelect.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+				showProcessList();
+			});
+
+			processSelectUl.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+			});
+
+			processSelectUl.addEventListener('click', e => {
+				if (e.target.dataset.value) { // id
+					processSelect.value = e.target.dataset.value;
+					processInput.value  = processSelect.options[processSelect.selectedIndex].text;
+
+					saveEventMappingData(entity, processSelectUl);
+
+					hideProcessList();
+					updateProcessStepList();
+				}
+			});
+
+			container.addEventListener('mousedown', e => {
+				if (e.defaultPrevented === false) {
+					hideProcessList();
+				}
+			});
+
+			processInput.addEventListener('keyup', e => {
+				const el  = e.target;
+				const key = e.key;
+
+				if (key === 'Escape') {
+
+					processSelectUl.classList.add('hidden');
+					return;
+
+				} else if (key === 'Enter') {
+
+					saveEventMappingData(entity, processInput);
+					processSelectUl.classList.add('hidden');
+					return;
+				}
+
+				for (let child of processSelectUl.children) {
+
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
+				}
+
+				showProcessList();
+			});
+
+			updateProcessStepList();
+		}
+
+		// combined process step select and input
+		{
+			let showProcessStepList = () => { processStepSelectUl.classList.remove('hidden'); };
+			let hideProcessStepList = () => { processStepSelectUl.classList.add('hidden'); };
+
+			processStepSelect.addEventListener('change', e => {
+				processStepInput.value = processStepSelect.options[processStepSelect.selectedIndex].text;
+			});
+
+			processStepSelect.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+				showProcessStepList();
+			});
+
+			processStepSelectUl.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+			});
+
+			processStepSelectUl.addEventListener('click', e => {
+				if (e.target.dataset.value) { // id
+					processStepSelect.value = e.target.dataset.value;
+					processStepInput.value  = processStepSelect.options[processStepSelect.selectedIndex].text;
+
+					saveEventMappingData(entity, processStepSelectUl);
+
+					hideProcessStepList();
+				}
+			});
+
+			container.addEventListener('mousedown', e => {
+				if (e.defaultPrevented === false) {
+					hideProcessStepList();
+				}
+			});
+
+			processStepInput.addEventListener('keyup', e => {
+				const el  = e.target;
+				const key = e.key;
+
+				if (key === 'Escape') {
+
+					processStepSelectUl.classList.add('hidden');
+					return;
+
+				} else if (key === 'Enter') {
+
+					saveEventMappingData(entity, processStepInput);
+					processStepSelectUl.classList.add('hidden');
+					return;
+				}
+
+				for (let child of processStepSelectUl.children) {
+
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
+				}
+
+				showProcessStepList();
+			});
+		}
+
 		addParameterMappingButton.addEventListener('click', e => {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
@@ -1678,6 +1840,25 @@ let _Pages = {
 			actionSelectElement.value              = actionMapping.action;
 
 			methodNameInput.value                  = actionMapping.method;
+			flowNameInput.value                    = actionMapping.flow;
+			if (actionMapping.process?.id) {
+				Command.get(actionMapping.process.id, 'id,name,steps', process => {
+					processSelect.value                = process.id;
+					processInput.value                 = process.name;
+					process.steps.forEach(step => {
+						processStepSelect.insertAdjacentHTML('beforeend', `<option value="${step.id}">${step.name}</option>`);
+						processStepSelectUl.insertAdjacentHTML('beforeend', `<li data-value="${step.id}">${step.name}</li>`);
+					});
+				});
+			}
+
+			if (actionMapping.processStep?.id) {
+				Command.get(actionMapping.processStep.id, 'id,name', process => {
+					processStepSelect.value            = process.id;
+					processStepInput.value             = process.name;
+				});
+			}
+
 			dataTypeSelect.value                   = actionMapping.dataType;
 			dataTypeInput.value                    = actionMapping.dataType;
 
@@ -1875,6 +2056,80 @@ let _Pages = {
 					for (const failureTarget of actionMapping.failureTargets) {
 						Command.get(failureTarget.id, 'id,name', obj => {
 							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'failureTargets');
+						});
+					}
+				});
+			}
+
+			// Activate dropzone if success behaviour is show-hide-partial-linked, has two dropzones
+			//
+			if (actionMapping.successBehaviour === 'show-hide-partial-linked') {
+
+				const parentElement   = document.querySelector('.option-success-show-hide-partial-linked');
+
+				// First dropzone is for elements to show
+				const dropzoneElementShow = parentElement.querySelector('.success-show-hide-partial-linked-show-dropzone');
+				const inputElementShow    = parentElement.querySelector('#success-show-hide-partial-linked-show-input');
+
+				dropzoneElementShow.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElementShow, inputElementShow, 'processSuccessShowActions', 'processSuccessShowElements');
+
+				Command.get(actionMapping.id, 'id,processSuccessShowElements', actionMapping => {
+					for (const processSuccessShowElement of actionMapping.processSuccessShowElements) {
+						Command.get(processSuccessShowElement.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElementShow, obj, 'processSuccessShowElements');
+						});
+					}
+				});
+
+				// Second dropzone is for elements to hide
+				const dropzoneElementHide = parentElement.querySelector('.success-show-hide-partial-linked-hide-dropzone');
+				const inputElementHide    = parentElement.querySelector('#success-show-hide-partial-linked-hide-input');
+
+				dropzoneElementHide.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElementHide, inputElementHide, 'processSuccessHideActions', 'processSuccessHideElements');
+
+				Command.get(actionMapping.id, 'id,processSuccessHideElements', actionMapping => {
+					for (const processSuccessHideElement of actionMapping.processSuccessHideElements) {
+						Command.get(processSuccessHideElement.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElementHide, obj, 'processSuccessHideElements');
+						});
+					}
+				});
+			}
+
+			// Activate dropzone if failure behaviour is show-hide-partial-linked, has two dropzones
+			//
+			if (actionMapping.failureBehaviour === 'show-hide-partial-linked') {
+
+				const parentElement   = document.querySelector('.option-failure-show-hide-partial-linked');
+
+				// First dropzone is for elements to show
+				const dropzoneElementShow = parentElement.querySelector('.failure-show-hide-partial-linked-show-dropzone');
+				const inputElementShow    = parentElement.querySelector('#failure-show-hide-partial-linked-show-input');
+
+				dropzoneElementShow.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElementShow, inputElementShow, 'processFailureShowActions', 'processFailureShowElements');
+
+				Command.get(actionMapping.id, 'id,processFailureShowElements', actionMapping => {
+					for (const processFailureShowElement of actionMapping.processFailureShowElements) {
+						Command.get(processFailureShowElement.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElementShow, obj, 'processFailureShowElements');
+						});
+					}
+				});
+
+				// Second dropzone is for elements to hide
+				const dropzoneElementHide = parentElement.querySelector('.failure-show-hide-partial-linked-hide-dropzone');
+				const inputElementHide    = parentElement.querySelector('#failure-show-hide-partial-linked-hide-input');
+
+				dropzoneElementHide.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElementHide, inputElementHide, 'processFailureHideActions', 'processFailureHideElements');
+
+				Command.get(actionMapping.id, 'id,processFailureHideElements', actionMapping => {
+					for (const processFailureHideElement of actionMapping.processFailureHideElements) {
+						Command.get(processFailureHideElement.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElementHide, obj, 'processFailureHideElements');
 						});
 					}
 				});
@@ -2093,6 +2348,9 @@ let _Pages = {
 				event:                       eventInput?.value ?? eventSelect?.value,
 				action:                      actionSelectElement?.value,
 				method:                      methodNameInput?.value,
+				flow:                        flowNameInput?.value,
+				process:                     processSelect?.value,
+				processStep:                 processStepSelect?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
 				idExpression:                idExpressionInput.value,
 				dialogType:                  dialogTypeSelect.value,
@@ -2116,7 +2374,7 @@ let _Pages = {
 				failureEvent:                failureFireEventInput?.value
 			};
 
-			//console.log(actionMappingObject);
+			//console.log('Save event mapping data:', actionMappingObject);
 
 			if (entity.triggeredActions && entity.triggeredActions.length) {
 
@@ -2186,8 +2444,8 @@ let _Pages = {
 
 						const value = inp.value;
 						//if (value) {
-							//console.log(inputDefinition.key, value);
-							parameterMappingData[inputDefinition.key] = value;
+						//console.log(inputDefinition.key, value);
+						parameterMappingData[inputDefinition.key] = value;
 						//}
 					}
 				}
@@ -3827,7 +4085,7 @@ let _Pages = {
 					page: page.id,
 					name: '/' + page.name + '/'
 				})
-  			}).then(ifok);
+			}).then(ifok);
 
 			if (data && data.result && data.result.length === 1) {
 				let path = await Command.getPromise(data.result[0], '', 'ui');
@@ -3850,7 +4108,7 @@ let _Pages = {
 					path: string,
 					names: names
 				})
-  			}).then(ifok);
+			}).then(ifok);
 
 			paramsContainer.replaceChildren();
 
@@ -4236,6 +4494,7 @@ let _Pages = {
 								<optgroup label="Behaviour/Logic">
 									<option value="method">Execute method</option>
 									<option value="flow">Execute flow</option>
+									<option value="process">Control process</option>
 								</optgroup>
 								<optgroup label="Pager">
 									<option value="next-page">Next page</option>
@@ -4290,9 +4549,9 @@ let _Pages = {
 						<div class="hidden em-action-element em-action-create em-action-update">
 							<div class="relative">
 								<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
-								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
+								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Enter or select custom type or script expression">
 								<select class="required combined-input-select-field" id="data-type-select">
-									<option value="">Select type from schema</option>
+									<option value="">-- Select type from schema --</option>
 								</select>
 								<ul class="combined-input-select-field hidden"></ul>
 							</div>
@@ -4305,6 +4564,13 @@ let _Pages = {
 							</div>
 						</div>
 
+						<div class="hidden options-flow em-action-element em-action-flow">
+							<div>
+								<label class="block mb-2" for="flow-name-input" data-comment="Enter name of a user-defined Flow.<br><br>The return value of the Flow is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of flow to execute</label>
+								<input type="text" id="flow-name-input">
+							</div>
+						</div>
+
 						<div class="col-span-2 hidden em-event-element em-event-drop">
 							<h3>Drag & Drop</h3>
 							<div>
@@ -4314,6 +4580,32 @@ let _Pages = {
 									<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
 									<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
 								<ul>
+							</div>
+						</div>
+
+						<div class="col-span-2 hidden options-process em-action-element em-action-process">
+							<h3>Processes</h3>
+							<div class="grid grid-cols-2 gap-8">
+								<div class="hidden em-action-element em-action-process">
+									<div class="relative">
+										<label class="block mb-2" for="process-select" data-comment="Select user-defined process.">Process to control</label>
+										<input type="text" class="combined-input-select-field" id="process-input" placeholder="Enter or select process...">
+										<select class="required combined-input-select-field" id="process-select">
+											<option value="">-- Select process --</option>
+										</select>
+										<ul class="combined-input-select-field hidden"></ul>
+									</div>
+								</div>
+								<div class="hidden em-action-element em-action-process em-action-process-step h-16">
+									<div class="relative">
+										<label class="block mb-2" for="process-step-select" data-comment="Select step of selected process.">Process Step to trigger</label>
+										<input type="text" class="combined-input-select-field" id="process-step-input" placeholder="Leave empty to start process or choose a step...">
+										<select class="required combined-input-select-field" id="process-step-select">
+											<option value="">-- Select process step --</option>
+										</select>
+										<ul class="combined-input-select-field hidden"></ul>
+									</div>
+								</div>
 							</div>
 						</div>
 
@@ -4450,6 +4742,7 @@ let _Pages = {
 										<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
 										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 										<option value="navigate-to-url">Navigate to a new page</option>
+										<option value="show-hide-partial-linked">Hide/show page section defined by linked elements</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
 									</select>
@@ -4468,6 +4761,31 @@ let _Pages = {
 											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
 											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 											Drag and drop existing element here
+										</div>
+									</div>
+								</div>
+								
+								<div class="hidden option-success option-success-show-hide-partial-linked grid grid-cols-2 gap-8">
+									<div class="hidden option-success option-success-show-hide-partial-linked">
+										<label class="block mb-2" for="success-show-hide-partial-linked-show-input" data-comment="Drag an element and drop it here">Element(s) to show on success</label>
+										<input type="hidden" id="success-show-hide-partial-linked-show-input" value="">
+										<div class="element-dropzone success-show-hide-partial-linked-show-dropzone">
+											<div class="info-icon h-16 flex items-center justify-center">
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+												Drag and drop existing element here
+											</div>
+										</div>
+									</div>
+									<div class="hidden option-success option-success-show-hide-partial-linked">
+										<label class="block mb-2" for="success-show-hide-partial-linked-hide-input" data-comment="Drag an element and drop it here">Element(s) to hide on success</label>
+										<input type="hidden" id="success-show-hide-partial-linked-hide-input" value="">
+										<div class="element-dropzone success-show-hide-partial-linked-hide-dropzone">
+											<div class="info-icon h-16 flex items-center justify-center">
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+												Drag and drop existing element here
+											</div>
 										</div>
 									</div>
 								</div>
@@ -4492,6 +4810,7 @@ let _Pages = {
 										<option value="partial-refresh">Refresh section(s) by ID</option>
 										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 										<option value="navigate-to-url">Navigate to a new page</option>
+										<option value="show-hide-partial-linked">Hide/show page section defined by linked elements</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
 									</select>
@@ -4510,6 +4829,31 @@ let _Pages = {
 											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
 											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 											Drag and drop existing element here
+										</div>
+									</div>
+								</div>
+
+								<div class="hidden option-failure option-failure-show-hide-partial-linked grid grid-cols-2 gap-8">
+									<div class="hidden option-failure option-failure-show-hide-partial-linked">
+										<label class="block mb-2" for="failure-show-hide-partial-linked-show-input" data-comment="Drag an element and drop it here">Element(s) to show on failure</label>
+										<input type="hidden" id="failure-show-hide-partial-linked-show-input" value="">
+										<div class="element-dropzone failure-show-hide-partial-linked-show-dropzone">
+											<div class="info-icon h-16 flex items-center justify-center">
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+												Drag and drop existing element here
+											</div>
+										</div>
+									</div>
+									<div class="hidden option-failure option-failure-show-hide-partial-linked">
+										<label class="block mb-2" for="failure-show-hide-partial-linked-hide-input" data-comment="Drag an element and drop it here">Element(s) to hide on failure</label>
+										<input type="hidden" id="failure-show-hide-partial-linked-hide-input" value="">
+										<div class="element-dropzone failure-show-hide-partial-linked-hide-dropzone">
+											<div class="info-icon h-16 flex items-center justify-center">
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+												${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+												Drag and drop existing element here
+											</div>
 										</div>
 									</div>
 								</div>

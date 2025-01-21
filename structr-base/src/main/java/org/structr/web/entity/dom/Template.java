@@ -124,7 +124,7 @@ public class Template extends Content {
 
 			// Append preview CSS
 			out.append("<style type=\"text/css\">");
-			out.append(this.getProperty("previewCss"));
+			out.append(".structr-template-preview { transform: scale(.25) }");
 			out.append("</style>\n");
 
 			// render content

@@ -62,7 +62,7 @@ export class Frontend {
 				continue;
 			}
 
-            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
+            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression') {
 				continue;
             }
 
@@ -229,13 +229,19 @@ export class Frontend {
 
 	handleResult(element, json, status, options, headers = {}) {
 
+		// Overwrite status for process handling
+		if (status === 200 && json?.result?.state?.status) {
+			console.log('Overwriting status for process to', json.result.state.status);
+			status = json.result.state.status;
+		}
+
 		switch (status) {
 
 			case 200:
 			case 201:
 				this.fireEvent('success', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
-				this.processFollowUpActions(element, json.result, status, options);
+				this.handleFollowUpActions(element, json.result, status, options);
 				break;
 
 			case 202:
@@ -259,7 +265,7 @@ export class Frontend {
 			case 503:
 				this.fireEvent('error', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
-				this.processFollowUpActions(element, json, status, options);
+				this.handleFollowUpActions(element, json.result, status, options);
 				break;
 		}
 
@@ -365,7 +371,7 @@ export class Frontend {
 
 	}
 
-	async processFollowUpActions(element, parameters, status, options) {
+	async handleFollowUpActions(element, parameters, status, options) {
 
 		const success = this.isSuccess(status);
 
@@ -373,12 +379,12 @@ export class Frontend {
 
 			let successTargets = element.dataset.structrSuccessTarget;
 
-			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+			for (let successTarget of successTargets.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
 
 				if (successTarget.indexOf(':') !== -1) {
 
 					let moduleName = successTarget.substring(0, successTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
+					let module = await import('/structr/js/frontend/modules/' + moduleName + '.js');
 					if (module) {
 
 						if (module.Handler) {
@@ -412,7 +418,7 @@ export class Frontend {
 				} else if (successTarget === 'sign-out') {
 
 					// sign-out and reload
-					fetch('/structr/logout', { method: 'POST' }).then((response) => {
+					fetch('/structr/logout', {method: 'POST'}).then((response) => {
 						location.reload();
 					});
 
@@ -475,6 +481,45 @@ export class Frontend {
 				}
 			}
 
+		} else if (success && (element.dataset.structrProcessSuccessShowElements || element.dataset.structrProcessSuccessHideElements)) {
+
+			let processSuccessShowElements = element.dataset.structrProcessSuccessShowElements;
+
+			console.log('Show process UI element on success', parameters);
+
+			for (let processSuccessShowElement of processSuccessShowElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
+
+				this.reloadPartial(processSuccessShowElement, parameters, null, false, () => {
+					document.querySelector(processSuccessShowElement)?.classList.remove('hidden');
+				});
+			}
+
+			let processSuccessHideElements = element.dataset.structrProcessSuccessHideElements;
+
+			for (let processSuccessHideElement of processSuccessHideElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
+				//this.reloadPartial(processSuccessHideElement);
+				document.querySelector(processSuccessHideElement)?.classList.add('hidden');
+			}
+
+		} else if (!success && (element.dataset.structrProcessFailureShowElements || element.dataset.structrProcessFailureHideElements)) {
+
+			let processFailureShowElements = element.dataset.structrProcessFailureShowElements;
+
+			console.log('Show process UI element on failure', parameters, processFailureShowElements);
+
+			for (let processFailureShowElement of processFailureShowElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
+				this.reloadPartial(processFailureShowElement, parameters, null, false, () => {
+					document.querySelector(processFailureShowElement)?.classList.remove('hidden');
+				});
+			}
+
+			let processSuccessHideElements = element.dataset.structrProcessSuccessHideElements;
+
+			for (let processSuccessHideElement of processSuccessHideElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
+				//this.reloadPartial(processSuccessHideElement);
+				document.querySelector(processSuccessHideElement)?.classList.add('hidden');
+			}
+
 		} else {
 
 			// Default is do nothing
@@ -504,8 +549,7 @@ export class Frontend {
 		this.fireEvent('error', { target: element, data: {}, status: status });
 	}
 
-	reloadPartial(selector, parameters, element, dontRebind) {
-
+	reloadPartial(selector, parameters, element, dontRebind, callback) {
 		let reloadTargets = document.querySelectorAll(selector);
 
 		if (!reloadTargets.length) {
@@ -539,13 +583,23 @@ export class Frontend {
 				}).then(data => {
 					if (data.result && data.result[0]) {
 						let id = data.result[0].id;
-						this.replacePartial(container, id, element, dataset, parameters, dontRebind);
+						this.replacePartial(container, id, element, dataset, parameters, dontRebind, callback);
 					}
 				});
 
 			} else {
 
-				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
+				if (parameters.type === 'ProcessInstance') {
+					const processInstanceId = parameters.id;
+					dataset.currentObjectId = processInstanceId;
+					const url = new URL(window.location.href);
+					if (!url.pathname.endsWith(processInstanceId)) {
+						url.pathname += '/' + processInstanceId;
+						window.history.pushState('', '', url.href);
+					}
+				}
+
+				this.replacePartial(container, id, element, dataset, parameters, dontRebind, callback);
 			}
 
 		}
@@ -561,7 +615,7 @@ export class Frontend {
 		}
 	};
 
-	replacePartial(container, id, element, data, parameters, dontRebind) {
+	replacePartial(container, id, element, data, parameters, dontRebind, callback) {
 
 		let base   = '/structr/html/' + id;
 		let params = this.encodeRequestParameters(data, parameters);
@@ -587,6 +641,10 @@ export class Frontend {
 
 			if (!dontRebind) {
 				this.bindEvents();
+			}
+
+			if (callback) {
+				callback();
 			}
 
 		}).catch(e => {
@@ -795,10 +853,10 @@ export class Frontend {
 
 
 			// Dialog
-			if(data.structrDialogType === 'okcancel') {
+			if (data.structrDialogType === 'okcancel') {
 
 				let dialogMessage = data.structrDialogTitle + '\n\n' + data.structrDialogText;
-				if(!window.confirm(dialogMessage)) {
+				if (!window.confirm(dialogMessage)) {
 					return; // Exit on 'Cancel' doHandleGenericEvent without fire main Event
 				}
 
@@ -808,7 +866,7 @@ export class Frontend {
 
 			// server-side
 			// store event type in htmlEvent property
-			data.htmlEvent = event.type;
+			//data.htmlEvent = event.type;
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(event, target)),

@@ -35,6 +35,7 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -48,6 +49,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.process.entity.relationship.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
@@ -113,10 +115,14 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 
 	public static final Property<Page> ownerDocumentProperty = new EndNode<>("ownerDocument", DOMNodePAGEPage.class).category(PAGE_CATEGORY).partOfBuiltInSchema();
 
-	public static final Property<Iterable<ActionMapping>> reloadingActionsProperty           = new EndNodes<>("reloadingActions", DOMNodeSUCCESS_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> failureActionsProperty             = new EndNodes<>("failureActions", DOMNodeFAILURE_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> reloadingActionsProperty           = new EndNodes<>("reloadingActions",           DOMNodeSUCCESS_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> failureActionsProperty             = new EndNodes<>("failureActions",             DOMNodeFAILURE_TARGETActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
 	public static final Property<Iterable<ActionMapping>> successNotificationActionsProperty = new EndNodes<>("successNotificationActions", DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
 	public static final Property<Iterable<ActionMapping>> failureNotificationActionsProperty = new EndNodes<>("failureNotificationActions", DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> processSuccessShowActionsProperty = new EndNodes<>("processSuccessShowActions",   DOMNodePROCESS_SHOW_ELEMENT_ON_SUCCESSActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> processSuccessHideActionsProperty = new EndNodes<>("processSuccessHideActions",   DOMNodePROCESS_HIDE_ELEMENT_ON_SUCCESSActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> processFailureShowActionsProperty = new EndNodes<>("processFailureShowActions",   DOMNodePROCESS_SHOW_ELEMENT_ON_FAILUREActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> processFailureHideActionsProperty = new EndNodes<>("processFailureHideActions",   DOMNodePROCESS_HIDE_ELEMENT_ON_FAILUREActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
 
 	public static final Property<java.lang.Object> sortedChildrenProperty = new MethodProperty("sortedChildren").format("org.structr.web.entity.dom.DOMNode, getChildNodes").typeHint("DOMNode[]").partOfBuiltInSchema();
 	public static final Property<String> childrenIdsProperty              = new CollectionIdProperty("childrenIds", childrenProperty).format("children, {},").partOfBuiltInSchema().category(PAGE_CATEGORY).partOfBuiltInSchema();
@@ -232,6 +238,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		return getProperty(syncedNodesProperty);
 	}
 
+	@Export
 	public Page getOwnerDocument() {
 		return getProperty(ownerDocumentProperty);
 	}
@@ -240,6 +247,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		return getProperty(sharedComponentProperty);
 	}
 
+	@Export
 	public void setOwnerDocument(final Page ownerDocument) throws FrameworkException {
 		setProperty(ownerDocumentProperty, ownerDocument);
 	}
@@ -753,6 +761,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		}
 	}
 
+	@Export
 	public Node appendChild(final Node newChild) throws DOMException {
 
 		this.checkWriteAccess();
@@ -1681,6 +1690,7 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 		return false;
 	}
 
+	@Export
 	@Override
 	public Node cloneNode(final boolean deep) {
 
