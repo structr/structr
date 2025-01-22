@@ -335,7 +335,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "/a/b");
+			app.create("Folder", "/a/b");
 
 			tx.success();
 
@@ -345,7 +345,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "a/b");
+			app.create("Folder", "a/b");
 
 			tx.success();
 
@@ -355,7 +355,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "/");
+			app.create("Folder", "/");
 
 			tx.success();
 
@@ -365,7 +365,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "c/");
+			app.create("Folder", "c/");
 
 			tx.success();
 
@@ -375,7 +375,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "abc\0");
+			app.create("Folder", "abc\0");
 
 			tx.success();
 
@@ -385,7 +385,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "\0abc");
+			app.create("Folder", "\0abc");
 
 			tx.success();
 
@@ -395,7 +395,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Folder.class, "a\0bc");
+			app.create("Folder", "a\0bc");
 
 			tx.success();
 
@@ -420,7 +420,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			File file1 = (File) app.create(File.class, "file1");
+			File file1 = (File) app.create("File", "file1");
 			assertNotNull(file1);
 			assertEquals(file1.getPath(), "/file1");
 
@@ -435,7 +435,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Image image1 = (Image) app.create(Image.class, "image1");
+			Image image1 = (Image) app.create("Image", "image1");
 			assertNotNull(image1);
 			assertEquals(image1.getPath(), "/image1");
 
@@ -467,7 +467,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			file = app.create(File.class,
+			file = app.create("File",
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"),      "test.txt"),
 				new NodeAttribute<>(StructrApp.key(File.class,         "base64Data"), base64Data)
 			);
@@ -500,7 +500,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			rootFile1 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, "test.txt"));
+			rootFile1 = app.create("File", new NodeAttribute<>(AbstractNode.name, "test.txt"));
 			assertNotNull(rootFile1);
 
 			tx.success();
@@ -512,7 +512,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			rootFile2 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, "test.txt"));
+			rootFile2 = app.create("File", new NodeAttribute<>(AbstractNode.name, "test.txt"));
 			assertNotNull(rootFile2);
 
 			tx.success();
@@ -552,7 +552,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			rootFile1 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile1 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile1);
 
 			file1Name = rootFile1.getName();
@@ -576,7 +576,7 @@ public class UiTest extends StructrUiTest {
 		Settings.UniquePathsInsertionPosition.setValue("end");
 		try (final Tx tx = app.tx()) {
 
-			rootFile2 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile2 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile2);
 
 			file2Name = rootFile2.getName();
@@ -603,7 +603,7 @@ public class UiTest extends StructrUiTest {
 		Settings.UniquePathsInsertionPosition.setValue("start");
 		try (final Tx tx = app.tx()) {
 
-			rootFile3 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile3 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile3);
 
 			file3Name = rootFile3.getName();
@@ -631,7 +631,7 @@ public class UiTest extends StructrUiTest {
 		Settings.UniquePathsInsertionPosition.setValue("beforeextension");
 		try (final Tx tx = app.tx()) {
 
-			rootFile4 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile4 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile4);
 
 			file4Name = rootFile4.getName();
@@ -682,7 +682,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			file1 = app.create(File.class,
+			file1 = app.create("File",
 				new NodeAttribute<>(AbstractNode.name, "test.txt"),
 				new NodeAttribute<>(StructrApp.key(AbstractFile.class, "parent"), folder)
 			);
@@ -698,7 +698,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			file2 = app.create(File.class,
+			file2 = app.create("File",
 				new NodeAttribute<>(AbstractNode.name, "test.txt"),
 				new NodeAttribute<>(StructrApp.key(AbstractFile.class, "parent"), folder)
 			);
@@ -746,7 +746,7 @@ public class UiTest extends StructrUiTest {
 
 			tx.success();
 
-			file1 = app.create(File.class,
+			file1 = app.create("File",
 				new NodeAttribute<>(AbstractNode.name, "test.txt"),
 				new NodeAttribute<>(StructrApp.key(File.class, "parent"), folder1)
 			);
@@ -754,7 +754,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(file1);
 			assertEquals("Testfolder 1 should have exactly one child", 1, Iterables.count(folder1.getChildren()));
 
-			file2 = app.create(File.class,
+			file2 = app.create("File",
 				new NodeAttribute<>(AbstractNode.name, "test.txt"),
 				new NodeAttribute<>(StructrApp.key(File.class, "parent"), folder2)
 			);
@@ -916,7 +916,7 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
-			tester = app.create(User.class, "tester");
+			tester = app.create("User", "tester");
 
 			image.setProperty(Image.name, "test.png");
 
@@ -983,7 +983,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = testerApp.tx()) {
 
-			final List<Image> images = testerApp.nodeQuery(Image.class).getAsList();
+			final List<Image> images = testerApp.nodeQuery("Image").getAsList();
 
 			if (!images.isEmpty()) {
 

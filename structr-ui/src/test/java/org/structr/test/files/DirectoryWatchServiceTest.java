@@ -101,7 +101,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
-			app.create(Folder.class,
+			app.create("Folder",
 				new NodeAttribute<>(Folder.name, "mounted1"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "storageConfiguration"), testMount)
@@ -120,11 +120,11 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		// verify mount point
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).and(StructrApp.key(File.class, "path"), "/mounted1").getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery("Folder").and(StructrApp.key(File.class, "path"), "/mounted1").getFirst());
 
-			final File file1 = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), "/mounted1/test1.txt").getFirst();
-			final File file2 = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), "/mounted1/test2.txt").getFirst();
-			final File file3 = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), "/mounted1/test3.txt").getFirst();
+			final File file1 = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), "/mounted1/test1.txt").getFirst();
+			final File file2 = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), "/mounted1/test2.txt").getFirst();
+			final File file3 = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), "/mounted1/test3.txt").getFirst();
 
 			assertNotNull("Test file should have been created by import", file1);
 			assertNotNull("Test file should have been created by import", file2);
@@ -164,9 +164,9 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		// mount directory
 		try (final Tx tx = app.tx()) {
 
-			final Folder parent1 = app.create(Folder.class, "parent");
+			final Folder parent1 = app.create("Folder", "parent");
 
-			final Folder parent2 = app.create(Folder.class,
+			final Folder parent2 = app.create("Folder",
 				new NodeAttribute<>(Folder.name, "parent"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent1)
 			);
@@ -174,7 +174,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
-			app.create(Folder.class,
+			app.create("Folder",
 				new NodeAttribute<>(Folder.name, "mounted2"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent2),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
@@ -194,11 +194,11 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		// verify mount point
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2").getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery("Folder").and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2").getFirst());
 
-			final File file1 = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2/test1.txt").getFirst();
-			final File file2 = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2/test2.txt").getFirst();
-			final File file3 = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2/test3.txt").getFirst();
+			final File file1 = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2/test1.txt").getFirst();
+			final File file2 = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2/test2.txt").getFirst();
+			final File file3 = app.nodeQuery("File").and(StructrApp.key(File.class, "path"), "/parent/parent/mounted2/test3.txt").getFirst();
 
 			assertNotNull("Test file should have been created by import", file1);
 			assertNotNull("Test file should have been created by import", file2);
@@ -253,7 +253,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				// create folder to mount
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 
-				app.create(Folder.class,
+				app.create("Folder",
 					new NodeAttribute<>(Folder.name, "mounted3"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"),   true),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "storageConfiguration"), testMount),
@@ -275,9 +275,9 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Checking directory..");
 
-				final File check1 = app.nodeQuery(File.class).andName("test1.txt").getFirst();
-				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
-				final File check3 = app.nodeQuery(File.class).andName("test3.txt").getFirst();
+				final File check1 = app.nodeQuery("File").andName("test1.txt").getFirst();
+				final File check2 = app.nodeQuery("File").andName("test2.txt").getFirst();
+				final File check3 = app.nodeQuery("File").andName("test3.txt").getFirst();
 
 				assertEquals("Invalid mount result", "/mounted3/parent1/child1/grandchild1/test1.txt", check1.getPath());
 				assertEquals("Invalid mount result", "/mounted3/parent2/child1/grandchild1/test2.txt", check2.getPath());
@@ -300,7 +300,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Checking directory..");
 
-				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
+				final File check2 = app.nodeQuery("File").andName("test2.txt").getFirst();
 
 				assertEquals("Invalid checksum of externally modified file", FileHelper.getChecksum(file2), check2.getChecksum());
 				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
@@ -316,7 +316,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Unmounting directory..");
 
-				final Folder mounted = app.nodeQuery(Folder.class).and(Folder.name, "mounted3").getFirst();
+				final Folder mounted = app.nodeQuery("Folder").and(Folder.name, "mounted3").getFirst();
 
 				mounted.setProperty(StructrApp.key(Folder.class, "mountTarget"), null);
 
@@ -411,7 +411,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 
-				app.create(Folder.class,
+				app.create("Folder",
 					new NodeAttribute<>(Folder.name, "mounted3"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "storageConfiguration"), testMount),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false)
@@ -432,9 +432,9 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Checking directory..");
 
-				final File check1 = app.nodeQuery(File.class).andName("test1.txt").getFirst();
-				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
-				final File check3 = app.nodeQuery(File.class).andName("test3.txt").getFirst();
+				final File check1 = app.nodeQuery("File").andName("test1.txt").getFirst();
+				final File check2 = app.nodeQuery("File").andName("test2.txt").getFirst();
+				final File check3 = app.nodeQuery("File").andName("test3.txt").getFirst();
 
 				assertEquals("Invalid mount result", "/mounted3/parent1/child1/grandchild1/test1.txt", check1.getPath());
 				assertEquals("Invalid mount result", "/mounted3/parent2/child1/grandchild1/test2.txt", check2.getPath());
@@ -457,7 +457,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Checking directory..");
 
-				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
+				final File check2 = app.nodeQuery("File").andName("test2.txt").getFirst();
 
 				assertFalse("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2).equals(check2.getMd5()));
 				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
@@ -473,7 +473,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Unmounting directory..");
 
-				final Folder mounted = app.nodeQuery(Folder.class).and(Folder.name, "mounted3").getFirst();
+				final Folder mounted = app.nodeQuery("Folder").and(Folder.name, "mounted3").getFirst();
 
 				mounted.setProperty(StructrApp.key(Folder.class, "mountTarget"), null);
 
@@ -551,7 +551,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test user
-			final User tester = app.create(User.class,
+			final User tester = app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "tester"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "tester")
 			);
@@ -559,7 +559,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
-			final Folder folder = app.create(Folder.class,
+			final Folder folder = app.create("Folder",
 				new NodeAttribute<>(Folder.name, "mounted"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "storageConfiguration"), testMount)
@@ -579,7 +579,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// set resource access flags to be able to POS to /Image
-			final ResourceAccess grant = app.nodeQuery(ResourceAccessTraitDefinition.class).and(ResourceAccessTraitDefinition.signature, "Image").getFirst();
+			final ResourceAccess grant = app.nodeQuery("ResourceAccessTraitDefinition").and(ResourceAccessTraitDefinition.signature, "Image").getFirst();
 			if (grant != null) {
 
 				grant.setProperty(ResourceAccessTraitDefinition.flags, 4L);
@@ -587,7 +587,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			} else {
 
-				app.create(ResourceAccessDefinition.class,
+				app.create("ResourceAccessDefinition",
 					new NodeAttribute<>(ResourceAccessDefinition.signature,                   "Image"),
 					new NodeAttribute<>(ResourceAccessDefinition.flags,                       4L),
 					new NodeAttribute<>(ResourceAccessDefinition.visibleToAuthenticatedUsers, true)
@@ -631,7 +631,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<Image> images = app.nodeQuery("Image").getAsList();
 
 			assertEquals("Only one image should exist", 1, images.size());
 

@@ -135,7 +135,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getAsList();
+			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
 
 			assertEquals("Invalid number of test files", 2, files.size());
 
@@ -352,7 +352,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getAsList();
+			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
@@ -438,7 +438,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getAsList();
+			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
@@ -472,7 +472,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getAsList();
+			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
 
 			assertEquals("Invalid number of test files", 0, files.size());
 
@@ -510,10 +510,10 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Folder test1 should exist", "test1", app.nodeQuery(Folder.class).andName("test1").sort(AbstractNode.name).getFirst().getName());
-			assertEquals("Folder test2 should exist", "test2", app.nodeQuery(Folder.class).andName("test2").sort(AbstractNode.name).getFirst().getName());
-			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery(Folder.class).andName("nested1").sort(AbstractNode.name).getFirst().getName());
-			assertNull("Folder nested2 should have been deleted", app.nodeQuery(Folder.class).andName("nested2").sort(AbstractNode.name).getFirst());
+			assertEquals("Folder test1 should exist", "test1", app.nodeQuery("Folder").andName("test1").sort(AbstractNode.name).getFirst().getName());
+			assertEquals("Folder test2 should exist", "test2", app.nodeQuery("Folder").andName("test2").sort(AbstractNode.name).getFirst().getName());
+			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery("Folder").andName("nested1").sort(AbstractNode.name).getFirst().getName());
+			assertNull("Folder nested2 should have been deleted", app.nodeQuery("Folder").andName("nested2").sort(AbstractNode.name).getFirst());
 
 			tx.success();
 

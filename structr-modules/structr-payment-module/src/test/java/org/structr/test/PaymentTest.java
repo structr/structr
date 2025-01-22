@@ -43,7 +43,7 @@ public class PaymentTest extends StructrUiTest {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)

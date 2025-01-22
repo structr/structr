@@ -84,7 +84,7 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 				try (final Tx tx = app.tx()) {
 
-					Principal principal = app.nodeQuery(Principal.class).uuid(secContextUserId).getFirst();
+					Principal principal = app.nodeQuery("Principal").uuid(secContextUserId).getFirst();
 					this.securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
 
 					tx.success();
@@ -106,8 +106,8 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 				try (final Tx tx = app.tx()) {
 
-					this.startNode = app.nodeQuery(FlowNode.class).uuid(startNodeUuid).getFirst();
-					this.fork = app.nodeQuery(FlowFork.class).uuid(forkUuid).getFirst();
+					this.startNode = app.nodeQuery("FlowNode").uuid(startNodeUuid).getFirst();
+					this.fork = app.nodeQuery("FlowFork").uuid(forkUuid).getFirst();
 
 					tx.success();
 

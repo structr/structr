@@ -132,7 +132,7 @@ public abstract class ODFExporter extends AbstractNode {
 		try {
 
 			final App app      = StructrApp.getInstance();
-			final Image result = app.nodeQuery(Image.class).and(GraphObject.id, uuid).getFirst();
+			final Image result = app.nodeQuery("Image").and(GraphObject.id, uuid).getFirst();
 
 			String imageName = result.getProperty(Image.name);
 			String contentType = result.getProperty(Image.contentTypeProperty);

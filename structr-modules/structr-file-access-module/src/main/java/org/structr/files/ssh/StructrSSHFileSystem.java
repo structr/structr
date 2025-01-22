@@ -232,7 +232,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				try (final Tx tx = app.tx()) {
 
-					final Folder folder = app.create(Folder.class,
+					final Folder folder = app.create("Folder",
 						new NodeAttribute(AbstractNode.name, name),
 						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parent != null ? parent.getActualFile() : null)
 					);
@@ -382,7 +382,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					final Folder parentFolder = (Folder) parent.getActualFile();
 
-					newFile = app.create(File.class,
+					newFile = app.create("File",
 						new NodeAttribute(AbstractNode.name, fileName),
 						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parentFolder)
 					);

@@ -102,12 +102,12 @@ public class CacheTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				// create test object
-				obj = app.create(TestTwo.class, "testTwo"+ i);
+				obj = app.create("TestTwo", "testTwo"+ i);
 
 				// add related nodes
 				for (int j=0; j<count; j++) {
 
-					final TestFive tmp = app.create(TestFive.class, new NodeAttribute<>(TestFive.testTwo, obj));
+					final TestFive tmp = app.create("TestFive", new NodeAttribute<>(TestFive.testTwo, obj));
 				}
 
 				queue.add(obj);
@@ -151,8 +151,8 @@ public class CacheTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.schemaNode, app.nodeQuery(SchemaNode.class).andName("Person").getFirst()),
+				app.create("SchemaProperty",
+					new NodeAttribute<>(SchemaProperty.schemaNode, app.nodeQuery("SchemaNode").andName("Person").getFirst()),
 					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 					new NodeAttribute<>(SchemaProperty.name, "name")
 				);
@@ -219,9 +219,9 @@ public class CacheTest extends StructrUiTest {
 
 			Page.createSimplePage(securityContext, "test");
 
-			final User user1 = app.create(User.class, "user1");
+			final User user1 = app.create("User", "user1");
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(User.name,                              "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),     true)

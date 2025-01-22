@@ -21,7 +21,6 @@ package org.structr.test.rest.resource;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestObject;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -152,7 +151,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
-				.body("result[0]",          isEntity(TestObject.class))
+				.body("result[0]",          isEntity("TestObject"))
 			.when()
 				.get("/TestObject");
 

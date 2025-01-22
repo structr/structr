@@ -110,7 +110,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 				try {
 
-					try (final ResultStream<Folder> folders = app.nodeQuery(Folder.class).sort(AbstractNode.name).getResultStream()) {
+					try (final ResultStream<Folder> folders = app.nodeQuery("Folder").sort(AbstractNode.name).getResultStream()) {
 
 						for (Folder f : folders) {
 
@@ -126,7 +126,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						}
 					}
 
-					try (final ResultStream<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getResultStream()) {
+					try (final ResultStream<File> files = app.nodeQuery("File").sort(AbstractNode.name).getResultStream()) {
 						for (File f : files) {
 
 							if (f.getHasParent()) {
@@ -143,7 +143,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						}
 					}
 
-					try (final ResultStream<Page> pages = app.nodeQuery(Page.class).sort(AbstractNode.name).getResultStream()) {
+					try (final ResultStream<Page> pages = app.nodeQuery("Page").sort(AbstractNode.name).getResultStream()) {
 
 						for (Page p : pages) {
 

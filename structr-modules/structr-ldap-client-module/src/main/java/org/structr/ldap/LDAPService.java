@@ -207,7 +207,7 @@ public class LDAPService extends Thread implements SingletonService {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final LDAPUser member : app.nodeQuery(LDAPUser.class).getResultStream()) {
+				for (final LDAPUser member : app.nodeQuery("LDAPUser").getResultStream()) {
 
 					boolean hasLDAPGroups = false;
 
@@ -247,12 +247,12 @@ public class LDAPService extends Thread implements SingletonService {
 
 			attributes.put(StructrApp.key(LDAPUser.class, "originId"), originId);
 
-			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
+			LDAPUser user = app.nodeQuery("LDAPUser").and(attributes).getFirst();
 			if (user == null) {
 
 				logger.debug("Creating new user for originId {}", originId);
 
-				user = app.create(LDAPUser.class, attributes);
+				user = app.create("LDAPUser", attributes);
 				if (user != null) {
 
 					logger.debug("User created: {}", user.getUuid());

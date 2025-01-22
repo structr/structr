@@ -265,7 +265,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 //			props.put(StructrApp.key(entityType, "folder"), null);
 //			props.put(StructrApp.key(entityType, "receivedDate"), null);
 
-			outgoingMessage = app.create(EMailMessage.class, props);
+			outgoingMessage = app.create("EMailMessage", props);
 
 			tx.success();
 
@@ -466,7 +466,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		try (Tx tx = app.tx()) {
 
 			// Fetch mails for each mailbox found
-			app.nodeQuery(Mailbox.class).getResultStream().forEach(this::fetchMails);
+			app.nodeQuery("Mailbox").getResultStream().forEach(this::fetchMails);
 			tx.success();
 
 		} catch (FrameworkException ex) {

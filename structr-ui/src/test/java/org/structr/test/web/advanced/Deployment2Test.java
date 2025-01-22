@@ -206,8 +206,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create some files and folders
-			final Folder folder1  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(StructrApp.key(Folder.class, "includeInFrontendExport"), true));
-			final Folder folder2  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), folder1));
+			final Folder folder1  = app.create("Folder", new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(StructrApp.key(Folder.class, "includeInFrontendExport"), true));
+			final Folder folder2  = app.create("Folder", new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), folder1));
 
 			final File file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt", true);
 			final File file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt", true);
@@ -302,15 +302,15 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create extended folder class
-			app.create(SchemaNode.class,
+			app.create("SchemaNode",
 				new NodeAttribute<>(SchemaNode.name, "ExtendedFolder"),
-				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("Folder").getFirst())
+				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery("SchemaNode").andName("Folder").getFirst())
 			);
 
 			// create extended file class
-			app.create(SchemaNode.class,
+			app.create("SchemaNode",
 				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
-				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst())
+				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery("SchemaNode").andName("File").getFirst())
 			);
 
 			tx.success();
@@ -413,8 +413,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final File file1 = app.nodeQuery(File.class).and(File.name, fileName1).getFirst();
-			final File file2 = app.nodeQuery(File.class).and(File.name, fileName2).getFirst();
+			final File file1 = app.nodeQuery("File").and(File.name, fileName1).getFirst();
+			final File file2 = app.nodeQuery("File").and(File.name, fileName2).getFirst();
 
 			assertNotNull("Invalid deployment result", file1);
 			assertNotNull("Invalid deployment result", file2);
@@ -444,14 +444,14 @@ public class Deployment2Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(MailTemplate.class,
+			app.create("MailTemplate",
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "template1"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "text1"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "visibleToPublicUsers"), true)
 			);
 
-			app.create(MailTemplate.class,
+			app.create("MailTemplate",
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "template2"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "en"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "text2"),
@@ -471,8 +471,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final MailTemplate template1 = app.nodeQuery(MailTemplate.class).and(MailTemplate.name, "template1").getFirst();
-			final MailTemplate template2 = app.nodeQuery(MailTemplate.class).and(MailTemplate.name, "template2").getFirst();
+			final MailTemplate template1 = app.nodeQuery("MailTemplate").and(MailTemplate.name, "template1").getFirst();
+			final MailTemplate template2 = app.nodeQuery("MailTemplate").and(MailTemplate.name, "template2").getFirst();
 
 			assertNotNull("Invalid deployment result", template1);
 			assertNotNull("Invalid deployment result", template2);
@@ -502,14 +502,14 @@ public class Deployment2Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(Localization.class,
+			app.create("Localization",
 				new NodeAttribute<>(StructrApp.key(Localization.class, "name"),                "localization1"),
 				new NodeAttribute<>(StructrApp.key(Localization.class, "domain"),              "domain1"),
 				new NodeAttribute<>(StructrApp.key(Localization.class, "locale"),              "de_DE"),
 				new NodeAttribute<>(StructrApp.key(Localization.class, "localizedName"),       "localizedName1")
 			);
 
-			app.create(Localization.class,
+			app.create("Localization",
 				new NodeAttribute<>(StructrApp.key(Localization.class, "name"),                       "localization2"),
 				new NodeAttribute<>(StructrApp.key(Localization.class, "domain"),                     "domain2"),
 				new NodeAttribute<>(StructrApp.key(Localization.class, "locale"),                     "en"),
@@ -529,8 +529,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Localization localization1 = app.nodeQuery(Localization.class).and(Localization.name, "localization1").getFirst();
-			final Localization localization2 = app.nodeQuery(Localization.class).and(Localization.name, "localization2").getFirst();
+			final Localization localization1 = app.nodeQuery("Localization").and(Localization.name, "localization1").getFirst();
+			final Localization localization2 = app.nodeQuery("Localization").and(Localization.name, "localization2").getFirst();
 
 			assertNotNull("Invalid deployment result", localization1);
 			assertNotNull("Invalid deployment result", localization2);

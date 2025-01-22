@@ -57,7 +57,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
@@ -65,7 +65,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 			testFileMethodProperties.put(SchemaMethod.isStatic, true);
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
+			SchemaMethod testFileMethod = app.create("SchemaMethod", testFileMethodProperties);
 
 			tx.success();
 
@@ -111,7 +111,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
-			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
+			SchemaNode fooFileDef = app.create("SchemaNode", customTypeName);
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
@@ -119,7 +119,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
 
-			app.create(SchemaMethod.class, testFooFileMethodProperties);
+			app.create("SchemaMethod", testFooFileMethodProperties);
 
 			tx.success();
 
@@ -184,14 +184,14 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
-			app.create(SchemaMethod.class, testFileMethodProperties);
+			app.create("SchemaMethod", testFileMethodProperties);
 
 			tx.success();
 
@@ -203,7 +203,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Create File instance
-			testFile = app.create(File.class, "Test File");
+			testFile = app.create("File", "Test File");
 			testFile.setProperty(File.owner, admin);
 
 			tx.success();
@@ -250,14 +250,14 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFooFileMethodOnEntity" to built-in File class
-			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
+			SchemaNode fooFileDef = app.create("SchemaNode", customTypeName);
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 
-			app.create(SchemaMethod.class, testFooFileMethodProperties);
+			app.create("SchemaMethod", testFooFileMethodProperties);
 
 			tx.success();
 
@@ -324,7 +324,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
@@ -332,7 +332,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 			testFileMethodProperties.put(SchemaMethod.isStatic, true);
 
-			app.create(SchemaMethod.class, testFileMethodProperties);
+			app.create("SchemaMethod", testFileMethodProperties);
 
 			tx.success();
 
@@ -389,14 +389,14 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add schema method "testFileMethod" to built-in File class
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName(builtinTypeName).getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
-			app.create(SchemaMethod.class, testFileMethodProperties);
+			app.create("SchemaMethod", testFileMethodProperties);
 
 			tx.success();
 
@@ -505,13 +505,13 @@ public class SchemaMethodsTest extends FrontendTest {
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			// create global schema method for JavaScript
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
 				new NodeAttribute<>(SchemaMethod.source, "{ Structr.find('Test')[0].sendError(); }")
 			);
 
 			// create global schema method for StructrScript
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,   "globalTest2"),
 				new NodeAttribute<>(SchemaMethod.source, "first(find('Test')).sendError")
 			);
@@ -596,7 +596,7 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create global schema method for JavaScript
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
 				new NodeAttribute<>(SchemaMethod.source, "{ return { success: true, value: 123 }; }")
 			);
@@ -641,7 +641,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
+			final SchemaNode fooFileDef = app.create("SchemaNode", customTypeName);
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 
 			testFooFileMethodProperties.put(SchemaMethod.id, schemaMethodId);
@@ -650,7 +650,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
 
-			app.create(SchemaMethod.class, testFooFileMethodProperties);
+			app.create("SchemaMethod", testFooFileMethodProperties);
 
 			tx.success();
 

@@ -138,10 +138,10 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, "TestType");
+			final SchemaNode testType = app.create("SchemaNode", "TestType");
 
 			// create one method with a schema node
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.schemaNode,                  testType),
 				new NodeAttribute<>(SchemaMethod.name,                        "method1"),
 				new NodeAttribute<>(SchemaMethod.source,                      "source1"),
@@ -156,7 +156,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			);
 
 			// and one without (i.e. user-defined function)
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,                       "method2"),
 				new NodeAttribute<>(SchemaMethod.source,                     "source2"),
 				new NodeAttribute<>(SchemaMethod.virtualFileName,            "virtualFileName2")
@@ -175,8 +175,8 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method1 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "method1").getFirst();
-			final SchemaMethod method2 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "method2").getFirst();
+			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "method1").getFirst();
+			final SchemaMethod method2 = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "method2").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
@@ -223,7 +223,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			div.setProperty(AbstractNode.name, "WidgetTestPage-Div");
 			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
-			Widget widgetToImport = app.create(Widget.class,
+			Widget widgetToImport = app.create("Widget",
 					new NodeAttribute<>(StructrApp.key(Widget.class, "name"),"TestWidget"),
 					new NodeAttribute<>(StructrApp.key(Widget.class, "source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
 					new NodeAttribute<>(StructrApp.key(Widget.class, "configuration"),               "{\"processDeploymentInfo\": true}"),
@@ -290,7 +290,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			div.setProperty(AbstractNode.name, "WidgetTestPage-Div");
 			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
-			Widget widgetToImport = app.create(Widget.class,
+			Widget widgetToImport = app.create("Widget",
 					new NodeAttribute<>(StructrApp.key(Widget.class, "name"), "TestWidget"),
 					new NodeAttribute<>(StructrApp.key(Widget.class, "source"),
 						"<structr:component src=\"TestComponent\">\n" +
@@ -326,7 +326,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Div div = app.nodeQuery(Div.class).andName("WidgetTestPage-Div").getFirst();
+			Div div = app.nodeQuery("Div").andName("WidgetTestPage-Div").getFirst();
 
 			assertEquals(2, div.treeGetChildCount());
 
@@ -341,7 +341,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			Div clonedNode = (Div)obj;
 
 			assertEquals(0, clonedNode.getChildNodes().getLength());
-			assertEquals(3, app.nodeQuery(Div.class).andName("TestComponent").getAsList().size());
+			assertEquals(3, app.nodeQuery("Div").andName("TestComponent").getAsList().size());
 
 			tx.success();
 
@@ -388,11 +388,11 @@ public class Deployment3Test extends DeploymentTestBase {
 			page.setProperty(StructrApp.key(Page.class, "displayPosition"), 12);
 			page.setProperty(StructrApp.key(Page.class, "icon"),            "icon");
 
-			final Folder folder = app.create(Folder.class, "files");
+			final Folder folder = app.create("Folder", "files");
 			folder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
 
 			// create test file with custom attributes
-			app.create(File.class,
+			app.create("File",
 				new NodeAttribute<>(StructrApp.key(File.class, "name"),        "test.txt"),
 				new NodeAttribute<>(StructrApp.key(File.class, "parent"),      folder),
 				new NodeAttribute<>(StructrApp.key(File.class, "contentType"), "text/plain"),
@@ -450,9 +450,9 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
+			app.create("SchemaNode",
 				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
-				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst()),
+				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery("SchemaNode").andName("File").getFirst()),
 				new NodeAttribute<>(new StringProperty("_test"), "String")
 			);
 
@@ -513,7 +513,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName("filesystem").getFirst();
+			final Folder folder = app.nodeQuery("Folder").andName("filesystem").getFirst();
 
 			assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
 

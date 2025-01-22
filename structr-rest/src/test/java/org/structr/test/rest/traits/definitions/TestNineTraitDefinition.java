@@ -16,41 +16,54 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.entity;
+package org.structr.test.rest.traits.definitions;
 
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.geo.AddressComponent;
-import org.structr.common.geo.GeoCodingResult;
-import org.structr.common.geo.GeoHelper;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
-/**
- *
- *
- */
-public class TestNine extends AbstractNode {
+import java.util.Map;
+import java.util.Set;
 
-	public static final Property<Iterable<TestEight>> testEights   = new EndNodes<>("testEights", NineEightManyToMany.class);
-	public static final Property<Iterable<String>>    testEightIds = new CollectionNotionProperty("testEightIds", testEights, new PropertyNotion(GraphObject.id));
+public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final Property<String>          city         = new StringProperty("city").indexed().indexedWhenEmpty();
-	public static final Property<String>          street       = new StringProperty("street").indexed().indexedWhenEmpty();
-	public static final Property<String>          postalCode   = new StringProperty("postalCode").indexed().indexedWhenEmpty();
+	public TestNineTraitDefinition() {
+		super("TestNine");
+	}
 
-	public static final Property<Double>          latitude     = new DoubleProperty("latitude");
-	public static final Property<Double>          longitude    = new DoubleProperty("longitude");
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
 
-	public static final View defaultView = new View(TestNine.class, PropertyView.Public,
-		name, city, street, postalCode, latitude, longitude
-	);
+		final Property<Iterable<NodeInterface>> testEights = new EndNodes("testEights", "NineEightManyToMany");
+		final Property<Iterable<String>>    testEightIds   = new CollectionNotionProperty("testEightIds", "TestNine", "testEights", "TestEight", new PropertyNotion("id"));
+		final Property<String> city                        = new StringProperty("city").indexed().indexedWhenEmpty();
+		final Property<String> street                      = new StringProperty("street").indexed().indexedWhenEmpty();
+		final Property<String> postalCode                  = new StringProperty("postalCode").indexed().indexedWhenEmpty();
+		final Property<Double> latitude                    = new DoubleProperty("latitude");
+		final Property<Double> longitude                   = new DoubleProperty("longitude");
+
+		return Set.of(
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			Set.of("name", "city", "street", "postalCode", "latitude", "longitude")
+		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
+	/*
 
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
@@ -96,4 +109,5 @@ public class TestNine extends AbstractNode {
 			}
 		}
 	}
+	*/
 }

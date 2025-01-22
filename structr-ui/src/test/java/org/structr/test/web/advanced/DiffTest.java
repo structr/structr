@@ -602,7 +602,7 @@ public class DiffTest extends StructrUiTest {
 		// test result on the node level
 		try (final Tx tx = app.tx()) {
 
-			final Page page = app.nodeQuery(Page.class).andName("test").getFirst();
+			final Page page = app.nodeQuery("Page").andName("test").getFirst();
 
 			assertNotNull(page);
 

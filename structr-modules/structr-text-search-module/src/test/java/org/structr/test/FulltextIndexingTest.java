@@ -77,7 +77,7 @@ public class FulltextIndexingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey key        = StructrApp.key(Indexable.class, "indexedWords");
-			final List<Indexable> result = app.nodeQuery(Indexable.class).and(key, Arrays.asList("sit"), false).getAsList();
+			final List<Indexable> result = app.nodeQuery("Indexable").and(key, Arrays.asList("sit"), false).getAsList();
 
 			assertEquals("Invalid index query result size", 1, result.size());
 			assertEquals("Invalid index query result", uuid, result.get(0).getUuid());
@@ -166,7 +166,7 @@ public class FulltextIndexingTest extends StructrUiTest {
 		// test result
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.nodeQuery(File.class).getFirst();
+			final File file = app.nodeQuery("File").getFirst();
 
 			assertNotNull("File should exist", file);
 
@@ -196,7 +196,7 @@ public class FulltextIndexingTest extends StructrUiTest {
 		// test result
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.nodeQuery(File.class).getFirst();
+			final File file = app.nodeQuery("File").getFirst();
 
 			assertNotNull("File should exist", file);
 
@@ -218,7 +218,7 @@ public class FulltextIndexingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey key        = StructrApp.key(Indexable.class, "indexedWords");
-			final List<Indexable> result = app.nodeQuery(Indexable.class).and(key, Arrays.asList(searchTerm), false).getAsList();
+			final List<Indexable> result = app.nodeQuery("Indexable").and(key, Arrays.asList(searchTerm), false).getAsList();
 			final Set<String> resultIds  = result.stream().map(GraphObject::getUuid).collect(Collectors.toSet());
 
 			assertEquals("Invalid index query result size", expectedUuids.length, result.size());

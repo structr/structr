@@ -23,9 +23,9 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.*;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -47,8 +47,8 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestTwo sourceNode = app.create(TestTwo.class);
-			final TestOne targetNode = app.create(TestOne.class);
+			final NodeInterface sourceNode = app.create("TestTwo");
+			final NodeInterface targetNode = app.create("TestOne");
 
 			// store IDs for later use
 			sourceNodeId = sourceNode.getUuid();
@@ -77,7 +77,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
-				.body("result",		    isEntity(TestTwo.class))
+				.body("result",		    isEntity("TestTwo"))
 			.when()
 				.get(concat("/TestTwo/", sourceNodeId));
 
@@ -133,8 +133,8 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestTwo sourceNode = app.create(TestTwo.class);
-			final TestOne targetNode = app.create(TestOne.class);
+			final NodeInterface sourceNode = app.create("TestTwo");
+			final NodeInterface targetNode = app.create("TestOne");
 
 			// store IDs for later use
 			sourceNodeId = sourceNode.getUuid();
@@ -219,8 +219,8 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestFour  sourceNode = app.create(TestFour.class);
-			final TestThree targetNode = app.create(TestThree.class);
+			final NodeInterface  sourceNode = app.create("TestFour");
+			final NodeInterface targetNode = app.create("TestThree");
 
 			// store IDs for later use
 			sourceNodeId = sourceNode.getUuid();
@@ -305,8 +305,8 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestFive sourceNode = app.create(TestFive.class);
-			final TestOne  targetNode = app.create(TestOne.class);
+			final NodeInterface sourceNode = app.create("TestFive");
+			final NodeInterface  targetNode = app.create("TestOne");
 
 			// store IDs for later use
 			sourceNodeId = sourceNode.getUuid();
@@ -392,9 +392,9 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestFour  sourceNode    = app.create(TestFour.class);
-			final TestThree targetNode    = app.create(TestThree.class);
-			final TestThree newTargetNode = app.create(TestThree.class);
+			final NodeInterface  sourceNode    = app.create("TestFour");
+			final NodeInterface targetNode    = app.create("TestThree");
+			final NodeInterface newTargetNode = app.create("TestThree");
 
 			// store IDs for later use
 			sourceNodeId    = sourceNode.getUuid();
@@ -481,9 +481,9 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestFive sourceNode   = app.create(TestFive.class);
-			final TestOne targetNode    = app.create(TestOne.class);
-			final TestOne newTargetNode = app.create(TestOne.class);
+			final NodeInterface sourceNode   = app.create("TestFive");
+			final NodeInterface targetNode    = app.create("TestOne");
+			final NodeInterface newTargetNode = app.create("TestOne");
 
 			// store IDs for later use
 			sourceNodeId = sourceNode.getUuid();

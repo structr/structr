@@ -64,9 +64,9 @@ public class ImageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(User.class, new NodeAttribute<>(Principal.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create(User.class, new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create(User.class, new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create("User", new NodeAttribute<>(Principal.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
+			tester2 = app.create("User", new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
+			tester3 = app.create("User", new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			final Folder folder1 = FileHelper.createFolderPath(securityContext, "/Test1");
 			folder1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
@@ -149,7 +149,7 @@ public class ImageTest extends StructrUiTest {
 			boolean allThumbnailsAvailable = true;
 			try (final Tx tx = app.tx()) {
 
-				final List<Image> images = app.nodeQuery(Image.class).and("isThumbnail", false).getAsList();
+				final List<Image> images = app.nodeQuery("Image").and("isThumbnail", false).getAsList();
 				for (Image img : images) {
 
 					allThumbnailsAvailable &= img.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
@@ -171,7 +171,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			final List<Folder> folders = app.nodeQuery(Folder.class).sort(StructrApp.key(Folder.class, "path")).getAsList();
+			final List<Folder> folders = app.nodeQuery("Folder").sort(StructrApp.key(Folder.class, "path")).getAsList();
 
 			folders.stream().forEach(f -> {
 				System.out.println(f.getPath());
@@ -210,9 +210,9 @@ public class ImageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create("Principal", new NodeAttribute<>(Principal.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
+			tester2 = app.create("Principal", new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
+			tester3 = app.create("Principal", new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			tx.success();
 
@@ -263,7 +263,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			app.nodeQuery(Folder.class).getAsList().stream().forEach(f -> {
+			app.nodeQuery("Folder").getAsList().stream().forEach(f -> {
 				System.out.println(f.getPath());
 			});
 

@@ -74,7 +74,7 @@ public class StructrUserManager implements UserManager {
 
 			try {
 
-				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(Principal.class).sort(AbstractNode.name).getResultStream());
+				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery("Principal").sort(AbstractNode.name).getResultStream());
 
 			} catch (FrameworkException ex) {
 

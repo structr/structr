@@ -205,12 +205,12 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute(User.name, "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute(User.name, "TestUser2"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
@@ -227,12 +227,12 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute(User.name, "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute(User.name, "TestUser2"),
 				new NodeAttribute(eMail, "User@Structr.test")
 			);
@@ -256,7 +256,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// setup two pages and two sites
 			// page one -> site one, listens on one:8875
 			// page two -> site two, listens on two:8875
-			final Page pageOne = app.create(Page.class, "page-one");
+			final Page pageOne = app.create("Page", "page-one");
 
 			try {
 				final Element html = pageOne.createElement("html");
@@ -273,7 +273,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			final Page pageTwo = app.create(Page.class, "page-two");
+			final Page pageTwo = app.create("Page", "page-two");
 
 			try {
 				final Element html = pageTwo.createElement("html");
@@ -874,7 +874,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<File> files = app.nodeQuery(File.class).sort(StructrApp.key(File.class, "path")).getAsList();
+				final List<File> files = app.nodeQuery("File").sort(StructrApp.key(File.class, "path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "aaaaa", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(1).getName());
@@ -898,7 +898,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check final sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<File> files = app.nodeQuery(File.class).sort(StructrApp.key(File.class, "path")).getAsList();
+				final List<File> files = app.nodeQuery("File").sort(StructrApp.key(File.class, "path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "ccccc", files.get(1).getName());
@@ -923,7 +923,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			Page.createSimplePage(securityContext, "test");
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
@@ -1126,7 +1126,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			setFlagsRecursively(pub,   true, false);
 			setFlagsRecursively(auth, false,  true);
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "tester"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
 			);
@@ -1205,7 +1205,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			test.getElementsByTagName("div").item(0).appendChild(text);
 
-			final User user = app.create(User.class,
+			final User user = app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
@@ -1250,7 +1250,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<User> users = app.nodeQuery(User.class).getAsList();
+			final List<User> users = app.nodeQuery("User").getAsList();
 
 			assertEquals("Expected no users to be created because of constraints", 0, users.size());
 

@@ -83,9 +83,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Add String property "testFile" to built-in File class
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName("File").getFirst();
 
-			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
+			SchemaProperty testFileProperty = app.create("SchemaProperty");
 
 			final PropertyMap testFileProperties = new PropertyMap();
 			testFileProperties.put(SchemaProperty.name, "testFile");
@@ -177,9 +177,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName("File").getFirst();
 
-			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
+			SchemaProperty testFileProperty = app.create("SchemaProperty");
 
 			final PropertyMap changedProperties = new PropertyMap();
 			changedProperties.put(SchemaProperty.name, "testFile");
@@ -196,16 +196,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Create new schema node for dynamic class SubFile which extends File
-			SchemaNode subFile = app.create(SchemaNode.class);
+			SchemaNode subFile = app.create("SchemaNode");
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst());
+			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery("SchemaNode").andName("File").getFirst());
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
 			// Add String property "testSubFile" to new dynamic class
-			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
+			SchemaProperty testFileProperty = app.create("SchemaProperty");
 
 			final PropertyMap testFileProperties = new PropertyMap();
 			testFileProperties.put(SchemaProperty.name, "testSubFile");
@@ -269,9 +269,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			SchemaNode fileNodeDef = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName("File").getFirst();
 
-			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
+			SchemaProperty testFileProperty = app.create("SchemaProperty");
 
 			final PropertyMap testFileProperties = new PropertyMap();
 			testFileProperties.put(SchemaProperty.name, "testFile");
@@ -288,16 +288,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Create new schema node for dynamic class SubFile which extends File
-			SchemaNode subFile = app.create(SchemaNode.class);
+			SchemaNode subFile = app.create("SchemaNode");
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("Image").getFirst());
+			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery("SchemaNode").andName("Image").getFirst());
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
 			// Add String property "testSubFile" to new dynamic class
-			SchemaProperty testFileProperty = app.create(SchemaProperty.class);
+			SchemaProperty testFileProperty = app.create("SchemaProperty");
 
 			final PropertyMap testFileProperties = new PropertyMap();
 			testFileProperties.put(SchemaProperty.name, "testSubFile");
@@ -365,14 +365,14 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test type
-			test = app.create(SchemaNode.class, "Test");
+			test = app.create("SchemaNode", "Test");
 
-			app.create(SchemaView.class,
+			app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.name, "myView"),
 				new NodeAttribute<>(SchemaView.schemaNode, test)
 			);
 
-			app.create(SchemaView.class,
+			app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.name, "testView"),
 				new NodeAttribute<>(SchemaView.schemaNode, test)
 			);
@@ -390,28 +390,28 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final List<SchemaView> list = Iterables.toList(test.getProperty(SchemaNode.schemaViews));
 
 			// create properties
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "one")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "two")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "three")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
@@ -425,7 +425,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
+		final List<PropertyKey> list = new LinkedList<>(Traits.of(type).getPropertyKeysForView("public"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		assertEquals("id",    list.get(0).dbName());
@@ -456,7 +456,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
-		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
+		final List<PropertyKey> list2 = new LinkedList<>(Traits.of(type).getPropertyKeysForView("public"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		assertEquals("id",    list2.get(0).dbName());
@@ -603,10 +603,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test type
-			final SchemaNode test = app.create(SchemaNode.class, "Test");
+			final SchemaNode test = app.create("SchemaNode", "Test");
 
 			// create view with sort order
-			testView1 = app.create(SchemaView.class,
+			testView1 = app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.name, "test"),
 				new NodeAttribute<>(SchemaView.schemaNode, test),
 				new NodeAttribute<>(SchemaView.sortOrder, "one, two, three, four, id, type, name"),
@@ -614,7 +614,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			);
 
 			// create view with sort order
-			testView2 = app.create(SchemaView.class,
+			testView2 = app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.name, "other"),
 				new NodeAttribute<>(SchemaView.schemaNode, test),
 				new NodeAttribute<>(SchemaView.sortOrder, "four, id, type, name, one, three, two"),
@@ -626,28 +626,28 @@ public class AdvancedSchemaTest extends FrontendTest {
 			list.add(testView2);
 
 			// create properties
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "one")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "two")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "three")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
@@ -661,7 +661,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list = new LinkedList<>(Traits.of(type).getPropertyKeysForView("test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		assertEquals("Invalid view order", "one",   list.get(0).dbName());
@@ -687,7 +687,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
-		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list2 = new LinkedList<>(Traits.of(type).getPropertyKeysForView("test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		assertEquals("Invalid view order", "type",  list2.get(0).dbName());
@@ -835,14 +835,14 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testBase = app.create(SchemaNode.class, "TestBase");
-			final SchemaNode test     = app.create(SchemaNode.class,
+			final SchemaNode testBase = app.create("SchemaNode", "TestBase");
+			final SchemaNode test     = app.create("SchemaNode",
 				new NodeAttribute<>(SchemaNode.name, "Test"),
 				new NodeAttribute<>(SchemaNode.extendsClass, testBase)
 			);
 
 			// create view with sort order
-			testView = app.create(SchemaView.class,
+			testView = app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.name, "test"),
 				new NodeAttribute<>(SchemaView.schemaNode, test),
 				new NodeAttribute<>(SchemaView.sortOrder, "one, two, three, four, id, type, name"),
@@ -853,28 +853,28 @@ public class AdvancedSchemaTest extends FrontendTest {
 			list.add(testView);
 
 			// create properties
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, testBase),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "one")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, testBase),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "two")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, testBase),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 				new NodeAttribute<>(SchemaProperty.name, "three")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, testBase),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
@@ -889,7 +889,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list = new LinkedList<>(Traits.of(type).getPropertyKeysForView("test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		assertEquals("one",   list.get(0).dbName());
@@ -915,7 +915,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
-		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list2 = new LinkedList<>(Traits.of(type).getPropertyKeysForView("test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		assertEquals("type",  list2.get(0).dbName());
@@ -1063,10 +1063,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test type
-			final SchemaNode test = app.create(SchemaNode.class, "Test");
+			final SchemaNode test = app.create("SchemaNode", "Test");
 
 			// create view with sort order
-			testView = app.create(SchemaView.class,
+			testView = app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.name, "testview"),
 				new NodeAttribute<>(SchemaView.sortOrder, "name"),
 				new NodeAttribute<>(SchemaView.schemaNode, test)
@@ -1076,7 +1076,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			list.add(testView);
 
 			// create a function property to overload the String property "name" defined in {@link NodeInterface}
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, test),
 				new NodeAttribute<>(SchemaProperty.schemaViews, list),
 				new NodeAttribute<>(SchemaProperty.propertyType, "Function"),
@@ -1090,7 +1090,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "testview"));
+		final List<PropertyKey> list = new LinkedList<>(Traits.of(type).getPropertyKeysForView("testview"));
 
 		assertEquals("Invalid number of properties in sorted view", 1, list.size());
 		assertEquals("name",  list.get(0).dbName());
@@ -1151,7 +1151,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
@@ -1247,7 +1247,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
@@ -1269,7 +1269,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final File newFile = app.create(File.class, "test.txt");
+			final File newFile = app.create("File", "test.txt");
 
 			try (final PrintWriter writer = new PrintWriter(newFile.getOutputStream())) {
 
@@ -1303,10 +1303,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<Boolean> key = StructrApp.key(File.class, "onDownloadCalled");
-			final File file                = app.nodeQuery(File.class).getFirst();
+			final File file                = app.nodeQuery("File").getFirst();
 
 			// store UUID of SchemaNode with name "File" for later use
-			final SchemaNode fileTypeNode  = app.nodeQuery(SchemaNode.class).andName("File").getFirst();
+			final SchemaNode fileTypeNode  = app.nodeQuery("SchemaNode").andName("File").getFirst();
 			fileTypeId = fileTypeNode.getUuid();
 
 			assertTrue("Lifecycle method onDownload was not called!", file.getProperty(key));

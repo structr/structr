@@ -161,7 +161,7 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page1     = app.nodeQuery(Page.class).getFirst();
+			final Page page1     = app.nodeQuery("Page").getFirst();
 			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").item(0);
 
 			option.setProperty(StructrApp.key(Option.class,  "selectedValues"), "project.tasks");
@@ -291,7 +291,7 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page1     = app.nodeQuery(Page.class).getFirst();
+			final Page page1     = app.nodeQuery("Page").getFirst();
 			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").item(0);
 
 			option.setProperty(StructrApp.key(Option.class,  "selectedValues"), "project.test");

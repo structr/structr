@@ -59,7 +59,7 @@ public class ODTExporter extends ODFExporter {
 		try {
 
 			final App app                        = StructrApp.getInstance(securityContext);
-			final ResultStream result            = app.nodeQuery(AbstractNode.class).and(GraphObject.id, uuid).getResultStream();
+			final ResultStream result            = app.nodeQuery("AbstractNode").and(GraphObject.id, uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, AbstractNode.class, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();

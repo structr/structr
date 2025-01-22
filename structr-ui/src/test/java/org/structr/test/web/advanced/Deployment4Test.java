@@ -178,7 +178,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page = app.nodeQuery(Page.class).and(Page.name, testName).getFirst();
+			final Page page = app.nodeQuery("Page").and(Page.name, testName).getFirst();
 
 			assertTrue("Expected page to have the hidden flag!", page.isHidden());
 
@@ -214,9 +214,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.create(User.class, "user1");
-			final Principal p2 = app.create(User.class, "user2");
-			final Principal p3 = app.create(User.class, "user3");
+			final Principal p1 = app.create("User", "user1");
+			final Principal p2 = app.create("User", "user2");
+			final Principal p3 = app.create("User", "user3");
 
 			final File test1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
 			final File test2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
@@ -280,11 +280,11 @@ public class Deployment4Test extends DeploymentTestBase {
 		// modify permissions of files that were exported
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.nodeQuery(Principal.class).andName("user1").getFirst();
-			final Principal p2 = app.nodeQuery(Principal.class).andName("user2").getFirst();
-			final Principal p3 = app.nodeQuery(Principal.class).andName("user3").getFirst();
+			final Principal p1 = app.nodeQuery("Principal").andName("user1").getFirst();
+			final Principal p2 = app.nodeQuery("Principal").andName("user2").getFirst();
+			final Principal p3 = app.nodeQuery("Principal").andName("user3").getFirst();
 
-			for (final File test : app.nodeQuery(File.class).getResultStream()) {
+			for (final File test : app.nodeQuery("File").getResultStream()) {
 
 				// set wrong grantees, to be corrected by deployment import
 				test.grant(Permission.read,          p1);
@@ -329,12 +329,12 @@ public class Deployment4Test extends DeploymentTestBase {
 		// check files
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.nodeQuery(Principal.class).andName("user1").getFirst();
-			final Principal p2 = app.nodeQuery(Principal.class).andName("user2").getFirst();
-			final File test1   = app.nodeQuery(File.class).andName("test1.txt").getFirst();
-			final File test2   = app.nodeQuery(File.class).andName("test2.txt").getFirst();
-			final File test3   = app.nodeQuery(File.class).andName("test3.txt").getFirst();
-			final File test4   = app.nodeQuery(File.class).andName("test4.txt").getFirst();
+			final Principal p1 = app.nodeQuery("Principal").andName("user1").getFirst();
+			final Principal p2 = app.nodeQuery("Principal").andName("user2").getFirst();
+			final File test1   = app.nodeQuery("File").andName("test1.txt").getFirst();
+			final File test2   = app.nodeQuery("File").andName("test2.txt").getFirst();
+			final File test3   = app.nodeQuery("File").andName("test3.txt").getFirst();
+			final File test4   = app.nodeQuery("File").andName("test4.txt").getFirst();
 
 			// test1
 			{
@@ -432,7 +432,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
@@ -489,7 +489,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
@@ -520,15 +520,15 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup 2 - schema grant
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1       = app.create(GroupTraitDefinition.class, "Group1");
-			final GroupTraitDefinition testGroup2       = app.create(GroupTraitDefinition.class, "Group2");
-			final GroupTraitDefinition testGroup3       = app.create(GroupTraitDefinition.class, "Group3");
+			final Group testGroup1       = app.create("GroupTraitDefinition", "Group1");
+			final GroupTraitDefinition testGroup2       = app.create("GroupTraitDefinition", "Group2");
+			final GroupTraitDefinition testGroup3       = app.create("GroupTraitDefinition", "Group3");
 
 			// create group hierarchy
 			testGroup1.addMember(securityContext, testGroup2);
 			testGroup2.addMember(securityContext, testGroup3);
 
-			final User user = app.create(User.class,
+			final User user = app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "user"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
 			);
@@ -536,8 +536,8 @@ public class Deployment4Test extends DeploymentTestBase {
 			testGroup3.addMember(securityContext, user);
 
 			// create grant
-			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
-			final SchemaGrant grant      = app.create(SchemaGrant.class,
+			final SchemaNode projectNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
+			final SchemaGrant grant      = app.create("SchemaGrant",
 				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
 				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
 				new NodeAttribute<>(SchemaGrant.allowRead,           true),
@@ -613,7 +613,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// test again but delete group hierarchy first
 		try (final Tx tx = app.tx()) {
 
-			final Group group2 = app.nodeQuery(GroupTraitDefinition.class).andName("Group2").getFirst();
+			final Group group2 = app.nodeQuery("GroupTraitDefinition").andName("Group2").getFirst();
 
 			// Group2 connects the schema grant group (Group1) with the user in Group3,
 			// so we expect the user to not see any Projects after this
@@ -703,7 +703,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// verify that the changelog flag is still disabled
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode node = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+			final SchemaNode node = app.nodeQuery("SchemaNode").andName("Project").getFirst();
 
 			assertTrue("Changelog disabled flag should be set after deployment roundtrip", node.getProperty(AbstractSchemaNode.changelogDisabled));
 
@@ -750,7 +750,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
@@ -796,7 +796,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			app.create(bothClass, "both1");
 			app.create(bothClass, "both2");
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "user"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
 			);

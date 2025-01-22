@@ -145,7 +145,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Page page : app.nodeQuery(Page.class).sort(AbstractNode.name).getAsList()) {
+			for (final Page page : app.nodeQuery("Page").sort(AbstractNode.name).getAsList()) {
 
 				// skip shadow document
 				if (page instanceof ShadowDocument) {
@@ -159,7 +159,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				calculateHash(page, buf, 1);
 			}
 
-			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
+			for (final Folder folder : app.nodeQuery("Folder").sort(AbstractNode.name).getAsList()) {
 
 				if (folder.includeInFrontendExport()) {
 
@@ -171,7 +171,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				}
 			}
 
-			for (final File file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
+			for (final File file : app.nodeQuery("File").sort(AbstractNode.name).getAsList()) {
 
 				if (file.includeInFrontendExport()) {
 

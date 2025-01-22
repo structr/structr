@@ -43,7 +43,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create global schema which does not have any visibility flags
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name, "myTestMethod01"),
 				new NodeAttribute<>(SchemaMethod.source, "'hello world!'")
 			);
@@ -69,7 +69,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create(ResourceAccessTraitDefinition.class,
+			app.create("ResourceAccessTraitDefinition",
 				new NodeAttribute<>(ResourceAccessTraitDefinition.signature, "myTestMethod01"),
 				new NodeAttribute<>(ResourceAccessTraitDefinition.flags, 64L),
 				new NodeAttribute<>(ResourceAccessTraitDefinition.visibleToPublicUsers, true)
@@ -99,9 +99,9 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, "MyTestType");
+			final SchemaNode testType = app.create("SchemaNode", "MyTestType");
 
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.schemaNode, testType),
 				new NodeAttribute<>(SchemaMethod.name, "testTypeMethod01"),
 				new NodeAttribute<>(SchemaMethod.source, "'MyTestType.testTypeMethod01 here'"),
@@ -129,7 +129,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create(ResourceAccessDefinition.class,
+			app.create("ResourceAccessDefinition",
 				new NodeAttribute<>(ResourceAccessDefinition.signature, "MyTestType/testTypeMethod01"),
 				new NodeAttribute<>(ResourceAccessDefinition.flags, 64L),
 				new NodeAttribute<>(ResourceAccessDefinition.visibleToPublicUsers, true)
@@ -161,10 +161,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
 
 			// create private method that is not exported via REST
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name, "myTestMethod01"),
 				new NodeAttribute<>(SchemaMethod.source, "'hello world!'"),
 				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
@@ -197,10 +197,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
 
 			// create lifecycle method that is not exported via REST
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name, "onCreate"),
 				new NodeAttribute<>(SchemaMethod.source, "{ $.log('hello world!'); }"),
 				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
@@ -235,10 +235,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
 
 			// create private method that is not exported via REST
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,       "testMethod"),
 				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
 				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
@@ -274,10 +274,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
 
 			// create private method that is not exported via REST
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,       "testMethod"),
 				new NodeAttribute<>(SchemaMethod.isStatic,   true),
 				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
@@ -314,13 +314,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
-			final SchemaView testView = app.create(SchemaView.class,
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaView testView = app.create("SchemaView",
 				new NodeAttribute<>(SchemaView.schemaNode, testType),
 				new NodeAttribute<>(SchemaView.name, "test")
 			);
 
-			final SchemaProperty p1   = app.create(SchemaProperty.class,
+			final SchemaProperty p1   = app.create("SchemaProperty",
 				new NodeAttribute<>(SchemaProperty.schemaNode, testType),
 				new NodeAttribute<>(SchemaProperty.schemaViews, List.of(testView)),
 				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
@@ -336,10 +336,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.nodeQuery(SchemaNode.class).andName("TestType").getFirst();
+			final SchemaNode testType = app.nodeQuery("SchemaNode").andName("TestType").getFirst();
 
 			// create private method that is not exported via REST
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,       "test"),
 				new NodeAttribute<>(SchemaMethod.isStatic,   true),
 				new NodeAttribute<>(SchemaMethod.isPrivate,  true),

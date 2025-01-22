@@ -40,7 +40,7 @@ public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 	public List<T> getWorkObjects() {
 
 		try {
-			return (List<T>)StructrApp.getInstance().nodeQuery(DataFeed.class).getAsList();
+			return (List<T>)StructrApp.getInstance().nodeQuery("DataFeed").getAsList();
 
 		} catch (FrameworkException ex) {
 

@@ -47,19 +47,19 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.create(FlowContainer.class, "testFlow");
+				container = app.create("FlowContainer", "testFlow");
 
 				container.setProperty(FlowContainer.effectiveName, "flow.deployment.test");
 				containerUuid = container.getUuid();
 
-				FlowAction action = app.create(FlowAction.class, "createAction");
+				FlowAction action = app.create("FlowAction", "createAction");
 				action.setProperty(FlowAction.script, "{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
 				action.setProperty(FlowAction.flowContainer, container);
 
-				FlowDataSource ds = app.create(FlowDataSource.class, "ds");
+				FlowDataSource ds = app.create("FlowDataSource", "ds");
 				ds.setProperty(FlowAction.flowContainer, container);
 
-				FlowReturn ret = app.create(FlowReturn.class, "ds");
+				FlowReturn ret = app.create("FlowReturn", "ds");
 				ret.setProperty(FlowReturn.dataSource, ds);
 				ret.setProperty(FlowAction.flowContainer, container);
 
@@ -76,7 +76,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				app.nodeQuery(FlowContainer.class).uuid(containerUuid).getFirst();
+				app.nodeQuery("FlowContainer").uuid(containerUuid).getFirst();
 
 				doImportExportRoundtrip(true);
 
@@ -88,7 +88,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, "flow.deployment.test").getFirst();
+				container = app.nodeQuery("FlowContainer").and(FlowContainer.effectiveName, "flow.deployment.test").getFirst();
 
 				assertNotNull(container);
 				result = container.evaluate(securityContext, flowParameters);

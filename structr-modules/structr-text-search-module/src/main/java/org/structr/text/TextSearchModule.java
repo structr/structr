@@ -242,7 +242,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 			data.put("analyzed", true);
 
-			final StructuredDocument document = app.create(StructuredDocument.class, indexable.getName());
+			final StructuredDocument document = app.create("StructuredDocument", indexable.getName());
 			final List<String> metadataNodes  = new LinkedList<>();
 			final List<String> pageNodes      = new LinkedList<>();
 
@@ -253,7 +253,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 			// store document metadata separately
 			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
 
-				final MetadataNode m = app.create(MetadataNode.class,
+				final MetadataNode m = app.create("MetadataNode",
 					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "name"),     meta.getKey()),
 					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "content"),  meta.getValue()),
 					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "document"), document)
@@ -266,7 +266,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 			for (final AnnotatedPage sourcePage : handler.getPages()) {
 
-				final StructuredTextNode page = app.create(StructuredTextNode.class,
+				final StructuredTextNode page = app.create("StructuredTextNode",
 					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     "Page " + pageNumber++),
 					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page")
 				);
@@ -279,7 +279,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 					final String content = sourceLine.getContent();
 
-					final StructuredTextNode paragraph = app.create(StructuredTextNode.class,
+					final StructuredTextNode paragraph = app.create("StructuredTextNode",
 						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     StringUtils.abbreviate(content, 80)),
 						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     sourceLine.getType()),
 						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "content"),  content)

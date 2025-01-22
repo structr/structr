@@ -81,7 +81,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			try (final Tx tx = app.tx()) {
 
-				final Iterable<FlowContainer> flows = app.nodeQuery(FlowContainer.class).getResultStream();
+				final Iterable<FlowContainer> flows = app.nodeQuery("FlowContainer").getResultStream();
 
 				for (final FlowContainer flow : flows) {
 
@@ -184,7 +184,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			// 1. Create flow packages
 			// 2. Create flow container
 			final Map<String, Object> flowContainerData = readData(flowRootDir.resolve(FLOW_DEPLOYMENT_CONTAINER_FILE));
-			final FlowContainer flowContainer = app.create(FlowContainer.class, convertMapToPropertyMap(FlowContainer.class, flowContainerData));
+			final FlowContainer flowContainer = app.create("FlowContainer", convertMapToPropertyMap(FlowContainer.class, flowContainerData));
 			// Set flow package implicitly
 			flowContainer.setProperty(FlowContainer.effectiveName, packagePath);
 
@@ -231,7 +231,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				for (final File configDir : Objects.requireNonNull(configsDir.listFiles())) {
 
 					final Map<String, Object> configPropsData = readData(configDir.toPath().resolve(FLOW_DEPLOYMENT_CONFIG_FILE));
-					final NodeInterface flowContainerConfiguration = app.create(FlowContainerConfiguration.class, convertMapToPropertyMap(FlowContainerConfiguration.class, configPropsData));
+					final NodeInterface flowContainerConfiguration = app.create("FlowContainerConfiguration", convertMapToPropertyMap(FlowContainerConfiguration.class, configPropsData));
 				}
 
 			} catch (NullPointerException npe) {

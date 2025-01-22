@@ -194,7 +194,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			final String name = getFileName().toString();
-			final Folder newFolder = app.create(Folder.class, new NodeAttribute<>(AbstractNode.name, name));
+			final Folder newFolder = app.create("Folder", new NodeAttribute<>(AbstractNode.name, name));
 
 			// set parent folder
 			setParentFolder(newFolder);
@@ -330,7 +330,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			// remove /files from path since it is a virtual directory
-			final AbstractFile actualFile = app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), filePath).sort(AbstractNode.name).getFirst();
+			final AbstractFile actualFile = app.nodeQuery("AbstractFile").and(StructrApp.key(AbstractFile.class, "path"), filePath).sort(AbstractNode.name).getFirst();
 
 			tx.success();
 

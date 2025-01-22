@@ -81,10 +81,10 @@ public class CsvFunctionsTest extends StructrUiTest {
 			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "locale"),         "en");
 			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "domain"),         "CSV TEST Domain");
 
-			app.create(Localization.class, indexLocalizationProperties);
-			app.create(Localization.class, nameLocalizationProperties);
-			app.create(Localization.class, indexLocalizationPropertiesWithDomain);
-			app.create(Localization.class, nameLocalizationPropertiesWithDomain);
+			app.create("Localization", indexLocalizationProperties);
+			app.create("Localization", nameLocalizationProperties);
+			app.create("Localization", indexLocalizationPropertiesWithDomain);
+			app.create("Localization", nameLocalizationPropertiesWithDomain);
 
 			for (final CsvTestOne csvTestOne : csvTestOnes) {
 

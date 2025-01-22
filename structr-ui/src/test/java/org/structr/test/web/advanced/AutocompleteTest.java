@@ -215,7 +215,7 @@ public class AutocompleteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "testMethod").getFirst();
+			final SchemaMethod method = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "testMethod").getFirst();
 
 			// verify that the properties of the Test type are in the autocomplete result
 			final List<GraphObject> result1 = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);

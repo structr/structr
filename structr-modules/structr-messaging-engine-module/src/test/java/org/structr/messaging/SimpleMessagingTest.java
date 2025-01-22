@@ -41,8 +41,8 @@ public class SimpleMessagingTest extends StructrUiTest {
 
 		try(final Tx tx = app.tx()) {
 
-			MessageClient client1 = app.create(MessageClient.class, "client1");
-			MessageSubscriber sub = app.create(MessageSubscriber.class, "sub");
+			MessageClient client1 = app.create("MessageClient", "client1");
+			MessageSubscriber sub = app.create("MessageSubscriber", "sub");
 
 			List<MessageSubscriber> subList = new ArrayList<>();
 			subList.add(sub);

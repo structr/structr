@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
@@ -74,8 +73,8 @@ public class EndpointTest extends StructrRestTestBase {
 		// create schema type with onSave method
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface project = app.create(StructrApp.getConfiguration().getNodeEntityClass("Project"), "test");
-			final NodeInterface task    = app.create(StructrApp.getConfiguration().getNodeEntityClass("Task"), "task");
+			final NodeInterface project = app.create("Project", "test");
+			final NodeInterface task    = app.create("Task", "task");
 
 			projectUuid = project.getUuid();
 			taskUuid    = task.getUuid();

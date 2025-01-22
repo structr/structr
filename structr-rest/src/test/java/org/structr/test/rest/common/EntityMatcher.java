@@ -21,8 +21,8 @@ package org.structr.test.rest.common;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.structr.common.PropertyView;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -35,17 +35,17 @@ public class EntityMatcher extends BaseMatcher {
 
 	private Map<String, Object> entityValues = new LinkedHashMap<>();
 
-	public EntityMatcher(Class type) {
+	public EntityMatcher(final String type) {
 		this(type, PropertyView.Public);
 	}
 	
-	public EntityMatcher(Class type, String view) {
+	public EntityMatcher(final String type, final String view) {
 		this(type, view, Collections.EMPTY_MAP);
 	}
 	
-	public EntityMatcher(Class type, String view, Map<String, Object> values) {
+	public EntityMatcher(String type, String view, Map<String, Object> values) {
 
-		Set<PropertyKey> propertyView = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
+		final Set<PropertyKey> propertyView = new LinkedHashSet<>(Traits.of(type).getPropertyKeysForView(view));
 		for (PropertyKey key : propertyView) {
 			
 			entityValues.put(key.jsonName(), values.get(key.jsonName()));

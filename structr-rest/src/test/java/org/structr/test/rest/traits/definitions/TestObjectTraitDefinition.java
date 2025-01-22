@@ -16,28 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.entity;
+package org.structr.test.rest.traits.definitions;
 
-import org.structr.core.entity.OneToMany;
+import org.structr.common.PropertyView;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
-/**
- *
- *
- */
-public class FourOneOneToMany extends OneToMany<TestFour, TestOne> {
+import java.util.Map;
+import java.util.Set;
 
-	@Override
-	public Class<TestFour> getSourceType() {
-		return TestFour.class;
+public class TestObjectTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public TestObjectTraitDefinition() {
+		super("TestObject");
 	}
 
 	@Override
-	public Class<TestOne> getTargetType() {
-		return TestOne.class;
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			Set.of("name")
+		);
 	}
 
 	@Override
-	public String name() {
-		return "ONE_TO_MANY";
+	public Relation getRelation() {
+		return null;
 	}
 }

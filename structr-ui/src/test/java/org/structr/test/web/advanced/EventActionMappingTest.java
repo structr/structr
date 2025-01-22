@@ -75,7 +75,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -176,7 +176,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -276,7 +276,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -384,7 +384,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			notificationUuid = notificationElement.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -492,7 +492,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParentNode().appendChild(notificationElement);
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -596,7 +596,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -698,7 +698,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -798,7 +798,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -906,7 +906,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			notificationUuid = notificationElement.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1010,7 +1010,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1118,7 +1118,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParentNode().appendChild(notificationElement);
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1220,7 +1220,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1328,7 +1328,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1441,7 +1441,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1548,7 +1548,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1655,7 +1655,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1761,7 +1761,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1865,7 +1865,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -1965,7 +1965,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -2073,7 +2073,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -2186,7 +2186,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -2293,7 +2293,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -2400,7 +2400,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -2506,7 +2506,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
@@ -2610,7 +2610,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final ActionMapping eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));

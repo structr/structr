@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
-import java.util.Random;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -31,9 +30,12 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
+import org.testng.annotations.Test;
+
+import java.util.Random;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 /**
  */
@@ -47,7 +49,7 @@ public class DynamicPathsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page         = Page.createNewPage(securityContext, "test001");
-			final Template template = app.create(Template.class);
+			final Template template = app.create("Template");
 
 			page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
 			page.appendChild(template);
@@ -56,12 +58,12 @@ public class DynamicPathsTest extends FrontendTest {
 			template.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
 
 			{
-				final PagePath path = app.create(PagePath.class,
+				final PagePath path = app.create("PagePath",
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test1/prefix_{key1}/{key2}")
 				);
 
-				app.create(PagePathParameter.class,
+				app.create("PagePathParameter",
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
@@ -69,7 +71,7 @@ public class DynamicPathsTest extends FrontendTest {
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue1")
 				);
 
-				app.create(PagePathParameter.class,
+				app.create("PagePathParameter",
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key2"),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      1),
@@ -79,12 +81,12 @@ public class DynamicPathsTest extends FrontendTest {
 			}
 
 			{
-				final PagePath path = app.create(PagePath.class,
+				final PagePath path = app.create("PagePath",
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test2/{key1}_{key2}_{key3}")
 				);
 
-				app.create(PagePathParameter.class,
+				app.create("PagePathParameter",
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
@@ -94,14 +96,14 @@ public class DynamicPathsTest extends FrontendTest {
 			}
 
 			{
-				app.create(PagePath.class,
+				app.create("PagePath",
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test3/{key1}/{key2}/{key3}")
 				);
 			}
 
 			{
-				app.create(PagePath.class,
+				app.create("PagePath",
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/{key1}/test4/{key2}/{key3}")
 				);
@@ -192,7 +194,7 @@ public class DynamicPathsTest extends FrontendTest {
 				final String pageNumber = StringUtils.leftPad(Integer.toString(i), 3, "0");
 				final String pageName   = "test" + pageNumber;
 				final Page page         = Page.createNewPage(securityContext, pageName);
-				final Template template = app.create(Template.class);
+				final Template template = app.create("Template");
 
 				page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
 				page.appendChild(template);
@@ -201,12 +203,12 @@ public class DynamicPathsTest extends FrontendTest {
 				template.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
 
 				{
-					final PagePath path = app.create(PagePath.class,
+					final PagePath path = app.create("PagePath",
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
 					);
 
-					app.create(PagePathParameter.class,
+					app.create("PagePathParameter",
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
@@ -214,7 +216,7 @@ public class DynamicPathsTest extends FrontendTest {
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue1")
 					);
 
-					app.create(PagePathParameter.class,
+					app.create("PagePathParameter",
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key2"),
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      1),
@@ -224,12 +226,12 @@ public class DynamicPathsTest extends FrontendTest {
 				}
 
 				{
-					final PagePath path = app.create(PagePath.class,
+					final PagePath path = app.create("PagePath",
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
 					);
 
-					app.create(PagePathParameter.class,
+					app.create("PagePathParameter",
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
 						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
@@ -239,14 +241,14 @@ public class DynamicPathsTest extends FrontendTest {
 				}
 
 				{
-					app.create(PagePath.class,
+					app.create("PagePath",
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_3/{key1}/{key2}/{key3}")
 					);
 				}
 
 				{
-					app.create(PagePath.class,
+					app.create("PagePath",
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/{key1}/test" + pageNumber + "_4/{key2}/{key3}")
 					);
@@ -344,24 +346,24 @@ public class DynamicPathsTest extends FrontendTest {
 
 			page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
 
-			final Template template1 = app.create(Template.class);
+			final Template template1 = app.create("Template");
 			template1.setContent("${render(children)}");
 			template1.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
 			page.appendChild(template1);
 
-			final Template template2 = app.create(Template.class);
+			final Template template2 = app.create("Template");
 			template2.setContent("${render(children)}");
 			template2.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
 			template1.appendChild(template2);
 
-			final Template template3 = app.create(Template.class);
+			final Template template3 = app.create("Template");
 			template3.setContent("${render(children)}");
 			template3.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
 			template2.appendChild(template3);
 
 			template3.setContent("${key1},${key2}");
 
-			final PagePath path = app.create(PagePath.class,
+			final PagePath path = app.create("PagePath",
 				new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 				new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test1/{key1}/{key2}")
 			);

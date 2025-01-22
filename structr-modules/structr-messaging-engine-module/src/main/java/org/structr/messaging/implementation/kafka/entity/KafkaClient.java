@@ -101,7 +101,7 @@ public class KafkaClient extends MessageClient {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final KafkaClient client : app.nodeQuery(KafkaClient.class).getAsList()) {
+				for (final KafkaClient client : app.nodeQuery("KafkaClient").getAsList()) {
 					client.setup();
 				}
 

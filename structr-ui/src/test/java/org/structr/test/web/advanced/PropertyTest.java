@@ -48,11 +48,11 @@ public class PropertyTest extends StructrUiTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create(SchemaNode.class,
+			final SchemaNode test  = app.create("SchemaNode",
 				new NodeAttribute<>(SchemaNode.name, "Test")
 			);
 
-			app.create(SchemaProperty.class,
+			app.create("SchemaProperty",
 					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
 					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
 					new NodeAttribute<>(SchemaProperty.format, "owner, User.eMail"),

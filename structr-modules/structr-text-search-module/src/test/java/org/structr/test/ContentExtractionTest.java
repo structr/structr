@@ -50,7 +50,7 @@ public class ContentExtractionTest extends StructrUiTest {
 				StructrApp.getInstance(securityContext).getContentAnalyzer().analyzeContent(file);
 
 				// check result
-				final StructuredDocument document = app.nodeQuery(StructuredDocument.class).getFirst();
+				final StructuredDocument document = app.nodeQuery("StructuredDocument").getFirst();
 
 				for (final StructuredTextNode node : document.getAllChildNodes()) {
 

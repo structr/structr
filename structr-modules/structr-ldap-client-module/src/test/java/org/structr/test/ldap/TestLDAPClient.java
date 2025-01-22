@@ -48,18 +48,18 @@ public class TestLDAPClient extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
-			app.create(LDAPGroup.class,
+			app.create("LDAPGroup",
 				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "name"),              "group1"),
 				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "distinguishedName"), "ou=page1,dc=test,dc=structr,dc=org")
 			);
 
-			app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "User").getFirst().setProperty(ResourceAccess.flags, 1L);
+			app.nodeQuery("ResourceAccess").and(ResourceAccess.signature, "User").getFirst().setProperty(ResourceAccess.flags, 1L);
 
 			tx.success();
 

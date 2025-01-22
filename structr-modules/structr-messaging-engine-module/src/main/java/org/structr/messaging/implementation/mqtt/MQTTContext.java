@@ -153,7 +153,7 @@ public abstract class MQTTContext {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final MQTTClient client : app.nodeQuery(MQTTClient.class).getAsList()) {
+				for (final MQTTClient client : app.nodeQuery("MQTTClient").getAsList()) {
 
 					client.setProperties(client.getSecurityContext(), new PropertyMap(StructrApp.key(MQTTClient.class,"isConnected"), false));
 

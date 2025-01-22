@@ -431,7 +431,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			uuid = test.getUuid();
 
 			// set owner
-			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+			final Principal tester = app.nodeQuery("Principal").andName("tester").getFirst();
 			test.setProperty(AbstractNode.owner, tester);
 
 			tx.success();
@@ -522,7 +522,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try {
 
-			ResourceAccess access = app.create(ResourceAccessTraitDefinition.class, properties);
+			ResourceAccess access = app.create("ResourceAccessTraitDefinition", properties);
 
 			return access;
 
@@ -540,7 +540,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery(ResourceAccessTraitDefinition.class).getAsList()) {
+			for (final ResourceAccess access : app.nodeQuery("ResourceAccessTraitDefinition").getAsList()) {
 				app.delete(access);
 			}
 

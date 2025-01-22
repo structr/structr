@@ -34,21 +34,22 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.schema.SchemaService;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
-import org.structr.web.entity.User;
-import org.testng.annotations.Optional;
+import org.structr.test.rest.traits.definitions.*;
+import org.structr.test.rest.traits.definitions.relationships.*;
 import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.fail;
 
@@ -114,6 +115,39 @@ public abstract class StructrRestTestBase {
 		RestAssured.port     = httpPort;
 	}
 
+	@BeforeMethod(firstTimeOnly = true)
+	public void createSchema() {
+
+		StructrTraits.registerRelationshipType("ElevenTwoOneToMany",  new ElevenTwoOneToMany());
+		StructrTraits.registerRelationshipType("FiveOneManyToMany",   new FiveOneManyToMany());
+		StructrTraits.registerRelationshipType("FiveOneManyToOne",    new FiveOneManyToOne());
+		StructrTraits.registerRelationshipType("FiveOneOneToMany",    new FiveOneOneToMany());
+		StructrTraits.registerRelationshipType("FiveThreeOneToOne",   new FiveThreeOneToOne());
+		StructrTraits.registerRelationshipType("FourOneManyToMany",   new FourOneManyToMany());
+		StructrTraits.registerRelationshipType("FourOneOneToMany",    new FourOneOneToMany());
+		StructrTraits.registerRelationshipType("FourThreeOneToOne",   new FourThreeOneToOne());
+		StructrTraits.registerRelationshipType("NineEightManyToMany", new NineEightManyToMany());
+		StructrTraits.registerRelationshipType("SevenSixOneToMany",   new SevenSixOneToMany());
+		StructrTraits.registerRelationshipType("SixEightManyToMany",  new SixEightManyToMany());
+		StructrTraits.registerRelationshipType("TenSevenOneToOne",    new TenSevenOneToOne());
+		StructrTraits.registerRelationshipType("ThreeFiveOneToMany",  new ThreeFiveOneToMany());
+		StructrTraits.registerRelationshipType("ThreeFourOneToMany",  new ThreeFourOneToMany());
+		StructrTraits.registerRelationshipType("TwoOneOneToMany",     new TwoOneOneToMany());
+
+		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
+		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
+		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
+		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
+		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		StructrTraits.registerNodeType("TestSix",      new TestSixTraitDefinition());
+		StructrTraits.registerNodeType("TestSeven",    new TestSevenTraitDefinition());
+		StructrTraits.registerNodeType("TestEight",    new TestEightTraitDefinition());
+		StructrTraits.registerNodeType("TestNine",     new TestNineTraitDefinition());
+		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
+		StructrTraits.registerNodeType("TestEleven",   new TestElevenTraitDefinition());
+		StructrTraits.registerNodeType("TestObject",   new TestObjectTraitDefinition());
+	}
+
 	@AfterClass(alwaysRun = true)
 	public void teardown() {
 
@@ -166,8 +200,6 @@ public abstract class StructrRestTestBase {
 			try {
 
 				FlushCachesCommand.flushAll();
-
-				SchemaService.ensureBuiltinTypesExist(app);
 
 			} catch (Throwable t) {
 
@@ -273,7 +305,7 @@ public abstract class StructrRestTestBase {
 		return nodes;
 	}
 
-	protected String createEntity(String resource, String... body) {
+	protected String createEntity(final String resource, final String... body) {
 		
 		RestAssured.basePath = "/structr/rest";
 
@@ -306,7 +338,7 @@ public abstract class StructrRestTestBase {
 			.when().post(resource).getBody().as(Map.class);
 	}
 
-	protected String concat(String... parts) {
+	protected String concat(final String... parts) {
 
 		StringBuilder buf = new StringBuilder();
 
@@ -317,11 +349,11 @@ public abstract class StructrRestTestBase {
 		return buf.toString();
 	}
 
-	protected String getUuidFromLocation(String location) {
+	protected String getUuidFromLocation(final String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
 
-	protected Matcher isEntity(Class<? extends AbstractNode> type) {
+	protected Matcher isEntity(final String type) {
 		return new EntityMatcher(type);
 	}
 
@@ -352,14 +384,14 @@ public abstract class StructrRestTestBase {
 		return map;
 	}
 
-	protected Class createTestUserType() {
+	protected String createTestUserType() {
 
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("TestUser");
 
-			type.setExtends(User.class);
+			type.addTrait("User");
 			type.overrideMethod("onCreate", true, "set(this, 'name', concat('test', now));");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
@@ -371,6 +403,6 @@ public abstract class StructrRestTestBase {
 			fail("Unexpected exception.");
 		}
 
-		return StructrApp.getConfiguration().getNodeEntityClass("TestUser");
+		return "TestUser";
 	}
 }

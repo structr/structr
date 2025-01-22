@@ -89,7 +89,7 @@ public class FlowServlet extends JsonRestServlet {
 			try (final Tx tx = app.tx()) {
 
 				final String flowName = request.getPathInfo().substring(1);
-				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
+				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(FlowContainer.effectiveName, flowName).getFirst() : null;
 
 				tx.prefetchHint("Flow " + flowName);
 
@@ -218,7 +218,7 @@ public class FlowServlet extends JsonRestServlet {
 			try (final Tx tx = app.tx()) {
 
 				final String flowName = request.getPathInfo().substring(1);
-				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
+				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(FlowContainer.effectiveName, flowName).getFirst() : null;
 
 				if (flow != null) {
 

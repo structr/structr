@@ -113,7 +113,7 @@ public class MessageEngineModule implements StructrModule {
 		final List<Map<String, Object>> entities = new LinkedList();
 		try (final Tx tx = app.tx()) {
 
-			for (final MessageSubscriber sub : app.nodeQuery(MessageSubscriber.class).sort(MessageSubscriber.name).getAsList()) {
+			for (final MessageSubscriber sub : app.nodeQuery("MessageSubscriber").sort(MessageSubscriber.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 
@@ -127,7 +127,7 @@ public class MessageEngineModule implements StructrModule {
 			}
 
 
-			for (final MessageClient client : app.nodeQuery(MessageClient.class).andType(MessageClient.class).and("type", "MessageClient").sort(MessageClient.name).getAsList()) {
+			for (final MessageClient client : app.nodeQuery("MessageClient").andType(MessageClient.class).and("type", "MessageClient").sort(MessageClient.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 
@@ -145,7 +145,7 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
-			for (final MQTTClient client : app.nodeQuery(MQTTClient.class).andType(MQTTClient.class).sort(MQTTClient.name).getAsList()) {
+			for (final MQTTClient client : app.nodeQuery("MQTTClient").andType(MQTTClient.class).sort(MQTTClient.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 
@@ -170,7 +170,7 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
-			for (final KafkaClient client : app.nodeQuery(KafkaClient.class).andType(KafkaClient.class).sort(KafkaClient.name).getAsList()) {
+			for (final KafkaClient client : app.nodeQuery("KafkaClient").andType(KafkaClient.class).sort(KafkaClient.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 
@@ -192,7 +192,7 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
-			for (final PulsarClient client : app.nodeQuery(PulsarClient.class).andType(PulsarClient.class).sort(PulsarClient.name).getAsList()) {
+			for (final PulsarClient client : app.nodeQuery("PulsarClient").andType(PulsarClient.class).sort(PulsarClient.name).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>();
 
@@ -244,23 +244,23 @@ public class MessageEngineModule implements StructrModule {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final MessageClient toDelete : app.nodeQuery(MessageClient.class).getAsList()) {
+					for (final MessageClient toDelete : app.nodeQuery("MessageClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final KafkaClient toDelete : app.nodeQuery(KafkaClient.class).getAsList()) {
+					for (final KafkaClient toDelete : app.nodeQuery("KafkaClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final PulsarClient toDelete : app.nodeQuery(PulsarClient.class).getAsList()) {
+					for (final PulsarClient toDelete : app.nodeQuery("PulsarClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final MQTTClient toDelete : app.nodeQuery(MQTTClient.class).getAsList()) {
+					for (final MQTTClient toDelete : app.nodeQuery("MQTTClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final MessageSubscriber toDelete : app.nodeQuery(MessageSubscriber.class).getAsList()) {
+					for (final MessageSubscriber toDelete : app.nodeQuery("MessageSubscriber").getAsList()) {
 						app.delete(toDelete);
 					}
 
@@ -277,27 +277,27 @@ public class MessageEngineModule implements StructrModule {
 						switch ((String)entry.get("type")) {
 							case "MessageClient":
 								map = PropertyMap.inputTypeToJavaType(context, MessageClient.class, entry);
-								client = app.create(MessageClient.class, map);
+								client = app.create("MessageClient", map);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "KafkaClient":
 								map = PropertyMap.inputTypeToJavaType(context, KafkaClient.class, entry);
-								client = app.create(KafkaClient.class, map);
+								client = app.create("KafkaClient", map);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "PulsarClient":
 								map = PropertyMap.inputTypeToJavaType(context, PulsarClient.class, entry);
-								client = app.create(PulsarClient.class, map);
+								client = app.create("PulsarClient", map);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "MQTTClient":
 								map = PropertyMap.inputTypeToJavaType(context, MQTTClient.class, entry);
-								client = app.create(MQTTClient.class, map);
+								client = app.create("MQTTClient", map);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "MessageSubscriber":
 								map = PropertyMap.inputTypeToJavaType(context, MessageSubscriber.class, entry);
-								app.create(MessageSubscriber.class, map);
+								app.create("MessageSubscriber", map);
 								break;
 						}
 

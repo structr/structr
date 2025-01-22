@@ -175,11 +175,11 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName("with spaces").getFirst();
+			final Folder folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final File file     = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
+			final File file     = app.nodeQuery("File").and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 
@@ -237,7 +237,7 @@ public class Deployment1Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final File file = app.nodeQuery(File.class).and(File.name, fileName).getFirst();
+					final File file = app.nodeQuery("File").and(File.name, fileName).getFirst();
 					file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), false);
 					file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), false);
 					file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), false);
@@ -256,11 +256,11 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName("with spaces").getFirst();
+			final Folder folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final File file     = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
+			final File file     = app.nodeQuery("File").and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 

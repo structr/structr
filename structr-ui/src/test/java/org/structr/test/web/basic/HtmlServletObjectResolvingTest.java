@@ -23,7 +23,6 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -31,9 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestOne;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -43,8 +40,6 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -60,7 +55,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 	public void setup(@Optional String testDatabaseConnection) {
 
 		// important: these settings must be made before HttpService is initialized..
-		Settings.HtmlResolveProperties.setValue("Traits.of("TestOne").key("anInt"), Traits.of("TestOne").key("aString"), Traits.of("TestOne").key("aDouble")");
+		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
 
 		super.setup(testDatabaseConnection);
 	}

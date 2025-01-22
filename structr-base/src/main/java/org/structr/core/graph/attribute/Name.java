@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.attribute;
 
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.traits.Traits;
 
