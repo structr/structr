@@ -101,7 +101,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false	);
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false);
 				}
 
 				if(returnRawResultChanged){
