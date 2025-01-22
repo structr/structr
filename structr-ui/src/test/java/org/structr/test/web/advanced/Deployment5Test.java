@@ -70,14 +70,14 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// Create a group with name "SchemaAccess" and allow access to all nodes of type "MailTemplate"
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("MailTemplate").getFirst();
-			final Group group           = app.create(GroupTraitDefinition.class, "SchemaAccess");
-			final User user             = app.create(User.class, "tester");
+			final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName("MailTemplate").getFirst();
+			final Group group           = app.create("GroupTraitDefinition", "SchemaAccess");
+			final User user             = app.create("User", "tester");
 
 			group.addMember(securityContext, user);
 
 			// create schema grant object
-			app.create(SchemaGrant.class,
+			app.create("SchemaGrant",
 				new NodeAttribute<>(SchemaGrant.staticSchemaNodeName, "org.structr.core.entity.MailTemplate"),
 				new NodeAttribute<>(SchemaGrant.principal,            group),
 				new NodeAttribute<>(SchemaGrant.allowRead,            true),
@@ -86,8 +86,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			);
 
 			// create MailTemplate instances
-			app.create(MailTemplate.class, "TEMPLATE1");
-			app.create(MailTemplate.class, "TEMPLATE2");
+			app.create("MailTemplate", "TEMPLATE1");
+			app.create("MailTemplate", "TEMPLATE2");
 
 			tx.success();
 
@@ -99,10 +99,10 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test1: verify that user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final User user                   = app.nodeQuery(User.class).andName("tester").getFirst();
+			final User user                   = app.nodeQuery("User").andName("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
-			for (final MailTemplate template : app.nodeQuery(MailTemplate.class).getAsList()) {
+			for (final MailTemplate template : app.nodeQuery("MailTemplate").getAsList()) {
 
 				assertTrue("User should have read access to all mail templates", template.isGranted(Permission.read, userContext));
 				assertTrue("User should have write access to all mail templates", template.isGranted(Permission.write, userContext));
@@ -124,8 +124,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final Group group = app.create(GroupTraitDefinition.class, "SchemaAccess");
-					final User user   = app.create(User.class, "tester");
+					final Group group = app.create("GroupTraitDefinition", "SchemaAccess");
+					final User user   = app.create("User", "tester");
 
 					group.addMember(securityContext, user);
 
@@ -143,10 +143,10 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test2: verify that new user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final User user                   = app.nodeQuery(User.class).andName("tester").getFirst();
+			final User user                   = app.nodeQuery("User").andName("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
-			for (final MailTemplate template : app.nodeQuery(MailTemplate.class).getAsList()) {
+			for (final MailTemplate template : app.nodeQuery("MailTemplate").getAsList()) {
 
 				assertTrue("User should have read access to all mail templates", template.isGranted(Permission.read, userContext));
 				assertTrue("User should have write access to all mail templates", template.isGranted(Permission.write, userContext));
@@ -169,17 +169,17 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
 			);
 
-			final GroupTraitDefinition parent       = app.create(GroupTraitDefinition.class, "parent");
+			final GroupTraitDefinition parent       = app.create("GroupTraitDefinition", "parent");
 			final List<Group> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
-				groups.add(app.create(GroupTraitDefinition.class, "group0" + i));
+				groups.add(app.create("GroupTraitDefinition", "group0" + i));
 			}
 
 			uuid = parent.getUuid();
@@ -252,17 +252,17 @@ public class Deployment5Test extends DeploymentTestBase {
 		// user must be created again...
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
 			);
 
-			final GroupTraitDefinition parent       = app.create(GroupTraitDefinition.class, "parent");
+			final GroupTraitDefinition parent       = app.create("GroupTraitDefinition", "parent");
 			final List<Group> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
-				groups.add(app.create(GroupTraitDefinition.class, "group0" + i));
+				groups.add(app.create("GroupTraitDefinition", "group0" + i));
 			}
 
 			uuid = parent.getUuid();
@@ -319,7 +319,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
 					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
@@ -401,7 +401,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
+			app.create("User",
 					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
 					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
 					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
@@ -470,7 +470,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method1 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "test").getFirst();
+			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "test").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 
@@ -532,10 +532,10 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final Folder folder = app.nodeQuery(Folder.class).andName(v2FolderName).getFirst();
+				final Folder folder = app.nodeQuery("Folder").andName(v2FolderName).getFirst();
 				folder.setProperty(AbstractNode.name, v1FolderName);
 
-				final File file = app.nodeQuery(File.class).andName(v2FileName).getFirst();
+				final File file = app.nodeQuery("File").andName(v2FileName).getFirst();
 				file.setProperty(AbstractNode.name, v1FileName);
 
 				tx.success();
@@ -548,8 +548,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final Folder folder = app.nodeQuery(Folder.class).andName(v1FolderName).getFirst();
-				final File file = app.nodeQuery(File.class).andName(v1FileName).getFirst();
+				final Folder folder = app.nodeQuery("Folder").andName(v1FolderName).getFirst();
+				final File file = app.nodeQuery("File").andName(v1FileName).getFirst();
 
 				assertNotNull("Folder rename did not work", folder);
 				assertNotNull("File rename did not work", file);
@@ -568,11 +568,11 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName(v2FolderName).getFirst();
+			final Folder folder = app.nodeQuery("Folder").andName(v2FolderName).getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final File file = app.nodeQuery(File.class).andName(v2FileName).getFirst();
+			final File file = app.nodeQuery("File").andName(v2FileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 

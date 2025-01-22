@@ -90,7 +90,7 @@ public class PerformanceTest extends StructrUiTest {
 
 				for (int i=0; i<number; i++) {
 
-					nodes.add(app.create(TestOne.class,
+					nodes.add(app.create("TestOne",
 						new NodeAttribute(TestOne.name, "TestOne" + i),
 						new NodeAttribute(Traits.of("TestOne").key("aDate"), new Date()),
 						new NodeAttribute(Traits.of("TestOne").key("aDouble"), 1.234),
@@ -216,7 +216,7 @@ public class PerformanceTest extends StructrUiTest {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final TestOne t : app.nodeQuery(TestOne.class).getResultStream()) {
+					for (final TestOne t : app.nodeQuery("TestOne").getResultStream()) {
 
 						final String name = t.getProperty(AbstractNode.name);
 					}
@@ -267,9 +267,9 @@ public class PerformanceTest extends StructrUiTest {
 
 				for (int i=0; i<number; i++) {
 
-					app.create(TestFive.class,
+					app.create("TestFive",
 						new NodeAttribute<>(TestFive.name, "TestFive" + i),
-						new NodeAttribute<>(TestFive.testTwo, app.create(TestTwo.class, "TestTwo" + i))
+						new NodeAttribute<>(TestFive.testTwo, app.create("TestTwo", "TestTwo" + i))
 					);
 				}
 
@@ -293,7 +293,7 @@ public class PerformanceTest extends StructrUiTest {
 						"all/OUTGOING/TEST"
 					));
 
-					for (final TestTwo t : app.nodeQuery(TestTwo.class).getAsList()) {
+					for (final TestTwo t : app.nodeQuery("TestTwo").getAsList()) {
 
 						t.getName();
 
@@ -431,7 +431,7 @@ public class PerformanceTest extends StructrUiTest {
 					final long t0 = System.currentTimeMillis();
 
 					final int r               = randm.nextInt(10000);
-					final List<TestTwo> nodes = app.nodeQuery(TestTwo.class).andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
+					final List<TestTwo> nodes = app.nodeQuery("TestTwo").andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
 
 					assertEquals(1, nodes.size());
 
@@ -468,7 +468,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					final long t0 = System.currentTimeMillis();
 
-					final Principal user = app.nodeQuery(Principal.class).getFirst();
+					final Principal user = app.nodeQuery("Principal").getFirst();
 
 					user.getGroups();
 
@@ -524,7 +524,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Page page      = app.nodeQuery(Page.class).getFirst();
+				final Page page      = app.nodeQuery("Page").getFirst();
 				final String content = page.getContent(RenderContext.EditMode.NONE);
 
 				System.out.println("Content length: " + content.length());
@@ -598,7 +598,7 @@ public class PerformanceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(User.class,
+			user = app.create("User",
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),      true)

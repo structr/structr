@@ -57,17 +57,17 @@ public class StorageTest extends StructrUiTest {
 			PropertyMap folderProps = new PropertyMap();
 			folderProps.put(StructrApp.key(Folder.class, "name"), "local");
 			folderProps.put(StructrApp.key(Folder.class, "storageConfiguration"), local);
-			Folder folder = app.create(Folder.class, folderProps);
+			Folder folder = app.create("Folder", folderProps);
 
 			PropertyMap folderProps2 = new PropertyMap();
 			folderProps2.put(StructrApp.key(Folder.class, "name"), "memory");
 			folderProps2.put(StructrApp.key(Folder.class, "storageConfiguration"), memory);
-			Folder folder2 = app.create(Folder.class, folderProps2);
+			Folder folder2 = app.create("Folder", folderProps2);
 
 			PropertyMap fileProps = new PropertyMap();
 			fileProps.put(StructrApp.key(File.class, "name"), "testFile.txt");
 			fileProps.put(StructrApp.key(File.class, "parent"), folder);
-			File file = app.create(File.class, fileProps);
+			File file = app.create("File", fileProps);
 
 			final String payload = "test payload written to this file";
 
@@ -106,7 +106,7 @@ public class StorageTest extends StructrUiTest {
 
 			PropertyMap fileProps = new PropertyMap();
 			fileProps.put(StructrApp.key(File.class, "name"), "testFile.txt");
-			File file = app.create(File.class, fileProps);
+			File file = app.create("File", fileProps);
 
 			final String payload = "test payload written to this file";
 

@@ -23,14 +23,12 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.common.RequestKeywords;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestTwo;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -94,10 +92,10 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result_count",               equalTo(1))
 				.body("result",                     hasSize(1))
 
-				.body("result[0]",                  isEntity(TestTwo.class))
+				.body("result[0]",                  isEntity("TestTwo"))
 
 				.body("result[0].id",               equalTo(uuid))
-				.body("result[0].type",	            equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].type",	         equalTo("TestTwo"))
 				.body("result[0].name",             equalTo("TestTwo-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
@@ -122,10 +120,10 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result_count",                          equalTo(1))
 				.body("result",                                hasSize(1))
 
-				.body("result[0]",                             isEntity(TestTwo.class))
+				.body("result[0]",                             isEntity("TestTwo"))
 
 				.body("result[0].id",                          equalTo(uuid))
-				.body("result[0].type",	                       equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].type",	                    equalTo("TestTwo"))
 				.body("result[0].name",                        equalTo("TestTwo-0"))
 				.body("result[0].anInt",                       equalTo(0))
 				.body("result[0].aLong",                       equalTo(0))
@@ -155,18 +153,18 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode node = app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "ScriptTest"),
+			final NodeInterface node = app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ScriptTest"),
 				new NodeAttribute<>(new StringProperty("_depth"), "Function(depth)"),
 				new NodeAttribute<>(new StringProperty("__public"), "name, depth, children, parents")
 			);
 
-			app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, node),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, node),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "parents"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "children")
+			app.create("SchemaRelationshipNode",
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), node),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), node),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "parents"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "children")
 			);
 
 			tx.success();
@@ -284,8 +282,8 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "DepthTest"),
+			app.create("SchemaNode",
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "DepthTest"),
 				new NodeAttribute<>(new StringProperty("_depth"), "Function(depth)"),
 				new NodeAttribute<>(new StringProperty("__customView"), "depth, type")
 			);

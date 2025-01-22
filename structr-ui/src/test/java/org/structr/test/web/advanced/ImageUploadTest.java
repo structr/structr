@@ -47,7 +47,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Image.class,
+			app.create("Image",
 				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
 				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), Base64ImageData)
 			);
@@ -60,7 +60,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<Image> images = app.nodeQuery("Image").getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
@@ -84,7 +84,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Image.class,
+			app.create("Image",
 				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
 				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
@@ -97,7 +97,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<Image> images = app.nodeQuery("Image").getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 

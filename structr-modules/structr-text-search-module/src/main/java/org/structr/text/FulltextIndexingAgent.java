@@ -92,7 +92,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 						SearchCommand.prefetch(Indexable.class, indexableId);
 
-						final Indexable indexable = app.nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
+						final Indexable indexable = app.nodeQuery("Indexable").and(GraphObject.id, indexableId).getFirst();
 						if (indexable != null) {
 
 							if (doIndexing(app, indexable)) {
@@ -214,10 +214,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 								// create words first
 								for (final String word : topWords) {
 
-									IndexedWord wordNode = app.nodeQuery(IndexedWord.class).andName(word).getFirst();
+									IndexedWord wordNode = app.nodeQuery("IndexedWord").andName(word).getFirst();
 									if (wordNode == null) {
 
-										wordNode = app.create(IndexedWord.class, word);
+										wordNode = app.create("IndexedWord", word);
 									}
 
 									wordNodes.add(wordNode);

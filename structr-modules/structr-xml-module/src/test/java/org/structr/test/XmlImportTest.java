@@ -97,7 +97,7 @@ public class XmlImportTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)

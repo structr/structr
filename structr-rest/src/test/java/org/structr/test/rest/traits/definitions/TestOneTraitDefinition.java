@@ -16,32 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.entity;
+package org.structr.test.rest.traits.definitions;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.core.Export;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.rest.RestMethodResult;
+import org.structr.core.entity.Relation;
+import org.structr.core.property.*;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
-import java.util.Map;
+import java.util.Set;
 
-/**
- * A simple entity for the most basic tests.
- *
- *
- */
-public class TestOne extends AbstractNode {
+public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final Property<Integer> anInt = new IntProperty("anInt").indexed();
-	public static final Property<Long> aLong    = new LongProperty("aLong").indexed();
-	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
+	/*
 
 	public static final View defaultView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aLong, aDate
@@ -63,5 +49,27 @@ public class TestOne extends AbstractNode {
 
 	@Export
 	public void test04(final SecurityContext securityContext) {
+	}
+	*/
+
+	public TestOneTraitDefinition() {
+		super("TestOne");
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Integer> anInt = new IntProperty("anInt").indexed();
+		final Property<Long> aLong    = new LongProperty("aLong").indexed();
+		final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
+
+		return Set.of(
+			anInt, aLong, aDate
+		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

@@ -354,9 +354,9 @@ public class PageTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			pageToClone = app.create(Page.class, "test");
+			pageToClone = app.create("Page", "test");
 
-			final Template templ = app.create(Template.class, "#template");
+			final Template templ = app.create("Template", "#template");
 
 			templ.setContent("Template: ${render(children)}");
 			templ.setContentType("text/html");
@@ -402,7 +402,7 @@ public class PageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// change all templates
-			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
+			for (final Template template : app.nodeQuery("Template").getAsList()) {
 
 				final Page page = template.getOwnerDocument();
 

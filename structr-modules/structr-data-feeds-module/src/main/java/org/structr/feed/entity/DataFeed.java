@@ -254,7 +254,7 @@ public class DataFeed extends AbstractNode {
 							final List<SyndContent> contents = entry.getContents();
 							for (final SyndContent content : contents) {
 
-								final FeedItemContent itemContent = app.create(FeedItemContent.class,
+								final FeedItemContent itemContent = app.create("FeedItemContent",
 									new NodeAttribute(feedItemContentValueKey,    content.getValue()),
 									new NodeAttribute(feedItemContentModeKey,     content.getMode()),
 									new NodeAttribute(feedItemContentItemTypeKey, content.getType())
@@ -267,7 +267,7 @@ public class DataFeed extends AbstractNode {
 							final List<SyndEnclosure> enclosures = entry.getEnclosures();
 							for (final SyndEnclosure enclosure : enclosures) {
 
-								final FeedItemEnclosure itemEnclosure = app.create(FeedItemEnclosure.class,
+								final FeedItemEnclosure itemEnclosure = app.create("FeedItemEnclosure",
 									new NodeAttribute(feedItemEnclosureUrlKey,    enclosure.getUrl()),
 									new NodeAttribute(feedItemEnclosureTypeKey,   enclosure.getType()),
 									new NodeAttribute(feedItemEnclosureLengthKey, enclosure.getLength())
@@ -279,7 +279,7 @@ public class DataFeed extends AbstractNode {
 							props.put(feedItemContentsKey,   itemContents);
 							props.put(feedItemEnclosuresKey, itemEnclosures);
 
-							final FeedItem item = app.create(FeedItem.class, props);
+							final FeedItem item = app.create("FeedItem", props);
 
 							newItems.add(item);
 

@@ -111,7 +111,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				user = app.nodeQuery(User.class).andName(userName).getFirst();
+				user = app.nodeQuery("User").andName(userName).getFirst();
 
 				tx.success();
 

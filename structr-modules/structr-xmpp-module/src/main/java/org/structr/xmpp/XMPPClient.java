@@ -341,7 +341,7 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 			final XMPPClient client = StructrApp.getInstance().getNodeById(XMPPClient.class, uuid);
 			if (client != null) {
 
-				app.create(XMPPRequest.class,
+				app.create("XMPPRequest",
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "client"),      client),
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "sender"),      request.getFrom()),
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "owner"),       client.getProperty(XMPPClient.owner)),

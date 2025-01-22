@@ -78,7 +78,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final User user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -109,7 +109,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final User user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -160,7 +160,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final User user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -207,7 +207,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final User user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -243,7 +243,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create(User.class,
+			final User user = app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
 				new NodeAttribute<>(StructrApp.key(User.class, "eMail"), eMail),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "correct")

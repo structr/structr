@@ -145,14 +145,14 @@ public interface User extends Principal {
 
 						if (homeFolder == null) {
 
-							homeFolder = app.create(Folder.class,
+							homeFolder = app.create("Folder",
 								new NodeAttribute(Folder.name, "home"),
 								new NodeAttribute(Folder.owner, null),
 								new NodeAttribute(Folder.visibleToAuthenticatedUsers, true)
 							);
 						}
 
-						app.create(Folder.class,
+						app.create("Folder",
 							new NodeAttribute(Folder.name, getUuid()),
 							new NodeAttribute(Folder.owner, this),
 							new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),

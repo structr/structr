@@ -21,7 +21,6 @@ package org.structr.test.web.basic;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestOne;
 import org.testng.annotations.Test;
 
 import java.text.SimpleDateFormat;
@@ -318,7 +317,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result",                     hasSize(1))
 
 				.body("result[0].id",               equalTo(uuid))
-				.body("result[0].type",	            equalTo(TestOne.class.getSimpleName()))
+				.body("result[0].type",	            equalTo("TestOne"))
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
@@ -348,7 +347,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result",                                hasSize(1))
 
 				.body("result[0].id",                          equalTo(uuid))
-				.body("result[0].type",	                       equalTo(TestOne.class.getSimpleName()))
+				.body("result[0].type",	                       equalTo("TestOne"))
 				.body("result[0].name",                        equalTo("TestOne-0"))
 				.body("result[0].anInt",                       equalTo(0))
 				.body("result[0].aLong",                       equalTo(0))
@@ -390,7 +389,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result",                                hasSize(1))
 
 				.body("result[0].id",               equalTo(uuid))
-				.body("result[0].type",	            equalTo(TestOne.class.getSimpleName()))
+				.body("result[0].type",	            equalTo("TestOne"))
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))

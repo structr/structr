@@ -699,7 +699,7 @@ public class SchemaHelper {
 							}
 						}
 
-						app.create(SchemaView.class,
+						app.create("SchemaView",
 							new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
 							new NodeAttribute<>(SchemaView.schemaProperties, properties),
 							new NodeAttribute<>(SchemaView.name, viewName),
@@ -813,7 +813,7 @@ public class SchemaHelper {
 
 					if (schemaNode.getSchemaMethod(methodName) == null) {
 
-						app.create(SchemaMethod.class,
+						app.create("SchemaMethod",
 							new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
 							new NodeAttribute<>(SchemaMethod.name, methodName),
 							new NodeAttribute<>(SchemaMethod.source, value)
@@ -1340,7 +1340,7 @@ public class SchemaHelper {
 		SchemaNode node = app.nodeQuery("SchemaNode").andName(fqcn).getFirst();
 		if (node == null) {
 
-			node = app.create(SchemaNode.class,
+			node = app.create("SchemaNode",
 				new NodeAttribute<>(SchemaNode.name, name),
 				new NodeAttribute<>(SchemaNode.extendsClassInternal, fqcn)
 			);
@@ -1442,7 +1442,7 @@ public class SchemaHelper {
 
 	public static List<String> getBasicPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
-		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
+		final Set<PropertyKey> properties = new LinkedHashSet<>(Traits.of(type).getPropertyKeysForView(propertyView));
 
 		return properties.stream().map(t -> t.jsonName()).collect(Collectors.toList());
 	}

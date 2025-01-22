@@ -82,7 +82,7 @@ public class PulsarClient extends MessageClient {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final PulsarClient client : app.nodeQuery(PulsarClient.class).getAsList()) {
+				for (final PulsarClient client : app.nodeQuery("PulsarClient").getAsList()) {
 					client.setup();
 				}
 

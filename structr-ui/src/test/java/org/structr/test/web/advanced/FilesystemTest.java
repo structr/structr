@@ -49,7 +49,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Image.class,
+			app.create("Image",
 				new NodeAttribute<>(Image.name, "test01.png"),
 				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), Base64ImageData)
 			);
@@ -63,7 +63,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<Image> images = app.nodeQuery("Image").getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
@@ -87,7 +87,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Image.class,
+			app.create("Image",
 				new NodeAttribute<>(Image.name, "test01.png"),
 				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
@@ -100,7 +100,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<Image> images = app.nodeQuery("Image").getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
@@ -125,7 +125,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class, "tester");
+			app.create("User", "tester");
 			tx.success();
 
 		} catch (Throwable t) {
@@ -135,7 +135,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			final User tester = app.nodeQuery("User").andName("tester").getFirst();
 			tester.setEMail("tester@structr.com");
 
 			tx.success();
@@ -147,7 +147,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			final User tester = app.nodeQuery("User").andName("tester").getFirst();
 			tester.setEMail("tester2@structr.com");
 
 			tx.success();
@@ -159,7 +159,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			final User tester = app.nodeQuery("User").andName("tester").getFirst();
 			tester.setEMail("tester3@structr.com");
 
 			tx.success();
@@ -171,8 +171,8 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester       = app.nodeQuery(User.class).andName("tester").getFirst();
-			final List<Folder> dirs = app.nodeQuery(Folder.class).getAsList();
+			final User tester       = app.nodeQuery("User").andName("tester").getFirst();
+			final List<Folder> dirs = app.nodeQuery("Folder").getAsList();
 			final Set<String> names = new HashSet<>();
 
 			// there should only be two directories: home, and the home directory of the user

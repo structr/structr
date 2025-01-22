@@ -183,7 +183,7 @@ public class StructrSSHFile implements Path {
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
+			return StructrApp.getInstance(getSecurityContext()).nodeQuery("Folder").and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
 		}
 	}
 
@@ -195,7 +195,7 @@ public class StructrSSHFile implements Path {
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(File.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
+			return StructrApp.getInstance(getSecurityContext()).nodeQuery("File").and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
 		}
 	}
 

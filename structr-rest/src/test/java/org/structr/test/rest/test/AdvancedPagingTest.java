@@ -25,16 +25,13 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestFive;
-import org.structr.test.rest.entity.TestOne;
-import org.structr.test.rest.entity.TestThree;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -96,10 +93,10 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 					.body("result",			hasSize(2))
 					.body("result_count",		equalTo(10))
 
-					.body("result[0]",		isEntity(TestOne.class))
+					.body("result[0]",		isEntity("TestOne"))
 					.body("result[0].name ",	equalTo("TestOne-" + ((2*page)-2)))
 
-					.body("result[1]",		isEntity(TestOne.class))
+					.body("result[1]",		isEntity("TestOne"))
 					.body("result[1].name ",	equalTo("TestOne-" + ((2*page)-1)))
 
 				.when()
@@ -154,10 +151,10 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 					.body("result",			hasSize(2))
 					.body("result_count",		equalTo(10))
 
-					.body("result[0]",		isEntity(TestOne.class))
+					.body("result[0]",		isEntity("TestOne"))
 					.body("result[0].name ",	equalTo("TestOne-" + ((2*page)-2)))
 
-					.body("result[1]",		isEntity(TestOne.class))
+					.body("result[1]",		isEntity("TestOne"))
 					.body("result[1].name ",	equalTo("TestOne-" + ((2*page)-1)))
 
 				.when()
@@ -204,7 +201,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",                    hasSize(1))
 				.body("result_count",              equalTo(1))
 
-				.body("result[0]",                 isEntity(TestOne.class))
+				.body("result[0]",                 isEntity("TestOne"))
 				.body("result[0].test_ones",       hasSize(3))
 				.body("result[0].test_ones[0].id", equalTo(testOneIDs.get(0)))
 				.body("result[0].test_ones[1].id", equalTo(testOneIDs.get(1)))
@@ -225,7 +222,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",                    hasSize(1))
 				.body("result_count",              equalTo(1))
 
-				.body("result[0]",                 isEntity(TestOne.class))
+				.body("result[0]",                 isEntity("TestOne"))
 				.body("result[0].test_ones",       hasSize(3))
 				.body("result[0].test_ones[0].id", equalTo(testOneIDs.get(3)))
 				.body("result[0].test_ones[1].id", equalTo(testOneIDs.get(4)))
@@ -246,7 +243,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",                    hasSize(1))
 				.body("result_count",              equalTo(1))
 
-				.body("result[0]",                 isEntity(TestOne.class))
+				.body("result[0]",                 isEntity("TestOne"))
 				.body("result[0].test_ones",       hasSize(10))
 				.body("result[0].test_ones[0].id", equalTo(testOneIDs.get(10)))
 				.body("result[0].test_ones[1].id", equalTo(testOneIDs.get(11)))
@@ -275,20 +272,20 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		/* Test Setup */
 		final String connectedNodeName    = "Test3-First-Connected";
 		final String notConnectedNodeName = "Test3-Second";
-		TestThree t3_connected            = null;
-		TestThree t3_not_connected        = null;
-		TestFive  t5                      = null;
+		NodeInterface t3_connected        = null;
+		NodeInterface t3_not_connected    = null;
+		NodeInterface  t5                 = null;
 		String uuid                       = null;
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			t3_connected     = app.create(TestThree.class, connectedNodeName);
-			t3_not_connected = app.create(TestThree.class, notConnectedNodeName);
+			t3_connected     = app.create("TestThree", connectedNodeName);
+			t3_not_connected = app.create("TestThree", notConnectedNodeName);
 
 			uuid = t3_not_connected.getUuid();
 
-			final PropertyMap t5Map = new PropertyMap(TestFive.oneToOneTestThree, t3_connected);
-			t5 = app.create(TestFive.class, t5Map);
+			final PropertyMap t5Map = new PropertyMap(Traits.of("TestFive").key("oneToOneTestThree"), t3_connected);
+			t5 = app.create("TestFive", t5Map);
 
 			tx.success();
 
@@ -372,8 +369,8 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			fex.printStackTrace();
 		}
 
-		final Class type               = StructrApp.getConfiguration().getNodeEntityClass("Nested");
-		final PropertyKey parentKey    = StructrApp.key(type, "parent");
+		final String type              = "Nested";
+		final PropertyKey parentKey    = Traits.of(type).key("parent");
 		final List<NodeInterface> list = new ArrayList<>();
 		final Random random            = new Random(1234L);
 		final int num                  = 1234;

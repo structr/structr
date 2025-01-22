@@ -23,10 +23,9 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestObject;
-import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -48,7 +47,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestOne test = app.create(TestOne.class);
+			final NodeInterface test = app.create("TestOne");
 
 			// store ID for later use
 			id = test.getUuid();
@@ -216,7 +215,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 				.body("result_count",		equalTo(1))
 				.body("query_time",		lessThan("0.5"))
 				.body("serialization_time",	lessThan("0.05"))
-				.body("result",			isEntity(TestObject.class))
+				.body("result",			isEntity("TestObject"))
 			.when()
 				.get("/TestObject/" + uuid);
 
@@ -270,7 +269,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 				.body("result_count",		equalTo(1))
 				.body("query_time",		lessThan("0.5"))
 				.body("serialization_time",	lessThan("0.05"))
-				.body("result",			isEntity(TestObject.class))
+				.body("result",			isEntity("TestObject"))
 				.body("result.name",            equalTo("modified"))
 			.when()
 				.get("/TestObject/" + uuid);

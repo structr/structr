@@ -78,12 +78,12 @@ public class StructrFilesRootPath extends StructrPath {
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Folder folder : app.nodeQuery(Folder.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
+						for (final Folder folder : app.nodeQuery("Folder").and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesRootPath.this, folder.getName()));
 						}
 
-						for (final File file : app.nodeQuery(File.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
+						for (final File file : app.nodeQuery("File").and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesRootPath.this, file.getName()));
 						}

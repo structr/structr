@@ -49,14 +49,14 @@ public class FileTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			// create test file
-			final File newFile = app.create(File.class, "test.txt");
+			final File newFile = app.create("File", "test.txt");
 
 			try (final PrintWriter writer = new PrintWriter(newFile.getOutputStream())) {
 
@@ -113,7 +113,7 @@ public class FileTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			app.create(User.class,
+			app.create("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)

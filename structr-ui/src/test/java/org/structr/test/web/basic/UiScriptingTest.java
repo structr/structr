@@ -86,8 +86,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = (Page) app.create("Page", new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create("Template", new NodeAttribute(Page.visibleToPublicUsers, true));
 
 			template.setContent("${request.param}");
 
@@ -133,8 +133,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = (Page) app.create("Page", new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create("Template", new NodeAttribute(Page.visibleToPublicUsers, true));
 
 			template.setContent("${if (\n" +
 				"	is_collection(request.param),\n" +
@@ -215,8 +215,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = (Page) app.create("Page", new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create("Template", new NodeAttribute(Page.visibleToPublicUsers, true));
 
 			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
@@ -272,7 +272,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			detailsDataObject = app.create(TestOne.class, "TestOne");
+			detailsDataObject = app.create("TestOne", "TestOne");
 			page              = Page.createNewPage(securityContext, "testpage");
 
 			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
@@ -371,7 +371,7 @@ public class UiScriptingTest extends StructrUiTest {
 			uuid = parent.getUuid();
 
 			// create function property that returns folder children
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
+			final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName("Folder").getFirst();
 			schemaNode.setProperty(new StringProperty("_testFunction"), "Function(this.folders)");
 
 			// create admin user
@@ -440,7 +440,7 @@ public class UiScriptingTest extends StructrUiTest {
 			uuid = parent.getUuid();
 
 			// create function property that returns folder children
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
+			final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName("Folder").getFirst();
 			schemaNode.setProperty(new StringProperty("_testFunction"), "Function(this.folders)");
 
 			// create admin user
@@ -466,12 +466,12 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
+			final SchemaNode schemaNode = app.nodeQuery("SchemaNode").andName("Folder").getFirst();
 
 			// create view without property "folders"
-			final SchemaProperty testFn = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName("testFunction").getFirst();
+			final SchemaProperty testFn = app.nodeQuery("SchemaProperty").and(SchemaProperty.schemaNode, schemaNode).andName("testFunction").getFirst();
 
-			app.create(SchemaView.class,
+			app.create("SchemaView",
 					new NodeAttribute<>(SchemaView.name, "someprops"),
 					new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
 					new NodeAttribute<>(SchemaView.schemaProperties, List.of(testFn)),
@@ -663,7 +663,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final Page page       = Page.createSimplePage(securityContext, "test");
 			final Div div         = (Div) page.getElementsByTagName("div").item(0);
 			final Content content = (Content) div.getFirstChild();
-			final GroupTraitDefinition group     = app.create(GroupTraitDefinition.class, "TestGroup");
+			final GroupTraitDefinition group     = app.create("GroupTraitDefinition", "TestGroup");
 
 			// setup scripting repeater
 			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Group/${current.id}");
@@ -1073,7 +1073,7 @@ public class UiScriptingTest extends StructrUiTest {
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			// create global schema method for JavaScript
-			app.create(SchemaMethod.class,
+			app.create("SchemaMethod",
 				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
 				new NodeAttribute<>(SchemaMethod.source,
 					  "{"
@@ -1287,7 +1287,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			for (int i=14; i>=0; i--) {
-				app.create(TestOne.class, new NodeAttribute<>(Traits.of("TestOne").key("aString"), "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
+				app.create("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("aString"), "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
 			}
 
 			tx.success();
@@ -1331,8 +1331,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestOne testOne = app.nodeQuery(TestOne.class).getFirst();
-			final TestTwo testTwo = app.nodeQuery(TestTwo.class).getFirst();
+			final TestOne testOne = app.nodeQuery("TestOne").getFirst();
+			final TestTwo testTwo = app.nodeQuery("TestTwo").getFirst();
 
 			ctx.setConstant("existing", testOne);
 			ctx.setDetailsDataObject(testTwo);
@@ -1490,9 +1490,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template1 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template2 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = (Page) app.create("Page", new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template1 = (Template) app.create("Template", new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template2 = (Template) app.create("Template", new NodeAttribute(Page.visibleToPublicUsers, true));
 
 			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
 			template1.setContent(script);
@@ -1550,9 +1550,9 @@ public class UiScriptingTest extends StructrUiTest {
 			// Test 1: JavaScript: print - render - print
 			{
 
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test1PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, test1PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template1 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template2 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST1 BEFORE');\n" +
@@ -1568,9 +1568,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: JavaScript: print - include_child - print
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.name, "MY_CHILD"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template1 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template2 = (Template) app.create("Template", new NodeAttribute(AbstractNode.name, "MY_CHILD"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST2 BEFORE');\n" +
@@ -1586,9 +1586,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 3: StructrScript: print - render - print
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test3PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, test3PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template1 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template2 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1606,9 +1606,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 4: StructrScript: print - include_child - print
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test4PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.name, "MY_CHILD"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, test4PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template1 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template2 = (Template) app.create("Template", new NodeAttribute(AbstractNode.name, "MY_CHILD"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1659,8 +1659,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 1: print - implicit return - print (implicit return in StructrScript: the result of all scripting expressions is printed upon evaluation of the expression. this makes interleaved prints impossible to order correctly/logically)
 			{
-				final Page page         = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test1PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page         = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, test1PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template.setContent("${(\n" +
 					"	print('BEFORE'),\n" +
@@ -1673,8 +1673,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: print - return - print (make sure the second print statement is not executed)
 			{
-				final Page page         = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page         = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template.setContent("${{\n" +
 					"	$.print('BEFORE');\n" +
@@ -1707,61 +1707,61 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testMultiPrintJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testMultiPrintJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint1'); $.print('testPrint2'); }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); return 'returnValue'; }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name, "testPrintReturnUnreachablePrintJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name, "testPrintReturnUnreachablePrintJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); return 'returnValue'; $.print('unreachable print'); }")
 			);
 
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintSS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintSS"),
 				new NodeAttribute<>(SchemaMethod.source, "print('testPrint')")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testMultiPrintSS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testMultiPrintSS"),
 				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint1'), print('testPrint2'))")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnSS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnSS"),
 				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint'), 'implicitStructrScriptReturn')")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintImplicitReturnPrintSS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testPrintImplicitReturnPrintSS"),
 				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint1'), 'implicitStructrScriptReturn', print('testPrint2'))")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintImplicitReturnPrintMixedSS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testPrintImplicitReturnPrintMixedSS"),
 				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint1'), 'implicitStructrScriptReturn1', print('testPrint2'), 'implicitStructrScriptReturn2'), print('testPrint2')")
 			);
 
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testIncludeJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include('namedDOMNode'); return val; }")
 			);
 
 			// can not yield result - schema method has no children
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeChildJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testIncludeChildJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include_child('namedDOMNode'); return val; }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testRenderJS"),
+			app.create("SchemaMethod", new NodeAttribute<>(SchemaMethod.name,   "testRenderJS"),
 				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); return val; }")
 			);
 
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, "irrelevant"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.name, "namedDOMNode"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = (Page) app.create("Page", new NodeAttribute(AbstractNode.name, "irrelevant"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template1 = (Template) app.create("Template", new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Template template2 = (Template) app.create("Template", new NodeAttribute(AbstractNode.name, "namedDOMNode"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template1.setContent("Template not including child ;)");
 				template2.setContent("-X-");

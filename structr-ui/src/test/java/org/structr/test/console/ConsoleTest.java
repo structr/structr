@@ -80,7 +80,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery(User.class).andName("tester").sort(AbstractNode.name).getFirst();
+				final User user = app.nodeQuery("User").andName("tester").sort(AbstractNode.name).getFirst();
 
 				assertNotNull("Invalid console execution result", user);
 				assertEquals("Invalid console execution result", "tester",         user.getProperty(User.name));
@@ -102,7 +102,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check "root" user
 			try (final Tx tx = app.tx()) {
 
-				final User root = app.nodeQuery(User.class).andName("root").getFirst();
+				final User root = app.nodeQuery("User").andName("root").getFirst();
 
 				assertNotNull("Invalid console execution result", root);
 				assertEquals("Invalid console execution result", "root",           root.getProperty(User.name));
@@ -114,7 +114,7 @@ public class ConsoleTest extends StructrUiTest {
 			// make check "admin" user
 			try (final Tx tx = app.tx()) {
 
-				admin = app.nodeQuery(User.class).andName("admin").getFirst();
+				admin = app.nodeQuery("User").andName("admin").getFirst();
 
 				uuid = admin.getUuid();
 
@@ -123,7 +123,7 @@ public class ConsoleTest extends StructrUiTest {
 				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
 				assertEquals("Invalid console execution result", Boolean.TRUE,      (Boolean)admin.isAdmin());
 
-				final Folder folder = app.create(Folder.class, "folder");
+				final Folder folder = app.create("Folder", "folder");
 				folder.setProperties(folder.getSecurityContext(), new PropertyMap(Folder.owner, admin));
 
 				tx.success();

@@ -72,7 +72,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			itemNode = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "Item"));
+			itemNode = app.create("SchemaNode", new NodeAttribute(SchemaNode.name, "Item"));
 
 			final PropertyMap properties = new PropertyMap();
 			properties.put(SchemaRelationshipNode.sourceId, itemNode.getUuid());
@@ -83,7 +83,7 @@ public class RenderContextTest extends StructrUiTest {
 			properties.put(SchemaRelationshipNode.sourceJsonName, "parentItem");
 			properties.put(SchemaRelationshipNode.targetJsonName, "children");
 
-			app.create(SchemaRelationshipNode.class, properties);
+			app.create("SchemaRelationshipNode", properties);
 
 			// compile the stuff
 			tx.success();
@@ -166,7 +166,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
+			app.create("SchemaNode",
 				new NodeAttribute(SchemaNode.name, "Item"),
 				new NodeAttribute(new StringProperty("_testMethodCalled"), "Boolean"),
 				new NodeAttribute(new StringProperty("___testMethod"), "set(this, 'testMethodCalled', true)")
@@ -228,13 +228,13 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode projectNode = app.create(SchemaNode.class,
+			final SchemaNode projectNode = app.create("SchemaNode",
 				new NodeAttribute(SchemaNode.name, "Project"),
 				new NodeAttribute(new StringProperty("_taskList"), "Notion(tasks, id, name)"),
 				new NodeAttribute(new StringProperty("_taskNames"), "Notion(tasks, name)")
 			);
 
-			final SchemaNode taskNode = app.create(SchemaNode.class,
+			final SchemaNode taskNode = app.create("SchemaNode",
 				new NodeAttribute(SchemaNode.name, "Task")
 			);
 
@@ -249,7 +249,7 @@ public class RenderContextTest extends StructrUiTest {
 			taskProperties.put(SchemaRelationshipNode.sourceJsonName, "project");
 			taskProperties.put(SchemaRelationshipNode.targetJsonName, "tasks");
 
-			app.create(SchemaRelationshipNode.class, taskProperties);
+			app.create("SchemaRelationshipNode", taskProperties);
 
 			// create schema relationship
 			final PropertyMap currentTaskProperties = new PropertyMap();
@@ -261,7 +261,7 @@ public class RenderContextTest extends StructrUiTest {
 			currentTaskProperties.put(SchemaRelationshipNode.sourceJsonName, "projectOfCurrentTask");
 			currentTaskProperties.put(SchemaRelationshipNode.targetJsonName, "currentTask");
 
-			app.create(SchemaRelationshipNode.class, currentTaskProperties);
+			app.create("SchemaRelationshipNode", currentTaskProperties);
 
 			// compile the stuff
 			tx.success();
@@ -365,7 +365,7 @@ public class RenderContextTest extends StructrUiTest {
 			DOMNode div4                    = null;
 			DOMNode p4                      = null;
 
-			detailsId = app.create(TestOne.class, "TestOne").getUuid();
+			detailsId = app.create("TestOne", "TestOne").getUuid();
 			page      = Page.createNewPage(securityContext, "testpage");
 
 			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
@@ -432,8 +432,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals(p4, paragraphs.item(3));
 
 			// create users
-			final User tester1 = app.create(User.class, new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester1"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester1@test.com"));
-			final User tester2 = app.create(User.class, new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester2"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester2@test.com"));
+			final User tester1 = app.create("User", new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester1"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester1@test.com"));
+			final User tester2 = app.create("User", new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester2"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester2@test.com"));
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
@@ -444,7 +444,7 @@ public class RenderContextTest extends StructrUiTest {
 			adminProperties.put(StructrApp.key(User.class, "password"), "admin");
 			adminProperties.put(StructrApp.key(User.class, "isAdmin"),   true);
 
-			app.create(User.class, adminProperties);
+			app.create("User", adminProperties);
 
 			pageId = page.getUuid();
 			p1Id   = p1.getUuid();
@@ -524,8 +524,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("true", Scripting.replaceVariables(ctx, p1, "${equal(42, this.null!42)}"));
 
 
-			final User tester1 = app.nodeQuery(User.class).andName("tester1").getFirst();
-			final User tester2 = app.nodeQuery(User.class).andName("tester2").getFirst();
+			final User tester1 = app.nodeQuery("User").andName("tester1").getFirst();
+			final User tester2 = app.nodeQuery("User").andName("tester2").getFirst();
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
@@ -567,7 +567,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid locale result", localeString, Scripting.replaceVariables(ctx, page, "${locale}"));
 
 			// set new details object
-			final TestOne detailsDataObject2 = app.create(TestOne.class, "TestOne");
+			final TestOne detailsDataObject2 = app.create("TestOne", "TestOne");
 			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
 			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
 
@@ -724,20 +724,20 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(User.class, "user1");
-			test = app.create(TestOne.class, "test1");
+			user = app.create("User", "user1");
+			test = app.create("TestOne", "test1");
 
-			app.create(GroupTraitDefinition.class,
+			app.create("GroupTraitDefinition",
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group1"),
 				new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
-			final Group group2 = app.create(GroupTraitDefinition.class,
+			final Group group2 = app.create("GroupTraitDefinition",
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group2"),
 				new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
-			app.create(GroupTraitDefinition.class,
+			app.create("GroupTraitDefinition",
 				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group3"),
 				new NodeAttribute<>(StructrApp.key(GroupTraitDefinition.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);

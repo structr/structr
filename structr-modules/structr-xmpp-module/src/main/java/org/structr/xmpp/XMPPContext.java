@@ -81,7 +81,7 @@ public class XMPPContext {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final XMPPClient client : app.nodeQuery(XMPPClient.class).getAsList()) {
+					for (final XMPPClient client : app.nodeQuery("XMPPClient").getAsList()) {
 
 						client.setIsConnected(false);
 

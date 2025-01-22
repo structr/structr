@@ -362,7 +362,7 @@ public class ImporterTest extends StructrUiTest {
 
 			compare(expected, actual);
 
-			final Script secondScriptElement = (Script) app.nodeQuery(Script.class).blank(StructrApp.key(Script.class, "_html_src")).getFirst();
+			final Script secondScriptElement = (Script) app.nodeQuery("Script").blank(StructrApp.key(Script.class, "_html_src")).getFirst();
 
 			assertNull(secondScriptElement.getOutgoingRelationship(StructrApp.getConfiguration().getRelationshipEntityClass(LinkSourceLINKLinkableTraitDefinition.class)));
 
@@ -394,7 +394,7 @@ public class ImporterTest extends StructrUiTest {
 
 			compare(expected, actual);
 
-			Script script = app.nodeQuery(Script.class).getFirst();
+			Script script = app.nodeQuery("Script").getFirst();
 
 			assertEquals("Script type is not imported correctly", "module", script.getProperty(StructrApp.key(Script.class, "_html_type")));
 
@@ -471,7 +471,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery(File.class).andName(filename).getFirst();
+			file = app.nodeQuery("File").andName(filename).getFirst();
 
 			assertNotNull(filename + " file not found", file);
 			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(StructrApp.key(File.class, "path")), expectedPath);
@@ -488,7 +488,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery(File.class).andName(filename).getFirst();
+			file = app.nodeQuery("File").andName(filename).getFirst();
 
 			assertNull("File " + filename + " found", file);
 

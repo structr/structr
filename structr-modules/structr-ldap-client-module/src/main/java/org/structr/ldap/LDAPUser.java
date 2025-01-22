@@ -169,7 +169,7 @@ public interface LDAPUser extends User {
 			final LDAPService service = Services.getInstance().getService(LDAPService.class, "default");
 			if (service != null) {
 
-				for (final LDAPGroup group : StructrApp.getInstance().nodeQuery(LDAPGroup.class).getAsList()) {
+				for (final LDAPGroup group : StructrApp.getInstance().nodeQuery("LDAPGroup").getAsList()) {
 
 					service.synchronizeGroup(group);
 				}

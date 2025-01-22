@@ -191,7 +191,7 @@ public class StructrFileSystemView implements FileSystemView {
 			}
 
 			// Look up a page by its name
-			Page page = StructrApp.getInstance(securityContext).nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
+			Page page = StructrApp.getInstance(securityContext).nodeQuery("Page").andName(PathHelper.getName(requestedPath)).getFirst();
 			if (page != null) {
 
 				tx.success();
