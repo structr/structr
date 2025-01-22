@@ -62,6 +62,13 @@ public class ToJsonFunction extends UiCommunityFunction {
 					view = sources[1].toString();
 				}
 
+				boolean returnRawResultChanged = false;
+
+				if(!securityContext.returnRawResult() && Settings.JsonIndentation.getValue()){
+					returnRawResultChanged = true;
+					securityContext.enableReturnRawResult();
+				}
+
 				int outputDepth = Settings.RestOutputDepth.getValue();
 				if (sources.length > 2 && sources[2] instanceof Number) {
 					outputDepth = ((Number)sources[2]).intValue();
@@ -95,6 +102,10 @@ public class ToJsonFunction extends UiCommunityFunction {
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false	);
+				}
+
+				if(returnRawResultChanged){
+					securityContext.disableReturnRawResult();
 				}
 
 				return writer.getBuffer().toString();
