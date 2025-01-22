@@ -55,6 +55,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final String body = sources[1].toString();
 			String contentType = "application/json";
 			String charset = "utf-8";
+			Map<String, Object> config = null;
 
 			// override default content type
 			if (sources.length >= 3 && sources[2] != null) {
@@ -66,7 +67,12 @@ public class HttpPostFunction extends UiAdvancedFunction {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, Object> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
+			if (sources.length >= 5 && sources[4] != null && sources[4] instanceof Map) {
+				config = (Map) sources[4];
+			}
+
+			//, config, ctx.getSecurityContext()
+			final Map<String, Object> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates(), config);
 
 			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
 
