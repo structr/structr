@@ -23,12 +23,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.EnumArrayProperty;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
-
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 
 /**
  *
@@ -58,7 +56,7 @@ public class EnumArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
 		if (StringUtils.isNotBlank(expression)) {
 
-			return new EnumProperty(name, EnumProperty.trimAndFilterEmptyStrings(expression.split("[, ]+")));
+			return new EnumArrayProperty(name, EnumProperty.trimAndFilterEmptyStrings(expression.split("[, ]+")));
 
 		} else if (source.getFqcn() != null) {
 

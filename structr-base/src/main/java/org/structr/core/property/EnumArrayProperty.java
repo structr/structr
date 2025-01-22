@@ -24,39 +24,40 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 
-public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty<T[]> {
+public class EnumArrayProperty extends AbstractPrimitiveProperty<String[]> {
 
-	private static final Logger logger = LoggerFactory.getLogger(EnumProperty.class.getName());
-	private Class<T> enumType = null;
+	private static final Logger logger = LoggerFactory.getLogger(EnumArrayProperty.class);
+	private final Set<String> enumConstants = new LinkedHashSet<>();
 
-	public EnumArrayProperty(final String name, final Class<T> enumType) {
-		this(name, enumType, null);
+	public EnumArrayProperty(final String name, final Class<? extends Enum> enumType) {
+		this(name, EnumProperty.trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
 	}
 
-	public EnumArrayProperty(final String jsonName, final String dbName, final Class<T> enumType) {
-		this(jsonName, dbName, enumType, null);
+	public EnumArrayProperty(final String name, final Set<String> constants) {
+		this(name, constants, null);
 	}
 
-	public EnumArrayProperty(final String name, final Class<T> enumType, final T[] defaultValue) {
-		this(name, name, enumType, defaultValue);
+	public EnumArrayProperty(final String jsonName, final String dbName, final Set<String> constants) {
+		this(jsonName, dbName, constants, null);
 	}
 
-	public EnumArrayProperty(final String jsonName, final String dbName, final Class<T> enumType, final T[] defaultValue) {
+	public EnumArrayProperty(final String name, final Set<String> constants, final String[] defaultValue) {
+		this(name, name, constants, defaultValue);
+	}
+
+	public EnumArrayProperty(final String jsonName, final String dbName, final Set<String> constants, final String[] defaultValue) {
 
 		super(jsonName, dbName, defaultValue);
 
-		this.enumType = enumType;
-		addEnumValuesToFormat();
+		this.enumConstants.addAll(constants);
 	}
 
 	@Override
@@ -75,17 +76,34 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 	}
 
 	@Override
-	public PropertyConverter<T[], String> databaseConverter(SecurityContext securityContext) {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, String[] values) throws FrameworkException {
+
+		for (final String value : values) {
+
+			if (StringUtils.isNotBlank(value)) {
+
+				if (!enumConstants.contains(value)) {
+
+					throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getName(), jsonName(), enumConstants));
+				}
+			}
+		}
+
+		return super.setProperty(securityContext, obj, values);
+	}
+
+	@Override
+	public PropertyConverter<String[], String> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<T[], String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<String[], String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<String, T[]> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<String, String[]> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
 
@@ -107,8 +125,8 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 		return true;
 	}
 
-	public Class<T> getEnumType() {
-		return enumType;
+	public Set<String> getEnumConstants() {
+		return enumConstants;
 	}
 
 	// ----- OpenAPI -----
@@ -137,7 +155,7 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 		}
 
 		items.put("type", "string");
-		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+		items.put("enum", getEnumConstants());
 
 		return map;
 	}
@@ -156,35 +174,36 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 		}
 
 		items.put("type", "string");
-		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+		items.put("enum", getEnumConstants());
 
 		return map;
 	}
 
-	protected class DatabaseConverter extends PropertyConverter<T[], String> {
+	protected class DatabaseConverter extends PropertyConverter<String[], String> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
 			super(securityContext, entity);
 		}
 
 		@Override
-		public T[] revert(String source) throws FrameworkException {
+		public String[] revert(String source) throws FrameworkException {
 
 			if (StringUtils.isNotBlank(source)) {
 
 				try {
-					BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {
+					BiFunction<ArrayList<String>, String, ArrayList<String>> accumulator = (l, e) -> {
 						l.add(e);
 						return l;
 					};
-					BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {
+					BinaryOperator<ArrayList<String>> combiner = (acc, cur) -> {
 						acc.addAll(cur);
 						return acc;
 					};
-					return (T[]) Arrays.stream(source.split(",")).map(s -> (T) Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
+					return Arrays.stream(source.split(",")).reduce(new ArrayList<>(), accumulator, combiner).toArray(String[]::new);
+
 				} catch (Throwable t) {
 
-					logger.warn("Cannot convert database value '{}' on object {} to enum of type '{}', ignoring.", new Object[]{source, this.currentObject.getUuid(), enumType.getSimpleName()});
+					logger.warn("Cannot convert database value '{}' on object {} to enum, ignoring.", source, this.currentObject.getUuid());
 				}
 			}
 
@@ -193,11 +212,11 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 		}
 
 		@Override
-		public String convert(T[] source) throws FrameworkException {
+		public String convert(String[] source) throws FrameworkException {
 
 			if (source != null) {
 
-				return String.join(",", Arrays.stream(source).map(Enum::toString).toList());
+				return String.join(",", Arrays.stream(source).toList());
 			}
 
 			return null;
@@ -205,38 +224,38 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 
 	}
 
-	protected class InputConverter extends PropertyConverter<String, T[]> {
+	protected class InputConverter extends PropertyConverter<String, String[]> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
 		@Override
-		public String revert(T[] source) throws FrameworkException {
+		public String revert(String[] source) throws FrameworkException {
 
 			if (source != null) {
 
-				return String.join(",", Arrays.stream(source).map(Enum::toString).toList());
+				return String.join(",", Arrays.stream(source).toList());
 			}
 
 			return null;
 		}
 
 		@Override
-		public T[] convert(String source) throws FrameworkException {
+		public String[] convert(String source) throws FrameworkException {
 
 			if (StringUtils.isNotBlank(source)) {
 
 				try {
-					BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {
+					BiFunction<ArrayList<String>, String, ArrayList<String>> accumulator = (l, e) -> {
 						l.add(e);
 						return l;
 					};
-					BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {
+					BinaryOperator<ArrayList<String>> combiner = (acc, cur) -> {
 						acc.addAll(cur);
 						return acc;
 					};
-					return (T[]) Arrays.stream(source.split(",")).map(s -> (T) Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
+					return Arrays.stream(source.split(",")).reduce(new ArrayList<>(), accumulator, combiner).toArray(String[]::new);
 
 				} catch (Throwable t) {
 
@@ -250,16 +269,5 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
 
 		}
 
-	}
-
-	private void addEnumValuesToFormat() {
-
-		this.format = "";
-
-		for (T enumConst : enumType.getEnumConstants()) {
-			this.format += (enumConst.toString()) + ",";
-		}
-
-		this.format = this.format.substring(0, this.format.length() - 1);
 	}
 }
