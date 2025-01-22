@@ -151,7 +151,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public Class valueType() {
-		return Iterable.class;
+		return NodeInterface.class;
 	}
 
 	@Override
