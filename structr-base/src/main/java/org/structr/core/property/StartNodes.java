@@ -94,7 +94,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public Class valueType() {
-		return Iterable.class;
+		return NodeInterface.class;
 	}
 
 	@Override
