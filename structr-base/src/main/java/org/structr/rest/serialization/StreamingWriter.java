@@ -156,6 +156,7 @@ public abstract class StreamingWriter {
 		rootWriter.beginDocument(baseUrl, view);
 
 		if (securityContext.returnRawResult()) {
+
 			root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
 		} else {
