@@ -41,7 +41,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 	private final Set<String> enumConstants = new LinkedHashSet<>();
 
 	public EnumProperty(final String name, final Class<? extends Enum> enumType) {
-		this(name, trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
+		this(name, EnumProperty.trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
 	}
 
 	public EnumProperty(final String name, final Set<String> constants) {
@@ -56,6 +56,13 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 		this(name, name, constants, defaultValue);
 	}
 
+	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants, final String defaultValue) {
+
+		super(jsonName, dbName, defaultValue);
+
+		this.enumConstants.addAll(constants);
+	}
+
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
 
@@ -68,13 +75,6 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 		}
 
 		return super.setProperty(securityContext, obj, value);
-	}
-
-	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants, final String defaultValue) {
-
-		super(jsonName, dbName, defaultValue);
-
-		this.enumConstants.addAll(constants);
 	}
 
 	public Set<String> getEnumConstants() {
@@ -177,15 +177,6 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 		items.put("enum", enumConstants);
 
 		return map;
-	}
-
-	private void addEnumValuesToFormat() {
-
-		// update format with enum constants from constructor (if present)
-		if (this.format == null && !enumConstants.isEmpty()) {
-
-			this.format = StringUtils.join(enumConstants, ",");
-		}
 	}
 
 	public static String[] extractConstants(final Class<? extends Enum> enumType) {

@@ -20,6 +20,7 @@ package org.structr.test.schema;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.ErrorToken;
@@ -1166,6 +1167,8 @@ public class ValidationTest extends StructrTest {
 			}
 
 			removeInstances(testType);
+
+			Settings.CypherDebugLogging.setValue(true);
 
 			// test success
 			try (final Tx tx = app.tx()) {
