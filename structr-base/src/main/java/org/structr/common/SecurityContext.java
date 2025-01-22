@@ -1024,6 +1024,8 @@ public class SecurityContext {
 		this.returnRawResult = true;
 	}
 
+	public void disableReturnRawResult() { this.returnRawResult = false; }
+
 	// ----- static methods -----
 	public static SecurityContext getTemporaryStoredContext(final String uuid) {
 		return tmp.get(uuid);

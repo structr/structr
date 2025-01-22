@@ -133,6 +133,10 @@ public abstract class StreamingWriter {
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean includeMetadata) throws IOException {
 
+		if(!indent){
+			securityContext.enableReturnRawResult();
+		}
+
 		long t0 = System.nanoTime();
 
 		final RestWriter rootWriter = getRestWriter(securityContext, output);
@@ -156,7 +160,7 @@ public abstract class StreamingWriter {
 		rootWriter.beginDocument(baseUrl, view);
 
 		if (securityContext.returnRawResult()) {
-
+			securityContext.disableReturnRawResult();
 			root.serializeRoot(rootWriter, result, view, 0, visitedObjects);
 
 		} else {

@@ -76,25 +76,25 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 				if (obj instanceof GraphObject) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false, serializeNulls);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, false, serializeNulls);
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)obj);
 
 				} else if (obj instanceof Iterable) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true, serializeNulls);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, true, serializeNulls);
 					final Iterable list                    = (Iterable)obj;
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false);
 
 				} else if (obj instanceof Map) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false, serializeNulls);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, false, serializeNulls);
 					final GraphObjectMap map               = new GraphObjectMap();
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false);
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false	);
 				}
 
 				return writer.getBuffer().toString();
