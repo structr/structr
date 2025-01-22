@@ -106,47 +106,94 @@ public class PropertyTest extends StructrTest {
 
 			assertNotNull(testEntity);
 
+			Settings.CypherDebugLogging.setValue(true);
 
 			List<NodeInterface> result = null;
+
+			// test exact search with correct value => 1 result
 			try (final Tx tx = app.tx()) {
 
 				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
+
+				tx.success();
 			}
 
-
+			// test inexact search with correct value => 1 result
 			try (final Tx tx = app.tx()) {
-				testEntity.setProperty(key, arr5);
+
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}, false).getAsList();
+				assertEquals(1, result.size());
+				assertEquals(result.get(0), testEntity);
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}).getAsList();
-
-				assertEquals(1, result.size());
-				assertEquals(result.get(0), testEntity);
+				testEntity.setProperty(key, arr5);
+				tx.success();
 			}
 
+			// test exact search with wrong value => no results
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "two"}).getAsList();
-				assertEquals(1, result.size());
-				assertEquals(result.get(0), testEntity);
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}, true).getAsList();
+
+				assertEquals(0, result.size());
+				tx.success();
 			}
 
+			// test exact search with correct value => 1 result
+			try (final Tx tx = app.tx()) {
+
+				result = app.nodeQuery("TestFour").and(key, new String[] { "one", "two", "three", "four", "five" }, true).getAsList();
+
+				assertEquals(1, result.size());
+				assertEquals(result.get(0), testEntity);
+
+				tx.success();
+			}
+
+			// test inexact search with existing value => 1 result
+			try (final Tx tx = app.tx()) {
+
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}, false).getAsList();
+
+				assertEquals(1, result.size());
+				assertEquals(result.get(0), testEntity);
+
+				tx.success();
+			}
+
+			// test inexact search with existing values => 1 result
+			try (final Tx tx = app.tx()) {
+
+				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "two"}, false).getAsList();
+				assertEquals(1, result.size());
+				assertEquals(result.get(0), testEntity);
+
+				tx.success();
+			}
+
+			// test exact search with nonexisting value => no result
 			try (final Tx tx = app.tx()) {
 
 				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "foo"}).getAsList();
 				assertEquals(0, result.size());
+
+				tx.success();
 			}
 
+			// test inexact search with nonexisting value => 1 result
 			try (final Tx tx = app.tx()) {
 
 				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "foo"}, false).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
+
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {

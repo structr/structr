@@ -51,7 +51,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 
 			if (predicate.isExactMatch()) {
 
-				query.addListParameter(name, "=", value);
+				query.addSimpleParameter(name, "=", value);
 
 			} else {
 

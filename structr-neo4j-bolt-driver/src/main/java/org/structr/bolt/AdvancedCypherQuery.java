@@ -396,6 +396,32 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 	}
 
+	public void addExactListParameter(final String key, final String operator, final Object value) {
+
+		if (value != null) {
+
+			final String paramKey = "param" + count++;
+
+			buffer.append("ALL(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" $");
+			buffer.append(paramKey);
+			buffer.append(")");
+
+			parameters.put(paramKey, value);
+
+		} else {
+
+			buffer.append("ALL(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" null)");
+		}
+	}
+
 	public void addParameters(final String key, final String operator1, final Object value1, final String operator2, final Object value2) {
 
 		final String paramKey1 = "param" + count++;

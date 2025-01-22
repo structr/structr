@@ -18,6 +18,8 @@
  */
 package org.structr.bolt;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.Record;
@@ -680,7 +682,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					if (query.contains("extractedContent")) {
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
 					} else {
-						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, map.toString());
+						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, stringify(map));
 					}
 
 				} else {
@@ -983,6 +985,13 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		types1.retainAll(types2);
 
 		return Iterables.first(types1);
+	}
+
+	private String stringify(final Map map) {
+
+		final Gson gson = new GsonBuilder().create();
+
+		return gson.toJson(map);
 	}
 
 	private Set<String> getBaseTypes(final String type) {

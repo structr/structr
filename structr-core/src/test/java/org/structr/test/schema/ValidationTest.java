@@ -1139,6 +1139,8 @@ public class ValidationTest extends StructrTest {
 
 		if (key != null) {
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			// test failure
 			try (final Tx tx = app.tx()) {
 
@@ -1167,8 +1169,6 @@ public class ValidationTest extends StructrTest {
 			}
 
 			removeInstances(testType);
-
-			Settings.CypherDebugLogging.setValue(true);
 
 			// test success
 			try (final Tx tx = app.tx()) {
