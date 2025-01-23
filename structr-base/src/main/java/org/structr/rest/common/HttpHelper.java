@@ -635,7 +635,7 @@ public class HttpHelper {
 		}
 	}
 
-	private static Map<String, String> getHeadersAsMap(final HttpResponse response) {
+	public static Map<String, String> getHeadersAsMap(final HttpResponse response) {
 
 		final Map<String, String> map = new HashMap<>();
 
