@@ -62,12 +62,8 @@ public class ToJsonFunction extends UiCommunityFunction {
 					view = sources[1].toString();
 				}
 
-				boolean returnRawResultChanged = false;
-
-				if(!securityContext.returnRawResult() && Settings.JsonIndentation.getValue()){
-					returnRawResultChanged = true;
-					securityContext.enableReturnRawResult();
-				}
+				boolean returnRawResultValueBeforeChange = securityContext.returnRawResult();
+				securityContext.enableReturnRawResult();
 
 				int outputDepth = Settings.RestOutputDepth.getValue();
 				if (sources.length > 2 && sources[2] instanceof Number) {
@@ -104,7 +100,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false);
 				}
 
-				if(returnRawResultChanged){
+				if(!returnRawResultValueBeforeChange){
 					securityContext.disableReturnRawResult();
 				}
 
