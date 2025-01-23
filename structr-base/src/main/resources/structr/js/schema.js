@@ -5510,7 +5510,7 @@ let _Schema = {
 				<div class="inline-flex">
 
 					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Data Type
 					</button>
 
 					<div class="dropdown-menu dropdown-menu-large">
@@ -5638,8 +5638,8 @@ let _Schema = {
 									<option disabled>──────────</option>
 								</select>
 								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
+								<button id="add-node-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="create-labels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
 							</div>
 							<div class="row">
 								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5648,8 +5648,8 @@ let _Schema = {
 									<option value="allRels">All Relationship Types</option>
 									<option disabled>──────────</option>
 								</select>
-								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="reindex-rels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+								<button id="add-rel-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
 							</div>
 							<div class="row flex items-center">
 								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">

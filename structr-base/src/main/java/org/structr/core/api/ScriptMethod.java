@@ -123,17 +123,18 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean shouldReturnRawResult() {
+
+		return this.returnRawResult;
+	}
+
+	@Override
 	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 
 		final Arguments converted = checkAndConvertArguments(securityContext, arguments, false);
 
 		try {
 
-			if (returnRawResult) {
-
-				securityContext.enableReturnRawResult();
-			}
-			
 			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
 
 		} catch (AssertException e)   {

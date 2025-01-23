@@ -24,6 +24,8 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -177,5 +179,102 @@ public class RestScriptingTest extends StructrRestTestBase {
 			.statusCode(200)
 			.when()
 			.post("/API/doTest");
+	}
+
+	@Test
+	public void testReturnRawResultDoesNotLeakWhenCallingMethodsFromGlobalMethod() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType type = schema.addType("API");
+			type.addMethod("test1", "'static structr script method'"        ).setIsStatic(true).setReturnRawResult(true);
+			type.addMethod("test2", "{ return 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, "calledTestMethod"),
+					new NodeAttribute<>(SchemaMethod.source, "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); return 'test'; }")
+			);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, "test1"),
+					new NodeAttribute<>(SchemaMethod.source, "'global structr script method'"),
+					new NodeAttribute<>(SchemaMethod.returnRawResult, true)
+			);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, "test2"),
+					new NodeAttribute<>(SchemaMethod.source, "{ return 'global javascript method'; }"),
+					new NodeAttribute<>(SchemaMethod.returnRawResult, true)
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// ensure that called methods do not change returnRawResult behavior
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", equalTo("test"))
+				.statusCode(200)
+				.when()
+				.post("/calledTestMethod");
+	}
+
+	@Test
+	public void testReturnRawResultDoesNotLeakWhenCallingMethodsFromStaticMethod() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType type = schema.addType("API");
+			type.addMethod("calledTestMethod", "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); return 'test'; }").setIsStatic(true);
+
+			type.addMethod("test1", "'static structr script method'"        ).setIsStatic(true).setReturnRawResult(true);
+			type.addMethod("test2", "{ return 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, "test1"),
+					new NodeAttribute<>(SchemaMethod.source, "'global structr script method'"),
+					new NodeAttribute<>(SchemaMethod.returnRawResult, true)
+			);
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, "test2"),
+					new NodeAttribute<>(SchemaMethod.source, "{ return 'global javascript method'; }"),
+					new NodeAttribute<>(SchemaMethod.returnRawResult, true)
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// ensure that called methods do not change returnRawResult behavior
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", equalTo("test"))
+				.statusCode(200)
+				.when()
+				.post("/API/calledTestMethod");
 	}
 }

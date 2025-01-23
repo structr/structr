@@ -55,7 +55,7 @@ let _Crud = {
 		Structr.setMainContainerHTML(_Crud.templates.main());
 		Structr.setFunctionBarHTML(_Crud.templates.functions());
 
-		// UISettings.showSettingsForCurrentModule();
+		UISettings.showSettingsForCurrentModule();
 
 		_Crud.moveResizer();
 
@@ -174,15 +174,22 @@ let _Crud = {
 		},
 		typeSelected: (type) => {
 
-			_Crud.typeList.storeCurrentType(type);
-
-			_Crud.typeList.recents.update(type);
-			_Crud.typeList.highlightCurrentType(type);
-
 			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
 
 			_Crud.helpers.ensurePropertiesForTypeAreLoaded(type, () => {
+
+				_Crud.typeList.storeCurrentType(type);
+
+				_Crud.typeList.recents.update(type);
+				_Crud.typeList.highlightCurrentType(type);
+
 				_Crud.objectList.initializeForType(type);
+
+			}, () => {
+
+				_Crud.typeList.recents.remove(document.querySelector(`#crud-left .crud-type[data-type="${type}"]`));
+
+				_Crud.helpers.delayedMessage.removeMessage();
 			});
 		},
 		recents: {
@@ -219,16 +226,19 @@ let _Crud = {
 			},
 			remove: (recentTypeElement) => {
 
-				let typeToRemove = recentTypeElement.dataset['type'];
-				let recentTypes  = LSWrapper.getItem(_Crud.typeList.recents.crudRecentTypesKey);
+				if (recentTypeElement) {
 
-				if (recentTypes) {
-					recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
+					let typeToRemove = recentTypeElement.dataset['type'];
+					let recentTypes  = LSWrapper.getItem(_Crud.typeList.recents.crudRecentTypesKey);
+
+					if (recentTypes) {
+						recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
+					}
+
+					LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
+
+					_Helpers.fastRemoveElement(recentTypeElement);
 				}
-
-				LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
-
-				_Helpers.fastRemoveElement(recentTypeElement);
 			},
 		},
 		filtering: {
@@ -618,7 +628,7 @@ let _Crud = {
 
 			let newHeaderHTML = `
 				<th class="___action_header" data-key="action_header">Actions</th>
-				${_Crud.objectList.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Helpers.getCSSClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
+				${_Crud.objectList.filterKeys(type, Object.keys(properties)).map(key => `<th data-key="${key}">${key}</th>`).join('')}
 			`;
 
 			tableHeaderRow.insertAdjacentHTML('beforeend', newHeaderHTML);
@@ -728,70 +738,63 @@ let _Crud = {
 						dialogText.insertAdjacentHTML('beforeend', _Crud.templates.configureColumns());
 						let columnSelect = dialogText.querySelector('#columns-select');
 
-						fetch(`${Structr.rootUrl}_schema/${type}/${_Crud.defaultView}`).then(async response => {
+						_Crud.helpers.ensurePropertiesForTypeAreLoaded(type, () => {
 
-							if (response.ok) {
+							let sortOrder = _Crud.objectList.getSavedSortOrderOfColumns(type);
 
-								let data = await response.json();
+							if (sortOrder.length === 0) {
 
-								// no schema entry found?
-								if (!data || !data.result || data.result_count === 0) {
-
-									new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
-
-								} else {
-
-									let sortOrder    = _Crud.objectList.getSortOrderOfColumns(type);
-									let currentOrder = _Crud.objectList.filterKeys(type, Object.keys(_Crud.helpers.getPropertiesForTypeAndCurrentView(type)));
-
-									if (sortOrder.length > 0) {
-										currentOrder = sortOrder;
-									}
-
-									let properties = Object.fromEntries(data.result.map(prop => [prop.jsonName, prop]));
-									let hiddenKeys = _Crud.objectList.getHiddenKeys(type).filter(attr => currentOrder.indexOf(attr) === -1);
-
-									let orderedColumnsSet = new Set(currentOrder);
-									for (let key of Object.keys(properties)) {
-										orderedColumnsSet.add(key);
-									}
-
-									let optionsHTML = Array.from(orderedColumnsSet).map(key => {
-
-										let isHidden   = hiddenKeys.includes(key);
-										let isIdOrType = (key === 'id' || key === 'type');
-										let isSelected = ((!isHidden || isIdOrType) ? 'selected' : '');
-										let isDisabled = (isIdOrType ? 'disabled' : '');
-
-										return `<option value="${key}" ${isSelected} ${isDisabled}>${key}</option>`;
-									}).join('');
-
-									columnSelect.insertAdjacentHTML('beforeend', optionsHTML);
-
-									let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
-									let jqSelect       = $(columnSelect);
-
-									jqSelect.select2({
-										search_contains: true,
-										width: '100%',
-										dropdownParent: dropdownParent,
-										dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-										containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-										closeOnSelect: false,
-										scrollAfterSelect: false
-									}).select2Sortable();
-
-									saveAndCloseButton.addEventListener('click', (e) => {
-										e.stopPropagation();
-
-										_Crud.objectList.saveSortOrderOfColumns(type, jqSelect.sortedValues());
-										_Crud.objectList.reloadCompleteObjectListUI();
-
-										_Dialogs.custom.clickDialogCancelButton();
-									});
-								}
+								// all keys for current view minus the ones that are hidden
+								sortOrder = _Crud.objectList.filterKeys(type, Object.keys(_Crud.types[type].views.all));
 							}
+
+							let orderedColumnsSet = new Set(sortOrder);
+
+							// add the available keys, which are currently hidden, so we can add them back
+							for (let key of Object.keys(_Crud.types[type].views.all)) {
+								orderedColumnsSet.add(key);
+							}
+
+							let hiddenKeys = _Crud.objectList.getHiddenKeys(type);
+
+							let optionsHTML = Array.from(orderedColumnsSet).map(key => {
+
+								let isHidden   = hiddenKeys.includes(key);
+								let isIdOrType = (key === 'id' || key === 'type');
+								let isSelected = ((!isHidden || isIdOrType) ? 'selected' : '');
+								let isDisabled = (isIdOrType ? 'disabled' : '');
+
+								return `<option value="${key}" ${isSelected} ${isDisabled}>${key}</option>`;
+							}).join('');
+
+							columnSelect.insertAdjacentHTML('beforeend', optionsHTML);
+
+							let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+							let jqSelect       = $(columnSelect);
+
+							jqSelect.select2({
+								search_contains: true,
+								width: '100%',
+								dropdownParent: dropdownParent,
+								dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+								containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+								closeOnSelect: false,
+								scrollAfterSelect: false
+							}).select2Sortable();
+
+							saveAndCloseButton.addEventListener('click', (e) => {
+								e.stopPropagation();
+
+								_Crud.objectList.saveSortOrderOfColumns(type, jqSelect.sortedValues());
+								_Crud.objectList.reloadCompleteObjectListUI();
+
+								_Dialogs.custom.clickDialogCancelButton();
+							});
+
+						}, () => {
+							new WarningMessage().text(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
 						});
+
 					});
 
 				} else if (key !== 'Actions') {
@@ -802,7 +805,9 @@ let _Crud = {
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
 					`;
 
-					if (_Crud.helpers.isCollection(key, type)) {
+					let isCollection            = _Crud.helpers.isCollection(key, type);
+					let isRelationshipAttribute = _Crud.helpers.getRelatedTypeForAttribute(key, type) !== undefined;
+					if (isCollection && isRelationshipAttribute) {
 						_Crud.objectList.pager.addPageSizeConfigToColumn($(th), type, key);
 					}
 
@@ -830,8 +835,8 @@ let _Crud = {
 							let table = $('#crud-type-detail table');
 
 							// remove column(s) from table
-							$(`th.${_Helpers.getCSSClassForKey(key)}`, table).remove();
-							$(`td.${_Helpers.getCSSClassForKey(key)}`, table).each(function(i, t) {
+							$(`th${_Crud.helpers.getCSSSelectorForKey(key)}`, table).remove();
+							$(`td${_Crud.helpers.getCSSSelectorForKey(key)}`, table).each(function(i, t) {
 								t.remove();
 							});
 						}
@@ -842,16 +847,31 @@ let _Crud = {
 				}
 			}
 		},
-		getSortOrderOfColumns: (type) => {
-			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, '[]');
-			return JSON.parse(sortOrder);
+		getSavedSortOrderOfColumns: (type) => {
+
+			let sortOrder = LSWrapper.getItem(_Crud.objectList.crudSortedColumnsKey + type, undefined);
+
+			if (sortOrder) {
+
+				try {
+
+					let restoredSortOrder = JSON.parse(sortOrder);
+					return restoredSortOrder;
+
+				} catch (e) {
+
+				}
+			}
+
+			// if we do not have a sort order, simply use default sorting (use all view to get a global sorting for all views)
+			return Object.keys(_Crud.types[type].views.all);
 		},
 		saveSortOrderOfColumns: (type, order) => {
 
 			_Crud.typeColumnSort[type] = order;
 
 			// this also updates hidden keys (inverted!)
-			let allPropertiesOfType = Object.keys(_Crud.helpers.getPropertiesForTypeAndCurrentView(type));
+			let allPropertiesOfType = Object.keys(_Crud.types[type].views.all);
 			let hiddenKeys          = allPropertiesOfType.filter(prop => !order.includes(prop));
 
 			LSWrapper.setItem(_Crud.objectList.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
@@ -899,12 +919,10 @@ let _Crud = {
 
 				for (let key of filterKeys) {
 
-					row.append(`<td class="value ${_Helpers.getCSSClassForKey(key)}"></td>`);
-					let cells = _Crud.objectList.getCellsForKeyInObject(id, key);
+					let cell = $(_Helpers.createSingleDOMElementFromHTML(`<td class="value"></td>`));
+					row.append(cell);
 
-					for (let cell of cells) {
-						_Crud.objectList.populateCell(id, key, type, item[key], cell);
-					}
+					_Crud.objectList.populateCell(id, key, type, item[key], cell);
 				}
 
 				Structr.resize();
@@ -920,18 +938,23 @@ let _Crud = {
 		},
 		populateCell: (id, key, type, value, cell) => {
 
-			let isRelType        = _Crud.helpers.isRelType(type);
-			let isCollection     = _Crud.helpers.isCollection(key, type);
-			let isEnum           = _Crud.helpers.isEnum(key, type);
-			let isCypher         = _Crud.helpers.isCypherProperty(key, type);
-			let relatedType      = _Crud.helpers.getRelatedTypeForAttribute(key, type);
-			let readOnly         = _Crud.helpers.isReadOnly(key, type);
-			let isSourceOrTarget = isRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
-			let propertyType     = _Crud.types[type]?.views.all[key]?.type;
+			let isRelType                  = _Crud.helpers.isRelType(type);
+			let isCollection               = _Crud.helpers.isCollection(key, type);
+			let isEnum                     = _Crud.helpers.isEnum(key, type);
+			let isCypher                   = _Crud.helpers.isCypherProperty(key, type);
+			let relatedType                = _Crud.helpers.getRelatedTypeForAttribute(key, type);
+			let readOnly                   = _Crud.helpers.isReadOnly(key, type);
+			let isCollectionIdProperty     = _Crud.helpers.isCollectionIdProperty(key, type);
+			let isCollectionNotionProperty = _Crud.helpers.isCollectionNotionProperty(key, type);
+			let isSourceOrTarget           = isRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
+			let propertyType               = _Crud.types[type]?.views.all[key]?.type;
 
 			if (readOnly) {
 				cell.addClass('readonly');
 			}
+
+			cell[0].dataset['key']          = key;
+			cell[0].dataset['isCollection'] = isCollection;
 
 			let isRegularDirectAttribute = !isSourceOrTarget && !relatedType;
 
@@ -961,163 +984,152 @@ let _Crud = {
 
 				} else if (propertyType === 'Date') {
 
-					cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="flex items-center relative">
+							<input name="${key}" class="__value pl-9 mr-3 ${readOnly ? 'readonly' : ''}" type="text" size="26" autocomplete="one-time-code" ${readOnly ? 'readonly' : ''}>
+							${_Crud.helpers.getDateTimeIconHTML()}
+						</div>
+					`);
+					cell[0].appendChild(cellContent);
+
+					let input = cellContent.querySelector('input');
+					input.value = value ?? '';
 
 					if (!readOnly) {
 
-						let format = _Crud.helpers.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.helpers.getFormat(type, key);
-						let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+						let oldValue = input.value;
+						let wasEmpty = (oldValue === '');
 
-						cell.on('click', function(event) {
-							event.preventDefault();
-							var self = $(this);
-							var oldValue = self.text().trim();
-							self.html(`<input name="${key}" class="__value" type="text" size="40">`);
-							var input = $('input', self);
-							input.val(oldValue);
+						_Entities.addDatePicker(input, key, type, () => {
 
-							if (dateTimePickerFormat.timeFormat) {
-								input.datetimepicker({
-									parse: 'loose',
-									dateFormat: dateTimePickerFormat.dateFormat,
-									timeFormat: dateTimePickerFormat.timeFormat,
-									separator: dateTimePickerFormat.separator,
-									onClose: function() {
-										var newValue = input.val();
-										if (id && newValue !== oldValue) {
-											_Crud.objectList.crudUpdate(id, key, newValue);
-										} else {
-											_Crud.objectList.resetCellToOldValue(id, key, oldValue);
-										}
-									}
-								});
-								input.datetimepicker('show');
+							let newValue = input.value;
+							let isEmpty  = (newValue === '');
+
+							let isFirstValue = (wasEmpty && !isEmpty);
+							let valueRemoved = (!wasEmpty && isEmpty);
+							let valueChanged = (!wasEmpty && !isEmpty && (new Date(newValue).getTime() !== new Date(oldValue).getTime()));
+							let shouldSave   = (isFirstValue || valueRemoved || valueChanged);
+
+							if (id && shouldSave) {
+								_Crud.objectList.crudUpdate(id, key, newValue);
 							} else {
-								input.datepicker({
-									parse: 'loose',
-									dateFormat: dateTimePickerFormat.dateFormat,
-									onClose: function() {
-										var newValue = input.val();
-										if (id && newValue !== oldValue) {
-											_Crud.objectList.crudUpdate(id, key, newValue);
-										} else {
-											_Crud.objectList.resetCellToOldValue(id, key, oldValue);
-										}
-									}
-								});
-								input.datepicker('show');
+								_Crud.objectList.resetCellToOldValue(id, key, oldValue);
 							}
-							self.off('click');
 						});
 					}
 
 				} else if (propertyType === 'ZonedDateTime') {
 
-					cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+					let cellContent = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="flex items-center relative">
+							<input name="${key}" class="__value pl-9 mr-3" type="text" size="36" autocomplete="one-time-code">
+							${_Crud.helpers.getDateTimeIconHTML()}
+						</div>
+					`);
+					cell[0].appendChild(cellContent);
+
+					let input = cellContent.querySelector('input');
+					input.value = value ?? '';
 
 					if (!readOnly) {
 
-						cell.on('click', function(event) {
-							event.preventDefault();
-							var self = $(this);
-							var oldValue = self.text().trim();
-							self.html(`<input name="${key}" class="__value" type="text" size="40">`);
-							var input = $('input', self);
-							input.val(oldValue);
+						let oldValue = input.value;
 
-							// detect timezone id either from system or from old value
-							let timezoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
-							let oldTzId = oldValue.match(/\[(.*)\]/);
-							if (oldTzId?.length > 0) {
-								timezoneId = oldTzId[1];
-							}
+						// detect timezone id either from system or from old value
+						let timezoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+						let oldTzId = oldValue.match(/\[(.*)\]/);
+						if (oldTzId?.length > 0) {
+							timezoneId = oldTzId[1];
+						}
 
-							const getOffset = (timeZone = 'UTC', date = new Date()) => {
-								const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
-								const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
-								return (tzDate.getTime() - utcDate.getTime()) / 6e4;
-							};
+						const getOffset = (timeZone = 'UTC', date = new Date()) => {
+							const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+							const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+							return (tzDate.getTime() - utcDate.getTime()) / 6e4;
+						};
 
-							input.datetimepicker({
-								parse: (timeFormat, timeString, options) => {
+						$(input).datetimepicker({
+							parse: (timeFormat, timeString, options) => {
 
-									let fakeOptions = Object.assign({}, options);
-									fakeOptions.parse = 'loose';
+								let fakeOptions = Object.assign({}, options);
+								fakeOptions.parse = 'loose';
 
-									// remove timezone identifier from timeString
-									let pos    = timeString.indexOf('[');
-									if (pos > 0) {
-										timeString = timeString.slice(0, pos);
-									}
-
-									let innerData = $.datepicker.parseTime(timeFormat, timeString, fakeOptions);
-
-									// fake our timezone
-									innerData.timezone = oldTzId[0];
-
-									return innerData;
-								},
-								dateFormat: 'yy-mm-dd',
-								timeFormat: 'HH:mm:ssz',
-								separator: 'T',
-								timezone: '[' + timezoneId + ']',
-								timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
-								onClose: function() {
-									$('#ui-datepicker-div').removeClass('is-zoned');
-									var newValue = input.val();
-									if (id && newValue !== oldValue) {
-
-										// add timezone corresponding to timezone identifier
-										let offset = 0;
-										let newTzId = newValue.match(/\[(.*)\]/);
-										if (newTzId?.length > 0) {
-											offset = getOffset(newTzId[1]);
-										}
-
-										let offsetString = $.timepicker.timezoneOffsetString(offset, true);
-
-										newValue = newValue.replaceAll('[', offsetString + '[');
-
-										console.log('Setting:', newValue)
-
-										_Crud.objectList.crudUpdate(id, key, newValue);
-									} else {
-										_Crud.objectList.resetCellToOldValue(id, key, oldValue);
-									}
-								}
-							});
-							input.datetimepicker('show');
-
-							if (oldValue) {
-								// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
-								let dateStringWithoutId = oldValue;
-								let pos = oldValue.indexOf('[');
+								// remove timezone identifier from timeString
+								let pos    = timeString.indexOf('[');
 								if (pos > 0) {
-									dateStringWithoutId = oldValue.slice(0, pos);
+									timeString = timeString.slice(0, pos);
 								}
 
-								let baseDate = new Date(dateStringWithoutId);
+								let innerData = $.datepicker.parseTime(timeFormat, timeString, fakeOptions);
 
-								// baseDate is shifted by our offset to UTC and its own offset to UTC
-								let theirOffset = getOffset(timezoneId);
-								let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
-								let totalOffset = ouroffset - theirOffset;
+								// fake our timezone
+								innerData.timezone = oldTzId[0];
 
-								// correct baseDate
-								baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
+								return innerData;
+							},
+							dateFormat: 'yy-mm-dd',
+							timeFormat: 'HH:mm:ssz',
+							separator: 'T',
+							timezone: '[' + timezoneId + ']',
+							timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
+							onClose: function() {
+								$('#ui-datepicker-div').removeClass('is-zoned');
+								let newValue = input.value;
 
-								input.datetimepicker('setDate', baseDate);
+								// add timezone corresponding to timezone identifier
+								let offset = 0;
+								let newTzId = newValue.match(/\[(.*)\]/);
+								if (newTzId?.length > 0) {
+									offset = getOffset(newTzId[1]);
+								}
+
+								let offsetString = $.timepicker.timezoneOffsetString(offset, true);
+
+								newValue = newValue.replaceAll('[', offsetString + '[');
+
+								if (id && newValue !== oldValue) {
+
+									_Crud.objectList.crudUpdate(id, key, newValue);
+
+								} else {
+
+									input.value = newValue;
+								}
+							}
+						});
+
+						input.addEventListener('focus', (e) => {
+							$(input).datetimepicker('show');
+						});
+
+						if (oldValue) {
+							// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
+							let dateStringWithoutId = oldValue;
+							let pos = oldValue.indexOf('[');
+							if (pos > 0) {
+								dateStringWithoutId = oldValue.slice(0, pos);
 							}
 
-							$('#ui-datepicker-div').addClass('is-zoned');
-							self.off('click');
-						});
+							let baseDate = new Date(dateStringWithoutId);
+
+							// baseDate is shifted by our offset to UTC and its own offset to UTC
+							let theirOffset = getOffset(timezoneId);
+							let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
+							let totalOffset = ouroffset - theirOffset;
+
+							// correct baseDate
+							baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
+
+							$(input).datetimepicker('setDate', baseDate);
+						}
+
+						$('#ui-datepicker-div').addClass('is-zoned');
 					}
 
 				} else if (isEnum) {
 
 					let format = _Crud.helpers.getFormat(type, key);
-					cell.text(_Helpers.nvl(value, ''));
+					cell.text(value ?? '');
 					if (!readOnly) {
 						cell.on('click', function (event) {
 							event.preventDefault();
@@ -1135,35 +1147,54 @@ let _Crud = {
 
 				} else if (isCollection) { // Array types
 
-					let values = value ?? [];
+					let values   = value ?? [];
 					let typeInfo = _Crud.types[type].views.all;
 
-					if (!id) {
-						/**
-						 * this path is only every reachable from the "create dialog with error handling"... and in that dialog, collections are excluded explicitly --> this could either be removed or used if the create dialog is extended to support arrays
-						 */
+					let displayArrayField = () => {
 
-						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
+						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo[key]));
+
 						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, null, null, typeInfo, function () {
+							_Entities.activateInput(el, id, null, type, typeInfo, () => {
+								if (id) {
+									_Crud.objectList.refreshObject(id, key);
+								}
 							});
+						});
+					};
+
+					let threshold = UISettings.getValueForSetting(UISettings.settingGroups.crud.settings.hideLargeArrayElements);
+					let showLargeArrayContentsClass = 'show-large-array';
+					let largeArrayInfoElementClass  = 'array-attribute-very-big-info';
+
+					if (values.length > threshold && !cell[0].classList.contains(showLargeArrayContentsClass)) {
+
+						let cellContent = _Helpers.createSingleDOMElementFromHTML(`<span class="${largeArrayInfoElementClass}"></span>`);
+						cell[0].appendChild(cellContent);
+
+						_Helpers.appendInfoTextToElement({
+							element: cellContent,
+							text: `Attribute contains more than ${threshold} elements (${values.length}). As configured, it is not shown to preserve legibility. To show the contents, click this icon. You can adjust this threshold in the UI settings.`,
+						});
+
+						cellContent.addEventListener('click', (e) => {
+
+							let warningElement = e.target.closest('.' + largeArrayInfoElementClass);
+							warningElement.parentNode.classList.add(showLargeArrayContentsClass);
+							warningElement.remove();
+
+							displayArrayField();
 						});
 
 					} else {
 
-						// existing object
-						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, id, null, typeInfo, function () {
-								_Crud.objectList.refreshObject(id, key);
-							});
-						});
+						displayArrayField();
 					}
 
 				} else {
 					// default: any other type of direct property
 
-					cell.text(_Helpers.nvl(value, ''));
+					cell.text(value ?? '');
 
 					if (!readOnly) {
 						cell.on('click', function(event) {
@@ -1182,17 +1213,78 @@ let _Crud = {
 				// This attribute is a relationship attribute, either a collection or a single object
 				let simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
 
+				/**
+				 * temporarily hides the entity form and shows the search interface.
+				 */
+				let addButtonClickHandler = (btn) => {
+
+					if (id && !_Dialogs.custom.isDialogOpen()) {
+
+						let { dialogText } = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
+						_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
+
+					} else {
+
+						let dialogText = $(_Dialogs.custom.getDialogTextElement());
+						let scrollPos  = _Dialogs.custom.getDialogScrollPosition();
+
+						$('#entityForm').hide();
+
+						_Dialogs.custom.hideAllButtons();
+
+						let backButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Back</button>');
+
+						let searchFinishedFunction = (node = null) => {
+
+							let nodeSelected = (node !== null);
+
+							$('.searchBox', dialogText).remove();
+
+							if (nodeSelected) {
+
+								_Crud.objectList.getAndAppendNode(type, id, key, node, cell, node, true);
+
+								if (!isCollection) {
+
+									_Helpers.fastRemoveElement(btn);
+								}
+							}
+
+							_Crud.search.clearSearchResults(dialogText);
+
+							_Dialogs.custom.showAllButtons();
+
+							$('#entityForm').show();
+
+							_Dialogs.custom.setDialogScrollPosition(scrollPos);
+
+							_Helpers.fastRemoveElement(backButton);
+						};
+
+						backButton.addEventListener('click', () => {
+							searchFinishedFunction();
+						});
+
+						_Crud.search.displaySearchDialog(type, id, key, simpleType, dialogText, searchFinishedFunction);
+					}
+				};
+
+				let showAddButton = () => {
+
+					let addBtn = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+
+					cell.append($(addBtn));
+
+					addBtn.addEventListener('click', () => {
+						addButtonClickHandler(addBtn);
+					});
+				};
+
 				if (isCollection) {
 
-					cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+					showAddButton();
 
-					$('.add', cell).on('click', function() {
-
-						let { dialogText } = _Dialogs.custom.openDialog('Add ' + simpleType);
-						_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
-					});
-
-					if (_Crud.types[type].views.all[key] && _Crud.types[type].views.all[key].className.indexOf('CollectionIdProperty') === -1 && _Crud.types[type].views.all[key].className.indexOf("CollectionNotionProperty") === -1) {
+					if (id && !isCollectionIdProperty && !isCollectionNotionProperty) {
 
 						_Crud.objectList.pager.cellPager.append(cell, id, type, key);
 					}
@@ -1203,38 +1295,9 @@ let _Crud = {
 
 						_Crud.objectList.getAndAppendNode(type, id, key, value, cell);
 
-					} else {
+					} else if (simpleType) {
 
-						// This branch is only run for the create node dialog.
-
-						if (simpleType) {
-
-							cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
-							$('.add', cell).on('click', function () {
-
-								if (!_Dialogs.custom.isDialogOpen() || isRelType == false) {
-
-									let {dialogText} = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
-									_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
-
-								} else {
-
-									let dialogText = $(_Dialogs.custom.getDialogTextElement());
-
-									let btn = $(this);
-									$('#entityForm').hide();
-									_Crud.search.displaySearchDialog(type, id, key, simpleType, dialogText, function (n) {
-
-										$('.searchBox', dialogText).remove();
-										btn.remove();
-
-										_Crud.objectList.getAndAppendNode(type, id, key, n, cell, n, true);
-										_Crud.search.clearSearchResults(dialogText);
-										$('#entityForm').show();
-									});
-								}
-							});
-						}
+						showAddButton();
 					}
 				}
 			}
@@ -1254,13 +1317,10 @@ let _Crud = {
 
 			var oldValue = el.text();
 			el.off('click');
-//			var w = el.width(), h = el.height();
 			var input;
 			if (propertyType === 'String') {
 				el.html(`<textarea name="${key}" class="__value"></textarea>`);
 				input = $('textarea', el);
-//				input.width(w);
-//				input.height(h);
 			} else {
 				el.html(`<input name="${key}" class="__value" type="text" size="10">`);
 				input = $('input', el);
@@ -1315,8 +1375,8 @@ let _Crud = {
 
 			let row = _Crud.objectList.getRow(id);
 
-			let cellInMainTable    = $('.' + _Helpers.getCSSClassForKey(key), row);
-			let cellInDetailsTable = $('.' + _Helpers.getCSSClassForKey(key), $('#details_' + id));
+			let cellInMainTable    = $(_Crud.helpers.getCSSSelectorForKey(key), row);
+			let cellInDetailsTable = $(_Crud.helpers.getCSSSelectorForKey(key), $('#details_' + id));
 
 			let result = [];
 
@@ -1460,14 +1520,11 @@ let _Crud = {
 
 			let nodeHandler = (node) => {
 
-				let parentIsRelType  = _Crud.helpers.isRelType(parentType);
-				let isSourceOrTarget = parentIsRelType && (key === Structr.internalKeys.sourceId || key === Structr.internalKeys.targetId || key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
-
-				let newElement = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node, null, !isSourceOrTarget));
+				let newElement = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node, null));
 				let nodeEl = $(newElement);
 				cell.append(nodeEl);
 
-				if (isSourceOrTarget && insertFakeInput) {
+				if (insertFakeInput) {
 					nodeEl.append(`<input type="hidden" name="${key}" value="${node.id}"></div>`);
 				}
 
@@ -1504,15 +1561,30 @@ let _Crud = {
 						id: parentId
 					};
 
-					_Crud.objectList.removeRelatedObject(parentObjStub, key, obj);
+					if (parentId) {
+
+						_Crud.objectList.removeRelatedObject(parentObjStub, key, obj);
+
+					} else {
+
+						_Helpers.fastRemoveElement(newElement);
+
+						if (!_Crud.helpers.isCollection(key, parentType)) {
+
+							_Crud.objectList.populateCell(null, key, parentType, null, cell);
+						}
+					}
+
 					return false;
 				});
 
-				nodeEl.on('click', function(e) {
-					e.preventDefault();
-					_Crud.objectList.showDetails(node.id, node.type);
-					return false;
-				});
+				if (parentId) {
+					nodeEl.on('click', function(e) {
+						e.preventDefault();
+						_Crud.objectList.showDetails(node.id, node.type);
+						return false;
+					});
+				}
 			};
 
 			if (preloadedNode) {
@@ -1719,19 +1791,19 @@ let _Crud = {
 
 				for (let key of visibleKeys) {
 
-					let cssClassForKey = _Helpers.getCSSClassForKey(key);
-
 					let row = _Helpers.createSingleDOMElementFromHTML(`
 						<tr>
-							<td class="key"><label for="${key}">${key}</label></td>
-							<td class="__value ${cssClassForKey}"></td>
+							<td class="key"><label>${key}</label></td>
+							<td class="__value"></td>
 						</tr>
 					`);
 					table.appendChild(row);
 
-					let cell = $(`.${cssClassForKey}`, $(row));
+					let cell = $(row.querySelector(`.__value`));
 
-					if (_Crud.helpers.isCollection(key, type)) {
+					let isCollection            = _Crud.helpers.isCollection(key, type);
+					let isRelationshipAttribute = _Crud.helpers.getRelatedTypeForAttribute(key, type) !== undefined;
+					if (isCollection && isRelationshipAttribute) {
 						_Crud.objectList.pager.addPageSizeConfigToColumn(cell.prev('td'), type, key, () => {
 							_Crud.objectList.showDetails(node.id, type);
 						});
@@ -1745,67 +1817,76 @@ let _Crud = {
 				}
 			});
 		},
-		getHiddenKeys: (type) => {
+		getDefaultHiddenKeys: (type) => {
 
-			const hiddenKeysForAllTypes       = [ 'base', 'createdBy', 'lastModifiedBy', 'ownerId', 'hidden', 'internalEntityContextPath', 'grantees' ];
-			const hiddenKeysForFileTypes      = [ 'base64Data', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'relationshipId', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate', 'nextSiblingId' ];
+			let hiddenKeys = [];
+
+			const hiddenKeysForAllTypes       = [ 'base', 'createdBy', 'lastModifiedBy', 'hidden', 'internalEntityContextPath', 'grantees' ];
+			const hiddenKeysForFileTypes      = [ 'base64Data', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'relationshipId', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
 			const hiddenKeysForImageTypes     = [ 'base64Data', 'imageData', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
 			const hiddenKeysForPrincipalTypes = [ 'isUser', 'isAdmin', 'createdBy', 'sessionIds', 'publicKeys', 'sessionData', 'password', 'passwordChangeDate', 'salt', 'twoFactorSecret', 'twoFactorToken', 'isTwoFactorUser', 'twoFactorConfirmed', 'ownedNodes', 'localStorage' ];
 
-			let hiddenKeysSource = LSWrapper.getItem(_Crud.objectList.crudHiddenColumnsKey + type);
-			let hiddenKeys = [];
-			if (hiddenKeysSource) {
+			if (_Crud.helpers.isPrincipalType(_Crud.types[type])) {
 
-				hiddenKeys = JSON.parse(hiddenKeysSource);
-
-				if (!Array.isArray(hiddenKeys)) {
-					// migrate old format
-					let newKeys = [];
-
-					for (let key in hiddenKeys) {
-						newKeys.push(key);
-					}
-
-					hiddenKeys = newKeys;
-				}
-
-			} else {
-
-				// hide some keys depending on the type
-
-				if (_Crud.helpers.isPrincipalType(_Crud.types[type])) {
-
-					for (let key of hiddenKeysForPrincipalTypes) {
-						if (hiddenKeys.indexOf(key) === -1) {
-							hiddenKeys.push(key);
-						}
+				for (let key of hiddenKeysForPrincipalTypes) {
+					if (!hiddenKeys.includes(key)) {
+						hiddenKeys.push(key);
 					}
 				}
+			}
 
-				if (_Crud.helpers.isImageType(_Crud.types[type])) {
+			if (_Crud.helpers.isImageType(_Crud.types[type])) {
 
-					for (let key of hiddenKeysForImageTypes) {
-						if (hiddenKeys.indexOf(key) === -1) {
-							hiddenKeys.push(key);
-						}
+				for (let key of hiddenKeysForImageTypes) {
+					if (!hiddenKeys.includes(key)) {
+						hiddenKeys.push(key);
 					}
 				}
+			}
 
-				if (_Crud.helpers.isFileType(_Crud.types[type])) {
+			if (_Crud.helpers.isFileType(_Crud.types[type])) {
 
-					for (let key of hiddenKeysForFileTypes) {
-						if (hiddenKeys.indexOf(key) === -1) {
-							hiddenKeys.push(key);
-						}
+				for (let key of hiddenKeysForFileTypes) {
+					if (!hiddenKeys.includes(key)) {
+						hiddenKeys.push(key);
 					}
 				}
 			}
 
 			// hidden keys for all types
 			for (let key of hiddenKeysForAllTypes) {
-				if (hiddenKeys.indexOf(key) === -1) {
+				if (!hiddenKeys.includes(key)) {
 					hiddenKeys.push(key);
 				}
+			}
+
+			// hidden keys depending on property type
+			for (let key in _Crud.types[type]?.views?.all ?? {}) {
+
+				let isEntityIdProperty         = _Crud.helpers.isEntityIdProperty(key, type);
+				let isMethodProperty           = _Crud.helpers.isMethodProperty(key, type);
+				let isCollectionIdProperty     = _Crud.helpers.isCollectionIdProperty(key, type);
+				let isCollectionNotionProperty = _Crud.helpers.isCollectionNotionProperty(key, type);
+
+				if (isEntityIdProperty || isMethodProperty || isCollectionIdProperty || isCollectionNotionProperty) {
+					hiddenKeys.push(key);
+				}
+			}
+
+			return hiddenKeys;
+		},
+		getHiddenKeys: (type) => {
+
+			let savedHiddenKeys = LSWrapper.getItem(_Crud.objectList.crudHiddenColumnsKey + type);
+			let hiddenKeys = [];
+			if (savedHiddenKeys) {
+
+				hiddenKeys = JSON.parse(savedHiddenKeys);
+
+			} else {
+
+				// if we have no savestate, hide according to our default hide rules
+				hiddenKeys = _Crud.objectList.getDefaultHiddenKeys(type);
 			}
 
 			return hiddenKeys;
@@ -1816,24 +1897,27 @@ let _Crud = {
 				return;
 			}
 
-			let sortOrder    = _Crud.objectList.getSortOrderOfColumns(type);
+			// contains the SORTING of all attributes
+			let sortOrder    = _Crud.objectList.getSavedSortOrderOfColumns(type);
 			let hiddenKeys   = _Crud.objectList.getHiddenKeys(type);
-			let filteredKeys = sourceArray.filter(key => !(hiddenKeys.includes(key)));
 
-			if (sortOrder.length > 0) {
-				return sortOrder.filter(prop => sourceArray.includes(prop));
-			}
+			// 1. remove all hidden keys
+			sortOrder = sortOrder.filter(key => !(hiddenKeys.includes(key)));
+
+			// 2. remove all keys that are not in sourceArray
+			sortOrder = sortOrder.filter(key => sourceArray.includes(key));
+
 
 			// always have id,type,name as the first elements of the array
 			let idTypeName = ['id', 'type', 'name'];
 
-			filteredKeys = filteredKeys.filter(key => {
+			sortOrder = sortOrder.filter(key => {
 				return (idTypeName.includes(key) === false);
 			});
 
-			filteredKeys.unshift(...idTypeName)
+			sortOrder.unshift(...idTypeName)
 
-			return filteredKeys;
+			return sortOrder;
 		},
 		getRangeHeaderForType: (type) => {
 			let ranges = '';
@@ -1855,7 +1939,7 @@ let _Crud = {
 
 					if (_Crud.helpers.isCollection(key, type)) {
 
-						let page     = _Crud.objectList.pager.getCollectionPage(type, key);
+						let page     = 1;
 						let pageSize = _Crud.objectList.pager.getCollectionPageSize(type, key);
 						let start    = (page-1)*pageSize;
 						let end      = page*pageSize;
@@ -2071,17 +2155,9 @@ let _Crud = {
 					}
 				});
 			},
-			setCollectionPageSize: (type, key, value) => {
-				LSWrapper.setItem(`${_Crud.objectList.pager.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`, value);
-			},
-			getCollectionPageSize: (type, key) => {
-
-				let localstorageKey = `${_Crud.objectList.pager.crudPagerDataKey}_collectionPageSize_${type}.${_Helpers.getCSSClassForKey(key)}`;
-				return LSWrapper.getItem(localstorageKey, _Crud.objectList.pager.defaultCollectionPageSize);
-			},
-			getCollectionPage: (type, key) => {
-				return LSWrapper.getItem(`${_Crud.objectList.pager.crudPagerDataKey}_collectionPage_${type}.${_Helpers.getCSSClassForKey(key)}`, 1);
-			},
+			getCollectionPageSizeLSKey: (type, key) => `${_Crud.objectList.pager.crudPagerDataKey}_collectionPageSize_${type}.${key}`,
+			setCollectionPageSize: (type, key, value) => LSWrapper.setItem(_Crud.objectList.pager.getCollectionPageSizeLSKey(type, key), value),
+			getCollectionPageSize: (type, key) =>  LSWrapper.getItem(_Crud.objectList.pager.getCollectionPageSizeLSKey(type, key), _Crud.objectList.pager.defaultCollectionPageSize),
 			cellPager: {
 				append: (el, id, type, key) => {
 
@@ -2216,7 +2292,7 @@ let _Crud = {
 							<span class="pageWrapper">
 								<input class="pageNo" type="text" size="3" value="${_Crud.page[config.type]}">
 								<span class="of">of</span>
-								<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${_Helpers.nvl(_Crud.pageCount, 0)}">
+								<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${_Crud.pageCount ?? 0}">
 							</span>
 							<button class="pageRight flex" style="margin: 0! important; padding: 0.5rem 0.25rem; background: transparent;">
 								${_Icons.getSvgIcon(_Icons.iconChevronRight)}
@@ -2561,8 +2637,12 @@ let _Crud = {
 			}
 			return displayName;
 		},
+		getCSSClassForKey: (key) => {
+			return '___' + key.replace(/\s/g, '_whitespace_');
+		},
+		getCSSSelectorForKey: (key) => `[data-key="${key}"]`,
 		// TODO: _Schema.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
-		ensureTypeInfoIsLoaded: (type, callback) => {
+		ensureTypeInfoIsLoaded: (type, successCallback, failureCallback) => {
 
 			let url = `${Structr.rootUrl}_schema/${type}`;
 
@@ -2576,9 +2656,7 @@ let _Crud = {
 
 						_Crud.types[type] = data.result[0];
 
-						if (typeof callback === 'function') {
-							callback();
-						}
+						successCallback?.();
 
 					} else {
 
@@ -2587,11 +2665,14 @@ let _Crud = {
 					}
 
 				} else {
+
 					Structr.errorFromResponse(data, url);
+
+					failureCallback?.();
 				}
 			})
 		},
-		ensurePropertiesForTypeAreLoaded: (type, callback) => {
+		ensurePropertiesForTypeAreLoaded: (type, successCallback, failureCallback) => {
 
 			if (type === null) {
 				return;
@@ -2601,7 +2682,7 @@ let _Crud = {
 
 			if (properties) {
 
-				callback?.();
+				successCallback?.();
 
 			} else {
 
@@ -2616,9 +2697,10 @@ let _Crud = {
 
 					} else {
 
-						callback?.();
+						successCallback?.();
 					}
-				});
+
+				}, failureCallback);
 			}
 		},
 		getPropertiesForTypeAndCurrentView: (type) => {
@@ -2658,15 +2740,6 @@ let _Crud = {
 		isCollection: (key, type) => {
 			return (key && type && _Crud.types[type]?.views.all[key]?.isCollection === true);
 		},
-		/* returns if given type is supported (in create dialog) */
-		isSupportedArrayType: (key, type) => {
-			return (
-				_Crud.types[type]?.views.all[key]?.type === 'String[]' ||
-				_Crud.types[type]?.views.all[key]?.type === 'Integer[]' ||
-				_Crud.types[type]?.views.all[key]?.type === 'Long[]' ||
-				_Crud.types[type]?.views.all[key]?.type === 'Double[]'
-			);
-		},
 		isBaseProperty: (key, type) => {
 			return ('base' === _Crud.types[type]?.views.all[key]?.jsonName && 'GraphObject' === _Crud.types[type]?.views.all[key]?.declaringClass);
 		},
@@ -2678,6 +2751,18 @@ let _Crud = {
 		},
 		isCypherProperty: (key, type) => {
 			return ('org.structr.core.property.CypherQueryProperty' === _Crud.types[type]?.views.all[key]?.className);
+		},
+		isEntityIdProperty: (key, type) => {
+			return ('org.structr.core.property.EntityIdProperty' === _Crud.types[type]?.views.all[key]?.className);
+		},
+		isMethodProperty: (key, type) => {
+			return ('org.structr.web.property.MethodProperty' === _Crud.types[type]?.views.all[key]?.className);
+		},
+		isCollectionIdProperty: (key, type) => {
+			return ('org.structr.core.property.CollectionIdProperty' === _Crud.types[type]?.views.all[key]?.className);
+		},
+		isCollectionNotionProperty: (key, type) => {
+			return ('org.structr.core.property.CollectionNotionProperty' === _Crud.types[type]?.views.all[key]?.className);
 		},
 		/**
 		 * Return true if the combination of the given property key
@@ -2774,28 +2859,40 @@ let _Crud = {
 
 			return '?' + paramsArray.join('&');
 		},
-		serializeObject: (obj) => {
+		getDataFromForm: (elem) => {
 
-			// TODO: replace with global helper for forms
-			let returnObject = {};
-			let formArray = obj.serializeArray();
+			let returnObject  = {};
 
-			for (let entry of formArray) {
+			let allCells = elem.querySelectorAll('[data-key]');
 
-				if (entry.value && entry.value !== '') {
+			for (let cell of allCells) {
 
-					// key already exists - make it an array
-					if (returnObject[entry.name]) {
+				let key          = cell.dataset['key'];
+				let isCollection = (cell.dataset['isCollection'] === 'true');
 
-						if (!returnObject[entry.name].push) {
-							returnObject[entry.name] = [returnObject[entry.name]];
+				if (isCollection) {
+					returnObject[key] = [];
+				}
+
+				let namedElements = cell.querySelectorAll(`[name="${key}"]`);
+
+				for (let i of namedElements) {
+
+					let isNew     = (i.dataset['isNew'] === 'true');
+					let isChanged = (i.dataset['changed'] === 'true');
+
+					if (!isNew || isChanged) {
+
+						let val = _Entities.basicTab.getValueFromFormElement(i);
+
+						if (isCollection) {
+
+							returnObject[key].push(val);
+
+						} else {
+
+							returnObject[key] = val;
 						}
-
-						returnObject[entry.name].push(entry.value);
-
-					} else {
-
-						returnObject[entry.name] = entry.value;
 					}
 				}
 			}
@@ -2847,10 +2944,10 @@ let _Crud = {
 
 					let crudRight = $('#crud-type-detail');
 					crudRight.append(`
-					<div class="crud-message">
-						<div class="crud-centered flex items-center justify-center">${message}</div>
-					</div>
-				`);
+						<div class="crud-message">
+							<div class="crud-centered flex items-center justify-center">${message}</div>
+						</div>
+					`);
 
 				}, delay);
 			},
@@ -2860,6 +2957,9 @@ let _Crud = {
 				_Helpers.fastRemoveElement(document.querySelector('#crud-type-detail .crud-message'));
 			},
 		},
+		getDateTimeIconHTML: () => {
+			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime', 'pointer-events-none']));
+		}
 	},	
 	createDialogWithErrorHandling: {
 		create: (type, nodeData = {}, onSuccess) => {
@@ -2947,7 +3047,7 @@ let _Crud = {
 				return;
 			}
 
-			let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
+			let dialog = _Dialogs.custom.openDialog(`Create ${type}`);
 			_Dialogs.custom.noConfirmOnEscape();
 
 			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
@@ -2961,40 +3061,36 @@ let _Crud = {
 				let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
 				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
 				let readOnly                           = _Crud.helpers.isReadOnly(key, type);
-				let isCollection                       = _Crud.helpers.isCollection(key, type);
-				let isAllowedCollectionForCreateDialog = _Crud.helpers.isSupportedArrayType(key, type);
-				let relatedType                        = _Crud.helpers.getRelatedTypeForAttribute(key, type);
+				let isEntityIdProperty                 = _Crud.helpers.isEntityIdProperty(key, type);
+				let isCollectionIdProperty             = _Crud.helpers.isCollectionIdProperty(key, type);
+				let isCollectionNotionProperty         = _Crud.helpers.isCollectionNotionProperty(key, type);
 				let isSourceOrTargetNode               = isRelType && (key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
 				let isInternalTimestamp                = isRelType && (key === Structr.internalKeys.internalTimestamp);
 				let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
 
-				let showKey = !isBuiltinBaseProperty && !isBuiltinHiddenProperty && !readOnly && (!isCollection || isAllowedCollectionForCreateDialog) && (!relatedType || isRelType) && !isSourceOrTargetNode && !isInternalTimestamp && !isVisibilityFlagOnRelationship;
-
-				if (showKey) {
-
-					let cssClassForKey = _Helpers.getCSSClassForKey(key);
+				if (!readOnly && !isBuiltinHiddenProperty && !isBuiltinBaseProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
 
 					let row = _Helpers.createSingleDOMElementFromHTML(`
 						<tr>
 							<td class="key"><label for="${key}">${key}</label></td>
-							<td class="__value ${cssClassForKey}"></td>
+							<td class="__value"></td>
 						</tr>
 					`);
 					table.appendChild(row);
 
-					let cell = row.querySelector(`.${cssClassForKey}`);
+					let cell = $(row.querySelector(`.__value`));
 
-					_Crud.objectList.populateCell(null, key, type, initialData[key], $(cell));
+					_Crud.objectList.populateCell(null, key, type, initialData[key], cell);
 				}
 			}
 
-			let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+			let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton('Create');
 			_Helpers.enableElement(dialogSaveButton);
 
 			dialogSaveButton.addEventListener('click', () => {
 
 				_Helpers.disableElement(dialogSaveButton);
-				let nodeData = _Crud.helpers.serializeObject($('#entityForm'));
+				let nodeData = _Crud.helpers.getDataFromForm(document.querySelector('#entityForm'));
 				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
 			});
 
@@ -3103,7 +3199,7 @@ let _Crud = {
 		functions: config => `
 			<div id="crud-buttons" class="flex-grow"></div>
 
-			<div class="searchBox">
+			<div class="searchBox mr-6">
 				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search">
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
@@ -3111,7 +3207,7 @@ let _Crud = {
 		typeButtons: config => `
 			<div id="crud-buttons" class="flex items-center">
 				<button class="action inline-flex items-center" id="create${config.type}">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create new ${config.type}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create ${config.type}
 				</button>
 				<button id="export${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon(_Icons.iconExportAsCSV, 16, 16, ['mr-2', 'icon-grey'])} Export as CSV

@@ -283,7 +283,7 @@ let _Entities = {
 				let code    = e.code;
 
 				// ctrl-s / cmd-s
-				if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
+				if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
 					e.preventDefault();
 					e.stopPropagation();
 					saveFn();
@@ -683,20 +683,20 @@ let _Entities = {
 					let noCategoryKeys = [];
 					let groupedKeys    = {};
 
-					if (typeInfo) {
+					for (let key of keys) {
 
-						for (let key of keys) {
+						let category = typeInfo?.[key]?.category ?? 'System';
 
-							if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
+						if (category !== 'System') {
 
-								let category = typeInfo[key].category;
-								if (!groupedKeys[category]) {
-									groupedKeys[category] = [];
-								}
-								groupedKeys[category].push(key);
-							} else {
-								noCategoryKeys.push(key);
+							if (!groupedKeys[category]) {
+								groupedKeys[category] = [];
 							}
+							groupedKeys[category].push(key);
+
+						} else {
+
+							noCategoryKeys.push(key);
 						}
 					}
 
@@ -858,14 +858,12 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = false;
-			let isSystem     = false;
-			let isBoolean    = false;
-			let isDate       = false;
-			let isPassword   = false;
-			let isRelated    = false;
-			let isCollection = false;
-			let isMultiline  = false;
+			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+			let isSystem     = typeInfo[key].system;
+			let isBoolean    = (typeInfo[key].type === 'Boolean');
+			let isDate       = (typeInfo[key].type === 'Date');
+			let isRelated    = typeInfo[key].relatedType;
+			let isCollection = typeInfo[key].isCollection;
 
 			if (view === '_html_') {
 
@@ -898,7 +896,7 @@ let _Entities = {
 							<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
 						</span>
 					</td>
-					<td class="value ${key}_">${_Helpers.formatValueInputField(key, value)}</td>
+					<td class="value ${key}_">${_Helpers.formatValueInputField(key, value, typeInfo[key])}</td>
 					<td>${_Entities.getNullIconForKey(key)}</td>
 				</tr>`);
 				propsTable[0].appendChild(row);
@@ -914,28 +912,14 @@ let _Entities = {
 
 				if (!typeInfo[key]) {
 
-					valueCell.append(_Helpers.formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+					valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 
 				} else {
 
-					let type = typeInfo[key].type;
+					if (key.startsWith('_html_') === false) {
 
-					isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-					isSystem    = typeInfo[key].system;
-					isPassword  = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-					isMultiline = (typeInfo[key].format === 'multi-line');
-					isRelated   = typeInfo[key].relatedType;
-					if (isRelated) {
-						isCollection = typeInfo[key].isCollection;
-					}
-
-					if (type) {
-						isBoolean = (type === 'Boolean');
-						isDate = (type === 'Date');
-					}
-
-					if (!key.startsWith('_html_')) {
 						if (isBoolean) {
+
 							valueCell.removeClass('value').append(`<input type="checkbox" class="${key}_">`);
 							let checkbox = $(propsTable.find(`input[type="checkbox"].${key}_`));
 
@@ -943,8 +927,11 @@ let _Entities = {
 							if (val) {
 								checkbox.prop('checked', true);
 							}
+
 							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+
 								checkbox.on('change', function() {
+
 									let checked = checkbox.prop('checked');
 									_Entities.setProperty(id, key, checked, false, (newVal) => {
 										if (val !== newVal) {
@@ -954,7 +941,9 @@ let _Entities = {
 										val = newVal;
 									});
 								});
+
 							} else {
+
 								checkbox.prop('disabled', 'disabled').addClass('readOnly').addClass('disabled');
 							}
 
@@ -1002,7 +991,7 @@ let _Entities = {
 							});
 
 						} else {
-							valueCell.append(_Helpers.formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+							valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 						}
 					}
 				}
@@ -1065,8 +1054,8 @@ let _Entities = {
 			}
 		}
 
-		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo, onUpdateCallback); });
-		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
+		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
+		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
 
 		if (view === '_html_') {
 
@@ -1133,7 +1122,7 @@ let _Entities = {
 							});
 
 							// deactivate this function and resume regular save-actions
-							_Entities.activateInput(valInput, id, entity.pageId, typeInfo);
+							_Entities.activateInput(valInput, id, entity.pageId, entity.type, typeInfo);
 						});
 					}
 				}
@@ -1319,6 +1308,7 @@ let _Entities = {
 	// 	return dateField;
 	// },
 	activateDatePicker: (input, format) => {
+
 		if (!format) {
 			format = input.data('dateFormat');
 		}
@@ -1384,7 +1374,7 @@ let _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: function(el, id, pageId, typeInfo, onUpdateCallback) {
+	activateInput: (el, id, pageId, type, typeInfo, onUpdateCallback) => {
 
 		let input  = $(el);
 		let oldVal = input.val();
@@ -1394,13 +1384,13 @@ let _Entities = {
 
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
-			input.closest('.array-attr').find('svg.remove').off('click').on('click', function(el) {
+			input.closest('.array-attr').find('svg.remove').off('click').on('click', () => {
 				let cell = input.closest('.value');
 				if (cell.length === 0) {
 					cell = input.closest('.__value');
 				}
 				input.parent().remove();
-				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
+				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 			});
 
 			input.off('focus').on('focus', function() {
@@ -1408,20 +1398,66 @@ let _Entities = {
 			});
 
 			input.off('change').on('change', function() {
-				input.data('changed', true);
+				el.dataset['changed'] = 'true';
+				if (el.type === 'checkbox') {
+					el.blur();
+				}
 			});
 
-			input.off('focusout').on('focusout', function() {
-				_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
+			if (!input.hasClass('input-datetime')) {
+				input.off('focusout').on('focusout', function() {
+					input[0].dispatchEvent(new Event('input-finished'));
+				});
+			}
+
+			input[0].addEventListener('input-finished', (e) => {
+				_Entities.saveValue(input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
 					$(icon).remove();
 				});
 			});
+
+			if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
+
+				_Entities.addDatePicker(input[0], key, type, () => {
+					input[0].dispatchEvent(new Event('input-finished'));
+				});
+			}
 		}
 	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
+	addDatePicker: (input, key, type, onCloseCallback) => {
+
+		let defaultFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
+		let format = _Crud.helpers.isFunctionProperty(key, type) ? defaultFormat : _Crud.helpers.getFormat(type, key);
+		let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+
+		let pickerConfig = {
+			parse: 'loose',
+			dateFormat: dateTimePickerFormat.dateFormat,
+			onClose: onCloseCallback
+		};
+
+		if (dateTimePickerFormat.timeFormat) {
+
+			pickerConfig.timeFormat = dateTimePickerFormat.timeFormat;
+			pickerConfig.separator  = dateTimePickerFormat.separator;
+
+			$(input).datetimepicker(pickerConfig);
+			input.addEventListener('focus', (e) => {
+				$(input).datetimepicker('show');
+			});
+
+		} else {
+
+			$(input).datepicker(pickerConfig);
+			input.addEventListener('focus', (e) => {
+				$(input).datepicker('show');
+			});
+		}
+	},
+	saveArrayValue: (cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
 
 		let val            = _Entities.getArrayValue(key, cell);
 		let isCreateDialog = !objId;
@@ -1431,14 +1467,13 @@ let _Entities = {
 			if (newVal !== oldVal) {
 
 				if (!isCreateDialog) {
-
 					_Helpers.blinkGreen(cell);
 				}
 
 				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
+				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
 				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, typeInfo);
+					_Entities.activateInput(el, id, pageId, type, typeInfo);
 				});
 
 				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
@@ -1448,25 +1483,32 @@ let _Entities = {
 					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
 				}
 
-				if (onUpdateCallback) {
-					onUpdateCallback();
-				}
+				onUpdateCallback?.();
 			}
 
 			oldVal = newVal;
 		});
 	},
 	getArrayValue: (key, cell) => {
-		let values = [];
-		cell.find('[name="' + key + '"]').each(function(i, el) {
-			let value = $(el).val();
-			if (value && value.length) {
+
+		let values      = [];
+		let valueInputs = cell[0].querySelectorAll('[name="' + key + '"]');
+
+		for (let el of valueInputs) {
+
+			let isNew     = (el.dataset['isNew'] === 'true');
+			let isChanged = (el.dataset['changed'] === 'true');
+
+			if (!isNew || isChanged) {
+
+				let value = (el.type === 'checkbox') ? (el.checked ? 'true' : 'false') : $(el).val();
 				values.push(value);
 			}
-		});
+		}
+
 		return values;
 	},
-	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
+	saveValue: (input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
 
 		let isCreateDialog = !objId;
 		let val;
@@ -1475,29 +1517,42 @@ let _Entities = {
 			cell = input.closest('.__value');
 		}
 
-		// Array?
-		if (typeInfo[key] && typeInfo[key].isCollection && !typeInfo[key].relatedType) {
+		let isArrayType = (typeInfo?.[key].isCollection == true && !typeInfo[key].relatedType);
+		if (isArrayType) {
 			val = _Entities.getArrayValue(key, cell);
 		} else {
 			val = input.val();
 		}
 
-		var isPassword = input.prop('type') === 'password';
-		if (input.data('changed')) {
-			input.data('changed', false);
-			_Entities.setProperty(objId, key, val, false, newVal => {
+		if (input[0].dataset['changed'] === 'true') {
+
+			input[0].dataset['changed'] = 'false';
+
+			let updateInput = (newVal) => {
+
+				let isPassword = (input.prop('type') === 'password');
+
 				if (isPassword || (newVal !== oldVal)) {
-					_Helpers.blinkGreen(input);
+
+					if (!isCreateDialog) {
+
+						_Helpers.blinkGreen(input);
+					}
+
 					let valueMsg;
 					if (newVal.constructor === Array) {
-						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
+
+						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+
 					} else {
+
 						input.val(newVal);
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
 					}
+
 					cell.find(`[name="${key}"]`).each(function(i, el) {
-						_Entities.activateInput(el, id, pageId, typeInfo, onUpdateCallback);
+						_Entities.activateInput(el, id, pageId, type, typeInfo, onUpdateCallback);
 					});
 
 					if (!isCreateDialog) {
@@ -1508,12 +1563,22 @@ let _Entities = {
 					onUpdateCallback?.(input, newVal);
 
 				} else {
+
 					input.val(oldVal);
 				}
-				oldVal = newVal;
-			});
-		}
 
+				oldVal = newVal;
+			}
+
+			if (!isCreateDialog) {
+
+				_Entities.setProperty(objId, key, val, false, newVal => updateInput(newVal));
+
+			} else {
+
+				updateInput(val);
+			}
+		}
 	},
 	setProperty: (id, key, val, recursive, callback) => {
 

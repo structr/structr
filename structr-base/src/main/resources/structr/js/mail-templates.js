@@ -492,7 +492,7 @@ let _MailTemplates = {
 				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)" class="mr-2">
 
 				<button type="submit" form="create-mail-template-form" class="action btn inline-flex items-center" id="create-mail-template">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Mail Template
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Mail Template
 				</button>
 			</form>
 
