@@ -39,7 +39,7 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> oneToOneTestThree            = new EndNode("oneToOneTestThree",  "FourThreeOneToOne");
 		final Property<NodeInterface> manyToOneTestThree           = new StartNode("manyToOneTestThree", "ThreeFourOneToMany");
 
-		return Set.of(
+		return newSet(
 			manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree
 		);
 	}

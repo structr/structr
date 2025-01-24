@@ -20,16 +20,16 @@ package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.core.graph.Tx;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -106,7 +106,22 @@ public class EntityResolverTest extends StructrRestTestBase {
 	@Test
 	public void testViewResolution() {
 
-		createEntity("SchemaNode", "{ name: Test, _blah: String, __vvv: 'id, type, name, blah' }");
+		createEntity("/SchemaNode", "{ name: Test, schemaProperties: [ { name: blah, propertyType: String } ], schemaViews: [ { name: vvv, nonGraphProperties: 'id, type, name, blah' } ] }");
+		createEntity("/Test", "{ name: test, visibleToPublicUsers: true, visibleToAuthenticatedUsers: true, blah: 'moep' }");
+
+		RestAssured
+
+			.given()
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.contentType("application/json; charset=UTF-8")
+			.expect()
+			.statusCode(200)
+			.body("result[0].type",    equalTo("Test"))
+			.body("result[0].name",    equalTo("test"))
+			.body("result[0].blah",    equalTo("moep"))
+			.when()
+			.get("/Test/vvv");
+
 
 		RestAssured
 

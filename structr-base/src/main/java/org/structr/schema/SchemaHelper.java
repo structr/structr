@@ -244,7 +244,7 @@ public class SchemaHelper {
 				schema.setProperty(SchemaResource.typeProperty, type);
 				schema.setProperty(SchemaResource.nameProperty, type);
 				schema.setProperty(SchemaResource.classNameProperty, type);
-				//schema.setProperty(SchemaResource.extendsClassNameProperty, type.getSuperclass().getName());
+				schema.setProperty(SchemaResource.traitsProperty, traits.getAllTraits());
 				schema.setProperty(SchemaResource.isRelProperty, isRel);
 				schema.setProperty(SchemaResource.isAbstractProperty, traits.isAbstract());
 				schema.setProperty(SchemaResource.isInterfaceProperty, traits.isInterface());

@@ -48,7 +48,7 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer>                 index                               = new IntProperty("index").indexed();
 		final Property<Date>                    date                                = new DateProperty("date").indexed();
 
-		return Set.of(
+		return newSet(
 			manyToManyTestOnes,
 			oneToManyTestOnes,
 			oneToOneTestThree,

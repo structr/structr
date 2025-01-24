@@ -18,8 +18,6 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -94,7 +92,7 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<String>               exposeHeaders     = new StringProperty("exposeHeaders").indexed();
 		final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty("isCorsSetting", true);
 
-		return Set.of(
+		return newSet(
 			requestUri,
 			acceptedOrigins,
 			maxAge,

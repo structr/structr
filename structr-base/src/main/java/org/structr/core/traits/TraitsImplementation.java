@@ -36,6 +36,7 @@ import java.util.*;
  */
 public class TraitsImplementation implements Traits {
 
+	private static final Set<String> DEFAULT_PROPERTY_KEYS     = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
 	private static final Map<String, Traits> globalTraitMap    = new LinkedHashMap<>();
 	private static PropertyKey<Date> cachedCreatedDateProperty = null;
 	private static PropertyKey<String> cachedNameProperty      = null;
@@ -130,7 +131,7 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<PropertyKey> getDefaultKeys() {
 
-		final Set<PropertyKey> keys = new TreeSet<>();
+		final Set<PropertyKey> keys = new LinkedHashSet<>();
 
 		keys.add(propertyKeys.get("id"));
 		keys.add(propertyKeys.get("type"));
@@ -148,7 +149,7 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<PropertyKey> getAllPropertyKeys() {
 
-		final Set<PropertyKey> set = new TreeSet<>();
+		final Set<PropertyKey> set = new LinkedHashSet<>();
 
 		for (final PropertyKey key : propertyKeys.values()) {
 
@@ -170,7 +171,22 @@ public class TraitsImplementation implements Traits {
 		final Set<String> view = views.get(propertyView);
 		if (view != null) {
 
-			return new TreeSet<>(view.stream().map(propertyKeys::get).toList());
+			final LinkedHashSet<PropertyKey> set = new LinkedHashSet<>();
+
+			for (final String name : view) {
+
+				final PropertyKey key = propertyKeys.get(name);
+				if (key != null) {
+
+					set.add(key);
+
+				} else {
+
+					throw new RuntimeException("Key " + name + " from view " + propertyView + " does not exist!");
+				}
+			}
+
+			return set;
 		}
 
 		return Set.of();
@@ -252,7 +268,12 @@ public class TraitsImplementation implements Traits {
 			key.setDeclaringTrait(trait);
 
 			// add key to "all" view
-			this.views.computeIfAbsent("all", k -> new TreeSet<>()).add(name);
+			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+
+			// add dynamic keys to "custom" view
+			if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
+				this.views.computeIfAbsent("custom", k -> new LinkedHashSet<>()).add(name);
+			}
 		}
 
 		// composable methods (like callbacks etc.)
@@ -277,8 +298,6 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
-		// FIXME: dynamic methods can be lifecycle methods.....
-
 		// dynamic methods
 		for (final AbstractMethod method : trait.getDynamicMethods()) {
 			this.dynamicMethods.put(method.getName(), method);
@@ -287,7 +306,7 @@ public class TraitsImplementation implements Traits {
 		// views
 		for (final Map.Entry<String, Set<String>> views : trait.getViews().entrySet()) {
 
-			final Set<String> set = this.views.computeIfAbsent(views.getKey(), k -> new TreeSet<>());
+			final Set<String> set = this.views.computeIfAbsent(views.getKey(), k -> new LinkedHashSet<>());
 
 			set.addAll(views.getValue());
 		}
@@ -305,7 +324,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<TraitDefinition> getTraitDefinitions() {
-		return Collections.unmodifiableSet(new TreeSet<>(types.values()));
+		return Collections.unmodifiableSet(new LinkedHashSet<>(types.values()));
 	}
 
 	@Override
@@ -330,7 +349,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getAllTraits() {
-		return Collections.unmodifiableSet(types.keySet());
+		return new LinkedHashSet<>(types.keySet());
 	}
 
 	// ----- static methods -----
@@ -382,7 +401,7 @@ public class TraitsImplementation implements Traits {
 
 	static Set<String> getAllTypes(Predicate<Traits> filter) {
 
-		final Set<String> types = new TreeSet<>();
+		final Set<String> types = new LinkedHashSet<>();
 
 		for (final Traits trait : TraitsImplementation.globalTraitMap.values()) {
 
@@ -452,7 +471,7 @@ public class TraitsImplementation implements Traits {
 
 	static Set<String> getAllViews() {
 
-		final Set<String> allViews = new TreeSet<>();
+		final Set<String> allViews = new LinkedHashSet<>();
 
 		for (final Traits traits : TraitsImplementation.globalTraitMap.values()) {
 

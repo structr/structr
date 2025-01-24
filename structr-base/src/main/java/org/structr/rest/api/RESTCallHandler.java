@@ -20,15 +20,6 @@ package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,15 +37,16 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.*;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PropertyContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+
+import java.util.*;
 
 /**
  *
@@ -388,8 +380,10 @@ public abstract class RESTCallHandler {
 
 			for (final String name : request.getParameterMap().keySet()) {
 
-				final PropertyKey key = traits.key(getFirstPartOfString(name));
-				if (key != null) {
+				final String firstPart = getFirstPartOfString(name);
+				if (traits.hasKey(firstPart)) {
+
+					final PropertyKey key = traits.key(firstPart);
 
 					// add to list of searchable keys
 					searchKeys.add(key);
@@ -590,7 +584,7 @@ public abstract class RESTCallHandler {
 							final String id = (String)idSource;
 
 							org.structr.core.GraphObject obj = app.getNodeById(localType, id);
-							if (obj != null) {
+							if (obj == null) {
 
 								obj = app.getRelationshipById(localType, id);
 							}

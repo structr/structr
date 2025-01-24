@@ -54,7 +54,7 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 		final Property<String> description         = new StringProperty("description");
 		final Property<String> exampleValue        = new StringProperty("exampleValue");
 
-		return Set.of(
+		return newSet(
 			schemaMethod,
 			parameterType,
 			index,

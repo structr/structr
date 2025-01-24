@@ -18,11 +18,13 @@
  */
 package org.structr.test.rest.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
@@ -52,6 +54,8 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 	*/
 
+	fixme: methods!
+
 	public TestOneTraitDefinition() {
 		super("TestOne");
 	}
@@ -63,8 +67,20 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> aLong    = new LongProperty("aLong").indexed();
 		final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
 
-		return Set.of(
+		return newSet(
 			anInt, aLong, aDate
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			newSet(
+				"name", "anInt", "aLong", "aDate"
+			)
 		);
 	}
 

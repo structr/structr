@@ -96,7 +96,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.body(" { \"startNodeId\" : \""+ sourceNodeId +"\", \"endNodeId\" : \""+ targetNodeId +"\" } ")
+				.body(" { \"sourceId\" : \""+ sourceNodeId +"\", \"targetId\" : \""+ targetNodeId +"\" } ")
 
 			.expect()
 				.statusCode(201)
@@ -165,7 +165,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.body(" { \"startNodeId\" : \""+ sourceNodeId +"\", \"endNodeId\" : \""+ targetNodeId +"\" } ")
+				.body(" { \"sourceId\" : \""+ sourceNodeId +"\", \"targetId\" : \""+ targetNodeId +"\" } ")
 
 			.expect()
 				.statusCode(201)
@@ -183,7 +183,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.body(" { \"startNodeId\" : \""+ sourceNodeId +"\", \"endNodeId\" : \""+ targetNodeId +"\" } ")
+				.body(" { \"sourceId\" : \""+ sourceNodeId +"\", \"targetId\" : \""+ targetNodeId +"\" } ")
 
 			.expect()
 				.statusCode(201)
@@ -306,7 +306,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface sourceNode = app.create("TestFive");
-			final NodeInterface  targetNode = app.create("TestOne");
+			final NodeInterface targetNode = app.create("TestOne");
 
 			// store IDs for later use
 			sourceNodeId = sourceNode.getUuid();
@@ -570,7 +570,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 		// base type resource URL.
 
 		final String uuid = createEntity("/SchemaNode", "{ name: BaseType }");
-		createEntity("/SchemaNode", "{ name: DerivedType, extendsClass: \"" + uuid + "\" }");
+		createEntity("/SchemaNode", "{ name: DerivedType, inheritedTraits: [ BaseType ] }");
 
 		createEntity("/BaseType", "{ name: BaseType }");
 		createEntity("/BaseType", "{ name: DerivedType, type: DerivedType }");

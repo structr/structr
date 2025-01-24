@@ -49,19 +49,26 @@ public class StructrTraits {
 
 	public static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {
 
+		Traits traits;
+
 		// do not overwrite types
 		if (Traits.getAllTypes(null).contains(typeName)) {
-			return;
+
+			// caution: this might return a relationship type..
+			traits = Traits.of(typeName);
+
+		} else {
+
+			traits = new TraitsImplementation(typeName, false, true, false);
+
+			// Node types consist of at least the following traits
+			traits.registerImplementation(new PropertyContainerTraitDefinition());
+			traits.registerImplementation(new GraphObjectTraitDefinition());
+			traits.registerImplementation(new NodeInterfaceTraitDefinition());
+			traits.registerImplementation(new AccessControllableTraitDefinition());
 		}
 
-		final Traits traits = new TraitsImplementation(typeName, false, true, false);
-
-		// Node types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition());
-		traits.registerImplementation(new GraphObjectTraitDefinition());
-		traits.registerImplementation(new NodeInterfaceTraitDefinition());
-		traits.registerImplementation(new AccessControllableTraitDefinition());
-
+		// add implementation (allow extension of existing types)
 		for (final TraitDefinition definition : definitions) {
 			traits.registerImplementation(definition);
 		}

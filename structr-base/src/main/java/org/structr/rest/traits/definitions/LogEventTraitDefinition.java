@@ -83,7 +83,7 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> subjectProperty   = new StringProperty("subject").indexed();
 		final Property<String> objectProperty    = new StringProperty("object").indexed();
 
-		return Set.of(
+		return newSet(
 			messageProperty,
 			actionProperty,
 			timestampProperty,

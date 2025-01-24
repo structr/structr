@@ -47,7 +47,7 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 		final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
 		final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
 
-		return Set.of(
+		return newSet(
 			internalTimestamp,
 			relType,
 			sourceId,

@@ -41,7 +41,7 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> testParent                = new StartNode("testParent", "TenTenOneToOne");
 		final Property<NodeInterface> testChild                 = new EndNode("testChild", "TenTenOneToOne");
 
-		return Set.of(
+		return newSet(
 			testTenParent,
 			testTenChildren,
 			testParent,

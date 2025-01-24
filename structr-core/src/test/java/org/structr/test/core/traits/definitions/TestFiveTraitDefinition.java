@@ -133,7 +133,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation").defaultValue(0).indexed().unvalidated();
 		final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification").defaultValue(0).indexed().unvalidated();
 
-		return Set.of(
+		return newSet(
 			intProperty,
 			modifiedInBeforeCreation,
 			modifiedInBeforeModification,
@@ -148,7 +148,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of(
+			newSet(
 				"integerProperty", "modifiedInBeforeCreation", "modifiedInBeforeModification", "modifiedInAfterCreation", "modifiedInAfterModification"
 			)
 		);

@@ -18,6 +18,9 @@
  */
 package org.structr.core.traits.definitions;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
 	public AbstractNodeTraitDefinition(final String name) {
@@ -27,5 +30,18 @@ public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinitio
 	@Override
 	public boolean isRelationship() {
 		return false;
+	}
+
+	// ----- protected methods -----
+	protected <T> Set<T> newSet(final T... entries) {
+
+		final Set<T> set = new LinkedHashSet<>();
+
+		// keep order (Set.of(..) doesn't)
+		for (final T entry : entries) {
+			set.add(entry);
+		}
+
+		return set;
 	}
 }

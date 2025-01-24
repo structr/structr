@@ -43,6 +43,6 @@ public class RelationshipNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return Traits.of(type).key(propertyKeyName);
+		return Traits.of("RelationshipInterface").key(propertyKeyName);
 	}
 }

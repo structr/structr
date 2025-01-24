@@ -132,7 +132,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 				if (isPropertySet) {
 
-					notion = new PropertySetNotion(isAutocreate, properties);
+					notion = new PropertySetNotion<>(isAutocreate, properties);
 
 				} else {
 

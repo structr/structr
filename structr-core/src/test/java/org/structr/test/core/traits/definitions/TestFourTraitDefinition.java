@@ -45,10 +45,10 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
 		final Property<Date>          dateProperty        = new DateProperty("dateProperty").indexed();
 		final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
-		final Property<String>        enumProperty        = new EnumProperty("enumProperty", Set.of("Status1", "Status2", "Status3", "Status4")).indexed();
+		final Property<String>        enumProperty        = new EnumProperty("enumProperty", newSet("Status1", "Status2", "Status3", "Status4")).indexed();
 		final Property<Date[]>        dateArrayProperty   = new DateArrayProperty("dateArrayProperty").indexed();
 
-		return Set.of(
+		return newSet(
 			testOne,
 			stringArrayProperty,
 			booleanProperty,

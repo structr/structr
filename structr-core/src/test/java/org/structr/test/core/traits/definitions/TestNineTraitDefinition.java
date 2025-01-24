@@ -63,7 +63,7 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> oneToManyTestSixConstraint  = new StartNode("oneToManyTestSixConstraint", "SixNineOneToManyCascadeConstraint");
 
-		return Set.of(
+		return newSet(
 			oneToManyTestSixConstraint
 		);
 	}

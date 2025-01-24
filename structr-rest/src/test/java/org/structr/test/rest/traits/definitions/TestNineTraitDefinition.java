@@ -19,11 +19,23 @@
 package org.structr.test.rest.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.geo.AddressComponent;
+import org.structr.common.geo.GeoCodingResult;
+import org.structr.common.geo.GeoHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +44,31 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestNineTraitDefinition() {
 		super("TestNine");
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		return Map.of(
+
+			OnCreation.class,
+			new OnCreation() {
+
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+					geocode(graphObject);
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+					geocode(graphObject);
+				}
+			}
+		);
 	}
 
 	@Override
@@ -45,7 +82,14 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Double> latitude                    = new DoubleProperty("latitude");
 		final Property<Double> longitude                   = new DoubleProperty("longitude");
 
-		return Set.of(
+		return newSet(
+			testEights,
+			testEightIds,
+			city,
+			street,
+			postalCode,
+			latitude,
+			longitude
 		);
 	}
 
@@ -54,13 +98,49 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of("name", "city", "street", "postalCode", "latitude", "longitude")
+			newSet("name", "city", "street", "postalCode", "latitude", "longitude")
 		);
 	}
 
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	private void geocode(final GraphObject node) throws FrameworkException {
+
+		final Traits traits                  = node.getTraits();
+		final PropertyKey<Double> latitude   = traits.key("latitude");
+		final PropertyKey<Double> longitude  = traits.key("longitude");
+		final PropertyKey<String> city       = traits.key("city");
+		final PropertyKey<String> street     = traits.key("street");
+		final PropertyKey<String> postalCode = traits.key("postalCode");
+
+		Double lat              = node.getProperty(latitude);
+		Double lon              = node.getProperty(longitude);
+
+		if (lat == null || lon == null) {
+
+			String _city       = node.getProperty(city);
+			String _street     = node.getProperty(street);
+			String _postalCode = node.getProperty(postalCode);
+
+			GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
+			if (geoCodingResult == null) {
+
+				return;
+			}
+
+			node.setProperty(latitude, geoCodingResult.getLatitude());
+			node.setProperty(longitude, geoCodingResult.getLongitude());
+
+			// set postal code if found
+			AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
+			if (postalCodeComponent != null) {
+
+				node.setProperty(postalCode, postalCodeComponent.getValue());
+			}
+		}
 	}
 
 	/*
@@ -79,35 +159,6 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		geocode();
-	}
-
-	public void geocode() throws FrameworkException {
-
-		Double lat              = getProperty(latitude);
-		Double lon              = getProperty(longitude);
-
-		if (lat == null || lon == null) {
-
-			String _city       = getProperty(city);
-			String _street     = getProperty(street);
-			String _postalCode = getProperty(postalCode);
-
-			GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
-			if (geoCodingResult == null) {
-
-				return;
-			}
-
-			setProperty(latitude, geoCodingResult.getLatitude());
-			setProperty(longitude, geoCodingResult.getLongitude());
-
-			// set postal code if found
-			AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
-			if (postalCodeComponent != null) {
-
-				setProperty(postalCode, postalCodeComponent.getValue());
-			}
-		}
 	}
 	*/
 }

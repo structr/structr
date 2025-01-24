@@ -166,7 +166,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
-		return Set.of(
+		return newSet(
 			baseProperty,
 			idProperty,
 			typeProperty,
@@ -185,10 +185,10 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of("id", "type"),
+			newSet("id", "type"),
 
 			PropertyView.Ui,
-			Set.of("id", "type", "createdBy", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers")
+			newSet("id", "type", "createdBy", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers")
 		);
 	}
 

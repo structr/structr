@@ -63,7 +63,7 @@ public class TestThirteenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<String> notNull = new StringProperty("notNull").indexed().indexedWhenEmpty().notNull();
 
-		return Set.of(
+		return newSet(
 			notNull
 		);
 	}

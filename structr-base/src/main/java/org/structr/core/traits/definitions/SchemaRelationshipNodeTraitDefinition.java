@@ -254,7 +254,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String> accessControlPropagation = new EnumProperty("accessControlPropagation", PropagationMode.class).defaultValue("Remove");
 		final Property<String> propertyMask             = new StringProperty("propertyMask");
 
-		return Set.of(
+		return newSet(
 			sourceNode,
 			targetNode,
 			sourceId,

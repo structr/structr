@@ -47,7 +47,7 @@ public class EntityMatcher extends BaseMatcher {
 
 		final Set<PropertyKey> propertyView = new LinkedHashSet<>(Traits.of(type).getPropertyKeysForView(view));
 		for (PropertyKey key : propertyView) {
-			
+
 			entityValues.put(key.jsonName(), values.get(key.jsonName()));
 		}
 	}

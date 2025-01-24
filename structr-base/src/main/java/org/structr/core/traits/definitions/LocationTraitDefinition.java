@@ -68,7 +68,7 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> stateProperty         = new StringProperty("state").indexed();
 		final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed();
 
-		return Set.of(
+		return newSet(
 			latitudeProperty,
 			longitudeProperty,
 			altitudeProperty,

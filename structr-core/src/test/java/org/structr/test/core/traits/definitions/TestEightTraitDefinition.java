@@ -123,7 +123,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		return Set.of(
+		return newSet(
 			new IntProperty("testProperty")
 		);
 	}
@@ -134,7 +134,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of("testProperty")
+			newSet("testProperty")
 		);
 	}
 

@@ -40,12 +40,12 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> testSeven = new EndNode("testSeven", "TenSevenOneToOne", new PropertySetNotion(true, Set.of("id", "aString")));
+		final Property<NodeInterface> testSeven = new EndNode("testSeven", "TenSevenOneToOne", new PropertySetNotion<>(true, newSet("id", "aString")));
 		final Property<Object> functionTest     = new FunctionProperty<>("functionTest").readFunction("{ return { name: 'test', value: 123, me: Structr.this }; }");
 		final Property<Object> getNameProperty 	= new FunctionProperty<>("getNameProperty").readFunction("{ return Structr.this.name; }").cachingEnabled(true);
 		final Property<Object> getRandomNumProp	= new FunctionProperty<>("getRandomNumProp").readFunction("{ return Math.random()*10000; }").cachingEnabled(true);
 
-		return Set.of(
+		return newSet(
 			testSeven, functionTest, getNameProperty, getRandomNumProp
 		);
 	}
@@ -55,7 +55,7 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of("name", "testSeven", "functionTest", "getNameProperty", "getRandomNumProp")
+			newSet("name", "testSeven", "functionTest", "getNameProperty", "getRandomNumProp")
 		);
 	}
 

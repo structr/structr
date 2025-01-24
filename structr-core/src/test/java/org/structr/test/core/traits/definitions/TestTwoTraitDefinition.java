@@ -70,7 +70,7 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> testOne = new StartNode("testOne", "OneTwoOneToOne");
 
-		return Set.of(
+		return newSet(
 			testOne
 		);
 	}

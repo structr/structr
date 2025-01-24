@@ -31,7 +31,7 @@ public class SchemaJsonResourceTest extends StructrRestTestBase {
 	@Test
 	public void testGet() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType0\", \"_foo\": \"String\" }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType0\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\" } ] }");
 
 		RestAssured
 

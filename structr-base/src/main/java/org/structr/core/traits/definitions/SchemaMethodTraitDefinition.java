@@ -24,7 +24,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
 
 import java.util.Map;
@@ -75,7 +74,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters");
-		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
+		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion<>(newSet("id", "name")));
 		final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName");
 		final Property<String>             signature               = new StringProperty("signature").indexed();
 		final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
@@ -95,10 +94,10 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);
 		final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty();
 		final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false);
-		final Property<String>             httpVerb                = new EnumProperty("httpVerb", Set.of("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
+		final Property<String>             httpVerb                = new EnumProperty("httpVerb", newSet("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
 		final Property<Boolean>            deleteMethod            = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
-		return Set.of(
+		return newSet(
 			parameters,
 			schemaNode,
 			staticSchemaNodeName,

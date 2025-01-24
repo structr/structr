@@ -36,7 +36,7 @@ public class TestObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of("name")
+			newSet("name")
 		);
 	}
 
