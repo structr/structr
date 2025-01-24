@@ -107,7 +107,7 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		return Set.of(
+		return newSet(
 			new SourceId("principalId"),
 			new TargetId("accessControllableId"),
 			new ArrayProperty("allowed", String.class)

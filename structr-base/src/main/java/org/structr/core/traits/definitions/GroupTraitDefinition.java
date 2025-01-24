@@ -117,7 +117,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique();
 		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true);
 
-		return Set.of(
+		return newSet(
 			membersProperty,
 			jwksReferenceIdProperty,
 			nameProperty,

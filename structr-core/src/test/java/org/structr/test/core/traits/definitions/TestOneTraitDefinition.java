@@ -42,7 +42,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<Long>                    aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();
 		final PropertyKey<Double>                  aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 		final PropertyKey<Date>                    aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
-		final PropertyKey<String>                  anEnum             = new EnumProperty("anEnum", Set.of("One", "Two", "Three", "Four")).indexed();
+		final PropertyKey<String>                  anEnum             = new EnumProperty("anEnum", newSet("One", "Two", "Three", "Four")).indexed();
 		final PropertyKey<String>                  aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final PropertyKey<Boolean>                 aBoolean           = new BooleanProperty("aBoolean").indexed();
 		final PropertyKey<String>                  testString         = new StringProperty("testString");
@@ -65,7 +65,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<String[]>                aStringArray       = new ArrayProperty("aStringArray", String.class).indexed();
 		final PropertyKey<Boolean>                 isValid            = new BooleanProperty("isValid");
 
-		return Set.of(
+		return newSet(
 			anInt,
 			aLong,
 			aDouble,
@@ -101,12 +101,12 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of(
+			newSet(
 				"name", "anInt", "aDouble", "aLong", "aDate", "createdDate", "aString", "anotherString", "aBoolean", "anEnum", "stringWithDefault", "aStringArray"
 			),
 
 			PropertyView.Protected,
-			Set.of(
+			newSet(
 				"name", "anInt", "aString"
 			)
 		);

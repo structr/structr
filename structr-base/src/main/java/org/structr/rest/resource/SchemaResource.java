@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -27,23 +26,20 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Multiplicity;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.SchemaHelper;
-
-import java.lang.reflect.Modifier;
-import java.util.*;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.schema.ConfigurationProvider;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -55,7 +51,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final StringProperty typeProperty                     = new StringProperty("type");
 	public static final StringProperty nameProperty                     = new StringProperty("name");
 	public static final StringProperty classNameProperty                = new StringProperty("className");
-	public static final StringProperty extendsClassNameProperty         = new StringProperty("extendsClass");
+	public static final StringProperty traitsProperty                   = new StringProperty("traits");
 	public static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
 	public static final BooleanProperty isAbstractProperty              = new BooleanProperty("isAbstract");
 	public static final BooleanProperty isInterfaceProperty             = new BooleanProperty("isInterface");

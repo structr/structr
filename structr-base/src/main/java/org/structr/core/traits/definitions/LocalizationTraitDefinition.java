@@ -125,7 +125,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed();
 		final Property<Boolean> importedProperty     = new BooleanProperty("imported");
 
-		return Set.of(
+		return newSet(
 			localizedNameProperty,
 			domainProperty,
 			localeProperty,

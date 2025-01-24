@@ -149,7 +149,7 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long>                 flags              = new LongProperty("flags").indexed();
 		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
 
-		return Set.of(
+		return newSet(
 			signature,
 			flags,
 			isResourceAccess

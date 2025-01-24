@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -707,7 +708,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			try (final Tx tx = app.tx()) {
 
 				node = app.create("SchemaNode", new Name("TestType"));
-				node.setProperty(new StringProperty("_test"), "Integer");
+
+				final NodeInterface property = app.create("SchemaProperty", "test");
+				property.setProperty(Traits.of("SchemaProperty").key("schemaNode"), node);
+				property.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Integer");
 
 				tx.success();
 			}
@@ -770,6 +774,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			final List<NodeInterface> users      = createTestNodes(testUserType, 3);
 			final List<NodeInterface> testThrees = new LinkedList<>();
+			final String[] enumValues            = new String[] { "Status1", "Status2", "Status3", "Status4" };
+			final Traits traits                  = Traits.of("TestThree");
 			final Random random                  = new Random();
 			String uuid                          = null;
 			int count                            = 0;
@@ -778,15 +784,15 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				for (final NodeInterface user : users) {
 
-					final Traits traits = user.getTraits();
-
 					// create 20 entities for every user
 					for (int i=0; i<20; i++) {
+
+						final String randomEnumValue = enumValues[random.nextInt(4)];
 
 						testThrees.add(app.create("TestThree",
 							new NodeAttribute(traits.key("name"), "test" + count++),
 							new NodeAttribute(traits.key("owner"), user),
-							new NodeAttribute(traits.key("enumProperty"), TestEnum.values()[random.nextInt(TestEnum.values().length)])
+							new NodeAttribute(traits.key("enumProperty"), randomEnumValue)
 						));
 					}
 				}
@@ -800,8 +806,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			try (final Tx tx = app.tx()) {
 
 				for (final NodeInterface user : users) {
-
-					final Traits traits = user.getTraits();
 
 					for (final NodeInterface test : app.nodeQuery("TestThree").and(traits.key("owner"), user).and(traits.key("enumProperty"), "Status1").getAsList()) {
 						assertEquals("Invalid enum query result", "Status1", test.getProperty(traits.key("enumProperty")));
@@ -854,8 +858,15 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			try (final Tx tx = app.tx()) {
 
 				node = app.create("SchemaNode", new Name("TestType"));
-				node.setProperty(new StringProperty("_status"), "Enum(one, two, three)");
-				node.setProperty(new StringProperty("__ui"), "status");
+
+				final NodeInterface status = app.create("SchemaProperty", "status");
+				status.setProperty(Traits.of("SchemaProperty").key("schemaNode"),   node);
+				status.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Enum");
+				status.setProperty(Traits.of("SchemaProperty").key("format"),       "one,  two, three");
+
+				final NodeInterface view = app.create("SchemaView", "ui");
+				view.setProperty(Traits.of("SchemaView").key("schemaNode"),         node);
+				view.setProperty(Traits.of("SchemaView").key("nonGraphProperties"), "status");
 
 				tx.success();
 			}
@@ -1275,7 +1286,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
 				.body("result[0].visibilityStartDate",         nullValue())
 				.body("result[0].visibilityEndDate",           nullValue())
-				.body("result[0].createdBy",                   nullValue())
+				.body("result[0].createdBy",                   equalTo(Principal.SUPERUSER_ID))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       nullValue())
 				.body("result[0].ownerId",                     nullValue())

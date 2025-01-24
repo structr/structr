@@ -41,7 +41,7 @@ public class TestElevenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> testTwos    = new EndNodes("test_twos", "ElevenTwoOneToMany");
 		final Property<Iterable<NodeInterface>> testTwosAlt = new EndNodes("testTwos", "ElevenTwoOneToMany");
 
-		return Set.of(
+		return newSet(
 			testTwos, testTwosAlt
 		);
 	}
@@ -51,7 +51,7 @@ public class TestElevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of("name", "testTwos", "testTwosAlt")
+			newSet("name", "test_twos", "testTwos")
 		);
 	}
 

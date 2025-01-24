@@ -45,7 +45,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> aString                       = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final Property<Integer> anInt                        = new IntProperty("anInt").indexed();
 
-		return Set.of(
+		return newSet(
 			testSixs, testSixIds, testNines, testNineIds, testNinePostalCodes, aString, anInt
 		);
 	}
@@ -55,7 +55,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of("name", "testSixIds", "aString", "anInt")
+			newSet("name", "testSixIds", "aString", "anInt")
 		);
 	}
 

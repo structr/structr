@@ -24,7 +24,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.SchemaViewTraitWrapper;
 
 import java.util.Map;
@@ -70,13 +69,13 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode         = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
-		final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
+		final Property<NodeInterface>           schemaNode         = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion<>(newSet("id", "name")));
 		final Property<Boolean>                 isBuiltinView      = new BooleanProperty("isBuiltinView");
 		final Property<String>                  nonGraphProperties = new StringProperty("nonGraphProperties");
 		final Property<String>                  sortOrder          = new StringProperty("sortOrder");
 
-		return Set.of(
+		return newSet(
 			schemaNode,
 			schemaProperties,
 			isBuiltinView,

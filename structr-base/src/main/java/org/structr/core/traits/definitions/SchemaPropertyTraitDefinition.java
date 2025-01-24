@@ -18,8 +18,6 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -90,9 +88,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
-		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
-		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion(Set.of(Traits.idProperty(), Traits.nameProperty())));
+		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion<>(newSet("id", "name")));
 
 		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 		final Property<String>             declaringClass        = new StringProperty("declaringClass");
@@ -123,7 +121,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
 		final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
-		return Set.of(
+		return newSet(
 
 			schemaNode,
 			schemaViews,

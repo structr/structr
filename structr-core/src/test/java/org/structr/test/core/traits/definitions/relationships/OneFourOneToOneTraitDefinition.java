@@ -96,9 +96,9 @@ public class OneFourOneToOneTraitDefinition extends AbstractRelationshipTraitDef
 		final Property<Integer>  integerProperty     = new IntProperty("integerProperty").indexed();
 		final Property<Long>     longProperty        = new LongProperty("longProperty").indexed();
 		final Property<String>   stringProperty      = new StringProperty("stringProperty").indexed();
-		final Property<String> enumProperty          = new EnumProperty("enumProperty", Set.of("Status1", "Status2", "Status3", "Status4")).indexed();
+		final Property<String> enumProperty          = new EnumProperty("enumProperty", newSet("Status1", "Status2", "Status3", "Status4")).indexed();
 
-		return Set.of(
+		return newSet(
 			startNodeId,
 			endNodeId,
 			stringArrayProperty,

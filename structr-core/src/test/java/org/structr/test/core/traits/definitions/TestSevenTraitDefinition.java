@@ -65,7 +65,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Double> latitude = new DoubleProperty("latitude").indexed();
 		final Property<Double> longitude = new DoubleProperty("longitude").indexed();
 
-		return Set.of(
+		return newSet(
 			latitude, longitude
 		);
 	}

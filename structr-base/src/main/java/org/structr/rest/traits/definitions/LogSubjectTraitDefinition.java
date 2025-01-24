@@ -72,7 +72,7 @@ public class LogSubjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> logEvents = new EndNodes("logEvents", "SubjectEventRelationship");
 
-		return Set.of(
+		return newSet(
 			logEvents
 		);
 	}

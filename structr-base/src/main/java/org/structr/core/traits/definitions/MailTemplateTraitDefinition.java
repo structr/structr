@@ -63,7 +63,7 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String> textProperty = new StringProperty("text");
 		final Property<String> localeProperty = new StringProperty("locale").indexed();
 
-		return Set.of(
+		return newSet(
 			textProperty,
 			localeProperty
 		);

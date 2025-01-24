@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -404,5 +405,72 @@ public abstract class StructrRestTestBase {
 		}
 
 		return "TestUser";
+	}
+
+	// ----- static methods -----
+	public static void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
+
+		final String[] parts = mapPath.split("[\\.]+");
+		Object current       = map;
+
+		for (int i=0; i<parts.length; i++) {
+
+			final String part = parts[i];
+			if (StringUtils.isNumeric(part)) {
+
+				int index = Integer.valueOf(part);
+				if (current instanceof List) {
+
+					final List list = (List)current;
+					if (index >= list.size()) {
+
+						// value for nonexisting fields must be null
+						assertEquals("Invalid map path result for " + mapPath, value, null);
+
+						// nothing more to check here
+						return;
+
+					} else {
+
+						current = list.get(index);
+					}
+				}
+
+			} else if ("#".equals(part)) {
+
+				if (current instanceof List) {
+
+					assertEquals("Invalid collection size for " + mapPath, value, ((List)current).size());
+
+					// nothing more to check here
+					return;
+				}
+
+				if (current instanceof Map) {
+
+					assertEquals("Invalid map size for " + mapPath, value, ((Map)current).size());
+
+					// nothing more to check here
+					return;
+				}
+
+			} else {
+
+				if (current instanceof Map) {
+
+					current = ((Map)current).get(part);
+				}
+			}
+		}
+
+		// ignore type of value if numerical (GSON defaults to double...)
+		if (value instanceof Number && current instanceof Number) {
+
+			assertEquals("Invalid map path result for " + mapPath, ((Number)value).doubleValue(), ((Number)current).doubleValue(), 0.0);
+
+		} else {
+
+			assertEquals("Invalid map path result for " + mapPath, value, current);
+		}
 	}
 }

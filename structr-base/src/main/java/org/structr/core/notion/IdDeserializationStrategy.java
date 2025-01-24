@@ -33,7 +33,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.Traits;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
@@ -85,9 +88,22 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					}
 				}
 
-				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType.getName(), properties);
-				final Set<PropertyKey> allProperties   = actualType.getAllPropertyKeys();
 				final Map<String, Object> foreignProps = new HashMap<>();
+
+				// store "foreign" properties (those that are to be set on the newly created relationship
+				for (final String key : properties.keySet()) {
+
+					if (!actualType.hasKey(key)) {
+
+						foreignProps.put(key, properties.get(key));
+
+						// remove from property set
+						properties.remove(key);
+					}
+				}
+
+				// convert properties
+				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType.getName(), properties);
 
 				// If property map contains the uuid, search only for uuid
 				if (convertedProperties.containsKey(Traits.idProperty())) {
@@ -97,15 +113,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 						if ( !SearchCommand.isTypeAssignableFromOtherType(actualType, relatedNode.getTraits()) ) {
 							throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
-						}
-
-						for (final PropertyKey key : convertedProperties.keySet()) {
-
-							if (!key.isUnique() && !key.isCompound() && !isIdentifying(actualType, key) && !allProperties.contains(key)) {
-
-								// store "foreign" properties (those that are to be set on the newly created relationship
-								foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
-							}
 						}
 
 						// node found, remove UUID
@@ -121,11 +128,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 						if (key.isUnique() || key.isCompound() || isIdentifying(actualType, key)) {
 
 							uniqueKeyValues.put(key, convertedProperties.get(key));
-
-						} else if (!allProperties.contains(key)) {
-
-							// store "foreign" properties (those that are to be set on the newly created relationship
-							foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
 						}
 					}
 

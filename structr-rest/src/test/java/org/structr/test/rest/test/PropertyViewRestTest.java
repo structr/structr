@@ -23,10 +23,10 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.common.RequestKeywords;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
@@ -136,7 +136,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
 				.body("result[0].visibilityStartDate",         nullValue())
 				.body("result[0].visibilityEndDate",           nullValue())
-				.body("result[0].createdBy",                   nullValue())
+				.body("result[0].createdBy",                   equalTo(Principal.SUPERUSER_ID))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       nullValue())
 				.body("result[0].ownerId",                     nullValue())
@@ -153,18 +153,25 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ScriptTest"),
-				new NodeAttribute<>(new StringProperty("_depth"), "Function(depth)"),
-				new NodeAttribute<>(new StringProperty("__public"), "name, depth, children, parents")
-			);
+			final NodeInterface schemaNode = app.create("SchemaNode","ScriptTest");
+
+			final NodeInterface property = app.create("SchemaProperty", "depth");
+			property.setProperty(Traits.of("SchemaProperty").key("schemaNode"),   schemaNode);
+			property.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Function");
+			property.setProperty(Traits.of("SchemaProperty").key("readFunction"), "depth");
+
+			final NodeInterface view = app.create("SchemaView", "public");
+			view.setProperty(Traits.of("SchemaView").key("schemaNode"),   schemaNode);
+			view.setProperty(Traits.of("SchemaView").key("nonGraphProperties"), "name, depth, children, parents");
 
 			app.create("SchemaRelationshipNode",
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), node),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), node),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "test"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "parents"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "children")
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"),         schemaNode),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"),         schemaNode),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"),   "test"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"),     "parents"),
+				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"),     "children")
 			);
 
 			tx.success();
@@ -282,11 +289,16 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "DepthTest"),
-				new NodeAttribute<>(new StringProperty("_depth"), "Function(depth)"),
-				new NodeAttribute<>(new StringProperty("__customView"), "depth, type")
-			);
+			final NodeInterface schemaNode = app.create("SchemaNode","DepthTest");
+
+			final NodeInterface property = app.create("SchemaProperty", "depth");
+			property.setProperty(Traits.of("SchemaProperty").key("schemaNode"),   schemaNode);
+			property.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Function");
+			property.setProperty(Traits.of("SchemaProperty").key("readFunction"), "depth");
+
+			final NodeInterface view = app.create("SchemaView", "customView");
+			view.setProperty(Traits.of("SchemaView").key("schemaNode"),   schemaNode);
+			view.setProperty(Traits.of("SchemaView").key("nonGraphProperties"), "type, depth");
 
 			tx.success();
 

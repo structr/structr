@@ -28,6 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
@@ -247,7 +248,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("page_count",         equalTo(2))
 				.body("result",             hasSize(2))
 				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
-				.body("result[1].type",     equalTo("Security"))
+				.body("result[1].type",     equalTo("SecurityRelationship"))
 			.when()
 				.get("/TestOne/in?_pageSize=2");
 
@@ -259,12 +260,12 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		final String testUserType             = createTestUserType();
 		final PropertyKey<String> passwordKey = Traits.of(testUserType).key("password");
-		Principal tester                      = null;
+		NodeInterface tester                  = null;
 		String uuid                           = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = (Principal)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 
 			uuid = tester.getUuid();
 
@@ -274,7 +275,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			fex.printStackTrace();
 		}
 
-		final App app = StructrApp.getInstance(SecurityContext.getInstance(tester, AccessMode.Backend));
+		final App app = StructrApp.getInstance(SecurityContext.getInstance(tester.as(Principal.class), AccessMode.Backend));
 
 		try (final Tx tx = app.tx()) {
 
@@ -300,7 +301,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("page_count",         equalTo(2))
 				.body("result",             hasSize(2))
 				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
-				.body("result[1].type",     equalTo("Security"))
+				.body("result[1].type",     equalTo("SecurityRelationship"))
 			.when()
 				.get("/TestUser/" + uuid + "/out?_pageSize=2");
 

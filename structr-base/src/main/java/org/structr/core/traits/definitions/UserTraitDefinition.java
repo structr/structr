@@ -75,8 +75,8 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			Set.of(
-				"isUser", "confirmationKey", "eMail", "favorites", "groups", "homeDirectory", "isAdmin", "locale", "password", "proxyPassword",
-				"proxyUrl", "proxyUsername", "publicKey", "sessionIds", "refreshTokens", "workingDirectory", "twoFactorToken", "isTwoFactorUser",
+				"isUser", "confirmationKey", "eMail", "groups", "homeDirectory", "isAdmin", "locale", "password", "proxyPassword", "proxyUrl",
+				"proxyUsername", "publicKey", "sessionIds", "refreshTokens", "workingDirectory", "twoFactorToken", "isTwoFactorUser",
 				"twoFactorConfirmed", "passwordAttempts", "passwordChangeDate", "lastLoginDate", "skipSecurityRelationships", "img"
 			)
 		);

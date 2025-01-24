@@ -77,7 +77,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
+		return newSet();
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		final Property<String>                  description           = new StringProperty("description").indexed();
 
 
-		return Set.of(
+		return newSet(
 			schemaProperties,
 			schemaMethods,
 			schemaViews,
@@ -112,16 +112,16 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of("changelogDisabled", "icon", "tags", "summary", "description"),
+			newSet("changelogDisabled", "icon", "tags", "summary", "description"),
 
 			PropertyView.Ui,
-			Set.of("tags", "summary", "description", "includeInOpenAPI"),
+			newSet("tags", "summary", "description", "includeInOpenAPI"),
 
 			"schema",
-			Set.of("tags", "summary", "description", "includeInOpenAPI"),
+			newSet("tags", "summary", "description", "includeInOpenAPI"),
 
 			"export",
-			Set.of("changelogDisabled", "tags", "summary", "description")
+			newSet("changelogDisabled", "tags", "summary", "description")
 		);
 	}
 

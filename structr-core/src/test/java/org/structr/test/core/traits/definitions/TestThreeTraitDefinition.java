@@ -47,7 +47,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> oneToManyTestSix = new StartNode("oneToManyTestSix", "SixThreeOneToMany");
 		final Property<Date> aDateWithFormat           = new ISO8601DateProperty("aDateWithFormat").format(TEST_THREE_CUSTOM_DATE_FORMAT).indexed().indexedWhenEmpty();
 
-		return Set.of(
+		return newSet(
 			testOne,
 			oneToOneTestSix,
 			oneToManyTestSix,

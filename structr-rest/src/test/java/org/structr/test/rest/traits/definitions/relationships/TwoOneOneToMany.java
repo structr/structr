@@ -41,8 +41,8 @@ public class TwoOneOneToMany extends AbstractRelationshipTraitDefinition impleme
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>   startNodeId         = new StringProperty("startNodeId");
-		final Property<String>   endNodeId           = new StringProperty("endNodeId");
+		final Property<String>   startNodeId         = new SourceId("startNodeId");
+		final Property<String>   endNodeId           = new TargetId("endNodeId");
 		final Property<String[]> stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class);
 		final Property<Boolean>  booleanProperty     = new BooleanProperty("booleanProperty").indexed();
 		final Property<Double>   doubleProperty      = new DoubleProperty("doubleProperty").indexed();

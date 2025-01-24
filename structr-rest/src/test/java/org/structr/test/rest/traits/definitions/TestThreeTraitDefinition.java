@@ -58,7 +58,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<ZonedDateTime> zonedDateTimeProperty   = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
 		final Property<String[]>      testEnumArrayProperty   = new EnumArrayProperty("testEnumArray", TestEnum.class).indexed().indexedWhenEmpty();
 
-		return Set.of(
+		return newSet(
 			stringProperty,
 			stringArrayProperty,
 			booleanProperty,
@@ -85,10 +85,10 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of(
+			newSet(
 				"name", "stringProperty", "stringArrayProperty", "booleanProperty", "booleanArrayProperty", "doubleProperty", "doubleArrayProperty",
-				"integerProperty", "integerArrayProperty", "longProperty", "longArrayProperty", "dateProperty", "dateArrayProperty", "zonedDateTimeProperty",
-				"enumProperty", "constantBooleanProperty", "byteArrayProperty", "testEnumArrayProperty"
+				"integerProperty", "integerArrayProperty", "longProperty", "longArrayProperty", "dateProperty", "dateArrayProperty", "zonedDateTime",
+				"enumProperty", "constantBooleanProperty", "byteArrayProperty", "testEnumArray"
 			)
 		);
 	}

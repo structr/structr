@@ -243,7 +243,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship");
 		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath");
 
-		return Set.of(
+		return newSet(
 			nameProperty,
 			hiddenProperty,
 			ownerProperty,
@@ -259,10 +259,10 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of("name"),
+			newSet("name"),
 
 			PropertyView.Ui,
-			Set.of("name", "owner", "hidden")
+			newSet("name", "owner", "hidden")
 		);
 	}
 

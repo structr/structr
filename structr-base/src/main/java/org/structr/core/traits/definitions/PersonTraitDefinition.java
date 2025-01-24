@@ -80,7 +80,7 @@ public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> genderProperty              = new StringProperty("gender");
 		final Property<Boolean> newsletterProperty         = new BooleanProperty("newsletter");
 
-		return Set.of(
+		return newSet(
 			salutationProperty,
 			firstNameProperty,
 			middleNameOrInitialProperty,

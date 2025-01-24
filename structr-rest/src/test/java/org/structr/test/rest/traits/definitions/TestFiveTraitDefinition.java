@@ -43,7 +43,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> manyToOneTestThree           = new StartNode("manyToOneTestThree", "ThreeFiveOneToMany");
 
 
-		return Set.of(
+		return newSet(
 			manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree
 		);
 	}
@@ -53,7 +53,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			Set.of("name", "manyToManyTestOnes", "oneToManyTestOnes", "oneToOneTestThree", "manyToOneTestThree")
+			newSet("name", "manyToManyTestOnes", "oneToManyTestOnes", "oneToOneTestThree", "manyToOneTestThree")
 		);
 	}
 

@@ -28,7 +28,6 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -105,7 +104,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<Date>    lastAccessedProperty = new DateProperty("lastAccessed").indexed();
 		final Property<Long>    versionProperty      = new LongProperty("version");
 
-		return Set.of(
+		return newSet(
 			sessionIdProperty,
 			contextPathProperty,
 			vhostProperty,

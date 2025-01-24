@@ -79,7 +79,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			GetProperty.class,
 			new GetProperty() {
 
-				final Set<String> hiddenProperties = Set.of("password", "salt", "twoFactorSecret");
+				final Set<String> hiddenProperties = newSet("password", "salt", "twoFactorSecret");
 
 				@Override
 				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> predicate) {
@@ -125,7 +125,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		return Set.of(
+		return newSet(
 			new StartNodes("groups", "GroupCONTAINSPrincipal"),
 			new EndNodes("ownedNodes", "PrincipalOwnsNode"),
 			new EndNodes("grantedNodes", "SecurityRelationship"),
@@ -158,7 +158,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Ui,
-			Set.of("blocked")
+			newSet("blocked")
 		);
 	}
 
