@@ -3717,6 +3717,9 @@ ul.combined-input-select-field li:hover {
 .flex {
 	display: flex;
 }
+.inline {
+	display: inline;
+}
 .inline-block {
 	display: inline-block;
 }
@@ -4034,6 +4037,33 @@ ul.combined-input-select-field li:hover {
 }
 .-mt-1 {
 	margin-top: -.25rem;
+}
+.-mt-2 {
+	margin-top: -.5rem;
+}
+.-mt-3 {
+	margin-top: -.75rem;
+}
+.-mt-4 {
+	margin-top: -1rem;
+}
+.-mt-5 {
+	margin-top: -1.25rem;
+}
+.-mt-6 {
+	margin-top: -1.5rem;
+}
+.-mt-7 {
+	margin-top: -1.75rem;
+}
+.-mt-8 {
+	margin-top: -2rem;
+}
+.-mt-12 {
+	margin-top: -3rem;
+}
+.-mt-16 {
+	margin-top: -4rem;
 }
 .mt-0 {
 	margin-top: 0;
@@ -4476,6 +4506,12 @@ ul.combined-input-select-field li:hover {
 }
 .opacity-0 {
 	opacity: 0;
+}
+.opacity-20 {
+	opacity: .2;
+}
+.opacity-40 {
+	opacity: .4;
 }
 .opacity-60 {
 	opacity: .6;
