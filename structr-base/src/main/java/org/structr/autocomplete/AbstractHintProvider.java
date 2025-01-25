@@ -238,7 +238,9 @@ public abstract class AbstractHintProvider {
 
 				final Map<String, Object> map = property.toMap();
 				final String name             = (String)map.get("jsonName");
-				final String propertyType     = (String)map.get("uiType");
+				final boolean hasRelatedType  = (map.get("relatedType") != null);
+				final boolean isCollection    = Boolean.TRUE.equals(map.get("isCollection"));
+				final String propertyType     = ((String)map.get("type")) + ((hasRelatedType && isCollection) ? "[]" : "");
 				final String declaringClass   = (String)map.get("declaringClass");
 
 				// skip properties defined in NodeInterface class, except for name

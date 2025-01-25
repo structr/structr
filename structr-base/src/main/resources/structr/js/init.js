@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscape();
+			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
 		return false;
 	});

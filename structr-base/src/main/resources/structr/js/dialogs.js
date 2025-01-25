@@ -407,6 +407,8 @@ let _Dialogs = {
 		isMaximized:        false,
 		dialogMaximizedKey: `structrDialogMaximized_${location.port}`,
 		dialogDataKey:      `structrDialogData_${location.port}`,
+		noConfirmOnEscapeClass: 'no-confirm-on-escape',
+		hasCustomCloseHandlerClass: 'has-custom-close-handler',
 		elements: {
 			dialogMsg: null,
 			dialogCancelButton: null,
@@ -683,12 +685,18 @@ let _Dialogs = {
 			}
 		},
 		noConfirmOnEscape: () => {
-			_Dialogs.custom.getDialogTextElement()?.classList.add('no-confirm-on-escape');
+			_Dialogs.custom.getDialogTextElement()?.classList.add(_Dialogs.custom.noConfirmOnEscapeClass);
 		},
-		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains('no-confirm-on-escape') ?? false,
-		checkSaveOrCloseOnEscape: () => {
+		setHasCustomCloseHandler: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add(_Dialogs.custom.hasCustomCloseHandlerClass);
+		},
+		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.noConfirmOnEscapeClass) ?? false,
+		hasCustomCloseHandler: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.hasCustomCloseHandlerClass) ?? false,
+		checkSaveOrCloseOnEscapeKeyPressed: () => {
 
-			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled && !_Dialogs.custom.isNoConfirmOnEscape()) {
+			let hasAttachedAndEnabledSaveButton = _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled;
+
+			if (_Dialogs.custom.isDialogOpen() && hasAttachedAndEnabledSaveButton && !_Dialogs.custom.isNoConfirmOnEscape() && !_Dialogs.custom.hasCustomCloseHandler()) {
 
 				let saveBeforeExit = confirm('Save changes before closing?');
 				if (saveBeforeExit) {

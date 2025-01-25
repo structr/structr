@@ -55,55 +55,59 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				final StringWriter writer             = new StringWriter();
-				String view                           = PropertyView.Public;
 
-				if (sources.length > 1) {
+				final String view            = (sources.length > 1) ? sources[1].toString() : PropertyView.Public;
+				final int outputDepth        = (sources.length > 2 && sources[2] instanceof Number) ? ((Number)sources[2]).intValue() : Settings.RestOutputDepth.getValue();
+				final boolean serializeNulls = (sources.length > 3 && sources[3] instanceof Boolean) ? ((Boolean)sources[3]) : true;
 
-					view = sources[1].toString();
-				}
+				final boolean returnRawResultWasEnabled = securityContext.returnRawResult();
 
-				int outputDepth = Settings.RestOutputDepth.getValue();
-				if (sources.length > 2 && sources[2] instanceof Number) {
-					outputDepth = ((Number)sources[2]).intValue();
-				}
-
-				boolean serializeNulls = true;
-				if (sources.length > 3 && sources[3] instanceof Boolean) {
-					serializeNulls = ((Boolean)sources[3]);
-				}
+				// prevent "result" wrapper from being introduced
+				securityContext.enableReturnRawResult();
 
 				final Object obj = sources[0];
 
 				if (obj instanceof GraphObject) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false, serializeNulls);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, false, serializeNulls);
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)obj);
 
 				} else if (obj instanceof Iterable) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true, serializeNulls);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, true, serializeNulls);
 					final Iterable list                    = (Iterable)obj;
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false);
 
 				} else if (obj instanceof Map) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false, serializeNulls);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, false, serializeNulls);
 					final GraphObjectMap map               = new GraphObjectMap();
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false);
+
+				} else if (obj instanceof String) {
+
+					return "\"" + ((String) obj).replaceAll("\"", "\\\\\"") + "\"";
+
+				} else if (obj instanceof Number) {
+
+					return obj;
+
+				}
+
+				if (Boolean.FALSE.equals(returnRawResultWasEnabled)) {
+					securityContext.disableReturnRawResult();
 				}
 
 				return writer.getBuffer().toString();
 
-
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return "";
@@ -111,11 +115,9 @@ public class ToJsonFunction extends UiCommunityFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
-
 	}
 
 	@Override
@@ -125,7 +127,6 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Serializes the given entity to JSON";
+		return "Serializes the given object to JSON";
 	}
-
 }

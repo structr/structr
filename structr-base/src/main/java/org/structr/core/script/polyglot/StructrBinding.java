@@ -222,6 +222,10 @@ public class StructrBinding implements ProxyObject {
 		this.methodParameters = methodParameters;
 	}
 
+	public Value getMethodParameters() {
+		return methodParameters;
+	}
+
 	private ProxyExecutable getGetFunctionWrapper() {
 
 		return arguments -> {

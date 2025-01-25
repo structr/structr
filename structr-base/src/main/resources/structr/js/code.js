@@ -1782,7 +1782,7 @@ let _Code = {
 			// run button (for user-defined functions and static methods which are callable via HTTP)
 			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
 
-				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
+				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Open run dialog', () => {
 					_Code.runSchemaMethod(result);
 				});
 			}
@@ -2672,13 +2672,13 @@ let _Code = {
 	},
 	runSchemaMethod: (schemaMethod) => {
 
-		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
+		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
 		let url  = _Code.getURLForSchemaMethod(schemaMethod);
 
 		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
 		let runButton = _Dialogs.custom.prependCustomDialogButton(`
-			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+			<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
 				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
 				<span>Run</span>
 			</button>
@@ -2706,7 +2706,7 @@ let _Code = {
 
 		_Helpers.appendInfoTextToElement({
 			element: paramsOuterBox.querySelector('h3'),
-			text: "Parameters can be accessed in the called method by using the <code>retrieve()</code> function.",
+			text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
 			css: { marginLeft: "5px" },
 			helpElementCss: { fontSize: "12px" }
 		});
