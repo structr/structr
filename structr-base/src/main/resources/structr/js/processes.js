@@ -41,20 +41,17 @@ let _Processes = {
     },
     _moduleName: 'processes',
     init: () => {
-        console.log('init');
         Structr.adaptUiToAvailableFeatures();
         document.getElementById('create-process').addEventListener('click', _Processes.ui.showCreateProcessDialog);
         _Processes.reload();
     },
     onload: async (retryCount = 0) => {
-        console.log('onload');
         Structr.setMainContainerHTML(_Processes.templates.main());
         Structr.setFunctionBarHTML(_Processes.templates.functions());
         Structr.mainMenu.unblock(100);
         _Processes.init();
     },
     reload: () => {
-        console.log('reload');
         _Processes.processes = [];
         _Helpers.fastRemoveAllChildren(Structr.mainContainer);
         Structr.setMainContainerHTML(_Processes.templates.main());
@@ -88,23 +85,46 @@ let _Processes = {
             _Processes.reload();
         });
     },
-    deleteStep: id => {
+    deleteProcess: id => {
+        Command.deleteNode(id, false, () => {
+            _Processes.reload();
+        });
+    },
+    deleteState: id => {
         Command.deleteNode(id, false, () => {
            _Processes.reload();
+        });
+    },
+    deleteDecision: id => {
+        Command.deleteNode(id, false, () => {
+            _Processes.reload();
+        });
+    },
+    deleteStep: id => {
+        Command.deleteNode(id, false, () => {
+            _Processes.reload();
         });
     },
     displayProcess: process => {
         _Processes.processes.push(process);
         Structr.mainContainer.insertAdjacentHTML('beforeend', `
-            <div id="process-${process.id}" class="relative" style="width:calc(100vw - 6rem); height:24rem; margin:4rem 0 0 2rem;">
-                <h2>${process.name}</h2>
+            <div id="process-${process.id}" class="process-area relative" style="width:calc(100vw - 6rem); height:24rem; margin:4rem 0 0 2rem;">
+                <h2 class="inline">${process.name}</h2>
+                ${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, ['delete-' + process.id, 'ml-2', 'align-top', 'inline', 'cursor-pointer', 'icon-inactive', 'hover:icon-active', 'hover:text-gray-666'])}
             </div>`);
+
         const processContainer = document.getElementById(`process-${process.id}`);
+
+        document.querySelector(`.delete-${process.id}`).addEventListener('click', e => {
+            e.stopPropagation();
+            _Processes.deleteProcess(process.id);
+        });
+
         if (process.initialState) {
             _Processes.displayState(process, process.initialState);
         } else {
-            processContainer.insertAdjacentHTML('beforeend', `<button class="add-state absolute border-0 inline-flex items-center icon-inactive hover:icon-active" style="top:3rem;left:0rem" data-process-id="${process.id}">
-            ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['add', 'mr-1'])} Add initial state</button>`);
+            processContainer.insertAdjacentHTML('beforeend', `<button class="create-button add-state absolute border-0 inline-flex items-center" style="top:3rem;left:0rem" data-process-id="${process.id}">
+            ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['add', 'mr-1'])} Create initial state</button>`);
 
             document.querySelector('.add-state[data-process-id]').addEventListener('click', e => {
                 const btn = e.target.closest('[data-process-id]');
@@ -126,9 +146,21 @@ let _Processes = {
 
             //console.log('Displaying state', x, ', name:', state.name, ', status: ', state.status, ', success: ', success);
 
-            processContainer.insertAdjacentHTML('beforeend', `<div class="absolute shadow rounded-full w-${_Processes.visualization.circleSize} h-${_Processes.visualization.circleSize} flex flex-row text-center items-center justify-center border border-gray-666 bg-white" 
+            processContainer.insertAdjacentHTML('beforeend', `<div class="process-state-${state.id} absolute shadow rounded-full w-${_Processes.visualization.circleSize} h-${_Processes.visualization.circleSize} flex flex-row text-center items-center justify-center border border-gray-666 bg-white cursor-pointer" 
             style="left:${(_Processes.visualization.marginLeft/4) + x * (_Processes.visualization.rasterX/4) - 2*(_Processes.visualization.circleSize/4) - (!success ? 2*(_Processes.visualization.circleSize/4) - 1.2 : 0)}rem;
-            top:${(success ? 0 : 1) *_Processes.visualization.squareHeight/2+(success ? 4.8 : 3.7)}rem;">${state.name.length>21 ? state.name.substring(0,21) + '…' : state.name}</div>`);
+            top:${(success ? 0 : 1) *_Processes.visualization.squareHeight/2+(success ? 4.8 : 3.7)}rem;">
+                ${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, ['delete-' + state.id, 'absolute', '-mt-2', 'right-0', 'top-0', 'cursor-pointer', 'icon-inactive', 'hover:icon-active', 'hover:text-gray-666'])}
+                ${state.name.length>21 ? state.name.substring(0,21) + '…' : state.name}
+            </div>`);
+
+            document.querySelector(`.process-state-${state.id}`).addEventListener('click', e => {
+                _Processes.ui.showEditProcessStateDialog(state.id);
+            });
+
+            document.querySelector(`.delete-${state.id}`).addEventListener('click', e => {
+                e.stopPropagation();
+                _Processes.deleteState(state.id);
+            });
 
             let s = 0;
             Command.get(state.id, 'id,name,nextStep', stateData => {
@@ -137,10 +169,10 @@ let _Processes = {
                     _Processes.displayStep(process, stateData.nextStep);
                 } else {
 
-                    processContainer.insertAdjacentHTML('beforeend', `<button class="add-step absolute border-0 inline-flex items-center icon-inactive hover:icon-active" style="
+                    processContainer.insertAdjacentHTML('beforeend', `<button class="create-button add-step absolute border-0 inline-flex items-center" style="
                     left:${(_Processes.visualization.marginLeft / 4) + x * (_Processes.visualization.rasterX / 4) - 4}rem;
                     top:${(success ? 0 : 1) * _Processes.visualization.squareHeight / 2 + 6.5}rem;" data-state-id="${state.id}">
-                    ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['add', 'mr-1'])} Add step</button>`);
+                    ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['add', 'mr-1'])} Create step</button>`);
 
                     document.querySelector(`.add-step[data-state-id="${state.id}"]`).addEventListener('click', e => {
                         const btn = e.target.closest(`[data-state-id="${state.id}"]`);
@@ -162,13 +194,18 @@ let _Processes = {
 
             processContainer.insertAdjacentHTML('beforeend', `<div class="process-arrow-right" style="left:${(_Processes.visualization.marginLeft/4) + x * (_Processes.visualization.rasterX/4) - (_Processes.visualization.circleSize/4)/2 - .5}rem; top:${0 * _Processes.visualization.squareHeight / 2 + 7.5}rem"></div>`);
             processContainer.insertAdjacentHTML('beforeend', `
-            <div class="process-step-${step.id} absolute rounded-xl w-${_Processes.visualization.squareWidth} h-${_Processes.visualization.squareHeight} flex flex-row items-center text-center justify-center p-4 border border-gray-666 bg-white"
+            <div class="process-step-${step.id} absolute rounded-xl w-${_Processes.visualization.squareWidth} h-${_Processes.visualization.squareHeight} flex flex-row items-center text-center justify-center p-4 border border-gray-666 bg-white cursor-pointer"
             style="left:${(_Processes.visualization.marginLeft/4) + x * (_Processes.visualization.rasterX/4) - 2.4}rem; top:4rem;">
                 ${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, ['delete-' + step.id, 'absolute', 'right-2', 'top-2', 'cursor-pointer', 'icon-inactive', 'hover:icon-active', 'hover:text-gray-666'])}
                 ${step.name}
             </div>`);
 
+            document.querySelector(`.process-step-${step.id}`).addEventListener('click', e => {
+                _Processes.ui.showEditProcessStepDialog(step.id);
+            });
+
             document.querySelector(`.delete-${step.id}`).addEventListener('click', e => {
+                e.stopPropagation();
                 _Processes.deleteStep(step.id);
             });
 
@@ -188,13 +225,13 @@ let _Processes = {
                 if (stepData.decision) {
                     _Processes.displayDecision(process, stepData.decision);
                 } else {
-                    processContainer.insertAdjacentHTML('beforeend', `<button class="add-state absolute border-0 inline-flex items-center icon-inactive hover:icon-active" style="
+                    processContainer.insertAdjacentHTML('beforeend', `<button class="create-button add-decision absolute hover:bg-white border-0 inline-flex items-center" style="
                     left:${(_Processes.visualization.marginLeft / 4) + x * (_Processes.visualization.rasterX / 4) + 10}rem;
-                    top:6.95rem;" data-step-id="${step.id}">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['add', 'mr-1'])} Add decision</button>`);
+                    top:6.95rem;" data-step-id="${step.id}">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['add', 'mr-1'])} Create decision</button>`);
 
-                    document.querySelector(`.add-state[data-step-id="${step.id}"]`).addEventListener('click', e => {
+                    document.querySelector(`.add-decision[data-step-id="${step.id}"]`).addEventListener('click', e => {
                         const btn = e.target.closest(`[data-step-id="${step.id}"]`);
-                        _Processes.showCreateProcessDecisionDialog(btn.dataset['stepId']);
+                        _Processes.ui.showCreateProcessDecisionDialog(btn.dataset['stepId']);
                     });
                 }
             });
@@ -214,10 +251,24 @@ let _Processes = {
             top:${0*_Processes.visualization.squareHeight/2+7.5}rem;"
             ></div>`);
 
-            processContainer.insertAdjacentHTML('beforeend', `<div class="absolute rotate-45 w-${_Processes.visualization.circleSize} h-${_Processes.visualization.circleSize} flex flex-row text-center items-center justify-center border border-gray-666 bg-white" style="
+            processContainer.insertAdjacentHTML('beforeend', `<div class="process-decision-${decision.id} absolute rotate-45 w-${_Processes.visualization.circleSize} h-${_Processes.visualization.circleSize} flex flex-row text-center items-center justify-center border border-gray-666 bg-white cursor-pointer" style="
                 left:${(_Processes.visualization.marginLeft/4) + x*(_Processes.visualization.rasterX/4) + (_Processes.visualization.squareWidth/4) + 4.25}rem;
                 top:${0*_Processes.visualization.squareHeight/4+4*1.22}rem;"
-            ><div class="-rotate-45">${decision.name}</div></div>`);
+            >
+            <div class="absolute top-0 -mt-8 -rotate-45">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, ['delete-' + decision.id, 'cursor-pointer', 'icon-inactive', 'hover:icon-active', 'hover:text-gray-666'])}</div>
+            <div class="-rotate-45">
+                ${decision.name}
+            </div></div>`);
+
+            document.querySelector(`.process-decision-${decision.id}`).addEventListener('click', e => {
+                _Processes.ui.showEditProcessDecisionDialog(decision.id);
+            });
+
+            document.querySelector(`.delete-${decision.id}`).addEventListener('click', e => {
+                e.stopPropagation()
+                _Processes.deleteDecision(decision.id);
+            });
+
             let s = 0;
             Command.get(decision.id, 'id,name,step,possibleStates', decisionData => {
 
@@ -268,29 +319,15 @@ let _Processes = {
     unload: () => {
     },
     ui: {
-        showCreateNewProcessDialog: (container, updateFunction) => {
-            container.insertAdjacentHTML('beforeend', _Processes.templates.createProcessDialog());
-            _Helpers.activateCommentsInElement(container);
-        },
-        showCreateNewProcessStateDialog: (container, updateFunction) => {
-            container.insertAdjacentHTML('beforeend', _Processes.templates.createProcessStateDialog());
-            _Helpers.activateCommentsInElement(container);
-        },
-        showCreateNewProcessStepDialog: (container, updateFunction) => {
-            container.insertAdjacentHTML('beforeend', _Processes.templates.createProcessStepDialog());
-            _Helpers.activateCommentsInElement(container);
-        },
-        showCreateNewProcessDecisionDialog: (container, updateFunction) => {
-            container.insertAdjacentHTML('beforeend', _Processes.templates.createProcessDecisionDialog());
-            _Helpers.activateCommentsInElement(container);
-        },
         showCreateProcessDialog: async () => {
 
             let {dialogText} = _Dialogs.custom.openDialog("Create process", null, ['process-edit-dialog']);
 
             let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
             let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Create' }));
-            _Processes.ui.showCreateNewProcessDialog(dialogText);
+
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.createProcessDialog());
+            _Helpers.activateCommentsInElement(dialogText);
 
             _Dialogs.custom.setDialogSaveButton(saveButton);
 
@@ -319,7 +356,8 @@ let _Processes = {
             let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
             let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Create' }));
 
-            _Processes.ui.showCreateNewProcessStateDialog(dialogText);
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.editProcessStateDialog());
+            _Helpers.activateCommentsInElement(dialogText);
 
             _Dialogs.custom.setDialogSaveButton(saveButton);
 
@@ -345,6 +383,50 @@ let _Processes = {
                 _Dialogs.custom.dialogCancelBaseAction();
             });
         },
+        showEditProcessStateDialog: async (stateId) => {
+
+            let {dialogText} = _Dialogs.custom.openDialog("Edit process state", null, ['process-state-edit-dialog']);
+
+            let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
+            let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Save and close' }));
+
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.editProcessStateDialog());
+            _Helpers.activateCommentsInElement(dialogText);
+            _Helpers.disableElements(true, saveButton);
+
+            Command.get(stateId, 'id,name,status', stateData => {
+                dialogText.querySelector('[data-property="name"]').value = stateData.name;
+
+                dialogText.querySelector('[data-property="name"]').addEventListener('keyup', e => {
+                    if (dialogText.querySelector('[data-property="name"]').value !== stateData.name) {
+                        _Helpers.disableElements(false, saveButton);
+                    } else {
+                        _Helpers.disableElements(true, saveButton);
+                    }
+                });
+            });
+
+            _Dialogs.custom.setDialogSaveButton(saveButton);
+
+            saveButton.addEventListener('click', async (e) => {
+                let processStateData = _Code.collectDataFromContainer(dialogText, {});
+
+                if (!processStateData.name || processStateData.name.trim() === '') {
+                    _Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
+                } else {
+                    Command.setProperties(stateId, processStateData, () => {
+                        _Dialogs.custom.dialogCancelBaseAction();
+                        _Processes.reload();
+                    });
+                }
+            });
+
+            // replace old cancel button with "discard button" to enable global ESC handler
+            _Dialogs.custom.replaceDialogCloseButton(discardButton, false);
+            discardButton.addEventListener('click', (e) => {
+                _Dialogs.custom.dialogCancelBaseAction();
+            });
+        },
         showCreateProcessStepDialog: async (stateId, processId) => {
             let {dialogText} = _Dialogs.custom.openDialog("Create process step", null, ['process-step-edit-dialog']);
 
@@ -353,7 +435,8 @@ let _Processes = {
 
             let initialData;
 
-            _Processes.ui.showCreateNewProcessStepDialog(dialogText);
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.editProcessStepDialog());
+            _Helpers.activateCommentsInElement(dialogText);
 
             _Dialogs.custom.setDialogSaveButton(saveButton);
 
@@ -375,51 +458,158 @@ let _Processes = {
             discardButton.addEventListener('click', (e) => {
                 _Dialogs.custom.dialogCancelBaseAction();
             });
-        }
-    },
-    showCreateProcessDecisionDialog: async (stepId) => {
+        },
+        showEditProcessStepDialog: async (stepId) => {
+            let {dialogText} = _Dialogs.custom.openDialog("Edit process step", null, ['process-step-edit-dialog']);
 
-        let {dialogText} = _Dialogs.custom.openDialog("Create process decision", null, ['process-decision-edit-dialog']);
+            let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
+            let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Save and close' }));
 
-        let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
-        let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Create' }));
-        _Processes.ui.showCreateNewProcessDecisionDialog(dialogText);
+            let initialData;
 
-        _Editors.getMonacoEditor({}, "condition", dialogText.querySelector('.editor'), {
-            language: 'auto',
-            lint: true,
-            autocomplete: true
-        });
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.editProcessStepDialog());
+            _Helpers.activateCommentsInElement(dialogText);
+            _Helpers.disableElements(true, saveButton);
 
-        _Dialogs.custom.setDialogSaveButton(saveButton);
+            Command.get(stepId, 'id,name,status', stepData => {
+                dialogText.querySelector('[data-property="name"]').value = stepData.name;
 
-        saveButton.addEventListener('click', async (e) => {
-            let processDecisionData = _Code.collectDataFromContainer(dialogText, {});
+                dialogText.querySelector('[data-property="name"]').addEventListener('keyup', e => {
+                    if (dialogText.querySelector('[data-property="name"]').value !== stepData.name) {
+                        _Helpers.disableElements(false, saveButton);
+                    } else {
+                        _Helpers.disableElements(true, saveButton);
+                    }
+                });
+            });
 
-            if (!processDecisionData.name || processDecisionData.name.trim() === '') {
-                _Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
-            } else {
+            _Dialogs.custom.setDialogSaveButton(saveButton);
 
-                const data = {
-                    name: processDecisionData.name,
-                    possibleStates: [
-                        { type: 'ProcessState', name: processDecisionData.validState, status: 200 },
-                        { type: 'ProcessState', name: processDecisionData.invalidState, status: 400, nextStep: stepId }
-                    ],
-                    condition: processDecisionData.condition,
-                    step: stepId
-                };
+            saveButton.addEventListener('click', async (e) => {
+                let processStepData = _Code.collectDataFromContainer(dialogText, {});
 
-                _Processes.addDecision(data);
+                if (!processStepData.name || processStepData.name.trim() === '') {
+                    _Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
+                } else {
+                    Command.setProperties(stepId, processStepData, () => {
+                        _Dialogs.custom.dialogCancelBaseAction();
+                        _Processes.reload();
+                    });
+                }
+            });
+
+            // replace old cancel button with "discard button" to enable global ESC handler
+            _Dialogs.custom.replaceDialogCloseButton(discardButton, false);
+            discardButton.addEventListener('click', (e) => {
                 _Dialogs.custom.dialogCancelBaseAction();
-            }
-        });
+            });
+        },
+        showCreateProcessDecisionDialog: async (stepId) => {
 
-        // replace old cancel button with "discard button" to enable global ESC handler
-        _Dialogs.custom.replaceDialogCloseButton(discardButton, false);
-        discardButton.addEventListener('click', (e) => {
-            _Dialogs.custom.dialogCancelBaseAction();
-        });
+            let {dialogText} = _Dialogs.custom.openDialog("Create process decision", null, ['process-decision-edit-dialog']);
+
+            let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
+            let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Create' }));
+
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.editProcessDecisionDialog());
+            _Helpers.activateCommentsInElement(dialogText);
+
+            _Editors.getMonacoEditor({}, 'condition', dialogText.querySelector('.editor'), {
+                language: 'auto',
+                lint: true,
+                autocomplete: true
+            });
+
+            _Dialogs.custom.setDialogSaveButton(saveButton);
+
+            saveButton.addEventListener('click', async (e) => {
+                let processDecisionData = _Code.collectDataFromContainer(dialogText, {});
+
+                if (!processDecisionData.name || processDecisionData.name.trim() === '') {
+                    _Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
+                } else {
+
+                    const data = {
+                        name: processDecisionData.name,
+                        possibleStates: [
+                            { type: 'ProcessState', name: processDecisionData.validState, status: 200 },
+                            { type: 'ProcessState', name: processDecisionData.invalidState, status: 400, nextStep: stepId }
+                        ],
+                        condition: processDecisionData.condition,
+                        step: stepId
+                    };
+
+                    _Processes.addDecision(data);
+                    _Dialogs.custom.dialogCancelBaseAction();
+                }
+            });
+
+            // replace old cancel button with "discard button" to enable global ESC handler
+            _Dialogs.custom.replaceDialogCloseButton(discardButton, false);
+            discardButton.addEventListener('click', (e) => {
+                _Dialogs.custom.dialogCancelBaseAction();
+            });
+        },
+        showEditProcessDecisionDialog: async (decisionId) => {
+
+            let {dialogText} = _Dialogs.custom.openDialog("Create process decision", null, ['process-decision-edit-dialog']);
+
+            let discardButton = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.discardActionButton({text: 'Discard and close' }));
+            let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Processes.templates.saveAndCloseActionButton({ text: 'Save and close' }));
+
+            dialogText.insertAdjacentHTML('beforeend', _Processes.templates.editProcessDecisionDialog());
+            _Helpers.activateCommentsInElement(dialogText);
+            _Helpers.disableElements(true, saveButton);
+
+            _Editors.getMonacoEditor({}, 'condition', dialogText.querySelector('.editor'), {
+                language: 'auto',
+                lint: true,
+                autocomplete: true
+            });
+
+            Command.get(decisionId, 'id,name,status', decisionData => {
+                dialogText.querySelector('[data-property="name"]').value = decisionData.name;
+                dialogText.querySelector('[data-property="name"]').value = decisionData.name;
+
+                dialogText.querySelector('[data-property="name"]').addEventListener('keyup', e => {
+                    if (dialogText.querySelector('[data-property="name"]').value !== decisionData.name) {
+                        _Helpers.disableElements(false, saveButton);
+                    } else {
+                        _Helpers.disableElements(true, saveButton);
+                    }
+                });
+            });
+
+            _Dialogs.custom.setDialogSaveButton(saveButton);
+
+            saveButton.addEventListener('click', async (e) => {
+                let processDecisionData = _Code.collectDataFromContainer(dialogText, {});
+
+                if (!processDecisionData.name || processDecisionData.name.trim() === '') {
+                    _Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
+                } else {
+
+                    const data = {
+                        name: processDecisionData.name,
+                        possibleStates: [
+                            { type: 'ProcessState', name: processDecisionData.validState, status: 200 },
+                            { type: 'ProcessState', name: processDecisionData.invalidState, status: 400, nextStep: stepId }
+                        ],
+                        condition: processDecisionData.condition,
+                        step: stepId
+                    };
+
+                    _Processes.addDecision(data);
+                    _Dialogs.custom.dialogCancelBaseAction();
+                }
+            });
+
+            // replace old cancel button with "discard button" to enable global ESC handler
+            _Dialogs.custom.replaceDialogCloseButton(discardButton, false);
+            discardButton.addEventListener('click', (e) => {
+                _Dialogs.custom.dialogCancelBaseAction();
+            });
+        }
     },
 
     templates: {
@@ -463,12 +653,10 @@ let _Processes = {
 
 			</div>
 		`,
-        createProcessStateDialog: config => `
+        editProcessStateDialog: config => `
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
-
 					<input data-property="name" class="flex-grow" placeholder="Process State Name...">
-
 				</div>
 
 				<h3>Options</h3>
@@ -485,12 +673,10 @@ let _Processes = {
 
 			</div>
 		`,
-        createProcessStepDialog: config => `
+        editProcessStepDialog: config => `
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
-
 					<input data-property="name" class="flex-grow" placeholder="Process Step Name...">
-
 				</div>
 
 				<h3>Options</h3>
@@ -507,7 +693,7 @@ let _Processes = {
 
 			</div>
 		`,
-        createProcessDecisionDialog: config => `
+        editProcessDecisionDialog: config => `
 			<div class="schema-details pl-2">
 			    <h2>Create Decision</h2>
 				<div class="mt-4">

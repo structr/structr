@@ -17,6 +17,32 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+.process-area .icon-inactive {
+    opacity: 0;
+}
+
+.process-area:hover .icon-inactive {
+    opacity: .8;
+}
+
+.process-area:hover .icon-inactive:hover {
+    opacity: 1;
+}
+
+.process-area .create-button {
+    opacity: 0;
+}
+
+.process-area:hover .create-button {
+    opacity: .8;
+}
+
+.process-area:hover .create-button:hover {
+    opacity: 1;
+    background-color: white;
+    box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+}
+
 .process-arrow-up,
 .process-arrow-down,
 .process-arrow-right,
