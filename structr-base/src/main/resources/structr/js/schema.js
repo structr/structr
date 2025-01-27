@@ -3409,18 +3409,14 @@ let _Schema = {
 
 			let methodsGridConfig = {
 				class: 'actions schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((entity) ? '[ isstatic ] 2rem ' : '') + '[ actions ] 6rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) [ more ] 2rem [ actions ] 6rem',
 				cols: [
 					{ class: 'text-center font-bold pb-2', title: 'Name' },
-					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
+					{ class: 'more-settings-col flex justify-center font-bold', title: 'More' },
 					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				],
-				buttons: _Schema.methods.templates.addMethodsDropdown({entity, availableLifecycleMethods}) + '<div class="flex-grow flex"></div>'
+				buttons: _Schema.methods.templates.addMethodsDropdown({ entity, availableLifecycleMethods }) + '<div class="flex-grow flex"></div>'
 			};
-
-			if (!entity) {
-				methodsGridConfig.cols.splice(1,1);
-			}
 
 			methods = _Schema.filterJavaMethods(methods, entity);
 			_Helpers.sort(methods);
@@ -3448,14 +3444,13 @@ let _Schema = {
 
 			for (let method of methods) {
 
-				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method: method }));
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method }));
 				gridBody.appendChild(gridRow);
+
+				_Helpers.activateCommentsInElement(gridRow);
 
 				gridRow.dataset['typeName']   = (entity ? entity.name : 'global_schema_method');
 				gridRow.dataset['methodName'] = method.name;
-
-				gridRow.querySelector('.property-name').value       = method.name;
-				gridRow.querySelector('.property-isStatic').checked = method.isStatic;
 
 				_Schema.methods.methodsData[method.id] = {
 					isNew:           false,
@@ -3463,17 +3458,23 @@ let _Schema = {
 					type:            method.type,
 					name:            method.name,
 					isStatic:        method.isStatic,
-					source:          method.source || '',
-					initialName:     method.name,
-					initialisStatic: method.isStatic,
-					initialSource:   method.source || '',
-					codeType:        method.codeType || '',
+					source:          method.source ?? '',
+					codeType:        method.codeType ?? '',
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
-					httpVerb:        method.httpVerb
+					httpVerb:        method.httpVerb,
+					schemaNode:      method.schemaNode,
+					initialData: {
+						name:            method.name,
+						isStatic:        method.isStatic,
+						source:          method.source ?? '',
+						isPrivate:       method.isPrivate,
+						returnRawResult: method.returnRawResult,
+						httpVerb:        method.httpVerb,
+					}
 				};
 
-				_Schema.methods.bindRowEvents(gridRow, entity);
+				_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
 
 				// auto-edit first method (or last used)
 				if ((rowToActivate === undefined) || (lastEditedMethod && ((lastEditedMethod.isNew === false && lastEditedMethod.id === method.id) || (lastEditedMethod.isNew === true && lastEditedMethod.name === method.name)))) {
@@ -3481,9 +3482,7 @@ let _Schema = {
 				}
 			}
 
-			if (rowToActivate) {
-				rowToActivate.querySelector('.edit-action').dispatchEvent(new Event('click'));
-			}
+			rowToActivate?.querySelector('.edit-action').dispatchEvent(new Event('click'));
 
 			let resetFunction = () => {
 				for (let discardIcon of methodsGrid.querySelectorAll('.discard-changes')) {
@@ -3532,6 +3531,15 @@ let _Schema = {
 				let methodId   = gridRow.dataset['methodId'];
 				let methodData = _Schema.methods.methodsData[methodId];
 
+				let baseMethodData = {
+					name:            methodData.name,
+					isStatic:        methodData.isStatic,
+					isPrivate:       methodData.isPrivate,
+					returnRawResult: methodData.returnRawResult,
+					httpVerb:        methodData.httpVerb,
+					source:          methodData.source,
+				};
+
 				if (methodData.isNew === false) {
 
 					if (gridRow.classList.contains('to-delete')) {
@@ -3549,12 +3557,7 @@ let _Schema = {
 							allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 						}
 
-						data.schemaMethods.push({
-							id:       methodId,
-							name:     methodData.name,
-							isStatic: methodData.isStatic,
-							source:   methodData.source,
-						});
+						data.schemaMethods.push(Object.assign({ id: methodId }, baseMethodData));
 
 					} else {
 
@@ -3573,12 +3576,7 @@ let _Schema = {
 						allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 					}
 
-					data.schemaMethods.push({
-						type:     'SchemaMethod',
-						name:     methodData.name,
-						isStatic: methodData.isStatic,
-						source:   methodData.source,
-					});
+					data.schemaMethods.push(Object.assign({ type: 'SchemaMethod' }, baseMethodData));
 				}
 			}
 
@@ -3659,8 +3657,9 @@ let _Schema = {
 					let name             = addMethodButton.dataset['name'] ?? ''
 					let isPrefix         = addMethodButton.dataset['isPrefix'] === 'true';
 					let baseMethodConfig = {
-						name: isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name,
-						id: 'new' + (addedMethodsCounter++)
+						name:       (isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name),
+						id:         'new' + (addedMethodsCounter++),
+						schemaNode: entity
 					};
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
@@ -3677,54 +3676,19 @@ let _Schema = {
 			gridBody.scrollTop = gridRow.offsetTop;
 
 			_Schema.methods.methodsData[method.id] = {
-				id:              method.id,
 				isNew:           true,
+				id:              method.id,
 				name:            method.name,
+				codeType:        method.codeType ?? '',
 				isStatic:        method.isStatic ?? false,
 				source:          method.source ?? '',
 				isPrivate:       method.isPrivate ?? false,
 				returnRawResult: method.returnRawResult ?? false,
+				httpVerb:        method.httpVerb ?? 'POST',
+				schemaNode:      method.schemaNode
 			};
 
-			let propertyNameInput = gridRow.querySelector('.property-name');
-			propertyNameInput.addEventListener('input', () => {
-				_Schema.methods.methodsData[method.id].name = propertyNameInput.value;
-			});
-
-			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
-			isStaticCheckbox.addEventListener('change', () => {
-				_Schema.methods.methodsData[method.id].isStatic = isStaticCheckbox.checked;
-			});
-
-			gridRow.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(gridRow, entity);
-			});
-
-			gridRow.querySelector('.clone-action').addEventListener('click', () => {
-
-				let clonedData = Object.assign({}, _Schema.methods.methodsData[method.id], {
-					id:       method.id + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy')
-				});
-
-				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
-			});
-
-			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
-
-				if (gridRow.classList.contains('editing')) {
-					document.querySelector('#methods-container-right').style.display = 'none';
-				}
-				_Helpers.fastRemoveElement(gridRow);
-
-				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
-
-				_Editors.nukeEditorsById(method.id);
-			});
-
-			_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
-
-			_Schema.methods.editMethod(gridRow, entity);
+			_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
 		},
 		getFirstFreeMethodName: (prefix) => {
 
@@ -3753,21 +3717,73 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: (gridRow, entity) => {
+		removeAllMoreMethodSettingsContainers: (e) => {
 
-			let methodId   = gridRow.dataset['methodId'];
-			let methodData = _Schema.methods.methodsData[methodId];
+			let isInSettingsContainer = (e.target.closest('.more-method-settings-container') !== null);
+
+			if (!isInSettingsContainer) {
+
+				document.removeEventListener('mouseup', _Schema.methods.removeAllMoreMethodSettingsContainers);
+
+				for (let container of document.querySelectorAll('.more-method-settings-container')) {
+					container.classList.add('hidden');
+				}
+			}
+		},
+		bindRowEvents: (gridBody, gridRow, entity) => {
+
+			let methodId       = gridRow.dataset['methodId'];
+			let methodData     = _Schema.methods.methodsData[methodId];
+			let isDatabaseNode = (methodData.isNew === false);
+
+			_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 
 			let propertyNameInput = gridRow.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				methodData.name = propertyNameInput.value;
-				_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialName));
+
+				if (isDatabaseNode) {
+					_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialData.name));
+				}
+
+				_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 			});
 
-			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
-			isStaticCheckbox.addEventListener('change', () => {
-				methodData.isStatic = isStaticCheckbox.checked;
-				_Schema.methods.rowChanged(gridRow, (methodData.isStatic !== methodData.initialisStatic));
+			for (let checkbox of gridRow.querySelectorAll('input[type="checkbox"][data-property]')) {
+
+				checkbox.addEventListener('change', (e) => {
+					let key = checkbox.dataset['property'];
+					methodData[key] = checkbox.checked;
+
+					if (isDatabaseNode) {
+						_Schema.methods.rowChanged(gridRow, (methodData[key] !== methodData.initialData[key]));
+					}
+
+					_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
+				});
+			}
+
+			gridRow.querySelector('select[data-property="httpVerb"]').addEventListener('change', (e) => {
+				methodData.httpVerb = e.target.value;
+
+				if (isDatabaseNode) {
+					_Schema.methods.rowChanged(gridRow, (methodData.httpVerb !== methodData.initialData.httpVerb));
+				}
+			});
+
+			gridRow.querySelector('.toggle-more-method-settings').addEventListener('click', (e) => {
+
+				e.stopPropagation();
+
+				let settingsContainer = gridRow.querySelector('.more-method-settings-container');
+				let wasHidden         = settingsContainer.classList.contains('hidden');
+
+				if (wasHidden) {
+					_Schema.methods.removeAllMoreMethodSettingsContainers(e);
+					document.addEventListener('click', _Schema.methods.removeAllMoreMethodSettingsContainers);
+				}
+
+				settingsContainer.classList.toggle('hidden');
 			});
 
 			gridRow.querySelector('.edit-action').addEventListener('click', () => {
@@ -3777,40 +3793,84 @@ let _Schema = {
 			gridRow.querySelector('.clone-action').addEventListener('click', () => {
 
 				let clonedData = Object.assign({}, methodData, {
-					id:       methodId + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
+					id:   methodId + '_clone_' + (new Date().getTime()),
+					name: _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
 				});
 
-				_Schema.methods.appendNewMethod(gridRow.closest('.schema-grid-body'), clonedData, entity);
+				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
 			});
 
-			gridRow.querySelector('.remove-action').addEventListener('click', () => {
+			gridRow.querySelector('.remove-action')?.addEventListener('click', () => {
 				gridRow.classList.add('to-delete');
 				_Schema.methods.rowChanged(gridRow, true);
 			});
 
 			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
 
-				if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
+				if (isDatabaseNode) {
 
-					gridRow.classList.remove('to-delete');
-					gridRow.classList.remove('has-changes');
+					if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
 
-					methodData.name     = methodData.initialName;
-					methodData.isStatic = methodData.initialisStatic;
-					methodData.source   = methodData.initialSource;
+						gridRow.classList.remove('to-delete');
+						gridRow.classList.remove('has-changes');
 
-					gridRow.querySelector('.property-name').value       = methodData.name;
-					gridRow.querySelector('.property-isStatic').checked = methodData.isStatic;
+						methodData = Object.assign(methodData, methodData.initialData);
 
-					if (gridRow.classList.contains('editing')) {
-						_Editors.disposeEditorModel(methodData.id, 'source');
-						_Schema.methods.editMethod(gridRow);
+						gridRow.querySelector('.property-name').value                      = methodData.name;
+						gridRow.querySelector('[data-property="isStatic"]').checked        = methodData.isStatic;
+						gridRow.querySelector('[data-property="isPrivate"]').checked       = methodData.isPrivate;
+						gridRow.querySelector('[data-property="returnRawResult"]').checked = methodData.returnRawResult;
+						gridRow.querySelector('[data-property="httpVerb"]').checked        = methodData.httpVerb;
+
+						if (gridRow.classList.contains('editing')) {
+							_Editors.disposeEditorModel(methodData.id, 'source');
+							_Schema.methods.editMethod(gridRow);
+						}
+
+						_Schema.methods.rowChanged(gridRow, false);
+
+						_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 					}
 
-					_Schema.methods.rowChanged(gridRow, false);
+				} else {
+
+					if (gridRow.classList.contains('editing')) {
+						document.querySelector('#methods-container-right').style.display = 'none';
+					}
+					_Helpers.fastRemoveElement(gridRow);
+
+					_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
+
+					_Editors.nukeEditorsById(methodData.id);
 				}
 			});
+
+			if (!isDatabaseNode) {
+
+				_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+
+				_Schema.methods.editMethod(gridRow, entity);
+			}
+		},
+		updateUIForAllAttributes: (container, methodData) => {
+
+			let updateVisibilityForAttribute = (attributeName, canSeeAttr) => {
+
+				let element = container.querySelector(`[data-property="${attributeName}"]`);
+				element?.closest('.method-config-element')?.classList.toggle('hidden', (canSeeAttr === false));
+			};
+
+			let isTypeMethod      = (!!methodData.schemaNode);
+			let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(methodData);
+			let isCallableViaREST = (methodData.isPrivate !== true);
+
+			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod));
+			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
+			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
+			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+
+			// completely hide 'more' button for lifecycle methods
+			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
 		},
 		saveAndDisposePreviousEditor: (tr) => {
 
@@ -3844,9 +3904,17 @@ let _Schema = {
 				lint: true,
 				autocomplete: true,
 				changeFn: (editor, entity) => {
+
 					methodData.source = editor.getValue();
-					let hasChanges = (methodData.source !== methodData.initialSource) || (methodData.name !== methodData.initialName) || (methodData.isStatic !== methodData.initialisStatic);
-					_Schema.methods.rowChanged(tr, hasChanges);
+
+					if (methodData.isNew === false) {
+
+						let changesInInitialData = Object.keys(methodData.initialData).reduce((acc, key) => {
+							return acc || (methodData[key] !== methodData.initialData[key]);
+						}, false);
+
+						_Schema.methods.rowChanged(tr, changesInInitialData);
+					}
 				}
 			};
 
@@ -3913,14 +3981,58 @@ let _Schema = {
 					<div class="name-col px-1 py-2">
 						<input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}">
 					</div>
-					<div class="isstatic-col flex items-center justify-center">
-						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" ${config.method.isStatic === true ? 'checked' : ''}>
+					<div class="more-settings-col flex items-center justify-center relative">
+
+						${_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['toggle-more-method-settings']), 'More settings')}
+
+						<div class="more-method-settings-container hidden absolute" style="z-index: 1; top: calc(100% - 1rem); right: 0; ">
+							<div class="bg-white border border-gray-ddd flex flex-shrink flex-wrap px-4 py-2 rounded-sm">
+								${_Schema.methods.templates.methodFlags(Object.assign({ cols: 1 }, config))}
+							</div>
+						</div>
+
 					</div>
 					<div class="flex items-center justify-center gap-1">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
 						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Discard')}
+					</div>
+				</div>
+			`,
+			methodFlags: config => `
+				<div class="grid grid grid-cols-${config.cols ?? 2} gap-x-2">
+
+					<div>
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+					</div>
+
+					<div>
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return result object only
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<select data-property="httpVerb">
+								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
+								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
+								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
+								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
+								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
+							</select>
+						</div>
 					</div>
 				</div>
 			`,
