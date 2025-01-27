@@ -64,12 +64,15 @@ public class NestedResourcesTest extends StructrRestTestBase {
 	@Test
 	public void test010EndpointNotations() {
 
+		// Note: this test has become obsolete because we don't allow pluralized
+		// resource names any more (e.g. test_twos is not allowed for TestTwo!)
+
 		String testOne = createEntity("/TestOne", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
 
 		System.out.println(testOne);
 
-		String body = "{ \"TestOne\": [ \"" + testOne + "\" ] }";
+		String body = "{ \"test_ones\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
 
 		String testTwo = createEntity("/TestTwo", body);
@@ -87,40 +90,6 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result.id",          equalTo(testTwo))
 			.when()
 				.get("/TestTwo/" + testTwo);
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result_count",       equalTo(1))
-				.body("result.id",          equalTo(testTwo))
-			.when()
-				.get("/TestTwo/" + testTwo);
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result_count",       equalTo(1))
-				.body("result.id",          equalTo(testTwo))
-			.when()
-				.get("/TestTwo/" + testTwo);
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result_count",       equalTo(1))
-				.body("result.id",          equalTo(testTwo))
-			.when()
-				.get("/TestTwo/" + testTwo);
-
 	}
 
 	/**

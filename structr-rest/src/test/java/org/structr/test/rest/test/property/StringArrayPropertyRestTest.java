@@ -125,9 +125,6 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].id", equalTo(id1))
 		.when()
 			.get("/TestThree?stringArrayProperty=[]");
-
-
-
 	}
 
 
@@ -179,7 +176,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].stringArrayProperty[4]", equalTo("five"))
 
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=one");
+			.get("/TestThree?_sort=name&stringArrayProperty=one&_inexact=true");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -207,7 +204,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].stringArrayProperty[3]", equalTo("four"))
 			.body("result[3].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=two");
+			.get("/TestThree?_sort=name&stringArrayProperty=two&_inexact=1");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -232,7 +229,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].stringArrayProperty[3]", equalTo("four"))
 			.body("result[2].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=three");
+			.get("/TestThree?_sort=name&stringArrayProperty=three&_loose=true");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -253,13 +250,13 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[3]", equalTo("four"))
 			.body("result[1].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=four");
+			.get("/TestThree?_sort=name&stringArrayProperty=four&_loose=1");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-		.expect()
+			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 
@@ -268,8 +265,30 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
 			.body("result[0].stringArrayProperty[3]", equalTo("four"))
 			.body("result[0].stringArrayProperty[4]", equalTo("five"))
-		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=five");
+			.when()
+			.get("/TestThree?_sort=name&stringArrayProperty=five&_inexact=true");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+
+			.body("result[0].stringArrayProperty[0]", equalTo("one"))
+			.body("result[0].stringArrayProperty[1]", equalTo("two"))
+			.body("result[0].stringArrayProperty[2]", equalTo("three"))
+			.body("result[0].stringArrayProperty[3]", equalTo("four"))
+
+			.body("result[1].stringArrayProperty[0]", equalTo("one"))
+			.body("result[1].stringArrayProperty[1]", equalTo("two"))
+			.body("result[1].stringArrayProperty[2]", equalTo("three"))
+			.body("result[1].stringArrayProperty[3]", equalTo("four"))
+			.body("result[1].stringArrayProperty[4]", equalTo("five"))
+
+			.when()
+			.get("/TestThree?_sort=name&stringArrayProperty=f&_inexact=true");
 	}
 
 
@@ -317,7 +336,8 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("["
 				+ "{ 'name': 'test1', 'stringArrayProperty' : ['one'] },"
 				+ "{ 'name': 'test2', 'stringArrayProperty' : ['one', 'two'] },"
-				+ "{ 'name': 'test3', 'stringArrayProperty' : ['one', 'two', 'three'] }"
+				+ "{ 'name': 'test3', 'stringArrayProperty' : ['one', 'two', 'three'] },"
+				+ "{ 'name': 'test4', 'stringArrayProperty' : ['two', 'three', 'four'] }"
 				+ "]")
 		.expect()
 			.statusCode(201)
@@ -341,7 +361,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=one,two");
+			.get("/TestThree?_sort=name&stringArrayProperty=one,two&_inexact=true");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")

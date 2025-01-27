@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -225,7 +226,66 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		public Object[] convert(T[] source) throws FrameworkException {
 			return source;
 		}
+	}
 
+	@Override
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final Query query) throws FrameworkException {
+
+		if (requestParameter.contains(",") || requestParameter.contains(";")) {
+
+			if (requestParameter.contains(";")) {
+
+				if (exactMatch) {
+
+					query.and();
+
+					for (final String part : trimAndFilter(requestParameter.split(";"))) {
+
+						query.or(this, convertSearchValue(securityContext, part), false);
+					}
+
+					query.parent();
+
+				} else {
+
+					query.and();
+
+					for (final String part : trimAndFilter(requestParameter.split(";"))) {
+
+						query.or(this, convertSearchValue(securityContext, part), false);
+					}
+
+					query.parent();
+				}
+
+			} else if (requestParameter.contains(",")) {
+
+				if (exactMatch) {
+
+					query.and(this, trimAndFilter(requestParameter.split(",")), true);
+
+				} else {
+
+					query.and(this, trimAndFilter(requestParameter.split(",")), false);
+				}
+
+			} else {
+
+				query.and(this, requestParameter, exactMatch);
+			}
+
+			return;
+		}
+
+		if (StringUtils.isEmpty(requestParameter)) {
+
+			query.and(this, null);
+
+			return;
+		}
+
+		// use default implementation
+		super.determineSearchType(securityContext, requestParameter, exactMatch, query);
 	}
 
 	@Override
@@ -241,7 +301,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			final SearchAttributeGroup group = new SearchAttributeGroup(occur);
 			for (T value : searchValue) {
 
-				group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
+				group.add(new ArraySearchAttribute(this, value, Occurrence.REQUIRED, false));
 			}
 
 			return group;
@@ -370,5 +430,22 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		} catch (Throwable t) {}
 
 		return null;
+	}
+
+	private String[] trimAndFilter(final String[] input) {
+
+		final ArrayList<String> trimmed = new ArrayList<>();
+
+		for (final String part : input) {
+
+			final String trimmedString = part.trim();
+
+			if (StringUtils.isNotBlank(trimmedString)) {
+
+				trimmed.add(trimmedString);
+			}
+		}
+
+		return trimmed.toArray(new String[0]);
 	}
 }
