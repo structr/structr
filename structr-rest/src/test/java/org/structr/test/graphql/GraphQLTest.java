@@ -193,42 +193,42 @@ public class GraphQLTest extends StructrGraphQLTest {
 				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate4"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "zrtsga"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), team.get(2))
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(2))
 			));
 
 			templates.add(app.create("MailTemplate",
 				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate2"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "lertdf"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), team.get(0))
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(0))
 			));
 
 			templates.add(app.create("MailTemplate",
 				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate5"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "tzegsg"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), team.get(3))
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(3))
 			));
 
 			templates.add(app.create("MailTemplate",
 				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate3"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "asgw"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), team.get(1))
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(1))
 			));
 
 			templates.add(app.create("MailTemplate",
 				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate6"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "dfjgr"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), team.get(4))
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(4))
 			));
 
 			templates.add(app.create("MailTemplate",
 				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate1"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "abcdef"),
-				new NodeAttribute<>(Traits.of("AbstractNode").key("owner"), team.get(0))
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(0))
 			));
 
 			for (final NodeInterface t : templates) {
@@ -1442,41 +1442,42 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final String projectType = "Project";
 
+			final PropertyKey<String> nameKey = Traits.of("NodeInterface").key("name");
 			final PropertyKey testBoolean = Traits.of(projectType).key("testBoolean");
 			final PropertyKey testDouble  = Traits.of(projectType).key("testDouble");
 			final PropertyKey testLong    = Traits.of(projectType).key("testLong");
 			final PropertyKey testInt     = Traits.of(projectType).key("testInt");
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1"),
-				new NodeAttribute<>(testBoolean,       true),
-				new NodeAttribute<>(testDouble,        252.52),
-				new NodeAttribute<>(testLong,          234532L),
-				new NodeAttribute<>(testInt,           4563332)
+				new NodeAttribute<>(nameKey,     "Project1"),
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(testDouble,  252.52),
+				new NodeAttribute<>(testLong,    234532L),
+				new NodeAttribute<>(testInt,     4563332)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2"),
-				new NodeAttribute<>(testBoolean,       false),
-				new NodeAttribute<>(testDouble,        124.52),
-				new NodeAttribute<>(testLong,          563L),
-				new NodeAttribute<>(testInt,           2345)
+				new NodeAttribute<>(nameKey,     "Project2"),
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(testDouble,  124.52),
+				new NodeAttribute<>(testLong,    563L),
+				new NodeAttribute<>(testInt,     2345)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project3"),
-				new NodeAttribute<>(testBoolean,       true),
-				new NodeAttribute<>(testDouble,        323.22),
-				new NodeAttribute<>(testLong,          22L),
-				new NodeAttribute<>(testInt,           452)
+				new NodeAttribute<>(nameKey,     "Project3"),
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(testDouble,  323.22),
+				new NodeAttribute<>(testLong,    22L),
+				new NodeAttribute<>(testInt,     452)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project4"),
-				new NodeAttribute<>(testBoolean,       false),
-				new NodeAttribute<>(testDouble,        334.32),
-				new NodeAttribute<>(testLong,          5L),
-				new NodeAttribute<>(testInt,           235)
+				new NodeAttribute<>(nameKey,     "Project4"),
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(testDouble,  334.32),
+				new NodeAttribute<>(testLong,    5L),
+				new NodeAttribute<>(testInt,     235)
 			);
 
 			tx.success();
@@ -2590,11 +2591,12 @@ public class GraphQLTest extends StructrGraphQLTest {
 			fex.printStackTrace();
 		}
 
-		final String baseType    = "BaseType";
-		final String projectType = "Project";
-		final String taskType    = "Task";
-		final PropertyKey checkedKey           = Traits.of(baseType).key("isChecked");
-		final PropertyKey projectTasksKey      = Traits.of(projectType).key("tasks");
+		final String baseType             = "BaseType";
+		final String projectType          = "Project";
+		final String taskType             = "Task";
+		final PropertyKey checkedKey      = Traits.of(baseType).key("isChecked");
+		final PropertyKey projectTasksKey = Traits.of(projectType).key("tasks");
+		final PropertyKey<String> nameKey = Traits.of("NodeInterface").key("name");
 
 		try (final Tx tx = app.tx()) {
 
@@ -2604,36 +2606,36 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final List<NodeInterface> tasks4 = new LinkedList<>();
 			final List<NodeInterface> tasks5 = new LinkedList<>();
 
-			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project1"), new NodeAttribute<>(checkedKey, true));
-			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project2"), new NodeAttribute<>(checkedKey, false));
-			final NodeInterface project3     = app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project3"), new NodeAttribute<>(checkedKey, true));
-			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project4"), new NodeAttribute<>(checkedKey, false));
-			final NodeInterface project5     = app.create(projectType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project5"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(nameKey, "Project1"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(nameKey, "Project2"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project3     = app.create(projectType, new NodeAttribute<>(nameKey, "Project3"), new NodeAttribute<>(checkedKey, true));
+			final NodeInterface project4     = app.create(projectType, new NodeAttribute<>(nameKey, "Project4"), new NodeAttribute<>(checkedKey, false));
+			final NodeInterface project5     = app.create(projectType, new NodeAttribute<>(nameKey, "Project5"), new NodeAttribute<>(checkedKey, true));
 
-			tasks1.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task1.1"), new NodeAttribute<>(checkedKey, false)));
-			tasks1.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task1.3"), new NodeAttribute<>(checkedKey, true)));
-			tasks1.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task1.5"), new NodeAttribute<>(checkedKey, false)));
-			tasks1.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task1.6"), new NodeAttribute<>(checkedKey, true)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task1.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task1.3"), new NodeAttribute<>(checkedKey, true)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task1.5"), new NodeAttribute<>(checkedKey, false)));
+			tasks1.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task1.6"), new NodeAttribute<>(checkedKey, true)));
 
-			tasks2.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task2.1"), new NodeAttribute<>(checkedKey, false)));
-			tasks2.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task2.2"), new NodeAttribute<>(checkedKey, true)));
-			tasks2.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task2.3"), new NodeAttribute<>(checkedKey, false)));
-			tasks2.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task2.4"), new NodeAttribute<>(checkedKey, true)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task2.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task2.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task2.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks2.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task2.4"), new NodeAttribute<>(checkedKey, true)));
 
-			tasks3.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task3.1"), new NodeAttribute<>(checkedKey, false)));
-			tasks3.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task3.2"), new NodeAttribute<>(checkedKey, true)));
-			tasks3.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task3.3"), new NodeAttribute<>(checkedKey, false)));
-			tasks3.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task3.4"), new NodeAttribute<>(checkedKey, true)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task3.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task3.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task3.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks3.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task3.4"), new NodeAttribute<>(checkedKey, true)));
 
-			tasks4.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task4.1"), new NodeAttribute<>(checkedKey, false)));
-			tasks4.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task4.2"), new NodeAttribute<>(checkedKey, true)));
-			tasks4.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task4.3"), new NodeAttribute<>(checkedKey, false)));
-			tasks4.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task4.4"), new NodeAttribute<>(checkedKey, true)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task4.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task4.2"), new NodeAttribute<>(checkedKey, true)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task4.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks4.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task4.4"), new NodeAttribute<>(checkedKey, true)));
 
-			tasks5.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task5.1"), new NodeAttribute<>(checkedKey, false)));
-			tasks5.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task5.2"), new NodeAttribute<>(checkedKey, false)));
-			tasks5.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task5.3"), new NodeAttribute<>(checkedKey, false)));
-			tasks5.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task5.4"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task5.1"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task5.2"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task5.3"), new NodeAttribute<>(checkedKey, false)));
+			tasks5.add(app.create(taskType, new NodeAttribute<>(nameKey, "Task5.4"), new NodeAttribute<>(checkedKey, false)));
 
 			project1.setProperty(projectTasksKey, tasks1);
 			project2.setProperty(projectTasksKey, tasks2);

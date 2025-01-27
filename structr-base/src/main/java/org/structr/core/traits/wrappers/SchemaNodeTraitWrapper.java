@@ -30,7 +30,10 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper implements SchemaNode {
 
@@ -184,16 +187,25 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	@Override
 	public TraitDefinition[] getTraitDefinitions() {
 
-		final List<TraitDefinition> definitions = new ArrayList<>();
+		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(this));
 
-		for (final String inheritedTrait : getInheritedTraits()) {
+		return definitions.toArray(new TraitDefinition[0]);
+	}
+
+	// ----- private methods -----
+	private Set<TraitDefinition> recursivelyResolveTraitInheritance(final SchemaNode schemaNode) {
+
+		final Set<TraitDefinition> definitions = new LinkedHashSet<>();
+
+		for (final String inheritedTrait : schemaNode.getInheritedTraits()) {
 
 			try {
 
 				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery("SchemaNode").andName(inheritedTrait).getFirst();
 				if (inheritedSchemaNode != null) {
 
-					definitions.add(new DynamicNodeTraitDefinition(inheritedSchemaNode.as(SchemaNode.class)));
+					// recurse
+					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));
 
 				} else {
 
@@ -212,9 +224,8 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 			}
 		}
 
-		// add actual type last
-		definitions.add(new DynamicNodeTraitDefinition(this));
+		definitions.add(new DynamicNodeTraitDefinition(schemaNode));
 
-		return definitions.toArray(new TraitDefinition[0]);
+		return definitions;
 	}
 }

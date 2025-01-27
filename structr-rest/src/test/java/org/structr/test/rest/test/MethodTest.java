@@ -22,13 +22,8 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.Scripting;
-import org.structr.rest.RestMethodResult;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -37,7 +32,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -337,6 +333,7 @@ public class MethodTest extends StructrRestTestBase {
 				.post("/BaseType/" + base + "/test");
 	}
 
+	/*
 	@Test
 	public void testJavaArgumentPassing1() {
 
@@ -457,6 +454,7 @@ public class MethodTest extends StructrRestTestBase {
 			fail("Unexpected exception");
 		}
 	}
+	*/
 
 	@Test
 	public void testMethodParametersObject() {

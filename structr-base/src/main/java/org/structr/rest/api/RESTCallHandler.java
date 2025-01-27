@@ -48,6 +48,8 @@ import org.structr.rest.exception.IllegalPathException;
 
 import java.util.*;
 
+import static java.lang.Boolean.parseBoolean;
+
 /**
  *
  */
@@ -374,7 +376,15 @@ public abstract class RESTCallHandler {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			final boolean exactSearch          = !(parseInteger(request.getParameter(RequestKeywords.Inexact.keyword())) == 1);
+			if (request.getParameter(RequestKeywords.Inexact_Deprecated.keyword()) != null) {
+
+				logger.warn("Usage of deprecated request keyword {} detected. This keyword is deprecated and will be removed in the future. Please use {} instead.",
+					RequestKeywords.Inexact_Deprecated.keyword(),
+					RequestKeywords.Inexact.keyword()
+				);
+			}
+
+			boolean exactSearch                = !getTruthyValueFromRequestParameters(request, RequestKeywords.Inexact_Deprecated, RequestKeywords.Inexact);
 			final List<PropertyKey> searchKeys = new LinkedList<>();
 			final Traits traits                = Traits.of(type);
 
@@ -655,6 +665,26 @@ public abstract class RESTCallHandler {
 		}
 
 		return defaultValue;
+	}
+
+	private boolean getTruthyValueFromRequestParameters(final HttpServletRequest request, final RequestKeywords... requestKeywords) {
+
+		for (final RequestKeywords k : requestKeywords) {
+
+			final String value = request.getParameter(k.keyword());
+			if (value != null) {
+
+				if (parseInteger(value) == 1) {
+					return true;
+				}
+
+				if (parseBoolean(value)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	// ----- nested classes -----
