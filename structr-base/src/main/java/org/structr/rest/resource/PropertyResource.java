@@ -20,20 +20,8 @@ package org.structr.rest.resource;
 
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.traits.Traits;
-import org.structr.rest.api.RESTCall;
-import org.structr.core.property.*;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -48,9 +36,14 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.SchemaHelper;
+
+import java.util.*;
 
 /**
  * A resource that calls getProperty() addressed by URL, like /TypeName/uuid/propertyName.
@@ -64,16 +57,15 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		final Traits traits = Traits.of(typeName);
 		if (traits != null) {
 
-			PropertyKey key = traits.key(name);
-			if (key == null) {
+			if (traits.hasKey(name)) {
 
-				// try to convert raw name into lower-case variable name
-				key = traits.key(CaseHelper.toLowerCamelCase(name));
+				return new PropertyResourceHandler(call, typeName, uuid, traits.key(name));
 			}
 
-			if (key != null) {
+			final String lowerCaseName = CaseHelper.toLowerCamelCase(name);
+			if ( traits.hasKey(lowerCaseName)) {
 
-				return new PropertyResourceHandler(call, typeName, uuid, key);
+				return new PropertyResourceHandler(call, typeName, uuid, traits.key(lowerCaseName));
 			}
 		}
 
