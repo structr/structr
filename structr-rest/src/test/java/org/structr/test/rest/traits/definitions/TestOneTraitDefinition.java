@@ -19,45 +19,66 @@
 package org.structr.test.rest.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.schema.action.EvaluationHints;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-
-	public static final View defaultView = new View(TestOne.class, PropertyView.Public,
-		name, anInt, aLong, aDate
-	);
-
-	@Export
-	public RestMethodResult test01(final SecurityContext securityContext, final Map<String, Object> params) {
-		return null;
-	}
-
-	@Export
-	public void test02(final SecurityContext securityContext, final Map<String, Object> params) {
-	}
-
-	@Export
-	public RestMethodResult test03(final SecurityContext securityContext) {
-		return null;
-	}
-
-	@Export
-	public void test04(final SecurityContext securityContext) {
-	}
-	*/
-
-	fixme: methods!
-
 	public TestOneTraitDefinition() {
 		super("TestOne");
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		final Set<AbstractMethod> methods = new LinkedHashSet<>();
+
+		methods.add(new JavaMethod("test01", false, false) {
+
+			@Override
+			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				return null;
+			}
+		});
+
+		methods.add(new JavaMethod("test02", false, false) {
+
+			@Override
+			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				return null;
+			}
+		});
+
+		methods.add(new JavaMethod("test03", false, false) {
+
+			@Override
+			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				return null;
+			}
+		});
+
+		methods.add(new JavaMethod("test04", false, false) {
+
+			@Override
+			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				return null;
+			}
+		});
+
+		return methods;
 	}
 
 	@Override
