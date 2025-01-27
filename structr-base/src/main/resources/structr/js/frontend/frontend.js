@@ -589,7 +589,7 @@ export class Frontend {
 
 			} else {
 
-				if (parameters.type === 'ProcessInstance') {
+				if (parameters?.type === 'ProcessInstance') {
 					const processInstanceId = parameters.id;
 					dataset.currentObjectId = processInstanceId;
 					const url = new URL(window.location.href);
