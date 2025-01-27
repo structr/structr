@@ -931,10 +931,10 @@ public class UiScriptingTest extends StructrUiTest {
 			final Object result3 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')[0]); }}", "test3");
 			final Object result4 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')); }}",    "test4");
 
-			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"result\": {\n\t\t\"name\": \"Test\"\n\t}\n}", result1);
-			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "{\n\t\"result\": [\n\t\t{\n\t\t\t\"name\": \"Test\"\n\t\t}\n\t]\n}", result2);
+			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
+			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
 			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"isUser\": true,\n\t\"name\": \"admin\"\n}", result3);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "{\n\t\"result\": [\n\t\t{\n\t\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\t\"type\": \"User\",\n\t\t\t\"isUser\": true,\n\t\t\t\"name\": \"admin\"\n\t\t}\n\t]\n}", result4);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"isUser\": true,\n\t\t\"name\": \"admin\"\n\t}\n]", result4);
 
 			tx.success();
 
@@ -1266,7 +1266,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			final Object result = ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndexConversion.js"));
 
-			final String expectedResult = "{\n\t\"result\": {\n\t\t\"24\": \"jack bauer\"\n\t}\n}";
+			final String expectedResult = "{\n\t\"24\": \"jack bauer\"\n}";
 
 			assertEquals("Result should be a JSON string! Maps with numerical indexes should work.", expectedResult, result);
 
