@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2010-2024 Structr GmbH
  *
@@ -319,23 +320,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path schemaFolder                             = source.resolve(SCHEMA_FOLDER_PATH);
 
 			if (
-				!Files.exists(deploymentConfFile) &&
-				!Files.exists(preDeployConfFile) &&
-				!Files.exists(postDeployConfFile) &&
-				!Files.exists(grantsMetadataFile) &&
-				!Files.exists(corsSettingsMetadataFile) &&
-				!Files.exists(mailTemplatesMetadataFile) &&
-				!Files.exists(widgetsMetadataFile) &&
-				!Files.exists(localizationsMetadataFile) &&
-				!Files.exists(applicationConfigurationDataMetadataFile) &&
-				!Files.exists(filesMetadataFile) &&
-				!Files.exists(pagesMetadataFile) &&
-				!Files.exists(componentsMetadataFile) &&
-				!Files.exists(templatesMetadataFile) &&
-				!Files.exists(actionMappingMetadataFile) &&
-				!Files.exists(parameterMappingMetadataFile) &&
-				!Files.exists(sitesConfFile) &&
-				!Files.exists(schemaFolder)
+					!Files.exists(deploymentConfFile) &&
+							!Files.exists(preDeployConfFile) &&
+							!Files.exists(postDeployConfFile) &&
+							!Files.exists(grantsMetadataFile) &&
+							!Files.exists(corsSettingsMetadataFile) &&
+							!Files.exists(mailTemplatesMetadataFile) &&
+							!Files.exists(widgetsMetadataFile) &&
+							!Files.exists(localizationsMetadataFile) &&
+							!Files.exists(applicationConfigurationDataMetadataFile) &&
+							!Files.exists(filesMetadataFile) &&
+							!Files.exists(pagesMetadataFile) &&
+							!Files.exists(componentsMetadataFile) &&
+							!Files.exists(templatesMetadataFile) &&
+							!Files.exists(actionMappingMetadataFile) &&
+							!Files.exists(parameterMappingMetadataFile) &&
+							!Files.exists(sitesConfFile) &&
+							!Files.exists(schemaFolder)
 			) {
 
 				throw new ImportPreconditionFailedException("Source path '" + path + "' does not contain any of the files for a structr deployment.");
@@ -718,12 +719,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
 			for (final File file : app.nodeQuery(File.class)
-				.and(parentKey, null)
-				.sort(File.name)
-				.and()
+					.and(parentKey, null)
+					.sort(File.name)
+					.and()
 					.or(inclKey, true)
 					.or(jsKey, true)
-				.getAsList()) {
+					.getAsList()) {
 
 				exportFile(target, file, config);
 			}
@@ -1624,21 +1625,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
 
-				putData(entry, "event",        actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
-				putData(entry, "action",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
-				putData(entry, "method",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
-				putData(entry, "dataType",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
-				putData(entry, "idExpression", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
+				putData(entry, "event",                        actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
+				putData(entry, "action",                       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
+				putData(entry, "method",                       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
+				putData(entry, "dataType",                     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
+				putData(entry, "idExpression",                 actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
 
-				putData(entry, "successBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
-				putData(entry, "successPartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
-				putData(entry, "successURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
-				putData(entry, "successEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
+				putData(entry, "successBehaviour",             actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
+				putData(entry, "successPartial",               actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
+				putData(entry, "successURL",                   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
+				putData(entry, "successEvent",                 actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
+				putData(entry, "successNotifications",         actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotifications")));
+				putData(entry, "successNotificationsEvent",    actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent")));
+				putData(entry, "successNotificationsPartial",  actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial")));
 
-				putData(entry, "failureBehaviour", actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
-				putData(entry, "failurePartial",   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
-				putData(entry, "failureURL",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
-				putData(entry, "successEvent",     actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
+				putData(entry, "failureBehaviour",             actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
+				putData(entry, "failurePartial",               actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
+				putData(entry, "failureURL",                   actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
+				putData(entry, "failureEvent",                 actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
+				putData(entry, "failureNotifications",         actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications")));
+				putData(entry, "failureNotificationsEvent",    actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent")));
+				putData(entry, "failureNotificationsPartial",  actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial")));
 
 			}
 		}
@@ -1840,20 +1847,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						final String signature = (String)entry.get("signature");
 
 						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
-							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
-							((flags & UiAuthenticator.NON_AUTH_USER_POST) == UiAuthenticator.NON_AUTH_USER_POST) ||
-							((flags & UiAuthenticator.NON_AUTH_USER_DELETE) == UiAuthenticator.NON_AUTH_USER_DELETE) ||
-							((flags & UiAuthenticator.NON_AUTH_USER_OPTIONS) == UiAuthenticator.NON_AUTH_USER_OPTIONS) ||
-							((flags & UiAuthenticator.NON_AUTH_USER_HEAD) == UiAuthenticator.NON_AUTH_USER_HEAD) ||
-							((flags & UiAuthenticator.NON_AUTH_USER_PATCH) == UiAuthenticator.NON_AUTH_USER_PATCH);
+								((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
+								((flags & UiAuthenticator.NON_AUTH_USER_POST) == UiAuthenticator.NON_AUTH_USER_POST) ||
+								((flags & UiAuthenticator.NON_AUTH_USER_DELETE) == UiAuthenticator.NON_AUTH_USER_DELETE) ||
+								((flags & UiAuthenticator.NON_AUTH_USER_OPTIONS) == UiAuthenticator.NON_AUTH_USER_OPTIONS) ||
+								((flags & UiAuthenticator.NON_AUTH_USER_HEAD) == UiAuthenticator.NON_AUTH_USER_HEAD) ||
+								((flags & UiAuthenticator.NON_AUTH_USER_PATCH) == UiAuthenticator.NON_AUTH_USER_PATCH);
 
 						final boolean hasAnyAuthFlags = ((flags & UiAuthenticator.AUTH_USER_GET) == UiAuthenticator.AUTH_USER_GET) ||
-							((flags & UiAuthenticator.AUTH_USER_PUT) == UiAuthenticator.AUTH_USER_PUT) ||
-							((flags & UiAuthenticator.AUTH_USER_POST) == UiAuthenticator.AUTH_USER_POST) ||
-							((flags & UiAuthenticator.AUTH_USER_DELETE) == UiAuthenticator.AUTH_USER_DELETE) ||
-							((flags & UiAuthenticator.AUTH_USER_OPTIONS) == UiAuthenticator.AUTH_USER_OPTIONS) ||
-							((flags & UiAuthenticator.AUTH_USER_HEAD) == UiAuthenticator.AUTH_USER_HEAD) ||
-							((flags & UiAuthenticator.AUTH_USER_PATCH) == UiAuthenticator.AUTH_USER_PATCH);
+								((flags & UiAuthenticator.AUTH_USER_PUT) == UiAuthenticator.AUTH_USER_PUT) ||
+								((flags & UiAuthenticator.AUTH_USER_POST) == UiAuthenticator.AUTH_USER_POST) ||
+								((flags & UiAuthenticator.AUTH_USER_DELETE) == UiAuthenticator.AUTH_USER_DELETE) ||
+								((flags & UiAuthenticator.AUTH_USER_OPTIONS) == UiAuthenticator.AUTH_USER_OPTIONS) ||
+								((flags & UiAuthenticator.AUTH_USER_HEAD) == UiAuthenticator.AUTH_USER_HEAD) ||
+								((flags & UiAuthenticator.AUTH_USER_PATCH) == UiAuthenticator.AUTH_USER_PATCH);
 
 						if (hasAnyNonAuthFlags) {
 							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToPublicUsers: true</code><br>");
