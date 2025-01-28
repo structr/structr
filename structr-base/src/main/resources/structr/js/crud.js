@@ -2885,6 +2885,7 @@ let _Crud = {
 
 						let val = _Entities.basicTab.getValueFromFormElement(i);
 
+
 						if (isCollection) {
 
 							returnObject[key].push(val);
@@ -2897,7 +2898,10 @@ let _Crud = {
 				}
 			}
 
-			return returnObject;
+			// filter our empty strings and empty arrays
+			let filteredData = Object.fromEntries(Object.entries(returnObject).filter(([key, value]) => (value !== '' && !(Array.isArray(value) && value.length === 0))));
+
+			return filteredData;
 		},
 		crudAskDelete: async (type, id) => {
 
