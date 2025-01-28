@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -34,7 +33,6 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
@@ -188,9 +186,9 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 	public void handleFieldArguments(final SecurityContext securityContext, final Traits type, final Field parentField, final Field field) throws FrameworkException {
 
+		final List<SearchTuple> searchTuples = new LinkedList<>();
 		final PropertyKey parentKey          = type.key(parentField.getName());
 		final PropertyKey key                = type.key(field.getName());
-		final List<SearchTuple> searchTuples = new LinkedList<>();
 		Occurrence occurrence                = Occurrence.REQUIRED;
 
 		// parse arguments

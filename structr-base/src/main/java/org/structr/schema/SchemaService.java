@@ -18,10 +18,8 @@
  */
 package org.structr.schema;
 
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import graphql.Scalars;
+import graphql.schema.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -149,11 +147,11 @@ public class SchemaService implements Service {
 				final Map<String, GraphQLType> graphQLTypes              = new LinkedHashMap<>();
 				final GraphQLHelper graphQLHelper                        = new GraphQLHelper();
 
-				for (final Class nodeType : config.getNodeEntities().values()) {
+				for (final String nodeType : Traits.getAllTypes(t -> t.isNodeType())) {
 					graphQLHelper.initializeGraphQLForNodeType(nodeType, graphQLTypes, blacklist);
 				}
 
-				for (final Class relType : config.getRelationshipEntities().values()) {
+				for (final String relType : Traits.getAllTypes(t -> t.isRelationshipType())) {
 					graphQLHelper.initializeGraphQLForRelationshipType(relType, graphQLTypes);
 				}
 
@@ -163,20 +161,7 @@ public class SchemaService implements Service {
 					final String className = entry.getKey();
 					final GraphQLType type = entry.getValue();
 
-					// node type?
-					Class typeClass  = config.getNodeEntityClass(className);
-
-					// relationship type?
-					if (typeClass == null) {
-						typeClass = config.getRelationshipEntityClass(className);
-					}
-
-					// interface?
-					if (typeClass == null) {
-						typeClass = config.getInterfaces().get(className);
-					}
-
-					if (typeClass == null) {
+					if (!Traits.exists(className)) {
 						continue;
 					}
 
@@ -194,7 +179,7 @@ public class SchemaService implements Service {
 							.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 							.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 							.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-							.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(selectionTypes, existingQueryTypeNames, typeClass))
+							.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(selectionTypes, existingQueryTypeNames, className))
 						);
 
 					} catch (Throwable t) {
