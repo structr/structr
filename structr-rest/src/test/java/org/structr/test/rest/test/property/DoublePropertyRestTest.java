@@ -157,7 +157,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/TestThree");
 
 		// test double property on dynamic node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_doubleProperty': 'Double' } ").expect().statusCode(201).when().post("/SchemaNode");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', schemaProperties: [ { name: doubleProperty, propertyType: 'Double' } ] } ").expect().statusCode(201).when().post("/SchemaNode");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : asdf } ").expect().statusCode(422).when().post("/Test");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 'asdf' } ").expect().statusCode(422).when().post("/Test");

@@ -239,9 +239,9 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 					query.and();
 
-					for (final String part : trimAndFilter(requestParameter.split(";"))) {
+					for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
 
-						query.or(this, convertSearchValue(securityContext, part), false);
+						query.or(this, part, false);
 					}
 
 					query.parent();
@@ -250,28 +250,17 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 					query.and();
 
-					for (final String part : trimAndFilter(requestParameter.split(";"))) {
+					for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
 
-						query.or(this, convertSearchValue(securityContext, part), false);
+						query.or(this, part, false);
 					}
 
 					query.parent();
 				}
 
-			} else if (requestParameter.contains(",")) {
-
-				if (exactMatch) {
-
-					query.and(this, trimAndFilter(requestParameter.split(",")), true);
-
-				} else {
-
-					query.and(this, trimAndFilter(requestParameter.split(",")), false);
-				}
-
 			} else {
 
-				query.and(this, requestParameter, exactMatch);
+				query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 			return;
@@ -289,7 +278,25 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] valueInput, boolean exactMatch, Query query) {
+
+		T[] searchValue = null;
+
+		// we need to apply the database converter (at least for Date properties)
+		final PropertyConverter conv = databaseConverter(securityContext);
+		if (conv != null) {
+
+			try {
+				searchValue = (T[])conv.convert(valueInput);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
+		} else {
+
+			searchValue = valueInput;
+		}
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
@@ -432,9 +439,9 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		return null;
 	}
 
-	private String[] trimAndFilter(final String[] input) {
+	private Object[] trimFilterAndConvert(final SecurityContext securityContext, final String[] input) throws FrameworkException {
 
-		final ArrayList<String> trimmed = new ArrayList<>();
+		final ArrayList trimmed = new ArrayList<>();
 
 		for (final String part : input) {
 
@@ -442,10 +449,10 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 			if (StringUtils.isNotBlank(trimmedString)) {
 
-				trimmed.add(trimmedString);
+				trimmed.add(convertSearchValue(securityContext, trimmedString));
 			}
 		}
 
-		return trimmed.toArray(new String[0]);
+		return trimmed.toArray();
 	}
 }

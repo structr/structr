@@ -21,18 +21,17 @@ package org.structr.core.property;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
 
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-public class EnumArrayProperty extends AbstractPrimitiveProperty<String[]> {
+public class EnumArrayProperty extends ArrayProperty<String> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EnumArrayProperty.class);
 	private final Set<String> enumConstants = new LinkedHashSet<>();
@@ -45,34 +44,18 @@ public class EnumArrayProperty extends AbstractPrimitiveProperty<String[]> {
 		this(name, constants, null);
 	}
 
-	public EnumArrayProperty(final String jsonName, final String dbName, final Set<String> constants) {
-		this(jsonName, dbName, constants, null);
-	}
-
 	public EnumArrayProperty(final String name, final Set<String> constants, final String[] defaultValue) {
 		this(name, name, constants, defaultValue);
 	}
 
 	public EnumArrayProperty(final String jsonName, final String dbName, final Set<String> constants, final String[] defaultValue) {
 
-		super(jsonName, dbName, defaultValue);
+		super(jsonName, String.class);
+
+		this.dbName(dbName);
+		this.defaultValue(defaultValue);
 
 		this.enumConstants.addAll(constants);
-	}
-
-	@Override
-	public String typeName() {
-		return "Enum[]";
-	}
-
-	@Override
-	public Class valueType() {
-		return Enum[].class;
-	}
-
-	@Override
-	public SortType getSortType() {
-		return SortType.Default;
 	}
 
 	@Override
@@ -93,22 +76,7 @@ public class EnumArrayProperty extends AbstractPrimitiveProperty<String[]> {
 	}
 
 	@Override
-	public PropertyConverter<String[], String> databaseConverter(SecurityContext securityContext) {
-		return databaseConverter(securityContext, null);
-	}
-
-	@Override
-	public PropertyConverter<String[], String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new DatabaseConverter(securityContext, entity);
-	}
-
-	@Override
-	public PropertyConverter<String, String[]> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext);
-	}
-
-	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 
 		if (value != null) {
 
@@ -118,11 +86,6 @@ public class EnumArrayProperty extends AbstractPrimitiveProperty<String[]> {
 		}
 
 		return null;
-	}
-
-	@Override
-	public boolean isArray() {
-		return true;
 	}
 
 	public Set<String> getEnumConstants() {
@@ -177,97 +140,5 @@ public class EnumArrayProperty extends AbstractPrimitiveProperty<String[]> {
 		items.put("enum", getEnumConstants());
 
 		return map;
-	}
-
-	protected class DatabaseConverter extends PropertyConverter<String[], String> {
-
-		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
-			super(securityContext, entity);
-		}
-
-		@Override
-		public String[] revert(String source) throws FrameworkException {
-
-			if (StringUtils.isNotBlank(source)) {
-
-				try {
-					BiFunction<ArrayList<String>, String, ArrayList<String>> accumulator = (l, e) -> {
-						l.add(e);
-						return l;
-					};
-					BinaryOperator<ArrayList<String>> combiner = (acc, cur) -> {
-						acc.addAll(cur);
-						return acc;
-					};
-					return Arrays.stream(source.split(",")).reduce(new ArrayList<>(), accumulator, combiner).toArray(String[]::new);
-
-				} catch (Throwable t) {
-
-					logger.warn("Cannot convert database value '{}' on object {} to enum, ignoring.", source, this.currentObject.getUuid());
-				}
-			}
-
-			return null;
-
-		}
-
-		@Override
-		public String convert(String[] source) throws FrameworkException {
-
-			if (source != null) {
-
-				return String.join(",", Arrays.stream(source).toList());
-			}
-
-			return null;
-		}
-
-	}
-
-	protected class InputConverter extends PropertyConverter<String, String[]> {
-
-		public InputConverter(SecurityContext securityContext) {
-			super(securityContext, null);
-		}
-
-		@Override
-		public String revert(String[] source) throws FrameworkException {
-
-			if (source != null) {
-
-				return String.join(",", Arrays.stream(source).toList());
-			}
-
-			return null;
-		}
-
-		@Override
-		public String[] convert(String source) throws FrameworkException {
-
-			if (StringUtils.isNotBlank(source)) {
-
-				try {
-					BiFunction<ArrayList<String>, String, ArrayList<String>> accumulator = (l, e) -> {
-						l.add(e);
-						return l;
-					};
-					BinaryOperator<ArrayList<String>> combiner = (acc, cur) -> {
-						acc.addAll(cur);
-						return acc;
-					};
-					return Arrays.stream(source.split(",")).reduce(new ArrayList<>(), accumulator, combiner).toArray(String[]::new);
-
-				} catch (Throwable t) {
-
-					//throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new ValueToken(declaringTrait.getName(), EnumArrayProperty.this.dbName, enumType.getEnumConstants()));
-
-					// FIXME
-				}
-			}
-
-			return null;
-
-		}
-
 	}
 }

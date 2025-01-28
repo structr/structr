@@ -140,7 +140,7 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/TestThree");
 
 		// test int property on dynamic node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_integerProperty': 'Integer' } ").expect().statusCode(201).when().post("/SchemaNode");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', schemaProperties: [ { name: integerProperty, propertyType: Integer } ] } ").expect().statusCode(201).when().post("/SchemaNode");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/Test");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/Test");

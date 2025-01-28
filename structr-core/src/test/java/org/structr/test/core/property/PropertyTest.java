@@ -186,16 +186,6 @@ public class PropertyTest extends StructrTest {
 				tx.success();
 			}
 
-			// test inexact search with nonexisting value => 1 result
-			try (final Tx tx = app.tx()) {
-
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "foo"}, false).getAsList();
-				assertEquals(1, result.size());
-				assertEquals(result.get(0), testEntity);
-
-				tx.success();
-			}
-
 		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();

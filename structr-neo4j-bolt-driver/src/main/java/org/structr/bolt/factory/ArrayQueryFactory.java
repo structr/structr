@@ -55,7 +55,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 
 			} else {
 
-				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
+				query.addListParameter(name, "=", value);
 			}
 		}
 
