@@ -60,7 +60,7 @@ public class Neo5IndexUpdater {
 
 				try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
+					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE type = 'RANGE' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
 
@@ -276,9 +276,7 @@ public class Neo5IndexUpdater {
 									executor.submit(() -> {
 
 										try (final Transaction tx = db.beginTx(timeoutSeconds)) {
-
-											tx.prefetchHint("Neo5IndexUpdater update");
-
+											
 											// drop index
 											db.consume("DROP INDEX " + indexName + " IF EXISTS");
 											droppedIndexesOfRemovedTypes.incrementAndGet();
