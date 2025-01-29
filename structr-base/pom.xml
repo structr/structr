@@ -626,7 +626,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.3</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>initialize</phase>
@@ -637,14 +637,6 @@
                 </executions>
                 <configuration>
                     <shortRevisionLength>5</shortRevisionLength>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>18</source>
-                    <target>18</target>
                 </configuration>
             </plugin>
         </plugins>
