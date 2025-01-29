@@ -97,16 +97,6 @@ let _Entities = {
 			}
 		});
 	},
-	appendSchemaHint: (el, key, typeInfo) => {
-
-		if (typeInfo[key] && typeInfo[key].hint) {
-			_Helpers.appendInfoTextToElement({
-				element: el,
-				text: typeInfo[key].hint,
-				class: 'hint'
-			});
-		}
-	},
 	repeaterConfig: (entity, el) => {
 
 		let queryTypes = [
@@ -858,12 +848,12 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-			let isSystem     = typeInfo[key].system;
-			let isBoolean    = (typeInfo[key].type === 'Boolean');
-			let isDate       = (typeInfo[key].type === 'Date');
-			let isRelated    = typeInfo[key].relatedType;
-			let isCollection = typeInfo[key].isCollection;
+			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key]?.readOnly ?? false);
+			let isSystem     = (typeInfo[key]?.system ?? false);
+			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
+			let isDate       = (typeInfo[key]?.type === 'Date');
+			let isRelated    = (typeInfo[key]?.relatedType !== undefined);
+			let isCollection = (typeInfo[key]?.isCollection ?? false);
 
 			if (view === '_html_') {
 
@@ -997,7 +987,15 @@ let _Entities = {
 				}
 			}
 
-			_Entities.appendSchemaHint($('.key:last', propsTable), key, typeInfo);
+			let hintText = typeInfo[key]?.hint;
+
+			if (hintText) {
+				_Helpers.appendInfoTextToElement({
+					element: $('.key:last', propsTable),
+					text: hintText,
+					class: 'hint'
+				});
+			}
 
 			let nullIconId = `#${_Entities.null_prefix}${key}`;
 
