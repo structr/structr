@@ -267,7 +267,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			response.setContentType("text/html");
 
-			final String directoryPath                 = "/tmp/" + UUID.randomUUID();
+			final String directoryPath                 = Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString()).toString();
 			final String filePath                      = directoryPath + ".zip";
 			final File file                            = new File(filePath);
 
