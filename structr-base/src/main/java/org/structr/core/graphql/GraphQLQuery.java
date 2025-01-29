@@ -46,8 +46,9 @@ public class GraphQLQuery {
 		this.securityContext = securityContex;
 		this.fieldName       = field.getName();
 
-		final Traits traits = Traits.of(fieldName);
-		if (traits != null) {
+		if (Traits.exists(fieldName)) {
+
+			final Traits traits = Traits.of(fieldName);
 
 			init(securityContex, traits, field, "/" + fieldName);
 		}
@@ -104,16 +105,17 @@ public class GraphQLQuery {
 					final Field childField      = (Field)selection;
 					final SelectionSet childSet = childField.getSelectionSet();
 					final PropertyKey key       = type.key(childField.getName());
-					final Traits traits         = key.relatedType() != null ? Traits.of(key.relatedType()) : type;
 
 					// add field to property set
 					config.addPropertyKey(key);
-					config.handleFieldArguments(securityContext, traits, field, childField);
+					config.handleFieldArguments(securityContext, type, field, childField);
 
 					// recurse
 					if (childSet != null) {
 
-						init(securityContext, traits, childField, path + "/" + childField.getName());
+						final Traits childType = key.relatedType() != null ? Traits.of(key.relatedType()) : type;
+
+						init(securityContext, childType, childField, path + "/" + childField.getName());
 					}
 				}
 			}

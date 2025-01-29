@@ -21,10 +21,13 @@ package org.structr.test.web.advanced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.*;
+import org.structr.core.traits.Traits;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
@@ -44,7 +47,7 @@ public class Deployment0Test extends DeploymentTestBase {
 			final Page page = Page.createSimplePage(securityContext, "test01");
 
 			// test special properties
-			page.setProperty(StructrApp.key(Page.class, "showOnErrorCodes"), "404");
+			page.setProperty(Traits.of("Page").key("showOnErrorCodes"), "404");
 
 			tx.success();
 
@@ -64,8 +67,9 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create page with visibility false/false
 			final Page page       = Page.createNewPage(securityContext,   "test02");
-			page.setProperty(Page.visibleToPublicUsers, false);
-			page.setProperty(Page.visibleToAuthenticatedUsers, false);
+
+			page.setVisibility(false, false);
+
 			final Html html       = createElement(page, page, "html");
 			final Head head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
@@ -77,7 +81,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -85,7 +89,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -93,10 +97,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(false, true);
 			}
 
 			// create a public div
@@ -104,10 +105,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, true);
 			}
 
 			// create a public only div
@@ -115,10 +113,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, false);
 			}
 
 			tx.success();
@@ -139,8 +134,9 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create page with visibility false/true
 			final Page page       = Page.createNewPage(securityContext,   "test02");
-			page.setProperty(Page.visibleToPublicUsers, false);
-			page.setProperty(Page.visibleToAuthenticatedUsers, true);
+
+			page.setVisibility(false, true);
+
 			final Html html       = createElement(page, page, "html");
 			final Head head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
@@ -152,7 +148,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -160,7 +156,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -168,10 +164,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(false, true);
 			}
 
 			// create a public div
@@ -179,10 +172,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, true);
 			}
 
 			// create a public only div
@@ -190,10 +180,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, false);
 			}
 
 			tx.success();
@@ -214,8 +201,9 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create page with visibility true/false
 			final Page page       = Page.createNewPage(securityContext,   "test02");
-			page.setProperty(Page.visibleToPublicUsers, true);
-			page.setProperty(Page.visibleToAuthenticatedUsers, false);
+
+			page.setVisibility(true, false);
+
 			final Html html       = createElement(page, page, "html");
 			final Head head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
@@ -227,7 +215,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -235,7 +223,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -243,10 +231,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(false, true);
 			}
 
 			// create a public div
@@ -254,10 +239,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, true);
 			}
 
 			// create a public only div
@@ -265,10 +247,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, false);
 			}
 
 			tx.success();
@@ -289,8 +268,9 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create page with visibility true/true
 			final Page page       = Page.createNewPage(securityContext,   "test02");
-			page.setProperty(Page.visibleToPublicUsers, true);
-			page.setProperty(Page.visibleToAuthenticatedUsers, true);
+
+			page.setVisibility(true, true);
+
 			final Html html       = createElement(page, page, "html");
 			final Head head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
@@ -302,7 +282,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -310,7 +290,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -318,10 +298,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,        false);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(false, true);
 			}
 
 			// create a public div
@@ -329,10 +306,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  true);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, true);
 			}
 
 			// create a public only div
@@ -340,10 +314,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
-				final PropertyMap div1Properties = new PropertyMap();
-				div1Properties.put(DOMNode.visibleToPublicUsers,         true);
-				div1Properties.put(DOMNode.visibleToAuthenticatedUsers,  false);
-				div1.setProperties(div1.getSecurityContext(), div1Properties);
+				div1.setVisibility(true, false);
 			}
 
 			tx.success();
@@ -380,8 +351,8 @@ public class Deployment0Test extends DeploymentTestBase {
 			);
 
 			// workaround for strange importer behaviour
-			script.setProperty(StructrApp.key(Script.class, "_html_type"), "text/javascript");
-			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/javascript");
+			script.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
+			content.setProperty(Traits.of("Content").key("contentType"), "text/javascript");
 
 			tx.success();
 
@@ -410,9 +381,9 @@ public class Deployment0Test extends DeploymentTestBase {
 			final Link link3  = createElement(page, head, "link");
 
 			final PropertyMap link3Properties = new PropertyMap();
-			link3Properties.put(StructrApp.key(Link.class, "_html_href"), "/");
-			link3Properties.put(StructrApp.key(Link.class, "_html_media"), "screen");
-			link3Properties.put(StructrApp.key(Link.class, "_html_type"), "stylesheet");
+			link3Properties.put(Traits.of("Link").key("_html_href"), "/");
+			link3Properties.put(Traits.of("Link").key("_html_media"), "screen");
+			link3Properties.put(Traits.of("Link").key("_html_type"), "stylesheet");
 			link3.setProperties(link3.getSecurityContext(), link3Properties);
 
 			final Body body       = createElement(page, html, "body");
@@ -446,8 +417,8 @@ public class Deployment0Test extends DeploymentTestBase {
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
 			final PropertyMap templateProperties = new PropertyMap();
-			templateProperties.put(StructrApp.key(Template.class, "functionQuery"), "find('User')");
-			templateProperties.put(StructrApp.key(Template.class, "dataKey"), "user");
+			templateProperties.put(Traits.of("Template").key("functionQuery"), "find('User')");
+			templateProperties.put(Traits.of("Template").key("dataKey"), "user");
 			template.setProperties(template.getSecurityContext(), templateProperties);
 
 			// append children to template object

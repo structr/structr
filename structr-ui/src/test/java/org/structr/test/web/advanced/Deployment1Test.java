@@ -25,14 +25,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.*;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -69,8 +71,8 @@ public class Deployment1Test extends DeploymentTestBase {
 			final Template template1 = createTemplate(page1, tbody, "<tr><td>${user.name}</td></tr>");
 
 			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(StructrApp.key(DOMNode.class, "functionQuery"), "find('User')");
-			template1Properties.put(StructrApp.key(DOMNode.class, "dataKey"), "user");
+			template1Properties.put(Traits.of("DOMNode").key("functionQuery"), "find('User')");
+			template1Properties.put(Traits.of("DOMNode").key("dataKey"), "user");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 			tx.success();
@@ -99,7 +101,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			final Script script1 = createElement(page, body, "script");
 			final Script script2 = createElement(page, body, "script");
 
-			script1.setProperty(StructrApp.key(Script.class, "_html_type"), "text/javascript");
+			script1.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
 
 			createContent(page, script1, "");
 
@@ -147,20 +149,20 @@ public class Deployment1Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file         = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName, true);
-			final Folder rootFolder = getRootFolder(folder);
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface file       = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", "File", fileName, true);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
 
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
 
-			file.setProperty(StructrApp.key(File.class, "parent"), folder);
-			file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
-			file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
+			file.setProperty(Traits.of("File").key("parent"), folder);
+			file.setProperty(Traits.of("File").key("visibleToPublicUsers"), true);
+			file.setProperty(Traits.of("File").key("visibleToAuthenticatedUsers"), true);
+			file.setProperty(Traits.of("File").key("enableBasicAuth"), true);
+			file.setProperty(Traits.of("File").key("useAsJavascriptLibrary"), true);
 
 			tx.success();
 
@@ -175,19 +177,19 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final File file     = app.nodeQuery("File").and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
+			final NodeInterface file     = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 
-			assertEquals("Deployment import does not restore attributes correctly", folder, file.getParent());
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+			assertEquals("Deployment import does not restore attributes correctly", folder, file.as(File.class).getParent());
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of("File").key("visibleToPublicUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of("File").key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of("File").key("enableBasicAuth")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of("File").key("useAsJavascriptLibrary")));
 
 			tx.success();
 
@@ -206,21 +208,21 @@ public class Deployment1Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName, true);
-			final Folder rootFolder = getRootFolder(folder);
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface file       = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", "File", fileName, true);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
 
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
 
-			file.setProperty(StructrApp.key(File.class, "parent"), folder);
-			file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
-			file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
-			file.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			file.setProperty(Traits.of("File").key("parent"), folder);
+			file.setProperty(Traits.of("File").key("visibleToPublicUsers"), true);
+			file.setProperty(Traits.of("File").key("visibleToAuthenticatedUsers"), true);
+			file.setProperty(Traits.of("File").key("enableBasicAuth"), true);
+			file.setProperty(Traits.of("File").key("useAsJavascriptLibrary"), true);
+			file.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
 
 			tx.success();
 
@@ -237,12 +239,12 @@ public class Deployment1Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final File file = app.nodeQuery("File").and(File.name, fileName).getFirst();
-					file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), false);
-					file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), false);
-					file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), false);
-					file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), false);
-					file.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), false);
+					final NodeInterface file = app.nodeQuery("File").and(Traits.of("File").key("name"), fileName).getFirst();
+					file.setProperty(Traits.of("File").key("visibleToPublicUsers"), false);
+					file.setProperty(Traits.of("File").key("visibleToAuthenticatedUsers"), false);
+					file.setProperty(Traits.of("File").key("enableBasicAuth"), false);
+					file.setProperty(Traits.of("File").key("useAsJavascriptLibrary"), false);
+					file.setProperty(Traits.of("File").key("includeInFrontendExport"), false);
 
 					tx.success();
 
@@ -256,20 +258,20 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final File file     = app.nodeQuery("File").and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
+			final NodeInterface file     = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 
-			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.getParent());
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
+			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.as(File.class).getParent());
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of("File").key("visibleToPublicUsers")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of("File").key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of("File").key("enableBasicAuth")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of("File").key("useAsJavascriptLibrary")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of("File").key("includeInFrontendExport")));
 
 			tx.success();
 
@@ -327,12 +329,12 @@ public class Deployment1Test extends DeploymentTestBase {
 			final Body body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
-			template.setProperty(AbstractNode.name, "a-template");
+			template.setProperty(Traits.of("NodeInterface").key("name"), "a-template");
 
 			final Template sharedTemplate = createComponent(template);
 
 			// remove original template from page
-			app.delete(template);
+			app.delete(template.getWrappedNode());
 
 			createElement(page, sharedTemplate, "div");
 
@@ -393,7 +395,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			final Div div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
+			content.setProperty(Traits.of("Content").key("contentType"), "text/html");
 
 			tx.success();
 
@@ -408,13 +410,13 @@ public class Deployment1Test extends DeploymentTestBase {
 	@Test
 	public void test20ExportOwnership() {
 
-		Principal user1 = null;
-		Principal user2 = null;
+		NodeInterface user1 = null;
+		NodeInterface user2 = null;
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+			user1 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user1"));
+			user2 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user2"));
 
 			tx.success();
 
@@ -426,7 +428,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		assertNotNull("User was not created, test cannot continue", user2);
 
 		// setup
-		final SecurityContext context1 = SecurityContext.getInstance(user1, AccessMode.Backend);
+		final SecurityContext context1 = SecurityContext.getInstance(user1.as(User.class), AccessMode.Backend);
 		final App app1                 = StructrApp.getInstance(context1);
 
 		try (final Tx tx = app1.tx()) {
@@ -440,11 +442,11 @@ public class Deployment1Test extends DeploymentTestBase {
 			final Div div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
+			content.setProperty(Traits.of("Content").key("contentType"), "text/html");
 
 			// set owner to different user
-			div1.setProperty(AbstractNode.owner, user2);
-			content.setProperty(AbstractNode.owner, user2);
+			div1.setProperty(Traits.of("NodeInterface").key("owner"), user2);
+			content.setProperty(Traits.of("NodeInterface").key("owner"), user2);
 
 			tx.success();
 

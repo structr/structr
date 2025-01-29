@@ -75,9 +75,9 @@ public class RepeaterTest extends StructrUiTest {
 
 			// create test user
 			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -111,13 +111,13 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
 
 
-			select.setProperty(StructrApp.key(DOMNode.class, "functionQuery"),  "find('Project')");
-			select.setProperty(StructrApp.key(DOMNode.class, "dataKey"),        "project");
-			select.setProperty(StructrApp.key(DOMNode.class, "_html_multiple"), "multiple");
+			select.setProperty(Traits.of("DOMNode").key("functionQuery"),  "find('Project')");
+			select.setProperty(Traits.of("DOMNode").key("dataKey"),        "project");
+			select.setProperty(Traits.of("DOMNode").key("_html_multiple"), "multiple");
 
-			option.setProperty(StructrApp.key(DOMNode.class, "functionQuery"),  "find('Task', sort('name'))");
-			option.setProperty(StructrApp.key(DOMNode.class, "dataKey"),        "task");
-			option.setProperty(StructrApp.key(Option.class, "_html_value"),     "${task.id}");
+			option.setProperty(Traits.of("DOMNode").key("functionQuery"),  "find('Task', sort('name'))");
+			option.setProperty(Traits.of("DOMNode").key("dataKey"),        "task");
+			option.setProperty(Traits.of("Option").key("_html_value"),     "${task.id}");
 
 			tx.success();
 
@@ -221,9 +221,9 @@ public class RepeaterTest extends StructrUiTest {
 
 			// create test user
 			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -252,11 +252,11 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${test.value}");
 
 
-			select.setProperty(StructrApp.key(DOMNode.class, "functionQuery"), "find('Project')");
-			select.setProperty(StructrApp.key(DOMNode.class, "dataKey"),       "project");
+			select.setProperty(Traits.of("DOMNode").key("functionQuery"), "find('Project')");
+			select.setProperty(Traits.of("DOMNode").key("dataKey"),       "project");
 
-			option.setProperty(StructrApp.key(DOMNode.class, "functionQuery"),  "enum_info('Project', 'test')");
-			option.setProperty(StructrApp.key(DOMNode.class, "dataKey"),        "test");
+			option.setProperty(Traits.of("DOMNode").key("functionQuery"),  "enum_info('Project', 'test')");
+			option.setProperty(Traits.of("DOMNode").key("dataKey"),        "test");
 
 			tx.success();
 

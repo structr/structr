@@ -42,7 +42,7 @@ public abstract class FrontendTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.nodeQuery("User").andName("admin").getFirst();
-			user.setProperty(StructrApp.key(User.class, "localStorage"), null);
+			user.setProperty(Traits.of("User").key("localStorage"), null);
 			tx.success();
 
 		} catch (Throwable t) {
@@ -54,9 +54,9 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(StructrApp.key(User.class, "name"), ADMIN_USERNAME);
-		properties.put(StructrApp.key(User.class, "password"), ADMIN_PASSWORD);
-		properties.put(StructrApp.key(User.class, "isAdmin"), true);
+		properties.put(Traits.of("User").key("name"), ADMIN_USERNAME);
+		properties.put(Traits.of("User").key("password"), ADMIN_PASSWORD);
+		properties.put(Traits.of("User").key("isAdmin"), true);
 
 		User user = null;
 

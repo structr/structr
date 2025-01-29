@@ -23,12 +23,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -77,15 +76,17 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add admin admin@localhost isAdmin"));
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add root isAdmin"));
 
+			final Traits userTraits = Traits.of("User");
+
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery("User").andName("tester").sort(AbstractNode.name).getFirst();
+				final User user = app.nodeQuery("User").andName("tester").sort(userTraits.key("name")).getFirst().as(User.class);
 
-				assertNotNull("Invalid console execution result", user);
-				assertEquals("Invalid console execution result", "tester",         user.getProperty(User.name));
+				assertNotNull("Invalid console execution result",                          user);
+				assertEquals("Invalid console execution result", "tester",         user.getName());
 				assertEquals("Invalid console execution result", "tester@test.de", user.getEMail());
-				assertEquals("Invalid console execution result", Boolean.FALSE,    (Boolean)user.isAdmin());
+				assertEquals("Invalid console execution result", Boolean.FALSE,             (Boolean)user.isAdmin());
 
 				tx.success();
 			}
@@ -102,11 +103,11 @@ public class ConsoleTest extends StructrUiTest {
 			// check "root" user
 			try (final Tx tx = app.tx()) {
 
-				final User root = app.nodeQuery("User").andName("root").getFirst();
+				final User root = app.nodeQuery("User").andName("root").getFirst().as(User.class);
 
-				assertNotNull("Invalid console execution result", root);
-				assertEquals("Invalid console execution result", "root",           root.getProperty(User.name));
-				assertEquals("Invalid console execution result", Boolean.TRUE,     (Boolean)root.isAdmin());
+				assertNotNull("Invalid console execution result",                root);
+				assertEquals("Invalid console execution result", "root", root.getName());
+				assertEquals("Invalid console execution result", Boolean.TRUE,   (Boolean)root.isAdmin());
 
 				tx.success();
 			}
@@ -114,17 +115,17 @@ public class ConsoleTest extends StructrUiTest {
 			// make check "admin" user
 			try (final Tx tx = app.tx()) {
 
-				admin = app.nodeQuery("User").andName("admin").getFirst();
+				admin = app.nodeQuery("User").andName("admin").getFirst().as(Principal.class);
 
 				uuid = admin.getUuid();
 
-				assertNotNull("Invalid console execution result", admin);
-				assertEquals("Invalid console execution result", "admin",           admin.getProperty(User.name));
+				assertNotNull("Invalid console execution result",                           admin);
+				assertEquals("Invalid console execution result", "admin",           admin.getName());
 				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
-				assertEquals("Invalid console execution result", Boolean.TRUE,      (Boolean)admin.isAdmin());
+				assertEquals("Invalid console execution result", Boolean.TRUE,              (Boolean)admin.isAdmin());
 
-				final Folder folder = app.create("Folder", "folder");
-				folder.setProperties(folder.getSecurityContext(), new PropertyMap(Folder.owner, admin));
+				final NodeInterface folder = app.create("Folder", "folder");
+				folder.setProperty(Traits.of("Folder").key("owner"), admin.getWrappedNode());
 
 				tx.success();
 			}

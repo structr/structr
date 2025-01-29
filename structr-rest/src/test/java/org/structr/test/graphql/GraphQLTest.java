@@ -949,10 +949,10 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type PrincipalInterface of field members @ 'Group/members'"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members @ 'Group/members'"))
 				.body("errors[0].locations[0].line",   equalTo(2))
 				.body("errors[0].locations[0].column", equalTo(27))
-				.body("errors[0].description",         equalTo("Sub selection required for type PrincipalInterface of field members"))
+				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field members"))
 				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
 
 			.when()
@@ -966,10 +966,10 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(422)
-				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type PrincipalInterface of field owner @ 'Group/owner'"))
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner @ 'Group/owner'"))
 				.body("errors[0].locations[0].line",   equalTo(2))
 				.body("errors[0].locations[0].column", equalTo(27))
-				.body("errors[0].description",         equalTo("Sub selection required for type PrincipalInterface of field owner"))
+				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field owner"))
 				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
 
 			.when()
@@ -1115,8 +1115,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		final List<NodeInterface> projects = new LinkedList<>();
 		final List<NodeInterface> tasks    = new LinkedList<>();
-		final String extProject             = "ExtendedProject1";
-		final String task                   = "Task";
+		final String extProject            = "ExtendedProject1";
+		final String task                  = "Task";
 		final PropertyKey tasksKey         = Traits.of(extProject).key("tasks");
 
 		try (final Tx tx = app.tx()) {

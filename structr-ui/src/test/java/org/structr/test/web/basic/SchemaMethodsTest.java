@@ -31,14 +31,14 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -60,10 +60,10 @@ public class SchemaMethodsTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
-			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "(log('test01SchemaMethodOnBuiltinType successful'))");
-			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
-			testFileMethodProperties.put(SchemaMethod.isStatic, true);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"(log('test01SchemaMethodOnBuiltinType successful'))");
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fileNodeDef);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("isStatic")true);
 
 			SchemaMethod testFileMethod = app.create("SchemaMethod", testFileMethodProperties);
 
@@ -114,10 +114,10 @@ public class SchemaMethodsTest extends FrontendTest {
 			SchemaNode fooFileDef = app.create("SchemaNode", customTypeName);
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
-			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test02SchemaMethodOnCustomType successful'))");
-			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
-			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"(log('test02SchemaMethodOnCustomType successful'))");
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fooFileDef);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("isStatic")true);
 
 			app.create("SchemaMethod", testFooFileMethodProperties);
 
@@ -187,9 +187,9 @@ public class SchemaMethodsTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
-			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
-			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fileNodeDef);
 
 			app.create("SchemaMethod", testFileMethodProperties);
 
@@ -253,9 +253,9 @@ public class SchemaMethodsTest extends FrontendTest {
 			SchemaNode fooFileDef = app.create("SchemaNode", customTypeName);
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
-			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
-			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"(log('test04SchemaMethodOnEntityOfCustomType successful'))");
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fooFileDef);
 
 			app.create("SchemaMethod", testFooFileMethodProperties);
 
@@ -327,10 +327,10 @@ public class SchemaMethodsTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
-			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "(log('test05InheritedSchemaMethodOnBuildinType successful'))");
-			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
-			testFileMethodProperties.put(SchemaMethod.isStatic, true);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"(log('test05InheritedSchemaMethodOnBuildinType successful'))");
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fileNodeDef);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("isStatic")true);
 
 			app.create("SchemaMethod", testFileMethodProperties);
 
@@ -392,9 +392,9 @@ public class SchemaMethodsTest extends FrontendTest {
 			SchemaNode fileNodeDef = app.nodeQuery("SchemaNode").andName(builtinTypeName).getFirst();
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
-			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
-			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
+			testFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fileNodeDef);
 
 			app.create("SchemaMethod", testFileMethodProperties);
 
@@ -506,14 +506,14 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			// create global schema method for JavaScript
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
-				new NodeAttribute<>(SchemaMethod.source, "{ Structr.find('Test')[0].sendError(); }")
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")  "globalTest1"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"{ Structr.find('Test')[0].sendError(); }")
 			);
 
 			// create global schema method for StructrScript
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,   "globalTest2"),
-				new NodeAttribute<>(SchemaMethod.source, "first(find('Test')).sendError")
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")  "globalTest2"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"first(find('Test')).sendError")
 			);
 
 			tx.success();
@@ -597,8 +597,8 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			// create global schema method for JavaScript
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
-				new NodeAttribute<>(SchemaMethod.source, "{ return { success: true, value: 123 }; }")
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")  "globalTest1"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"{ return { success: true, value: 123 }; }")
 			);
 
 			// create admin user to call global schema methods with
@@ -644,11 +644,11 @@ public class SchemaMethodsTest extends FrontendTest {
 			final SchemaNode fooFileDef = app.create("SchemaNode", customTypeName);
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 
-			testFooFileMethodProperties.put(SchemaMethod.id, schemaMethodId);
-			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFooFileMethodProperties.put(SchemaMethod.source, "{ return 'test'; }");
-			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
-			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("id")schemaMethodId);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("name")schemaMethodName);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("source")"{ return 'test'; }");
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("schemaNode")fooFileDef);
+			testFooFileMethodProperties.put(Traits.of("SchemaMethod").key("isStatic")true);
 
 			app.create("SchemaMethod", testFooFileMethodProperties);
 

@@ -43,13 +43,13 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Site site1 = createTestNode(Site.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "site1"), new NodeAttribute<>(StructrApp.key(Site.class, "hostname"), "test1.example.com"));
-			final Site site2 = createTestNode(Site.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "site2"), new NodeAttribute<>(StructrApp.key(Site.class, "hostname"), "test2.example.com"));
+			final Site site1 = createTestNode(Site.class, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final Site site2 = createTestNode(Site.class, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
-			site1.setProperty(StructrApp.key(Site.class, "visibleToAuthenticatedUsers"), true);
-			site2.setProperty(StructrApp.key(Site.class, "visibleToAuthenticatedUsers"), true);
-			site1.setProperty(StructrApp.key(Site.class, "visibleToPublicUsers"), true);
-			site2.setProperty(StructrApp.key(Site.class, "visibleToPublicUsers"), true);
+			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
+			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
+			site1.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
+			site2.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
 
 			final Page page1 = Page.createSimplePage(securityContext, "site1page1");
 			final Page page2 = Page.createSimplePage(securityContext, "site1page2");
@@ -61,15 +61,15 @@ public class SiteTest extends StructrUiTest {
 			makePublicRecursively(page3);
 			makePublicRecursively(page4);
 
-			page1.setProperty(StructrApp.key(Page.class, "position"), 10);
-			page2.setProperty(StructrApp.key(Page.class, "position"), 10);
-			page3.setProperty(StructrApp.key(Page.class, "position"), 10);
-			page4.setProperty(StructrApp.key(Page.class, "position"), 10);
+			page1.setProperty(Traits.of("Page").key("position"), 10);
+			page2.setProperty(Traits.of("Page").key("position"), 10);
+			page3.setProperty(Traits.of("Page").key("position"), 10);
+			page4.setProperty(Traits.of("Page").key("position"), 10);
 
-			page1.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
-			page2.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
-			page3.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
-			page4.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
+			page1.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
+			page2.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
+			page3.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
+			page4.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
 
 			tx.success();
 
@@ -98,13 +98,13 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Site site1 = createTestNode(Site.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "site1"), new NodeAttribute<>(StructrApp.key(Site.class, "hostname"), "test1.example.com"));
-			final Site site2 = createTestNode(Site.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "site2"), new NodeAttribute<>(StructrApp.key(Site.class, "hostname"), "test2.example.com"));
+			final Site site1 = createTestNode(Site.class, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final Site site2 = createTestNode(Site.class, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
-			site1.setProperty(StructrApp.key(Site.class, "visibleToAuthenticatedUsers"), true);
-			site2.setProperty(StructrApp.key(Site.class, "visibleToAuthenticatedUsers"), true);
-			site1.setProperty(StructrApp.key(Site.class, "visibleToPublicUsers"), true);
-			site2.setProperty(StructrApp.key(Site.class, "visibleToPublicUsers"), true);
+			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
+			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
+			site1.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
+			site2.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
 
 			final Page page1 = Page.createSimplePage(securityContext, "site1page1");
 			final Page page2 = Page.createSimplePage(securityContext, "site1page2");
@@ -116,15 +116,15 @@ public class SiteTest extends StructrUiTest {
 			//makePublicRecursively(page3);
 			makePublicRecursively(page4);
 
-			page1.setProperty(StructrApp.key(Page.class, "position"), 10);
-			page2.setProperty(StructrApp.key(Page.class, "position"), 10);
-			page3.setProperty(StructrApp.key(Page.class, "position"), 10);
-			page4.setProperty(StructrApp.key(Page.class, "position"), 10);
+			page1.setProperty(Traits.of("Page").key("position"), 10);
+			page2.setProperty(Traits.of("Page").key("position"), 10);
+			page3.setProperty(Traits.of("Page").key("position"), 10);
+			page4.setProperty(Traits.of("Page").key("position"), 10);
 
-			page1.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
-			page2.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site1));
-			page3.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
-			page4.setProperty(StructrApp.key(Page.class, "sites"), Arrays.asList(site2));
+			page1.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
+			page2.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
+			page3.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
+			page4.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
 
 			tx.success();
 
@@ -150,8 +150,8 @@ public class SiteTest extends StructrUiTest {
 
 	private void makePublicRecursively(final DOMNode node) throws FrameworkException {
 
-		node.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), true);
-		node.setProperty(StructrApp.key(DOMNode.class, "visibleToPublicUsers"), true);
+		node.setProperty(Traits.of("DOMNode").key("visibleToAuthenticatedUsers"), true);
+		node.setProperty(Traits.of("DOMNode").key("visibleToPublicUsers"), true);
 
 		for (final DOMNode child : node.getChildren()) {
 

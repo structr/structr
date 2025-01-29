@@ -20,18 +20,20 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.util.List;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.*;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
-import static org.hamcrest.Matchers.equalTo;
-import org.structr.common.error.ErrorToken;
+import java.util.List;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -44,8 +46,8 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 			// create global schema which does not have any visibility flags
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name, "myTestMethod01"),
-				new NodeAttribute<>(SchemaMethod.source, "'hello world!'")
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")"myTestMethod01"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"'hello world!'")
 			);
 
 			tx.success();
@@ -102,10 +104,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			final SchemaNode testType = app.create("SchemaNode", "MyTestType");
 
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.schemaNode, testType),
-				new NodeAttribute<>(SchemaMethod.name, "testTypeMethod01"),
-				new NodeAttribute<>(SchemaMethod.source, "'MyTestType.testTypeMethod01 here'"),
-				new NodeAttribute<>(SchemaMethod.isStatic, true)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")testType),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")"testTypeMethod01"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"'MyTestType.testTypeMethod01 here'"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic")true)
 			);
 
 			tx.success();
@@ -161,13 +163,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
 
 			// create private method that is not exported via REST
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name, "myTestMethod01"),
-				new NodeAttribute<>(SchemaMethod.source, "'hello world!'"),
-				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")"myTestMethod01"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"'hello world!'"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")testType)
 			);
 
 			tx.success();
@@ -197,13 +199,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
 
 			// create lifecycle method that is not exported via REST
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name, "onCreate"),
-				new NodeAttribute<>(SchemaMethod.source, "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")"onCreate"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")"{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")testType)
 			);
 
 			tx.success();
@@ -235,14 +237,14 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
 
 			// create private method that is not exported via REST
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,       "testMethod"),
-				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
-				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")      "testMethod"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate") true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")    "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")testType)
 			);
 
 			tx.success();
@@ -274,15 +276,15 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
 
 			// create private method that is not exported via REST
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,       "testMethod"),
-				new NodeAttribute<>(SchemaMethod.isStatic,   true),
-				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
-				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")      "testMethod"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic")  true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate") true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")    "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")testType)
 			);
 
 			tx.success();
@@ -314,17 +316,17 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaNode testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
 			final SchemaView testView = app.create("SchemaView",
-				new NodeAttribute<>(SchemaView.schemaNode, testType),
-				new NodeAttribute<>(SchemaView.name, "test")
+				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), testType),
+				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "test")
 			);
 
 			final SchemaProperty p1   = app.create("SchemaProperty",
-				new NodeAttribute<>(SchemaProperty.schemaNode, testType),
-				new NodeAttribute<>(SchemaProperty.schemaViews, List.of(testView)),
-				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
-				new NodeAttribute<>(SchemaProperty.name, "moep")
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), testType),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), List.of(testView)),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "moep")
 			);
 
 			tx.success();
@@ -340,11 +342,11 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 			// create private method that is not exported via REST
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,       "test"),
-				new NodeAttribute<>(SchemaMethod.isStatic,   true),
-				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
-				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")      "test"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic")  true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate") true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")    "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")testType)
 			);
 
 			tx.success();

@@ -83,8 +83,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(StructrApp.key(User.class, "id"));
-			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
+			id      = user.getProperty(Traits.of("User").key("id"));
+			confKey = user.getProperty(Traits.of("User").key("confirmationKey"));
 
 			assertNotNull("Confirmation key was not set", confKey);
 
@@ -114,8 +114,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(StructrApp.key(User.class, "id"));
-			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
+			id      = user.getProperty(Traits.of("User").key("id"));
+			confKey = user.getProperty(Traits.of("User").key("confirmationKey"));
 
 			assertNull("Confirmation key was set after confirmation", confKey);
 
@@ -165,8 +165,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(StructrApp.key(User.class, "id"));
-			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
+			id      = user.getProperty(Traits.of("User").key("id"));
+			confKey = user.getProperty(Traits.of("User").key("confirmationKey"));
 
 			assertNotNull("Confirmation key was not set", confKey);
 
@@ -211,9 +211,9 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 			assertNotNull("User was not created", user);
 
-			assertNull("Confirmation key was set after confirmation", user.getProperty(StructrApp.key(User.class, "confirmationKey")));
+			assertNull("Confirmation key was set after confirmation", user.getProperty(Traits.of("User").key("confirmationKey")));
 
-			final String[] sessionIds  = user.getProperty(StructrApp.key(User.class, "sessionIds"));
+			final String[] sessionIds  = user.getProperty(Traits.of("User").key("sessionIds"));
 
 			assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.length);
 			assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds[0]);
@@ -244,9 +244,9 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final User user = app.create("User",
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
-				new NodeAttribute<>(StructrApp.key(User.class, "eMail"), eMail),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "correct")
+				new NodeAttribute<>(Traits.of("User").key("name"), "tester"),
+				new NodeAttribute<>(Traits.of("User").key("eMail"), eMail),
+				new NodeAttribute<>(Traits.of("User").key("password"), "correct")
 			);
 
 			// store ID for later user

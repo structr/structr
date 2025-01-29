@@ -23,11 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.Traits;
-
-import java.util.Set;
 
 /**
  *
@@ -38,9 +35,10 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
-	private Set<String> types = null;
+	//private Set<String> types = null;
 	private String sourceType = null;
 	private String targetType = null;
+	private String type       = null;
 
 	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
 
@@ -68,7 +66,8 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 			setValue(type);
 		}
 
-		this.types = traits.getLabels();
+		//this.types = traits.getLabels();
+		this.type = type;
 	}
 
 	@Override
@@ -86,7 +85,8 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 		final String nodeValue   = entity.getProperty(getKey());
 		final Occurrence occur   = getOccurrence();
-		final boolean isOfType   = types.contains(nodeValue);
+		//final boolean isOfType   = types.contains(nodeValue);
+		final boolean isOfType   = entity.getTraits().contains(type);
 
 		if (occur.equals(Occurrence.FORBIDDEN)) {
 

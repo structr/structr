@@ -20,8 +20,9 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.io.IOException;
 import org.hamcrest.Matchers;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -31,6 +32,7 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -42,18 +44,13 @@ import org.structr.web.entity.html.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.lang.Object;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.schema.export.StructrSchema;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class Deployment5Test extends DeploymentTestBase {
 
@@ -171,8 +168,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"), true)
 			);
 
 			final GroupTraitDefinition parent       = app.create("GroupTraitDefinition", "parent");
@@ -201,15 +198,15 @@ public class Deployment5Test extends DeploymentTestBase {
 			final Select sel1 = createElement(page1, div1,  "select");
 			final Option opt1 = createElement(page1, sel1,  "option", "${group.name}");
 
-			sel1.setProperty(StructrApp.key(Select.class, "_html_multiple"), "multiple");
+			sel1.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
 
 			// repeater config
-			opt1.setProperty(StructrApp.key(DOMElement.class, "functionQuery"), "find('Group', sort('name'))");
-			opt1.setProperty(StructrApp.key(DOMElement.class, "dataKey"),       "group");
+			opt1.setProperty(Traits.of("DOMElement").key("functionQuery"), "find('Group', sort('name'))");
+			opt1.setProperty(Traits.of("DOMElement").key("dataKey"),       "group");
 
 			// special keys for Option element
-			opt1.setProperty(StructrApp.key(Option.class, "selectedValues"), "current.members");
-			opt1.setProperty(StructrApp.key(Option.class, "_html_value"),    "${group.id}");
+			opt1.setProperty(Traits.of("Option").key("selectedValues"), "current.members");
+			opt1.setProperty(Traits.of("Option").key("_html_value"),    "${group.id}");
 
 			tx.success();
 
@@ -254,8 +251,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"), true)
 			);
 
 			final GroupTraitDefinition parent       = app.create("GroupTraitDefinition", "parent");
@@ -321,7 +318,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			app.create("User",
 					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+					new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
@@ -354,10 +351,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			body.removeChild(div2);
 
 			comp1.setProperty(AbstractNode.name, "shared-component-one");
-			comp1.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
+			comp1.setProperty(Traits.of("DOMNode").key("hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
 
 			comp2.setProperty(AbstractNode.name, "shared-component-two");
-			comp2.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
+			comp2.setProperty(Traits.of("DOMNode").key("hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
 
 			createContent(shadowPage, comp1, "shared-component-one\n" +
 					"${{\n" +
@@ -403,7 +400,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			app.create("User",
 					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+					new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
@@ -470,7 +467,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "test").getFirst();
+			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name")"test").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 
@@ -515,9 +512,9 @@ public class Deployment5Test extends DeploymentTestBase {
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
 
-			file.setProperty(StructrApp.key(File.class, "parent"), folder);
+			file.setProperty(Traits.of("File").key("parent"), folder);
 
 			tx.success();
 

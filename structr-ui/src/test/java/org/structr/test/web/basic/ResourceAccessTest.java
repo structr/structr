@@ -30,11 +30,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -259,8 +259,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			// Prepare for next test
 			final PropertyMap testUserProperties = new PropertyMap();
-			testUserProperties.put(StructrApp.key(User.class, "name"), name);
-			testUserProperties.put(StructrApp.key(User.class, "password"), password);
+			testUserProperties.put(Traits.of("User").key("name"), name);
+			testUserProperties.put(Traits.of("User").key("password"), password);
 			testUser.setProperties(testUser.getSecurityContext(), testUserProperties);
 
 			// now we give the user ownership and expect a 200
@@ -363,8 +363,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/Folder/" + testFolder.getUuid());
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(StructrApp.key(User.class, "name"), name);
-			changedProperties.put(StructrApp.key(User.class, "password"), password);
+			changedProperties.put(Traits.of("User").key("name"), name);
+			changedProperties.put(Traits.of("User").key("password"), password);
 			testUser.setProperties(testUser.getSecurityContext(), changedProperties);
 
 			// make user own folder
@@ -449,8 +449,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 
 			tx.success();
 

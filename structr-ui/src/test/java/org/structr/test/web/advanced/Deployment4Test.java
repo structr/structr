@@ -224,32 +224,32 @@ public class Deployment4Test extends DeploymentTestBase {
 			final File test4 = FileHelper.createFile(securityContext, "test4".getBytes(), "text/plain", File.class, "test4.txt", true);
 
 			test1.setProperty(NodeInterface.owner, p1);
-			test1.setProperty(AbstractNode.visibleToPublicUsers,                     true);
-			test1.setProperty(AbstractNode.visibleToAuthenticatedUsers,              true);
-			test1.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
-			test1.setProperty(StructrApp.key(File.class, "isTemplate"),              true);
-			test1.setProperty(StructrApp.key(File.class, "dontCache"),               false);
+			test1.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"),                     true);
+			test1.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"),              true);
+			test1.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
+			test1.setProperty(Traits.of("File").key("isTemplate"),              true);
+			test1.setProperty(Traits.of("File").key("dontCache"),               false);
 
 			test2.grant(Permission.write, p1);
-			test2.setProperty(AbstractNode.visibleToPublicUsers,                     false);
-			test2.setProperty(AbstractNode.visibleToAuthenticatedUsers,              true);
-			test2.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
-			test2.setProperty(StructrApp.key(File.class, "isTemplate"),              false);
-			test2.setProperty(StructrApp.key(File.class, "dontCache"),               true);
+			test2.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"),                     false);
+			test2.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"),              true);
+			test2.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
+			test2.setProperty(Traits.of("File").key("isTemplate"),              false);
+			test2.setProperty(Traits.of("File").key("dontCache"),               true);
 
 			test3.setProperty(NodeInterface.owner, p2);
-			test3.setProperty(AbstractNode.visibleToPublicUsers,                     true);
-			test3.setProperty(AbstractNode.visibleToAuthenticatedUsers,              false);
-			test3.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
-			test3.setProperty(StructrApp.key(File.class, "isTemplate"),              true);
-			test3.setProperty(StructrApp.key(File.class, "dontCache"),               false);
+			test3.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"),                     true);
+			test3.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"),              false);
+			test3.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
+			test3.setProperty(Traits.of("File").key("isTemplate"),              true);
+			test3.setProperty(Traits.of("File").key("dontCache"),               false);
 
 			test4.grant(Permission.write, p2);
-			test4.setProperty(AbstractNode.visibleToPublicUsers,                     false);
-			test4.setProperty(AbstractNode.visibleToAuthenticatedUsers,              false);
-			test4.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
-			test4.setProperty(StructrApp.key(File.class, "isTemplate"),              false);
-			test4.setProperty(StructrApp.key(File.class, "dontCache"),               true);
+			test4.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"),                     false);
+			test4.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"),              false);
+			test4.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
+			test4.setProperty(Traits.of("File").key("isTemplate"),              false);
+			test4.setProperty(Traits.of("File").key("dontCache"),               true);
 
 			tx.success();
 
@@ -298,10 +298,10 @@ public class Deployment4Test extends DeploymentTestBase {
 				test.grant(Permission.accessControl, p2);
 
 				test.setProperty(AbstractNode.owner,                       p3);		// set wrong owner, to be corrected by deployment import
-				test.setProperty(AbstractNode.visibleToPublicUsers,        true);
-				test.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-				test.setProperty(StructrApp.key(File.class, "isTemplate"), true);
-				test.setProperty(StructrApp.key(File.class, "dontCache"),  true);
+				test.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"),        true);
+				test.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+				test.setProperty(Traits.of("File").key("isTemplate"), true);
+				test.setProperty(Traits.of("File").key("dontCache"),  true);
 			}
 
 			tx.success();
@@ -350,10 +350,10 @@ public class Deployment4Test extends DeploymentTestBase {
 
 				// test properties
 				assertEquals("Owner is not set correctly by deployment import",         p1, test1.getProperty(AbstractNode.owner));
-				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(AbstractNode.visibleToPublicUsers));
-				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test1.getProperty(StructrApp.key(File.class, "isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test1.getProperty(StructrApp.key(File.class, "dontCache")));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of("NodeInterface").key("visibleToPublicUsers")));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
+				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of("File").key("isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test1.getProperty(Traits.of("File").key("dontCache")));
 			}
 
 			{
@@ -368,10 +368,10 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.accessControl, p2));
 
 				assertEquals("Owner is not set correctly by deployment import",       null, test2.getProperty(AbstractNode.owner));
-				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test2.getProperty(AbstractNode.visibleToPublicUsers));
-				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test2.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test2.getProperty(StructrApp.key(File.class, "isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test2.getProperty(StructrApp.key(File.class, "dontCache")));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of("NodeInterface").key("visibleToPublicUsers")));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test2.getProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
+				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of("File").key("isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test2.getProperty(Traits.of("File").key("dontCache")));
 			}
 
 			{
@@ -386,10 +386,10 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.accessControl, p2));
 
 				assertEquals("Owner is not set correctly by deployment import",         p2, test3.getProperty(AbstractNode.owner));
-				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test3.getProperty(AbstractNode.visibleToPublicUsers));
-				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test3.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test3.getProperty(StructrApp.key(File.class, "isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test3.getProperty(StructrApp.key(File.class, "dontCache")));
+				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of("NodeInterface").key("visibleToPublicUsers")));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test3.getProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
+				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of("File").key("isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test3.getProperty(Traits.of("File").key("dontCache")));
 			}
 
 			{
@@ -404,10 +404,10 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.accessControl, p2));
 
 				assertEquals("Owner is not set correctly by deployment import",       null, test4.getProperty(AbstractNode.owner));
-				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(AbstractNode.visibleToPublicUsers));
-				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test4.getProperty(StructrApp.key(File.class, "isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test4.getProperty(StructrApp.key(File.class, "dontCache")));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of("NodeInterface").key("visibleToPublicUsers")));
+				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
+				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of("File").key("isTemplate")));
+				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test4.getProperty(Traits.of("File").key("dontCache")));
 			}
 
 			tx.success();
@@ -434,7 +434,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			app.create("User",
 				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
@@ -491,7 +491,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			app.create("User",
 				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
@@ -530,7 +530,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			final User user = app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "user"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
+				new NodeAttribute<>(Traits.of("User").key("password"), "password")
 			);
 
 			testGroup3.addMember(securityContext, user);
@@ -705,7 +705,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			final SchemaNode node = app.nodeQuery("SchemaNode").andName("Project").getFirst();
 
-			assertTrue("Changelog disabled flag should be set after deployment roundtrip", node.getProperty(AbstractSchemaNode.changelogDisabled));
+			assertTrue("Changelog disabled flag should be set after deployment roundtrip", node.getProperty(AbstractTraits.of("SchemaNode").key("changelogDisabled")));
 
 			tx.success();
 
@@ -752,7 +752,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			app.create("User",
 				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
 			);
 
@@ -798,7 +798,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			app.create("User",
 				new NodeAttribute<>(AbstractNode.name, "user"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
+				new NodeAttribute<>(Traits.of("User").key("password"), "password")
 			);
 
 			tx.success();

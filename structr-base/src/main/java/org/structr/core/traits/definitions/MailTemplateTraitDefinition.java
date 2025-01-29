@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.Property;
@@ -32,22 +33,11 @@ import java.util.Set;
 /**
  *
  */
-
 public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public MailTemplateTraitDefinition() {
 		super("MailTemplate");
 	}
-
-	/*
-	public static final View defaultView = new View(MailTemplate.class, PropertyView.Public,
-		name, textProperty, localeProperty
-	);
-
-	public static final View uiView      = new View(MailTemplate.class, PropertyView.Ui,
-		name, textProperty, localeProperty
-	);
-	*/
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
@@ -66,6 +56,17 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 		return newSet(
 			textProperty,
 			localeProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet("name", "text", "locale"),
+			PropertyView.Ui,
+			newSet("name", "text", "locale")
 		);
 	}
 

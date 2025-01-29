@@ -36,12 +36,13 @@ import java.util.*;
  */
 public class TraitsImplementation implements Traits {
 
-	private static final Set<String> DEFAULT_PROPERTY_KEYS     = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
-	private static final Map<String, Traits> globalTraitMap    = new LinkedHashMap<>();
-	private static PropertyKey<Date> cachedCreatedDateProperty = null;
-	private static PropertyKey<String> cachedNameProperty      = null;
-	private static PropertyKey<String> cachedTypeProperty      = null;
-	private static PropertyKey<String> cachedIdProperty        = null;
+	private static final Set<String> DEFAULT_PROPERTY_KEYS        = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
+	private static final Map<String, Traits> globalTraitMap       = new LinkedHashMap<>();
+	private static final Map<String, Set<PropertyKey>> properties = new LinkedHashMap<>();
+	private static PropertyKey<Date> cachedCreatedDateProperty    = null;
+	private static PropertyKey<String> cachedNameProperty         = null;
+	private static PropertyKey<String> cachedTypeProperty         = null;
+	private static PropertyKey<String> cachedIdProperty           = null;
 
 	private final Map<String, TraitDefinition> types                              = new LinkedHashMap<>();
 	private final Map<String, AbstractMethod> dynamicMethods                      = new LinkedHashMap<>();
@@ -267,6 +268,9 @@ public class TraitsImplementation implements Traits {
 			// set declaring trait
 			key.setDeclaringTrait(trait);
 
+			// store property-trait association (which property is defined by which trait)
+			this.properties.computeIfAbsent(trait.getName(), k -> new LinkedHashSet<>()).add(key);
+
 			// add key to "all" view
 			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
 
@@ -362,6 +366,15 @@ public class TraitsImplementation implements Traits {
 		}
 
 		throw new RuntimeException("Missing trait definition for " + name + ".");
+	}
+
+	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
+
+		if (properties.containsKey(name)) {
+			return properties.get(name);
+		}
+
+		return Set.of();
 	}
 
 	static Traits ofRelationship(String type1, String relType, String type2) {
@@ -495,6 +508,7 @@ public class TraitsImplementation implements Traits {
 		for (final Iterator<Traits> it = TraitsImplementation.globalTraitMap.values().iterator(); it.hasNext(); ) {
 
 			final Traits traits = it.next();
+
 			if (!traits.isBuiltInType()) {
 
 				it.remove();
@@ -509,6 +523,9 @@ public class TraitsImplementation implements Traits {
 						indexingTypeName = relation.name();
 					}
 				}
+
+				// remove property keys from global map
+				properties.remove(indexingTypeName);
 
 				// add mapped property keys
 				final Map<String, PropertyKey> map = removedClasses.computeIfAbsent(indexingTypeName, k -> new LinkedHashMap<>());

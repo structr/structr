@@ -30,13 +30,15 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaService;
+import org.structr.schema.action.EvaluationHints;
 import org.testng.annotations.Optional;
 import org.testng.annotations.*;
 
@@ -47,10 +49,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Supplier;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import org.structr.schema.action.EvaluationHints;
 
 /**
  * Base class for all structr UI tests.
@@ -159,8 +157,6 @@ public abstract class StructrUiTest {
 
 				FlushCachesCommand.flushAll();
 
-				SchemaService.ensureBuiltinTypesExist(app);
-
 			} catch (Throwable t) {
 
 				t.printStackTrace();
@@ -246,11 +242,9 @@ public abstract class StructrUiTest {
 
 	}
 
-	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final NodeAttribute... attrs) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final NodeAttribute... attrs) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
-
-		props.put(AbstractNode.typeHandler, type.getSimpleName());
 
 		for (final NodeAttribute attr : attrs) {
 			props.put(attr.getKey(), attr.getValue());
@@ -259,24 +253,20 @@ public abstract class StructrUiTest {
 		return app.create(type, props);
 	}
 
-	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final String type, final int number) throws FrameworkException {
 
-		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.typeHandler, type.getSimpleName());
-
-		List<T> nodes = new LinkedList<>();
+		final List<NodeInterface> nodes = new LinkedList<>();
 
 		for (int i = 0; i < number; i++) {
-			props.put(AbstractNode.name, type.getSimpleName() + i);
-			nodes.add(app.create(type, props));
+			nodes.add(app.create(type, type + i));
 		}
 
 		return nodes;
 	}
 
-	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final PropertyMap props) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final String type, final int number, final PropertyMap props) throws FrameworkException {
 
-		List<T> nodes = new LinkedList<>();
+		final List<NodeInterface> nodes = new LinkedList<>();
 
 		for (int i = 0; i < number; i++) {
 			nodes.add(app.create(type, props));
@@ -285,11 +275,11 @@ public abstract class StructrUiTest {
 		return nodes;
 	}
 
-	protected List<RelationshipInterface> createTestRelationships(final Class relType, final int number) throws FrameworkException {
+	protected List<RelationshipInterface> createTestRelationships(final String relType, final int number) throws FrameworkException {
 
-		List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
-		final GenericNode startNode = nodes.get(0);
-		final GenericNode endNode   = nodes.get(1);
+		List<NodeInterface> nodes = createTestNodes("AbstractNode", 2);
+		final NodeInterface startNode = nodes.get(0);
+		final NodeInterface endNode   = nodes.get(1);
 
 		List<RelationshipInterface> rels = new LinkedList<>();
 
@@ -309,7 +299,7 @@ public abstract class StructrUiTest {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	protected static List<Class> getClasses(String packageName) throws ClassNotFoundException, IOException {
+	protected static List<Class> getClasses(final String packageName) throws ClassNotFoundException, IOException {
 
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -507,8 +497,8 @@ public abstract class StructrUiTest {
 
 	protected void makePublic(final Object... objects) throws FrameworkException {
 
-		for (Object obj : objects) {
-			((GraphObject) obj).setProperties(((GraphObject) obj).getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
+		for (final Object obj : objects) {
+			((GraphObject) obj).setVisibility(true, false);
 		}
 
 	}
@@ -717,7 +707,7 @@ public abstract class StructrUiTest {
 
 	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(node.getClass(), methodName);
+		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
 			hints.reportExistingKey(methodName);

@@ -27,10 +27,9 @@ import org.structr.autocomplete.AbstractHintProvider;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -215,10 +214,10 @@ public class AutocompleteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "testMethod").getFirst();
+			final NodeInterface method = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name"), "testMethod").getFirst();
 
 			// verify that the properties of the Test type are in the autocomplete result
-			final List<GraphObject> result1 = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);
+			final List<GraphObject> result1       = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);
 			final Map<String, Object> base        = ((GraphObjectMap)result1.get(0)).toMap();
 			final Map<String, Object> createdBy   = ((GraphObjectMap)result1.get(1)).toMap();
 			final Map<String, Object> createdDate = ((GraphObjectMap)result1.get(2)).toMap();
@@ -274,8 +273,8 @@ public class AutocompleteTest extends StructrUiTest {
 		}
 
 		// get classes and property key
-		final Class<NodeInterface> projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
-		final Class<NodeInterface> taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final String projectType = "Project";
+		final String taskType    = "Task";
 
 		// test
 		try (final Tx tx = app.tx()) {

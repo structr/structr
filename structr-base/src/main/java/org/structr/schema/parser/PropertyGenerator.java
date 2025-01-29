@@ -42,7 +42,7 @@ public abstract class PropertyGenerator<T> {
 	protected AbstractSchemaNode schemaNode = null;
 	protected PropertyDefinition source     = null;
 	private ErrorBuffer errorBuffer         = null;
-	private String className                = null;
+	protected String className              = null;
 
 	public abstract Type getPropertyType();
 	public abstract String getValueType();

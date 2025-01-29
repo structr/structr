@@ -62,6 +62,10 @@ public interface Traits {
 		return TraitsImplementation.of(name);
 	}
 
+	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
+		return TraitsImplementation.getPropertiesOfTrait(name);
+	}
+
 	static Traits ofRelationship(String type1, String relType, String type2) {
 		return TraitsImplementation.ofRelationship(type1, relType, type2);
 	}

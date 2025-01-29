@@ -49,14 +49,14 @@ public class GraphQLTest extends StructrUiTest {
 			try (final InputStream is = GraphQLTest.class.getResourceAsStream("/test/test.png")) {
 
 				image = ImageHelper.createImage(securityContext, is, "image/png", Image.class, "test.png", false);
-				image.getProperty(StructrApp.key(Image.class, "tnSmall"));
+				image.getProperty(Traits.of("Image").key("tnSmall"));
 				is.close();
 			}
 
 			app.create("User",
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -76,7 +76,7 @@ public class GraphQLTest extends StructrUiTest {
 					// so we need to allow this thread to break the transaction isolation..
 					currentImage.getNode().invalidate();
 
-					return currentImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null;
+					return currentImage.getProperty(Traits.of("Image").key("tnSmall")) != null;
 				},
 				() -> fail("Exceeded timeout while waiting for thumbnail to be available"),
 				30000, 500);

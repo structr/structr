@@ -182,6 +182,8 @@ public abstract class StructrRestTestBase {
 
 		if (!first) {
 
+			System.out.println("########################### CLEANING DATABASE ##################################");
+
 			try (final Tx tx = app.tx()) {
 
 				// delete everything

@@ -49,9 +49,9 @@ public class MeResourceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final User user = app.create("User",
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
+				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -114,9 +114,9 @@ public class MeResourceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final User user = app.create("User",
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
+				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -229,9 +229,9 @@ public class MeResourceTest extends StructrUiTest {
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			final User user = app.create("User",
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
+				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -287,9 +287,9 @@ public class MeResourceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("User",
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
+				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
 			);
 
 			tx.success();

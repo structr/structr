@@ -201,7 +201,7 @@ public class DOMAndPageTest extends StructrUiTest {
 	@Test
 	public void test001EMailAddressConstraint() {
 
-		final PropertyKey<String> eMail = StructrApp.key(User.class, "eMail");
+		final PropertyKey<String> eMail = Traits.of("User").key("eMail");
 
 		try (final Tx tx = app.tx()) {
 
@@ -291,10 +291,10 @@ public class DOMAndPageTest extends StructrUiTest {
 			}
 
 			final PropertyMap siteOneProperties                 = new PropertyMap();
-			final PropertyKey<Iterable<NodeInterface>> sitesKey = StructrApp.key(Page.class, "sites");
-			final PropertyKey<Integer> positionKey              = StructrApp.key(Page.class, "position");
-			final PropertyKey<Integer> portKey                  = StructrApp.key(Site.class, "port");
-			final PropertyKey<String> hostnameKey               = StructrApp.key(Site.class, "hostname");
+			final PropertyKey<Iterable<NodeInterface>> sitesKey = Traits.of("Page").key("sites");
+			final PropertyKey<Integer> positionKey              = Traits.of("Page").key("position");
+			final PropertyKey<Integer> portKey                  = Traits.of("Site").key("port");
+			final PropertyKey<String> hostnameKey               = Traits.of("Site").key("hostname");
 
 			siteOneProperties.put(Site.name, "site-one");
 			siteOneProperties.put(Site.visibleToPublicUsers, true);
@@ -633,8 +633,8 @@ public class DOMAndPageTest extends StructrUiTest {
 				makePublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
 				final PropertyMap pageProperties = new PropertyMap();
-				pageProperties.put(StructrApp.key(Page.class, "showOnErrorCodes"), "404");
-				pageProperties.put(StructrApp.key(Page.class, "position"), 0);
+				pageProperties.put(Traits.of("Page").key("showOnErrorCodes"), "404");
+				pageProperties.put(Traits.of("Page").key("position"), 0);
 				page.setProperties(page.getSecurityContext(), pageProperties);
 
 				tx.success();
@@ -874,7 +874,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<File> files = app.nodeQuery("File").sort(StructrApp.key(File.class, "path")).getAsList();
+				final List<File> files = app.nodeQuery("File").sort(Traits.of("File").key("path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "aaaaa", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(1).getName());
@@ -898,7 +898,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check final sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<File> files = app.nodeQuery("File").sort(StructrApp.key(File.class, "path")).getAsList();
+				final List<File> files = app.nodeQuery("File").sort(Traits.of("File").key("path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "ccccc", files.get(1).getName());
@@ -924,9 +924,9 @@ public class DOMAndPageTest extends StructrUiTest {
 			Page.createSimplePage(securityContext, "test");
 
 			app.create("User",
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("User").key("name"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -1092,7 +1092,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			final Content content1  = createContent(page, div1, "content");
 			final DOMNode component = new CreateComponentCommand().create(div1);
 
-			component.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "assert(1, 2, 3)");
+			component.setProperty(Traits.of("DOMNode").key("showConditions"), "assert(1, 2, 3)");
 
 			makePublic(page, html, body, div1, content1, component);
 
@@ -1127,8 +1127,8 @@ public class DOMAndPageTest extends StructrUiTest {
 			setFlagsRecursively(auth, false,  true);
 
 			app.create("User",
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "tester"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
+				new NodeAttribute<>(Traits.of("User").key("name"),     "tester"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "test")
 			);
 
 			tx.success();
@@ -1206,9 +1206,9 @@ public class DOMAndPageTest extends StructrUiTest {
 			test.getElementsByTagName("div").item(0).appendChild(text);
 
 			final User user = app.create("User",
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			uuid = user.getUuid();
@@ -1312,8 +1312,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 	private void setFlagsRecursively(final DOMNode node, final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
 
-		node.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), visibleToAuth);
-		node.setProperty(StructrApp.key(DOMNode.class, "visibleToPublicUsers"), visibleToPublic);
+		node.setProperty(Traits.of("DOMNode").key("visibleToAuthenticatedUsers"), visibleToAuth);
+		node.setProperty(Traits.of("DOMNode").key("visibleToPublicUsers"), visibleToPublic);
 
 		for (final DOMNode child : node.getChildren()) {
 

@@ -42,14 +42,14 @@ import java.util.Map.Entry;
  */
 public class QueryConfig implements GraphQLQueryConfiguration {
 
-	private final Map<PropertyKey, SearchAttribute> attributes = new LinkedHashMap<>();
-	private final Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
-	private ActionContext actionContext                        = null;
-	private String sortKeySource                               = null;
-	private PropertyKey sortKey                                = null;
-	private boolean sortDescending                             = false;
-	private int pageSize                                       = Integer.MAX_VALUE;
-	private int page                                           = 1;
+	private final Map<String, SearchAttribute> attributes = new LinkedHashMap<>();
+	private final Set<PropertyKey> propertyKeys           = new LinkedHashSet<>();
+	private ActionContext actionContext                   = null;
+	private String sortKeySource                          = null;
+	private PropertyKey sortKey                           = null;
+	private boolean sortDescending                        = false;
+	private int pageSize                                  = Integer.MAX_VALUE;
+	private int page                                      = 1;
 
 	public QueryConfig(final ActionContext actionContext) {
 		this.actionContext = actionContext;
@@ -61,7 +61,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 	}
 
 	@Override
-	public Predicate getPredicateForPropertyKey(final PropertyKey key) {
+	public Predicate getPredicateForPropertyKey(final String key) {
 
 		if (key != null) {
 
@@ -170,7 +170,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 				case "_sort":
 					this.sortKeySource = getStringValue(value, "name");
-					this.sortKey       = type.key(sortKeySource);
+					this.sortKey       = type.hasKey(sortKeySource) ? type.key(sortKeySource) : null;
 					break;
 
 				case "_desc":
@@ -187,7 +187,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 	public void handleFieldArguments(final SecurityContext securityContext, final Traits type, final Field parentField, final Field field) throws FrameworkException {
 
 		final List<SearchTuple> searchTuples = new LinkedList<>();
-		final PropertyKey parentKey          = type.key(parentField.getName());
+		final String parentName              = parentField.getName();
 		final PropertyKey key                = type.key(field.getName());
 		Occurrence occurrence                = Occurrence.REQUIRED;
 
@@ -200,11 +200,13 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			switch (name) {
 
 				case "_equals":
-					searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), true));
+					//searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), true));
+					searchTuples.add(new SearchTuple(castValue(securityContext, type, key, value), true));
 					break;
 
 				case "_contains":
-					searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), false));
+					//searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), false));
+					searchTuples.add(new SearchTuple(castValue(securityContext, type, key, value), false));
 					break;
 
 				case "_conj":
@@ -219,7 +221,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		// only add field if a value was set
 		for (final SearchTuple tuple : searchTuples) {
 
-			addAttribute(parentKey, key.getSearchAttribute(securityContext, occurrence, tuple.value, tuple.exact, null), occurrence);
+			addAttribute(parentName, key.getSearchAttribute(securityContext, occurrence, tuple.value, tuple.exact, null), occurrence);
 		}
 	}
 
@@ -349,13 +351,13 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return null;
 	}
 
-	private void addAttribute(final PropertyKey parentKey, final SearchAttribute newAttribute, final Occurrence occurrence) {
+	private void addAttribute(final String parentName, final SearchAttribute newAttribute, final Occurrence occurrence) {
 
-		final SearchAttribute existingAttribute = attributes.get(parentKey);
+		final SearchAttribute existingAttribute = attributes.get(parentName);
 		if (existingAttribute == null) {
 
 			// single value, no group, no existing attribute
-			attributes.put(parentKey, newAttribute);
+			attributes.put(parentName, newAttribute);
 
 		} else {
 
@@ -375,7 +377,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 				group.add(existingAttribute);
 				group.add(newAttribute);
 
-				attributes.put(parentKey, group);
+				attributes.put(parentName, group);
 			}
 		}
 	}
@@ -398,13 +400,14 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 	private void handleNonPrimitiveSearchObject(final SecurityContext securityContext, final Traits type, final String name, final Value value) throws FrameworkException {
 
-		final PropertyKey key = type.key(name);
-		if (key != null) {
+		if (type.hasKey(name)) {
+
+			final PropertyKey key = type.key(name);
 
 			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
 
 				// handle simple selections like an _equals on the field
-				addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
+				addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
 
 			} else if (value instanceof ObjectValue) {
 
@@ -417,7 +420,6 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					final String searchKey   = entry.getKey();
 					final Object searchValue = entry.getValue();
 					final String relatedType = key.relatedType();
-					final Traits traits      = Traits.of(relatedType);
 
 					if (searchValue instanceof Map) {
 
@@ -427,8 +429,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 						if (relatedType != null) {
 
-							final PropertyKey notionKey = traits.key(searchKey);
-							if (notionKey != null) {
+							final Traits traits = Traits.of(relatedType);
+							if (traits.hasKey(searchKey)) {
+
+								final PropertyKey notionKey = traits.key(searchKey);
 
 								if (equals != null) {
 
@@ -438,7 +442,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 										equals = conv.convert(equals);
 									}
 
-									addAttribute(key, new GraphSearchAttribute(notionKey, key, equals, Occurrence.REQUIRED, true), Occurrence.REQUIRED);
+									addAttribute(name, new GraphSearchAttribute(notionKey, key, equals, Occurrence.REQUIRED, true), Occurrence.REQUIRED);
 
 									// primitive property
 									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
@@ -451,7 +455,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 										contains = conv.convert(contains);
 									}
 
-									addAttribute(key, new GraphSearchAttribute(notionKey, key, contains, Occurrence.REQUIRED, false), Occurrence.REQUIRED);
+									addAttribute(name, new GraphSearchAttribute(notionKey, key, contains, Occurrence.REQUIRED, false), Occurrence.REQUIRED);
 
 									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
 								}
@@ -466,11 +470,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (equals != null) {
 
 								// primitive property
-								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
 
 							} else if (contains != null) {
 
-								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
 							}
 						}
 
@@ -490,11 +494,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							switch (searchKey) {
 
 								case "_contains":
-									addAttribute(key, key.getSearchAttribute(securityContext, occur, listValue, false, null), Occurrence.REQUIRED);
+									addAttribute(name, key.getSearchAttribute(securityContext, occur, listValue, false, null), Occurrence.REQUIRED);
 									break;
 
 								case "_equals":
-									addAttribute(key, key.getSearchAttribute(securityContext, occur, listValue, true, null), Occurrence.REQUIRED);
+									addAttribute(name, key.getSearchAttribute(securityContext, occur, listValue, true, null), Occurrence.REQUIRED);
 									break;
 							}
 						}
@@ -504,11 +508,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 						switch (searchKey) {
 
 							case "_contains":
-								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, false, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, false, null), Occurrence.REQUIRED);
 								break;
 
 							case "_equals":
-								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, true, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, true, null), Occurrence.REQUIRED);
 								break;
 						}
 

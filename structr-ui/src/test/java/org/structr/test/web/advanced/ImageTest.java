@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -36,7 +35,6 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -57,7 +55,7 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testThumbnailGeneration() {
 
-		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
+		final PropertyKey passwordKey = Traits.of("Principal").key("password");
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;
@@ -69,19 +67,19 @@ public class ImageTest extends StructrUiTest {
 			tester3 = app.create("User", new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			final Folder folder1 = FileHelper.createFolderPath(securityContext, "/Test1");
-			folder1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			folder1.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 			folder1.grant(Permission.write, tester1);
 			folder1.grant(Permission.write, tester2);
 			folder1.grant(Permission.write, tester3);
 
 			final Folder folder2 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest2");
-			folder2.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			folder2.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 			folder2.grant(Permission.write, tester1);
 			folder2.grant(Permission.write, tester2);
 			folder2.grant(Permission.write, tester3);
 
 			final Folder folder3 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest3");
-			folder3.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			folder3.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 			folder3.grant(Permission.write, tester1);
 			folder3.grant(Permission.write, tester2);
 			folder3.grant(Permission.write, tester3);
@@ -152,7 +150,7 @@ public class ImageTest extends StructrUiTest {
 				final List<Image> images = app.nodeQuery("Image").and("isThumbnail", false).getAsList();
 				for (Image img : images) {
 
-					allThumbnailsAvailable &= img.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
+					allThumbnailsAvailable &= img.getProperty(Traits.of("Image").key("tnMid")) != null;
 				}
 
 				tx.success();
@@ -171,7 +169,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			final List<Folder> folders = app.nodeQuery("Folder").sort(StructrApp.key(Folder.class, "path")).getAsList();
+			final List<Folder> folders = app.nodeQuery("Folder").sort(Traits.of("Folder").key("path")).getAsList();
 
 			folders.stream().forEach(f -> {
 				System.out.println(f.getPath());
@@ -203,7 +201,7 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testFolderPaths() {
 
-		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
+		final PropertyKey passwordKey = Traits.of("Principal").key("password");
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;
@@ -286,7 +284,7 @@ public class ImageTest extends StructrUiTest {
 			image.setParent(path);
 
 			// request thumbnail creation
-			image.getProperty(StructrApp.key(Image.class, "tnMid"));
+			image.getProperty(Traits.of("Image").key("tnMid"));
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();

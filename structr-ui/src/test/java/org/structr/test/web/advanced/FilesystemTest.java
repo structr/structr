@@ -51,7 +51,7 @@ public class FilesystemTest extends StructrUiTest {
 
 			app.create("Image",
 				new NodeAttribute<>(Image.name, "test01.png"),
-				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), Base64ImageData)
+				new NodeAttribute<>(Traits.of("Image").key("imageData"), Base64ImageData)
 			);
 
 			tx.success();
@@ -69,10 +69,10 @@ public class FilesystemTest extends StructrUiTest {
 
 			final Image image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(StructrApp.key(Image.class, "size")));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(StructrApp.key(Image.class, "width")));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(StructrApp.key(Image.class, "height")));
-			assertEquals("Content type of the image does not match", "image/png",          image.getProperty(StructrApp.key(Image.class, "contentType")));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of("Image").key("size")));
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of("Image").key("width")));
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of("Image").key("height")));
+			assertEquals("Content type of the image does not match", "image/png",          image.getProperty(Traits.of("Image").key("contentType")));
 
 			tx.success();
 
@@ -89,7 +89,7 @@ public class FilesystemTest extends StructrUiTest {
 
 			app.create("Image",
 				new NodeAttribute<>(Image.name, "test01.png"),
-				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), "data:image/jpeg;base64," + Base64ImageData)
+				new NodeAttribute<>(Traits.of("Image").key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();
@@ -106,10 +106,10 @@ public class FilesystemTest extends StructrUiTest {
 
 			final Image image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(StructrApp.key(Image.class, "size")));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(StructrApp.key(Image.class, "width")));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(StructrApp.key(Image.class, "height")));
-			assertEquals("Content type of the image does not match", "image/jpeg",         image.getProperty(StructrApp.key(Image.class, "contentType")));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of("Image").key("size")));
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of("Image").key("width")));
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of("Image").key("height")));
+			assertEquals("Content type of the image does not match", "image/jpeg",         image.getProperty(Traits.of("Image").key("contentType")));
 
 			tx.success();
 

@@ -402,7 +402,7 @@ public class PerformanceTest extends StructrUiTest {
 					for (final NodeInterface n : createNodes(app, TestTwo.class, number)){
 
 						n.setProperty(AbstractNode.name, "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
-						n.setProperty(StructrApp.key(TestTwo.class, "testFives"), createNodes(app, TestFive.class, 3));
+						n.setProperty(Traits.of("TestTwo").key("testFives"), createNodes(app, TestFive.class, 3));
 					}
 
 					tx.success();
@@ -436,7 +436,7 @@ public class PerformanceTest extends StructrUiTest {
 					assertEquals(1, nodes.size());
 
 					final TestTwo testOne = nodes.get(0);
-					final List<TestFive> testFives = Iterables.toList((Iterable)testOne.getProperty(StructrApp.key(TestTwo.class, "testFives")));
+					final List<TestFive> testFives = Iterables.toList((Iterable)testOne.getProperty(Traits.of("TestTwo").key("testFives")));
 
 					assertEquals(3, testFives.size());
 
@@ -599,9 +599,9 @@ public class PerformanceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.create("User",
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),      true)
+				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"),     "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"),      true)
 			);
 
 			tx.success();

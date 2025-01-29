@@ -228,8 +228,9 @@ public class SchemaMethodTraitWrapper extends AbstractTraitWrapper<NodeInterface
 			boolean inheritsFromFile = false;
 			boolean inheritsFromUser = false;
 
-			final Traits traits = Traits.of(parent.getName());
-			if (traits != null) {
+			if (Traits.exists(parent.getName())) {
+
+				final Traits traits = Traits.of(parent.getName());
 
 				inheritsFromFile = traits.contains("AbstractFile");
 				inheritsFromUser = traits.contains("User");

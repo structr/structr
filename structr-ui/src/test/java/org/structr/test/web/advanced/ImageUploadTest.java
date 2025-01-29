@@ -48,8 +48,8 @@ public class ImageUploadTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("Image",
-				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
-				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), Base64ImageData)
+				new NodeAttribute<>(Traits.of("Image").key("name"),      "test01.png"),
+				new NodeAttribute<>(Traits.of("Image").key("imageData"), Base64ImageData)
 			);
 
 			tx.success();
@@ -85,8 +85,8 @@ public class ImageUploadTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("Image",
-				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
-				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), "data:image/jpeg;base64," + Base64ImageData)
+				new NodeAttribute<>(Traits.of("Image").key("name"),      "test01.png"),
+				new NodeAttribute<>(Traits.of("Image").key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();

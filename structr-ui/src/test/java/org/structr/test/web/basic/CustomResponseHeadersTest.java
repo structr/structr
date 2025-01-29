@@ -46,9 +46,9 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 
 			// create admin user
 			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
+				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
 			);
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "customHeadersTestPage");

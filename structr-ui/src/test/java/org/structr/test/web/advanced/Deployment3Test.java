@@ -89,13 +89,13 @@ public class Deployment3Test extends DeploymentTestBase {
 			final Table table2    = createElement(page, div2, "table");
 
 			// include visibility flags
-			page.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			c1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			c2.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			page.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			c1.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			c2.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
 
 			// modify visibility to produce two consecutive deployment instruction comments
-			td12.setProperty(AbstractNode.visibleToPublicUsers, true);
-			table2.setProperty(AbstractNode.visibleToPublicUsers, true);
+			td12.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+			table2.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
 
 			tx.success();
 
@@ -142,24 +142,24 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			// create one method with a schema node
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.schemaNode,                  testType),
-				new NodeAttribute<>(SchemaMethod.name,                        "method1"),
-				new NodeAttribute<>(SchemaMethod.source,                      "source1"),
-				new NodeAttribute<>(SchemaMethod.includeInOpenAPI,            false),
-				new NodeAttribute<>(SchemaMethod.tags,                        new String[] { "tag1", "tag2" }),
-				new NodeAttribute<>(SchemaMethod.summary,                     "summary"),
-				new NodeAttribute<>(SchemaMethod.description,                 "description"),
-				new NodeAttribute<>(SchemaMethod.isStatic,                    true),
-				new NodeAttribute<>(SchemaMethod.isPrivate,                   true),
-				new NodeAttribute<>(SchemaMethod.returnRawResult,             true),
-				new NodeAttribute<>(SchemaMethod.httpVerb,                    HttpVerb.GET)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")                 testType),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")                       "method1"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")                     "source1"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("includeInOpenAPI")           false),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("tags")                       new String[] { "tag1", "tag2" }),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("summary")                    "summary"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("description")                "description"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic")                   true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate")                  true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("returnRawResult")            true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("httpVerb")                   HttpVerb.GET)
 			);
 
 			// and one without (i.e. user-defined function)
 			app.create("SchemaMethod",
-				new NodeAttribute<>(SchemaMethod.name,                       "method2"),
-				new NodeAttribute<>(SchemaMethod.source,                     "source2"),
-				new NodeAttribute<>(SchemaMethod.virtualFileName,            "virtualFileName2")
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")                      "method2"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")                    "source2"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("virtualFileName")           "virtualFileName2")
 			);
 
 			tx.success();
@@ -175,8 +175,8 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "method1").getFirst();
-			final SchemaMethod method2 = app.nodeQuery("SchemaMethod").and(SchemaMethod.name, "method2").getFirst();
+			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name")"method1").getFirst();
+			final SchemaMethod method2 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name")"method2").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
@@ -224,11 +224,11 @@ public class Deployment3Test extends DeploymentTestBase {
 			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
 			Widget widgetToImport = app.create("Widget",
-					new NodeAttribute<>(StructrApp.key(Widget.class, "name"),"TestWidget"),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "configuration"),               "{\"processDeploymentInfo\": true}"),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToPublicUsers"),        true),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of("Widget").key("name"),"TestWidget"),
+					new NodeAttribute<>(Traits.of("Widget").key("source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
+					new NodeAttribute<>(Traits.of("Widget").key("configuration"),               "{\"processDeploymentInfo\": true}"),
+					new NodeAttribute<>(Traits.of("Widget").key("visibleToPublicUsers"),        true),
+					new NodeAttribute<>(Traits.of("Widget").key("visibleToAuthenticatedUsers"), true)
 			);
 
 			Map<String,Object> paramMap = new HashMap<>();
@@ -291,16 +291,16 @@ public class Deployment3Test extends DeploymentTestBase {
 			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
 			Widget widgetToImport = app.create("Widget",
-					new NodeAttribute<>(StructrApp.key(Widget.class, "name"), "TestWidget"),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "source"),
+					new NodeAttribute<>(Traits.of("Widget").key("name"), "TestWidget"),
+					new NodeAttribute<>(Traits.of("Widget").key("source"),
 						"<structr:component src=\"TestComponent\">\n" +
 						"	<div data-structr-meta-name=\"TestComponent\">\n" +
 						"		Test123\n" +
 						"	</div>\n" +
 						"</structr:component>"),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "configuration"), ""),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToPublicUsers"), true),
-					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of("Widget").key("configuration"), ""),
+					new NodeAttribute<>(Traits.of("Widget").key("visibleToPublicUsers"), true),
+					new NodeAttribute<>(Traits.of("Widget").key("visibleToAuthenticatedUsers"), true)
 
 			);
 
@@ -385,17 +385,17 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			final Page page = Page.createSimplePage(securityContext, "page1");
 
-			page.setProperty(StructrApp.key(Page.class, "displayPosition"), 12);
-			page.setProperty(StructrApp.key(Page.class, "icon"),            "icon");
+			page.setProperty(Traits.of("Page").key("displayPosition"), 12);
+			page.setProperty(Traits.of("Page").key("icon"),            "icon");
 
 			final Folder folder = app.create("Folder", "files");
-			folder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			folder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
 
 			// create test file with custom attributes
 			app.create("File",
-				new NodeAttribute<>(StructrApp.key(File.class, "name"),        "test.txt"),
-				new NodeAttribute<>(StructrApp.key(File.class, "parent"),      folder),
-				new NodeAttribute<>(StructrApp.key(File.class, "contentType"), "text/plain"),
+				new NodeAttribute<>(Traits.of("File").key("name"),        "test.txt"),
+				new NodeAttribute<>(Traits.of("File").key("parent"),      folder),
+				new NodeAttribute<>(Traits.of("File").key("contentType"), "text/plain"),
 				new NodeAttribute<>(StructrApp.key(File.class, "test1"),       123),
 				new NodeAttribute<>(StructrApp.key(File.class, "test2"),       "testString")
 			);
@@ -451,8 +451,8 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create("SchemaNode",
-				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
-				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery("SchemaNode").andName("File").getFirst()),
+				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ExtendedFile"),
+				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), app.nodeQuery("SchemaNode").andName("File").getFirst()),
 				new NodeAttribute<>(new StringProperty("_test"), "String")
 			);
 
@@ -472,7 +472,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			final NodeInterface node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt", true);
 
-			node.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			node.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
 			node.setProperty(test, "test");
 
 			tx.success();
@@ -499,7 +499,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
 
 			tx.success();
 

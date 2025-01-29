@@ -114,7 +114,6 @@ public class SchemaService implements Service {
 				// fetch schema relationships
 				for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getResultStream()) {
 
-
 					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
 					final String name                      = schemaRel.getClassName();
 					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
@@ -127,7 +126,6 @@ public class SchemaService implements Service {
 
 				// fetch schema nodes
 				for (final NodeInterface node : app.nodeQuery("SchemaNode").getResultStream()) {
-
 
 					final SchemaNode schemaNode         = node.as(SchemaNode.class);
 					final String name                   = schemaNode.getClassName();
