@@ -28,7 +28,6 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.SiteCONTAINSPage;
-import org.structr.web.servlet.HtmlServlet;
 
 public class Site extends AbstractNode {
 

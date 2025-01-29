@@ -21,7 +21,6 @@ package org.structr.test.csv.test;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.internal.RestAssuredResponseImpl;
-import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,7 @@ import org.structr.rest.servlet.CsvServlet;
 import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;

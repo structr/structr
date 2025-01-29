@@ -18,14 +18,7 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.property.Property;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
-
-import java.net.URI;
 
 public class Mark extends DOMElement {
 

@@ -35,8 +35,8 @@ import org.structr.rest.common.HttpHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Date;
+import java.util.Map;
 /**
  * Represents a single item of a data feed.
  *

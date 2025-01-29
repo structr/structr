@@ -20,17 +20,13 @@ package org.structr.web.entity.html;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.SchemaService;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.w3c.dom.Node;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Map.Entry;
 

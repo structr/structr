@@ -26,6 +26,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -33,7 +35,8 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
@@ -47,10 +50,6 @@ import org.structr.web.entity.dom.Content.ContentHandler;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
-import org.structr.core.graph.Tx;
 
 
 

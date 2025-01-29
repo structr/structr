@@ -22,9 +22,6 @@ import com.github.scribejava.core.model.OAuth2AccessToken;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -34,6 +31,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -51,14 +49,14 @@ import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
+import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.*;
 import java.util.stream.Collectors;
-import org.structr.common.helper.PathHelper;
-import org.structr.web.resource.RegistrationResourceHandler;
 
 /**
  *

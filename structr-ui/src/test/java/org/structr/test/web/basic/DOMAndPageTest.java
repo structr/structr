@@ -49,6 +49,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Html;
+import org.structr.web.importer.Importer;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
@@ -65,8 +66,6 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.api.config.Settings;
-import org.structr.web.importer.Importer;
 import static org.testng.AssertJUnit.*;
 
 

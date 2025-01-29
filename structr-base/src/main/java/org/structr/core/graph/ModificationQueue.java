@@ -41,7 +41,6 @@ import org.structr.core.property.RelationProperty;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.LinkedList;
 
 /**
  *

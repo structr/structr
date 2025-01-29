@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.List;
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,7 @@ import org.structr.schema.action.ActionContext;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 
 public class ServerLogFunction extends AdvancedScriptingFunction {
 

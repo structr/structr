@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -40,11 +39,12 @@ import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.User;
 
 import java.lang.reflect.*;
 import java.util.*;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.User;
+import java.util.stream.Collectors;
 
 /**
  *

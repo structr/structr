@@ -18,10 +18,11 @@
  */
 package org.structr.autocomplete;
 
-import java.util.List;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+
+import java.util.List;
 
 /**
  *

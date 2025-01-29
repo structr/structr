@@ -46,13 +46,8 @@ import org.structr.text.model.StructuredDocument;
 import org.structr.text.model.StructuredTextNode;
 
 import java.io.InputStream;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  *

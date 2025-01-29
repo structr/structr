@@ -24,10 +24,10 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSHelper {
 

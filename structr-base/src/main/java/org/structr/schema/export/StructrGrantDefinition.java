@@ -31,13 +31,13 @@ import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.maintenance.DeployCommand;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.structr.web.maintenance.DeployCommand;
 
 /**
  *

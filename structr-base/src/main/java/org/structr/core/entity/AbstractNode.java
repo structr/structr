@@ -18,8 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.stream.Collectors;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,8 +29,12 @@ import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.*;
 import org.structr.common.error.*;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.Ownership;
@@ -47,11 +49,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.*;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 /**
  * Abstract base class for all node entities in Structr.

@@ -21,7 +21,6 @@ package org.structr.test.web.advanced;
 import com.google.common.collect.Iterators;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -37,6 +36,7 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 

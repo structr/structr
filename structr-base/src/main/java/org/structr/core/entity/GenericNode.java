@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.GenericProperty;
@@ -28,7 +29,6 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
-import org.structr.api.graph.Node;
 
 /**
  * A generic node entity that will be instantiated when a node with an unknown

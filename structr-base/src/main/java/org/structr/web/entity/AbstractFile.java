@@ -37,7 +37,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
@@ -54,9 +53,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for filesystem objects in structr.

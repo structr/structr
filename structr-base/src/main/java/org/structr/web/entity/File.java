@@ -71,7 +71,6 @@ import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
-import org.structr.web.servlet.HtmlServlet;
 
 import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;

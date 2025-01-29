@@ -21,16 +21,13 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.ServerLogFunction;
-import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

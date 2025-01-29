@@ -31,14 +31,14 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

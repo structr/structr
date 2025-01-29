@@ -18,14 +18,9 @@
  */
 package org.structr.schema.parser;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.ByteArrayProperty;
 import org.structr.schema.SchemaHelper.Type;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.Date;
 
 /**
  *

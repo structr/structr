@@ -26,20 +26,19 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.storage.providers.memory.InMemoryStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
-import org.structr.storage.providers.local.LocalFSStorageProvider;
-import org.structr.storage.providers.memory.InMemoryStorageProvider;
-import org.structr.web.entity.StorageConfiguration;
 
 import static org.testng.AssertJUnit.*;
 

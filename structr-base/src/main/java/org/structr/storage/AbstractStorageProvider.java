@@ -22,11 +22,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.structr.web.entity.StorageConfiguration;
 
 /**
  * Abstract base class for all storage providers.

@@ -19,9 +19,7 @@
 package org.structr.bolt;
 
 import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.*;
 import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
 import org.neo4j.driver.internal.shaded.reactor.core.publisher.Mono;
@@ -36,7 +34,7 @@ import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
 
-import java.util.*;
+import java.util.Map;
 
 /**
  *

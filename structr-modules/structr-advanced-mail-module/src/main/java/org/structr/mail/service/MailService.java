@@ -31,6 +31,8 @@ import org.structr.api.config.StringSetting;
 import org.structr.api.service.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -58,8 +60,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode

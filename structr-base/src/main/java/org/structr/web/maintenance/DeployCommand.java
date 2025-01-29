@@ -36,6 +36,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -47,6 +48,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.*;
@@ -73,8 +75,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
-import org.structr.common.helper.VersionHelper;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 

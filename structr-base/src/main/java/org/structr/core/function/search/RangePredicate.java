@@ -22,7 +22,6 @@ import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 
 /**

@@ -30,6 +30,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -37,8 +40,9 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.Optional;
+import org.structr.schema.action.EvaluationHints;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,10 +51,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Supplier;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import org.structr.schema.action.EvaluationHints;
 
 /**
  * Base class for all structr UI tests.

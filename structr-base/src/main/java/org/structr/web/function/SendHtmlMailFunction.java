@@ -25,14 +25,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.common.helper.MailHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.common.helper.DynamicMailAttachment;
-import org.structr.common.helper.MailHelper;
 
 public class SendHtmlMailFunction extends UiAdvancedFunction {
 

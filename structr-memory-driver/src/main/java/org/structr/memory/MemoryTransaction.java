@@ -18,7 +18,6 @@
  */
 package org.structr.memory;
 
-import org.structr.api.NotFoundException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;

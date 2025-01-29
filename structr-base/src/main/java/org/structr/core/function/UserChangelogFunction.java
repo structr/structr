@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
 

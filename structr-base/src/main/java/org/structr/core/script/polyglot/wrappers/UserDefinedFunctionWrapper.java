@@ -23,11 +23,13 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.schema.action.ActionContext;
-
-import java.util.*;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.schema.action.ActionContext;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class UserDefinedFunctionWrapper implements ProxyObject {
 

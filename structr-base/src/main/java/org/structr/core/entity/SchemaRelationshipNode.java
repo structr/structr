@@ -18,10 +18,6 @@
  */
 package org.structr.core.entity;
 
-import graphql.Scalars;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLType;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,9 +28,15 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.util.Iterables;
-import org.structr.common.*;
+import org.structr.common.PermissionPropagation;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Ownership;
@@ -50,11 +52,7 @@ import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.Validator;
 
 import java.util.*;
-import java.util.List;
 import java.util.regex.Pattern;
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.helper.CaseHelper;
-import org.structr.common.helper.ValidationHelper;
 
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 

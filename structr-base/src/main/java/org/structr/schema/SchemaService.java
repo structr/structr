@@ -39,12 +39,19 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
-import org.structr.core.graph.*;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.compiler.*;
 import org.structr.schema.export.StructrSchema;
+import org.structr.web.maintenance.DeployCommand;
 
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -53,7 +60,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.structr.web.maintenance.DeployCommand;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.

@@ -18,15 +18,9 @@
  */
 package org.structr.web.resource;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -34,19 +28,21 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.auth.exception.PasswordChangeRequiredException;
-import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
+import org.structr.core.auth.exception.*;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */

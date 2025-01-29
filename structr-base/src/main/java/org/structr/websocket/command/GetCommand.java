@@ -22,16 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SchemaReloadingNode;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.schema.Schema;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
-import java.util.Set;
-
-import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to retrieve a single graph object by id.

@@ -19,13 +19,14 @@
 
 package org.structr.websocket.command;
 
-import java.util.Arrays;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
+
+import java.util.Arrays;
 
 public class GetOrCreateShadowPageCommand extends AbstractCommand {
 

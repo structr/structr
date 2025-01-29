@@ -36,7 +36,6 @@ import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpService;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.time.Instant;
 import java.util.Date;

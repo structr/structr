@@ -19,9 +19,6 @@
 package org.structr.rest.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -46,6 +43,10 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

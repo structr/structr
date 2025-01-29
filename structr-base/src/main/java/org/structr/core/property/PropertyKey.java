@@ -31,7 +31,6 @@ import org.structr.core.graph.search.SearchAttribute;
 
 import java.util.Comparator;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Base interface for typed property keys.

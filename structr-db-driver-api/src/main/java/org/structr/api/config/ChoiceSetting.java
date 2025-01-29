@@ -18,15 +18,14 @@
  */
 package org.structr.api.config;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * A configuration setting with a key and a type.

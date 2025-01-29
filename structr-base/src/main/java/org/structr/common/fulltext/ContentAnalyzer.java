@@ -18,9 +18,9 @@
  */
 package org.structr.common.fulltext;
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 
+import java.util.Map;
 import java.util.Set;
 
 /**

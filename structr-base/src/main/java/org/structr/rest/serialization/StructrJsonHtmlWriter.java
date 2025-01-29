@@ -18,7 +18,6 @@
  */
 package org.structr.rest.serialization;
 
-import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

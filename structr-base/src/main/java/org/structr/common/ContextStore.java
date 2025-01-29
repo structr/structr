@@ -20,13 +20,13 @@ package org.structr.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
 import org.structr.core.property.GenericProperty;
 
 import java.util.*;
-import org.structr.common.helper.AdvancedMailContainer;
 
 /**
  * Encapsulates all information stored for Action-/SecurityContexts which are available via scripting

@@ -26,7 +26,10 @@ import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.web.datasource.*;
+import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.FunctionDataSource;
+import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 
 import java.net.URL;

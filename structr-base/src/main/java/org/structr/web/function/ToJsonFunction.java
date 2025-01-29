@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -29,7 +30,6 @@ import org.structr.schema.action.ActionContext;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
-import org.structr.common.PropertyView;
 
 public class ToJsonFunction extends UiCommunityFunction {
 

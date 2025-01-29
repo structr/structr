@@ -20,6 +20,7 @@ package org.structr.websocket.command.dom;
 
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -28,8 +29,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given DOM node

@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.collections4.SetUtils;
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;

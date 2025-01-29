@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.function.XmlFunction;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -37,7 +38,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.common.helper.CaseHelper;
 
 /**
  *

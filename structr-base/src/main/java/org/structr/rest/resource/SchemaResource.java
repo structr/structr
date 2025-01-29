@@ -23,9 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -34,18 +32,20 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Multiplicity;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
-import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.SchemaHelper;
-
-import java.lang.reflect.Modifier;
-import java.util.*;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaHelper;
+
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  *

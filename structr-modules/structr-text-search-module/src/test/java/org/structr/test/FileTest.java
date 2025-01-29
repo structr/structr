@@ -20,11 +20,6 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.Map;
-import static org.hamcrest.Matchers.equalTo;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -38,6 +33,13 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
 
 public class FileTest extends StructrUiTest {
 

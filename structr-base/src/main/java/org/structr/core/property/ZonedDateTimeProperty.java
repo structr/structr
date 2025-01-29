@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ZonedDateTimeFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.ZonedDateTimePropertyParser;
 
 import java.time.ZonedDateTime;

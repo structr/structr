@@ -20,10 +20,6 @@ package org.structr.web.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.graph.PropagationDirection;
-import org.structr.api.graph.PropagationMode;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;

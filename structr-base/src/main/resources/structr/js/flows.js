@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Persistence }         from "./lib/structr/persistence/Persistence.js";
-import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
-import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
-import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
-import { Rest }                from "./lib/structr/rest/Rest.js";
+import {Persistence} from "./lib/structr/persistence/Persistence.js";
+import {FlowContainer} from "./flow-editor/src/js/editor/entities/FlowContainer.js";
+import {FlowEditor} from "./flow-editor/src/js/editor/FlowEditor.js";
+import {LayoutModal} from "./flow-editor/src/js/editor/utility/LayoutModal.js";
+import {Rest} from "./lib/structr/rest/Rest.js";
 
 let flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;

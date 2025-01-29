@@ -34,7 +34,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**

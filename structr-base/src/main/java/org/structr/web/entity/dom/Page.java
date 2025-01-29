@@ -48,7 +48,6 @@ import org.structr.web.entity.html.Html;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
-import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
 import java.util.Arrays;

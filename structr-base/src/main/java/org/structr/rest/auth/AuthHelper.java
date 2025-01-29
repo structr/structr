@@ -37,7 +37,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.math.BigInteger;
 import java.net.Inet4Address;

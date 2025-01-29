@@ -38,7 +38,6 @@ import org.structr.core.property.*;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.PageHAS_PATHPagePath;
 import org.structr.web.entity.dom.relationship.PagePathHAS_PARAMETERPagePathParameter;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.util.*;
 import java.util.regex.Matcher;

@@ -23,12 +23,10 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.LinkedList;
-
-import org.structr.api.util.Iterables;
 
 /**
  *

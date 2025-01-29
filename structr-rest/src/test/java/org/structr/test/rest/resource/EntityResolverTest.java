@@ -20,16 +20,16 @@ package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Person;
+import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.core.graph.Tx;
 import static org.testng.AssertJUnit.fail;
 
 /**
