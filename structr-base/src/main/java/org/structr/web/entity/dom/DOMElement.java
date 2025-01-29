@@ -22,7 +22,7 @@ import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1175,7 +1175,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 					final String eventMapping = getEventMapping();
 					if (eventMapping != null) {
 
-						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
+						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml4(eventMapping)).append("\"");
 					}
 					break;
 

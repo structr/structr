@@ -26,8 +26,6 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.action.Actions;
 
-import java.awt.*;
-
 /**
  *
  *

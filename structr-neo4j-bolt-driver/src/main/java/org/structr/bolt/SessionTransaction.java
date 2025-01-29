@@ -19,7 +19,7 @@
 package org.structr.bolt;
 
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;

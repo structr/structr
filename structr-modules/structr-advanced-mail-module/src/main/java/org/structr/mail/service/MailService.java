@@ -21,7 +21,7 @@ package org.structr.mail.service;
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.IntegerSetting;

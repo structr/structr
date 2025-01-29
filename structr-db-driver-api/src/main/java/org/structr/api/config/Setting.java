@@ -19,6 +19,7 @@
 package org.structr.api.config;
 
 import org.apache.commons.lang3.StringUtils;
+
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 

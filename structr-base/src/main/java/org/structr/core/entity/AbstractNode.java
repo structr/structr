@@ -19,12 +19,11 @@
 package org.structr.core.entity;
 
 import java.util.stream.Collectors;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.NativeQuery;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
@@ -34,7 +33,6 @@ import org.structr.common.*;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.Ownership;

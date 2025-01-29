@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;

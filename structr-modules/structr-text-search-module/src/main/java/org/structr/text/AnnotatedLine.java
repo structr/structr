@@ -18,7 +18,7 @@
  */
 package org.structr.text;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
 

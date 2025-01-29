@@ -49,7 +49,6 @@ import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.Validator;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;

@@ -19,7 +19,7 @@
 package org.structr.web.entity.html;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;

@@ -22,8 +22,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -809,10 +814,15 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().properties()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+							.setIncludesAllowed(false)
+					);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
-			config.setFileName(fileName);
+			final PropertiesConfiguration config = builder.getConfiguration();
 
 			for (final Setting setting : settings.values()) {
 
@@ -823,20 +833,25 @@ public class Settings {
 				}
 			}
 
-			final boolean isFileCreation = !config.getFile().exists();
 
-			if(config.getFile().getFreeSpace() < 1024 * 1024){
+			FileHandler fileHandler = new FileHandler(config);
+
+
+
+			final boolean isFileCreation = !fileHandler.getFile().exists();
+
+			if(fileHandler.getFile().getFreeSpace() < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
-			config.save();
+			fileHandler.save();
 
 			if (isFileCreation) {
 
 				try {
 
-					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
+					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
 
 				} catch (UnsupportedOperationException | IOException e) {
 					// happens on non-POSIX filesystems, ignore
@@ -856,7 +871,9 @@ public class Settings {
 	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
 
 		final PropertiesConfiguration config = new PropertiesConfiguration();
-		config.setFileName(Settings.ConfigFileName);
+
+		FileHandler fileHandler = new FileHandler(config);
+		fileHandler.setFileName(Settings.ConfigFileName);
 
 		return config;
 	}
@@ -883,7 +900,8 @@ public class Settings {
 
 	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
 
-		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+		FileHandler fileHandler = new FileHandler(config);
+		return Files.getPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()));
 	}
 
 	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
@@ -899,7 +917,8 @@ public class Settings {
 
 			if (!isOk && warn) {
 
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				FileHandler fileHandler = new FileHandler(config);
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", fileHandler.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -912,10 +931,15 @@ public class Settings {
 	public static void loadConfiguration(final String fileName) {
 
 		try {
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().properties()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+							.setIncludesAllowed(false)
+					);
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
-
-			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
+			final PropertiesConfiguration config = builder.getConfiguration();
 			final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(config, true);
