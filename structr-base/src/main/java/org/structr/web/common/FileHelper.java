@@ -57,8 +57,6 @@ import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
-import javax.activation.MimetypesFileTypeMap;
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteOrder;
@@ -71,6 +69,9 @@ import java.util.zip.CRC32;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.ImageTraitDefinition;
+
+import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
 
 /**
  * File utility class.

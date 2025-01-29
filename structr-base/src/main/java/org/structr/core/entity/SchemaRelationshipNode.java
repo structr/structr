@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
+import java.util.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

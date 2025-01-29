@@ -20,7 +20,8 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
-import org.apache.commons.lang.StringUtils;
+import java.util.Random;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;

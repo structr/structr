@@ -18,7 +18,7 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ParseException;
 import org.apache.http.entity.ContentType;
 import org.jsoup.Jsoup;

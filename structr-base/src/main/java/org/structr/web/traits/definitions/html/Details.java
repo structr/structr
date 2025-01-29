@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;

@@ -18,7 +18,6 @@
  */
 package org.structr.api.util.html;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.attr.Context;
 import org.structr.api.util.html.attr.Css;
 import org.structr.api.util.html.attr.Id;

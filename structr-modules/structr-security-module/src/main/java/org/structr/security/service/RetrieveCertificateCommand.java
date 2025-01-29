@@ -21,7 +21,7 @@ package org.structr.security.service;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;

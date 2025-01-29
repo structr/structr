@@ -50,7 +50,6 @@
 						<configuration>
 							<deb>${project.build.directory}/${project.parent.build.finalName}.deb</deb>
 							<skip>${skipDeb}</skip>
-							<timestamped>true</timestamped>
 							<controlDir>${basedir}/src/main/deb/control</controlDir>
 							<dataSet>
 								<data>
