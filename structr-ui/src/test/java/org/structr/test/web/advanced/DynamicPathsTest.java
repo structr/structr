@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
-import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -32,6 +31,12 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.path.PagePath;
+import org.structr.web.entity.path.PagePathParameter;
+import org.testng.annotations.Test;
+
+import java.util.Random;
+
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;

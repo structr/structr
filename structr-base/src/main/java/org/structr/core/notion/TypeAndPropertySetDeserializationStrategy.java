@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 

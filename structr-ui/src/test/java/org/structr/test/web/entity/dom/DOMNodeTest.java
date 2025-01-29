@@ -20,6 +20,8 @@ package org.structr.test.web.entity.dom;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -27,7 +29,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 

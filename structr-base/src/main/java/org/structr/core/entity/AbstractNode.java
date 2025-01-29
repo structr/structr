@@ -18,13 +18,26 @@
  */
 package org.structr.core.entity;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.*;
+import org.structr.api.util.FixedSizeCache;
+import org.structr.api.util.Iterables;
+import org.structr.common.*;
+import org.structr.common.error.*;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.common.AccessControllable;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.IterableAdapter;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
@@ -41,6 +54,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

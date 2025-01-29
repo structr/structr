@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
-import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -31,6 +29,8 @@ import org.structr.util.AbstractBinaryProcess;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

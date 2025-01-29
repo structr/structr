@@ -18,14 +18,9 @@
  */
 package org.structr.bolt;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.LinkedList;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 /**
  * A tree-based hierarchical cache implementation.

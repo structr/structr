@@ -32,6 +32,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;

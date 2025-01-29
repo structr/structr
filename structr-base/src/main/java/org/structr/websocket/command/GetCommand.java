@@ -21,6 +21,8 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;

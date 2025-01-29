@@ -34,9 +34,12 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;

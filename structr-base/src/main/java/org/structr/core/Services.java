@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
@@ -59,7 +60,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-import org.structr.common.helper.VersionHelper;
 
 public class Services implements StructrServices, BroadcastReceiver {
 

@@ -55,6 +55,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;

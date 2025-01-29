@@ -271,7 +271,7 @@ public class Scripting {
 			context.leave();
 		}
 
-		// Prefer explicitly printed output over actual result
+		// Legacy print() support: Prefer explicitly printed output over actual result
 		final String outputBuffer = actionContext.getOutput();
 		if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
@@ -299,8 +299,16 @@ public class Scripting {
 			try {
 				if (source != null) {
 
-					return context.eval(source);
+					final Value result = context.eval(source);
 
+					// Legacy print() support: Prefer explicitly printed output over actual result
+					final String outputBuffer = actionContext.getOutput();
+					if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+						return Value.asValue(outputBuffer);
+					}
+
+					return result;
 				} else {
 
 					return null;

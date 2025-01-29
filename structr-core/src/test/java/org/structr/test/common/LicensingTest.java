@@ -32,7 +32,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Method;

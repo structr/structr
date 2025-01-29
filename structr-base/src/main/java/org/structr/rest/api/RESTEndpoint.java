@@ -18,13 +18,14 @@
  */
 package org.structr.rest.api;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.rest.api.parameter.RESTParameter;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.common.error.FrameworkException;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  */

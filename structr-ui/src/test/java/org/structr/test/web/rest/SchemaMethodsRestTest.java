@@ -22,6 +22,7 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;

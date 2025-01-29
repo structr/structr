@@ -41,6 +41,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.TransactionCommand;
@@ -54,6 +55,8 @@ import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.schema.parser.DatePropertyParser;
+import org.structr.web.entity.User;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.IOException;

@@ -45,6 +45,8 @@ import org.structr.rest.exception.IllegalPathException;
 
 import java.util.*;
 
+import java.util.*;
+
 /**
  * A resource that calls getProperty() addressed by URL, like /TypeName/uuid/propertyName.
  *

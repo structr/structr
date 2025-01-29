@@ -33,6 +33,9 @@ import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

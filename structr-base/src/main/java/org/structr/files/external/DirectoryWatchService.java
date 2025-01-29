@@ -36,6 +36,9 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.web.entity.AbstractFile;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 

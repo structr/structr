@@ -48,6 +48,7 @@ import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOne
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
 import org.testng.annotations.Optional;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.io.IOException;

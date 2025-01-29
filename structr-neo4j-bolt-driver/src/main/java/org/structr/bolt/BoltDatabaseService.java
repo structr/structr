@@ -19,6 +19,7 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
@@ -40,7 +41,6 @@ import org.structr.api.util.NodeWithOwnerResult;
 
 import java.time.Duration;
 import java.util.*;
-import org.neo4j.driver.Record;
 
 /**
  *

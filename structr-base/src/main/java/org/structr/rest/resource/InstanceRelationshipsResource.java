@@ -28,14 +28,20 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.traits.Traits;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -48,7 +48,6 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.Optional;
-import org.testng.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Method;

@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.graph.NodeInterface;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;

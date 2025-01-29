@@ -18,10 +18,10 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.ComparisonQuery;
@@ -43,6 +43,9 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaService;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
@@ -52,6 +55,8 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+
+import java.util.*;
 
 /**
  *

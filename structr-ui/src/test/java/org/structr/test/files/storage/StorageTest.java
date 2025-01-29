@@ -33,6 +33,8 @@ import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.storage.providers.memory.InMemoryStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;

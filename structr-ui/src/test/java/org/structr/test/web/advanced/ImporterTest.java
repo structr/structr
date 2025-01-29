@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
+import org.structr.core.app.StructrApp;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;

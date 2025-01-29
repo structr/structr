@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 

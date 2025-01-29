@@ -27,6 +27,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.helper.MailHelper;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.common.helper.MailHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;

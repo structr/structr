@@ -18,7 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -29,6 +28,7 @@ import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**

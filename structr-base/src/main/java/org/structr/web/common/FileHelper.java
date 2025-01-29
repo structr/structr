@@ -40,6 +40,8 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
+import org.structr.core.GraphObject;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -57,6 +59,8 @@ import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
+import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteOrder;
