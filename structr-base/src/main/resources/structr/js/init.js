@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscape();
+			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
 		return false;
 	});
@@ -500,7 +500,9 @@ let Structr = {
 
 			let errorLines = [response.message];
 
-			for (let error of response.errors) {
+			let uniqueErrors = Object.values(Object.fromEntries(response.errors.map(e => [JSON.stringify(e), e])));
+
+			for (let error of uniqueErrors) {
 
 				let errorMsg = (error.type ? error.type : '');
 				if (error.property) {
@@ -512,11 +514,11 @@ let Structr = {
 				if (error.token) {
 					errorMsg += ` ${error.token}`;
 				}
-				if (error.detail) {
+				if (error.detail || error.existingNodeUuid) {
 					if (errorMsg.trim().length > 0) {
 						errorMsg += ': ';
 					}
-					errorMsg += error.detail;
+					errorMsg += error.existingNodeUuid ?? error.detail;
 				}
 
 				errorLines.push(errorMsg);

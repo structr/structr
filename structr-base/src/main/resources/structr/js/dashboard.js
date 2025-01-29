@@ -1167,42 +1167,80 @@ let _Dashboard = {
 			init: () => {
 				_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethods();
 			},
+			getMarkupForMethod: (method) => `
+				<tr>
+					<td><span class="method-name">${method.schemaNode ? `<span class="font-semibold">${method.schemaNode.name}</span>.` : ''}${method.name}</span></td>
+					<td><button class="run action button flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconRunButton)} Open run dialog</button></td>
+				</tr>
+			`,
 			appendUserDefinedMethods: async () => {
 
 				let container = document.querySelector('#dashboard-user-defined-methods');
 				_Helpers.fastRemoveAllChildren(container);
-				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`);
 
+				let userDefinedFunctions = [];
+				let staticFunctions      = {};
+
+				let requestConfig = {
+					headers: {
+						Accept: 'properties=id,type,name,httpVerb,isStatic,schemaNode'
+					}
+				};
+
+				let response = await fetch(`${Structr.rootUrl}SchemaMethod/custom?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, requestConfig);
 				if (response.ok) {
-
 					let data = await response.json();
+					userDefinedFunctions = data.result;
+				}
 
-					if (data.result.length === 0) {
+				let response2 = await fetch(`${Structr.rootUrl}SchemaMethod/custom?isStatic=true&isPrivate=false`, requestConfig);
+				if (response2.ok) {
+					let data = await response2.json();
 
-						container.textContent = 'No user-defined functions.';
+					let groupedStaticFunctions = data.result.reduce((acc, curr) => {
+						acc[curr.schemaNode.name] ??= {};
+						acc[curr.schemaNode.name][curr.name] = curr;
+						return acc;
+					}, {});
 
-					} else {
+					staticFunctions = groupedStaticFunctions;
+				}
 
-						let maintenanceList = _Helpers.createSingleDOMElementFromHTML(`
-							<table class="props">
-								${data.result.map(method => `
-									<tr class="user-defined-method">
-										<td><span class="method-name">${method.name}</span></td>
-										<td><button id="run-${method.id}" class="action button">Open run dialog</button></td>
-									</tr>
-								`).join('')}
-							</table>
-						`);
-						container.appendChild(maintenanceList);
+				if (userDefinedFunctions.length === 0 && staticFunctions.length === 0) {
 
-						for (let method of data.result) {
+					container.textContent = 'No functions available.';
 
-							maintenanceList.querySelector('button#run-' + method.id).addEventListener('click', () => {
-								_Code.runSchemaMethod(method);
-							});
+				} else {
+
+					let callableMethodsList = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
+
+					for (let method of userDefinedFunctions) {
+
+						_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
+					}
+
+					for (let typeName of Object.keys(staticFunctions).sort()) {
+
+						for (let methodName of Object.keys(staticFunctions[typeName]).sort()) {
+
+							let method = staticFunctions[typeName][methodName];
+
+							_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
 						}
 					}
+
+					container.appendChild(callableMethodsList);
 				}
+			},
+			appendUserDefinedMethod: (method, container) => {
+
+				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs['user-defined-methods'].getMarkupForMethod(method));
+
+				methodEntry.querySelector('button.run').addEventListener('click', () => {
+					_Code.runSchemaMethod(method);
+				});
+
+				container.appendChild(methodEntry);
 			},
 			onShow: async () => {},
 			onHide: async () => {}

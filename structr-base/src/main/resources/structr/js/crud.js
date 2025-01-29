@@ -432,8 +432,16 @@ let _Crud = {
 
 			_Crud.objectList.updateCrudTableHeader(type);
 
-			document.querySelector('#create' + type).addEventListener('click', () => {
-				_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
+			document.querySelector('#create' + type).addEventListener('click', (e) => {
+
+				if (e.shiftKey === true) {
+
+					_Crud.createDialogWithErrorHandling.showCreateDialog(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
+
+				} else {
+
+					_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
+				}
 			});
 
 			document.querySelector('#export' + type).addEventListener('click', () => {
@@ -2885,6 +2893,7 @@ let _Crud = {
 
 						let val = _Entities.basicTab.getValueFromFormElement(i);
 
+
 						if (isCollection) {
 
 							returnObject[key].push(val);
@@ -2897,7 +2906,10 @@ let _Crud = {
 				}
 			}
 
-			return returnObject;
+			// filter our empty strings and empty arrays
+			let filteredData = Object.fromEntries(Object.entries(returnObject).filter(([key, value]) => (value !== '' && !(Array.isArray(value) && value.length === 0))));
+
+			return filteredData;
 		},
 		crudAskDelete: async (type, id) => {
 
@@ -3013,7 +3025,7 @@ let _Crud = {
 			// delay only used to further highlight the input elements (slight blink)
 			window.setTimeout(() => {
 
-				for (let error of responseData.errors) {
+				for (let error of (responseData?.errors ?? [])) {
 
 					let key      = error.property;
 					let errorMsg = error.token;
@@ -3206,7 +3218,7 @@ let _Crud = {
 		`,
 		typeButtons: config => `
 			<div id="crud-buttons" class="flex items-center">
-				<button class="action inline-flex items-center" id="create${config.type}">
+				<button class="action inline-flex items-center" id="create${config.type}" title="Create node of type ${config.type}. Hold the shift key to open the 'Create Node' dialog.">
 					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create ${config.type}
 				</button>
 				<button id="export${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
