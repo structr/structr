@@ -434,14 +434,7 @@ let _Crud = {
 
 			document.querySelector('#create' + type).addEventListener('click', (e) => {
 
-				if (e.shiftKey === true) {
-
-					_Crud.createDialogWithErrorHandling.showCreateDialog(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
-
-				} else {
-
-					_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
-				}
+				_Crud.creationDialogWithErrorHandling.initializeForEvent(e, type, {}, _Crud.creationDialogWithErrorHandling.crudCreateSuccess);
 			});
 
 			document.querySelector('#export' + type).addEventListener('click', () => {
@@ -2973,8 +2966,19 @@ let _Crud = {
 			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime', 'pointer-events-none']));
 		}
 	},	
-	createDialogWithErrorHandling: {
-		create: (type, nodeData = {}, onSuccess) => {
+	creationDialogWithErrorHandling: {
+		initializeForEvent: (e, type, initialData = {}, onSuccess) => {
+
+			if (e.shiftKey === true) {
+
+				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowCreateDialog(type, initialData, onSuccess);
+
+			} else {
+
+				_Crud.creationDialogWithErrorHandling.tryCreate(type, initialData, onSuccess);
+			}
+		},
+		tryCreate: (type, nodeData = {}, onSuccess) => {
 
 			let url = Structr.rootUrl + type;
 
@@ -3003,7 +3007,7 @@ let _Crud = {
 
 					_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
+						_Crud.creationDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
 					});
 				}
 			});
@@ -3013,7 +3017,7 @@ let _Crud = {
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
 			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
+				let elements = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
 				dialogText = elements.dialogText;
 			}
 
@@ -3030,8 +3034,8 @@ let _Crud = {
 					let key      = error.property;
 					let errorMsg = error.token;
 
-					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
-					if (inputs.length > 0) {
+					let cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (cellsForKeyWithError.length > 0) {
 
 						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
 
@@ -3041,16 +3045,22 @@ let _Crud = {
 
 						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
 
-
 						// add "invalid" highlight from elements
-						for (let input of inputs) {
+						for (let input of cellsForKeyWithError) {
 							input.classList.add('form-input', 'input-invalid');
 						}
 
-						inputs[0].focus();
+						cellsForKeyWithError[0].focus();
 					}
 				}
 			}, 100);
+		},
+		loadTypeInfoAndShowCreateDialog: (type, initialData = {}, onSuccess) => {
+
+			_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
+
+				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess) => {
 
@@ -3068,7 +3078,12 @@ let _Crud = {
 
 			let isRelType = _Crud.helpers.isRelType(type);
 
-			for (let key in _Crud.types[type].views.all) {
+			// sort keys to the top, for which initial data has been provided
+			let sortedKeys = Object.keys(initialData);
+			let otherKeys  = Object.keys(_Crud.types[type].views.all).filter(otherKey => !sortedKeys.includes(otherKey));
+			sortedKeys.push(...otherKeys);
+
+			for (let key of sortedKeys) {
 
 				let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
 				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
@@ -3103,7 +3118,7 @@ let _Crud = {
 
 				_Helpers.disableElement(dialogSaveButton);
 				let nodeData = _Crud.helpers.getDataFromForm(document.querySelector('#entityForm'));
-				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
+				_Crud.creationDialogWithErrorHandling.tryCreate(type, nodeData, onSuccess);
 			});
 
 			return dialog;
