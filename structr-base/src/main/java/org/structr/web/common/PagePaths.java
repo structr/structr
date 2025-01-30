@@ -18,8 +18,6 @@
  */
 package org.structr.web.common;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ContextStore;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +25,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  */

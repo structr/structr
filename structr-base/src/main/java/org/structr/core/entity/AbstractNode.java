@@ -18,13 +18,10 @@
  */
 package org.structr.core.entity;
 
-import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.NativeQuery;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
@@ -32,9 +29,12 @@ import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.*;
 import org.structr.common.error.*;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
-import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.Ownership;
@@ -49,11 +49,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.*;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -1353,8 +1349,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-
-		final PrincipalInterface currentUser = securityContext.getUser(false);
 
 		if (!isGranted(Permission.write, securityContext, isCreation)) {
 

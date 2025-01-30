@@ -31,6 +31,7 @@ import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.*;
@@ -70,6 +71,21 @@ public class PagePath extends AbstractNode {
 		valid &= ValidationHelper.isValidPropertyNotNull(this, PagePath.nameProperty, errorBuffer);
 
 		return valid;
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		super.onCreation(securityContext, errorBuffer);
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		super.onDeletion(securityContext, errorBuffer, properties);
 	}
 
 	public Page getPage() {

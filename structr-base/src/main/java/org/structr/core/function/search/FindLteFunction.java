@@ -16,50 +16,58 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.core.function.search;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.schema.action.ActionContext;
 
-public class DebugFunction extends LogFunction {
+public class FindLteFunction extends AdvancedScriptingFunction {
 
-	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_DEBUG    = "Usage: ${debug(string)}. Example ${debug('Hello World!')}";
-	public static final String ERROR_MESSAGE_DEBUG_JS = "Usage: ${{Structr.debug(string)}}. Example ${{Structr.debug('Hello World!')}}";
+	public static final String ERROR_MESSAGE_LTE = "Usage: ${lte(start, end)}. Example: ${find(\"User\", \"age\", lte(\"42\"))}";
 
 	@Override
 	public String getName() {
-		return "debug";
+		return "find.lte";
 	}
 
 	@Override
 	public String getSignature() {
-		return "str";
+		return null;
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (Settings.DebugLogging.getValue()) {
+		try {
 
-			return super.apply(ctx, caller, sources);
+			if (sources == null || sources.length > 1) {
 
+				throw new IllegalArgumentException();
+			}
+
+			return new RangePredicate(null, sources[0], false, true);
+
+		} catch (final IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DEBUG : ERROR_MESSAGE_DEBUG_JS);
+		return ERROR_MESSAGE_LTE;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Logs the given string to the logfile if the debug mode is enabled in the configuration";
+		return "Returns an lte predicate that can be used in find() function calls";
+	}
+
+	@Override
+	public boolean isHidden() {
+		return true;
 	}
 }

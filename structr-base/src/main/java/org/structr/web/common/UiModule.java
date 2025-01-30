@@ -26,7 +26,10 @@ import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.web.datasource.*;
+import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.FunctionDataSource;
+import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 
 import java.net.URL;
@@ -104,6 +107,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new SetCookieFunction());
 		Functions.put(licenseManager, new FromXmlFunction());
 		Functions.put(licenseManager, new CreateArchiveFunction());
+		Functions.put(licenseManager, new CreateFolderPathFunction());
 		Functions.put(licenseManager, new CreateZipFunction());
 		Functions.put(licenseManager, new UnarchiveFunction());
 		Functions.put(licenseManager, new ScheduleFunction());

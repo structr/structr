@@ -31,6 +31,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  *
@@ -61,7 +62,11 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 		final String remoteUrl = getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			return HttpHelper.getAsStream(remoteUrl);
+			final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+			if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+
+				return (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+			}
 		}
 
 		return null;

@@ -422,7 +422,7 @@ let StructrModel = {
 
 			_Entities.updateNewAccessControlIconInElement(obj, element);
 
-			let displayName = _Helpers.getElementDisplayName(obj);
+			let displayName = _Helpers.getHTMLTreeElementDisplayName(obj);
 
 			if (obj.hasOwnProperty('name')) {
 

@@ -20,10 +20,13 @@ package org.structr.knowledge.iso25964;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.EnumProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.knowledge.iso25964.relationship.ThesaurusConcepthasCustomConceptAttributeCustomConceptAttribute;
 
 /**

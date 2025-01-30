@@ -19,7 +19,6 @@
 package org.structr.test.web.resource;
 
 import io.restassured.RestAssured;
-import static org.hamcrest.Matchers.equalTo;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -30,8 +29,10 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.fail;
 
 
 /**

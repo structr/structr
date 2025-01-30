@@ -30,24 +30,24 @@ import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.rest.servlet.AbstractDataServlet;
-import org.structr.web.entity.User;
 
 /**
  * List data source equivalent to a rest resource.

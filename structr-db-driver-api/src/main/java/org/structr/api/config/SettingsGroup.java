@@ -18,15 +18,11 @@
  */
 package org.structr.api.config;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.LinkedList;
 
 /**
  * A named group of configuration settings.

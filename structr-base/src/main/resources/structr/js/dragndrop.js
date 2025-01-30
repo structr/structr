@@ -662,10 +662,7 @@ let _Dragndrop = {
 			newComponentDropzone?.addEventListener('drop', (e) => {
 				e.stopPropagation();
 
-				// Create shadow page if not existing
-				Structr.ensureShadowPageExists().then(() => {
-					_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
-				});
+				_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
 
 				return false;
 			});

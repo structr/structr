@@ -20,20 +20,17 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.util.List;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.equalTo;
-import org.structr.common.error.ErrorToken;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

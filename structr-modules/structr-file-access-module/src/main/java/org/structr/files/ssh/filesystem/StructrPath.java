@@ -26,8 +26,6 @@ import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.channels.Channel;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;

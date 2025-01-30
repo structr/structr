@@ -18,10 +18,10 @@
  */
 package org.structr.bolt;
 
+import org.neo4j.driver.Value;
 import org.structr.api.graph.Node;
 
 import java.util.function.Function;
-import org.neo4j.driver.Value;
 
 /**
  *

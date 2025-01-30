@@ -18,36 +18,31 @@
  */
 package org.structr.excel;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
-import org.structr.api.util.Iterables;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
-import org.structr.core.function.LocalizeFunction;
-import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.schema.parser.DatePropertyParser;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class FromExcelFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_FROM_EXCEL    = "Usage: ${from_excel(file[, encoding = \"UTF-8\"])}. Example: ${get_content(first(find('File', 'name', 'test.xlsx')))}";
-	public static final String ERROR_MESSAGE_FROM_EXCEL_JS = "Usage: ${{Structr.fromExcel(file[, encoding = \"UTF-8\"])}}. Example: ${{Structr.getContent(fileNode)}}";
+	public static final String ERROR_MESSAGE_FROM_EXCEL    = "Usage: ${from_excel(file[, sheetIndexOrName = 0 ])}. Example: ${from_excel(first(find('File', 'name', 'test.xlsx')))}";
+	public static final String ERROR_MESSAGE_FROM_EXCEL_JS = "Usage: ${{Structr.fromExcel(file[, sheetIndexOrName = 0 ])}}. Example: ${{ $.fromExcel(fileNode); }}";
 
 	@Override
 	public String getName() {
@@ -56,7 +51,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getSignature() {
-		return "file [, encoding=UTF-8 ]";
+		return "file [, sheetIndexOrName = 0 ]";
 	}
 
 	@Override
@@ -69,7 +64,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 1);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			if (sources[0] instanceof File) {
 
@@ -79,11 +74,18 @@ public class FromExcelFunction extends Function<Object, Object> {
 					return "";
 				}
 
-				final int sheetIndex = (sources.length == 2 && sources[1] != null) ? Integer.parseInt(sources[1].toString()) : 0;
-
 				try (final InputStream is = file.getInputStream()) {
 
-					return readExcel(is, sheetIndex);
+					if (sources.length < 2 || sources[1] instanceof Integer) {
+
+						final int sheetIndex = (sources.length == 2) ? (Integer)sources[1] : 0;
+
+						return readExcel(is, sheetIndex);
+
+					} else  {
+
+						return readExcel(is, sources[1].toString());
+					}
 
 				} catch (FrameworkException fe) {
 
@@ -115,19 +117,37 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Reads data from a given Excel sheet";
+		return "Reads data from a given Excel sheet. The sheet can be passed as zero-indexed sheet number or by sheet name.";
+	}
+
+	private Object readExcel(final InputStream is, final String sheetName) throws Throwable {
+
+		final Workbook workbook      = new XSSFWorkbook(is);
+		final XSSFSheet sheet        = (XSSFSheet) workbook.getSheet(sheetName);
+
+		if (sheet == null) {
+			throw new FrameworkException(400, "Error while reading excel file: Sheet '" + sheetName + "' not found");
+		}
+
+		return readExcelSheet(sheet);
 	}
 
 	private Object readExcel(final InputStream is, final int sheetIndex) throws Throwable {
 
-		final ConfigurationProvider provider = StructrApp.getConfiguration();
-
-
-		final Gson gson = new GsonBuilder().create();
-		List<Map<String, Object>> objects = new LinkedList<>();
-
 		final Workbook workbook      = new XSSFWorkbook(is);
-		final XSSFSheet sheet        = (XSSFSheet) workbook.getSheetAt(sheetIndex);
+		final int availableSheets    = workbook.getNumberOfSheets();
+
+		if (sheetIndex < 0 || sheetIndex > (availableSheets - 1)) {
+
+			throw new FrameworkException(400, "Error while reading excel file: Sheet index for given file can only be 0.." + (availableSheets - 1));
+		}
+
+		final XSSFSheet sheet = (XSSFSheet) workbook.getSheetAt(sheetIndex);
+
+		return readExcelSheet(sheet);
+	}
+
+	private Object readExcelSheet(final XSSFSheet sheet) {
 
 		final List<GraphObjectMap> elements = new LinkedList<>();
 
@@ -141,10 +161,12 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 		final ArrayList<String> headerValues = new ArrayList<>();
 
-		for (int c = headerRow.getFirstCellNum(); c <= headerRow.getLastCellNum(); c++) {
+		for (int c = headerRow.getFirstCellNum(); c < headerRow.getLastCellNum(); c++) {
+
 			final XSSFCell cell = headerRow.getCell(c);
 
 			if (cell == null) {
+
 				logger.warn("Skipping empty header cell (column index: {})", c);
 				continue;
 			}
@@ -157,6 +179,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 			final XSSFRow row = sheet.getRow(r);
 
 			if (row == null) {
+
 				logger.debug("Row is null, skipping...");
 				continue;
 			}
@@ -179,9 +202,12 @@ public class FromExcelFunction extends Function<Object, Object> {
 						rowObject.put(new GenericProperty(headerValues.get(c)), getCellValue(cell));
 
 					} else {
+
 						logger.warn("No header value found for cell {}, skipping...", cell);
 					}
+
 				} else {
+
 					logger.debug("Cell is null, skipping...");
 				}
 			}
@@ -199,8 +225,10 @@ public class FromExcelFunction extends Function<Object, Object> {
 		Object value = "";
 
 		switch (cellType) {
+
 			case _NONE:
 				break;
+
 			case NUMERIC:
 				if (DateUtil.isCellDateFormatted(cell)) {
 					value = cell.getDateCellValue();
@@ -208,18 +236,23 @@ public class FromExcelFunction extends Function<Object, Object> {
 					value = cell.getNumericCellValue();
 				}
 				break;
+
 			case STRING:
 				value = cell.getStringCellValue();
 				break;
+
 			case FORMULA:
 				value = cell.getCellFormula();
 				break;
+
 			case BLANK:
 				value = cell.getStringCellValue();
 				break;
+
 			case BOOLEAN:
 				value = cell.getBooleanCellValue();
 				break;
+
 			case ERROR:
 				value = cell.getErrorCellValue();
 				break;
@@ -227,6 +260,5 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 		return value;
 	}
-
 }
 

@@ -18,9 +18,6 @@
  */
 package org.structr.core.api;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -30,6 +27,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.EvaluationHints;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  */

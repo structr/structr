@@ -354,9 +354,9 @@ let _Dashboard = {
 				_Dashboard.tabs.deployment.wizard.init();
 
 				// App Import
-				let deploymentFileInput          = document.getElementById('deployment-file-input');
-				let deploymentUrlInput           = document.getElementById('deployment-url-input');
-				let deploymentZipConentPathInput = document.getElementById('deployment-zip-content');
+				let deploymentFileInput           = document.getElementById('deployment-file-input');
+				let deploymentUrlInput            = document.getElementById('deployment-url-input');
+				let deploymentZipContentPathInput = document.getElementById('deployment-zip-content');
 
 				deploymentFileInput.addEventListener('input', () => {
 					deploymentUrlInput.value = '';
@@ -374,7 +374,7 @@ let _Dashboard = {
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
 
-				    let zipContentPath = deploymentZipConentPathInput?.value ?? null;
+				    let zipContentPath = deploymentZipContentPathInput?.value ?? null;
 
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 
@@ -402,8 +402,9 @@ let _Dashboard = {
 				});
 
 				// Data Import
-				let dataDeploymentFileInput            = document.getElementById('data-deployment-file-input');
-				let dataDeploymentUrlInput             = document.getElementById('data-deployment-url-input');
+				let dataDeploymentFileInput             = document.getElementById('data-deployment-file-input');
+				let dataDeploymentUrlInput              = document.getElementById('data-deployment-url-input');
+				let dataDeploymentZipContentPathInput   = document.getElementById('data-deployment-zip-content');
 
 				dataDeploymentFileInput.addEventListener('input', () => {
 					dataDeploymentUrlInput.value = '';
@@ -419,9 +420,11 @@ let _Dashboard = {
 
 				document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
 
+					let zipContentPath = dataDeploymentZipContentPathInput?.value ?? null;
+
 					if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
 
-						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput);
+						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput, zipContentPath);
 
 					} else {
 
@@ -433,7 +436,7 @@ let _Dashboard = {
 
 						} else {
 
-							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl);
+							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl, zipContentPath);
 						}
 					}
 				});
@@ -706,9 +709,10 @@ let _Dashboard = {
 					},
 					deployDataFromZIPURL: {
 						containerId: '#dropdown-deployment-import-data-url',
-						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl, 'Path': entry.zipContentPath }),
 						apply: entry => {
-							document.querySelector('#data-deployment-url-input').value = entry.downloadUrl;
+							document.querySelector('#data-deployment-url-input').value   = entry.downloadUrl;
+							document.querySelector('#data-deployment-zip-content').value = entry.zipContentPath;
 						}
 					},
 					export: {
@@ -1061,8 +1065,8 @@ let _Dashboard = {
 								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
 								<div>
 									<div class="flex flex-col">
-										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 										<input class="mt-1 mb-4 flex-grow" type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 									</div>
 									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
@@ -1124,7 +1128,8 @@ let _Dashboard = {
 								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
 								<div>
 									<div class="flex flex-col">
-										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-zip-content" placeholder="Path to the data folder inside the ZIP file, leave blank for default" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 										<input class="mt-1 mb-4 flex-grow" type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 									</div>
 									<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
@@ -1162,50 +1167,93 @@ let _Dashboard = {
 			init: () => {
 				_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethods();
 			},
+			getMarkupForMethod: (method) => `
+				<tr>
+					<td><span class="method-name">${method.schemaNode ? `<span class="font-semibold">${method.schemaNode.name}</span>.` : ''}${method.name}</span></td>
+					<td><button class="run action button flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconRunButton)} Open run dialog</button></td>
+				</tr>
+			`,
 			appendUserDefinedMethods: async () => {
 
 				let container = document.querySelector('#dashboard-user-defined-methods');
 				_Helpers.fastRemoveAllChildren(container);
-				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`);
 
+				let userDefinedFunctions = [];
+				let staticFunctions      = {};
+
+				let requestConfig = {
+					headers: {
+						Accept: 'properties=id,type,name,httpVerb,isStatic,schemaNode'
+					}
+				};
+
+				let response = await fetch(`${Structr.rootUrl}SchemaMethod/custom?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, requestConfig);
 				if (response.ok) {
-
 					let data = await response.json();
+					userDefinedFunctions = data.result;
+				}
 
-					if (data.result.length === 0) {
+				let response2 = await fetch(`${Structr.rootUrl}SchemaMethod/custom?isStatic=true&isPrivate=false`, requestConfig);
+				if (response2.ok) {
+					let data = await response2.json();
 
-						container.textContent = 'No user-defined functions.';
+					let groupedStaticFunctions = data.result.reduce((acc, curr) => {
+						acc[curr.schemaNode.name] ??= {};
+						acc[curr.schemaNode.name][curr.name] = curr;
+						return acc;
+					}, {});
 
-					} else {
+					staticFunctions = groupedStaticFunctions;
+				}
 
-						let maintenanceList = _Helpers.createSingleDOMElementFromHTML(`
-							<table class="props">
-								${data.result.map(method => `
-									<tr class="user-defined-method">
-										<td><span class="method-name">${method.name}</span></td>
-										<td><button id="run-${method.id}" class="action button">Open run dialog</button></td>
-									</tr>
-								`).join('')}
-							</table>
-						`);
-						container.appendChild(maintenanceList);
+				if (userDefinedFunctions.length === 0 && staticFunctions.length === 0) {
 
-						for (let method of data.result) {
+					container.textContent = 'No functions available.';
 
-							maintenanceList.querySelector('button#run-' + method.id).addEventListener('click', () => {
-								_Code.runSchemaMethod(method);
-							});
+				} else {
+
+					let callableMethodsList = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
+
+					for (let method of userDefinedFunctions) {
+
+						_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
+					}
+
+					for (let typeName of Object.keys(staticFunctions).sort()) {
+
+						for (let methodName of Object.keys(staticFunctions[typeName]).sort()) {
+
+							let method = staticFunctions[typeName][methodName];
+
+							_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
 						}
 					}
+
+					container.appendChild(callableMethodsList);
 				}
+			},
+			appendUserDefinedMethod: (method, container) => {
+
+				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs['user-defined-methods'].getMarkupForMethod(method));
+
+				methodEntry.querySelector('button.run').addEventListener('click', () => {
+					_Code.runSchemaMethod(method);
+				});
+
+				container.appendChild(methodEntry);
 			},
 			onShow: async () => {},
 			onHide: async () => {}
 		},
 		'server-log': {
+			isInitialized: false,
 			refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
 			numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
 			truncateLinesAfterKey: 'dashboardTruncateLinesAfter' + location.port,
+			selectedLogFileKey: 'dashboardSelectedLogFile' + location.port,
+			defaultRefreshTimeIntervalMs: 1000,
+			defaultNumberOfLines: 1000,
+			defaultTruncateLinesAfter: -1,
 			intervalID: undefined,
 			textAreaHasFocus: false,
 			scrollEnabled: true,
@@ -1216,10 +1264,15 @@ let _Dashboard = {
 				_Dashboard.tabs['server-log'].stop();
 			},
 			getTimeIntervalSelect: () => document.querySelector('#dashboard-server-log-refresh-interval'),
-			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-truncate-lines'),
+			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-log-truncate-lines'),
+			getLogFileSelect: () => document.querySelector('#dashboard-server-log-file'),
 			getNumberOfLinesInput: () => document.querySelector('#dashboard-server-log-lines'),
 			getServerLogTextarea: () => document.querySelector('#dashboard-server-log textarea'),
 			getManualRefreshButton: () => document.querySelector('#dashboard-server-log-manual-refresh'),
+			getRefreshInterval: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].defaultRefreshTimeIntervalMs),
+			getNumberOfLines: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].numberOfLinesKey, _Dashboard.tabs['server-log'].defaultNumberOfLines),
+			getTruncateLinesAfter: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].truncateLinesAfterKey, _Dashboard.tabs['server-log'].defaultTruncateLinesAfter),
+			getSelectedLogFile: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].selectedLogFileKey),
 			setFeedback: (message) => {
 				let el = document.querySelector('#dashboard-server-log-feedback');
 				if (el) {
@@ -1231,23 +1284,27 @@ let _Dashboard = {
 
 				let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
 
-				let initServerLogInput = (element, lsKey, defaultValue, successFn) => {
+				let initServerLogInput = (element, lsKey, defaultValue) => {
 
 					element.value = LSWrapper.getItem(lsKey, defaultValue);
+
+					if (element.tagName === 'SELECT' && element.selectedIndex < 0) {
+						element.selectedIndex = 0;
+					}
 
 					element.addEventListener('change', (e) => {
 
 						LSWrapper.setItem(lsKey, e.target.value);
 
-						successFn?.();
+						_Dashboard.tabs['server-log'].updateSettings();
 
 						_Helpers.blinkGreen(e.target);
 					});
 				};
 
-				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(), _Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000, _Dashboard.tabs['server-log'].updateRefreshInterval);
-				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(), _Dashboard.tabs['server-log'].numberOfLinesKey, 1000);
-				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey, -1);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(),      _Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].defaultRefreshTimeIntervalMs);
+				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(),      _Dashboard.tabs['server-log'].numberOfLinesKey,       _Dashboard.tabs['server-log'].defaultNumberOfLines);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey,  _Dashboard.tabs['server-log'].defaultTruncateLinesAfter);
 
 				document.querySelector('#dashboard-server-log-copy').addEventListener('click', async () => {
 					await navigator.clipboard.writeText(textarea.textContent);
@@ -1291,6 +1348,19 @@ let _Dashboard = {
 
 					_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.toggle('textarea-is-scrolled', isScrolled);
 				});
+
+				Command.getAvailableServerLogs().then(data => {
+
+					let logfiles = data.result;
+					let logFileSelect = _Dashboard.tabs['server-log'].getLogFileSelect();
+					for (let log of logfiles) {
+						logFileSelect.insertAdjacentHTML('beforeend', `<option>${log}</option>`);
+					}
+
+					initServerLogInput(_Dashboard.tabs['server-log'].getLogFileSelect(), _Dashboard.tabs['server-log'].selectedLogFileKey);
+
+					_Dashboard.tabs['server-log'].isInitialized = true;
+				});
 			},
 			updateLog: () => {
 
@@ -1298,7 +1368,11 @@ let _Dashboard = {
 
 					_Dashboard.tabs['server-log'].setFeedback('Refreshing server log...');
 
-					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].getNumberOfLinesInput().value, _Dashboard.tabs['server-log'].getTruncateLinesAfterInput().value).then(log => {
+					let noOfLines     = _Dashboard.tabs['server-log'].getNumberOfLines();
+					let truncateAfter = _Dashboard.tabs['server-log'].getTruncateLinesAfter();
+					let logFile       = _Dashboard.tabs['server-log'].getSelectedLogFile();
+
+					Command.getServerLogSnapshot(noOfLines, truncateAfter, logFile).then(log => {
 
 						let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
 						textarea.textContent = log[0].result;
@@ -1313,23 +1387,45 @@ let _Dashboard = {
 					});
 				}
 			},
-			updateRefreshInterval: () => {
+			updateSettings: () => {
 
 				_Dashboard.tabs['server-log'].stop();
 
-				let timeInMs            = _Dashboard.tabs['server-log'].getTimeIntervalSelect().value;
-				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
-				let hasInterval         = (timeInMs > 0);
+				let intervalMs    = _Dashboard.tabs['server-log'].getRefreshInterval();
+				let hasInterval   = (intervalMs > 0);
 
+				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
 				manualRefreshButton.classList.toggle('hidden', hasInterval);
 
+				// update once with the new settings
+				_Dashboard.tabs['server-log'].updateLog();
+
+				// initialize the interval
 				if (hasInterval) {
-					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, timeInMs);
+					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, intervalMs);
 				}
 			},
+			waitUntilInitialized: () => {
+
+				return new Promise(resolve => {
+
+					let fn = () => {
+						if (_Dashboard.tabs['server-log'].isInitialized) {
+							resolve();
+						} else {
+							window.setTimeout(fn, 100);
+						}
+					};
+
+					fn();
+				})
+			},
 			start: () => {
-				_Dashboard.tabs['server-log'].updateLog();
-				_Dashboard.tabs['server-log'].updateRefreshInterval();
+
+				_Dashboard.tabs['server-log'].waitUntilInitialized().then(() => {
+
+					_Dashboard.tabs['server-log'].updateSettings();
+				});
 			},
 			stop: () => {
 				window.clearInterval(_Dashboard.tabs['server-log'].intervalID);
@@ -1551,6 +1647,8 @@ let _Dashboard = {
 				}
 
 				settingsContainer.appendChild(offCanvasDummy);
+
+				_Helpers.activateCommentsInElement(settingsContainer);
 			},
 
 			handleResetConfiguration: (userId) => {
@@ -1754,7 +1852,13 @@ let _Dashboard = {
 
 								<div class="editor-setting flex items-center p-1">
 									<label class="flex-grow">Truncate lines at</label>
-									<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+									<input id="dashboard-server-log-truncate-lines" type="number" class="w-16">
+								</div>
+
+								<div class="editor-setting flex items-center p-1">
+									<label class="flex-grow">Log File</label>
+									<select id="dashboard-server-log-file">
+									</select>
 								</div>
 							</div>
 						</div>

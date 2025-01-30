@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -32,9 +34,6 @@ import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
-
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -19,8 +19,12 @@
 package org.structr.web.entity;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.SiteCONTAINSPage;
@@ -45,5 +49,20 @@ public class Site extends AbstractNode {
 
 	public Integer getPort() {
 		return getProperty(portProperty);
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		super.onCreation(securityContext, errorBuffer);
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+		super.onDeletion(securityContext, errorBuffer, properties);
 	}
 }

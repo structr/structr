@@ -18,6 +18,7 @@
  */
 package org.structr.core.app;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.AgentService;
@@ -54,7 +55,6 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Stateful facade for accessing the Structr core layer.

@@ -19,7 +19,7 @@
 package org.structr.rest.maintenance;
 
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -27,13 +27,13 @@ import org.structr.api.service.Command;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
+import org.structr.rest.resource.MaintenanceResource;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import org.structr.rest.resource.MaintenanceResource;
 
 /**
  * Maintenance command to update the license key.

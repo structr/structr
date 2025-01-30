@@ -42,13 +42,14 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
 import org.testng.annotations.Optional;
-import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.fail;
 

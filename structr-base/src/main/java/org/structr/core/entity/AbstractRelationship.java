@@ -26,14 +26,12 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.*;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.*;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -41,8 +39,6 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.*;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.graph.TransactionCommand;
 
 
 /**

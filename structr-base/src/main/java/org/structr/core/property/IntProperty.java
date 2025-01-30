@@ -23,12 +23,12 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberFormatToken;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 import java.util.Map;
 import java.util.TreeMap;
-import org.structr.common.error.PropertyInputParsingException;
 
 /**
 * A property that stores and retrieves a simple Integer value.

@@ -23,8 +23,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 
-import java.util.Map;
-
 
 /**
  *

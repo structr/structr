@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -32,6 +31,8 @@ import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
+
+import java.util.List;
 
 /**
  *

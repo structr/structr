@@ -18,14 +18,13 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Transaction;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
+import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
@@ -47,10 +46,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaService;
 
 import java.util.*;
-import org.structr.api.search.ComparisonQuery;
-import org.structr.schema.SchemaService;
 
 /**
  *
@@ -238,12 +236,15 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		} else {
 
-			if (!sortOrder.isEmpty()) {
+			// default sort order is applied at database level
+			if (!(sortOrder instanceof DefaultSortOrder)) {
 
 				final List<T> finalResult = new LinkedList<>(Iterables.toList(indexHits));
 				Collections.sort(finalResult, sortOrder);
+
 				return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
 			}
+
 			// no filtering
 			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
 		}

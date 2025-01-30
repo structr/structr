@@ -20,8 +20,9 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.io.IOException;
 import org.hamcrest.Matchers;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -30,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -41,18 +43,13 @@ import org.structr.web.entity.html.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.lang.Object;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.schema.export.StructrSchema;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class Deployment5Test extends DeploymentTestBase {
 

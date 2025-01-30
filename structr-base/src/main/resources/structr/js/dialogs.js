@@ -407,6 +407,8 @@ let _Dialogs = {
 		isMaximized:        false,
 		dialogMaximizedKey: `structrDialogMaximized_${location.port}`,
 		dialogDataKey:      `structrDialogData_${location.port}`,
+		noConfirmOnEscapeClass: 'no-confirm-on-escape',
+		hasCustomCloseHandlerClass: 'has-custom-close-handler',
 		elements: {
 			dialogMsg: null,
 			dialogCancelButton: null,
@@ -448,7 +450,22 @@ let _Dialogs = {
 		getDialogTitleElement: () => _Dialogs.custom.elements.dialogTitle,
 		getDialogTextElement:  () => _Dialogs.custom.elements.dialogText,
 		getDialogMetaElement:  () => _Dialogs.custom.elements.dialogMeta,
+		getDialogTextWrapperElement: () => _Dialogs.custom.elements.dialogBox.querySelector('.dialogTextWrapper'),
 		getDialogBoxElement:   () => _Dialogs.custom.elements.dialogBox,
+		getDialogBtnContainer: () => _Dialogs.custom.elements.dialogBtn,
+		getDialogScrollPosition:  () => {
+
+			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
+
+			return (dialogTextWrapperElement?.scrollTop ?? 0);
+		},
+		setDialogScrollPosition: (pos) => {
+
+			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
+			if (dialogTextWrapperElement) {
+				dialogTextWrapperElement.scrollTop = pos;
+			}
+		},
 		isDialogOpen: () => {
 			return (_Dialogs.custom.elements.dialogBox && _Dialogs.custom.elements.dialogBox.offsetParent);
 		},
@@ -456,7 +473,7 @@ let _Dialogs = {
 
 			let horizontalOffset = 130;
 
-			let dialogTextWrapperElement = _Dialogs.custom.elements.dialogBox.querySelector('.dialogTextWrapper');
+			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
 			if (dialogTextWrapperElement) {
 
 				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 2rem)`;
@@ -657,13 +674,29 @@ let _Dialogs = {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
-		noConfirmOnEscape: () => {
-			_Dialogs.custom.getDialogTextElement()?.classList.add('no-confirm-on-escape');
+		hideAllButtons: () => {
+			for (let btn of _Dialogs.custom.getDialogBtnContainer()?.querySelectorAll('button') ?? []) {
+				btn.classList.add('hidden');
+			}
 		},
-		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains('no-confirm-on-escape') ?? false,
-		checkSaveOrCloseOnEscape: () => {
+		showAllButtons: () => {
+			for (let btn of _Dialogs.custom.getDialogBtnContainer()?.querySelectorAll('button') ?? []) {
+				btn.classList.remove('hidden');
+			}
+		},
+		noConfirmOnEscape: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add(_Dialogs.custom.noConfirmOnEscapeClass);
+		},
+		setHasCustomCloseHandler: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add(_Dialogs.custom.hasCustomCloseHandlerClass);
+		},
+		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.noConfirmOnEscapeClass) ?? false,
+		hasCustomCloseHandler: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.hasCustomCloseHandlerClass) ?? false,
+		checkSaveOrCloseOnEscapeKeyPressed: () => {
 
-			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled && !_Dialogs.custom.isNoConfirmOnEscape()) {
+			let hasAttachedAndEnabledSaveButton = _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled;
+
+			if (_Dialogs.custom.isDialogOpen() && hasAttachedAndEnabledSaveButton && !_Dialogs.custom.isNoConfirmOnEscape() && !_Dialogs.custom.hasCustomCloseHandler()) {
 
 				let saveBeforeExit = confirm('Save changes before closing?');
 				if (saveBeforeExit) {
@@ -715,12 +748,12 @@ let _Dialogs = {
 
 			_Dialogs.custom.elements.dialogCancelButton = button;
 		},
-		updateOrCreateDialogSaveButton: (defaultClasses = ['hover:bg-gray-100', 'focus:border-gray-666', 'active:border-green']) => {
+		updateOrCreateDialogSaveButton: (defaultText = 'Save', defaultClasses = ['hover:bg-gray-100', 'focus:border-gray-666', 'active:border-green']) => {
 
 			if (_Dialogs.custom.elements.dialogSaveButton) {
 				_Dialogs.custom.elements.dialogSaveButton.replaceWith(_Dialogs.custom.elements.dialogSaveButton.cloneNode(true));
 			} else {
-				_Dialogs.custom.elements.dialogBtn.insertAdjacentHTML('beforeend', `<button id="dialogSaveButton" disabled="disabled" class="disabled ${defaultClasses.join(' ')}">Save</button>`);
+				_Dialogs.custom.elements.dialogBtn.insertAdjacentHTML('beforeend', `<button id="dialogSaveButton" disabled="disabled" class="disabled ${defaultClasses.join(' ')}">${defaultText}</button>`);
 			}
 
 			_Dialogs.custom.elements.dialogSaveButton = _Dialogs.custom.elements.dialogBtn.querySelector('#dialogSaveButton');

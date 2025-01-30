@@ -266,7 +266,7 @@ let _Elements = {
 		_Entities.ensureExpanded(parent);
 
 		let id          = entity.id;
-		let displayName = _Helpers.getElementDisplayName(entity);
+		let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
 
 		let html = `
 			<div id="id_${id}" class="${elementClasses.join(' ')}" draggable="true">
@@ -368,7 +368,7 @@ let _Elements = {
 		let htmlClassString = (classString ? '.' + classString.replace(/\${[^}]*}/g, '${…}').replace(/ +/g, '.') : '');
 
 		// only display tagname if node has a displayname other than its tagname (otherwise the tagname itself is already displayed in the name field)
-		let displayName = _Helpers.getElementDisplayName(entity);
+		let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
 		let tagName     = displayName !== entity.type.toLowerCase() ? '&nbsp;&nbsp;' + entity.type.toLowerCase() : '';
 
 		return `<span class="class-id-attrs">${tagName}${htmlIdString}${htmlClassString}</span>`;
@@ -818,7 +818,7 @@ let _Elements = {
 		let isActiveNode          = entity.isActiveNode();
 		let isTemplate            = (entity.type === 'Template');
 		let name                  = entity.name;
-		let displayName           = _Helpers.getElementDisplayName(entity);
+		let displayName           = _Helpers.getHTMLTreeElementDisplayName(entity);
 		let nameText              = (name ? `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
 		let isRootSharedComponent = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
 		let isRootTrashElement    = (entity.parent === null && entity.pageId === null);

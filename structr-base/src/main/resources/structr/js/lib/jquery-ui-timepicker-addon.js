@@ -329,6 +329,18 @@
 					if (!parseRes.timeObj) {
 						return false;
 					}
+
+					// if time parsing showed that the day needs to be adjusted, do it here
+					if (parseRes.timeObj.adjustDayBy) {
+
+						var date = $.datepicker._getDate(this.inst);
+						date.setDate(date.getDate() + parseRes.timeObj.adjustDayBy);
+						$.datepicker._setDate(this.inst, date);
+						$.datepicker._setTime(this.inst, date)
+					}
+
+					delete parseRes.timeObj.adjustDayBy;
+
 					$.extend(this, parseRes.timeObj);
 				} catch (err) {
 					$.timepicker.log("Error parsing the date/time string: " + err +
@@ -1282,7 +1294,7 @@
 					}
 				}
 
-				return {
+				let parseResult = {
 					hour: d.getHours(),
 					minute: d.getMinutes(),
 					second: d.getSeconds(),
@@ -1290,6 +1302,15 @@
 					microsec: d.getMicroseconds(),
 					timezone: d.getTimezoneOffset() * -1
 				};
+
+				// We need to adjust the date because the time crossed midnight
+				if (d.getDate() === 2) {
+					parseResult.adjustDayBy = 1;
+				} else if (d.getDate() === 31) {
+					parseResult.adjustDayBy = -1;
+				}
+
+				return parseResult;
 			}
 			catch (err) {
 				try {

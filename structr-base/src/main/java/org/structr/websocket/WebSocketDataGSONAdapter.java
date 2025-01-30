@@ -24,6 +24,7 @@ import graphql.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -223,14 +224,16 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		}
 
 		// serialize result list
-		if (src.getResult() != null) {
+		final Iterable<? extends GraphObject> srcResult = src.getResult();
+		if (srcResult != null) {
 
-			final List<? extends GraphObject> list = Iterables.toList(src.getResult());
+			int count = 0;
 
 			if ("GRAPHQL".equals(src.getCommand())) {
 
 				try {
 
+					final List<? extends GraphObject> list = Iterables.toList(srcResult);
 					if (!list.isEmpty()) {
 
 						final GraphObject firstResultObject   = list.get(0);
@@ -281,17 +284,29 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				}
 
-				JsonArray result = new JsonArray();
+				final JsonArray result = new JsonArray();
 
-				for (GraphObject obj : list) {
+				for (GraphObject obj : srcResult) {
 
 					result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
+					count++;
 				}
 
 				root.add("result", result);
 
 			}
-			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
+
+			// set / calculate result count after iteration (faster!)
+			if (srcResult instanceof ResultStream s) {
+
+				final SecurityContext securityContext = src.getSecurityContext();
+
+				root.add("rawResultCount", toJsonPrimitive(s.calculateTotalResultCount(null, securityContext.getSoftLimit(s.getPageSize()))));
+
+			} else {
+
+				root.add("rawResultCount", toJsonPrimitive(count));
+			}
 
 		}
 

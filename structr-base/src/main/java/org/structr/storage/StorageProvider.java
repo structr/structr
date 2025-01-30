@@ -19,6 +19,7 @@
 package org.structr.storage;
 
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.StorageConfiguration;
 
 import javax.activation.DataSource;
 import java.io.InputStream;
@@ -27,10 +28,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import org.structr.web.entity.StorageConfiguration;
-
 import static java.nio.file.StandardOpenOption.*;
-import static java.nio.file.StandardOpenOption.SYNC;
 
 public interface StorageProvider extends DataSource {
 

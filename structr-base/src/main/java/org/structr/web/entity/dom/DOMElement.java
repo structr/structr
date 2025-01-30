@@ -22,7 +22,7 @@ import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,10 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.relationship.*;
+import org.structr.web.entity.dom.relationship.DOMElementINPUT_ELEMENTParameterMapping;
+import org.structr.web.entity.dom.relationship.DOMElementRELOADSDOMElement;
+import org.structr.web.entity.dom.relationship.DOMElementTRIGGERED_BYActionMapping;
+import org.structr.web.entity.dom.relationship.DOMNodeCONTAINSDOMNode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.entity.html.TemplateElement;
@@ -99,10 +102,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public static final int HtmlPrefixLength            = PropertyView.Html.length();
 	public static final Gson gson                       = new GsonBuilder().create();
 
-	public static final Property<Iterable<DOMElement>> reloadSourcesProperty           = new StartNodes<>("reloadSources", DOMElementRELOADSDOMElement.class).partOfBuiltInSchema();
-	public static final Property<Iterable<DOMElement>> reloadTargetsProperty           = new EndNodes<>("reloadTargets", DOMElementRELOADSDOMElement.class).partOfBuiltInSchema();
-	public static final Property<Iterable<ActionMapping>> triggeredActionsProperty     = new EndNodes<>("triggeredActions", DOMElementTRIGGERED_BYActionMapping.class).partOfBuiltInSchema();
-	public static final Property<Iterable<ParameterMapping>> parameterMappingsProperty = new EndNodes<>("parameterMappings", DOMElementINPUT_ELEMENTParameterMapping.class).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMElement>> reloadSourcesProperty           = new StartNodes<>("reloadSources", DOMElementRELOADSDOMElement.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<DOMElement>> reloadTargetsProperty           = new EndNodes<>("reloadTargets", DOMElementRELOADSDOMElement.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ActionMapping>> triggeredActionsProperty     = new EndNodes<>("triggeredActions", DOMElementTRIGGERED_BYActionMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
+	public static final Property<Iterable<ParameterMapping>> parameterMappingsProperty = new EndNodes<>("parameterMappings", DOMElementINPUT_ELEMENTParameterMapping.class).category(EVENT_ACTION_MAPPING_CATEGORY).partOfBuiltInSchema();
 
 	public static final Property<String> tagProperty              = new StringProperty("tag").indexed().category(PAGE_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String> pathProperty             = new StringProperty("path").indexed().partOfBuiltInSchema();
@@ -1175,7 +1178,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 					final String eventMapping = getEventMapping();
 					if (eventMapping != null) {
 
-						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
+						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml4(eventMapping)).append("\"");
 					}
 					break;
 

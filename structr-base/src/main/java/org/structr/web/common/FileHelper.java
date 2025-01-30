@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -66,7 +67,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
-import org.structr.common.helper.PathHelper;
 
 /**
  * File utility class.

@@ -24,7 +24,6 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -39,8 +38,12 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -52,9 +55,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -62,13 +67,18 @@ import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
+import org.structr.web.common.PagePaths;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.entity.*;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Linkable;
+import org.structr.web.entity.Site;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -86,19 +96,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.helper.PathHelper;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import org.structr.web.common.PagePaths;
 
 /**
  * Main servlet for content rendering.
  */
 public class HtmlServlet extends AbstractServletBase implements HttpServiceServlet {
 
-	private static final Logger logger                          = LoggerFactory.getLogger(HtmlServlet.class.getName());
-	private static final Property<String> pathPropertyForSearch = new StringProperty("path").indexed();
+	private static final Logger logger                             = LoggerFactory.getLogger(HtmlServlet.class.getName());
+	private static final Property<String> pathPropertyForSearch    = new StringProperty("path").indexed();
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
@@ -146,9 +151,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final long t0                   = System.currentTimeMillis();
-		final Authenticator auth        = getConfig().getAuthenticator();
-		boolean requestUriContainsUuids = false;
+		final long t0                                   = System.currentTimeMillis();
+		final Authenticator auth                        = getConfig().getAuthenticator();
+		boolean requestUriContainsUuids                 = false;
 
 		SecurityContext securityContext;
 		final App app;
@@ -158,6 +163,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			assertInitialized();
 
 			final String path = request.getPathInfo() != null ? request.getPathInfo() : "/";
+			final String cacheKey = request.getRequestURL().toString();
 
 			// check for registration (has its own tx because of write access
 			if (checkRegistration(auth, request, response, path)) {
@@ -232,11 +238,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 				final EditMode edit               = renderContext.getEditMode(user);
-
-				DOMNode rootElement   = null;
-				AbstractNode dataNode = null;
-
-				final String[] uriParts = PathHelper.getParts(path);
+				final String[] uriParts           = PathHelper.getParts(path);
+				boolean isDynamicPath             = false;
+				DOMNode rootElement               = null;
+				AbstractNode dataNode             = null;
+				File file                         = null;
 
 				if (response.getStatus() != HttpServletResponse.SC_OK) {
 
@@ -251,7 +257,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 				}
 
-				if (rootElement == null) {
+				if (rootElement == null && file == null) {
 
 					if (uriParts == null) {
 						logger.error("URI parts array is null, shouldn't happen.");
@@ -282,7 +288,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						if (rootElement == null) {
 
 							// check dynamic paths
-							rootElement = PagePaths.findPageAndResolveParameters(renderContext, path);
+							final DOMNode pathResult = PagePaths.findPageAndResolveParameters(renderContext, path);
+							if (pathResult != null) {
+
+								rootElement   = pathResult;
+								isDynamicPath = true;
+							}
+
 						}
 
 						if (rootElement == null) {
@@ -301,25 +313,24 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 				}
 
-				File file = null;
 
-				if (rootElement == null) { // No page found
+				if (rootElement == null && file == null) { // No page found
 
 					// In case of a file, try to find a file with the query string in the filename
 					final String queryString = request.getQueryString();
-
-					// Look for a file, first include the query string
 					if (StringUtils.isNotBlank(queryString)) {
+
+						// Look for a file, first include the query string
 						file = findFile(securityContext, request, path + "?" + queryString);
 					}
 
 					// If no file with query string in the file name found, try without query string
 					if (file == null) {
+
 						file = findFile(securityContext, request, path);
 					}
 
 					if (file == null) {
-
 
 						for (int i = 0; i < uriParts.length; i++) {
 
@@ -458,6 +469,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();
+
 					return;
 				}
 
@@ -655,13 +667,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} else {
 
-					if (rootElement == null) {
-
-						rootElement = findPage(securityContext, path, edit);
-
-					} else {
-						dontCache = true;
-					}
+					rootElement = findPage(securityContext, path, edit);
 				}
 
 				if (rootElement == null) { // No page found
@@ -1469,6 +1475,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
 
+		final long t0 = System.currentTimeMillis();
+
 		boolean notModified = false;
 		final Date lastModified = node.getLastModifiedDate();
 
@@ -1537,6 +1545,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
+
+		final long t0 = System.currentTimeMillis();
 
 		final ServletOutputStream out         = response.getOutputStream();
 		final String downloadAsFilename       = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
@@ -1682,7 +1692,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 			}
 		}
-
 
 		// WIDGET mode means "opened in frontend", which we don't want to count as an external download
 		if (!EditMode.WIDGET.equals(edit)) {
@@ -1936,6 +1945,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		return null;
 	}
+
 	// ----- nested classes -----
 	private enum AuthState {
 		NoBasicAuth, MustAuthenticate, Authenticated
@@ -1972,6 +1982,28 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		public Linkable getRootElement() {
 			return rootElement;
+		}
+	}
+
+	private static class UuidCacheEntry {
+
+		String fileUuid = null;
+		String domUuid  = null;
+		String dataUuid = null;
+
+		public UuidCacheEntry(final DOMNode domNode, final File fileNode, final AbstractNode dataNode) {
+
+			if (domNode != null) {
+				this.domUuid = domNode.getUuid();
+			}
+
+			if (fileNode != null) {
+				this.fileUuid = fileNode.getUuid();
+			}
+
+			if (dataNode != null) {
+				this.dataUuid = dataNode.getUuid();
+			}
 		}
 	}
 }

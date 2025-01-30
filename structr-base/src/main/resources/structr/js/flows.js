@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Persistence }         from "./lib/structr/persistence/Persistence.js";
-import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
-import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
-import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
-import { Rest }                from "./lib/structr/rest/Rest.js";
+import {Persistence} from "./lib/structr/persistence/Persistence.js";
+import {FlowContainer} from "./flow-editor/src/js/editor/entities/FlowContainer.js";
+import {FlowEditor} from "./flow-editor/src/js/editor/FlowEditor.js";
+import {LayoutModal} from "./flow-editor/src/js/editor/utility/LayoutModal.js";
+import {Rest} from "./lib/structr/rest/Rest.js";
 
 let flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
@@ -224,7 +224,7 @@ let _Flows = {
 					if (node.data === null || node.id === "root") {
 
 						menuItems.addFlow = {
-							label: "Add Flow",
+							label: "Create Flow",
 							action: async function (node) {
 								let ref = $.jstree.reference(node.reference);
 								let sel = ref.get_selected();
@@ -255,7 +255,7 @@ let _Flows = {
 							}
 						};
 						menuItems.addPackage = {
-							label: "Add Package",
+							label: "Create Package",
 							action: async function (node) {
 								let ref = $.jstree.reference(node.reference);
 								let sel = ref.get_selected();
@@ -774,10 +774,10 @@ let _Flows = {
 
 			<div class="inline-flex">
 
-				<input class="mr-2" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
+				<input class="combined-input-create" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
 
-				<button id="create-new-flow" class="action inline-flex items-center">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add
+				<button id="create-new-flow" class="action inline-flex items-center combined-input-create">
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create
 				</button>
 			</div>
 

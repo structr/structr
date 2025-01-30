@@ -21,7 +21,11 @@ package org.structr.web.maintenance;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +36,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -43,6 +48,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.*;
@@ -69,8 +75,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
-import org.structr.common.helper.VersionHelper;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -2408,12 +2412,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
-						// detect tree-based export (absence of folder "File")
-						final boolean isTreeBasedExport = true; //Files.exists(schemaFolder.resolve("File"));
+						final StructrSchemaDefinition schema   = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						final boolean shouldLoadSourceFromFile = schema.hasMethodSourceCodeInFiles();
 
-						final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+						// The following block takes the relative file name in the source property of a schema method
+						// and loads the actual source code from a file on disk.
 
-						if (isTreeBasedExport) {
+						if (shouldLoadSourceFromFile) {
 
 							final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
 
@@ -2550,7 +2555,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				final PropertiesConfiguration config = new PropertiesConfiguration(confFile.toFile());
+				final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+						.configure(new Parameters().properties()
+								.setFile(confFile.toFile())
+								.setThrowExceptionOnMissing(true)
+								.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+								.setIncludesAllowed(false)
+						);
+
+				final PropertiesConfiguration config = builder.getConfiguration();
+
 				final Iterator<String> keys          = config.getKeys();
 
 				while (keys.hasNext()) {
@@ -2580,13 +2594,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info(message);
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, message);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
+			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().properties()
+							.setFile(confFile.toFile())
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+							.setIncludesAllowed(false)
+					);
+
+			final PropertiesConfiguration config = builder.getConfiguration();
 
 			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
 			config.setProperty(DEPLOYMENT_UUID_FORMAT_KEY,                     Settings.UUIDv4AllowedFormats.getValue());
 
-			config.save(confFile.toFile());
+			final FileHandler fileHandler = new FileHandler(config);
+			fileHandler.save();
 
 		} catch (Throwable t) {
 
@@ -2609,7 +2632,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	void deleteRecursively(final Path path) throws IOException {
+	public void deleteRecursively(final Path path) throws IOException {
 
 		if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
 

@@ -27,7 +27,10 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.Relation;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate

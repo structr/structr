@@ -21,7 +21,6 @@ package org.structr.test.rest.document;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;

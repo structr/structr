@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-
 import io.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;

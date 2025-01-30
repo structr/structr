@@ -79,6 +79,14 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	getOrCreateShadowPage: async () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_OR_CREATE_SHADOW_PAGE' };
+			StructrWS.sendObj(obj, (list) => {
+				resolve(list[0]);
+			});
+		});
+	},
 	getPromise: (id, properties, view) => {
 		return new Promise((resolve, reject) => {
 			Command.get(id, properties, resolve, view);
@@ -1439,10 +1447,18 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
+	getAvailableServerLogs: () => {
+		return new Promise((resolve, reject) => {
+			let obj = { command: 'GET_AVAILABLE_SERVER_LOGS' };
+			StructrWS.sendObj(obj, (data) => {
+				resolve(data[0]);
+			});
+		});
+	},
 	/**
      * Requests log snapshot from the server.
      */
-    getServerLogSnapshot: (numberOfLines, truncateLinesAfter) => {
+    getServerLogSnapshot: (numberOfLines, truncateLinesAfter, logFileName) => {
 
 		return new Promise((resolve, reject) => {
 
@@ -1450,7 +1466,8 @@ let Command = {
 				command: 'SERVER_LOG',
 				data: {
 					numberOfLines:      numberOfLines,
-					truncateLinesAfter: truncateLinesAfter
+					truncateLinesAfter: truncateLinesAfter,
+					logFileName:        logFileName
 				}
 			};
 

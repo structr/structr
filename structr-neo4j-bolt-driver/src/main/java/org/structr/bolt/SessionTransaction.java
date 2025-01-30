@@ -19,7 +19,7 @@
 package org.structr.bolt;
 
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
@@ -47,12 +47,10 @@ import java.util.concurrent.atomic.AtomicLong;
 abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final Logger logger                         = LoggerFactory.getLogger(SessionTransaction.class);
-	private static final Set<String> nodeTypeBlacklist         = Set.of("NodeInterface", "AbstractNode", "AbstractFile", "DOMNode", "Page");
-	private static final Set<String> relationshipTypeBlacklist = Set.of(); //Set.of("SECURITY", "OWNS");
 	protected static final AtomicLong ID_SOURCE                = new AtomicLong();
 
-	protected static final Map<String, Map<String, PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
-	protected static final Map<String, Boolean> prefetchBlacklist               = new ConcurrentHashMap<>();
+	protected static final Map<String, Set<PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
+	protected static final Map<String, Boolean> prefetchBlacklist       = new ConcurrentHashMap<>();
 
 	protected final Map<String, PrefetchInfo> histogram = new LinkedHashMap<>();
 	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
@@ -254,7 +252,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (!histogram.isEmpty()) {
 
-				logger.info("Query count histogram for transaction {}:", getTransactionId());
+				logger.info("{}: Query count histogram", getTransactionId());
 
 				for (final String key : histogram.keySet()) {
 
@@ -267,22 +265,17 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		optimizePrefetching();
 
+		// this is internal, will only be displayed if logPrefetching is set to true at compile time..
 		if (logPrefetching && prefetchHint != null) {
 
-			final Map<String, PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null && !infos.isEmpty()) {
 
 				System.out.println("############################################################################### " + prefetchHint);
 
-				for (final PrefetchInfo info : infos.values()) {
+				for (final PrefetchInfo info : infos) {
 
-					final boolean blacklisted = prefetchBlacklist.containsKey(info.getPattern());
-
-					if (blacklisted) {
-						System.out.println("  XXXX  " + info.getPattern());
-					} else {
-						System.out.println("        " + info.getPattern());
-					}
+					System.out.println("        " + info.getPattern());
 
 					for (final String rel : info.getOutgoingSet()) {
 
@@ -307,10 +300,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		if (hint != null && hint.equals(this.prefetchHint)) {
 
-			final Map<String, PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				for (final PrefetchInfo prefetch : infos.values()) {
+				for (final PrefetchInfo prefetch : infos) {
 
 					final long t0 = System.currentTimeMillis();
 					final String pattern = prefetch.getPattern();
@@ -321,16 +314,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 						final long dt = System.currentTimeMillis() - t0;
 
-						if (logPrefetching || db.logQueries()) {
-							logger.info("Automatic prefetching for {} took {} ms", pattern, dt);
-						}
-
 						if (dt > Settings.PrefetchingMaxDuration.getValue(500)) {
 
 							if (logPrefetching || db.logQueries()) {
 
 								// blacklist prefetching calls that take too long
-								logger.info("Blacklisting prefetching pattern {} because it takes {} ms, {} is {}", pattern, dt, Settings.PrefetchingMaxDuration.getKey(), Settings.PrefetchingMaxDuration.getValue(500));
+								logger.info("{}: Blacklisting prefetching pattern {} because it takes {} ms, {} is {}", transactionId, pattern, dt, Settings.PrefetchingMaxDuration.getKey(), Settings.PrefetchingMaxDuration.getValue(500));
 							}
 
 							prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
@@ -406,6 +395,16 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final Path p        = r.get("p").asPath();
 			NodeWrapper current = null;
 
+			if (p.length() == 0) {
+
+				// iterate individual nodes as well
+				for (final Node n : p.nodes()) {
+
+					getNodeWrapper(n);
+					count++;
+				}
+			}
+
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
@@ -446,7 +445,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		if (logPrefetching || db.logQueries()) {
 
-			logger.info(transactionId + ": prefetched {} entities in {} ms with {}", count, (System.currentTimeMillis() - t0), buf);
+			logger.info(transactionId + ": prefetched {} entities in {} ms with {}: {} / {}", count, (System.currentTimeMillis() - t0), buf, nodes.size(), rels.size());
 		}
 	}
 
@@ -531,16 +530,24 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		prefetchedIncoming.addAll(incomingKeys);
 		prefetchedQueries.add(query + id);
 
-		final long t0             = System.currentTimeMillis();
-		long count                = 0L;
+		final Map<String, Object> data = new LinkedHashMap<>();
+		final long t0                  = System.currentTimeMillis();
+		long count                     = 0L;
 
-		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(query, Map.of("id", id)), null)) {
+		if (id != null) {
+			data.put("id", id);
+		}
+
+		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(query, data), null)) {
 
 			final List<org.neo4j.driver.types.Node> nodes        = (List)r.get("nodes").asList();
 			final List<org.neo4j.driver.types.Relationship> rels = (List)r.get("rels").asList();
 
 			for (final org.neo4j.driver.types.Node n : nodes) {
-				getNodeWrapper(n);
+
+				final NodeWrapper nodeWrapper = getNodeWrapper(n);
+				nodeWrapper.storePrefetchInfo(outgoingKeys);
+
 				count++;
 			}
 
@@ -604,54 +611,47 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		if (prefetchHint != null && query.getType() != null && query.getRelationshipType() != null) {
 
-			if (!relationshipTypeBlacklist.contains(query.getRelationshipType())) {
+			final String statement = query.getStatement();
 
-				final String statement = query.getStatement();
+			final PrefetchInfo info = histogram.get(statement);
+			if (info != null) {
 
-				final PrefetchInfo info = histogram.get(statement);
-				if (info != null) {
+				final int count     = info.incrementAndGetCount();
+				final int threshold = Settings.PrefetchingThreshold.getValue(100);
 
-					final int count     = info.incrementAndGetCount();
-					final int threshold = Settings.PrefetchingThreshold.getValue(100);
+				if (count > threshold && !prefetchBlacklist.containsKey(prefetchHint + ": " + info.getPattern())) {
 
-					if (count > threshold && !prefetchBlacklist.containsKey(prefetchHint + ": " + info.getPattern())) {
+					final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new LinkedHashSet<>());
 
-						final Map<String, PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new LinkedHashMap<>());
+					// store prefetching info and log info message
+					if (infos.add(info)) {
 
-						// store prefetching info and log info message
-						if (infos.put(statement, info) == null) {
+						final String pattern = info.getPattern();
 
-							final String pattern = info.getPattern();
+						final long prefetchResultCount = getLong(new SimpleCypherQuery("MATCH p = " + pattern + " RETURN count(p)"));
+						if (prefetchResultCount < Settings.PrefetchingMaxCount.getValue(100_000)) {
 
-							final long prefetchResultCount = getLong(new SimpleCypherQuery("MATCH p = " + pattern + " RETURN count(p)"));
-							if (prefetchResultCount < Settings.PrefetchingMaxCount.getValue(100_000)) {
+							if (logPrefetching || db.logQueries()) {
 
-								if (logPrefetching || db.logQueries()) {
-
-									logger.info("Activating prefetching for {} because it runs more than {} times in a single transaction", pattern, threshold);
-								}
-
-							} else {
-
-								if (logPrefetching || db.logQueries()) {
-
-									logger.info("NOT activating prefetching for {} because it returns more than {} results", pattern, prefetchResultCount);
-								}
-
-								prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
+								logger.info("{}: Activating prefetching for {} because it runs more than {} times in a single transaction", transactionId, pattern, threshold);
 							}
+
+						} else {
+
+							if (logPrefetching || db.logQueries()) {
+
+								logger.info("{}: NOT activating prefetching for {} because it returns more than {} results", transactionId, pattern, prefetchResultCount);
+							}
+
+							prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
 						}
 					}
-
-				} else {
-
-					final PrefetchInfo newInfo = new PrefetchInfo(query);
-
-					if (!nodeTypeBlacklist.contains(newInfo.getType().getSimpleName())) {
-
-						histogram.put(statement, newInfo);
-					}
 				}
+
+			} else {
+
+				final PrefetchInfo newInfo = new PrefetchInfo(query);
+				histogram.put(statement, newInfo);
 			}
 		}
 
@@ -780,86 +780,80 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		// check if we can combine multiple prefetching queries into one
 		if (prefetchHint != null) {
 
-			final Map<String, PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				final Map<Class, Set<String>> typesOutgoing = new LinkedHashMap<>();
-				final Map<Class, Set<String>> typesIncoming = new LinkedHashMap<>();
+				final Map<Class, Set<PrefetchInfo>> typesOutgoing = new LinkedHashMap<>();
+				final Map<Class, Set<PrefetchInfo>> typesIncoming = new LinkedHashMap<>();
 
-				for (final String key : infos.keySet()) {
+				for (final PrefetchInfo info : infos) {
 
-					final PrefetchInfo info = infos.get(key);
 					final Class type = info.getType();
 
 					if (info.isOutgoing()) {
 
-						typesOutgoing.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(key);
+						typesOutgoing.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(info);
 
 
 					} else {
 
-						typesIncoming.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(key);
+						typesIncoming.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(info);
 					}
 				}
 
-				final int combinedSizes = typesOutgoing.size() + typesIncoming.size();
+				for (final Class type : typesOutgoing.keySet()) {
 
-				if (combinedSizes < infos.size()) {
+					final Set<PrefetchInfo> entriesToReplace = typesOutgoing.get(type);
+					if (entriesToReplace.size() > 1) {
 
-					for (final Class type : typesOutgoing.keySet()) {
+						final Set<String> combinedOutgoing = new LinkedHashSet<>();
+						final Set<String> combinedIncoming = new LinkedHashSet<>();
+						final Set<String> relTypes         = new LinkedHashSet<>();
 
-						final Set<String> entriesToReplace = typesOutgoing.get(type);
-						if (entriesToReplace.size() > 1) {
+						for (final PrefetchInfo info : entriesToReplace) {
 
-							final Set<String> combinedOutgoing = new LinkedHashSet<>();
-							final Set<String> combinedIncoming = new LinkedHashSet<>();
-							final Set<String> relTypes = new LinkedHashSet<>();
+							combinedOutgoing.addAll(info.getOutgoingSet());
+							combinedIncoming.addAll(info.getIncomingSet());
 
-							for (final String entryToReplace : entriesToReplace) {
+							relTypes.addAll(info.getRelationshipTypes());
 
-								final PrefetchInfo info = infos.remove(entryToReplace);
+							prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
 
-								combinedOutgoing.addAll(info.getOutgoingSet());
-								combinedIncoming.addAll(info.getIncomingSet());
-
-								relTypes.addAll(info.getRelationshipTypes());
-
-								prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
-							}
-
-							final String pattern       = createPatternFromDetails(type, relTypes, true);
-							final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, true, combinedOutgoing, combinedIncoming, relTypes);
-
-							infos.put(pattern, newInfo);
+							infos.remove(info);
 						}
+
+						final String pattern       = createPatternFromDetails(type, relTypes, true);
+						final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, true, combinedOutgoing, combinedIncoming, relTypes);
+
+						infos.add(newInfo);
 					}
+				}
 
-					for (final Class type : typesIncoming.keySet()) {
+				for (final Class type : typesIncoming.keySet()) {
 
-						final Set<String> entriesToReplace = typesIncoming.get(type);
-						if (entriesToReplace.size() > 1) {
+					final Set<PrefetchInfo> entriesToReplace = typesIncoming.get(type);
+					if (entriesToReplace.size() > 1) {
 
-							final Set<String> combinedOutgoing = new LinkedHashSet<>();
-							final Set<String> combinedIncoming = new LinkedHashSet<>();
-							final Set<String> relTypes = new LinkedHashSet<>();
+						final Set<String> combinedOutgoing = new LinkedHashSet<>();
+						final Set<String> combinedIncoming = new LinkedHashSet<>();
+						final Set<String> relTypes         = new LinkedHashSet<>();
 
-							for (final String entryToReplace : entriesToReplace) {
+						for (final PrefetchInfo info : entriesToReplace) {
 
-								final PrefetchInfo info = infos.remove(entryToReplace);
+							combinedOutgoing.addAll(info.getOutgoingSet());
+							combinedIncoming.addAll(info.getIncomingSet());
 
-								combinedOutgoing.addAll(info.getOutgoingSet());
-								combinedIncoming.addAll(info.getIncomingSet());
+							relTypes.addAll(info.getRelationshipTypes());
 
-								relTypes.addAll(info.getRelationshipTypes());
+							prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
 
-								prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
-							}
-
-							final String pattern       = createPatternFromDetails(type, relTypes, false);
-							final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, false, combinedOutgoing, combinedIncoming, relTypes);
-
-							infos.put(pattern, newInfo);
+							infos.remove(info);
 						}
+
+						final String pattern       = createPatternFromDetails(type, relTypes, false);
+						final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, false, combinedOutgoing, combinedIncoming, relTypes);
+
+						infos.add(newInfo);
 					}
 				}
 			}
@@ -871,44 +865,40 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		// check if we can combine multiple prefetching queries into one
 		if (prefetchHint != null) {
 
-			final Map<String, PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				final Queue<String> outgoingKeyQueue = new LinkedList<>();
-				final Queue<String> incomingKeyQueue = new LinkedList<>();
+				final Queue<PrefetchInfo> outgoingKeyQueue = new LinkedList<>();
+				final Queue<PrefetchInfo> incomingKeyQueue = new LinkedList<>();
 
-				for (final String key : infos.keySet()) {
+				for (final PrefetchInfo info : infos) {
 
-					final PrefetchInfo info = infos.get(key);
 					if (info.isOutgoing()) {
 
-						outgoingKeyQueue.add(key);
+						outgoingKeyQueue.add(info);
 
 					} else {
 
-						incomingKeyQueue.add(key);
+						incomingKeyQueue.add(info);
 					}
 				}
 
-				handleOutgoing(infos, outgoingKeyQueue);
-				handleIncoming(infos, incomingKeyQueue);
+				handleOutgoing(outgoingKeyQueue);
+				handleIncoming(incomingKeyQueue);
 			}
 		}
 	}
 
-	private void handleOutgoing(final Map<String, PrefetchInfo> infos, final Queue<String> keyQueue) {
+	private void handleOutgoing(final Queue<PrefetchInfo> infos) {
 
 		boolean hasChanges = true;
 
-		while (keyQueue.size() > 1 && hasChanges) {
+		while (infos.size() > 1 && hasChanges) {
 
 			hasChanges = false;
 
-			final String key1 = keyQueue.remove();
-			final String key2 = keyQueue.remove();
-
-			final PrefetchInfo info1 = infos.remove(key1);
-			final PrefetchInfo info2 = infos.remove(key2);
+			final PrefetchInfo info1 = infos.remove();
+			final PrefetchInfo info2 = infos.remove();
 
 			if (info1 != null && info2 != null) {
 
@@ -925,36 +915,28 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					final Set<String> set2 = SetUtils.union(info1.getIncomingSet(), info2.getIncomingSet());
 					final String pattern   = createPatternFromDetails(commonBaseType, rels, true);
 
-					// add new key to the key queue
-					keyQueue.add(pattern);
-
-					infos.put(pattern, new PrefetchInfo(pattern, commonBaseType, true, set1, set2, rels));
+					infos.add(new PrefetchInfo(pattern, commonBaseType, true, set1, set2, rels));
 
 				} else {
 
-					// add second type again
-					keyQueue.add(key2);
-
-					infos.put(key1, info1);
-					infos.put(key2, info2);
+					// add types again
+					infos.add(info1);
+					infos.add(info2);
 				}
 			}
 		}
 	}
 
-	private void handleIncoming(final Map<String, PrefetchInfo> infos, final Queue<String> keyQueue) {
+	private void handleIncoming(final Queue<PrefetchInfo> queue) {
 
 		boolean hasChanges = true;
 
-		while (keyQueue.size() > 1 && hasChanges) {
+		while (queue.size() > 1 && hasChanges) {
 
 			hasChanges = false;
 
-			final String key1 = keyQueue.remove();
-			final String key2 = keyQueue.remove();
-
-			final PrefetchInfo info1 = infos.remove(key1);
-			final PrefetchInfo info2 = infos.remove(key2);
+			final PrefetchInfo info1 = queue.remove();
+			final PrefetchInfo info2 = queue.remove();
 
 			if (info1 != null && info2 != null) {
 
@@ -971,18 +953,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					final Set<String> set2 = SetUtils.union(info1.getIncomingSet(), info2.getIncomingSet());
 					final String pattern   = createPatternFromDetails(commonBaseType, rels, false);
 
-					// add new key to the key queue
-					keyQueue.add(pattern);
-
-					infos.put(pattern, new PrefetchInfo(pattern, commonBaseType, false, set1, set2, rels));
+					queue.add(new PrefetchInfo(pattern, commonBaseType, false, set1, set2, rels));
 
 				} else {
 
-					// add second type again
-					keyQueue.add(key2);
-
-					infos.put(key1, info1);
-					infos.put(key2, info2);
+					queue.add(info1);
+					queue.add(info2);
 				}
 			}
 		}
@@ -1000,6 +976,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private Set<Class> getBaseTypes(final Class type) {
 
+		final Set<String> blacklist = Set.of("NodeInterface", "AbstractNode", "AbstractFile");
 		final Set<Class> baseTypes = new LinkedHashSet<>();
 		final Queue<Class> queue   = new LinkedList<>();
 
@@ -1012,7 +989,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			baseTypes.add(c);
 
 			final Class superClass = c.getSuperclass();
-			if (superClass != null && Object.class != superClass && !nodeTypeBlacklist.contains(superClass.getSimpleName())) {
+			if (superClass != null && Object.class != superClass && !blacklist.contains(superClass.getSimpleName())) {
 
 				queue.add(superClass);
 			}
@@ -1020,7 +997,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			// add interfaces as well
 			for (final Class iface : c.getInterfaces()) {
 
-				if (!nodeTypeBlacklist.contains(iface.getSimpleName())) {
+				if (!blacklist.contains(iface.getSimpleName())) {
 
 					queue.add(iface);
 				}

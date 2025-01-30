@@ -18,7 +18,7 @@
  */
 package org.structr.bolt;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class Neo4IndexUpdater {
 
 					tx.prefetchHint("Neo4IndexUpdater query");
 
-					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
+					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties WHERE type = 'BTREE' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
 

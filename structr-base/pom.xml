@@ -17,7 +17,7 @@
     <version>6.0-SNAPSHOT</version>
 
     <properties>
-        <jetty.version>11.0.17</jetty.version>
+        <jetty.version>11.0.24</jetty.version>
         <jaxb.version>2.3.3</jaxb.version>
         <imageio.version>3.10.1</imageio.version>
         <batik.version>[1.17,)</batik.version>
@@ -117,8 +117,8 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
         </dependency>
         <dependency>
             <groupId>org.dom4j</groupId>
@@ -626,7 +626,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.3</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>initialize</phase>
@@ -637,14 +637,6 @@
                 </executions>
                 <configuration>
                     <shortRevisionLength>5</shortRevisionLength>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>18</source>
-                    <target>18</target>
                 </configuration>
             </plugin>
         </plugins>

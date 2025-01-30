@@ -30,17 +30,18 @@ import org.structr.common.helper.ValidationHelper;
 import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.*;
-import org.structr.core.entity.*;
+import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
+import org.structr.core.entity.relationship.SchemaNodeExtendsSchemaNode;
+import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
+import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.SourceFile;
-import org.structr.web.entity.*;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.relationship.*;
 
 import java.util.*;
 
@@ -288,7 +289,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 			// migrate dynamic classes that extend static types (that were dynamic before)
-			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.");
+			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.", "org.structr.mail.entity.");
 			final String ifaces           = getProperty(SchemaNode.implementsInterfaces);
 			final List<String> interfaces = new LinkedList<>();
 			String extendsClass           = null;

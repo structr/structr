@@ -19,14 +19,10 @@
 package org.structr.rest.resource;
 
 
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -35,10 +31,15 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

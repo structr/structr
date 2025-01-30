@@ -33,13 +33,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
-import org.structr.web.entity.User;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.test.core.entity.*;
+import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;

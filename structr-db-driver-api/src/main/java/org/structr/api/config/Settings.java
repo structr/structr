@@ -18,20 +18,24 @@
  */
 package org.structr.api.config;
 
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The Structr configuration settings.
@@ -114,16 +118,18 @@ public class Settings {
 	public static final Setting<String> DataExchangePath               = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",                    "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> SnapshotsPath                  = new StringSetting(generalGroup,             "Paths",       "snapshot.path",                         "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath                    = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                      "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
+
 	public static final Setting<Boolean> LogSchemaOutput               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                      false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
 	public static final Setting<Boolean> LogSchemaErrors               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",               true);
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
 	public static final Setting<Integer> CallbackLoggingThreshold      = new IntegerSetting(generalGroup,            "Logging",     "log.callback.threshold",                50000, "Number of callbacks after which a transaction will be logged.");
 	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
-	public static final Setting<Boolean> DebugLogging                  = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                             false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<Boolean> LogFunctionsStackTrace        = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in system functions.");
+	public static final Setting<Integer> LogScriptProcessCommandLine   = new IntegerChoiceSetting(generalGroup,        "Logging",     "log.scriptprocess.commandline",         2, Settings.getScriptProcessLogCommandLineOptions(), "Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.");
 	public static final Setting<String> LogPrefix                      = new StringSetting(generalGroup,             "Logging",     "log.prefix",                            "structr");
 	public static final Setting<Boolean> LogJSExcpetionRequest         = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request",      false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,            "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every folder processed by the directory watch service");
+
 	public static final Setting<Boolean> SetupWizardCompleted          = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",                false);
 	public static final Setting<String> Configuration                  = new StringSetting(generalGroup,             "hidden",      "configuration.provider",                "org.structr.module.JarConfigurationProvider", "Fully-qualified class name of a Java class in the current class path that implements the <code>org.structr.schema.ConfigurationProvider</code> interface.");
 	public static final StringMultiChoiceSetting Services              = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",                   "NodeService SchemaService AgentService CronService HttpService MigrationService", "Services that are listed in this configuration key will be started when Structr starts.");
@@ -234,7 +240,7 @@ public class Settings {
 	public static final Setting<Boolean> CypherDebugLoggingPing      = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
 	public static final Setting<Integer> ResultCountSoftLimit        = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by setting the <code>_pageSize</code> request parameter or by adding the request parameter <code>_disableSoftLimit</code> to a non-null value)");
 	public static final Setting<Integer> FetchSize                   = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
-	public static final Setting<Integer> PrefetchingThreshold        = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.threshold",   20, "How many identical queries must run in a transaction to activate prefetching for that query.");
+	public static final Setting<Integer> PrefetchingThreshold        = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.threshold",   100, "How many identical queries must run in a transaction to activate prefetching for that query.");
 	public static final Setting<Integer> PrefetchingMaxDuration      = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxduration", 1000, "How long a prefetching query may take before prefetching will be deactivated for that query.");
 	public static final Setting<Integer> PrefetchingMaxCount         = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxcount",    50_000, "How many results a prefetching query may return before prefetching will be deactivated for that query.");
 
@@ -807,10 +813,15 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().properties()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+							.setIncludesAllowed(false)
+					);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
-			config.setFileName(fileName);
+			final PropertiesConfiguration config = builder.getConfiguration();
 
 			for (final Setting setting : settings.values()) {
 
@@ -821,15 +832,25 @@ public class Settings {
 				}
 			}
 
-			final boolean isFileCreation = !config.getFile().exists();
 
-			config.save();
+			FileHandler fileHandler = new FileHandler(config);
+
+
+
+			final boolean isFileCreation = !fileHandler.getFile().exists();
+
+			if(fileHandler.getFile().getFreeSpace() < 1024 * 1024){
+				logger.error("Refusing to start with less than 1 MB of disk space.");
+				System.exit(1);
+			}
+
+			fileHandler.save();
 
 			if (isFileCreation) {
 
 				try {
 
-					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
+					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
 
 				} catch (UnsupportedOperationException | IOException e) {
 					// happens on non-POSIX filesystems, ignore
@@ -849,7 +870,9 @@ public class Settings {
 	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
 
 		final PropertiesConfiguration config = new PropertiesConfiguration();
-		config.setFileName(Settings.ConfigFileName);
+
+		FileHandler fileHandler = new FileHandler(config);
+		fileHandler.setFileName(Settings.ConfigFileName);
 
 		return config;
 	}
@@ -876,7 +899,8 @@ public class Settings {
 
 	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
 
-		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+		FileHandler fileHandler = new FileHandler(config);
+		return Files.getPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()));
 	}
 
 	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
@@ -892,7 +916,8 @@ public class Settings {
 
 			if (!isOk && warn) {
 
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				FileHandler fileHandler = new FileHandler(config);
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", fileHandler.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -905,10 +930,15 @@ public class Settings {
 	public static void loadConfiguration(final String fileName) {
 
 		try {
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().properties()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+							.setIncludesAllowed(false)
+					);
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
-
-			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
+			final PropertiesConfiguration config = builder.getConfiguration();
 			final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(config, true);
@@ -1048,6 +1078,29 @@ public class Settings {
 			POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes",
 			POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)"
 		);
+	}
+
+	public enum SCRIPT_PROCESS_LOG_STYLE {
+		NOTHING(0), SCRIPT_PATH(1), CUSTOM(2);
+
+		SCRIPT_PROCESS_LOG_STYLE(int l) {}
+
+		public static SCRIPT_PROCESS_LOG_STYLE get(int i) {
+
+			switch (i) {
+				case 0: return NOTHING;
+				case 1: return SCRIPT_PATH;
+				default: return CUSTOM;
+			}
+		}
+	}
+
+	public static Map<Integer, String> getScriptProcessLogCommandLineOptions() {
+		final Map<Integer, String> options = new LinkedHashMap();
+		options.put(0, "0 - Do not log command line");
+		options.put(1, "1 - Log full path to script without parameters");
+		options.put(2, "2 - Log full path to script and parameters as configured");
+		return options;
 	}
 
 	public static boolean isNumeric(final String source) {

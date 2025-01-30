@@ -319,6 +319,6 @@ public class AgentService extends Thread implements RunnableService {
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
-		return "agents";
+		return "core";
 	}
 }

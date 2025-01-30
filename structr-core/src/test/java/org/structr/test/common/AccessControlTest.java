@@ -33,7 +33,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
@@ -47,7 +50,6 @@ import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.List;
-import org.structr.api.config.Settings;
 
 import static org.testng.AssertJUnit.*;
 

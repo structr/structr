@@ -283,7 +283,7 @@ let _Entities = {
 				let code    = e.code;
 
 				// ctrl-s / cmd-s
-				if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
+				if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
 					e.preventDefault();
 					e.stopPropagation();
 					saveFn();
@@ -435,7 +435,7 @@ let _Entities = {
 			}
 		});
 	},
-	showProperties: (obj, activeViewOverride) => {
+	showProperties: (obj, activeViewOverride, showDeleteBtn = Structr.isModuleActive(_Crud)) => {
 
 		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 
@@ -484,6 +484,22 @@ let _Entities = {
 					}
 
 					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
+
+					if (showDeleteBtn) {
+						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
+							<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+							</button>
+						`);
+
+						deleteBtn.addEventListener('click', async (e) => {
+							let deleted = await _Crud.helpers.crudAskDelete(obj.type, obj.id);
+
+							if (deleted) {
+								_Dialogs.custom.getCloseDialogButton().click();
+							}
+						});
+					}
 
 					dialogText.insertAdjacentHTML('beforeend', `
 						<div id="tabs" class="flex flex-col h-full overflow-hidden">
@@ -667,20 +683,20 @@ let _Entities = {
 					let noCategoryKeys = [];
 					let groupedKeys    = {};
 
-					if (typeInfo) {
+					for (let key of keys) {
 
-						for (let key of keys) {
+						let category = typeInfo?.[key]?.category ?? 'System';
 
-							if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
+						if (category !== 'System') {
 
-								let category = typeInfo[key].category;
-								if (!groupedKeys[category]) {
-									groupedKeys[category] = [];
-								}
-								groupedKeys[category].push(key);
-							} else {
-								noCategoryKeys.push(key);
+							if (!groupedKeys[category]) {
+								groupedKeys[category] = [];
 							}
+							groupedKeys[category].push(key);
+
+						} else {
+
+							noCategoryKeys.push(key);
 						}
 					}
 
@@ -842,14 +858,12 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = false;
-			let isSystem     = false;
-			let isBoolean    = false;
-			let isDate       = false;
-			let isPassword   = false;
-			let isRelated    = false;
-			let isCollection = false;
-			let isMultiline  = false;
+			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+			let isSystem     = typeInfo[key].system;
+			let isBoolean    = (typeInfo[key].type === 'Boolean');
+			let isDate       = (typeInfo[key].type === 'Date');
+			let isRelated    = typeInfo[key].relatedType;
+			let isCollection = typeInfo[key].isCollection;
 
 			if (view === '_html_') {
 
@@ -882,7 +896,7 @@ let _Entities = {
 							<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
 						</span>
 					</td>
-					<td class="value ${key}_">${_Helpers.formatValueInputField(key, value)}</td>
+					<td class="value ${key}_">${_Helpers.formatValueInputField(key, value, typeInfo[key])}</td>
 					<td>${_Entities.getNullIconForKey(key)}</td>
 				</tr>`);
 				propsTable[0].appendChild(row);
@@ -898,28 +912,14 @@ let _Entities = {
 
 				if (!typeInfo[key]) {
 
-					valueCell.append(_Helpers.formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+					valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 
 				} else {
 
-					let type = typeInfo[key].type;
+					if (key.startsWith('_html_') === false) {
 
-					isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-					isSystem    = typeInfo[key].system;
-					isPassword  = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-					isMultiline = (typeInfo[key].format === 'multi-line');
-					isRelated   = typeInfo[key].relatedType;
-					if (isRelated) {
-						isCollection = typeInfo[key].isCollection;
-					}
-
-					if (type) {
-						isBoolean = (type === 'Boolean');
-						isDate = (type === 'Date');
-					}
-
-					if (!key.startsWith('_html_')) {
 						if (isBoolean) {
+
 							valueCell.removeClass('value').append(`<input type="checkbox" class="${key}_">`);
 							let checkbox = $(propsTable.find(`input[type="checkbox"].${key}_`));
 
@@ -927,8 +927,11 @@ let _Entities = {
 							if (val) {
 								checkbox.prop('checked', true);
 							}
+
 							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+
 								checkbox.on('change', function() {
+
 									let checked = checkbox.prop('checked');
 									_Entities.setProperty(id, key, checked, false, (newVal) => {
 										if (val !== newVal) {
@@ -938,7 +941,9 @@ let _Entities = {
 										val = newVal;
 									});
 								});
+
 							} else {
+
 								checkbox.prop('disabled', 'disabled').addClass('readOnly').addClass('disabled');
 							}
 
@@ -986,7 +991,7 @@ let _Entities = {
 							});
 
 						} else {
-							valueCell.append(_Helpers.formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+							valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 						}
 					}
 				}
@@ -1049,8 +1054,8 @@ let _Entities = {
 			}
 		}
 
-		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo, onUpdateCallback); });
-		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
+		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
+		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
 
 		if (view === '_html_') {
 
@@ -1117,7 +1122,7 @@ let _Entities = {
 							});
 
 							// deactivate this function and resume regular save-actions
-							_Entities.activateInput(valInput, id, entity.pageId, typeInfo);
+							_Entities.activateInput(valInput, id, entity.pageId, entity.type, typeInfo);
 						});
 					}
 				}
@@ -1289,20 +1294,21 @@ let _Entities = {
 			callback(collectionIds);
 		});
 	},
-	appendDatePicker: function(el, entity, key, format) {
-
-		if (!entity[key] || entity[key] === 'null') {
-			entity[key] = '';
-		}
-
-		el.append(`<input class="dateField" name="${key}" type="text" value="${entity[key]}" autocomplete="off">`);
-
-		let dateField = $(el.find('.dateField'));
-		_Entities.activateDatePicker(dateField, format);
-
-		return dateField;
-	},
+	// appendDatePicker: function(el, entity, key, format) {
+	//
+	// 	if (!entity[key] || entity[key] === 'null') {
+	// 		entity[key] = '';
+	// 	}
+	//
+	// 	el.append(`<input class="dateField" name="${key}" type="text" value="${entity[key]}" autocomplete="off">`);
+	//
+	// 	let dateField = $(el.find('.dateField'));
+	// 	_Entities.activateDatePicker(dateField, format);
+	//
+	// 	return dateField;
+	// },
 	activateDatePicker: (input, format) => {
+
 		if (!format) {
 			format = input.data('dateFormat');
 		}
@@ -1314,22 +1320,32 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
+	getRelatedNodeHTML: (node, displayName = null, includeRemoveIcon = true) => {
+
+		if (!displayName) {
+			displayName = _Crud.helpers.getDisplayName(node);
+		}
+
+		return `
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node related-node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
+				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+				${includeRemoveIcon ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])) : ''}
+			</div>
+		`;
+	},
+	updateRelatedNodeName: (relatedNodeEl, newName) => {
+
+		relatedNodeEl.title = _Helpers.escapeForHtmlAttributes(newName);
+		relatedNodeEl.querySelector('span').textContent = newName;
+	},
 	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
 		/** Alternative function to appendRelatedNode
 		    - no jQuery
 		    - uses insertAdjacentHTML
 		    - default position: beforeend
 		*/
-		if (!displayName) {
-			displayName = _Crud.displayName(node);
-		}
 		cell = (cell instanceof jQuery ? cell[0] : cell);
-		cell.insertAdjacentHTML(position || 'beforeend', `
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
-				<span class="abbr-ellipsis abbr-80">${displayName}</span>
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
-			</div>
-		`);
+		cell.insertAdjacentHTML(position ?? 'beforeend', _Entities.getRelatedNodeHTML(node, displayName));
 
 		let nodeEl = cell.querySelector('._' + node.id);
 
@@ -1344,15 +1360,8 @@ let _Entities = {
 		}
 	},
 	appendRelatedNode: (cell, node, onDelete, displayName) => {
-		if (!displayName) {
-			displayName = _Crud.displayName(node);
-		}
-		cell.append(`
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
-				<span class="abbr-ellipsis abbr-80">${displayName}</span>
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
-			</div>
-		`);
+
+		cell.append(_Entities.getRelatedNodeHTML(node, displayName));
 		let nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -1365,7 +1374,7 @@ let _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: function(el, id, pageId, typeInfo, onUpdateCallback) {
+	activateInput: (el, id, pageId, type, typeInfo, onUpdateCallback) => {
 
 		let input  = $(el);
 		let oldVal = input.val();
@@ -1375,13 +1384,13 @@ let _Entities = {
 
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
-			input.closest('.array-attr').find('svg.remove').off('click').on('click', function(el) {
+			input.closest('.array-attr').find('svg.remove').off('click').on('click', () => {
 				let cell = input.closest('.value');
 				if (cell.length === 0) {
 					cell = input.closest('.__value');
 				}
 				input.parent().remove();
-				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
+				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 			});
 
 			input.off('focus').on('focus', function() {
@@ -1389,100 +1398,203 @@ let _Entities = {
 			});
 
 			input.off('change').on('change', function() {
-				input.data('changed', true);
+				el.dataset['changed'] = 'true';
+				if (el.type === 'checkbox') {
+					el.blur();
+				}
 			});
 
-			input.off('focusout').on('focusout', function() {
-				_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
+			if (!input.hasClass('input-datetime')) {
+				input.off('focusout').on('focusout', function() {
+					input[0].dispatchEvent(new Event('input-finished'));
+				});
+			}
+
+			input[0].addEventListener('input-finished', (e) => {
+				_Entities.saveValue(input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
 					$(icon).remove();
 				});
 			});
+
+			if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
+
+				_Entities.addDatePicker(input[0], key, type, () => {
+					input[0].dispatchEvent(new Event('input-finished'));
+				});
+			}
 		}
 	},
-	getArrayValue: function(key, cell) {
-		let values = [];
-		cell.find('[name="' + key + '"]').each(function(i, el) {
-			let value = $(el).val();
-			if (value && value.length) {
+	addDatePicker: (input, key, type, onCloseCallback) => {
+
+		let defaultFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
+		let format = _Crud.helpers.isFunctionProperty(key, type) ? defaultFormat : _Crud.helpers.getFormat(type, key);
+		let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+
+		let pickerConfig = {
+			parse: 'loose',
+			dateFormat: dateTimePickerFormat.dateFormat,
+			onClose: onCloseCallback
+		};
+
+		if (dateTimePickerFormat.timeFormat) {
+
+			pickerConfig.timeFormat = dateTimePickerFormat.timeFormat;
+			pickerConfig.separator  = dateTimePickerFormat.separator;
+
+			$(input).datetimepicker(pickerConfig);
+			input.addEventListener('focus', (e) => {
+				$(input).datetimepicker('show');
+			});
+
+		} else {
+
+			$(input).datepicker(pickerConfig);
+			input.addEventListener('focus', (e) => {
+				$(input).datepicker('show');
+			});
+		}
+	},
+	saveArrayValue: (cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
+
+		let val            = _Entities.getArrayValue(key, cell);
+		let isCreateDialog = !objId;
+
+		_Entities.setProperty(objId, key, val, false, (newVal = []) => {
+
+			if (newVal !== oldVal) {
+
+				if (!isCreateDialog) {
+					_Helpers.blinkGreen(cell);
+				}
+
+				let valueMsg;
+				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
+				cell.find(`[name="${key}"]`).each(function(i, el) {
+					_Entities.activateInput(el, id, pageId, type, typeInfo);
+				});
+
+				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+
+				if (!isCreateDialog) {
+
+					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+				}
+
+				onUpdateCallback?.();
+			}
+
+			oldVal = newVal;
+		});
+	},
+	getArrayValue: (key, cell) => {
+
+		let values      = [];
+		let valueInputs = cell[0].querySelectorAll('[name="' + key + '"]');
+
+		for (let el of valueInputs) {
+
+			let isNew     = (el.dataset['isNew'] === 'true');
+			let isChanged = (el.dataset['changed'] === 'true');
+
+			if (!isNew || isChanged) {
+
+				let value = (el.type === 'checkbox') ? (el.checked ? 'true' : 'false') : $(el).val();
 				values.push(value);
 			}
-		});
+		}
+
 		return values;
 	},
-	saveValue: function(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
+	saveValue: (input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
 
+		let isCreateDialog = !objId;
 		let val;
 		let cell = input.closest('.value');
 		if (cell.length === 0) {
 			cell = input.closest('.__value');
 		}
 
-		// Array?
-		if (typeInfo[key] && typeInfo[key].isCollection && !typeInfo[key].relatedType) {
+		let isArrayType = (typeInfo?.[key].isCollection == true && !typeInfo[key].relatedType);
+		if (isArrayType) {
 			val = _Entities.getArrayValue(key, cell);
 		} else {
 			val = input.val();
 		}
 
-		var isPassword = input.prop('type') === 'password';
-		if (input.data('changed')) {
-			input.data('changed', false);
-			_Entities.setProperty(objId, key, val, false, newVal => {
+		if (input[0].dataset['changed'] === 'true') {
+
+			input[0].dataset['changed'] = 'false';
+
+			let updateInput = (newVal) => {
+
+				let isPassword = (input.prop('type') === 'password');
+
 				if (isPassword || (newVal !== oldVal)) {
-					_Helpers.blinkGreen(input);
+
+					if (!isCreateDialog) {
+
+						_Helpers.blinkGreen(input);
+					}
+
 					let valueMsg;
 					if (newVal.constructor === Array) {
-						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
+
+						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+
 					} else {
+
 						input.val(newVal);
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
 					}
+
 					cell.find(`[name="${key}"]`).each(function(i, el) {
-						_Entities.activateInput(el, id, pageId, typeInfo, onUpdateCallback);
+						_Entities.activateInput(el, id, pageId, type, typeInfo, onUpdateCallback);
 					});
-					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+
+					if (!isCreateDialog) {
+
+						_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+					}
 
 					onUpdateCallback?.(input, newVal);
 
 				} else {
+
 					input.val(oldVal);
 				}
+
 				oldVal = newVal;
+			}
+
+			if (!isCreateDialog) {
+
+				_Entities.setProperty(objId, key, val, false, newVal => updateInput(newVal));
+
+			} else {
+
+				updateInput(val);
+			}
+		}
+	},
+	setProperty: (id, key, val, recursive, callback) => {
+
+		let isCreateDialog = !id;
+
+		if (isCreateDialog) {
+
+			/* special handling for create-dialogs - simply allow the change and directly call the callback */
+			callback(val);
+
+		} else {
+
+			Command.setProperty(id, key, val, recursive, () => {
+				Command.getProperty(id, key, callback);
 			});
 		}
-
-	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
-
-		let val = _Entities.getArrayValue(key, cell);
-
-		_Entities.setProperty(objId, key, val, false, (newVal) => {
-			if (newVal !== oldVal) {
-				_Helpers.blinkGreen(cell);
-				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
-				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, typeInfo);
-				});
-				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-				_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
-
-				if (onUpdateCallback) {
-					onUpdateCallback();
-				}
-			}
-			oldVal = newVal;
-		});
-
-	},
-	setProperty: function(id, key, val, recursive, callback) {
-		Command.setProperty(id, key, val, recursive, function() {
-			Command.getProperty(id, key, callback);
-		});
 	},
 	bindAccessControl: function(btn, entity) {
 
@@ -1675,11 +1787,11 @@ let _Entities = {
 				let handleGraphObject = (entity) => {
 
 					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
-						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
+						_Crud.objectList.refreshCellWithNewValue(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
-					_Crud.refreshCell(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
+					_Crud.objectList.refreshCellWithNewValue(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
+					_Crud.objectList.refreshCellWithNewValue(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
 				};
 
 				if (entity.targetId) {
@@ -2544,7 +2656,7 @@ let _Entities = {
 				'Content':          { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.content },
 				'Div':              { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.div },
 				'File':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
-				'Image':            { id: 'general', title: 'Advanced',    appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
+				'Image':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
 				'Folder':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.folder },
 				'Input':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.input },
 				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.basicTab.dialogs.ldapGroup, condition: () => { return Structr.isModulePresent('ldap-client'); } },

@@ -21,7 +21,10 @@ package org.structr.core.graph;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.*;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
+import org.structr.common.Permissions;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
@@ -113,5 +116,62 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 				targetNode.grant(permissions, principal, ctx);
 			}
 		}
+	}
+
+	default void prefetchPropertySet(final Iterable<PropertyKey> keys) {
+
+		/* disabled because it's buggy and doesn't improve the performance much
+		final Set<String> outgoingKeys     = new LinkedHashSet<>();
+		final Set<String> incomingKeys     = new LinkedHashSet<>();
+		final Set<String> outgoingRelTypes = new LinkedHashSet<>();
+		final Set<String> incomingRelTypes = new LinkedHashSet<>();
+		final Class type                   = getClass();
+		final String uuid                  = getUuid();
+
+		for (final PropertyKey key : keys) {
+
+			if (key instanceof RelationProperty<?> r) {
+
+				final Relation rel   = r.getRelation();
+				final Direction dir  = rel.getDirectionForType(type);
+				final String relType = rel.name();
+
+				switch (dir) {
+
+					case OUTGOING -> {
+						outgoingKeys.add("all/OUTGOING/" + relType);
+						outgoingRelTypes.add(relType);
+					}
+
+					case INCOMING -> {
+						incomingKeys.add("all/INCOMING/" + relType);
+						incomingRelTypes.add(relType);
+					}
+				}
+			}
+		}
+
+		if (outgoingRelTypes.size() > 1) {
+
+			TransactionCommand.getCurrentTransaction().prefetch2(
+				"MATCH (n:NodeInterface { id: $id })-[r:" + StringUtils.join(outgoingRelTypes, "|") + "*0..1]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+				outgoingKeys,
+				outgoingKeys,
+				uuid
+			);
+
+		}
+
+		if (incomingRelTypes.size() > 1) {
+
+			TransactionCommand.getCurrentTransaction().prefetch2(
+				"MATCH (n:NodeInterface { id: $id })<-[r:" + StringUtils.join(incomingRelTypes, "|") + "*0..1]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+				incomingKeys,
+				incomingKeys,
+				uuid
+			);
+
+		}
+		*/
 	}
 }

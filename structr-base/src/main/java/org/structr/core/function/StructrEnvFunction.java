@@ -18,20 +18,14 @@
  */
 package org.structr.core.function;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.DateProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;

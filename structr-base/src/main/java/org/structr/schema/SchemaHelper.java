@@ -18,8 +18,6 @@
  */
 package org.structr.schema;
 
-import graphql.Scalars;
-import graphql.schema.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +30,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.error.UnlicensedTypeException;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -40,10 +40,16 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.*;
-import org.structr.core.graph.*;
-import org.structr.core.graphql.GraphQLListType;
-import org.structr.core.property.*;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.module.StructrModule;
+import org.structr.rest.resource.SchemaResource;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
 import org.structr.schema.parser.Validator;
@@ -52,10 +58,8 @@ import org.structr.schema.parser.*;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
-import static graphql.schema.GraphQLTypeReference.typeRef;
-import org.structr.common.helper.CaseHelper;
-import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaMethod.source;
 import static org.structr.core.entity.SchemaNode.defaultSortKey;
 import static org.structr.core.entity.SchemaNode.defaultSortOrder;
@@ -221,7 +225,6 @@ public class SchemaHelper {
 		}
 
 		return begin.concat(WORD_SEPARATOR).concat(lastWord);
-
 	}
 
 	public static Class getEntityClassForRawType(final String rawType) {
@@ -1349,7 +1352,7 @@ public class SchemaHelper {
 		return "Arrays.asList(\"" + StringUtils.join(set, "\", \"") + "\")";
 	}
 
-	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
+	public static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
 		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
@@ -1362,12 +1365,18 @@ public class SchemaHelper {
 		return propertyConverterMap;
 	}
 
+	public static List<String> getBasicPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
+
+		final Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, propertyView));
+
+		return properties.stream().map(t -> t.jsonName()).collect(Collectors.toList());
+	}
+
 	// ----- public static methods -----
 	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
 
-		List<GraphObjectMap> resultList = new LinkedList<>();
-
-		// create & add schema information
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		List<GraphObjectMap> resultList    = new LinkedList<>();
 
 		if (type != null) {
 
@@ -1391,31 +1400,40 @@ public class SchemaHelper {
 
 				resultList.add(schema);
 
-				String url = "/".concat(rawType);
+				final String url    = "/".concat(rawType);
+				final boolean isRel = AbstractRelationship.class.isAssignableFrom(type);
+				final int modifiers = type.getModifiers();
 
-				schema.setProperty(new StringProperty("url"), url);
-				schema.setProperty(new StringProperty("type"), type.getSimpleName());
-				schema.setProperty(new StringProperty("className"), type.getName());
-				schema.setProperty(new StringProperty("extendsClass"), type.getSuperclass().getName());
-				schema.setProperty(new BooleanProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
-				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
+				schema.setProperty(SchemaResource.urlProperty, url);
+				schema.setProperty(SchemaResource.typeProperty, type.getSimpleName());
+				schema.setProperty(SchemaResource.nameProperty, type.getSimpleName());
+				schema.setProperty(SchemaResource.classNameProperty, type.getName());
+				schema.setProperty(SchemaResource.extendsClassNameProperty, type.getSuperclass().getName());
+				schema.setProperty(SchemaResource.isRelProperty, isRel);
+				schema.setProperty(SchemaResource.isAbstractProperty, Modifier.isAbstract(modifiers));
+				schema.setProperty(SchemaResource.isInterfaceProperty, Modifier.isInterface(modifiers));
+				schema.setProperty(SchemaResource.flagsProperty, SecurityContext.getResourceFlags(rawType));
 
-				Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViewsForType(type));
+				final Set<String> propertyViews = new LinkedHashSet<>(config.getPropertyViewsForType(type));
 
 				// list property sets for all views
 				Map<String, Map<String, Object>> views = new TreeMap();
-				schema.setProperty(new GenericProperty("views"), views);
+				schema.setProperty(SchemaResource.viewsProperty, views);
 
 				for (final String view : propertyViews) {
 
 					views.put(view, getPropertiesForView(securityContext, type, view));
+				}
+
+				if (isRel) {
+
+					schema.setProperty(new GenericProperty("relInfo"), SchemaResource.relationToMap(config, Relation.getInstance(type)));
 				}
 			}
 		}
 
 		return resultList;
 	}
-
 
 	public static Map<String, Object> getPropertyInfo(final SecurityContext securityContext, final PropertyKey property) {
 
@@ -1446,7 +1464,6 @@ public class SchemaHelper {
 		map.put("unique", property.isUnique());
 		map.put("notNull", property.isNotNull());
 		map.put("dynamic", property.isDynamic());
-		map.put("hint", property.hint());
 		map.put("category", property.category());
 		map.put("builtin", property.isPartOfBuiltInSchema());
 
@@ -1455,28 +1472,13 @@ public class SchemaHelper {
 
 			map.put("relatedType", relatedType.getName());
 			map.put("type", relatedType.getSimpleName());
-			map.put("uiType", relatedType.getSimpleName() + (property.isCollection() ? "[]" : ""));
 
 		} else {
 
 			map.put("type", property.typeName());
-			map.put("uiType", property.typeName() + (property.isCollection() ? "[]" : ""));
 		}
 
 		map.put("isCollection", property.isCollection());
-
-		final PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-		final PropertyConverter inputConverter = property.inputConverter(securityContext);
-
-		if (databaseConverter != null) {
-
-			map.put("databaseConverter", databaseConverter.getClass().getName());
-		}
-
-		if (inputConverter != null) {
-
-			map.put("inputConverter", inputConverter.getClass().getName());
-		}
 
 		//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
 		if (declaringClass != null && property instanceof RelationProperty) {
@@ -1486,7 +1488,6 @@ public class SchemaHelper {
 
 				map.put("relationshipType", relation.name());
 			}
-
 		}
 
 		return map;
@@ -1547,7 +1548,7 @@ public class SchemaHelper {
 
 		if (type != null) {
 
-			final PropertyKey property = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, propertyName, false);
+			final PropertyKey property = config.getPropertyKeyForJSONName(type, propertyName, false);
 			if (property != null && property.isDynamic()) {
 
 				return true;

@@ -537,7 +537,7 @@ let _Search = {
     		document.addEventListener("keydown",function (e) {
 
     			// capture ctrl-f or meta-f (mac) to activate search
-				if ((e.code === 'KeyF' || e.keyCode === 70) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
+				if ((e.code === 'KeyF' || e.keyCode === 70) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
     				e.preventDefault();
     				searchBox.focus();
     			}

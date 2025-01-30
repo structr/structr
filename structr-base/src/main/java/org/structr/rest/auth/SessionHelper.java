@@ -95,9 +95,11 @@ public class SessionHelper {
 			request.changeSessionId();
 		}
 
-		if (request.getSession(false) != null) {
+		final HttpSession session = request.getSession(false);
+		if (session != null) {
 
-			logger.debug("Created new session " + request.getSession(false).getId());
+			logger.debug("Created new session " + session.getId());
+
 		} else {
 
 			logger.warn("Request still has no valid session");
@@ -117,7 +119,7 @@ public class SessionHelper {
 
 		final App app                            = StructrApp.getInstance();
 		final PropertyKey<String[]> sessionIdKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
-		final Query<PrincipalInterface> query             = app.nodeQuery(PrincipalInterface.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
+		final Query<PrincipalInterface> query    = app.nodeQuery(PrincipalInterface.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
 

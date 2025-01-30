@@ -20,61 +20,38 @@ package org.structr.rest.resource;
 
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.SortOrder;
+import org.structr.api.service.Command;
+import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.SystemException;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.api.schema.InvalidSchemaException;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.service.Command;
-import org.structr.api.util.PagingIterable;
-import org.structr.core.GraphObject;
-import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
-import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
-import org.structr.core.graph.BulkCreateLabelsCommand;
-import org.structr.core.graph.BulkFixNodePropertiesCommand;
-import org.structr.core.graph.BulkMigrateChangelogCommand;
-import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.BulkSetNodePropertiesCommand;
-import org.structr.core.graph.BulkSetRelationshipPropertiesCommand;
-import org.structr.core.graph.BulkSetUuidCommand;
-import org.structr.core.graph.ClearDatabase;
-import org.structr.core.graph.ManageDatabasesCommand;
-import org.structr.core.graph.ManageThreadsCommand;
-import org.structr.core.graph.SyncCommand;
-import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.IllegalMethodException;
+import org.structr.rest.exception.*;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaAnalyzer;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
+
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * A resource constraint that allows to execute maintenance tasks via

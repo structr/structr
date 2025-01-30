@@ -40,7 +40,10 @@ import org.structr.core.property.PropertyMap;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class Principal extends AbstractNode implements PrincipalInterface, AccessControllable {
 

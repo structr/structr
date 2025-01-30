@@ -2,8 +2,8 @@
 
 let debug = false;
 
-import { Node } from "./model/Node.js";
-import { StructrRest } from '../rest/StructrRest.js';
+import {Node} from "./model/Node.js";
+import {StructrRest} from '../rest/StructrRest.js';
 
 export class Persistence {
 

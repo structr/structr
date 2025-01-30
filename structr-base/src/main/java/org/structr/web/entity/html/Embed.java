@@ -18,8 +18,8 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 

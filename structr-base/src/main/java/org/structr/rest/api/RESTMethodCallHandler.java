@@ -50,6 +50,11 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 
 		try (final Tx tx = app.tx()) {
 
+			if (method.shouldReturnRawResult()) {
+
+				securityContext.enableReturnRawResult();
+			}
+
 			final RestMethodResult result = wrapInResult(method.execute(securityContext, entity, arguments, new EvaluationHints()));
 
 			tx.success();

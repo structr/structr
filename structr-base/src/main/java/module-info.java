@@ -18,15 +18,11 @@
  */
 module structr.base {
 
-    requires java.desktop;
-    requires java.logging;
     requires java.management;
-    requires java.sql;
     requires jdk.httpserver;
     requires jdk.xml.dom;
 
     requires transitive java.compiler;
-    requires transitive java.xml;
 
     requires transitive structr.db.driver.api;
 
@@ -37,11 +33,8 @@ module structr.base {
     requires com.google.zxing;
     requires com.twelvemonkeys.common.image;
     requires commons.collections;
-    requires commons.configuration;
     requires commons.email;
-    requires commons.jxpath;
     requires commons.lang3;
-    requires commons.lang;
     requires cssparser;
     requires diff.match.patch;
     requires dom4j;
@@ -65,7 +58,6 @@ module structr.base {
     requires metadata.extractor;
     requires opencsv;
     requires org.antlr.antlr4.runtime;
-    requires org.apache.commons.codec;
     requires org.apache.commons.compress;
     requires org.apache.commons.io;
     requires org.apache.httpcomponents.httpclient;
@@ -104,9 +96,12 @@ module structr.base {
     requires xml.apis.ext;
     requires zero.allocation.hashing;
     requires zip4j;
-    requires commons.collections4;
     requires ch.qos.logback.core;
     requires jakarta.activation;
+    requires org.apache.commons.configuration2;
+    requires org.apache.commons.codec;
+    requires java.sql;
+    requires java.desktop;
 
     exports org.structr;
     exports org.structr.agent;

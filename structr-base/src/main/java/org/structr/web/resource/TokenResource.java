@@ -21,7 +21,6 @@ package org.structr.web.resource;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
@@ -29,13 +28,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.parameter.RESTParameter;
+
+import java.util.Map;
 
 
 public class TokenResource extends ExactMatchEndpoint {

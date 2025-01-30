@@ -18,7 +18,6 @@
  */
 package org.structr.rest.serialization;
 
-import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -112,7 +112,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
 				.replace("/" + propertyView, "");																// remove current view
 
-		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
+		final Class typeClass   = StructrApp.getConfiguration().getNodeEntityClass(currentType);
+		final Set<String> views = (typeClass != null) ? StructrApp.getConfiguration().getPropertyViewsForType(typeClass) : StructrApp.getConfiguration().getPropertyViews();
+
+		for (String view : views.stream().sorted().toList()) {
 
 			if (!hiddenViews.contains(view)) {
 

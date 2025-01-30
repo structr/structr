@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscape();
+			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
 		return false;
 	});
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		let code    = event.code;
 
 		// ctrl-s / cmd-s
-		if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+		if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 			event.preventDefault();
 			_Dialogs.custom.clickSaveButton();
 		}
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj);
+					_Entities.showProperties(obj, null, true);
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		// ctrl-u / cmd-u: show generated source in schema or code area
-		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+		if ((code === 'KeyU' || keyCode === 85) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 
 			let sourceCodeTab = document.querySelector('li#tab-source-code');
 
@@ -500,7 +500,9 @@ let Structr = {
 
 			let errorLines = [response.message];
 
-			for (let error of response.errors) {
+			let uniqueErrors = Object.values(Object.fromEntries(response.errors.map(e => [JSON.stringify(e), e])));
+
+			for (let error of uniqueErrors) {
 
 				let errorMsg = (error.type ? error.type : '');
 				if (error.property) {
@@ -512,11 +514,11 @@ let Structr = {
 				if (error.token) {
 					errorMsg += ` ${error.token}`;
 				}
-				if (error.detail) {
+				if (error.detail || error.existingNodeUuid) {
 					if (errorMsg.trim().length > 0) {
 						errorMsg += ': ';
 					}
-					errorMsg += error.detail;
+					errorMsg += error.existingNodeUuid ?? error.detail;
 				}
 
 				errorLines.push(errorMsg);
@@ -918,9 +920,7 @@ let Structr = {
 
 			Structr.mainMenu.update(userConfigMenu);
 
-			if (envInfo.resultCountSoftLimit !== undefined) {
-				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
-			}
+			_Helpers.softlimit.resultCountSoftLimit = envInfo.resultCountSoftLimit ?? _Helpers.softlimit.resultCountSoftLimit;
 
 			// run previously registered callbacks
 			let registeredCallbacks = Structr.envInfoAvailableCallbacks;
@@ -1810,29 +1810,6 @@ let Structr = {
 		let reconnectMessage = document.getElementById('reconnect-dialog');
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	ensureShadowPageExists: () => {
-
-		return new Promise((resolve, reject) => {
-
-			if (_Pages.shadowPage) {
-
-				resolve(_Pages.shadowPage);
-
-			} else {
-
-				// wrap getter for shadow document in listComponents so we're sure that shadow document has been created
-				Command.listComponents(1, 1, 'name', 'asc', (result) => {
-
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
-
-						_Pages.shadowPage = entities[0];
-
-						resolve(_Pages.shadowPage);
-					});
-				});
-			}
-		});
-	},
 	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
 
@@ -1921,6 +1898,18 @@ let Structr = {
 		container.style.top          = null;
 	},
 
+	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
+	internalKeys: {
+		name: 'name',
+		visibleToPublicUsers: 'visibleToPublicUsers',
+		visibleToAuthenticatedUsers: 'visibleToAuthenticatedUsers',
+
+		sourceId: 'sourceId',
+		targetId: 'targetId',
+		sourceNode: 'sourceNode',
+		targetNode: 'targetNode',
+		internalTimestamp: 'internalTimestamp',
+	},
 
 	templates: {
 		mainBody: config => `
@@ -2726,15 +2715,46 @@ class ErrorMessage extends MessageBuilder {
 
 let UISettings = {
 	getValueForSetting: (setting) => {
+
 		return LSWrapper.getItem(setting.storageKey, setting.defaultValue);
 	},
-	setValueForSetting: (setting, value, container) => {
-		LSWrapper.setItem(setting.storageKey, value);
+	setValueForSetting: (setting, input, value, container) => {
 
-		if (container) {
-			_Helpers.blinkGreen(container);
-			setting.onUpdate?.();
+		let changed = (UISettings.getValueForSetting(setting) !== value);
+
+		if (changed) {
+
+			let isValid = UISettings.validateValueForSetting(setting, value);
+
+			if (!isValid) {
+				// attempt to fix once
+				value = setting.fixValue?.(input, value);
+
+				isValid = UISettings.validateValueForSetting(setting, value);
+			}
+
+			if (isValid) {
+
+				LSWrapper.setItem(setting.storageKey, value);
+
+				if (container) {
+
+					_Helpers.blinkGreen(container);
+				}
+
+				setting.onUpdate?.();
+
+			} else {
+
+				_Helpers.blinkRed(container);
+			}
 		}
+	},
+	validateValueForSetting: (setting, value) => {
+
+		let allow = setting.isValid?.(value) ?? true;
+
+		return allow;
 	},
 	getSettings: (section) => {
 
@@ -2796,13 +2816,41 @@ let UISettings = {
 
 			case 'checkbox': {
 
-				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>`);
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>
+					</div>
+				`);
 
 				let input = settingDOM.querySelector('input');
 				input.checked = UISettings.getValueForSetting(setting);
 
 				input.addEventListener('change', () => {
-					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+					UISettings.setValueForSetting(setting, input, input.checked, input.parentElement);
+				});
+
+				if (setting.infoText) {
+					settingDOM.dataset['comment'] = setting.infoText;
+				}
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			case 'input': {
+
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1"><input type="${setting.inputType ?? 'text'}" class="mr-2 px-2 py-1 ${setting.inputCssClass ?? ''}" size="${setting.size ?? 5}">${setting.text}</label>
+					</div>
+				`);
+
+				let input = settingDOM.querySelector('input');
+				input.value = UISettings.getValueForSetting(setting);
+
+				input.addEventListener('blur', () => {
+					UISettings.setValueForSetting(setting, input, input.value, input.parentElement);
 				});
 
 				if (setting.infoText) {
@@ -2976,6 +3024,37 @@ let UISettings = {
 						if (Structr.isModuleActive(_Code)) {
 							_Code.recentElements.updateVisibility();
 						}
+					}
+				}
+			}
+		},
+		crud: {
+			title: 'Data',
+			settings: {
+				hideLargeArrayElements: {
+					text: 'Only show array attributes contents if less than this',
+					infoText: 'The contents of array attributes with more elements will be hidden. The user can click to reveal the contents. This can be disabled by setting this to -1.',
+					storageKey: 'hideLargeArrayElementsInData_' + location.port,
+					defaultValue: 10,
+					type: 'input',
+					inputType: 'number',
+					inputCssClass: 'w-12',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Crud)) {
+						}
+					},
+					isValid: (value) => (parseInt(value) == value),
+					fixValue: (input, value) => {
+
+						let fixedValue = parseInt(value);
+
+						if (isNaN(fixedValue)) {
+							fixedValue = 0;
+						}
+
+						input.value = fixedValue;
+
+						return fixedValue;
 					}
 				}
 			}

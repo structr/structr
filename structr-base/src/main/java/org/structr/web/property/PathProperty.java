@@ -25,6 +25,7 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -32,7 +33,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.structr.common.helper.PathHelper;
 
 /**
  * A property which returns the complete folder path of a {@link Linkable}

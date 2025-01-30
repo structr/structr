@@ -21,7 +21,7 @@ package org.structr.security.service;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
@@ -43,6 +43,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Actions;
@@ -58,7 +59,6 @@ import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.rest.resource.MaintenanceResource;
 
 /**
  * Maintenance command to get or renew TLS certificates via ACME protocol (i.e. Let's Encrypt).

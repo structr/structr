@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
@@ -36,7 +35,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -112,11 +110,8 @@ public class ListCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			final List<AbstractNode> result = query.getAsList();
-
 			// set full result list
-			webSocketData.setResult(result);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

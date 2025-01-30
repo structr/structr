@@ -30,6 +30,8 @@ import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
+import java.util.Map;
+
 public class TranslateFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate(\"Hello world!\", \"en\", \"ru\", \"deepl\")}";
@@ -101,11 +103,13 @@ public class TranslateFunction extends UiFunction {
 
 						final String apiBaseURL = deeplAPIKey.contains(":fx") ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate";
 
-						final String response = HttpHelper.get(apiBaseURL + "?text=" + encodeURL(text)
-								+ "&source_lang=" + sourceLanguage.toUpperCase()
-								+ "&target_lang=" + targetLanguage.toUpperCase()
-								+ "&auth_key=" + deeplAPIKey,
+						final Map<String, Object> responseData = HttpHelper.get(apiBaseURL + "?text=" + encodeURL(text)
+										+ "&source_lang=" + sourceLanguage.toUpperCase()
+										+ "&target_lang=" + targetLanguage.toUpperCase()
+										+ "&auth_key=" + deeplAPIKey,
 								"UTF-8");
+
+						final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
 						final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");

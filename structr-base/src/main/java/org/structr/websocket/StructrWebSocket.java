@@ -269,6 +269,7 @@ public class StructrWebSocket implements WebSocketListener {
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						abstractCommand.processMessage(webSocketData);
 
@@ -285,6 +286,7 @@ public class StructrWebSocket implements WebSocketListener {
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						// commit transaction
 						tx.success();
@@ -406,8 +408,6 @@ public class StructrWebSocket implements WebSocketListener {
 			logger.warn("Unable to send websocket message to remote client: Connection might have been terminated before all content was delivered.");
 
 		} catch (Throwable t) {
-
-			t.printStackTrace();
 
 			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely

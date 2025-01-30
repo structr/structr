@@ -18,17 +18,14 @@
  */
 package org.structr.core.api;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Value;
 import org.structr.common.SecurityContext;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Base class for arguments that can be passed to Method implementations.

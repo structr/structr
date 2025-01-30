@@ -19,7 +19,7 @@
 package org.structr;
 
 import com.caucho.loader.DynamicClassLoader;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Custom classloader for Structr.

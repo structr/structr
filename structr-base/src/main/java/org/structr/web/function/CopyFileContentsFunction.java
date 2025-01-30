@@ -24,8 +24,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 

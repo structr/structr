@@ -18,14 +18,11 @@
  */
 package org.structr.websocket.command;
 
-import com.drew.lang.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -34,8 +31,6 @@ import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.List;
 
 /**
  * Websocket command to a list of nodes by type.
@@ -100,16 +95,7 @@ public class GetByTypeCommand extends AbstractCommand {
 				query.and(StructrApp.key(Image.class, "isThumbnail"), false);
 			}
 
-			// do search
-			final ResultStream result    = query.getResultStream();
-			final List<GraphObject> list = Iterables.toList(result);
-
-			// save raw result count
-			int resultCountBeforePaging = result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize));
-
-			// set full result list
-			webSocketData.setResult(list);
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

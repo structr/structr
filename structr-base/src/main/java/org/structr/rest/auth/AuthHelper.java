@@ -19,6 +19,7 @@
 package org.structr.rest.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -254,9 +255,10 @@ public class AuthHelper {
 		SessionHelper.clearInvalidSessions(user);
 
 		// We need a session to login a user
-		if (request.getSession(false) != null) {
+		final HttpSession session = request.getSession(false);
+		if (session != null) {
 
-			final String sessionId = request.getSession(false).getId();
+			final String sessionId = session.getId();
 
 			SessionHelper.clearSession(sessionId);
 

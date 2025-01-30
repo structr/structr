@@ -30,7 +30,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;

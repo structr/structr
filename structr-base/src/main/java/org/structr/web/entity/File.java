@@ -481,6 +481,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		try {
 
+			FileHelper.prefetchFileData(thisFile.getUuid());
+
 			final InputStream is = StorageProviderFactory.getStorageProvider(thisFile).getInputStream();
 			final SecurityContext securityContext = thisFile.getSecurityContext();
 

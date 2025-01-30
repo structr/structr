@@ -31,8 +31,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,9 +45,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
-import org.structr.web.entity.StorageConfiguration;
 
 /**
  */

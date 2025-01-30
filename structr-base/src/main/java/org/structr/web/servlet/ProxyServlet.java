@@ -24,8 +24,8 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -47,6 +47,7 @@ import org.structr.web.entity.User;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Servlet for proxy requests.
@@ -172,7 +173,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			if (StringUtils.isNotBlank(contentType)) {
 				final String[] contentTypeParts = contentType.split(";");
 				if (contentTypeParts.length == 2) {
-					charset = org.apache.commons.lang.StringUtils.trim(contentTypeParts[1]);
+					charset = org.apache.commons.lang3.StringUtils.trim(contentTypeParts[1]);
 				}
 			}
 
@@ -195,8 +196,14 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
-			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final Map<String, Object> responseData = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true);
+			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+			if (body == null) {
+				throw new FrameworkException(422, "Request returned empty body");
+			}
+
+			content =  body.replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 		} catch (Throwable t) {
 

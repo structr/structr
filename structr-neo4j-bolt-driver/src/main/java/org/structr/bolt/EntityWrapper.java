@@ -18,14 +18,14 @@
  */
 package org.structr.bolt;
 
-import java.lang.reflect.Array;
 import org.neo4j.driver.types.Entity;
+import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.api.NotInTransactionException;
 
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer {

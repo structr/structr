@@ -18,7 +18,7 @@
  */
 package org.structr.autocomplete;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +26,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -33,7 +35,8 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
@@ -47,10 +50,6 @@ import org.structr.web.entity.dom.Content.ContentHandler;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
-import org.structr.core.graph.Tx;
 
 
 
@@ -238,7 +237,9 @@ public abstract class AbstractHintProvider {
 
 				final Map<String, Object> map = property.toMap();
 				final String name             = (String)map.get("jsonName");
-				final String propertyType     = (String)map.get("uiType");
+				final boolean hasRelatedType  = (map.get("relatedType") != null);
+				final boolean isCollection    = Boolean.TRUE.equals(map.get("isCollection"));
+				final String propertyType     = ((String)map.get("type")) + ((hasRelatedType && isCollection) ? "[]" : "");
 				final String declaringClass   = (String)map.get("declaringClass");
 
 				// skip properties defined in NodeInterface class, except for name

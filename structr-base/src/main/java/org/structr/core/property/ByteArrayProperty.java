@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -35,9 +35,6 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

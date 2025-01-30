@@ -25,17 +25,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.LinkedList;
-import java.util.List;
-import org.structr.common.helper.PagingHelper;
 
 /**
  *
@@ -62,7 +57,14 @@ public class ListFilesCommand extends AbstractCommand {
 		final int pageSize                     = webSocketData.getPageSize();
 		final int page                         = webSocketData.getPage();
 		final PropertyKey sortProperty         = StructrApp.key(type, sortKey);
-		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden().sort(sortProperty, "desc".equals(sortOrder));
+
+		final Query<GraphObject> query = StructrApp.getInstance(securityContext)
+			.nodeQuery(type)
+			.includeHidden()
+			.sort(sortProperty, "desc".equals(sortOrder))
+			.and(AbstractFile.parentProperty, null)
+			.page(page)
+			.pageSize(pageSize);
 
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
@@ -72,30 +74,8 @@ public class ListFilesCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			List<NodeInterface> filteredResults    = new LinkedList();
-			List<? extends GraphObject> resultList = query.getAsList();
-
-			// add only root folders to the list
-			for (GraphObject obj : resultList) {
-
-				if (obj instanceof AbstractFile) {
-
-					AbstractFile node = (AbstractFile) obj;
-
-					if (node.getParent() == null) {
-
-						filteredResults.add(node);
-					}
-				}
-			}
-
-			// save raw result count
-			int resultCountBeforePaging = filteredResults.size();
-
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

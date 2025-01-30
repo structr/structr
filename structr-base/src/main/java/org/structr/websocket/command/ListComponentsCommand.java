@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PagingHelper;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -30,8 +31,6 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.*;
-
-import org.structr.common.helper.PagingHelper;
 
 /**
  * Websocket command to retrieve nodes which are in use on more than

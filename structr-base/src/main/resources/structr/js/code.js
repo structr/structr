@@ -184,13 +184,13 @@ let _Code = {
 			let code    = event.code;
 
 			// ctrl-s / cmd-s
-			if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+			if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 				event.preventDefault();
 				_Code.runCurrentEntitySaveAction();
 			}
 
 			// ctrl-r / cmd-r
-			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+			if ((code === 'KeyR' || keyCode === 82) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 
 				// allow browser hard-reload with CMD/CTRL+SHIFT+R
 				if (!event.shiftKey) {
@@ -887,7 +887,7 @@ let _Code = {
 			},
 			{
 				id:       path + '/remoteproperties',
-				text:     'Related Properties',
+				text:     'Linked Properties',
 				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'remoteproperties' },
@@ -1408,29 +1408,7 @@ let _Code = {
 
 			let buttons = $('#method-buttons');
 
-			let updateVisibilityForAttribute = (attributeName, canSeeAttr) => {
-
-				let element = buttons[0].querySelector(`[data-property="${attributeName}"]`);
-				if (element) {
-					let container = element.closest('.method-config-element');
-
-					container.classList.toggle('hidden', (canSeeAttr === false));
-				}
-			};
-
-			let updateUIForAllAttributes = (currentState) => {
-
-				let isTypeMethod      = (!!currentState.schemaNode);
-				let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(currentState);
-				let isCallableViaREST = (currentState.isPrivate !== true);
-
-				updateVisibilityForAttribute('isStatic',        (isTypeMethod && !isLifecycleMethod));
-				updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
-				updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
-				updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
-			};
-
-			updateUIForAllAttributes(result);
+			_Schema.methods.updateUIForAllAttributes(buttons[0], result);
 
 			// method name input,etc
 			{
@@ -1451,7 +1429,7 @@ let _Code = {
 					_Code.updateDirtyFlag(result);
 
 					let updatedObj = Object.assign({}, result, { name: currentMethodName });
-					updateUIForAllAttributes(updatedObj);
+					_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
 				};
 
 				methodNameInputElement.addEventListener('keyup', (e) => {
@@ -1782,7 +1760,7 @@ let _Code = {
 			// run button (for user-defined functions and static methods which are callable via HTTP)
 			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
 
-				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
+				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Open run dialog', () => {
 					_Code.runSchemaMethod(result);
 				});
 			}
@@ -1795,7 +1773,7 @@ let _Code = {
 				let changes = _Code.updateDirtyFlag(result);
 
 				let updatedObj = Object.assign({}, result, changes);
-				updateUIForAllAttributes(updatedObj);
+				_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
 			});
 
 			if (typeof callback === 'function') {
@@ -2672,13 +2650,13 @@ let _Code = {
 	},
 	runSchemaMethod: (schemaMethod) => {
 
-		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
+		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
 		let url  = _Code.getURLForSchemaMethod(schemaMethod);
 
 		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
 		let runButton = _Dialogs.custom.prependCustomDialogButton(`
-			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+			<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
 				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
 				<span>Run</span>
 			</button>
@@ -2706,7 +2684,7 @@ let _Code = {
 
 		_Helpers.appendInfoTextToElement({
 			element: paramsOuterBox.querySelector('h3'),
-			text: "Parameters can be accessed in the called method by using the <code>retrieve()</code> function.",
+			text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
 			css: { marginLeft: "5px" },
 			helpElementCss: { fontSize: "12px" }
 		});
@@ -3241,35 +3219,7 @@ let _Code = {
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
-					<div>
-						<div class="method-config-element hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
-								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
-							</label>
-						</div>
-						<div class="method-config-element entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
-								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
-							</label>
-						</div>
-					</div>
-					<div>
-						<div class="method-config-element entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
-								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return result object only
-							</label>
-						</div>
-						<div class="method-config-element entity-method">
-							<select data-property="httpVerb">
-								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
-								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
-								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
-								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
-								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
-							</select>
-							</label>
-						</div>
-					</div>
+					${_Schema.methods.templates.methodFlags(config)}
 				</div>
 			</div>
 			<div id="method-code-container" class="data-tabs level-two flex flex-col flex-grow">
