@@ -578,7 +578,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// set resource access flags to be able to POS to /Image
-			final NodeInterface grant = app.nodeQuery("ResourceAccessTraitDefinition").and(Traits.of("ResourceAccess").key("signature"), "Image").getFirst();
+			final NodeInterface grant = app.nodeQuery("ResourceAccess").and(Traits.of("ResourceAccess").key("signature"), "Image").getFirst();
 			if (grant != null) {
 
 				grant.setProperty(Traits.of("ResourceAccess").key("flags"), 4L);
@@ -586,7 +586,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			} else {
 
-				app.create("ResourceAccessDefinition",
+				app.create("ResourceAccess",
 					new NodeAttribute<>(Traits.of("ResourceAccess").key("signature"),                   "Image"),
 					new NodeAttribute<>(Traits.of("ResourceAccess").key("flags"),                       4L),
 					new NodeAttribute<>(Traits.of("ResourceAccess").key("visibleToAuthenticatedUsers"), true)

@@ -20,19 +20,18 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-
 import io.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.servlet.HtmlServlet;
@@ -78,7 +77,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery("User").getFirst();
+			final NodeInterface user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -109,7 +108,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery("User").getFirst();
+			final NodeInterface user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -160,7 +159,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery("User").getFirst();
+			final NodeInterface user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -207,7 +206,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery("User").getFirst();
+			final NodeInterface user = app.nodeQuery("User").getFirst();
 
 			assertNotNull("User was not created", user);
 
@@ -243,14 +242,14 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create("User",
+			final NodeInterface user = app.create("User",
 				new NodeAttribute<>(Traits.of("User").key("name"), "tester"),
 				new NodeAttribute<>(Traits.of("User").key("eMail"), eMail),
 				new NodeAttribute<>(Traits.of("User").key("password"), "correct")
 			);
 
 			// store ID for later user
-			id = user.getProperty(User.id);
+			id = user.getUuid();
 
 			tx.success();
 
@@ -308,22 +307,14 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try {
 
-			src.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
-			if (publicToo) {
-
-				src.setProperty(DOMNode.visibleToPublicUsers, true);
-			}
+			src.setVisibility(publicToo, true);
 
 		} catch (FrameworkException fex) {}
 
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
-				n.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
-				if (publicToo) {
-
-					src.setProperty(DOMNode.visibleToPublicUsers, true);
-				}
+				n.setVisibility(publicToo, true);
 
 			} catch (FrameworkException fex) {}
 		} );

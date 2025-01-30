@@ -280,6 +280,10 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
+	public void setHidden(final boolean hidden) throws FrameworkException {
+	}
+
+	@Override
 	public Date getCreatedDate() {
 		return null;
 	}

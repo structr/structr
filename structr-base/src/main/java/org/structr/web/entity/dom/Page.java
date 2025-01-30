@@ -57,6 +57,7 @@ public interface Page extends DOMNode {
 	Comment createComment(final String comment);
 
 	void adoptNode(final DOMNode newHtmlNode);
+	DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException;
 
 	List<DOMNode> getElementsByTagName(final String head) throws FrameworkException;
 

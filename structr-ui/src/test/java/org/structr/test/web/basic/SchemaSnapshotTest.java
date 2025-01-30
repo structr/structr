@@ -59,7 +59,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			customer.addStringProperty("street", "public", "ui");
 			customer.addStringProperty("city", "public", "ui");
 			customer.addDateProperty("birthday", "public", "ui");
-			customer.addEnumProperty("status", "public", "ui").setEnums("active", "retired", "none").setDefaultValue("active");
+			customer.addEnumProperty("status", "public", "ui").setFormat("active,retired,none").setDefaultValue("active");
 			customer.addIntegerProperty("count", "public", "ui").setMinimum(1).setMaximum(10, true).setDefaultValue("5");
 			customer.addDoubleProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true).setDefaultValue("3.0");
 			customer.addLongProperty("long", "public", "ui").setMinimum(20, true).setMaximum(50);

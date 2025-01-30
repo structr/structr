@@ -24,20 +24,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.common.helper.PathHelper;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Script;
-import org.structr.web.traits.relationships.LinkSourceLINKLinkableTraitDefinition;
 import org.structr.web.importer.Importer;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.common.helper.PathHelper;
 
 import static org.testng.AssertJUnit.*;
 
@@ -362,9 +360,9 @@ public class ImporterTest extends StructrUiTest {
 
 			compare(expected, actual);
 
-			final Script secondScriptElement = (Script) app.nodeQuery("Script").blank(Traits.of("Script").key("_html_src")).getFirst();
+			final NodeInterface secondScriptElement = app.nodeQuery("Script").blank(Traits.of("Script").key("_html_src")).getFirst();
 
-			assertNull(secondScriptElement.getOutgoingRelationship(StructrApp.getConfiguration().getRelationshipEntityClass(LinkSourceLINKLinkableTraitDefinition.class)));
+			assertNull(secondScriptElement.getOutgoingRelationship("LinkSourceLINKLinkable"));
 
 			tx.success();
 
@@ -394,7 +392,7 @@ public class ImporterTest extends StructrUiTest {
 
 			compare(expected, actual);
 
-			Script script = app.nodeQuery("Script").getFirst();
+			NodeInterface script = app.nodeQuery("Script").getFirst();
 
 			assertEquals("Script type is not imported correctly", "module", script.getProperty(Traits.of("Script").key("_html_type")));
 
@@ -467,7 +465,8 @@ public class ImporterTest extends StructrUiTest {
 
 	private void assertFileExists(final String expectedPath, final int expectedVersion) {
 
-		final File file;
+		final NodeInterface file;
+
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
@@ -477,6 +476,8 @@ public class ImporterTest extends StructrUiTest {
 			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(Traits.of("File").key("path")), expectedPath);
 			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(Traits.of("File").key("version")), expectedVersion);
 
+			tx.success();
+
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
 		}
@@ -484,13 +485,15 @@ public class ImporterTest extends StructrUiTest {
 
 	private void assertFileNotExists(final String expectedPath) {
 
-		final File file;
+		final NodeInterface file;
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
 			file = app.nodeQuery("File").andName(filename).getFirst();
 
 			assertNull("File " + filename + " found", file);
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);

@@ -55,11 +55,11 @@ public class XPathTest extends StructrUiTest {
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
 
-			DOMElement html   = (DOMElement)page.createElement("html");
-			DOMElement head   = (DOMElement)page.createElement("head");
-			DOMElement body   = (DOMElement)page.createElement("body");
-			DOMElement title  = (DOMElement)page.createElement("title");
-			DOMElement h1     = (DOMElement)page.createElement("h1");
+			DOMElement html   = page.createElement("html");
+			DOMElement head   = page.createElement("head");
+			DOMElement body   = page.createElement("body");
+			DOMElement title  = page.createElement("title");
+			DOMElement h1     = page.createElement("h1");
 
 			try {
 				// add HTML element to page
@@ -82,9 +82,9 @@ public class XPathTest extends StructrUiTest {
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			assertEquals(html, page.getChildNodes().item(1));
-			assertEquals(head, html.getChildNodes().item(0));
-			assertEquals(body, html.getChildNodes().item(1));
+			assertEquals(html, page.getChildNodes().get(1));
+			assertEquals(head, html.getChildNodes().get(0));
+			assertEquals(body, html.getChildNodes().get(1));
 
 			// test XPath support of structr nodes..
 			XPathFactory factory            = XPathFactory.newInstance();
@@ -123,14 +123,14 @@ public class XPathTest extends StructrUiTest {
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
 
-			DOMElement html   = (DOMElement)page.createElement("html");
-			DOMElement head   = (DOMElement)page.createElement("head");
-			DOMElement body   = (DOMElement)page.createElement("body");
-			DOMElement title  = (DOMElement)page.createElement("title");
-			DOMElement div    = (DOMElement)page.createElement("div");
-			DOMElement p1     = (DOMElement)page.createElement("p");
-			DOMElement p2     = (DOMElement)page.createElement("p");
-			DOMElement p3     = (DOMElement)page.createElement("p");
+			DOMElement html   = page.createElement("html");
+			DOMElement head   = page.createElement("head");
+			DOMElement body   = page.createElement("body");
+			DOMElement title  = page.createElement("title");
+			DOMElement div    = page.createElement("div");
+			DOMElement p1     = page.createElement("p");
+			DOMElement p2     = page.createElement("p");
+			DOMElement p3     = page.createElement("p");
 
 			try {
 				// add HTML element to page

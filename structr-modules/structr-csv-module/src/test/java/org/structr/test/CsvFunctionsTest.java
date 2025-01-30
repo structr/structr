@@ -55,8 +55,8 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			csvTestOnes = createTestNodes(CsvTestOne.class, 5);
-			csvTestTwo  = createTestNode(CsvTestTwo.class);
+			csvTestOnes = createTestNodes("CsvTestOne", 5);
+			csvTestTwo  = createTestNode("CsvTestTwo");
 
 			final PropertyMap indexLocalizationProperties = new PropertyMap();
 			final PropertyMap nameLocalizationProperties = new PropertyMap();
@@ -398,9 +398,9 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
 
-			final TestTwo testTwo    = createTestNode(TestTwo.class);
-			final TestFive testFive1 = createTestNode(TestFive.class);
-			final TestFive testFive2 = createTestNode(TestFive.class);
+			final TestTwo testTwo    = createTestNode("TestTwo");
+			final TestFive testFive1 = createTestNode("TestFive");
+			final TestFive testFive2 = createTestNode("TestFive");
 
 			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive1.getUuid() + "')); }}");
 			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive2.getUuid() + "')); }}");

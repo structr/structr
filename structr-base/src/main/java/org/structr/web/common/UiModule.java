@@ -36,7 +36,7 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.*;
-import org.structr.web.traits.definitions.html.*;
+import org.structr.web.traits.definitions.html.GenericHtmlElementTraitDefinition;
 import org.structr.web.traits.relationships.*;
 
 import java.net.URL;
@@ -120,7 +120,12 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("User",                             new PrincipalTraitDefinition(), new UserTraitDefinition());
 		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
 
+
+
 		// HTML elements
+		StructrTraits.registerNodeType("Html", new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Html"));
+
+		/*
 		StructrTraits.registerNodeType("A",                                new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new ATraitDefinition());
 		StructrTraits.registerNodeType("Abbr",                             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AbbrTraitDefinition());
 		StructrTraits.registerNodeType("Address",                          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AddressTraitDefinition());
@@ -130,6 +135,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Audio",                            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new AudioTraitDefinition());
 		StructrTraits.registerNodeType("B",                                new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new BTraitDefinition());
 		StructrTraits.registerNodeType("Base",                             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new BaseTraitDefinition());
+		*/
 	}
 
 	@Override

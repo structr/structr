@@ -20,30 +20,28 @@ package org.structr.test.web.advanced;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Localization;
-import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.Object;
 import java.util.function.Function;
 
 import static org.testng.AssertJUnit.*;
@@ -60,8 +58,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+			user1 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user1")).as(Principal.class);
+			user2 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user2")).as(Principal.class);
 
 			tx.success();
 
@@ -79,20 +77,20 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app1.tx()) {
 
 			final Page page      = Page.createNewPage(context1, "test21");
-			final Html html      = createElement(page, page, "html");
-			final Head head      = createElement(page, html, "head");
+			final DOMElement html      = createElement(page, page, "html");
+			final DOMElement head      = createElement(page, html, "head");
 			createElement(page, head, "title", "test21");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
 			content.setProperty(Traits.of("Content").key("contentType"), "text/html");
 
 			// create grants
-			page.grant(Permission.read, user2);
-			div1.grant(Permission.read, user2);
-			content.grant(Permission.read, user2);
+			page.as(AccessControllable.class).grant(Permission.read, user2);
+			div1.as(AccessControllable.class).grant(Permission.read, user2);
+			content.as(AccessControllable.class).grant(Permission.read, user2);
 
 			tx.success();
 
@@ -112,8 +110,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+			user1 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user1")).as(Principal.class);
+			user2 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user2")).as(Principal.class);
 
 			tx.success();
 
@@ -129,32 +127,32 @@ public class Deployment2Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test22_1");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test22_1");
 
-			final Body body1 = createElement(page1, html1, "body");
-			final Div div1   = createElement(page1, body1, "div");
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
 
 			createElement(page1, div1, "div", "test1");
 			createElement(page1, div1, "div", "test1");
 
-			final Div component = createComponent(div1);
+			final DOMNode component = createComponent(div1);
 
 			// create second page
 			final Page page2 = Page.createNewPage(securityContext,   "test22_2");
-			final Html html2 = createElement(page2, page2, "html");
-			final Head head2 = createElement(page2, html2, "head");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
 			createElement(page2, head2, "title", "test22_2");
 
-			final Body body2 = createElement(page2, html2, "body");
-			final Div div2   = createElement(page2, body2, "div");
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
 
 			// re-use template from above
-			final Div cloned = cloneComponent(component, div2);
+			final DOMNode cloned = cloneComponent(component, div2);
 
-			component.grant(Permission.read, user1);
-			cloned.grant(Permission.read, user2);
+			component.as(AccessControllable.class).grant(Permission.read, user1);
+			cloned.as(AccessControllable.class).grant(Permission.read, user2);
 
 			tx.success();
 
@@ -170,8 +168,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+					createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user1")).as(Principal.class);
+					createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user2")).as(Principal.class);
 
 					tx.success();
 
@@ -192,8 +190,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+			user1 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user1")).as(Principal.class);
+			user2 = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user2")).as(Principal.class);
 
 			tx.success();
 
@@ -208,29 +206,29 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create some files and folders
-			final Folder folder1  = app.create("Folder", new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(Traits.of("Folder").key("includeInFrontendExport"), true));
-			final Folder folder2  = app.create("Folder", new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(Traits.of("Folder").key("parent"), folder1));
+			final NodeInterface folder1  = app.create("Folder", new NodeAttribute<>(Traits.of("Folder").key("name"), "Folder1"), new NodeAttribute<>(Traits.of("Folder").key("includeInFrontendExport"), true));
+			final NodeInterface folder2  = app.create("Folder", new NodeAttribute<>(Traits.of("Folder").key("name"), "Folder2"), new NodeAttribute<>(Traits.of("Folder").key("parent"), folder1));
 
-			final File file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt", true);
-			final File file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt", true);
+			final NodeInterface file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", "File", "test1.txt", true);
+			final NodeInterface file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", "File", "test2.txt", true);
 
-			file1.setParent(folder2);
-			file2.setParent(folder2);
+			file1.as(File.class).setParent(folder2.as(Folder.class));
+			file2.as(File.class).setParent(folder2.as(Folder.class));
 
-			folder1.setProperty(Folder.owner, user1);
-			folder1.grant(Permission.read, user2);
+			folder1.setProperty(Traits.of("Folder").key("owner"), user1);
+			folder1.as(AccessControllable.class).grant(Permission.read, user2);
 
-			folder2.setProperty(Folder.owner, user2);
-			folder2.grant(Permission.write, user1);
+			folder2.setProperty(Traits.of("Folder").key("owner"), user2);
+			folder2.as(AccessControllable.class).grant(Permission.write, user1);
 
-			file1.setProperty(File.owner, user1);
-			file2.setProperty(File.owner, user2);
+			file1.setProperty(Traits.of("File").key("owner"), user1);
+			file2.setProperty(Traits.of("File").key("owner"), user2);
 
-			file1.setProperty(Folder.owner, user1);
-			file1.grant(Permission.read, user2);
+			file1.setProperty(Traits.of("Folder").key("owner"), user1);
+			file1.as(AccessControllable.class).grant(Permission.read, user2);
 
-			file2.setProperty(Folder.owner, user2);
-			file2.grant(Permission.write, user1);
+			file2.setProperty(Traits.of("Folder").key("owner"), user2);
+			file2.as(AccessControllable.class).grant(Permission.write, user1);
 
 			tx.success();
 
@@ -246,8 +244,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-					createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+					createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user1")).as(Principal.class);
+					createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "user2")).as(Principal.class);
 
 					tx.success();
 
@@ -267,12 +265,12 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test24");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test24");
 
-			final Body body        = createElement(page, html, "body");
-			final Div div1         = createElement(page, body, "div");
+			final DOMElement body        = createElement(page, html, "body");
+			final DOMElement div1         = createElement(page, body, "div");
 			final Content content1 = createContent(page, div1, "${current.type}");
 			final Content content2 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
 			final Content content3 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
@@ -326,19 +324,19 @@ public class Deployment2Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder1 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"), "folder1");
-			final NodeInterface folder2 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"),
-				new NodeAttribute<>(Folder.name, "folder2"),
+			final NodeInterface folder1 = app.create("ExtendedFolder", "folder1");
+			final NodeInterface folder2 = app.create("ExtendedFolder",
+				new NodeAttribute<>(Traits.of("Folder").key("name"), "folder2"),
 				new NodeAttribute(Traits.of("Folder").key("parent"), folder1)
 			);
 
-			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
-				new NodeAttribute<>(File.name, "file1.txt"),
+			app.create("ExtendedFile",
+				new NodeAttribute<>(Traits.of("File").key("name"), "file1.txt"),
 				new NodeAttribute(Traits.of("File").key("parent"), folder1)
 			);
 
-			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
-				new NodeAttribute<>(File.name, "file2.txt"),
+			app.create("ExtendedFile",
+				new NodeAttribute<>(Traits.of("File").key("name"), "file2.txt"),
 				new NodeAttribute(Traits.of("File").key("parent"), folder2)
 			);
 
@@ -360,12 +358,12 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test25");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test25");
 
-			final Body body        = createElement(page, html, "body");
-			final Div div1         = createElement(page, body, "div");
+			final DOMElement body        = createElement(page, html, "body");
+			final DOMElement div1         = createElement(page, body, "div");
 			final Content content1 = createContent(page, div1, "<div><script>var test = '<h3>Title</h3>';</script></div>");
 
 			content1.setProperty(Traits.of("Content").key("contentType"), "text/html");
@@ -389,8 +387,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final File file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName1, true);
-			final File file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName2, true);
+			final NodeInterface file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", "File", fileName1, true);
+			final NodeInterface file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", "File", fileName2, true);
 
 			file1.setProperty(Traits.of("File").key("visibleToPublicUsers"), true);
 			file1.setProperty(Traits.of("File").key("visibleToAuthenticatedUsers"), true);
@@ -415,8 +413,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final File file1 = app.nodeQuery("File").and(File.name, fileName1).getFirst();
-			final File file2 = app.nodeQuery("File").and(File.name, fileName2).getFirst();
+			final NodeInterface file1 = app.nodeQuery("File").and(Traits.of("File").key("name"), fileName1).getFirst();
+			final NodeInterface file2 = app.nodeQuery("File").and(Traits.of("File").key("name"), fileName2).getFirst();
 
 			assertNotNull("Invalid deployment result", file1);
 			assertNotNull("Invalid deployment result", file2);
@@ -473,8 +471,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final MailTemplate template1 = app.nodeQuery("MailTemplate").and(MailTemplate.name, "template1").getFirst();
-			final MailTemplate template2 = app.nodeQuery("MailTemplate").and(MailTemplate.name, "template2").getFirst();
+			final NodeInterface template1 = app.nodeQuery("MailTemplate").and(Traits.of("MailTemplate").key("name"), "template1").getFirst();
+			final NodeInterface template2 = app.nodeQuery("MailTemplate").and(Traits.of("MailTemplate").key("name"), "template2").getFirst();
 
 			assertNotNull("Invalid deployment result", template1);
 			assertNotNull("Invalid deployment result", template2);
@@ -531,8 +529,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Localization localization1 = app.nodeQuery("Localization").and(Localization.name, "localization1").getFirst();
-			final Localization localization2 = app.nodeQuery("Localization").and(Localization.name, "localization2").getFirst();
+			final NodeInterface localization1 = app.nodeQuery("Localization").and(Traits.of("Localization").key("name"), "localization1").getFirst();
+			final NodeInterface localization2 = app.nodeQuery("Localization").and(Traits.of("Localization").key("name"), "localization2").getFirst();
 
 			assertNotNull("Invalid deployment result", localization1);
 			assertNotNull("Invalid deployment result", localization2);
@@ -565,25 +563,25 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test30");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test30");
 
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, body, "div");
-			final Div div2        = createElement(page, div1, "div", "This is a test.");
-			final Table table1    = createElement(page, div2, "table");
-			final Thead thead     = createElement(page, table1, "thead");
-			final Tbody tbody     = createElement(page, table1, "tbody");
-			final Tr tr1          = createElement(page, thead, "tr");
-			final Tr tr2          = createElement(page, tbody, "tr");
-			final Td td11         = createElement(page, tr1, "td", "content11", "Content before <select>");
-			final Td td12         = createElement(page, tr1, "td", "content12");
-			final Td td21         = createElement(page, tr2, "td", "content21");
-			final Td td22         = createElement(page, tr2, "td", "content22");
-			final Select select   = createElement(page, td11, "select");
-			final Option option1  = createElement(page, select, "option", "value1");
-			final Option option2  = createElement(page, select, "option", "value2");
+			final DOMElement body     = createElement(page, html, "body");
+			final DOMElement div1     = createElement(page, body, "div");
+			final DOMElement div2     = createElement(page, div1, "div", "This is a test.");
+			final DOMElement table1   = createElement(page, div2, "table");
+			final DOMElement thead    = createElement(page, table1, "thead");
+			final DOMElement tbody    = createElement(page, table1, "tbody");
+			final DOMElement tr1      = createElement(page, thead, "tr");
+			final DOMElement tr2      = createElement(page, tbody, "tr");
+			final DOMElement td11     = createElement(page, tr1, "td", "content11", "Content before <select>");
+			final DOMElement td12     = createElement(page, tr1, "td", "content12");
+			final DOMElement td21     = createElement(page, tr2, "td", "content21");
+			final DOMElement td22     = createElement(page, tr2, "td", "content22");
+			final DOMElement select   = createElement(page, td11, "select");
+			final DOMElement option1  = createElement(page, select, "option", "value1");
+			final DOMElement option2  = createElement(page, select, "option", "value2");
 
 			tx.success();
 

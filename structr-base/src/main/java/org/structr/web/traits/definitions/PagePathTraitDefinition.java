@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -41,16 +42,6 @@ import java.util.Set;
  *
  */
 public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(PagePath.class, PropertyView.Public,
-		nameProperty, priorityProperty, parametersProperty
-	);
-
-	public static final View uiView = new View(PagePath.class, PropertyView.Ui,
-		nameProperty, priorityProperty, parametersProperty
-	);
-	*/
 
 	public PagePathTraitDefinition() {
 		super("PagePath");
@@ -104,6 +95,17 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 			parametersProperty,
 			nameProperty,
 			priorityProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet("name", "priority", "parameters"),
+			PropertyView.Ui,
+			newSet("name", "priority", "parameters")
 		);
 	}
 

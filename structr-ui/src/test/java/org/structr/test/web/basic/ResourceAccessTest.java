@@ -24,22 +24,17 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.Map;
@@ -61,12 +56,12 @@ public class ResourceAccessTest extends StructrUiTest {
 		// clear resource access objects that are created by the dynamic schema
 		clearResourceAccess();
 
-		Folder testFolder = null;
-		ResourceAccess folderGrant = null;
+		NodeInterface testFolder = null;
+		NodeInterface folderGrant = null;
 
 		try (final Tx tx = app.tx()) {
 
-			testFolder = createTestNodes(Folder.class, 1).get(0);
+			testFolder = createTestNodes("Folder", 1).get(0);
 			assertNotNull(testFolder);
 
 			// no resource access node at all => forbidden
@@ -95,8 +90,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
-			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
-			folderGrant.setFlag(UiAuthenticator.AUTH_USER_GET);
+			folderGrant.setVisibility(true, false);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_GET);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -110,7 +105,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 
 			// allow GET for non-authenticated users => access without user/pass should be allowed
-			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_GET);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_GET);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -137,7 +132,8 @@ public class ResourceAccessTest extends StructrUiTest {
 		// clear resource access objects that are created by the dynamic schema
 		clearResourceAccess();
 
-		ResourceAccess folderGrant = null;
+		NodeInterface folderGrant = null;
+
 		try (final Tx tx = app.tx()) {
 
 			// no resource access node at all => forbidden
@@ -149,7 +145,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Folder");
 
 			// allow POST for authenticated users => access without user/pass should be still forbidden
-			folderGrant.setFlag(UiAuthenticator.AUTH_USER_POST);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_POST);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -163,8 +159,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/Folder");
 
 			// allow POST for non-authenticated users => access without user/pass should be allowed
-			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
-			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_POST);
+			folderGrant.setVisibility(true, false);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_POST);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -199,14 +195,14 @@ public class ResourceAccessTest extends StructrUiTest {
 		final String name = "testuser-01";
 		final String password = "testpassword-01";
 
-		ResourceAccess folderGrant = null;
-		User testUser = null;
-		Folder testFolder = null;
+		NodeInterface folderGrant = null;
+		NodeInterface testUser = null;
+		NodeInterface testFolder = null;
 
 		try (final Tx tx = app.tx()) {
 
-			testUser = createTestNodes(User.class, 1).get(0);
-			testFolder = createTestNodes(Folder.class, 1).get(0);
+			testUser = createTestNodes("User", 1).get(0);
+			testFolder = createTestNodes("Folder", 1).get(0);
 
 			assertNotNull(testFolder);
 
@@ -228,7 +224,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
 			// allow PUT for authenticated users => access without user/pass should be still forbidden
-			folderGrant.setFlag(UiAuthenticator.AUTH_USER_PUT);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_PUT);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -242,8 +238,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
 			// allow PUT for non-authenticated users =>
-			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
-			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
+			folderGrant.setVisibility(true, false);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -264,7 +260,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			testUser.setProperties(testUser.getSecurityContext(), testUserProperties);
 
 			// now we give the user ownership and expect a 200
-			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(AbstractNode.owner, testUser));
+			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of("NodeInterface").key("owner"), testUser));
 
 			tx.success();
 		} catch (Throwable t) {
@@ -297,17 +293,17 @@ public class ResourceAccessTest extends StructrUiTest {
 		// clear resource access objects that are created by the dynamic schema
 		clearResourceAccess();
 
-		final String name = "testuser-01";
-		final String password = "testpassword-01";
-		Folder testFolder = null;
-		User testUser = null;
-		ResourceAccess folderGrant = null;
+		final String name         = "testuser-01";
+		final String password     = "testpassword-01";
+		NodeInterface testFolder  = null;
+		NodeInterface testUser    = null;
+		NodeInterface folderGrant = null;
 
 		try (final Tx tx = app.tx()) {
 
-			testFolder = createTestNodes(Folder.class, 1).get(0);
+			testFolder = createTestNodes("Folder", 1).get(0);
 			assertNotNull(testFolder);
-			testUser = createTestNodes(User.class, 1).get(0);
+			testUser = createTestNodes("User", 1).get(0);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -335,7 +331,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			// resource access explicitly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
-			folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_DELETE);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -348,8 +344,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
-			folderGrant.setProperties(folderGrant.getSecurityContext(), new PropertyMap(GraphObject.visibleToPublicUsers, true));
-			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
+			folderGrant.setVisibility(true, false);
+			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -368,7 +364,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			testUser.setProperties(testUser.getSecurityContext(), changedProperties);
 
 			// make user own folder
-			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(AbstractNode.owner, testUser));
+			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of("NodeInterface").key("owner"), testUser));
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -423,16 +419,17 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		NodeInterface test = null;
 
-		final Class<NodeInterface> testClass = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String testClass = "Test";
 
 		try (final Tx tx = app.tx()) {
 
-			test = app.create(testClass, new NodeAttribute<>(AbstractNode.name, "test123"));
+			test = app.create(testClass, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test123"));
 			uuid = test.getUuid();
 
 			// set owner
-			final Principal tester = app.nodeQuery("Principal").andName("tester").getFirst();
-			test.setProperty(AbstractNode.owner, tester);
+			final NodeInterface tester = app.nodeQuery("Principal").andName("tester").getFirst();
+
+			test.setProperty(Traits.of("NodeInterface").key("owner"), tester);
 
 			tx.success();
 
@@ -512,19 +509,18 @@ public class ResourceAccessTest extends StructrUiTest {
 	 * @return the new resource access node
 	 * @throws FrameworkException
 	 * */
-	public static ResourceAccess createResourceAccess(String signature, long flags) throws FrameworkException {
+	public static NodeInterface createResourceAccess(final String signature, long flags) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
-		final App app = StructrApp.getInstance();
+		final Traits traits          = Traits.of("ResourceAccess");
+		final App app                = StructrApp.getInstance();
 
-		properties.put(ResourceAccessTraitDefinition.signature, signature);
-		properties.put(ResourceAccessTraitDefinition.flags, flags);
+		properties.put(traits.key("signature"), signature);
+		properties.put(traits.key("flags"), flags);
 
 		try {
 
-			ResourceAccess access = app.create("ResourceAccessTraitDefinition", properties);
-
-			return access;
+			return app.create("ResourceAccess", properties);
 
 		} catch (Throwable t) {
 
@@ -540,7 +536,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess access : app.nodeQuery("ResourceAccessTraitDefinition").getAsList()) {
+			for (final NodeInterface access : app.nodeQuery("ResourceAccess").getAsList()) {
 				app.delete(access);
 			}
 

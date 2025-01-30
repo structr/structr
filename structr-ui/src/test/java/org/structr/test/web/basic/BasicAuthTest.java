@@ -22,14 +22,14 @@ import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.BeforeClass;
@@ -75,7 +75,7 @@ public class BasicAuthTest extends StructrUiTest {
 			page3.setProperty(Traits.of("Page").key("basicAuthRealm"), "Enter password for ${this.name}");
 			page3.setProperty(Traits.of("Page").key("enableBasicAuth"), true);
 
-			final User tester = createUser();
+			final NodeInterface tester = createUser();
 			tester.setProperty(Traits.of("Page").key("visibleToAuthenticatedUsers"), true);
 			tester.setProperty(Traits.of("Page").key("visibleToPublicUsers"), true);
 			userUUID = tester.getUuid();
@@ -127,16 +127,16 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
-			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
+			final NodeInterface file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", "File", "test1.txt", true);
+			final NodeInterface file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", "File", "test2.txt", true);
 
-			final Folder folder1 = FileHelper.createFolderPath(securityContext, "/myFolder");
-			final File file3 = FileHelper.createFile(securityContext, "test3".getBytes(), "text/plain", File.class, "test3.txt", true);
-			file3.setParent(folder1);
+			final NodeInterface folder1 = FileHelper.createFolderPath(securityContext, "/myFolder");
+			final NodeInterface file3 = FileHelper.createFile(securityContext, "test3".getBytes(), "text/plain", "File", "test3.txt", true);
+			file3.as(File.class).setParent(folder1.as(Folder.class));
 
-			final File file4 = FileHelper.createFile(securityContext, "You said '${request.message}' and your name is '${me.name}'.".getBytes(), "text/plain", File.class, "test4.txt", true);
+			final NodeInterface file4 = FileHelper.createFile(securityContext, "You said '${request.message}' and your name is '${me.name}'.".getBytes(), "text/plain", "File", "test4.txt", true);
 			file4.setProperty(Traits.of("File").key("isTemplate"), true);
-			file4.setParent(folder1);
+			file4.as(File.class).setParent(folder1.as(Folder.class));
 
 			file1.setProperty(Traits.of("Page").key("visibleToAuthenticatedUsers"), true);
 			file1.setProperty(Traits.of("Page").key("enableBasicAuth"), true);
@@ -265,8 +265,8 @@ public class BasicAuthTest extends StructrUiTest {
 			final Page error = makeVisible(Page.createSimplePage(securityContext, "error"));
 			error.setProperty(Traits.of("Page").key("showOnErrorCodes"), "401");
 
-			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt", true);
-			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt", true);
+			final NodeInterface file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", "File", "test1.txt", true);
+			final NodeInterface file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", "File", "test2.txt", true);
 
 			file1.setProperty(Traits.of("Page").key("visibleToAuthenticatedUsers"), true);
 			file1.setProperty(Traits.of("Page").key("enableBasicAuth"), true);
@@ -307,9 +307,9 @@ public class BasicAuthTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
-	private User createUser() throws FrameworkException {
+	private NodeInterface createUser() throws FrameworkException {
 
-		return createTestNode(User.class,
+		return createTestNode("User",
 			new NodeAttribute<>(Traits.of("User").key("name"), "tester"),
 			new NodeAttribute<>(Traits.of("User").key("password"), "test")
 		);

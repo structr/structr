@@ -16,28 +16,43 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.web.entity;
+package org.structr.test.web.entity.traits.definitions;
 
-import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.Relation;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
-/**
- *
- *
- */
-public class FourThreeOneToOne extends OneToOne<TestFour, TestThree> {
+import java.util.Map;
+import java.util.Set;
 
-	@Override
-	public Class<TestFour> getSourceType() {
-		return TestFour.class;
+public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public TestThreeTraitDefinition() {
+		super("TestThree");
 	}
 
 	@Override
-	public Class<TestThree> getTargetType() {
-		return TestThree.class;
+	public Set<PropertyKey> getPropertyKeys() {
+		return Set.of();
 	}
 
 	@Override
-	public String name() {
-		return "ONE_TO_ONE";
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			"testView",
+			newSet("id", "type", "name", "owner")
+		);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

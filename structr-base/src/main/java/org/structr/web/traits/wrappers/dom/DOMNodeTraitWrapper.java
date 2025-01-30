@@ -1201,6 +1201,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
+	public String getNodeValue() {
+		return null;
+	}
+
+	@Override
 	public final void renderManagedAttributes(AsyncBuffer out, SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
 		traits.getMethod(RenderManagedAttributes.class).renderManagedAttributes(wrappedObject, out, securityContext, renderContext);
 	}
@@ -2261,6 +2266,21 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 				}
 			}
 		}
+	}
+
+	@Override
+	public void setHidden(final boolean hidden) throws FrameworkException {
+		wrappedObject.setHidden(hidden);
+	}
+
+	@Override
+	public void setIdAttribute(final String id) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("_html_id"), id);
+	}
+
+	@Override
+	public boolean isHidden() {
+		return wrappedObject.isHidden();
 	}
 
 	public final String getTextContent() throws FrameworkException {

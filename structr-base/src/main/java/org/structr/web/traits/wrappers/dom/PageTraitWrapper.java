@@ -190,8 +190,13 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			elementType = "TemplateElement";
 		}
 
-		Traits traits = Traits.of(elementType);
-		if (traits == null) {
+		final Traits traits;
+
+		if (Traits.exists(elementType)) {
+
+			traits = Traits.of(elementType);
+
+		} else {
 
 			// No HTML type element found so lets try the dynamic DOMElement class
 			traits = Traits.of("DOMElement");
@@ -240,6 +245,10 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		}, 0, false);
 
 		return results;
+	}
+
+	public DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException {
+		return importNode(node, deep, false);
 	}
 
 	public DOMNode importNode(final DOMNode node, final boolean deep, final boolean removeParentFromSourceNode) throws FrameworkException {

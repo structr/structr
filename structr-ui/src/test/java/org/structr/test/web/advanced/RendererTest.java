@@ -24,15 +24,14 @@ import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import static org.testng.AssertJUnit.fail;
 
@@ -50,7 +49,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
@@ -58,7 +57,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
-			final Element div = (Element)page1.getElementsByTagName("div").item(0);
+			final DOMNode div = page1.getElementsByTagName("div").get(0);
 			content           = (Content)div.getFirstChild();
 
 			tx.success();
@@ -114,7 +113,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
@@ -177,7 +176,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
@@ -240,7 +239,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
@@ -303,7 +302,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
@@ -366,7 +365,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)

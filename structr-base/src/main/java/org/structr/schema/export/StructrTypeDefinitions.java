@@ -45,11 +45,9 @@ import org.structr.schema.openapi.result.OpenAPIMultipleResponseSchema;
 import org.structr.schema.openapi.result.OpenAPISingleResponseSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
-import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Collectors;
 
 /**
  *

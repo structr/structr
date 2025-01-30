@@ -19,7 +19,6 @@
 package org.structr.web.entity.dom;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.nodes.Element;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
@@ -56,6 +55,8 @@ public interface DOMElement extends DOMNode  {
 	String getRenderingMode();
 	String getDelayOrInterval();
 	String getDataReloadTarget();
+
+	void setAttribute(final String key, final String value) throws FrameworkException;
 
 	boolean isManualReloadTarget();
 	Iterable<DOMElement> getReloadSources();

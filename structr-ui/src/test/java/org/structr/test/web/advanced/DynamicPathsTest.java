@@ -22,14 +22,13 @@ import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.path.PagePath;
-import org.structr.web.entity.path.PagePathParameter;
 import org.testng.annotations.Test;
 
 import java.util.Random;
@@ -49,7 +48,7 @@ public class DynamicPathsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page         = Page.createNewPage(securityContext, "test001");
-			final Template template = app.create("Template");
+			final Template template = app.create("Template").as(Template.class);
 
 			page.setProperty(Traits.of("Page").key("contentType"), "text/plain");
 			page.appendChild(template);
@@ -58,7 +57,7 @@ public class DynamicPathsTest extends FrontendTest {
 			template.setProperty(Traits.of("Template").key("contentType"), "text/plain");
 
 			{
-				final PagePath path = app.create("PagePath",
+				final NodeInterface path = app.create("PagePath",
 					new NodeAttribute<>(Traits.of("PagePath").key("page"), page),
 					new NodeAttribute<>(Traits.of("PagePath").key("name"), "/test1/prefix_{key1}/{key2}")
 				);
@@ -81,7 +80,7 @@ public class DynamicPathsTest extends FrontendTest {
 			}
 
 			{
-				final PagePath path = app.create("PagePath",
+				final NodeInterface path = app.create("PagePath",
 					new NodeAttribute<>(Traits.of("PagePath").key("page"), page),
 					new NodeAttribute<>(Traits.of("PagePath").key("name"), "/test2/{key1}_{key2}_{key3}")
 				);
@@ -194,7 +193,7 @@ public class DynamicPathsTest extends FrontendTest {
 				final String pageNumber = StringUtils.leftPad(Integer.toString(i), 3, "0");
 				final String pageName   = "test" + pageNumber;
 				final Page page         = Page.createNewPage(securityContext, pageName);
-				final Template template = app.create("Template");
+				final Template template = app.create("Template").as(Template.class);
 
 				page.setProperty(Traits.of("Page").key("contentType"), "text/plain");
 				page.appendChild(template);
@@ -203,7 +202,7 @@ public class DynamicPathsTest extends FrontendTest {
 				template.setProperty(Traits.of("Template").key("contentType"), "text/plain");
 
 				{
-					final PagePath path = app.create("PagePath",
+					final NodeInterface path = app.create("PagePath",
 						new NodeAttribute<>(Traits.of("PagePath").key("page"), page),
 						new NodeAttribute<>(Traits.of("PagePath").key("name"), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
 					);
@@ -226,7 +225,7 @@ public class DynamicPathsTest extends FrontendTest {
 				}
 
 				{
-					final PagePath path = app.create("PagePath",
+					final NodeInterface path = app.create("PagePath",
 						new NodeAttribute<>(Traits.of("PagePath").key("page"), page),
 						new NodeAttribute<>(Traits.of("PagePath").key("name"), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
 					);
@@ -346,24 +345,24 @@ public class DynamicPathsTest extends FrontendTest {
 
 			page.setProperty(Traits.of("Page").key("contentType"), "text/plain");
 
-			final Template template1 = app.create("Template");
+			final Template template1 = app.create("Template").as(Template.class);
 			template1.setContent("${render(children)}");
 			template1.setProperty(Traits.of("Template").key("contentType"), "text/plain");
 			page.appendChild(template1);
 
-			final Template template2 = app.create("Template");
+			final Template template2 = app.create("Template").as(Template.class);
 			template2.setContent("${render(children)}");
 			template2.setProperty(Traits.of("Template").key("contentType"), "text/plain");
 			template1.appendChild(template2);
 
-			final Template template3 = app.create("Template");
+			final Template template3 = app.create("Template").as(Template.class);
 			template3.setContent("${render(children)}");
 			template3.setProperty(Traits.of("Template").key("contentType"), "text/plain");
 			template2.appendChild(template3);
 
 			template3.setContent("${key1},${key2}");
 
-			final PagePath path = app.create("PagePath",
+			final NodeInterface path = app.create("PagePath",
 				new NodeAttribute<>(Traits.of("PagePath").key("page"), page),
 				new NodeAttribute<>(Traits.of("PagePath").key("name"), "/test1/{key1}/{key2}")
 			);

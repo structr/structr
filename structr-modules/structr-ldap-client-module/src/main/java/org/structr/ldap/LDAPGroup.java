@@ -18,11 +18,11 @@
  */
 package org.structr.ldap;
 
-import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.Group;
 
 /**
  */
-public interface LDAPGroup extends GroupTraitDefinition {
+public interface LDAPGroup extends Group {
 
 	String getDistinguishedName();
 	String getPath();

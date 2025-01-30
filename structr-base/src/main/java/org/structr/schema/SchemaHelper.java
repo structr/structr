@@ -449,7 +449,7 @@ public class SchemaHelper {
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
-			if (!outRel.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema)) {
+			if (!outRel.getProperty(Traits.of("SchemaRelationshipNode").key("isPartOfBuiltInSchema"))) {
 				addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
@@ -472,7 +472,7 @@ public class SchemaHelper {
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
-			if (!inRel.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema)) {
+			if (!inRel.getProperty(Traits.of("SchemaRelationshipNode").key("isPartOfBuiltInSchema"))) {
 				SchemaHelper.addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
@@ -1732,22 +1732,22 @@ public class SchemaHelper {
 
 		for (final SchemaRelationshipNode out : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-			if (propertyName.equals(out.getProperty(SchemaRelationshipNode.targetJsonName))) {
+			if (propertyName.equals(out.getProperty(Traits.of("SchemaRelationshipNode").key("targetJsonName")))) {
 				return true;
 			}
 
-			if (propertyName.equals(out.getProperty(SchemaRelationshipNode.previousTargetJsonName))) {
+			if (propertyName.equals(out.getProperty(Traits.of("SchemaRelationshipNode").key("previousTargetJsonName")))) {
 				return true;
 			}
 		}
 
 		for (final SchemaRelationshipNode in : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
-			if (propertyName.equals(in.getProperty(SchemaRelationshipNode.sourceJsonName))) {
+			if (propertyName.equals(in.getProperty(Traits.of("SchemaRelationshipNode").key("sourceJsonName")))) {
 				return true;
 			}
 
-			if (propertyName.equals(in.getProperty(SchemaRelationshipNode.previousSourceJsonName))) {
+			if (propertyName.equals(in.getProperty(Traits.of("SchemaRelationshipNode").key("previousSourceJsonName")))) {
 				return true;
 			}
 		}

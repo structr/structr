@@ -101,6 +101,7 @@ public interface GraphObject {
 	boolean isVisibleToPublicUsers();
 	boolean isVisibleToAuthenticatedUsers();
 	boolean isHidden();
+	void setHidden(final boolean hidden) throws FrameworkException;
 
 	// access
 	Date getCreatedDate();

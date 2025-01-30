@@ -23,16 +23,14 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
-import org.w3c.dom.Node;
 
 
 public class CustomResponseHeadersTest extends StructrUiTest {
@@ -45,7 +43,7 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
@@ -55,12 +53,12 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 
 			newPage.setVisibility(true, true);
 
-			final Html html    = createElement(newPage, newPage, "html");
-			final Head head    = createElement(newPage, html, "head");
-			final Title title  = createElement(newPage, head, "title", "Test Page for custom HTTP headers");
-			final Body body    = createElement(newPage, html, "body");
-			final Div div1     = createElement(newPage, body, "div", "testing..${set_response_header('X-Test', 'abc123')}");
-			final Div div2     = createElement(newPage, body, "div", "testing..${set_response_header('Strict-Transport-Security', 'max-age=120')}");
+			final DOMElement html  = createElement(newPage, newPage, "html");
+			final DOMElement head  = createElement(newPage, html, "head");
+			final DOMElement title = createElement(newPage, head, "title", "Test Page for custom HTTP headers");
+			final DOMElement body  = createElement(newPage, html, "body");
+			final DOMElement div1  = createElement(newPage, body, "div", "testing..${set_response_header('X-Test', 'abc123')}");
+			final DOMElement div2  = createElement(newPage, body, "div", "testing..${set_response_header('Strict-Transport-Security', 'max-age=120')}");
 
 			tx.success();
 
@@ -95,16 +93,17 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 
 	}
 
-	private <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+	private DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
-		final T child = (T)page.createElement(tag);
-		parent.appendChild((DOMNode)child);
+		final DOMElement child = page.createElement(tag);
+
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 
 			for (final String text : content) {
 
-				final Node node = page.createTextNode(text);
+				final DOMNode node = page.createTextNode(text);
 				child.appendChild(node);
 			}
 		}

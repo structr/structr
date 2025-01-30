@@ -34,6 +34,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.operations.CheckHierarchy;
 import org.structr.web.traits.operations.HandleNewChild;
 import org.structr.web.traits.operations.Render;
+import org.structr.web.traits.wrappers.dom.PageTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -153,7 +154,10 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			Page.class, (traits, node) -> new PageTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

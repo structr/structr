@@ -236,7 +236,7 @@ public class TraitsImplementation implements Traits {
 
 		}
 
-		return null;
+		throw new RuntimeException("No trait definition found for " + type + ".");
 	}
 
 	@Override

@@ -28,30 +28,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Site;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Html;
+import org.structr.web.importer.Importer;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -62,8 +52,6 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.Matchers.equalTo;
-
-import org.structr.web.importer.Importer;
 import static org.testng.AssertJUnit.*;
 
 
@@ -82,16 +70,16 @@ public class DOMAndPageTest extends StructrUiTest {
 		final String divClassAttr = "main";
 
 		Page page = null;
-		Element html = null;
-		Element head = null;
-		Element body = null;
-		Element title = null;
-		Element h1 = null;
-		Element div = null;
+		DOMElement html = null;
+		DOMElement head = null;
+		DOMElement body = null;
+		DOMElement title = null;
+		DOMElement h1 = null;
+		DOMElement div = null;
 
-		Text titleText = null;
-		Text heading = null;
-		Text bodyContent = null;
+		Content titleText = null;
+		Content heading = null;
+		Content bodyContent = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -206,12 +194,12 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("User",
-				new NodeAttribute(User.name, "TestUser1"),
+				new NodeAttribute<>(Traits.of("User").key("name"), "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create("User",
-				new NodeAttribute(User.name, "TestUser2"),
+				new NodeAttribute<>(Traits.of("User").key("name"), "TestUser2"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
@@ -228,12 +216,12 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create("User",
-				new NodeAttribute(User.name, "TestUser1"),
+				new NodeAttribute<>(Traits.of("User").key("name"), "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create("User",
-				new NodeAttribute(User.name, "TestUser2"),
+				new NodeAttribute<>(Traits.of("User").key("name"), "TestUser2"),
 				new NodeAttribute(eMail, "User@Structr.test")
 			);
 
@@ -256,38 +244,30 @@ public class DOMAndPageTest extends StructrUiTest {
 			// setup two pages and two sites
 			// page one -> site one, listens on one:8875
 			// page two -> site two, listens on two:8875
-			final Page pageOne = app.create("Page", "page-one");
+			final Page pageOne = app.create("Page", "page-one").as(Page.class);
 
-			try {
-				final Element html = pageOne.createElement("html");
-				((DOMNode) html).setProperties(((DOMNode) html).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
+			{
+				final DOMElement html = pageOne.createElement("html");
+				html.setVisibility(true, false);
 
-				final Text textNode = pageOne.createTextNode("page-1");
-				((DOMNode) textNode).setProperties(((DOMNode) textNode).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
+				final Content textNode = pageOne.createTextNode("page-1");
+				textNode.setVisibility(true, false);
 
 				pageOne.appendChild(html);
 				html.appendChild(textNode);
-
-			} catch (DOMException dex) {
-				logger.warn("", dex);
-				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			final Page pageTwo = app.create("Page", "page-two");
+			final Page pageTwo = app.create("Page", "page-two").as(Page.class);
 
-			try {
-				final Element html = pageTwo.createElement("html");
-				((DOMNode) html).setProperties(((DOMNode) html).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
+			{
+				final DOMElement html = pageTwo.createElement("html");
+				html.setVisibility(true, false);
 
-				final Text textNode = pageTwo.createTextNode("page-2");
-				((DOMNode) textNode).setProperties(((DOMNode) textNode).getSecurityContext(), new PropertyMap(DOMNode.visibleToPublicUsers, true));
+				final Content textNode = pageTwo.createTextNode("page-2");
+				textNode.setVisibility(true, false);
 
 				pageTwo.appendChild(html);
 				html.appendChild(textNode);
-
-			} catch (DOMException dex) {
-				logger.warn("", dex);
-				throw new FrameworkException(422, dex.getMessage());
 			}
 
 			final PropertyMap siteOneProperties                 = new PropertyMap();
@@ -295,15 +275,17 @@ public class DOMAndPageTest extends StructrUiTest {
 			final PropertyKey<Integer> positionKey              = Traits.of("Page").key("position");
 			final PropertyKey<Integer> portKey                  = Traits.of("Site").key("port");
 			final PropertyKey<String> hostnameKey               = Traits.of("Site").key("hostname");
+			final PropertyKey<String> nameKey                   = Traits.of("Site").key("name");
+			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key("visibleToPublicUsers");
 
-			siteOneProperties.put(Site.name, "site-one");
-			siteOneProperties.put(Site.visibleToPublicUsers, true);
+			siteOneProperties.put(nameKey, "site-one");
+			siteOneProperties.put(vtp, true);
 			siteOneProperties.put(hostnameKey, "localhost");
 			siteOneProperties.put(portKey, httpPort);
 
 			final PropertyMap siteTwoProperties = new PropertyMap();
-			siteTwoProperties.put(Site.name, "site-two");
-			siteTwoProperties.put(Site.visibleToPublicUsers, true);
+			siteTwoProperties.put(nameKey, "site-two");
+			siteTwoProperties.put(vtp, true);
 			siteTwoProperties.put(hostnameKey, "127.0.0.1");
 			siteTwoProperties.put(portKey, httpPort);
 
@@ -312,13 +294,13 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			final PropertyMap pageOneProperties = new PropertyMap();
 			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));
-			pageOneProperties.put(Page.visibleToPublicUsers, true);
+			pageOneProperties.put(Traits.of("Page").key("visibleToPublicUsers"), true);
 			pageOneProperties.put(positionKey, 10);
 			pageOne.setProperties(pageOne.getSecurityContext(), pageOneProperties);
 
 			final PropertyMap pageTwoProperties = new PropertyMap();
 			pageTwoProperties.put(sitesKey, Arrays.asList(siteTwo));
-			pageTwoProperties.put(Page.visibleToPublicUsers, true);
+			pageTwoProperties.put(Traits.of("Page").key("visibleToPublicUsers"), true);
 			pageTwoProperties.put(positionKey, 10);
 			pageTwo.setProperties(pageTwo.getSecurityContext(), pageTwoProperties);
 
@@ -381,12 +363,12 @@ public class DOMAndPageTest extends StructrUiTest {
 			Page page = Page.createNewPage(securityContext, pageName);
 			if (page != null) {
 
-				DOMElement html  = (DOMElement) page.createElement("html");
-				DOMElement head  = (DOMElement) page.createElement("head");
-				DOMElement title = (DOMElement) page.createElement("title");
-				Text titleText   = page.createTextNode(pageTitle);
+				DOMElement html   = page.createElement("html");
+				DOMElement head   = page.createElement("head");
+				DOMElement title  = page.createElement("title");
+				Content titleText = page.createTextNode(pageTitle);
 
-				for (AbstractRelationship r : page.getIncomingRelationships()) {
+				for (final RelationshipInterface r : page.getWrappedNode().getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("PAGE", r.getRelType().name());
 
@@ -394,7 +376,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 				html.appendChild(head);
 
-				for (AbstractRelationship r : head.getIncomingRelationships()) {
+				for (final RelationshipInterface r : head.getWrappedNode().getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("CONTAINS", r.getRelType().name());
 
@@ -403,14 +385,10 @@ public class DOMAndPageTest extends StructrUiTest {
 				head.appendChild(title);
 				title.appendChild(titleText);
 
-				for (AbstractRelationship r : ((DOMNode) titleText).getIncomingRelationships()) {
+				for (final RelationshipInterface r : titleText.getWrappedNode().getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("CONTAINS", r.getRelType().name());
-
 				}
-
-
-
 			}
 
 			tx.success();
@@ -432,11 +410,11 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create document
-			final org.w3c.dom.Document document = getDocument();
+			final Page document = getDocument();
 			assertNotNull(document);
 
 			// create div
-			final Element div = document.createElement("div");
+			final DOMElement div = document.createElement("div");
 			assertNotNull(div);
 
 			try {
@@ -469,8 +447,9 @@ public class DOMAndPageTest extends StructrUiTest {
 			// iterate over all siblings using the nextSibling method
 			long t0 = System.currentTimeMillis();
 
-			Node it = div.getFirstChild();
+			DOMNode it = div.getFirstChild();
 			while (it != null) {
+
 				it = it.getNextSibling();
 			}
 
@@ -602,16 +581,16 @@ public class DOMAndPageTest extends StructrUiTest {
 		final String divClassAttr = "main";
 
 		Page page = null;
-		Element html = null;
-		Element head = null;
-		Element body = null;
-		Element title = null;
-		Element h1 = null;
-		Element div = null;
+		DOMElement html = null;
+		DOMElement head = null;
+		DOMElement body = null;
+		DOMElement title = null;
+		DOMElement h1 = null;
+		DOMElement div = null;
 
-		Text titleText = null;
-		Text heading = null;
-		Text bodyContent = null;
+		Content titleText = null;
+		Content heading = null;
+		Content bodyContent = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -792,42 +771,36 @@ public class DOMAndPageTest extends StructrUiTest {
 			assertTrue(page != null);
 			assertTrue(page instanceof Page);
 
-			DOMElement html   = (DOMElement)page.createElement("html");
-			DOMElement head   = (DOMElement)page.createElement("head");
-			DOMElement body   = (DOMElement)page.createElement("body");
-			DOMElement title  = (DOMElement)page.createElement("title");
-			DOMElement div    = (DOMElement)page.createElement("div");
-			DOMElement div_2  = (DOMElement)page.createElement("div");
-			DOMElement div_3  = (DOMElement)page.createElement("div");
-			DOMElement h1     = (DOMElement)page.createElement("h1");
-			DOMElement h1_2   = (DOMElement)page.createElement("h1");
+			DOMElement html   = page.createElement("html");
+			DOMElement head   = page.createElement("head");
+			DOMElement body   = page.createElement("body");
+			DOMElement title  = page.createElement("title");
+			DOMElement div    = page.createElement("div");
+			DOMElement div_2  = page.createElement("div");
+			DOMElement div_3  = page.createElement("div");
+			DOMElement h1     = page.createElement("h1");
+			DOMElement h1_2   = page.createElement("h1");
 
-			try {
-				// add HTML element to page
-				page.appendChild(html);
+			// add HTML element to page
+			page.appendChild(html);
 
-				// add HEAD and BODY elements to HTML
-				html.appendChild(head);
-				html.appendChild(body);
+			// add HEAD and BODY elements to HTML
+			html.appendChild(head);
+			html.appendChild(body);
 
-				// add TITLE element to HEAD
-				head.appendChild(title);
-				title.appendChild(page.createTextNode("Test Page"));
+			// add TITLE element to HEAD
+			head.appendChild(title);
+			title.appendChild(page.createTextNode("Test Page"));
 
-				// add DIVs to BODY
-				body.appendChild(div);
-				body.appendChild(div_2);
-				body.appendChild(div_3);
+			// add DIVs to BODY
+			body.appendChild(div);
+			body.appendChild(div_2);
+			body.appendChild(div_3);
 
-				// add H1 elements to DIV
-				div_3.appendChild(h1);
-				div_3.appendChild(h1_2);
-				h1.appendChild(page.createTextNode("Page Title"));
-
-			} catch (DOMException dex) {
-
-				throw new FrameworkException(422, dex.getMessage());
-			}
+			// add H1 elements to DIV
+			div_3.appendChild(h1);
+			div_3.appendChild(h1_2);
+			h1.appendChild(page.createTextNode("Page Title"));
 
 			assertEquals(html.getPositionPath(),	"/0");
 			assertEquals(head.getPositionPath(),	"/0/0");
@@ -856,17 +829,17 @@ public class DOMAndPageTest extends StructrUiTest {
 		try {
 
 			// create some test nodes
-			File test1 = null;
+			NodeInterface test1 = null;
 
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
 
 				// create some test nodes
-				test1 = createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "aaaaa"));
-				createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "bbbbb"));
-				createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "ccccc"));
-				createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "ddddd"));
-				createTestNode(File.class, new NodeAttribute<>(AbstractNode.name, "eeeee"));
+				test1 = createTestNode("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaaaa"));
+				createTestNode("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbbbb"));
+				createTestNode("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ccccc"));
+				createTestNode("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ddddd"));
+				createTestNode("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "eeeee"));
 
 				tx.success();
 			}
@@ -874,7 +847,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<File> files = app.nodeQuery("File").sort(Traits.of("File").key("path")).getAsList();
+				final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("File").key("path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "aaaaa", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(1).getName());
@@ -889,7 +862,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// modify file name to move the first file to the end of the sorted list
 			try (final Tx tx = app.tx()) {
 
-				test1.setProperties(test1.getSecurityContext(), new PropertyMap(AbstractNode.name, "zzzzz"));
+				test1.setProperties(test1.getSecurityContext(), new PropertyMap(Traits.of("NodeInterface").key("name"), "zzzzz"));
 
 				tx.success();
 			}
@@ -898,7 +871,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check final sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<File> files = app.nodeQuery("File").sort(Traits.of("File").key("path")).getAsList();
+				final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("File").key("path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "ccccc", files.get(1).getName());
@@ -978,10 +951,10 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			assertEquals("Page version is not increased on modification", 0, page.getVersion());
 
-			final Element div = page.createElement("div");
+			final DOMElement div = page.createElement("div");
 
 			// add new element
-			page.getElementsByTagName("div").item(0).appendChild(div);
+			page.getElementsByTagName("div").get(0).appendChild(div);
 
 			tx.success();
 
@@ -1007,7 +980,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, "test.txt", true);
+			file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", "File", "test.txt", true).as(File.class);
 
 			tx.success();
 
@@ -1053,9 +1026,9 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page         = Page.createNewPage(securityContext, "testExceptionHandling");
-			final Html html         = createElement(page, page, "html");
-			final Body body         = createElement(page, html, "body");
-			final Div div1          = createElement(page, body, "div");
+			final DOMElement html   = createElement(page, page, "html");
+			final DOMElement body   = createElement(page, html, "body");
+			final DOMElement div1   = createElement(page, body, "div");
 			final Content content1  = createContent(page, div1, "content");
 			final DOMNode component = new CreateComponentCommand().create(div1);
 
@@ -1086,9 +1059,9 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page         = Page.createNewPage(securityContext, "testExceptionHandling");
-			final Html html         = createElement(page, page, "html");
-			final Body body         = createElement(page, html, "body");
-			final Div div1          = createElement(page, body, "div");
+			final DOMElement html   = createElement(page, page, "html");
+			final DOMElement body   = createElement(page, html, "body");
+			final DOMElement div1   = createElement(page, body, "div");
 			final Content content1  = createContent(page, div1, "content");
 			final DOMNode component = new CreateComponentCommand().create(div1);
 
@@ -1200,12 +1173,12 @@ public class DOMAndPageTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page test  = Page.createSimplePage(securityContext, "test");
-			final Text text  = test.createTextNode(" / ${current.id}");
+			final Page test    = Page.createSimplePage(securityContext, "test");
+			final Content text = test.createTextNode(" / ${current.id}");
 
-			test.getElementsByTagName("div").item(0).appendChild(text);
+			test.getElementsByTagName("div").get(0).appendChild(text);
 
-			final User user = app.create("User",
+			final NodeInterface user = app.create("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
@@ -1250,7 +1223,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<User> users = app.nodeQuery("User").getAsList();
+			final List<NodeInterface> users = app.nodeQuery("User").getAsList();
 
 			assertEquals("Expected no users to be created because of constraints", 0, users.size());
 
@@ -1264,15 +1237,15 @@ public class DOMAndPageTest extends StructrUiTest {
 
 	}
 
-	private org.w3c.dom.Document getDocument() {
+	private Page getDocument() {
 
 		try {
 
-			List<Page> pages = this.createTestNodes(Page.class, 1);
+			final List<NodeInterface> pages = this.createTestNodes("Page", 1);
 
 			if (!pages.isEmpty()) {
 
-				return pages.get(0);
+				return pages.get(0).as(Page.class);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1284,16 +1257,17 @@ public class DOMAndPageTest extends StructrUiTest {
 	}
 
 	// copied from DeploymentTestBase (sorry)
-	protected <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
-		final T child = (T)page.createElement(tag);
-		parent.appendChild((DOMNode)child);
+		final DOMElement child = page.createElement(tag);
+
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 
 			for (final String text : content) {
 
-				final Node node = page.createTextNode(text);
+				final Content node = page.createTextNode(text);
 				child.appendChild(node);
 			}
 		}
@@ -1302,10 +1276,11 @@ public class DOMAndPageTest extends StructrUiTest {
 	}
 
 	// copied from DeploymentTestBase (sorry)
-	protected <T> T createContent(final Page page, final DOMNode parent, final String content) {
+	protected Content createContent(final Page page, final DOMNode parent, final String content) throws FrameworkException {
 
-		final T child = (T)page.createTextNode(content);
-		parent.appendChild((DOMNode)child);
+		final Content child = page.createTextNode(content);
+
+		parent.appendChild(child);
 
 		return child;
 	}

@@ -141,6 +141,19 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		return wrappedObject.getProperty(traits.key("data-structr-reload-target"));
 	}
 
+	@Override
+	public void setAttribute(final String name, final String value) throws FrameworkException {
+
+		final PropertyKey<String> key = findOrCreateAttributeKey(name);
+
+		wrappedObject.setProperty(key, value);
+	}
+
+	@Override
+	public String getNodeValue() {
+		return null;
+	}
+
 	public Iterable<PropertyKey> getHtmlAttributes() {
 		return traits.getMethod(GetAttributes.class).getHtmlAttributes(this);
 	}
@@ -267,20 +280,21 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	private HtmlProperty findOrCreateAttributeKey(final String name) {
 
 		// try to find native html property defined in DOMElement or one of its subclasses
-		final PropertyKey key = traits.key("name");
+		if (traits.hasKey(name)) {
 
-		if (key != null && key instanceof HtmlProperty) {
+			final PropertyKey<String> key = traits.key(name);
 
-			return (HtmlProperty) key;
+			if (key instanceof HtmlProperty h) {
 
-		} else {
-
-			// create synthetic HtmlProperty
-			final HtmlProperty htmlProperty = new HtmlProperty(name);
-
-			htmlProperty.setDeclaringTrait(traits.get("DOMElement"));
-
-			return htmlProperty;
+				return h;
+			}
 		}
+
+		// create synthetic HtmlProperty
+		final HtmlProperty htmlProperty = new HtmlProperty(name);
+
+		htmlProperty.setDeclaringTrait(traits.get("DOMElement"));
+
+		return htmlProperty;
 	}
 }

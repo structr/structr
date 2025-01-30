@@ -31,19 +31,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.*;
+import org.structr.web.entity.*;
+import org.structr.web.entity.dom.*;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.Object;
 import java.util.function.Function;
 
 import static org.testng.AssertJUnit.*;
@@ -60,13 +52,13 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test11");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test11_1");
 
-			final Body body1  = createElement(page1, html1, "body");
-			final Table table = createElement(page1, body1, "table");
-			final Tbody tbody = createElement(page1, table, "tbody");
+			final DOMElement body1  = createElement(page1, html1, "body");
+			final DOMElement table = createElement(page1, body1, "table");
+			final DOMElement tbody = createElement(page1, table, "tbody");
 
 			final Template template1 = createTemplate(page1, tbody, "<tr><td>${user.name}</td></tr>");
 
@@ -93,13 +85,13 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page = Page.createNewPage(securityContext,   "test12");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test12");
 
-			final Body body      = createElement(page, html, "body");
-			final Script script1 = createElement(page, body, "script");
-			final Script script2 = createElement(page, body, "script");
+			final DOMElement body      = createElement(page, html, "body");
+			final DOMElement script1 = createElement(page, body, "script");
+			final DOMElement script2 = createElement(page, body, "script");
 
 			script1.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
 
@@ -123,12 +115,12 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page = Page.createNewPage(securityContext,   "test13");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test13");
 
-			final Body body      = createElement(page, html, "body");
-			final Script script1 = createElement(page, body, "script", "");
+			final DOMElement body      = createElement(page, html, "body");
+			final DOMElement script1 = createElement(page, body, "script", "");
 
 			tx.success();
 
@@ -288,12 +280,12 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test16");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test16");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
@@ -322,16 +314,16 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test17");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test17");
 
-			final Body body = createElement(page, html, "body");
+			final DOMElement body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
 			template.setProperty(Traits.of("NodeInterface").key("name"), "a-template");
 
-			final Template sharedTemplate = createComponent(template);
+			final DOMNode sharedTemplate = createComponent(template);
 
 			// remove original template from page
 			app.delete(template.getWrappedNode());
@@ -355,18 +347,18 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test18");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test18");
 
-			final Body body = createElement(page, html, "body");
+			final DOMElement body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
 
-			final Template sharedTemplate = createComponent(template);
+			final DOMNode sharedTemplate = createComponent(template);
 
 			// remove original template from page
-			app.delete(template);
+			app.delete(template.getWrappedNode());
 
 			createElement(page, sharedTemplate, "div");
 
@@ -387,12 +379,12 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test19");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test19");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
 			content.setProperty(Traits.of("Content").key("contentType"), "text/html");
@@ -433,13 +425,13 @@ public class Deployment1Test extends DeploymentTestBase {
 
 		try (final Tx tx = app1.tx()) {
 
-			final Page page      = Page.createNewPage(context1,   "test20");
-			final Html html      = createElement(page, page, "html");
-			final Head head      = createElement(page, html, "head");
+			final Page page       = Page.createNewPage(context1,   "test20");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test20");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
 			content.setProperty(Traits.of("Content").key("contentType"), "text/html");
@@ -469,17 +461,20 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			final Page page       = Page.createNewPage(securityContext,   "test02");
 			pageId                = page.getUuid();
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test11");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
 			// create a link which links to same page
 			{
-				final A a = createElement(page, body, "a");
+				final DOMElement a = createElement(page, body, "a");
+
 				createElement(page, a, "a", "link to self");
-				a.setLinkable(page);
+
+				a.as(LinkSource.class).setLinkable(page.as(Linkable.class));
 
 				a_uuid = a.getUuid();
 			}

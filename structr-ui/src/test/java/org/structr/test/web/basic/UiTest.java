@@ -25,27 +25,31 @@ import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
-import org.structr.web.entity.*;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
+import org.structr.web.entity.User;
 import org.structr.web.property.ThumbnailProperty;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,18 +68,18 @@ public class UiTest extends StructrUiTest {
 	@Test
 	public void test01CreateThumbnail() {
 
-		final Class imageType = createTestImageType();
-		Image img = null;
+		final String imageType = createTestImageType();
+		NodeInterface img      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			img = (Image) ImageHelper.createFileBase64(securityContext, base64Image, imageType);
-			img.setProperties(img.getSecurityContext(), new PropertyMap(AbstractNode.name, "test-image.png"));
+			img = ImageHelper.createFileBase64(securityContext, base64Image, imageType);
+			img.setProperties(img.getSecurityContext(), new PropertyMap(Traits.of("NodeInterface").key("name"), "test-image.png"));
 
 			assertNotNull(img);
 			assertTrue(img instanceof Image);
 
-			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
+			Image tn = img.getProperty(Traits.of(imageType).key("thumbnail"));
 
 			tx.success();
 		} catch (Exception ex) {
@@ -86,7 +90,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image immutableImage = img;
+			final NodeInterface immutableImage = img;
 
 			tryWithTimeout(
 				() -> {
@@ -94,12 +98,12 @@ public class UiTest extends StructrUiTest {
 					// so we need to allow this thread to break the transaction isolation..
 					immutableImage.getNode().invalidate();
 
-					return immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null;
+					return immutableImage.getProperty(Traits.of(imageType).key("thumbnail")) != null;
 				},
 				()->fail("Exceeded timeout while waiting for thumbnail creation."),
 				30000, 1000);
 
-			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
+			Image tn = img.getProperty(Traits.of(imageType).key("thumbnail"));
 
 			assertNotNull(tn);
 			assertEquals(Integer.valueOf(200), tn.getWidth());
@@ -120,13 +124,13 @@ public class UiTest extends StructrUiTest {
 
 		final String initialImageName = "initial_image_name.png";
 		final String renamedImageName = "image_name_after_rename.png";
-		Image testImage = null;
+		NodeInterface testImage = null;
 
 		try (final Tx tx = app.tx()) {
 
-			testImage = (Image) ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
+			testImage = ImageHelper.createFileBase64(securityContext, base64Image, "Image");
 
-			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Image.name, initialImageName));
+			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), initialImageName));
 
 			assertNotNull(testImage);
 			assertTrue(testImage instanceof Image);
@@ -144,7 +148,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image immutableImage = testImage;
+			final NodeInterface immutableImage = testImage;
 
 			tryWithTimeout(
 				() -> {
@@ -172,7 +176,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Image.name, renamedImageName));
+			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), renamedImageName));
 			tx.success();
 
 		} catch (Exception ex) {
@@ -202,24 +206,24 @@ public class UiTest extends StructrUiTest {
 	@Test
 	public void test01AutoRenameThumbnailForImageSubclass() {
 
-		final Class testImageType = createTestImageType();
+		final String testImageType = createTestImageType();
 
-		Image subclassTestImage = null;
+		NodeInterface subclassTestImage = null;
 		final String initialImageName = "initial_image_name.png";
 		final String renamedImageName = "image_name_after_rename.png";
 
 		try (final Tx tx = app.tx()) {
 
-			subclassTestImage = (Image) ImageHelper.createFileBase64(securityContext, base64Image, testImageType);
+			subclassTestImage = ImageHelper.createFileBase64(securityContext, base64Image, testImageType);
 
-			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(Image.name, initialImageName));
+			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), initialImageName));
 
 			assertNotNull(subclassTestImage);
 			assertTrue(subclassTestImage instanceof Image);
 
-			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
-			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
-			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
+			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
+			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
+			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key("thumbnail"));
 
 			tx.success();
 
@@ -231,23 +235,23 @@ public class UiTest extends StructrUiTest {
 
 
 		try (final Tx tx = app.tx()) {
-			final Image immutableImage = subclassTestImage;
+			final NodeInterface immutableImage = subclassTestImage;
 			tryWithTimeout(
 					() -> {
 							// allow inner node to be updated
 							immutableImage.getNode().invalidate();
 
-							return immutableImage.getProperty(StructrApp.key(testImageType, "tnSmall")) != null &&
-							immutableImage.getProperty(StructrApp.key(testImageType, "tnMid")) != null &&
-							immutableImage.getProperty(StructrApp.key(testImageType, "thumbnail")) != null;
+							return immutableImage.getProperty(Traits.of(testImageType).key("tnSmall")) != null &&
+							immutableImage.getProperty(Traits.of(testImageType).key("tnMid")) != null &&
+							immutableImage.getProperty(Traits.of(testImageType).key("thumbnail")) != null;
 					},
 					()->fail("Exceeded timeout while waiting for thumbnail creation."),
 					60000,
 					5000
 			);
-			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
-			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
-			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
+			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
+			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
+			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key("thumbnail"));
 
 			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Traits.of("Image").key("name")));
 			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Traits.of("Image").key("name")));
@@ -263,7 +267,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(Image.name, renamedImageName));
+			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), renamedImageName));
 			tx.success();
 
 		} catch (Exception ex) {
@@ -274,9 +278,9 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
-			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
-			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
+			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
+			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
+			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key("thumbnail"));
 
 			assertEquals("Small Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Traits.of("Image").key("name")));
 			assertEquals("Mid Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Traits.of("Image").key("name")));
@@ -411,7 +415,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			folder1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/folder1");
+			folder1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/folder1").as(Folder.class);
 			tx.success();
 
 		} catch (FrameworkException ex) {
@@ -420,7 +424,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			File file1 = (File) app.create("File", "file1");
+			File file1 = app.create("File", "file1").as(File.class);
 			assertNotNull(file1);
 			assertEquals(file1.getPath(), "/file1");
 
@@ -435,7 +439,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Image image1 = (Image) app.create("Image", "image1");
+			Image image1 = app.create("Image", "image1").as(Image.class);
 			assertNotNull(image1);
 			assertEquals(image1.getPath(), "/image1");
 
@@ -463,14 +467,14 @@ public class UiTest extends StructrUiTest {
 
 		final String base64Data = "data:text/plain;base64,RGllcyBpc3QgZWluIFRlc3Q=";
 		final String plaintext  = "Dies ist ein Test";
-		File file           = null;
+		File file               = null;
 
 		try (final Tx tx = app.tx()) {
 
 			file = app.create("File",
 				new NodeAttribute<>(Traits.of("AbstractNode").key("name"),      "test.txt"),
-				new NodeAttribute<>(StructrApp.key(File.class,         "base64Data"), base64Data)
-			);
+				new NodeAttribute<>(Traits.of("File").key(        "base64Data"), base64Data)
+			).as(File.class);
 
 			tx.success();
 
@@ -495,12 +499,12 @@ public class UiTest extends StructrUiTest {
 
 		Settings.UniquePaths.setValue(Boolean.TRUE);
 
-		File rootFile1 = null;
-		File rootFile2 = null;
+		NodeInterface rootFile1 = null;
+		NodeInterface rootFile2 = null;
 
 		try (final Tx tx = app.tx()) {
 
-			rootFile1 = app.create("File", new NodeAttribute<>(AbstractNode.name, "test.txt"));
+			rootFile1 = app.create("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test.txt"));
 			assertNotNull(rootFile1);
 
 			tx.success();
@@ -512,7 +516,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			rootFile2 = app.create("File", new NodeAttribute<>(AbstractNode.name, "test.txt"));
+			rootFile2 = app.create("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test.txt"));
 			assertNotNull(rootFile2);
 
 			tx.success();
@@ -540,10 +544,10 @@ public class UiTest extends StructrUiTest {
 
 		final String fileName = "test.file.txt";
 
-		File rootFile1 = null;
-		File rootFile2 = null;
-		File rootFile3 = null;
-		File rootFile4 = null;
+		NodeInterface rootFile1 = null;
+		NodeInterface rootFile2 = null;
+		NodeInterface rootFile3 = null;
+		NodeInterface rootFile4 = null;
 
 		String file1Name = null;
 		String file2Name = null;
@@ -552,7 +556,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			rootFile1 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile1 = app.create("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), fileName));
 			assertNotNull(rootFile1);
 
 			file1Name = rootFile1.getName();
@@ -576,7 +580,7 @@ public class UiTest extends StructrUiTest {
 		Settings.UniquePathsInsertionPosition.setValue("end");
 		try (final Tx tx = app.tx()) {
 
-			rootFile2 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile2 = app.create("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), fileName));
 			assertNotNull(rootFile2);
 
 			file2Name = rootFile2.getName();
@@ -603,7 +607,7 @@ public class UiTest extends StructrUiTest {
 		Settings.UniquePathsInsertionPosition.setValue("start");
 		try (final Tx tx = app.tx()) {
 
-			rootFile3 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile3 = app.create("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), fileName));
 			assertNotNull(rootFile3);
 
 			file3Name = rootFile3.getName();
@@ -631,7 +635,7 @@ public class UiTest extends StructrUiTest {
 		Settings.UniquePathsInsertionPosition.setValue("beforeextension");
 		try (final Tx tx = app.tx()) {
 
-			rootFile4 = app.create("File", new NodeAttribute<>(AbstractNode.name, fileName));
+			rootFile4 = app.create("File", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), fileName));
 			assertNotNull(rootFile4);
 
 			file4Name = rootFile4.getName();
@@ -669,7 +673,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			folder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder");
+			folder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder").as(Folder.class);
 
 			assertNotNull(folder);
 			assertEquals(folder.getPath(), "/my/test/folder");
@@ -683,9 +687,9 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			file1 = app.create("File",
-				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test.txt"),
 				new NodeAttribute<>(Traits.of("AbstractFile").key("parent"), folder)
-			);
+			).as(File.class);
 
 			assertNotNull(file1);
 			assertEquals("Testfolder should have exactly one child", 1, Iterables.count(folder.getChildren()));
@@ -699,9 +703,9 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			file2 = app.create("File",
-				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test.txt"),
 				new NodeAttribute<>(Traits.of("AbstractFile").key("parent"), folder)
-			);
+			).as(File.class);
 
 			assertNotNull(file2);
 			assertEquals("Testfolder should have exactly two children", 2, Iterables.count(folder.getChildren()));
@@ -736,28 +740,28 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			folder1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder");
+			folder1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder").as(Folder.class);
 			assertNotNull(folder1);
 			assertEquals(folder1.getPath(), "/my/test/folder");
 
-			folder2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/another/directory");
+			folder2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/another/directory").as(Folder.class);
 			assertNotNull(folder2);
 			assertEquals(folder2.getPath(), "/another/directory");
 
 			tx.success();
 
 			file1 = app.create("File",
-				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test.txt"),
 				new NodeAttribute<>(Traits.of("File").key("parent"), folder1)
-			);
+			).as(File.class);
 
 			assertNotNull(file1);
 			assertEquals("Testfolder 1 should have exactly one child", 1, Iterables.count(folder1.getChildren()));
 
 			file2 = app.create("File",
-				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test.txt"),
 				new NodeAttribute<>(Traits.of("File").key("parent"), folder2)
-			);
+			).as(File.class);
 
 			assertNotNull(file2);
 			assertEquals("Testfolder 2 should have exactly one child", 1, Iterables.count(folder2.getChildren()));
@@ -819,7 +823,7 @@ public class UiTest extends StructrUiTest {
 					final byte[] content  = fileEntry.getValue();
 
 					try {
-						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName, true);
+						final File file = FileHelper.createFile(securityContext, content, null, "File", fileName, true).as(File.class);
 						assertEquals("MIME type detection failed", mimeType, file.getContentType());
 
 					} catch (IOException ioex) {
@@ -886,7 +890,7 @@ public class UiTest extends StructrUiTest {
 					final byte[] content  = fileEntry.getValue();
 
 					try {
-						final File file = FileHelper.createFile(securityContext, content, null, File.class, fileName, true);
+						final File file = FileHelper.createFile(securityContext, content, null, "File", fileName, true).as(File.class);
 						assertEquals("MIME type detection failed for " + fileName, mimeType, file.getContentType());
 
 					} catch (IOException ioex) {
@@ -911,18 +915,18 @@ public class UiTest extends StructrUiTest {
 
 		User tester = null;
 		String uuid = null;
-		Image image = null;
+		NodeInterface image = null;
 
 		try (final Tx tx = app.tx()) {
 
-			image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
-			tester = app.create("User", "tester");
+			image = ImageHelper.createFileBase64(securityContext, base64Image, "Image");
+			tester = app.create("User", "tester").as(User.class);
 
-			image.setProperty(Image.name, "test.png");
+			image.setProperty(Traits.of("Image").key("name"), "test.png");
 
 			// allow non-admin user to delete the image
-			image.grant(Permission.delete, tester);
-			image.grant(Permission.read, tester);
+			image.as(AccessControllable.class).grant(Permission.delete, tester);
+			image.as(AccessControllable.class).grant(Permission.read, tester);
 
 			image.getProperty(Traits.of("Image").key("tnSmall"));
 			image.getProperty(Traits.of("Image").key("tnMid"));
@@ -936,7 +940,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image immutableImage = image;
+			final NodeInterface immutableImage = image;
 			tryWithTimeout(
 					() -> {
 						// Thumbnail creation happens in the background, in a different thread,
@@ -945,13 +949,13 @@ public class UiTest extends StructrUiTest {
 
 						immutableImage.getProperty(Traits.of("Image").key("tnSmall"));
 						immutableImage.getProperty(Traits.of("Image").key("tnMid"));
-						return (Iterables.count(immutableImage.getThumbnails()) == 2);
+						return (Iterables.count(immutableImage.as(Image.class).getThumbnails()) == 2);
 					},
 					()->fail("Exceeded timeout while waiting for thumbnail generation"),
 					30000,
 					1000
 			);
-			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
+			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.as(Image.class).getThumbnails()));
 
 			uuid = image.getUuid();
 
@@ -968,7 +972,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = testerApp.tx()) {
 
-			final Image deleteMe = testerApp.getNodeById(Image.class, uuid);
+			final NodeInterface deleteMe = testerApp.getNodeById("Image", uuid);
 
 			assertNotNull("Image should be visible to test user", deleteMe);
 
@@ -983,13 +987,13 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = testerApp.tx()) {
 
-			final List<Image> images = testerApp.nodeQuery("Image").getAsList();
+			final List<NodeInterface> images = testerApp.nodeQuery("Image").getAsList();
 
 			if (!images.isEmpty()) {
 
 				final SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.S");
 
-				for (final Image im : images) {
+				for (final NodeInterface im : images) {
 
 					System.out.println("Found Image " + im.getName() + " (" + im.getUuid() + "), created " + df.format(im.getCreatedDate()) + " which should have been deleted.");
 				}
@@ -1006,14 +1010,14 @@ public class UiTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
-	private Class createTestImageType() {
+	private String createTestImageType() {
 
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("TestImage");
 
-			type.setExtends(URI.create("#/definitions/Image"));
+			type.addTrait("Image");
 
 			type.addCustomProperty("thumbnail", ThumbnailProperty.class.getName()).setFormat("200, 100, false");
 
@@ -1025,6 +1029,6 @@ public class UiTest extends StructrUiTest {
 			t.printStackTrace();
 		}
 
-		return StructrApp.getConfiguration().getNodeEntityClass("TestImage");
+		return "TestImage";
 	}
 }

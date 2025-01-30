@@ -24,15 +24,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.NodeTrait;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.diff.InvertibleModificationOperation;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Div;
 import org.structr.web.importer.Importer;
 import org.testng.annotations.Test;
-import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -602,11 +604,11 @@ public class DiffTest extends StructrUiTest {
 		// test result on the node level
 		try (final Tx tx = app.tx()) {
 
-			final Page page = app.nodeQuery("Page").andName("test").getFirst();
+			final NodeInterface page = app.nodeQuery("Page").andName("test").getFirst();
 
 			assertNotNull(page);
 
-			final NodeList nodes = page.getElementsByTagName("div");
+			final List<DOMNode> nodes = page.as(Page.class).getElementsByTagName("div");
 			final List<Div> divs = collectNodes(nodes, Div.class);
 
 			assertEquals("Wrong number of divs returned from node query", 4, divs.size());
@@ -707,14 +709,13 @@ public class DiffTest extends StructrUiTest {
 	}
 
 
-	private <T> List<T> collectNodes(final NodeList source, final Class<T> type) {
+	private <T extends NodeTrait> List<T> collectNodes(final List<DOMNode> source, final Class<T> type) {
 
 		final List<T> list = new LinkedList<>();
-		final int len      = source.getLength();
 
-		for (int i=0; i<len; i++) {
+		for (final DOMNode node : source) {
 
-			list.add((T)source.item(i));
+			list.add(node.as(type));
 		}
 
 		return list;

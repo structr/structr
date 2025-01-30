@@ -21,9 +21,10 @@ package org.structr.test.web.advanced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -47,7 +48,7 @@ public class PropertyTest extends StructrUiTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create("SchemaNode",
+			final NodeInterface test  = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test")
 			);
 

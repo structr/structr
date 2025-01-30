@@ -389,6 +389,10 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public void setHidden(final boolean hidden) throws FrameworkException {
+	}
+
+	@Override
 	public Date getCreatedDate() {
 		return null;
 	}

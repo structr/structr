@@ -42,11 +42,11 @@ import java.util.Set;
 public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
-	public static final View defaultView = new View(GroupTraitDefinition.class, PropertyView.Public,
+	public static final View defaultView = new View(Group.class, PropertyView.Public,
 		nameProperty, isGroupProperty, membersProperty, blockedProperty
 	);
 
-	public static final View uiView = new View(GroupTraitDefinition.class, PropertyView.Ui,
+	public static final View uiView = new View(Group.class, PropertyView.Ui,
 		isGroupProperty, jwksReferenceIdProperty, membersProperty
 	);
 	*/

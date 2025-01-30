@@ -315,6 +315,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 *
 	 * @return whether this node is visible to public users
 	 */
+	@Override
 	public boolean isVisibleToPublicUsers() {
 		return typeHandler.getMethod(GetVisibilityFlags.class).isVisibleToPublicUsers(this);
 	}
@@ -324,6 +325,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 *
 	 * @return whether this node is visible to authenticated users
 	 */
+	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
 		return typeHandler.getMethod(GetVisibilityFlags.class).isVisibleToAuthenticatedUsers(this);
 	}
@@ -333,14 +335,22 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 *
 	 * @return whether this node is hidden
 	 */
+	@Override
 	public boolean isHidden() {
 		return getProperty(typeHandler.key("hidden"));
 	}
 
+	@Override
+	public void setHidden(final boolean hidden) throws FrameworkException {
+		setProperty(typeHandler.key("hidden"), hidden);
+	}
+
+	@Override
 	public final Date getCreatedDate() {
 		return getProperty(typeHandler.key("createdDate"));
 	}
 
+	@Override
 	public final Date getLastModifiedDate() {
 		return getProperty(typeHandler.key("lastModifiedDate"));
 	}

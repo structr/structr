@@ -310,7 +310,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		staticTypes.put("User", User.class);
 		staticTypes.put("Page", Page.class);
 		staticTypes.put("MailTemplate", MailTemplate.class);
-		staticTypes.put("Group", GroupTraitDefinition.class);
+		staticTypes.put("Group", Group.class);
 
 		final String name = getName();
 

@@ -35,10 +35,13 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.test.web.entity.traits.definitions.*;
+import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
+import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
 import org.testng.annotations.Optional;
 import org.testng.annotations.*;
 
@@ -114,6 +117,19 @@ public abstract class StructrUiTest {
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+	}
+
+	@BeforeMethod(firstTimeOnly = true)
+	public void createSchema() {
+
+		StructrTraits.registerRelationshipType("FourThreeOneToOne", new FourThreeOneToOne());
+		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  new TwoFiveOneToMany());
+
+		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
+		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
+		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
+		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
+		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
 	}
 
 	@BeforeMethod
@@ -705,7 +721,7 @@ public abstract class StructrUiTest {
 		}
 	}
 
-	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {

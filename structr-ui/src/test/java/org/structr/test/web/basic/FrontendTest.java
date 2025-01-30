@@ -22,11 +22,11 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 
 public abstract class FrontendTest extends StructrUiTest {
 
@@ -37,7 +37,7 @@ public abstract class FrontendTest extends StructrUiTest {
 
 	protected void clearLocalStorage() {
 
-		final User user;
+		final NodeInterface user;
 
 		try (final Tx tx = app.tx()) {
 
@@ -50,7 +50,7 @@ public abstract class FrontendTest extends StructrUiTest {
 		}
 	}
 
-	protected User createAdminUser() {
+	protected NodeInterface createAdminUser() {
 
 		final PropertyMap properties = new PropertyMap();
 
@@ -58,7 +58,7 @@ public abstract class FrontendTest extends StructrUiTest {
 		properties.put(Traits.of("User").key("password"), ADMIN_PASSWORD);
 		properties.put(Traits.of("User").key("isAdmin"), true);
 
-		User user = null;
+		NodeInterface user = null;
 
 		try (final Tx tx = app.tx()) {
 

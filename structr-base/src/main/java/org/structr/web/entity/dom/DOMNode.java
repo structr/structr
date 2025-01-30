@@ -103,7 +103,10 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode {
 	void checkName(final ErrorBuffer errorBuffer);
 	void syncName(final ErrorBuffer errorBuffer) throws FrameworkException;
 	void normalize() throws FrameworkException;
+	void setHidden(final boolean hidden) throws FrameworkException;
+	void setIdAttribute(final String id) throws FrameworkException;
 
+	boolean isHidden();
 	boolean isSynced();
 	boolean isSharedComponent();
 	boolean hasSharedComponent();
@@ -119,7 +122,6 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode {
 	boolean displayForConditions(final RenderContext renderContext);
 	boolean shouldBeRendered(final RenderContext renderContext);
 	boolean isSameNode(final DOMNode otherNode);
-
 	boolean hasChildNodes();
 
 	int getChildPosition(final DOMNode otherNode);
@@ -135,6 +137,7 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode {
 	String getDataKey();
 	String getPositionPath();
 	String getCssClass();
+	String getNodeValue();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
 
@@ -153,7 +156,9 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode {
 	DOMNode getParent();
 	DOMNode getSharedComponent();
 	DOMNode getNextSibling();
+	DOMNode getPreviousSibling();
 	DOMNode getFirstChild() throws FrameworkException;
+	DOMNode getLastChild() throws FrameworkException;
 	Iterable<DOMNode> getChildren();
 	Iterable<DOMNode> getSyncedNodes();
 

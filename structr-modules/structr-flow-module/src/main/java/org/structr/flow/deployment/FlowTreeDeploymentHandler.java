@@ -247,7 +247,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 					// Import rels
 					final Map<String, Object> relPropsData = readData(relDir.toPath().resolve(FLOW_DEPLOYMENT_REL_FILE));
-					final Class clazz = StructrApp.getConfiguration().getRelationshipEntityClass(relPropsData.get("type").toString());
+					final Class clazz = relPropsData.get("type").toString());
 
 					final NodeInterface fromNode = app.getNodeById(relPropsData.get("sourceId").toString());
 					final NodeInterface toNode = app.getNodeById(relPropsData.get("targetId").toString());

@@ -22,18 +22,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.advanced.DOMTest;
-import org.structr.web.entity.File;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import java.util.List;
 
@@ -59,39 +56,39 @@ public class RenderDataTest extends DOMTest {
 			final Page doc = (Page) getDocument();
 			name = doc.getName();
 
-			final List<User> users = createTestNodes(User.class, 3);
+			final List<NodeInterface> users = createTestNodes("User", 3);
 
 			assertEquals(3, users.size());
 
-			User user1 = users.get(0);
-			user1.setProperty(AbstractNode.name, "user1");
-			User user2 = users.get(1);
-			user2.setProperty(AbstractNode.name, "user2");
-			User user3 = users.get(2);
-			user3.setProperty(AbstractNode.name, "user3");
+			NodeInterface user1 = users.get(0);
+			user1.setProperty(Traits.of("NodeInterface").key("name"), "user1");
+			NodeInterface user2 = users.get(1);
+			user2.setProperty(Traits.of("NodeInterface").key("name"), "user2");
+			NodeInterface user3 = users.get(2);
+			user3.setProperty(Traits.of("NodeInterface").key("name"), "user3");
 
-			final List<File> files = createTestNodes(File.class, 6);
+			final List<NodeInterface> files = createTestNodes("File", 6);
 
 			assertEquals(6, files.size());
 
-			File nodeA = files.get(0);
-			nodeA.setProperty(AbstractNode.name, "fileA");
-			File nodeB = files.get(1);
-			nodeB.setProperty(AbstractNode.name, "fileB");
-			File nodeC = files.get(2);
-			nodeC.setProperty(AbstractNode.name, "fileC");
-			File nodeD = files.get(3);
-			nodeD.setProperty(AbstractNode.name, "fileD");
-			File nodeE = files.get(4);
-			nodeE.setProperty(AbstractNode.name, "fileE");
-			File nodeF = files.get(5);
-			nodeF.setProperty(AbstractNode.name, "fileF");
+			NodeInterface nodeA = files.get(0);
+			nodeA.setProperty(Traits.of("NodeInterface").key("name"), "fileA");
+			NodeInterface nodeB = files.get(1);
+			nodeB.setProperty(Traits.of("NodeInterface").key("name"), "fileB");
+			NodeInterface nodeC = files.get(2);
+			nodeC.setProperty(Traits.of("NodeInterface").key("name"), "fileC");
+			NodeInterface nodeD = files.get(3);
+			nodeD.setProperty(Traits.of("NodeInterface").key("name"), "fileD");
+			NodeInterface nodeE = files.get(4);
+			nodeE.setProperty(Traits.of("NodeInterface").key("name"), "fileE");
+			NodeInterface nodeF = files.get(5);
+			nodeF.setProperty(Traits.of("NodeInterface").key("name"), "fileF");
 
 			// create dom tree
-			Element html = doc.createElement("html");
-			Element body = doc.createElement("body");
-			Element b = doc.createElement("b");
-			final Element p1 = doc.createElement("p");
+			DOMElement html = doc.createElement("html");
+			DOMElement body = doc.createElement("body");
+			DOMElement b = doc.createElement("b");
+			final DOMElement p1 = doc.createElement("p");
 
 			final PropertyMap p1Properties = new PropertyMap();
 			p1Properties.put(Traits.of("DOMElement").key("restQuery"), "User?_sort=name");
@@ -102,15 +99,15 @@ public class RenderDataTest extends DOMTest {
 
 			p1.appendChild(userNameContentNode);
 
-			Element div = doc.createElement("div");
-			final Element p2 = doc.createElement("p");
+			DOMElement div = doc.createElement("div");
+			final DOMElement p2 = doc.createElement("p");
 
 			final PropertyMap p2Properties = new PropertyMap();
 			p2Properties.put(Traits.of("DOMElement").key("restQuery"), "File?_sort=name");
 			p2Properties.put(Traits.of("DOMElement").key("dataKey"), "file");
-			((DOMElement) p2).setProperties(((DOMElement) p2).getSecurityContext(), p2Properties);
+			p2.setProperties(p2.getSecurityContext(), p2Properties);
 
-			Content fileNameContentNode = (Content) doc.createTextNode("${file.name}");
+			Content fileNameContentNode = doc.createTextNode("${file.name}");
 
 			p2.appendChild(fileNameContentNode);
 

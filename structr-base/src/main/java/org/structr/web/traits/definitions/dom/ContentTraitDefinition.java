@@ -54,6 +54,7 @@ import org.structr.web.traits.operations.DoImport;
 import org.structr.web.traits.operations.GetContextName;
 import org.structr.web.traits.operations.RenderContent;
 import org.structr.web.traits.operations.UpdateFromNode;
+import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -313,7 +314,10 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+
+		return Map.of(
+			Content.class, (traits, node) -> new ContentTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

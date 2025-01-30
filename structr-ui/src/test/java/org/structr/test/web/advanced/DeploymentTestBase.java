@@ -19,6 +19,7 @@
 package org.structr.test.web.advanced;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.AccessControllable;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -235,14 +236,16 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
 
 		// include owner in content hash generation!
-		final Principal owner = node.getOwnerNode();
+		final AccessControllable ac = node.as(AccessControllable.class);
+		final Principal owner       = ac.getOwnerNode();
+
 		if (owner != null) {
 
-			buf.append(valueOrEmpty(owner, Traits.of("NodeInterface").key("name")));
+			buf.append(valueOrEmpty(owner.getWrappedNode(), Traits.of("NodeInterface").key("name")));
 		}
 
 		// include permissions in content hash generation!
-		for (final Security r : node.getSecurityRelationships()) {
+		for (final Security r : ac.getSecurityRelationships()) {
 
 			if (r != null) {
 
@@ -260,10 +263,10 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		if (node instanceof DOMNode) {
 
-			final Page ownerDocument = ((DOMNode)node).getOwnerDocument();
+			final Page ownerDocument = node.as(DOMNode.class).getOwnerDocument();
 			if (ownerDocument != null) {
 
-				buf.append(valueOrEmpty(ownerDocument, Traits.of("NodeInterface").key("name")));
+				buf.append(valueOrEmpty(ownerDocument.getWrappedNode(), Traits.of("NodeInterface").key("name")));
 			}
 		}
 
@@ -295,7 +298,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		for (final PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
 
-			if (!key.isPartOfBuiltInSchema()) {
+			// fixme
+			if (key.isDynamic()) {
 
 				buf.append(valueOrEmpty(node, key));
 			}

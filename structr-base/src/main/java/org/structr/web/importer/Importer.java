@@ -31,11 +31,11 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.GraphObject;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -43,19 +43,18 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.Actions;
 import org.structr.schema.importer.SchemaJsonImporter;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.*;
 import org.structr.web.entity.File;
-import org.structr.web.entity.*;
+import org.structr.web.entity.Image;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -68,8 +67,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.helper.CaseHelper;
-import org.structr.common.helper.PathHelper;
 
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
@@ -973,7 +970,7 @@ public class Importer {
 			if (newNode != null) {
 
 				// save root element for later use
-				if (rootElement == null && !(newNode instanceof org.structr.web.entity.dom.Comment)) {
+				if (rootElement == null && !(newNode.is("Comment"))) {
 					rootElement = newNode;
 				}
 

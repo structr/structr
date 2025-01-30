@@ -352,7 +352,7 @@ public class SchemaService implements Service {
 						synchronized (SchemaService.class) {
 
 							// clear propagating relationship cache
-							SchemaRelationshipNode.clearPropagatingRelationshipTypes();
+							Traits.of("SchemaRelationshipNode").key("clearPropagatingRelationshipTypes")();
 
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
@@ -700,7 +700,7 @@ public class SchemaService implements Service {
 			return nodeClass;
 		}
 
-		final Class relClass = StructrApp.getConfiguration().getRelationshipEntityClass(StringUtils.substringAfterLast(name, "."));
+		final Class relClass = StringUtils.substringAfterLast(name, "."));
 		if (relClass != null) {
 
 			return relClass;

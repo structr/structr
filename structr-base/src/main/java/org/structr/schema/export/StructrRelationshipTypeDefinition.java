@@ -18,7 +18,6 @@
  */
 package org.structr.schema.export;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
@@ -33,7 +32,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaService;
 
 import java.net.URI;
 import java.util.Map;

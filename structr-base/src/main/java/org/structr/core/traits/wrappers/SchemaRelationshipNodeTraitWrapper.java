@@ -414,7 +414,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		if (!PropagationDirection.None.equals(getPermissionPropagation())) {
 
 			src.begin(this, "static {");
-			src.line(this, "SchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class, true);");
+			src.line(this, "Traits.of("SchemaRelationshipNode").key("registerPropagatingRelationshipType")(").append(_className).append(".class, true);");
 			src.end();
 		}
 

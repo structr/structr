@@ -27,7 +27,6 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -567,17 +566,17 @@ public class CsvImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode customType = createTestNode(SchemaNode.class, new NodeAttribute(SchemaMethod.name, "DummyType"));
+			final SchemaNode customType = createTestNode("SchemaNode", new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "DummyType"));
 
 			final List<SchemaProperty> properties = new LinkedList<>();
-			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDataString"),     new NodeAttribute(SchemaProperty.propertyType, "String")));
-			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "retrievedImportSourceFileName"), new NodeAttribute(SchemaProperty.propertyType, "String")));
-			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "retrievedCustomString"), new NodeAttribute(SchemaProperty.propertyType, "String")));
+			properties.add(createTestNode("SchemaProperty", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "testDataString"),     new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")));
+			properties.add(createTestNode("SchemaProperty", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "retrievedImportSourceFileName"), new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")));
+			properties.add(createTestNode("SchemaProperty", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "retrievedCustomString"), new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")));
 			customType.setProperty(SchemaNode.schemaProperties, properties);
 
 			final List<SchemaMethod> methods = new LinkedList<>();
-			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"),    new NodeAttribute(SchemaMethod.source, "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
-			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "afterCreate"), new NodeAttribute(SchemaMethod.source, "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
+			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "onCreate"),    new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
+			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "afterCreate"), new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
 			customType.setProperty(SchemaNode.schemaMethods, methods);
 
 			final String csvData =

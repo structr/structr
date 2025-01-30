@@ -1049,7 +1049,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface res : app.nodeQuery("ResourceAccessDefinition").sort(traits.key("signature")).getAsList()) {
+			for (final NodeInterface res : app.nodeQuery("ResourceAccess").sort(traits.key("signature")).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);

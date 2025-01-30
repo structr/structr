@@ -29,11 +29,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestFive;
-import org.structr.test.web.entity.TestTwo;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
@@ -74,7 +73,7 @@ public class CacheTest extends StructrUiTest {
 
 					try (final Tx tx = app.tx()) {
 
-						obj.getProperty(TestTwo.testFives);
+						obj.getProperty(Traits.of("TestTwo").key("testFives"));
 						tx.success();
 
 					} catch (Throwable t) {
@@ -118,8 +117,9 @@ public class CacheTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<TestFive> testFives = Iterables.toList(obj.getProperty(TestTwo.testFives));
-				final int size                 = testFives.size();
+				final PropertyKey<Iterable<NodeInterface>> key = Traits.of("TestTwo").key("testFives");
+				final List<NodeInterface> testFives            = Iterables.toList(obj.getProperty(key));
+				final int size                                 = testFives.size();
 
 				if (size != count) {
 

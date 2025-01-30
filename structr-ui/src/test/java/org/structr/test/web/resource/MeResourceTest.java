@@ -19,19 +19,19 @@
 package org.structr.test.web.resource;
 
 import io.restassured.RestAssured;
-import static org.hamcrest.Matchers.equalTo;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.fail;
 
 
 /**
@@ -48,7 +48,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create("User",
+			final NodeInterface user = app.create("User",
 				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
@@ -113,7 +113,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create("User",
+			final NodeInterface user = app.create("User",
 				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
@@ -228,7 +228,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
-			final User user = app.create("User",
+			final NodeInterface user = app.create("User",
 				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)

@@ -21,18 +21,15 @@ package org.structr.common;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -433,6 +430,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public boolean isHidden() {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void setHidden(boolean hidden) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

@@ -24,11 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.*;
+import org.structr.web.entity.dom.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -70,15 +66,15 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			page.setVisibility(false, false);
 
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
+			final DOMElement html       = createElement(page, page, "html");
+			final DOMElement head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
 			// create a div for admin only
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -86,7 +82,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a private div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -94,7 +90,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a protected div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
 				div1.setVisibility(false, true);
@@ -102,7 +98,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
 				div1.setVisibility(true, true);
@@ -110,7 +106,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public only div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
 				div1.setVisibility(true, false);
@@ -137,15 +133,15 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			page.setVisibility(false, true);
 
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
+			final DOMElement html       = createElement(page, page, "html");
+			final DOMElement head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
 			// create a div for admin only
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -153,7 +149,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a private div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -161,7 +157,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a protected div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
 				div1.setVisibility(false, true);
@@ -169,7 +165,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
 				div1.setVisibility(true, true);
@@ -177,7 +173,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public only div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
 				div1.setVisibility(true, false);
@@ -204,15 +200,15 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			page.setVisibility(true, false);
 
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
+			final DOMElement html       = createElement(page, page, "html");
+			final DOMElement head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
 			// create a div for admin only
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -220,7 +216,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a private div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -228,7 +224,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a protected div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
 				div1.setVisibility(false, true);
@@ -236,7 +232,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
 				div1.setVisibility(true, true);
@@ -244,7 +240,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public only div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
 				div1.setVisibility(true, false);
@@ -271,15 +267,15 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			page.setVisibility(true, true);
 
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
+			final DOMElement html       = createElement(page, page, "html");
+			final DOMElement head       = createElement(page, html, "head");
 			createElement(page, head, "title", "test02");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
 			// create a div for admin only
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -287,7 +283,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a private div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
 				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
@@ -295,7 +291,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a protected div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "protected - $%&/()=?¼½¬{[]}");
 
 				div1.setVisibility(false, true);
@@ -303,7 +299,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public");
 
 				div1.setVisibility(true, true);
@@ -311,7 +307,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create a public only div
 			{
-				final Div div1 = createElement(page, body, "div");
+				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "public only");
 
 				div1.setVisibility(true, false);
@@ -334,13 +330,13 @@ public class Deployment0Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test03");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test03");
 
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, body, "div");
-			final Script script   = createElement(page, div1, "script");
+			final DOMElement body       = createElement(page, html, "body");
+			final DOMElement div1        = createElement(page, body, "div");
+			final DOMElement script   = createElement(page, div1, "script");
 			final Content content = createContent(page, script,
 				"$(function () {\n\n" +
 				"$('a[data-toggle=\"tab\"]').on('click', function (e) {\n\n" +
@@ -371,14 +367,14 @@ public class Deployment0Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test04");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test04");
 			createElement(page, head, "link");
 			createElement(page, head, "link");
 			createComment(page, head, "commentöäüÖÄÜß+#");
 
-			final Link link3  = createElement(page, head, "link");
+			final DOMElement link3  = createElement(page, head, "link");
 
 			final PropertyMap link3Properties = new PropertyMap();
 			link3Properties.put(Traits.of("Link").key("_html_href"), "/");
@@ -386,8 +382,8 @@ public class Deployment0Test extends DeploymentTestBase {
 			link3Properties.put(Traits.of("Link").key("_html_type"), "stylesheet");
 			link3.setProperties(link3.getSecurityContext(), link3Properties);
 
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, body, "div");
+			final DOMElement body       = createElement(page, html, "body");
+			final DOMElement div1        = createElement(page, body, "div");
 			createElement(page, div1, "h1", "private");
 
 			tx.success();
@@ -407,12 +403,12 @@ public class Deployment0Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test05");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test05");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
@@ -442,11 +438,11 @@ public class Deployment0Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test06");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test06");
 
-			final Body body = createElement(page, html, "body");
+			final DOMElement body = createElement(page, html, "body");
 			createElement(page, body, "div");
 
 			final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
@@ -469,12 +465,12 @@ public class Deployment0Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test07");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test07");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
@@ -498,25 +494,25 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test08_1");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test08_1");
 
-			final Body body1 = createElement(page1, html1, "body");
-			final Div div1   = createElement(page1, body1, "div");
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
 
 			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
-			final Template component = createComponent(template1);
+			final DOMNode component = createComponent(template1);
 
 
 			// create second page
 			final Page page2 = Page.createNewPage(securityContext,   "test08_2");
-			final Html html2 = createElement(page2, page2, "html");
-			final Head head2 = createElement(page2, html2, "head");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
 			createElement(page2, head2, "title", "test08_2");
 
-			final Body body2 = createElement(page2, html2, "body");
-			final Div div2   = createElement(page2, body2, "div");
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
 
 			// re-use template from above
 			cloneComponent(component, div2);
@@ -539,27 +535,27 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test09_1");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test09_1");
 
-			final Body body1 = createElement(page1, html1, "body");
-			final Div div1   = createElement(page1, body1, "div");
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
 
 			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
 			createElement(page1, template1, "div", "test1");
 			createElement(page1, template1, "div", "test1");
 
-			final Template component = createComponent(template1);
+			final DOMNode component = createComponent(template1);
 
 			// create second page
 			final Page page2 = Page.createNewPage(securityContext,   "test09_2");
-			final Html html2 = createElement(page2, page2, "html");
-			final Head head2 = createElement(page2, html2, "head");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
 			createElement(page2, head2, "title", "test09_2");
 
-			final Body body2 = createElement(page2, html2, "body");
-			final Div div2   = createElement(page2, body2, "div");
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
 
 			// re-use template from above
 			cloneComponent(component, div2);
@@ -582,26 +578,26 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test10_1");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test10_1");
 
-			final Body body1 = createElement(page1, html1, "body");
-			final Div div1   = createElement(page1, body1, "div");
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
 
 			createElement(page1, div1, "div", "test1");
 			createElement(page1, div1, "div", "test1");
 
-			final Div component = createComponent(div1);
+			final DOMNode component = createComponent(div1);
 
 			// create second page
 			final Page page2 = Page.createNewPage(securityContext,   "test10_2");
-			final Html html2 = createElement(page2, page2, "html");
-			final Head head2 = createElement(page2, html2, "head");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
 			createElement(page2, head2, "title", "test10_2");
 
-			final Body body2 = createElement(page2, html2, "body");
-			final Div div2   = createElement(page2, body2, "div");
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
 
 			// re-use template from above
 			cloneComponent(component, div2);

@@ -26,16 +26,14 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.web.entity.html.Aside;
-import org.structr.web.traits.wrappers.html.AsideTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
-public class AsideTraitDefinition extends AbstractNodeTraitDefinition {
+public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public AsideTraitDefinition() {
-		super("Aside");
+	public GenericHtmlElementTraitDefinition(final String name) {
+		super(name);
 	}
 
 	@Override
@@ -55,10 +53,7 @@ public class AsideTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-			Aside.class, (traits, node) -> new AsideTraitWrapper(traits, node)
-		);
+		return Map.of();
 	}
 
 	@Override

@@ -21,33 +21,22 @@ package org.structr.test.web.advanced;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Widget;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.*;
+import org.structr.web.entity.dom.*;
+import org.structr.web.entity.html.Div;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.Object;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,31 +51,31 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test31");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test31");
 
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, body, "div");
-			final Div div2        = createElement(page, div1, "div", "");
-			final Table table1    = createElement(page, div2, "table");
-			final Thead thead     = createElement(page, table1, "thead");
-			final Tbody tbody     = createElement(page, table1, "tbody");
-			final Tr tr1          = createElement(page, thead, "tr");
-			final Tr tr2          = createElement(page, tbody, "tr");
-			final Td td11         = createElement(page, tr1, "td");
-			final Content c1      = createContent(page, td11, "");
-			final Td td12         = createElement(page, tr1, "td", "content12");
-			final P p1            = createElement(page, td12, "p", "");
-			final Ul ul           = createElement(page, p1, "ul");
-			final Li li           = createElement(page, ul, "li", "");
-			final Td td21         = createElement(page, tr2, "td", "content21");
-			final Td td22         = createElement(page, tr2, "td", "content22");
-			final Select select   = createElement(page, td11, "select");
-			final Option option1  = createElement(page, select, "option", "");
-			final Option option2  = createElement(page, select, "option", "value2");
-			final Content c2      = createContent(page, div2, "");
-			final Table table2    = createElement(page, div2, "table");
+			final DOMElement body     = createElement(page, html, "body");
+			final DOMElement div1     = createElement(page, body, "div");
+			final DOMElement div2     = createElement(page, div1, "div", "");
+			final DOMElement table1   = createElement(page, div2, "table");
+			final DOMElement thead    = createElement(page, table1, "thead");
+			final DOMElement tbody    = createElement(page, table1, "tbody");
+			final DOMElement tr1      = createElement(page, thead, "tr");
+			final DOMElement tr2      = createElement(page, tbody, "tr");
+			final DOMElement td11     = createElement(page, tr1, "td");
+			final Content c1          = createContent(page, td11, "");
+			final DOMElement td12     = createElement(page, tr1, "td", "content12");
+			final DOMElement p1       = createElement(page, td12, "p", "");
+			final DOMElement ul       = createElement(page, p1, "ul");
+			final DOMElement li       = createElement(page, ul, "li", "");
+			final DOMElement td21     = createElement(page, tr2, "td", "content21");
+			final DOMElement td22     = createElement(page, tr2, "td", "content22");
+			final DOMElement select   = createElement(page, td11, "select");
+			final DOMElement option1  = createElement(page, select, "option", "");
+			final DOMElement option2  = createElement(page, select, "option", "value2");
+			final Content c2          = createContent(page, div2, "");
+			final DOMElement table2   = createElement(page, div2, "table");
 
 			// include visibility flags
 			page.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
@@ -113,15 +102,15 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test32");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test32");
 
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, body, "div");
-			final Div div2        = createElement(page, div1, "div", " ");
-			final Ul ul           = createElement(page, div1, "ul");
-			final Li li           = createElement(page, ul, "li", " ");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
+			final DOMElement div2 = createElement(page, div1, "div", " ");
+			final DOMElement ul   = createElement(page, div1, "ul");
+			final DOMElement li   = createElement(page, ul, "li", " ");
 
 			tx.success();
 
@@ -138,28 +127,28 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode testType = app.create("SchemaNode", "TestType");
+			final NodeInterface testType = app.create("SchemaNode", "TestType");
 
 			// create one method with a schema node
 			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode")                 testType),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")                       "method1"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")                     "source1"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("includeInOpenAPI")           false),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("tags")                       new String[] { "tag1", "tag2" }),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("summary")                    "summary"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("description")                "description"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic")                   true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate")                  true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("returnRawResult")            true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("httpVerb")                   HttpVerb.GET)
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),                 testType),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),                       "method1"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),                     "source1"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("includeInOpenAPI"),           false),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("tags"),                       new String[] { "tag1", "tag2" }),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("summary"),                    "summary"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("description"),                "description"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic"),                   true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate"),                  true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("returnRawResult"),            true),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("httpVerb"),                   "GET")
 			);
 
 			// and one without (i.e. user-defined function)
 			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name")                      "method2"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source")                    "source2"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("virtualFileName")           "virtualFileName2")
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),                      "method2"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),                    "source2"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("virtualFileName"),           "virtualFileName2")
 			);
 
 			tx.success();
@@ -175,30 +164,30 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method1 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name")"method1").getFirst();
-			final SchemaMethod method2 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name")"method2").getFirst();
+			final NodeInterface method1 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name"), "method1").getFirst();
+			final NodeInterface method2 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name"), "method2").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
 
-			assertEquals("Invalid SchemaMethod deployment result", "method1",                       method1.getProperty(SchemaMethod.name));
-			assertEquals("Invalid SchemaMethod deployment result", "source1",                       method1.getProperty(SchemaMethod.source));
-			assertEquals("Invalid SchemaMethod deployment result", false,                           (boolean)method1.getProperty(SchemaMethod.includeInOpenAPI));
-			assertEquals("Invalid SchemaMethod deployment result", "tag1",                          method1.getProperty(SchemaMethod.tags)[0]);
-			assertEquals("Invalid SchemaMethod deployment result", "tag2",                          method1.getProperty(SchemaMethod.tags)[1]);
-			assertEquals("Invalid SchemaMethod deployment result", "summary",                       method1.getProperty(SchemaMethod.summary));
-			assertEquals("Invalid SchemaMethod deployment result", "description",                   method1.getProperty(SchemaMethod.description));
-			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isStatic));
-			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isPrivate));
-			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.returnRawResult));
-			assertEquals("Invalid SchemaMethod deployment result", HttpVerb.GET,                    method1.getProperty(SchemaMethod.httpVerb));
+			assertEquals("Invalid SchemaMethod deployment result", "method1",      method1.getProperty(Traits.of("SchemaMethod").key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "source1",      method1.getProperty(Traits.of("SchemaMethod").key("source")));
+			assertEquals("Invalid SchemaMethod deployment result", false,          (boolean)method1.getProperty(Traits.of("SchemaMethod").key("includeInOpenAPI")));
+			assertEquals("Invalid SchemaMethod deployment result", "tag1",         ((Object[])method1.getProperty(Traits.of("SchemaMethod").key("tags")))[0]);
+			assertEquals("Invalid SchemaMethod deployment result", "tag2",         ((Object[])method1.getProperty(Traits.of("SchemaMethod").key("tags")))[1]);
+			assertEquals("Invalid SchemaMethod deployment result", "summary",      method1.getProperty(Traits.of("SchemaMethod").key("summary")));
+			assertEquals("Invalid SchemaMethod deployment result", "description",  method1.getProperty(Traits.of("SchemaMethod").key("description")));
+			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of("SchemaMethod").key("isStatic")));
+			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of("SchemaMethod").key("isPrivate")));
+			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of("SchemaMethod").key("returnRawResult")));
+			assertEquals("Invalid SchemaMethod deployment result", "GET",          method1.getProperty(Traits.of("SchemaMethod").key("httpVerb")));
 
 
 			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!
 
-			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(SchemaMethod.name));
-			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(SchemaMethod.source));
-			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(SchemaMethod.virtualFileName));
+			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(Traits.of("SchemaMethod").key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(Traits.of("SchemaMethod").key("source")));
+			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(Traits.of("SchemaMethod").key("virtualFileName")));
 
 			tx.success();
 
@@ -214,16 +203,16 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page testPage = Page.createNewPage(securityContext, "WidgetTestPage");
-			final Html html     = createElement(testPage, testPage, "html");
-			final Head head     = createElement(testPage, html, "head");
-			final Body body     = createElement(testPage, html, "body");
-			final Div div       = createElement(testPage, body, "div");
-			final Div div2      = createElement(testPage, body, "div");
+			final DOMElement html     = createElement(testPage, testPage, "html");
+			final DOMElement head     = createElement(testPage, html, "head");
+			final DOMElement body     = createElement(testPage, html, "body");
+			final DOMElement div       = createElement(testPage, body, "div");
+			final DOMElement div2      = createElement(testPage, body, "div");
 
-			div.setProperty(AbstractNode.name, "WidgetTestPage-Div");
-			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
+			div.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div");
+			div2.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div2");
 
-			Widget widgetToImport = app.create("Widget",
+			NodeInterface widgetToImport = app.create("Widget",
 					new NodeAttribute<>(Traits.of("Widget").key("name"),"TestWidget"),
 					new NodeAttribute<>(Traits.of("Widget").key("source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
 					new NodeAttribute<>(Traits.of("Widget").key("configuration"),               "{\"processDeploymentInfo\": true}"),
@@ -232,9 +221,10 @@ public class Deployment3Test extends DeploymentTestBase {
 			);
 
 			Map<String,Object> paramMap = new HashMap<>();
-			paramMap.put("widgetHostBaseUrl", "https://widgets.structr.org/structr/rest/widgets");
-			paramMap.put("parentId", widgetToImport.getProperty(new StartNode<>("owner", PrincipalOwnsNode.class)));
-			paramMap.put("source", widgetToImport.getProperty(new StringProperty("source")));
+
+			paramMap.put("widgetHostBaseUrl",    "https://widgets.structr.org/structr/rest/widgets");
+			paramMap.put("parentId",              widgetToImport.getProperty(Traits.of("Widget").key("owner")));
+			paramMap.put("source",                widgetToImport.getProperty(Traits.of("Widget").key("source")));
 			paramMap.put("processDeploymentInfo", true);
 
 			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, true);
@@ -262,7 +252,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			Template template = (Template)obj;
 
-			assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getTextContent());
+			assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getContent());
 			assertEquals("text/html", template.getContentType());
 
 			tx.success();
@@ -281,16 +271,16 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page testPage = Page.createNewPage(securityContext, "WidgetTestPage");
-			final Html html     = createElement(testPage, testPage, "html");
-			final Head head     = createElement(testPage, html, "head");
-			final Body body     = createElement(testPage, html, "body");
-			final Div div       = createElement(testPage, body, "div");
-			final Div div2      = createElement(testPage, body, "div");
+			final DOMElement html     = createElement(testPage, testPage, "html");
+			final DOMElement head     = createElement(testPage, html, "head");
+			final DOMElement body     = createElement(testPage, html, "body");
+			final DOMElement div       = createElement(testPage, body, "div");
+			final DOMElement div2      = createElement(testPage, body, "div");
 
-			div.setProperty(AbstractNode.name, "WidgetTestPage-Div");
-			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
+			div.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div");
+			div2.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div2");
 
-			Widget widgetToImport = app.create("Widget",
+			NodeInterface widgetToImport = app.create("Widget",
 					new NodeAttribute<>(Traits.of("Widget").key("name"), "TestWidget"),
 					new NodeAttribute<>(Traits.of("Widget").key("source"),
 						"<structr:component src=\"TestComponent\">\n" +
@@ -305,9 +295,9 @@ public class Deployment3Test extends DeploymentTestBase {
 			);
 
 			Map<String,Object> paramMap = new HashMap<>();
-			paramMap.put("widgetHostBaseUrl", "https://widgets.structr.org/structr/rest/widgets");
-			paramMap.put("parentId", widgetToImport.getProperty(new StartNode<>("owner", PrincipalOwnsNode.class)));
-			paramMap.put("source", widgetToImport.getProperty(new StringProperty("source")));
+			paramMap.put("widgetHostBaseUrl",     "https://widgets.structr.org/structr/rest/widgets");
+			paramMap.put("parentId",              widgetToImport.getProperty(Traits.of("Widget").key("owner")));
+			paramMap.put("source",                widgetToImport.getProperty(Traits.of("Widget").key("source")));
 			paramMap.put("processDeploymentInfo", false);
 
 			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, false);
@@ -326,12 +316,13 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Div div = app.nodeQuery("Div").andName("WidgetTestPage-Div").getFirst();
+			Div div = app.nodeQuery("Div").andName("WidgetTestPage-Div").getFirst().as(Div.class);
 
 			assertEquals(2, div.treeGetChildCount());
 
 			Object obj = null;
-			for(DOMNode n: div.getAllChildNodes()){
+
+			for (final NodeInterface n: div.getAllChildNodes()){
 				obj = n;
 				break;
 			}
@@ -340,7 +331,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			Div clonedNode = (Div)obj;
 
-			assertEquals(0, clonedNode.getChildNodes().getLength());
+			assertEquals(0, clonedNode.getChildNodes().size());
 			assertEquals(3, app.nodeQuery("Div").andName("TestComponent").getAsList().size());
 
 			tx.success();
@@ -388,7 +379,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			page.setProperty(Traits.of("Page").key("displayPosition"), 12);
 			page.setProperty(Traits.of("Page").key("icon"),            "icon");
 
-			final Folder folder = app.create("Folder", "files");
+			final NodeInterface folder = app.create("Folder", "files");
 			folder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
 
 			// create test file with custom attributes
@@ -396,8 +387,8 @@ public class Deployment3Test extends DeploymentTestBase {
 				new NodeAttribute<>(Traits.of("File").key("name"),        "test.txt"),
 				new NodeAttribute<>(Traits.of("File").key("parent"),      folder),
 				new NodeAttribute<>(Traits.of("File").key("contentType"), "text/plain"),
-				new NodeAttribute<>(StructrApp.key(File.class, "test1"),       123),
-				new NodeAttribute<>(StructrApp.key(File.class, "test2"),       "testString")
+				new NodeAttribute<>(Traits.of("File").key("test1"),       123),
+				new NodeAttribute<>(Traits.of("File").key("test2"),       "testString")
 			);
 
 			tx.success();
@@ -416,13 +407,14 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createSimplePage(securityContext, "page1");
-			final Div div   = (Div)page.getElementsByTagName("div").item(0);
+			final Div div   = (Div)page.getElementsByTagName("div").get(0);
 
 			try {
 
-				final DOMNode newNode = (DOMNode) page.createTextNode("#template");
+				final DOMNode newNode = page.createTextNode("#template");
 				newNode.unlockSystemPropertiesOnce();
-				newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
+
+				newNode.setProperty(Traits.typeProperty(), "Template");
 
 				// append template
 				div.appendChild(newNode);
@@ -462,8 +454,8 @@ public class Deployment3Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile");
-		final PropertyKey test = StructrApp.key(type, "test");
+		final String type      = "ExtendedFile";
+		final PropertyKey test = Traits.of(type).key("test");
 
 		assertNotNull("Extended file type should exist", type);
 		assertNotNull("Extended file property should exist", test);
@@ -493,8 +485,8 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final Folder rootFolder = getRootFolder(folder);
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
 
 			assertNotNull("Root folder should not be null", rootFolder);
 
@@ -513,7 +505,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery("Folder").andName("filesystem").getFirst();
+			final NodeInterface folder = app.nodeQuery("Folder").andName("filesystem").getFirst();
 
 			assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
 
@@ -533,31 +525,31 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test40_1");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test40_1");
-			final Body body1 = createElement(page1, html1, "body");
-			final Div div1   = createElement(page1, body1, "div");
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
 
 			// create first template and give it a name
 			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
 			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(Template.name, "Test40Template");
+			template1Properties.put(Traits.of("Template").key("name"), "Test40Template");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 
 			// create second page
 			final Page page2 = Page.createNewPage(securityContext,   "test40_2");
-			final Html html2 = createElement(page2, page2, "html");
-			final Head head2 = createElement(page2, html2, "head");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
 			createElement(page2, head2, "title", "test40_2");
-			final Body body2 = createElement(page2, html2, "body");
-			final Div div2   = createElement(page2, body2, "div");
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
 
 			// create second template and give it the same name as the first one
 			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
 			final PropertyMap template2Properties = new PropertyMap();
-			template2Properties.put(Template.name, "Test40Template");
+			template2Properties.put(Traits.of("Template").key("name"), "Test40Template");
 			template2.setProperties(template2.getSecurityContext(), template2Properties);
 
 			tx.success();

@@ -20,23 +20,24 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.event.ActionMapping;
-import org.structr.web.entity.html.Button;
 import org.structr.web.entity.html.Div;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import java.util.*;
 
@@ -57,16 +58,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -75,7 +76,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -112,9 +113,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
-		final Map<String, String> attrs      = getAttributes(button);
+		final Document doc              = Jsoup.parse(html);
+		final Element button            = doc.getElementById("button");
+		final Map<String, String> attrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
@@ -158,16 +159,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -176,7 +177,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -211,8 +212,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -258,16 +259,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -276,7 +277,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -311,8 +312,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -360,16 +361,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -378,15 +379,13 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
 			notificationUuid = notificationElement.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
-
-			// base setup
+			final NodeInterface eam = app.create("ActionMapping");// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
@@ -420,8 +419,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -470,16 +469,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -490,9 +489,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			final Div notificationElement = (Div)page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -528,8 +527,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -578,16 +577,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -596,7 +595,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -632,8 +631,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -680,16 +679,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -698,7 +697,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -733,8 +732,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -780,16 +779,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -798,7 +797,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -833,8 +832,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -882,16 +881,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -902,11 +901,11 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			final Div notificationElement = (Div)page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
 			notificationUuid = notificationElement.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -942,8 +941,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -992,16 +991,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1010,7 +1009,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1046,8 +1045,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1096,16 +1095,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1116,9 +1115,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			final Div notificationElement = (Div)page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1154,8 +1153,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1202,16 +1201,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1220,7 +1219,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1256,8 +1255,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1308,16 +1307,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1328,7 +1327,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1364,9 +1363,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1422,16 +1421,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1441,7 +1440,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1477,9 +1476,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1529,16 +1528,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1548,7 +1547,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1584,9 +1583,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1636,16 +1635,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1655,7 +1654,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1690,9 +1689,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1742,16 +1741,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1761,7 +1760,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1796,9 +1795,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1847,16 +1846,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1865,7 +1864,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -1900,8 +1899,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1947,16 +1946,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1965,7 +1964,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2001,8 +2000,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2053,16 +2052,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2073,7 +2072,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2109,9 +2108,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2167,16 +2166,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2186,7 +2185,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2222,9 +2221,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2274,16 +2273,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2293,7 +2292,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2329,9 +2328,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2381,16 +2380,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2400,7 +2399,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2435,9 +2434,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2487,16 +2486,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2506,7 +2505,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2541,9 +2540,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2592,16 +2591,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
 				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2610,7 +2609,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
 			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
@@ -2645,8 +2644,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2685,11 +2684,11 @@ public class EventActionMappingTest extends StructrUiTest {
 		}
 	}
 	// ----- private methods -----
-	final Map<String, String> getAttributes(final org.jsoup.nodes.Element element) {
+	final Map<String, String> getAttributes(final Element element) {
 
 		final Map<String, String> map = new LinkedHashMap<>();
 
-		for (final org.jsoup.nodes.Attribute attr : element.attributes()) {
+		for (final Attribute attr : element.attributes()) {
 
 			map.put(attr.getKey(), attr.getValue());
 		}

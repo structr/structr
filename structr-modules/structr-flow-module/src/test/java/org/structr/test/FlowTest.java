@@ -25,7 +25,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.flow.impl.*;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
@@ -140,17 +139,17 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
+			createTestNode("User",
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			// create some test data
-			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group1"));
-			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group2"));
-			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group3"));
-			createTestNode(GroupTraitDefinition.class, new NodeAttribute<>(GroupTraitDefinition.name, "group4"));
+			createTestNode("Group", new NodeAttribute<>(Group.name, "group1"));
+			createTestNode("Group", new NodeAttribute<>(Group.name, "group2"));
+			createTestNode("Group", new NodeAttribute<>(Group.name, "group3"));
+			createTestNode("Group", new NodeAttribute<>(Group.name, "group4"));
 
 			// create flow
 			final FlowContainer flowContainer = app.create("FlowContainer", "test");
