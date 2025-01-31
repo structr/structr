@@ -653,9 +653,7 @@ let _Entities = {
 			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
-				}
+				headers: _Helpers.getHeadersForCustomView(filteredProperties)
 			}).then(async response => {
 
 				let data          = await response.json();
@@ -729,9 +727,7 @@ let _Entities = {
 		cell.css('height', '60px');
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name'
-			}
+			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
 		}).then(async response => {
 
 			let data = await response.json();

@@ -749,25 +749,21 @@ let _Pages = {
 		pPager.setIsPaused(false);
 		pPager.refresh();
 
-		fetch(`${Structr.rootUrl}Page/category`).then((response) => {
+		fetch(`${Structr.rootUrl}Page`, {
+			headers: _Helpers.getHeadersForCustomView(['category'])
+		}).then(response => {
 			if (response.ok) {
 				return response.json();
 			}
-		}).then((data) => {
+		}).then(data => {
 
-			let categories = [];
-			for (let page of data.result) {
-				if (page.category !== null && categories.indexOf(page.category) === -1) {
-					categories.push(page.category);
-				}
-			}
-			categories.sort();
+			let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
 
 			let helpText = 'Filter pages by page category.';
-			if (categories.length > 0) {
-				helpText += 'Available categories: \n\n' + categories.join('\n');
+			if (categories.size > 0) {
+				helpText += 'Available categories: \n\n' + [...categories].join('\n');
 			} else {
-				helpText += '\nNo categories available - these can be set in the advanced attributes of a page.';
+				helpText += '\nNo categories available - these can be set in the "Basic" tab of a page.';
 			}
 
 			filerEl.querySelector('input.category-filter').title = helpText;

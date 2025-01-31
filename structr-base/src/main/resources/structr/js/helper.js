@@ -683,7 +683,15 @@ let _Helpers = {
 			el.attr('title', 'Result count = ' + pageSize);
 		},
 	},
-	isMac: () => (navigator.platform === 'MacIntel')
+	isMac: () => (navigator.platform === 'MacIntel'),
+	getHeadersForCustomView: (desiredProperties = []) => {
+
+		let propertiesString = ((desiredProperties.length > 0) ? ` properties=${desiredProperties.join(',')}` : '');
+
+		return {
+			Accept: 'application/json; charset=utf-8;' + propertiesString
+		}
+	}
 };
 
 /**

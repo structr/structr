@@ -762,10 +762,8 @@ let _Files = {
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			fetch(Structr.rootUrl + 'me/favorites', {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + _Files.defaultFileAttributes
-				}
+			fetch(`${Structr.rootUrl}me/favorites`, {
+				headers: _Helpers.getHeadersForCustomView(_Files.defaultFileAttributes)
 			}).then(async response => {
 				if (response.ok) {
 					let data = await response.json();

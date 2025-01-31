@@ -642,16 +642,18 @@ let _Crud = {
 
 			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
-			let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(','));
+			let customViewProperties = (isRetry ? [] : _Crud.objectList.filterKeys(type, Object.keys(properties)));
 
 			let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
 
+			let headers = {
+				Range: _Crud.objectList.getRangeHeaderForType(type),
+			};
+			Object.assign(headers, _Helpers.getHeadersForCustomView(customViewProperties));
+
 			fetch (url, {
 				signal: signal,
-				headers: {
-					Range: _Crud.objectList.getRangeHeaderForType(type),
-					Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
-				}
+				headers: headers
 			}).then(async response => {
 
 				let data = await response.json();
@@ -3128,9 +3130,7 @@ let _Crud = {
 			let properties = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
 
 			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(',')
-				}
+				headers: _Helpers.getHeadersForCustomView(_Crud.objectList.filterKeys(type, Object.keys(properties)))
 			});
 
 			if (newNodeResponse.ok) {
@@ -3149,11 +3149,11 @@ let _Crud = {
 	},
 	crudCache: new AsyncObjectCache(async (obj) => {
 
+		let properties = ['id', 'name', 'type', 'contentType', 'isThumbnail', 'isImage', 'tnSmall', 'tnMid'];
+
 		let response = await fetch(Structr.rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + _Crud.defaultView, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-			}
-		})
+			headers: _Helpers.getHeadersForCustomView(properties)
+		});
 
 		if (response.ok) {
 
