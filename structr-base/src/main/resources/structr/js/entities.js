@@ -2706,10 +2706,13 @@ let _Entities = {
 
 				_Schema.getTypeInfo(entity.type, (typeInfo) => {
 
-					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
+					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (propertiesInfo) => {
+
+						// filter out id,name,type from properties
+						let customProperties = Object.keys(propertiesInfo).filter(key => !['id', 'type', 'name'].includes(key));
 
 						// make container visible when custom properties exist
-						if (Object.keys(properties).length > 0) {
+						if (customProperties.length > 0) {
 							$('div#custom-properties-parent').removeClass("hidden");
 						}
 
