@@ -110,8 +110,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 	public static final Property<Boolean> hasSharedComponent         = new BooleanProperty("hasSharedComponent").indexed().partOfBuiltInSchema();
 	public static final Property<Boolean> manualReloadTargetProperty = new BooleanProperty("data-structr-manual-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.").partOfBuiltInSchema();
-	public static final Property<Boolean> fromWidgetProperty         = new BooleanProperty("fromWidget").partOfBuiltInSchema();
-	public static final Property<Boolean> dataInsertProperty         = new BooleanProperty("data-structr-insert").partOfBuiltInSchema();
 	public static final Property<Boolean> dataFromWidgetProperty     = new BooleanProperty("data-structr-from-widget").partOfBuiltInSchema();
 
 	public static final Property<String> eventMappingProperty       = new StringProperty("eventMapping").category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).").partOfBuiltInSchema();
@@ -208,7 +206,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		tagProperty, pathProperty, partialUpdateKeyProperty, htmlClassProperty, htmlIdProperty, sharedComponentConfigurationProperty,
 		isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, dataStructrIdProperty, childrenProperty,
 		childrenIdsProperty, showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty,
-		restQueryProperty, functionQueryProperty, renderingModeProperty, delayOrIntervalProperty, dataInsertProperty, dataFromWidgetProperty, dataTreeChildrenProperty,
+		restQueryProperty, functionQueryProperty, renderingModeProperty, delayOrIntervalProperty, dataFromWidgetProperty, dataTreeChildrenProperty,
 		dataReloadTargetProperty, eventMappingProperty, triggeredActionsProperty, reloadingActionsProperty, failureActionsProperty, successNotificationActionsProperty,
 		failureNotificationActionsProperty, manualReloadTargetProperty
 	);
@@ -1137,17 +1135,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 			// include special mode attributes
 			switch (editMode) {
-
-				case SHAPES:
-				case SHAPES_MINIATURES:
-
-					final boolean isInsertable = getProperty(DOMElement.dataInsertProperty);
-					final boolean isFromWidget = getProperty(DOMElement.fromWidgetProperty);
-
-					if (isInsertable || isFromWidget) {
-						out.append(" data-structr-id=\"").append(uuid).append("\"");
-					}
-					break;
 
 				case CONTENT:
 

@@ -101,31 +101,13 @@ public class Template extends Content {
 			out.append("</structr:template>");
 			out.append(DOMNode.indent(depth-1, renderContext));
 
-		} else if (EditMode.SHAPES.equals(editMode)) {
+		} else if (EditMode.PREVIEW.equals(editMode)) {
 
 			final AsyncBuffer out = renderContext.getBuffer();
 
 			out.append("<structr:template data-structr-id=\"");
 			out.append(this.getUuid());
 			out.append("\">\n");
-
-			// render content
-			super.renderContent(renderContext, depth);
-
-			out.append("\n</structr:template>\n");
-
-		} else if (EditMode.SHAPES_MINIATURES.equals(editMode)) {
-
-			final AsyncBuffer out = renderContext.getBuffer();
-
-			out.append("<structr:template data-structr-id=\"");
-			out.append(this.getUuid());
-			out.append("\">\n");
-
-			// Append preview CSS
-			out.append("<style type=\"text/css\">");
-			out.append(this.getProperty("previewCss"));
-			out.append("</style>\n");
 
 			// render content
 			super.renderContent(renderContext, depth);
