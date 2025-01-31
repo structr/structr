@@ -115,9 +115,6 @@ public interface DOMNode extends NodeTrait, LinkedTreeNode {
 	boolean avoidWhitespace();
 	boolean inTrash();
 	boolean dontCache();
-	boolean hideOnIndex();
-	boolean hideOnDetail();
-	boolean renderDetails();
 	boolean displayForLocale(final RenderContext renderContext);
 	boolean displayForConditions(final RenderContext renderContext);
 	boolean shouldBeRendered(final RenderContext renderContext);

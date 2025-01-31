@@ -33,7 +33,6 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.*;
-import org.structr.web.entity.html.Div;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -242,11 +241,11 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Div div = (Div)app.nodeQuery().andName("WidgetTestPage-Div").getFirst();
+			NodeInterface div = app.nodeQuery().andName("WidgetTestPage-Div").getFirst();
 
-			assertEquals(1, div.treeGetChildCount());
+			assertEquals(1, div.as(DOMNode.class).treeGetChildCount());
 
-			Object obj = div.treeGetFirstChild();
+			Object obj = div.as(DOMNode.class).treeGetFirstChild();
 
 			assertTrue(Template.class.isAssignableFrom(obj.getClass()));
 
@@ -316,20 +315,18 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Div div = app.nodeQuery("Div").andName("WidgetTestPage-Div").getFirst().as(Div.class);
+			DOMNode div = app.nodeQuery("Div").andName("WidgetTestPage-Div").getFirst().as(DOMNode.class);
 
 			assertEquals(2, div.treeGetChildCount());
 
-			Object obj = null;
+			DOMNode obj = null;
 
 			for (final NodeInterface n: div.getAllChildNodes()){
-				obj = n;
+				obj = n.as(DOMNode.class);
 				break;
 			}
 
-			assertTrue(Div.class.isAssignableFrom(obj.getClass()));
-
-			Div clonedNode = (Div)obj;
+			DOMNode clonedNode = obj;
 
 			assertEquals(0, clonedNode.getChildNodes().size());
 			assertEquals(3, app.nodeQuery("Div").andName("TestComponent").getAsList().size());
@@ -406,8 +403,8 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createSimplePage(securityContext, "page1");
-			final Div div   = (Div)page.getElementsByTagName("div").get(0);
+			final Page page   = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div = page.getElementsByTagName("div").get(0);
 
 			try {
 

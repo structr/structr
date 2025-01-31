@@ -243,7 +243,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 					// parse page
 					final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-					final NodeInterface rootElement;
+					final DOMNode rootElement;
 
 					if (isHullMode()) {
 

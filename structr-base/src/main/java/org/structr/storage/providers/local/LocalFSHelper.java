@@ -24,10 +24,10 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSHelper {
 
@@ -45,7 +45,7 @@ public class LocalFSHelper {
 	public java.io.File getFileOnDisk(final AbstractFile thisFile, final boolean create) {
 
 		final Folder parentFolder = thisFile.getParent();
-		return getFileOnDisk(parentFolder, (File) thisFile, create);
+		return getFileOnDisk(parentFolder, thisFile.as(File.class), create);
 	}
 
 	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {

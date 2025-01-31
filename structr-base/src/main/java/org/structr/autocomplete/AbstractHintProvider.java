@@ -26,15 +26,17 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
@@ -43,16 +45,11 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.ContentHandler;
+import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
 import java.util.*;
-
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
-import org.structr.core.graph.Tx;
-import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 
 public abstract class AbstractHintProvider {
@@ -206,7 +203,7 @@ public abstract class AbstractHintProvider {
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final Traits traits = Traits.of("SchemaNode");
+			final Traits traits = Traits.of("SchemaMethod");
 
 			for (final NodeInterface node : StructrApp.getInstance().nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).sort(traits.key("name")).getResultStream()) {
 
@@ -317,7 +314,7 @@ public abstract class AbstractHintProvider {
 
 				case "current":
 					tokenTypes.add("keyword");
-					type = "AbstractNode";
+					type = "NodeInterface";
 					break;
 
 				case "this":
@@ -357,12 +354,14 @@ public abstract class AbstractHintProvider {
 					// skip numbers
 					if (!StringUtils.isNumeric(token)) {
 
-						if (type != null) {
+						if (type != null && Traits.exists(type)) {
 
+							final Traits traits   = Traits.of(type);
 							final String cleaned  = token.replaceAll("[\\W\\d]+", "");
-							final PropertyKey key = Traits.of(type).key(cleaned);
 
-							if (key != null && key.relatedType() != null) {
+							if (traits.hasKey(cleaned)) {
+
+								final PropertyKey key = traits.key(cleaned);
 
 								tokenTypes.add("keyword");
 								type = key.relatedType();

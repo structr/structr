@@ -49,7 +49,6 @@ import org.structr.web.converter.ContentConverters;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Textarea;
 import org.structr.web.traits.operations.DoImport;
 import org.structr.web.traits.operations.GetContextName;
 import org.structr.web.traits.operations.RenderContent;
@@ -263,7 +262,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						if (((_contentType == null) || _contentType.equals("text/plain"))) {
 
 							final DOMNode _parent = node.getParent();
-							if (_parent == null || !(_parent instanceof Textarea)) {
+							if (_parent == null || !(_parent.is("Textarea"))) {
 
 								handler.setReplaceNewlines(true);
 							}

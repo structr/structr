@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNode;
@@ -82,6 +83,17 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		return Set.of(
 			linkableProperty,
 			linkableIdProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Ui,
+			newSet(
+				"linkableId", "linkable"
+			)
 		);
 	}
 

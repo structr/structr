@@ -1028,21 +1028,6 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	}
 
 	@Override
-	public final boolean hideOnIndex() {
-		return wrappedObject.getProperty(traits.key("hideOnIndex"));
-	}
-
-	@Override
-	public final boolean hideOnDetail() {
-		return wrappedObject.getProperty(traits.key("hideOnDetail"));
-	}
-
-	@Override
-	public final boolean renderDetails() {
-		return wrappedObject.getProperty(traits.key("renderDetails"));
-	}
-
-	@Override
 	public final boolean displayForLocale(final RenderContext renderContext) {
 
 		final String localeString = renderContext.getLocale().toString();
@@ -1668,8 +1653,13 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		for (final String key : props) {
 
-			PropertyKey propertyKey = traits.key(key);
-			if (propertyKey == null) {
+			final PropertyKey propertyKey;
+
+			if (traits.hasKey(key)) {
+
+				propertyKey = traits.key(key);
+
+			} else {
 
 				// support arbitrary data-* attributes
 				propertyKey = new StringProperty(key);

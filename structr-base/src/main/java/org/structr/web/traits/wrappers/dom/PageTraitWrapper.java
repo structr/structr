@@ -113,7 +113,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key("elements");
 
-		return Iterables.map(n -> n.as(DOMElement.class), wrappedObject.getProperty(key));
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
 	}
 
 	@Override

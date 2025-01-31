@@ -36,7 +36,6 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Div;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -487,7 +486,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParent().appendChild(notificationElement);
 
@@ -899,7 +898,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParent().appendChild(notificationElement);
 
@@ -1113,7 +1112,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParent().appendChild(notificationElement);
 
@@ -1314,7 +1313,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -1428,7 +1427,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -1535,7 +1534,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -1642,7 +1641,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -1748,7 +1747,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -2059,7 +2058,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -2173,7 +2172,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -2280,7 +2279,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -2387,7 +2386,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
 			final DOMElement btn   = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
@@ -2492,9 +2491,9 @@ public class EventActionMappingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").get(0);
-			final DOMElement btn   = page1.createElement("button");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);

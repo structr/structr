@@ -199,7 +199,6 @@ module structr.base {
     exports org.structr.web.entity.css;
     exports org.structr.web.entity.dom;
     exports org.structr.web.entity.event;
-    exports org.structr.web.entity.html;
     exports org.structr.web.error;
     exports org.structr.web.function;
     exports org.structr.web.importer;

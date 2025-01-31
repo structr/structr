@@ -37,7 +37,7 @@ public class FourThreeOneToOne extends AbstractRelationshipTraitDefinition imple
 
 	@Override
 	public String getTargetType() {
-		return "Testthree";
+		return "TestThree";
 	}
 
 	@Override

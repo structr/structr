@@ -50,7 +50,6 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -256,7 +255,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-					updateReloadTargets(((NodeInterface) graphObject).as(DOMElement.class));
+					updateReloadTargets(graphObject.as(DOMElement.class));
 				}
 			},
 
@@ -265,7 +264,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-					updateReloadTargets(((NodeInterface) graphObject).as(DOMElement.class));
+					updateReloadTargets(graphObject.as(DOMElement.class));
 				}
 			}
 		);
@@ -467,9 +466,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 								for (final RelationshipInterface rel : rels) {
 
-									final DOMNode subNode = (DOMNode) rel.getTargetNode();
+									final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
 
-									if (subNode instanceof DOMElement) {
+									if (subNode.is("DOMElement")) {
 										anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 									}
 

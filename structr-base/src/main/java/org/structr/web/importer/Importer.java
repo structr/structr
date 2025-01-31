@@ -316,11 +316,11 @@ public class Importer {
 		return page;
 	}
 
-	public NodeInterface createComponentChildNodes(final Page page) throws FrameworkException {
+	public DOMNode createComponentChildNodes(final Page page) throws FrameworkException {
 		return createComponentChildNodes(null, page);
 	}
 
-	public NodeInterface createComponentChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
+	public DOMNode createComponentChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
 		// head() and body() automatically create elements (inlcuding "html") - but we want to keep the original intact
 		final String initialDocument = parsedDocument.toString();
@@ -366,7 +366,7 @@ public class Importer {
 			createChildNodes(head, headElement, page);
 
 			// head is a special case
-			return headElement.getWrappedNode();
+			return headElement;
 		}
 
 		if (body != null && !body.html().isEmpty()) {
@@ -379,24 +379,24 @@ public class Importer {
 			createChildNodes(body, bodyElement, page);
 
 			// body is another special case
-			return bodyElement.getWrappedNode();
+			return bodyElement;
 		}
 
 		// fallback, no head no body => document is parent
 		return createChildNodes(parsedDocument, parent, page);
 	}
 
-	public NodeInterface createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
+	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
 		return createChildNodes(parsedDocument.body(), parent, page);
 	}
 
-	public NodeInterface createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+	public DOMNode createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
 		return createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute, 0);
 	}
 
-	public NodeInterface createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+	public DOMNode createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
 		return createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
 	}
@@ -433,7 +433,7 @@ public class Importer {
 		}
 	}
 
-	public NodeInterface createComponentHullChildNodes (final DOMNode parent, final Page page) throws FrameworkException {
+	public DOMNode createComponentHullChildNodes (final DOMNode parent, final Page page) throws FrameworkException {
 
 		for (final Node node : parsedDocument.childNodes()) {
 
@@ -637,15 +637,15 @@ public class Importer {
 	}
 
 	// ----- private methods -----
-	private NodeInterface createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
 		return createChildNodes(startNode, parent, page, false, 0);
 	}
 
-	private NodeInterface createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
 		return createChildNodes(startNode, parent, page, false, 0, null);
 	}
 
-	private NodeInterface createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth, final DOMNode suppliedRoot) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth, final DOMNode suppliedRoot) throws FrameworkException {
 
 		DOMNode rootElement     = suppliedRoot;
 		Linkable linkable       = null;
@@ -908,10 +908,14 @@ public class Importer {
 				final String src = node.attr("src");
 				if (src != null) {
 
-					NodeInterface component = null;
+					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						component = app.nodeQuery("DOMNode").and(Traits.idProperty(), src).getFirst();
+						final NodeInterface n = app.nodeQuery("DOMNode").and(Traits.idProperty(), src).getFirst();
+						if (n != null) {
+
+							component = n.as(DOMNode.class);
+						}
 
 					} else {
 
@@ -919,11 +923,19 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							component = app.nodeQuery("DOMNode").and(Traits.idProperty(), uuidAtEnd).getFirst();
+							final NodeInterface n = app.nodeQuery("DOMNode").and(Traits.idProperty(), uuidAtEnd).getFirst();
+							if (n != null) {
+
+								component = n.as(DOMNode.class);
+							}
 
 						} else {
 
-							component = Importer.findSharedComponentByName(src);
+							final NodeInterface n = Importer.findSharedComponentByName(src);
+							if (n != null) {
+
+								component = n.as(DOMNode.class);
+							}
 						}
 					}
 
@@ -1268,7 +1280,7 @@ public class Importer {
 			createEmptyContentNode(page, parent, commentHandler, instructions);
 		}
 
-		return rootElement.getWrappedNode();
+		return rootElement;
 	}
 
 	/**
@@ -1704,7 +1716,7 @@ public class Importer {
 
 	}
 
-	private NodeInterface createSharedComponent(final Node node) throws FrameworkException {
+	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
 		return createChildNodes(node, null, CreateComponentCommand.getOrCreateHiddenDocument());
 	}
 

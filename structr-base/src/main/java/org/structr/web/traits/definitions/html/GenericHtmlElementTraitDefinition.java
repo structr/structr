@@ -26,7 +26,10 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.web.traits.operations.AvoidWhitespace;
+import org.structr.web.traits.operations.IsVoidElement;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,12 +41,39 @@ public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
+
+		final Map<Class, FrameworkMethod> frameworkMethods = super.getFrameworkMethods();
+
+		frameworkMethods.put(
+
+			AvoidWhitespace.class,
+			new AvoidWhitespace() {
+
+				@Override
+				public boolean avoidWhitespace() {
+					return false;
+				}
+			}
+		);
+
+		frameworkMethods.put(
+
+			IsVoidElement.class,
+			new IsVoidElement() {
+
+				@Override
+				public boolean isVoidElement() {
+					return false;
+				}
+			}
+		);
+
+		return frameworkMethods;
 	}
 
 	@Override

@@ -526,6 +526,8 @@ public class PerformanceTest extends StructrUiTest {
 				final Page page      = app.nodeQuery("Page").getFirst().as(Page.class);
 				final String content = page.getContent(RenderContext.EditMode.NONE);
 
+				System.out.println("###################################################################################################################");
+				System.out.println(content);
 				System.out.println("Content length: " + content.length());
 
 				tx.success();

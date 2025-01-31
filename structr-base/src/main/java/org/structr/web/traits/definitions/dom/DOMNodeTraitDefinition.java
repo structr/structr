@@ -179,17 +179,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 					*/
 
-					final GraphObject details = renderContext.getDetailsDataObject();
-					final boolean detailMode = details != null;
-
-					if (detailMode && node.hideOnDetail()) {
-						return;
-					}
-
-					if (!detailMode && node.hideOnIndex()) {
-						return;
-					}
-
 					if (isAdminOnlyEditMode) {
 
 						node.renderContent(renderContext, depth);
@@ -500,6 +489,14 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					// TODO: check hierarchy constraints imposed by the schema
 					// validation successful
 					return;
+				}
+			},
+
+			RenderManagedAttributes.class,
+			new RenderManagedAttributes() {
+
+				@Override
+				public void renderManagedAttributes(final NodeInterface node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 				}
 			}
 		);

@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
@@ -63,7 +62,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 		return "Inserts a new HTML subtree into the DOM";
 	}
 
-	public static NodeInterface apply(final SecurityContext securityContext, final NodeInterface parent, final String htmlSource) throws FrameworkException {
+	public static DOMNode apply(final SecurityContext securityContext, final NodeInterface parent, final String htmlSource) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, htmlSource, null, null, false, false, false, false);
 

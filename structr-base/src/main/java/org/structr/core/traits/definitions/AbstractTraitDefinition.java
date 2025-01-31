@@ -27,6 +27,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,22 +53,22 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 
 	@Override
 	public Map<String, Set<String>> getViews() {
-		return Map.of();
+		return new LinkedHashMap<>();
 	}
 
 	protected Relation getRelationForType(final String type) {
