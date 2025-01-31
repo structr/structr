@@ -97,16 +97,6 @@ let _Entities = {
 			}
 		});
 	},
-	appendSchemaHint: (el, key, typeInfo) => {
-
-		if (typeInfo[key] && typeInfo[key].hint) {
-			_Helpers.appendInfoTextToElement({
-				element: el,
-				text: typeInfo[key].hint,
-				class: 'hint'
-			});
-		}
-	},
 	repeaterConfig: (entity, el) => {
 
 		let queryTypes = [
@@ -663,9 +653,7 @@ let _Entities = {
 			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
-				}
+				headers: _Helpers.getHeadersForCustomView(filteredProperties)
 			}).then(async response => {
 
 				let data          = await response.json();
@@ -739,9 +727,7 @@ let _Entities = {
 		cell.css('height', '60px');
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name'
-			}
+			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
 		}).then(async response => {
 
 			let data = await response.json();
@@ -858,12 +844,12 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-			let isSystem     = typeInfo[key].system;
-			let isBoolean    = (typeInfo[key].type === 'Boolean');
-			let isDate       = (typeInfo[key].type === 'Date');
-			let isRelated    = typeInfo[key].relatedType;
-			let isCollection = typeInfo[key].isCollection;
+			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key]?.readOnly ?? false);
+			let isSystem     = (typeInfo[key]?.system ?? false);
+			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
+			let isDate       = (typeInfo[key]?.type === 'Date');
+			let isRelated    = (typeInfo[key]?.relatedType !== undefined);
+			let isCollection = (typeInfo[key]?.isCollection ?? false);
 
 			if (view === '_html_') {
 
@@ -997,7 +983,15 @@ let _Entities = {
 				}
 			}
 
-			_Entities.appendSchemaHint($('.key:last', propsTable), key, typeInfo);
+			let hintText = typeInfo[key]?.hint;
+
+			if (hintText) {
+				_Helpers.appendInfoTextToElement({
+					element: $('.key:last', propsTable),
+					text: hintText,
+					class: 'hint'
+				});
+			}
 
 			let nullIconId = `#${_Entities.null_prefix}${key}`;
 
@@ -2708,10 +2702,13 @@ let _Entities = {
 
 				_Schema.getTypeInfo(entity.type, (typeInfo) => {
 
-					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
+					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (propertiesInfo) => {
+
+						// filter out id,name,type from properties
+						let customProperties = Object.keys(propertiesInfo).filter(key => !['id', 'type', 'name'].includes(key));
 
 						// make container visible when custom properties exist
-						if (Object.keys(properties).length > 0) {
+						if (customProperties.length > 0) {
 							$('div#custom-properties-parent').removeClass("hidden");
 						}
 

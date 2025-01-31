@@ -1642,11 +1642,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
+				final PropertyKey<Iterable<DOMNode>> successNotificationElementsKey = StructrApp.key(ActionMapping.class, "successNotificationElements");
+				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getProperty(successNotificationElementsKey));
+
+				if (!successNotificationElements.isEmpty()) {
+					putData(entry, "successNotificationElements", successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+				}
+
 				final PropertyKey<Iterable<DOMNode>> failureTargetsKey = StructrApp.key(ActionMapping.class, "failureTargets");
 				List<DOMNode> failureTargets = Iterables.toList(actionMapping.getProperty(failureTargetsKey));
 
 				if (!failureTargets.isEmpty()) {
 					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+				}
+
+				final PropertyKey<Iterable<DOMNode>> failureNotificationElementsKey = StructrApp.key(ActionMapping.class, "failureNotificationElements");
+				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getProperty(failureNotificationElementsKey));
+
+				if (!failureNotificationElements.isEmpty()) {
+					putData(entry, "failureNotificationElements", failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");

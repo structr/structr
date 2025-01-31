@@ -432,8 +432,9 @@ let _Crud = {
 
 			_Crud.objectList.updateCrudTableHeader(type);
 
-			document.querySelector('#create' + type).addEventListener('click', () => {
-				_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
+			document.querySelector('#create' + type).addEventListener('click', (e) => {
+
+				_Crud.creationDialogWithErrorHandling.initializeForEvent(e, type, {}, _Crud.creationDialogWithErrorHandling.crudCreateSuccess);
 			});
 
 			document.querySelector('#export' + type).addEventListener('click', () => {
@@ -641,16 +642,18 @@ let _Crud = {
 
 			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
-			let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(','));
+			let customViewProperties = (isRetry ? [] : _Crud.objectList.filterKeys(type, Object.keys(properties)));
 
 			let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
 
+			let headers = {
+				Range: _Crud.objectList.getRangeHeaderForType(type),
+			};
+			Object.assign(headers, _Helpers.getHeadersForCustomView(customViewProperties));
+
 			fetch (url, {
 				signal: signal,
-				headers: {
-					Range: _Crud.objectList.getRangeHeaderForType(type),
-					Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
-				}
+				headers: headers
 			}).then(async response => {
 
 				let data = await response.json();
@@ -2885,6 +2888,7 @@ let _Crud = {
 
 						let val = _Entities.basicTab.getValueFromFormElement(i);
 
+
 						if (isCollection) {
 
 							returnObject[key].push(val);
@@ -2897,7 +2901,10 @@ let _Crud = {
 				}
 			}
 
-			return returnObject;
+			// filter our empty strings and empty arrays
+			let filteredData = Object.fromEntries(Object.entries(returnObject).filter(([key, value]) => (value !== '' && !(Array.isArray(value) && value.length === 0))));
+
+			return filteredData;
 		},
 		crudAskDelete: async (type, id) => {
 
@@ -2961,8 +2968,19 @@ let _Crud = {
 			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime', 'pointer-events-none']));
 		}
 	},	
-	createDialogWithErrorHandling: {
-		create: (type, nodeData = {}, onSuccess) => {
+	creationDialogWithErrorHandling: {
+		initializeForEvent: (e, type, initialData = {}, onSuccess) => {
+
+			if (e.shiftKey === true) {
+
+				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowCreateDialog(type, initialData, onSuccess);
+
+			} else {
+
+				_Crud.creationDialogWithErrorHandling.tryCreate(type, initialData, onSuccess);
+			}
+		},
+		tryCreate: (type, nodeData = {}, onSuccess) => {
 
 			let url = Structr.rootUrl + type;
 
@@ -2991,7 +3009,7 @@ let _Crud = {
 
 					_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
+						_Crud.creationDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
 					});
 				}
 			});
@@ -3001,7 +3019,7 @@ let _Crud = {
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
 			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
+				let elements = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
 				dialogText = elements.dialogText;
 			}
 
@@ -3013,13 +3031,13 @@ let _Crud = {
 			// delay only used to further highlight the input elements (slight blink)
 			window.setTimeout(() => {
 
-				for (let error of responseData.errors) {
+				for (let error of (responseData?.errors ?? [])) {
 
 					let key      = error.property;
 					let errorMsg = error.token;
 
-					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
-					if (inputs.length > 0) {
+					let cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (cellsForKeyWithError.length > 0) {
 
 						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
 
@@ -3029,16 +3047,22 @@ let _Crud = {
 
 						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
 
-
 						// add "invalid" highlight from elements
-						for (let input of inputs) {
+						for (let input of cellsForKeyWithError) {
 							input.classList.add('form-input', 'input-invalid');
 						}
 
-						inputs[0].focus();
+						cellsForKeyWithError[0].focus();
 					}
 				}
 			}, 100);
+		},
+		loadTypeInfoAndShowCreateDialog: (type, initialData = {}, onSuccess) => {
+
+			_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
+
+				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess) => {
 
@@ -3056,7 +3080,12 @@ let _Crud = {
 
 			let isRelType = _Crud.helpers.isRelType(type);
 
-			for (let key in _Crud.types[type].views.all) {
+			// sort keys to the top, for which initial data has been provided
+			let sortedKeys = Object.keys(initialData);
+			let otherKeys  = Object.keys(_Crud.types[type].views.all).filter(otherKey => !sortedKeys.includes(otherKey));
+			sortedKeys.push(...otherKeys);
+
+			for (let key of sortedKeys) {
 
 				let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
 				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
@@ -3091,7 +3120,7 @@ let _Crud = {
 
 				_Helpers.disableElement(dialogSaveButton);
 				let nodeData = _Crud.helpers.getDataFromForm(document.querySelector('#entityForm'));
-				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
+				_Crud.creationDialogWithErrorHandling.tryCreate(type, nodeData, onSuccess);
 			});
 
 			return dialog;
@@ -3101,9 +3130,7 @@ let _Crud = {
 			let properties = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
 
 			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(',')
-				}
+				headers: _Helpers.getHeadersForCustomView(_Crud.objectList.filterKeys(type, Object.keys(properties)))
 			});
 
 			if (newNodeResponse.ok) {
@@ -3122,11 +3149,11 @@ let _Crud = {
 	},
 	crudCache: new AsyncObjectCache(async (obj) => {
 
+		let properties = ['id', 'name', 'type', 'contentType', 'isThumbnail', 'isImage', 'tnSmall', 'tnMid'];
+
 		let response = await fetch(Structr.rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + _Crud.defaultView, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-			}
-		})
+			headers: _Helpers.getHeadersForCustomView(properties)
+		});
 
 		if (response.ok) {
 
@@ -3206,7 +3233,7 @@ let _Crud = {
 		`,
 		typeButtons: config => `
 			<div id="crud-buttons" class="flex items-center">
-				<button class="action inline-flex items-center" id="create${config.type}">
+				<button class="action inline-flex items-center" id="create${config.type}" title="Create node of type ${config.type}. Hold the shift key to open the 'Create Node' dialog.">
 					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create ${config.type}
 				</button>
 				<button id="export${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
