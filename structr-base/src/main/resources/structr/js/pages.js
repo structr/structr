@@ -1230,7 +1230,7 @@ let _Pages = {
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
-						<span class="position_">${(entity.position ? entity.position : '')}</span>
+						<span class="position_">${((entity.position !== undefined && entity.position !== null) ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
