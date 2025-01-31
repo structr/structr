@@ -33,6 +33,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.Folder;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -40,6 +41,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -170,17 +172,26 @@ public class UpdateCommand extends AbstractCommand {
 		return "UPDATE";
 	}
 
-	private void collectEntities(final Set<String> entities, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
+	private void collectEntities(final Set<String> entities, final GraphObject obj, final PropertyMap properties, final boolean recursive) throws FrameworkException {
 
 		entities.add(obj.getUuid());
 
-		if (rec && obj instanceof LinkedTreeNode) {
+		if (recursive) {
 
-			LinkedTreeNode node = (LinkedTreeNode) obj;
+			if (obj instanceof LinkedTreeNode) {
 
-			for (Object child : node.treeGetChildren()) {
+				final LinkedTreeNode node = (LinkedTreeNode) obj;
 
-				collectEntities(entities, (GraphObject) child, properties, rec);
+				for (Object child : node.treeGetChildren()) {
+
+					collectEntities(entities, (GraphObject) child, properties, recursive);
+				}
+
+			} else if (obj instanceof Folder) {
+
+				final Folder folder = (Folder) obj;
+
+				entities.addAll(Folder.getAllChildNodes(folder).stream().map(abstractfile -> abstractfile.getUuid()).collect(Collectors.toList()));
 			}
 		}
 	}
