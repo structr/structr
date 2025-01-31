@@ -4753,6 +4753,16 @@ let _Pages = {
 									<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
 								</div>
 
+								<div class="hidden option-success option-success-navigate-to-url">
+									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
+									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+								</div>
+
+								<div class="hidden option-success option-success-fire-event">
+									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
+									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
+								</div>
+
 								<div class="hidden option-success option-success-partial-refresh-linked">
 									<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
 									<input type="hidden" id="success-partial-refresh-linked-input" value="">
@@ -4790,15 +4800,6 @@ let _Pages = {
 									</div>
 								</div>
 
-								<div class="hidden option-success option-success-navigate-to-url">
-									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
-									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-								</div>
-
-								<div class="hidden option-success option-success-fire-event">
-									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
-									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
-								</div>
 							</div>
 
 							<div class="grid grid-cols-2 gap-8 mt-4">
